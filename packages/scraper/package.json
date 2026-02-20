@@ -1,0 +1,21 @@
+{
+  "name": "@edlight-news/scraper",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@edlight-news/types": "workspace:*",
+    "rss-parser": "^3.13.0",
+    "undici": "^6.18.0",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

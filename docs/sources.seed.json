@@ -1,0 +1,448 @@
+[
+  {
+    "name": "Juno7 Haiti",
+    "type": "rss",
+    "url": "https://www.juno7.ht/feed/",
+    "language": "fr",
+    "pollCadenceSec": 1800,
+    "priority": "hot"
+  },
+  {
+    "name": "AyiboPost",
+    "type": "rss",
+    "url": "https://ayibopost.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 1800,
+    "priority": "hot"
+  },
+  {
+    "name": "Le Nouvelliste",
+    "type": "html",
+    "url": "https://lenouvelliste.com/",
+    "language": "fr",
+    "pollCadenceSec": 1800,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "article a, .article-card a",
+      "articleBody": "article .article-body, .post-content",
+      "title": "article h1, .article-title"
+    }
+  },
+  {
+    "name": "Haiti Libre",
+    "type": "html",
+    "url": "https://www.haitilibre.com/",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "a.titrenewsrecent, .news a",
+      "articleBody": ".articletexte, #articlebody",
+      "title": "h1, .titlearticle"
+    }
+  },
+  {
+    "name": "Loop Haiti",
+    "type": "html",
+    "url": "https://haiti.loopnews.com/",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".news-item a, article a",
+      "articleBody": ".article-body, .story-content",
+      "title": "h1.article-title, article h1"
+    }
+  },
+  {
+    "name": "Google News — Haiti",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=Haiti&hl=fr&gl=HT&ceid=HT:fr",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot"
+  },
+  {
+    "name": "Google News — Haiti Éducation & Bourses",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=Haiti+bourses+OR+%C3%A9ducation+OR+scholarship&hl=fr&gl=HT&ceid=HT:fr",
+    "language": "fr",
+    "pollCadenceSec": 7200,
+    "priority": "hot"
+  },
+  {
+    "name": "Google News — Haiti Diaspora",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=Haiti+diaspora&hl=fr&gl=HT&ceid=HT:fr",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+  {
+    "name": "ReliefWeb — Haiti",
+    "type": "rss",
+    "url": "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC113%29",
+    "language": "fr",
+    "pollCadenceSec": 7200,
+    "priority": "hot"
+  },
+  {
+    "name": "USAID Haiti",
+    "type": "html",
+    "url": "https://www.usaid.gov/haiti",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".views-row a, .usa-card a, .news-item a",
+      "articleBody": ".field--name-body, .usa-prose, main .content",
+      "title": "h1.page-title, h1"
+    }
+  },
+  {
+    "name": "US Embassy Port-au-Prince",
+    "type": "html",
+    "url": "https://ht.usembassy.gov/news-events/",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".collection-item a, article a, .news-item a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1.title, h1"
+    }
+  },
+  {
+    "name": "US State Dept — Haiti",
+    "type": "html",
+    "url": "https://www.state.gov/countries-areas/haiti/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".collection-item a, article a, .news-results a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1.title, h1"
+    }
+  },
+  {
+    "name": "WHO — Haiti",
+    "type": "rss",
+    "url": "https://www.who.int/feeds/entity/countries/hti/en/rss.xml",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "normal"
+  },
+  {
+    "name": "PAHO — Haiti",
+    "type": "html",
+    "url": "https://www.paho.org/en/haiti",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".views-row a, .card a, article a",
+      "articleBody": ".field--name-body, .node__content, main .content",
+      "title": "h1.page-title, h1"
+    }
+  },
+  {
+    "name": "UNICEF Haiti",
+    "type": "html",
+    "url": "https://www.unicef.org/haiti/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, .views-row a, article a",
+      "articleBody": ".field--name-body, .text-long, main .content",
+      "title": "h1.page-title, h1"
+    }
+  },
+  {
+    "name": "World Bank — Haiti",
+    "type": "html",
+    "url": "https://www.worldbank.org/en/country/haiti/overview",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".feature a, .news-item a, article a",
+      "articleBody": ".rich-text, .article-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Miami Herald — Haiti",
+    "type": "html",
+    "url": "https://www.miamiherald.com/news/nation-world/world/americas/haiti/",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "article a, .package a, .story-body a",
+      "articleBody": ".story-body, .article-body, .paywall",
+      "title": "h1.headline, article h1"
+    }
+  },
+  {
+    "name": "IOM — Haiti",
+    "type": "html",
+    "url": "https://www.iom.int/countries/haiti",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".views-row a, .card a, article a",
+      "articleBody": ".field--name-body, .node__content, main .content",
+      "title": "h1.page-title, h1"
+    }
+  },
+  {
+    "name": "CDC — Haiti",
+    "type": "html",
+    "url": "https://www.cdc.gov/global-health/countries/haiti.html",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, .syndicate a, article a",
+      "articleBody": ".content, .body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "IDB — Inter-American Development Bank Haiti",
+    "type": "html",
+    "url": "https://www.iadb.org/en/countries/haiti/overview",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, article a, .listing a",
+      "articleBody": ".content, .article-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Le Moniteur (Journal Officiel)",
+    "type": "html",
+    "url": "https://www.sgcm.gouv.ht/le-moniteur/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "article a, .entry-title a, .post a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1.entry-title, h1"
+    }
+  },
+  {
+    "name": "Primature (Gouvernement Haïti)",
+    "type": "html",
+    "url": "https://primature.gouv.ht/",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "article a, .post a, .news-item a",
+      "articleBody": ".entry-content, .post-content, article .content",
+      "title": "h1.entry-title, h1"
+    }
+  },
+  {
+    "name": "MENFP (Ministère Éducation Haïti)",
+    "type": "html",
+    "url": "https://menfp.gouv.ht/",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "article a, .post a, .news-item a, .actualite a",
+      "articleBody": ".entry-content, .post-content, .article-body, main .content",
+      "title": "h1.entry-title, h1"
+    }
+  },
+  {
+    "name": "MSPP (Ministère Santé Publique Haïti)",
+    "type": "html",
+    "url": "https://www.mspp.gouv.ht/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": "article a, .post a, .news-item a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Protection Civile Haïti",
+    "type": "html",
+    "url": "https://protectioncivile.gouv.ht/",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot",
+    "selectors": {
+      "listItem": "article a, .post a, .news-item a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Campus France Haïti",
+    "type": "html",
+    "url": "https://www.haiti.campusfrance.org/actualites",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".views-row a, .node-article a",
+      "articleBody": ".field--name-body, .node__content",
+      "title": "h1.page-title, article h1"
+    }
+  },
+  {
+    "name": "Fulbright Haiti",
+    "type": "html",
+    "url": "https://ht.usembassy.gov/education-culture/fulbright-program/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".collection-item a, article a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1.title, h1"
+    }
+  },
+  {
+    "name": "FOKAL Haïti",
+    "type": "html",
+    "url": "https://www.fokal.org/",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "normal",
+    "selectors": {
+      "listItem": "article a, .post a, .news-item a",
+      "articleBody": ".entry-content, article .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Fondation Digicel Haïti",
+    "type": "html",
+    "url": "https://www.fondationdigicel.org/haiti/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": "article a, .card a, .news-item a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "AUF — Agence Universitaire Francophonie",
+    "type": "html",
+    "url": "https://www.auf.org/nouvelles/appels-a-candidatures/",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".node a, .card a, article a",
+      "articleBody": ".field--name-body, .node__content, main .content",
+      "title": "h1.page-title, h1"
+    }
+  },
+  {
+    "name": "Bourses du Gouvernement Français (BGF)",
+    "type": "html",
+    "url": "https://www.campusfrance.org/fr/bourses-du-gouvernement-francais",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".card a, .views-row a, article a",
+      "articleBody": ".field--name-body, .node__content, main .content",
+      "title": "h1.page-title, h1"
+    }
+  },
+  {
+    "name": "Bourses Québec (FRQNT/FRQS/FRQSC)",
+    "type": "html",
+    "url": "https://frq.gouv.qc.ca/bourses-et-subventions/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, .views-row a, article a",
+      "articleBody": ".field--name-body, .node__content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Bourses du Gouvernement du Canada (GAC)",
+    "type": "html",
+    "url": "https://www.educanada.ca/scholarships-bourses/index.aspx?lang=fra",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".card a, .item a, article a",
+      "articleBody": ".content, .article-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "OAS — Bourses OEA",
+    "type": "html",
+    "url": "https://www.oas.org/en/scholarships/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".card a, article a, .listing a",
+      "articleBody": ".content, .article-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Chevening Scholarships (UK)",
+    "type": "html",
+    "url": "https://www.chevening.org/scholarships/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, article a, .listing a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "UNESCO Bourses",
+    "type": "html",
+    "url": "https://www.unesco.org/fr/fellowships",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, .views-row a",
+      "articleBody": ".field--name-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "name": "Idealist — Haiti & Caribbean",
+    "type": "html",
+    "url": "https://www.idealist.org/en/countries/haiti",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".listing a, .card a, article a",
+      "articleBody": ".description, .content, main .content",
+      "title": "h1"
+    }
+  }
+]

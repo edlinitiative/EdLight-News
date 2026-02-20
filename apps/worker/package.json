@@ -1,0 +1,30 @@
+{
+  "name": "@edlight-news/worker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "seed:sources": "tsx src/scripts/seedSources.ts"
+  },
+  "dependencies": {
+    "@edlight-news/types": "workspace:*",
+    "@edlight-news/firebase": "workspace:*",
+    "@edlight-news/scraper": "workspace:*",
+    "@edlight-news/generator": "workspace:*",
+    "@edlight-news/renderer": "workspace:*",
+    "@edlight-news/publisher": "workspace:*",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.12",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5"
+  }
+}

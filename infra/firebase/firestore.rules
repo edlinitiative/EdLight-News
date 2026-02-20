@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default: deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Sources: admin only (server-side via Admin SDK bypasses rules)
+    match /sources/{sourceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Raw items: server-only writes
+    match /raw_items/{itemId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Items: server-only writes
+    match /items/{itemId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Content versions: public read for published, server writes
+    match /content_versions/{versionId} {
+      allow read: if resource.data.status == 'published';
+      allow write: if false;
+    }
+
+    // Assets: public read
+    match /assets/{assetId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Publish queue: server-only
+    match /publish_queue/{entryId} {
+      allow read, write: if false;
+    }
+
+    // Metrics: server-only
+    match /metrics/{metricId} {
+      allow read, write: if false;
+    }
+  }
+}
