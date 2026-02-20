@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "pnpm --filter @edlight-news/types run build && tsc",
+    "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch"
   },

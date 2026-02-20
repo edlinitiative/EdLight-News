@@ -4,6 +4,8 @@ node_modules
 
 # build outputs
 dist
+# keep types/dist committed so Vercel always has it without race conditions
+!packages/types/dist/
 .next
 .turbo
 out
