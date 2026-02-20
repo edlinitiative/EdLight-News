@@ -1,12 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@edlight-news/types", "@edlight-news/firebase"],
+  // Only transpile @edlight-news/types (pure TS types + Zod, safe to bundle).
+  // @edlight-news/firebase is intentionally NOT transpiled — it ships a pre-built
+  // dist/index.js and is kept out of webpack via serverComponentsExternalPackages.
+  transpilePackages: ["@edlight-news/types"],
   experimental: {
-    // Prevent webpack from bundling firebase-admin and its gRPC/SSL dependencies.
-    // When bundled, OpenSSL certificate handling breaks with:
-    //   "error:1E08010C:DECODER routines::unsupported"
-    // By externalising them, Node.js loads them natively at runtime instead.
+    // Keep firebase-admin and its gRPC/SSL stack out of webpack entirely.
+    // webpack emits a native require(); Node.js loads them from node_modules at
+    // runtime where TLS certificate handling works correctly.
     serverComponentsExternalPackages: [
+      "@edlight-news/firebase",
       "firebase-admin",
       "@google-cloud/firestore",
       "@grpc/grpc-js",
