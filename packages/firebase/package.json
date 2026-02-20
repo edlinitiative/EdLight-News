@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -b",
+    "build": "node -e \"const fs=require('fs'),path=require('path');const d='../types/dist';console.log('CWD:',process.cwd());console.log('types/dist exists:',fs.existsSync(d));console.log('index.d.ts:',fs.existsSync(d+'/index.d.ts'));const nm=path.resolve('node_modules/@edlight-news/types');console.log('node_modules link:',fs.existsSync(nm));\" && tsc -b",
     "typecheck": "tsc -b --noEmit",
     "dev": "tsc -b --watch"
   },

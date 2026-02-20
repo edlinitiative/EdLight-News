@@ -17,3 +17,5 @@ out
 *.log
 nohup.out
 
+.vercel
+.env*.local
