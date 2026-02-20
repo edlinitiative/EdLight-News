@@ -1,30 +1,68 @@
 /** @type {import('next').NextConfig} */
+
+// These packages must never be webpack-bundled. When bundled, firebase-admin's
+// gRPC/SSL stack breaks with "DECODER routines::unsupported".
+// Listed here so both serverComponentsExternalPackages AND the custom webpack
+// externals function stay in sync.
+const FIREBASE_EXTERNALS = [
+  "firebase-admin",
+  "@google-cloud/firestore",
+  "@grpc/grpc-js",
+  "google-auth-library",
+];
+
 const nextConfig = {
-  // Only transpile @edlight-news/types (pure TS types + Zod, safe to bundle).
-  // @edlight-news/firebase is intentionally NOT transpiled — it ships a pre-built
-  // dist/index.js and is kept out of webpack via serverComponentsExternalPackages.
-  transpilePackages: ["@edlight-news/types"],
+  // @edlight-news/firebase is transpiled from source so webpack can bundle it
+  // into the serverless function — avoiding the pnpm-symlink runtime resolution
+  // problem that occurs when the package is externalised on Vercel.
+  // @edlight-news/types is pure TS/Zod, always safe to bundle.
+  transpilePackages: ["@edlight-news/types", "@edlight-news/firebase"],
   experimental: {
-    // Keep firebase-admin and its gRPC/SSL stack out of webpack entirely.
-    // webpack emits a native require(); Node.js loads them from node_modules at
-    // runtime where TLS certificate handling works correctly.
-    serverComponentsExternalPackages: [
-      "@edlight-news/firebase",
-      "firebase-admin",
-      "@google-cloud/firestore",
-      "@grpc/grpc-js",
-      "google-auth-library",
-    ],
+    // Belt-and-suspenders: also list firebase-admin packages here so Next.js
+    // marks them external through its own mechanism.
+    serverComponentsExternalPackages: FIREBASE_EXTERNALS,
   },
-  webpack(config) {
+  webpack(config, { isServer }) {
     // When Next.js transpiles workspace packages from TypeScript source,
     // imports like './admin.js' need to resolve to './admin.ts'.
     config.resolve.extensionAlias = {
       ".js": [".ts", ".js"],
       ".jsx": [".tsx", ".jsx"],
     };
+
+    if (isServer) {
+      // serverComponentsExternalPackages only externalises packages when the
+      // importer is itself inside node_modules. When @edlight-news/firebase is
+      // transpiled (i.e. treated as app code), that context check fails and
+      // firebase-admin gets bundled anyway.
+      //
+      // This custom externals function unconditionally externalises the
+      // firebase-admin family regardless of which file is importing them,
+      // guaranteeing they are loaded by Node.js natively at runtime.
+      const existingExternals = Array.isArray(config.externals)
+        ? config.externals
+        : config.externals
+          ? [config.externals]
+          : [];
+
+      config.externals = [
+        ...existingExternals,
+        ({ request }, callback) => {
+          if (
+            FIREBASE_EXTERNALS.some(
+              (pkg) => request === pkg || request.startsWith(pkg + "/")
+            )
+          ) {
+            return callback(null, "commonjs " + request);
+          }
+          callback();
+        },
+      ];
+    }
+
     return config;
   },
 };
 
 module.exports = nextConfig;
+
