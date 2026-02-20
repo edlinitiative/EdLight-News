@@ -32,7 +32,7 @@ app.listen(PORT, () => {
 
 // ─── Self-scheduling pipeline cron ────────────────────────────────────────────
 const TICK_INTERVAL_MS = parseInt(
-  process.env.TICK_INTERVAL_MS ?? String(6 * 60 * 60 * 1000), // default: 6 h
+  process.env.TICK_INTERVAL_MS ?? String(2 * 60 * 60 * 1000), // default: 2 h
   10,
 );
 
@@ -57,5 +57,5 @@ setTimeout(() => {
 
 console.log(
   `[cron] pipeline scheduled every ${TICK_INTERVAL_MS / 1000 / 60} minutes` +
-  ` (first run in 30 s)`,
+  ` (first run in 30 s) — override with TICK_INTERVAL_MS env var`,
 );
