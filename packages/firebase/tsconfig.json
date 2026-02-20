@@ -4,9 +4,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@edlight-news/types": ["../types/src/index.ts"]
+      "@edlight-news/types": ["../types/dist/index.d.ts"]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "../types" }]
+  "include": ["src"]
 }
