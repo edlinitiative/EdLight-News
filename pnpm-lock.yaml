@@ -26,6 +26,9 @@ importers:
       '@edlight-news/types':
         specifier: workspace:*
         version: link:../../packages/types
+      firebase-admin:
+        specifier: ^12.1.0
+        version: 12.7.0
       next:
         specifier: 14.2.3
         version: 14.2.3(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
