@@ -5,9 +5,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "typecheck": "tsc --noEmit",
-    "dev": "tsc --watch"
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "dev": "tsc -b --watch"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",
