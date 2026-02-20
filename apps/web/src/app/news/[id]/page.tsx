@@ -4,6 +4,8 @@ import ReactMarkdown from "react-markdown";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import type { ContentVersion, ContentLanguage } from "@edlight-news/types";
 
+export const dynamic = "force-dynamic";
+
 async function getArticle(id: string): Promise<ContentVersion | null> {
   return contentVersionsRepo.getContentVersion(id);
 }

@@ -2,6 +2,8 @@ import { contentVersionsRepo } from "@edlight-news/firebase";
 import type { ContentVersion, ContentLanguage } from "@edlight-news/types";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 type Category =
   | "all"
   | "news"

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import type { ContentVersion } from "@edlight-news/types";
 
+export const dynamic = "force-dynamic";
+
 function ArticleCard({ article }: { article: ContentVersion }) {
   return (
     <a
