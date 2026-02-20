@@ -24,6 +24,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@edlight-news/firebase": [
+        "../../packages/firebase/src/index.ts"
+      ],
+      "@edlight-news/types": [
+        "../../packages/types/src/index.ts"
       ]
     },
     "allowJs": true,
