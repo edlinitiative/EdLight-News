@@ -3,6 +3,8 @@
 .turbo
 node_modules
 dist
+# Exception: types/dist must be present for tsc to resolve @edlight-news/types
+!packages/types/dist
 
 # Worker app is not deployed to Vercel (it runs separately)
 apps/worker
