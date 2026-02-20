@@ -26,6 +26,12 @@ export function getApp() {
 export function getDb() {
     if (!db) {
         db = getFirestore(getApp());
+        // Use REST transport instead of gRPC.
+        // gRPC requires persistent TLS channels that break in serverless environments
+        // (Vercel, Cloud Functions) under Node 18+ / OpenSSL 3 with error:
+        //   "Getting metadata from plugin failed: DECODER routines::unsupported"
+        // REST uses plain HTTPS, which is reliable in all serverless runtimes.
+        db.settings({ preferRest: true });
     }
     return db;
 }
