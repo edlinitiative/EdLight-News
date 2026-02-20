@@ -7,6 +7,10 @@ dist
 .next
 .turbo
 out
+# compiled outputs accidentally ending up in src/
+packages/*/src/*.js
+packages/*/src/*.d.ts
+packages/*/src/*.map
 
 # env secrets
 .env
