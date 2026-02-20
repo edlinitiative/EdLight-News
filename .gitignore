@@ -7,6 +7,7 @@ dist
 .next
 .turbo
 out
+*.tsbuildinfo
 # compiled outputs accidentally ending up in src/
 packages/*/src/*.js
 packages/*/src/*.d.ts
