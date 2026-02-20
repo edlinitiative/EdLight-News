@@ -1,0 +1,12 @@
+# Don't upload local build caches or dev server outputs
+.next
+.turbo
+node_modules
+dist
+
+# Worker app is not deployed to Vercel (it runs separately)
+apps/worker
+
+# Secrets
+.env
+.env.local
