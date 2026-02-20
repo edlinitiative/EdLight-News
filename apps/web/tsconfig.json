@@ -26,10 +26,10 @@
         "./src/*"
       ],
       "@edlight-news/firebase": [
-        "../../packages/firebase/src/index.ts"
+        "../../packages/firebase/dist/index.d.ts"
       ],
       "@edlight-news/types": [
-        "../../packages/types/src/index.ts"
+        "../../packages/types/dist/index.d.ts"
       ]
     },
     "allowJs": true,

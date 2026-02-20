@@ -3,10 +3,9 @@
 .turbo
 node_modules
 
-# Exclude compiled dist for all packages EXCEPT types
-# (packages/types/dist must be present so tsc can resolve @edlight-news/types)
-apps/web/dist
-packages/firebase/dist
+# Exclude compiled dist for generator/publisher/renderer/scraper (not needed by web)
+# packages/types/dist and packages/firebase/dist are committed and must be present
+# so tsc can resolve @edlight-news/types and @edlight-news/firebase
 packages/generator/dist
 packages/publisher/dist
 packages/renderer/dist
