@@ -2,9 +2,15 @@
 .next
 .turbo
 node_modules
-dist
-# Exception: types/dist must be present for tsc to resolve @edlight-news/types
-!packages/types/dist
+
+# Exclude compiled dist for all packages EXCEPT types
+# (packages/types/dist must be present so tsc can resolve @edlight-news/types)
+apps/web/dist
+packages/firebase/dist
+packages/generator/dist
+packages/publisher/dist
+packages/renderer/dist
+packages/scraper/dist
 
 # Worker app is not deployed to Vercel (it runs separately)
 apps/worker
