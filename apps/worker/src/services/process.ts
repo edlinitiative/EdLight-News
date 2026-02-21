@@ -1,6 +1,12 @@
+import { Timestamp } from "firebase-admin/firestore";
 import { rawItemsRepo, itemsRepo, sourcesRepo } from "@edlight-news/firebase";
 import { extractArticleContent } from "@edlight-news/scraper";
 import type { QualityFlags } from "@edlight-news/types";
+import {
+  computeScoring,
+  computeDedupeGroupId,
+  buildItemSource,
+} from "./scoring.js";
 
 /** Max raw_items to process per tick (article extraction can be slow) */
 const BATCH_LIMIT = parseInt(process.env.PROCESS_BATCH_LIMIT ?? "10", 10);
@@ -55,10 +61,21 @@ export async function processRawItems(): Promise<{
       const reasons: string[] = [];
       if (!hasSourceUrl) reasons.push("No source URL");
 
+      // Compute v2 scoring & classification
+      const textForScoring = `${title} ${extractedText || raw.description || ""}`;
+      const scoring = computeScoring(title, textForScoring);
+      const dedupeGroupId = computeDedupeGroupId(title, canonicalUrl);
+      const { source: itemSource, weakSource } = buildItemSource(source.name, raw.url);
+
+      if (weakSource) reasons.push("Could not trace original publisher");
+      if (scoring.offMission) reasons.push("Possibly off-mission content");
+
       const qualityFlags: QualityFlags = {
         hasSourceUrl,
         needsReview: false,
         lowConfidence: false,
+        weakSource,
+        offMission: scoring.offMission,
         reasons,
       };
 
@@ -78,6 +95,12 @@ export async function processRawItems(): Promise<{
         confidence: 0, // set by generate step
         qualityFlags,
         citations: [{ sourceName: source.name, sourceUrl: raw.url }],
+        // v2 fields
+        geoTag: scoring.geoTag,
+        audienceFitScore: scoring.audienceFitScore,
+        dedupeGroupId,
+        source: itemSource,
+        publishedAt: raw.publishedAt,
       });
 
       await rawItemsRepo.markProcessed(raw.id);

@@ -1,0 +1,340 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import type { ContentLanguage } from "@edlight-news/types";
+import {
+  formatRelativeDate,
+  categoryLabel,
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  SORT_LABELS,
+  type FeedCategory,
+  type SortOption,
+} from "@/lib/utils";
+import { useLanguage } from "@/lib/language-context";
+
+// ── Types for serialized data from server ───────────────────────────────────
+export interface FeedItem {
+  id: string;
+  title: string;
+  summary: string;
+  body: string;
+  status: string;
+  category?: string;
+  draftReason?: string;
+  citations: { sourceName: string; sourceUrl: string }[];
+  // v2 fields from parent item (denormalized server-side)
+  sourceName?: string;
+  sourceUrl?: string;
+  weakSource?: boolean;
+  missingDeadline?: boolean;
+  offMission?: boolean;
+  audienceFitScore?: number;
+  dedupeGroupId?: string;
+  publishedAt?: string | null; // ISO string
+  deadline?: string | null;
+  geoTag?: string;
+  /** How many items share the same dedupeGroupId */
+  dupeCount?: number;
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function CategoryBadge({ category, lang }: { category?: string; lang: ContentLanguage }) {
+  if (!category) return null;
+  const color = CATEGORY_COLORS[category] ?? "bg-gray-100 text-gray-600";
+  return (
+    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
+      {categoryLabel(category, lang)}
+    </span>
+  );
+}
+
+function TrustSignals({
+  item,
+  lang,
+}: {
+  item: FeedItem;
+  lang: ContentLanguage;
+}) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+      {/* Source name */}
+      {item.sourceName && (
+        <span>
+          {item.sourceUrl ? (
+            <a
+              href={item.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-600 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {item.sourceName}
+            </a>
+          ) : (
+            item.sourceName
+          )}
+        </span>
+      )}
+      {item.sourceName && item.publishedAt && <span>·</span>}
+      {/* Published date */}
+      {item.publishedAt && (
+        <span>{formatRelativeDate(item.publishedAt, lang)}</span>
+      )}
+      {/* Subtle quality labels */}
+      {item.weakSource && (
+        <span className="text-gray-300">{lang === "fr" ? "Source indirecte" : "Sous endirèk"}</span>
+      )}
+      {item.missingDeadline && (
+        <span className="text-gray-300">{lang === "fr" ? "Date à confirmer" : "Dat pou konfime"}</span>
+      )}
+    </div>
+  );
+}
+
+// ── Main client component ───────────────────────────────────────────────────
+
+export function NewsFeed({
+  articles: rawArticles,
+  serverLang,
+}: {
+  articles: FeedItem[];
+  serverLang: ContentLanguage;
+}) {
+  const { language: clientLang, setLanguage } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Sync language from URL param
+  const urlLang = searchParams.get("lang") as ContentLanguage | null;
+  const lang = urlLang ?? clientLang ?? serverLang;
+
+  useEffect(() => {
+    if (urlLang && urlLang !== clientLang) {
+      setLanguage(urlLang);
+    }
+  }, [urlLang, clientLang, setLanguage]);
+
+  // State
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<SortOption>("latest");
+  const [activeCategory, setActiveCategory] = useState<FeedCategory>(
+    (searchParams.get("category") as FeedCategory) ?? "all",
+  );
+
+  // Dedupe collapsing: keep only newest per dedupeGroupId
+  const dedupedArticles = useMemo(() => {
+    const groups = new Map<string, FeedItem[]>();
+    const ungrouped: FeedItem[] = [];
+
+    for (const a of rawArticles) {
+      if (a.dedupeGroupId) {
+        const list = groups.get(a.dedupeGroupId) ?? [];
+        list.push(a);
+        groups.set(a.dedupeGroupId, list);
+      } else {
+        ungrouped.push(a);
+      }
+    }
+
+    const collapsed: FeedItem[] = [];
+    for (const [, group] of groups) {
+      // Sort by publishedAt desc within group, take newest
+      group.sort((a, b) => {
+        const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return tb - ta;
+      });
+      collapsed.push({ ...group[0]!, dupeCount: group.length });
+    }
+
+    return [...collapsed, ...ungrouped];
+  }, [rawArticles]);
+
+  // Category filter
+  const categoryFiltered = useMemo(() => {
+    if (activeCategory === "all") return dedupedArticles;
+    return dedupedArticles.filter((a) => a.category === activeCategory);
+  }, [dedupedArticles, activeCategory]);
+
+  // Search filter
+  const searchFiltered = useMemo(() => {
+    if (!search.trim()) return categoryFiltered;
+    const q = search.toLowerCase();
+    return categoryFiltered.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.summary.toLowerCase().includes(q),
+    );
+  }, [categoryFiltered, search]);
+
+  // Sort
+  const sorted = useMemo(() => {
+    const items = [...searchFiltered];
+    switch (sort) {
+      case "relevance":
+        items.sort((a, b) => {
+          const scoreDiff = (b.audienceFitScore ?? 0) - (a.audienceFitScore ?? 0);
+          if (scoreDiff !== 0) return scoreDiff;
+          const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+          const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+          return tb - ta;
+        });
+        break;
+      case "deadline":
+        items.sort((a, b) => {
+          // Only Bourses items with deadline
+          const da = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+          const db = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+          return da - db;
+        });
+        break;
+      case "latest":
+      default:
+        // Already sorted by publishedAt desc from server
+        break;
+    }
+    return items;
+  }, [searchFiltered, sort]);
+
+  // Available categories from data
+  const availableCategories = useMemo(() => {
+    const cats = new Set(rawArticles.map((a) => a.category).filter(Boolean));
+    return ["all", ...Array.from(cats)] as FeedCategory[];
+  }, [rawArticles]);
+
+  // Navigate with category
+  const handleCategory = (cat: FeedCategory) => {
+    setActiveCategory(cat);
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat !== "all") params.set("category", cat);
+    else params.delete("category");
+    router.push(`/news?${params.toString()}`, { scroll: false });
+  };
+
+  return (
+    <section className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">
+          {lang === "fr" ? "Actualités" : "Nouvèl"}
+        </h1>
+        <span className="text-sm text-gray-400">
+          {sorted.length} {lang === "fr" ? "articles" : "atik"}
+        </span>
+      </div>
+
+      {/* Search + Sort bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
+            className="w-full rounded-lg border px-4 py-2 pl-9 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+          />
+          <svg
+            className="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortOption)}
+          className="rounded-lg border px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+        >
+          {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
+            <option key={opt} value={opt}>
+              {SORT_LABELS[opt][lang]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Category filter pills */}
+      {availableCategories.length > 2 && (
+        <div className="flex flex-wrap gap-2">
+          {availableCategories.map((cat) => {
+            const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
+            const isActive = cat === activeCategory;
+            return (
+              <button
+                key={cat}
+                onClick={() => handleCategory(cat)}
+                className={
+                  "rounded-full px-3 py-1 text-sm font-medium transition " +
+                  (isActive
+                    ? "bg-brand-700 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200")
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {sorted.length === 0 && (
+        <div className="rounded-lg border-2 border-dashed p-8 text-center text-gray-500">
+          <p className="text-lg">
+            {search
+              ? lang === "fr"
+                ? "Aucun résultat pour cette recherche."
+                : "Pa gen rezilta pou rechèch sa a."
+              : lang === "fr"
+                ? "Aucun article pour le moment."
+                : "Pa gen atik pou kounye a."}
+          </p>
+        </div>
+      )}
+
+      {/* Article grid */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        {sorted.map((article) => (
+          <Link
+            key={article.id}
+            href={`/news/${article.id}?lang=${lang}`}
+            className="group block rounded-lg border p-5 transition hover:border-brand-300 hover:shadow-md"
+          >
+            <div className="mb-2 flex items-center gap-2">
+              <CategoryBadge category={article.category} lang={lang} />
+              {article.geoTag === "HT" && (
+                <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                  🇭🇹
+                </span>
+              )}
+              {(article.dupeCount ?? 0) > 1 && (
+                <span className="text-xs text-gray-400">
+                  +{(article.dupeCount ?? 1) - 1}{" "}
+                  {lang === "fr" ? "mises à jour" : "mizajou"}
+                </span>
+              )}
+            </div>
+            <h2 className="mb-2 text-lg font-semibold group-hover:text-brand-700">
+              {article.title}
+            </h2>
+            <p className="line-clamp-3 text-sm text-gray-600">
+              {article.summary || article.body.slice(0, 200)}
+            </p>
+            <TrustSignals item={article} lang={lang} />
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}

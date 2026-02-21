@@ -24,17 +24,26 @@ declare const qualityFlagsSchema: z.ZodObject<{
     hasSourceUrl: z.ZodBoolean;
     needsReview: z.ZodBoolean;
     lowConfidence: z.ZodBoolean;
+    weakSource: z.ZodOptional<z.ZodBoolean>;
+    missingDeadline: z.ZodOptional<z.ZodBoolean>;
+    offMission: z.ZodOptional<z.ZodBoolean>;
     reasons: z.ZodArray<z.ZodString, "many">;
 }, "strip", z.ZodTypeAny, {
     hasSourceUrl: boolean;
     needsReview: boolean;
     lowConfidence: boolean;
     reasons: string[];
+    weakSource?: boolean | undefined;
+    missingDeadline?: boolean | undefined;
+    offMission?: boolean | undefined;
 }, {
     hasSourceUrl: boolean;
     needsReview: boolean;
     lowConfidence: boolean;
     reasons: string[];
+    weakSource?: boolean | undefined;
+    missingDeadline?: boolean | undefined;
+    offMission?: boolean | undefined;
 }>;
 declare const sourceSelectorsSchema: z.ZodObject<{
     listItem: z.ZodOptional<z.ZodString>;
@@ -48,6 +57,49 @@ declare const sourceSelectorsSchema: z.ZodObject<{
     listItem?: string | undefined;
     articleBody?: string | undefined;
     title?: string | undefined;
+}>;
+declare const geoTagSchema: z.ZodEnum<["HT", "Diaspora", "Global"]>;
+declare const itemSourceSchema: z.ZodObject<{
+    name: z.ZodString;
+    originalUrl: z.ZodString;
+    aggregatorUrl: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    originalUrl: string;
+    aggregatorUrl?: string | undefined;
+}, {
+    name: string;
+    originalUrl: string;
+    aggregatorUrl?: string | undefined;
+}>;
+declare const opportunitySchema: z.ZodObject<{
+    deadline: z.ZodOptional<z.ZodString>;
+    eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    coverage: z.ZodOptional<z.ZodString>;
+    howToApply: z.ZodOptional<z.ZodString>;
+    officialLink: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    deadline?: string | undefined;
+    eligibility?: string[] | undefined;
+    coverage?: string | undefined;
+    howToApply?: string | undefined;
+    officialLink?: string | undefined;
+}, {
+    deadline?: string | undefined;
+    eligibility?: string[] | undefined;
+    coverage?: string | undefined;
+    howToApply?: string | undefined;
+    officialLink?: string | undefined;
+}>;
+declare const contentSectionSchema: z.ZodObject<{
+    heading: z.ZodString;
+    content: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    heading: string;
+    content: string;
+}, {
+    heading: string;
+    content: string;
 }>;
 export declare const sourceSchema: z.ZodObject<{
     id: z.ZodString;
@@ -94,8 +146,8 @@ export declare const sourceSchema: z.ZodObject<{
     }>;
 }, "strip", z.ZodTypeAny, {
     type: "rss" | "html";
-    id: string;
     name: string;
+    id: string;
     url: string;
     language: "fr" | "ht";
     active: boolean;
@@ -117,8 +169,8 @@ export declare const sourceSchema: z.ZodObject<{
     } | undefined;
 }, {
     type: "rss" | "html";
-    id: string;
     name: string;
+    id: string;
     url: string;
     language: "fr" | "ht";
     active: boolean;
@@ -219,17 +271,26 @@ export declare const itemSchema: z.ZodObject<{
         hasSourceUrl: z.ZodBoolean;
         needsReview: z.ZodBoolean;
         lowConfidence: z.ZodBoolean;
+        weakSource: z.ZodOptional<z.ZodBoolean>;
+        missingDeadline: z.ZodOptional<z.ZodBoolean>;
+        offMission: z.ZodOptional<z.ZodBoolean>;
         reasons: z.ZodArray<z.ZodString, "many">;
     }, "strip", z.ZodTypeAny, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }>;
     citations: z.ZodArray<z.ZodObject<{
         sourceName: z.ZodString;
@@ -241,6 +302,51 @@ export declare const itemSchema: z.ZodObject<{
         sourceName: string;
         sourceUrl: string;
     }>, "many">;
+    geoTag: z.ZodOptional<z.ZodEnum<["HT", "Diaspora", "Global"]>>;
+    audienceFitScore: z.ZodOptional<z.ZodNumber>;
+    dedupeGroupId: z.ZodOptional<z.ZodString>;
+    source: z.ZodOptional<z.ZodObject<{
+        name: z.ZodString;
+        originalUrl: z.ZodString;
+        aggregatorUrl: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    }, {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    }>>;
+    opportunity: z.ZodOptional<z.ZodObject<{
+        deadline: z.ZodOptional<z.ZodString>;
+        eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        coverage: z.ZodOptional<z.ZodString>;
+        howToApply: z.ZodOptional<z.ZodString>;
+        officialLink: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    }, {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    }>>;
+    publishedAt: z.ZodOptional<z.ZodNullable<z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>>>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -263,6 +369,7 @@ export declare const itemSchema: z.ZodObject<{
     }>;
 }, "strip", z.ZodTypeAny, {
     title: string;
+    deadline: string | null;
     id: string;
     createdAt: {
         seconds: number;
@@ -277,7 +384,6 @@ export declare const itemSchema: z.ZodObject<{
     summary: string;
     canonicalUrl: string;
     category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
-    deadline: string | null;
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -285,14 +391,37 @@ export declare const itemSchema: z.ZodObject<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     };
     citations: {
         sourceName: string;
         sourceUrl: string;
     }[];
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
+    opportunity?: {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    } | undefined;
+    geoTag?: "HT" | "Diaspora" | "Global" | undefined;
+    audienceFitScore?: number | undefined;
+    dedupeGroupId?: string | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
 }, {
     title: string;
+    deadline: string | null;
     id: string;
     createdAt: {
         seconds: number;
@@ -307,7 +436,6 @@ export declare const itemSchema: z.ZodObject<{
     summary: string;
     canonicalUrl: string;
     category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
-    deadline: string | null;
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -315,12 +443,34 @@ export declare const itemSchema: z.ZodObject<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     };
     citations: {
         sourceName: string;
         sourceUrl: string;
     }[];
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
+    opportunity?: {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    } | undefined;
+    geoTag?: "HT" | "Diaspora" | "Global" | undefined;
+    audienceFitScore?: number | undefined;
+    dedupeGroupId?: string | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
 }>;
 export declare const contentVersionSchema: z.ZodObject<{
     id: z.ZodString;
@@ -337,17 +487,26 @@ export declare const contentVersionSchema: z.ZodObject<{
         hasSourceUrl: z.ZodBoolean;
         needsReview: z.ZodBoolean;
         lowConfidence: z.ZodBoolean;
+        weakSource: z.ZodOptional<z.ZodBoolean>;
+        missingDeadline: z.ZodOptional<z.ZodBoolean>;
+        offMission: z.ZodOptional<z.ZodBoolean>;
         reasons: z.ZodArray<z.ZodString, "many">;
     }, "strip", z.ZodTypeAny, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }>>;
     citations: z.ZodArray<z.ZodObject<{
         sourceName: z.ZodString;
@@ -359,6 +518,16 @@ export declare const contentVersionSchema: z.ZodObject<{
         sourceName: string;
         sourceUrl: string;
     }>, "many">;
+    sections: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        heading: z.ZodString;
+        content: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        heading: string;
+        content: string;
+    }, {
+        heading: string;
+        content: string;
+    }>, "many">>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -406,8 +575,15 @@ export declare const contentVersionSchema: z.ZodObject<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     } | undefined;
     draftReason?: string | undefined;
+    sections?: {
+        heading: string;
+        content: string;
+    }[] | undefined;
 }, {
     status: "draft" | "review" | "published";
     title: string;
@@ -435,8 +611,15 @@ export declare const contentVersionSchema: z.ZodObject<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     } | undefined;
     draftReason?: string | undefined;
+    sections?: {
+        heading: string;
+        content: string;
+    }[] | undefined;
 }>;
 export declare const assetSchema: z.ZodObject<{
     id: z.ZodString;
@@ -594,7 +777,7 @@ export declare const metricSchema: z.ZodObject<{
         nanoseconds: number;
     };
 }>;
-export { citationSchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema };
+export { citationSchema, contentSectionSchema, geoTagSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
 export declare const createSourceSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     name: z.ZodString;
@@ -737,17 +920,26 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         hasSourceUrl: z.ZodBoolean;
         needsReview: z.ZodBoolean;
         lowConfidence: z.ZodBoolean;
+        weakSource: z.ZodOptional<z.ZodBoolean>;
+        missingDeadline: z.ZodOptional<z.ZodBoolean>;
+        offMission: z.ZodOptional<z.ZodBoolean>;
         reasons: z.ZodArray<z.ZodString, "many">;
     }, "strip", z.ZodTypeAny, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }>;
     citations: z.ZodArray<z.ZodObject<{
         sourceName: z.ZodString;
@@ -759,6 +951,51 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         sourceName: string;
         sourceUrl: string;
     }>, "many">;
+    geoTag: z.ZodOptional<z.ZodEnum<["HT", "Diaspora", "Global"]>>;
+    audienceFitScore: z.ZodOptional<z.ZodNumber>;
+    dedupeGroupId: z.ZodOptional<z.ZodString>;
+    source: z.ZodOptional<z.ZodObject<{
+        name: z.ZodString;
+        originalUrl: z.ZodString;
+        aggregatorUrl: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    }, {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    }>>;
+    opportunity: z.ZodOptional<z.ZodObject<{
+        deadline: z.ZodOptional<z.ZodString>;
+        eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        coverage: z.ZodOptional<z.ZodString>;
+        howToApply: z.ZodOptional<z.ZodString>;
+        officialLink: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    }, {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    }>>;
+    publishedAt: z.ZodOptional<z.ZodNullable<z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>>>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -781,12 +1018,12 @@ export declare const createItemSchema: z.ZodObject<Omit<{
     }>;
 }, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
     title: string;
+    deadline: string | null;
     sourceId: string;
     rawItemId: string;
     summary: string;
     canonicalUrl: string;
     category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
-    deadline: string | null;
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -794,20 +1031,42 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     };
     citations: {
         sourceName: string;
         sourceUrl: string;
     }[];
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
+    opportunity?: {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    } | undefined;
+    geoTag?: "HT" | "Diaspora" | "Global" | undefined;
+    audienceFitScore?: number | undefined;
+    dedupeGroupId?: string | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
 }, {
     title: string;
+    deadline: string | null;
     sourceId: string;
     rawItemId: string;
     summary: string;
     canonicalUrl: string;
     category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
-    deadline: string | null;
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -815,12 +1074,34 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     };
     citations: {
         sourceName: string;
         sourceUrl: string;
     }[];
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
+    opportunity?: {
+        deadline?: string | undefined;
+        eligibility?: string[] | undefined;
+        coverage?: string | undefined;
+        howToApply?: string | undefined;
+        officialLink?: string | undefined;
+    } | undefined;
+    geoTag?: "HT" | "Diaspora" | "Global" | undefined;
+    audienceFitScore?: number | undefined;
+    dedupeGroupId?: string | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
 }>;
 export declare const createContentVersionSchema: z.ZodObject<Omit<{
     id: z.ZodString;
@@ -837,17 +1118,26 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
         hasSourceUrl: z.ZodBoolean;
         needsReview: z.ZodBoolean;
         lowConfidence: z.ZodBoolean;
+        weakSource: z.ZodOptional<z.ZodBoolean>;
+        missingDeadline: z.ZodOptional<z.ZodBoolean>;
+        offMission: z.ZodOptional<z.ZodBoolean>;
         reasons: z.ZodArray<z.ZodString, "many">;
     }, "strip", z.ZodTypeAny, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }, {
         hasSourceUrl: boolean;
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     }>>;
     citations: z.ZodArray<z.ZodObject<{
         sourceName: z.ZodString;
@@ -859,6 +1149,16 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
         sourceName: string;
         sourceUrl: string;
     }>, "many">;
+    sections: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        heading: z.ZodString;
+        content: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        heading: string;
+        content: string;
+    }, {
+        heading: string;
+        content: string;
+    }>, "many">>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -897,8 +1197,15 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     } | undefined;
     draftReason?: string | undefined;
+    sections?: {
+        heading: string;
+        content: string;
+    }[] | undefined;
 }, {
     status: "draft" | "review" | "published";
     title: string;
@@ -917,8 +1224,15 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
         needsReview: boolean;
         lowConfidence: boolean;
         reasons: string[];
+        weakSource?: boolean | undefined;
+        missingDeadline?: boolean | undefined;
+        offMission?: boolean | undefined;
     } | undefined;
     draftReason?: string | undefined;
+    sections?: {
+        heading: string;
+        content: string;
+    }[] | undefined;
 }>;
 export declare const createAssetSchema: z.ZodObject<Omit<{
     id: z.ZodString;

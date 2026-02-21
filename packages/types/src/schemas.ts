@@ -16,6 +16,9 @@ const qualityFlagsSchema = z.object({
   hasSourceUrl: z.boolean(),
   needsReview: z.boolean(),
   lowConfidence: z.boolean(),
+  weakSource: z.boolean().optional(),
+  missingDeadline: z.boolean().optional(),
+  offMission: z.boolean().optional(),
   reasons: z.array(z.string()),
 });
 
@@ -23,6 +26,27 @@ const sourceSelectorsSchema = z.object({
   listItem: z.string().optional(),
   articleBody: z.string().optional(),
   title: z.string().optional(),
+});
+
+const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
+
+const itemSourceSchema = z.object({
+  name: z.string().min(1),
+  originalUrl: z.string().url(),
+  aggregatorUrl: z.string().url().optional(),
+});
+
+const opportunitySchema = z.object({
+  deadline: z.string().optional(),
+  eligibility: z.array(z.string()).optional(),
+  coverage: z.string().optional(),
+  howToApply: z.string().optional(),
+  officialLink: z.string().url().optional(),
+});
+
+const contentSectionSchema = z.object({
+  heading: z.string().min(1),
+  content: z.string().min(1),
 });
 
 // ── sources ────────────────────────────────────────────────────────────────
@@ -77,6 +101,13 @@ export const itemSchema = z.object({
   confidence: z.number().min(0).max(1),
   qualityFlags: qualityFlagsSchema,
   citations: z.array(citationSchema).min(1),
+  // v2 fields — optional for backwards compat
+  geoTag: geoTagSchema.optional(),
+  audienceFitScore: z.number().min(0).max(1).optional(),
+  dedupeGroupId: z.string().optional(),
+  source: itemSourceSchema.optional(),
+  opportunity: opportunitySchema.optional(),
+  publishedAt: timestampSchema.nullable().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -95,6 +126,8 @@ export const contentVersionSchema = z.object({
   category: z.enum(["scholarship","opportunity","news","event","resource","local_news"]).optional(),
   qualityFlags: qualityFlagsSchema.optional(),
   citations: z.array(citationSchema).min(1),
+  // v2 fields
+  sections: z.array(contentSectionSchema).optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -135,7 +168,16 @@ export const metricSchema = z.object({
 });
 
 // ── Re-export sub-schemas for external use ─────────────────────────────────
-export { citationSchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema };
+export {
+  citationSchema,
+  contentSectionSchema,
+  geoTagSchema,
+  itemSourceSchema,
+  opportunitySchema,
+  qualityFlagsSchema,
+  sourceSelectorsSchema,
+  timestampSchema,
+};
 
 // ── Create schemas (omit id + timestamps for writes) ───────────────────────
 export const createSourceSchema = sourceSchema.omit({

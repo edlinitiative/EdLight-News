@@ -64,9 +64,20 @@ export async function listRecentItems(limit = 50) {
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 export async function updateItem(id, data) {
+    // Strip undefined values — Firestore rejects them
+    const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
     await collection()
         .doc(id)
-        .update({ ...data, updatedAt: FieldValue.serverTimestamp() });
+        .update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
+}
+/** Get a single item by its dedupeGroupId (newest first). */
+export async function listByDedupeGroupId(dedupeGroupId, limit = 10) {
+    const snap = await collection()
+        .where("dedupeGroupId", "==", dedupeGroupId)
+        .orderBy("createdAt", "desc")
+        .limit(limit)
+        .get();
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 export async function deleteItem(id) {
     await collection().doc(id).delete();

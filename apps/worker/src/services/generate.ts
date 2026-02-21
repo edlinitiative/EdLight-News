@@ -7,7 +7,8 @@ import {
   generateWebDraftFRHT,
   buildContentVersionPayloads,
 } from "@edlight-news/generator";
-import type { QualityFlags, ItemCategory } from "@edlight-news/types";
+import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/types";
+import { computeScoring } from "./scoring.js";
 
 /** Max items to generate per tick (Gemini calls are ~2-5s each) */
 const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "5", 10);
@@ -71,25 +72,49 @@ export async function generateForItems(): Promise<{
       const isOpportunityWithoutDeadline =
         draft.extracted.category === "opportunity" && !draft.extracted.deadline;
 
+      const isScholarshipWithoutDeadline =
+        draft.extracted.category === "scholarship" && !draft.extracted.deadline;
+
       const isLowConfidence = draft.confidence < 0.6;
 
-      const updatedReasons = [...item.qualityFlags.reasons];
+      // Re-score with Gemini's category for better accuracy
+      const textForScoring = `${item.title} ${item.extractedText || item.summary}`;
+      const scoring = computeScoring(item.title, textForScoring, draft.extracted.category);
+
+      const updatedReasons = [...(item.qualityFlags?.reasons ?? [])];
       if (isLowConfidence) updatedReasons.push(`Low confidence: ${draft.confidence}`);
       if (isOpportunityWithoutDeadline) updatedReasons.push("Opportunity without deadline");
+      if (isScholarshipWithoutDeadline) updatedReasons.push("Scholarship without deadline");
 
       const updatedQualityFlags: QualityFlags = {
-        hasSourceUrl: item.qualityFlags.hasSourceUrl,
-        needsReview: isOpportunityWithoutDeadline,
+        hasSourceUrl: item.qualityFlags?.hasSourceUrl ?? true,
+        needsReview: isOpportunityWithoutDeadline || isScholarshipWithoutDeadline,
         lowConfidence: isLowConfidence,
+        weakSource: item.qualityFlags?.weakSource ?? false,
+        missingDeadline: isOpportunityWithoutDeadline || isScholarshipWithoutDeadline,
+        offMission: scoring.offMission || (item.qualityFlags?.offMission ?? false),
         reasons: updatedReasons,
       };
 
-      // Update the item with Gemini's classification
+      // Build opportunity struct for scholarship/opportunity items
+      let opportunity: Opportunity | undefined;
+      if (draft.extracted.category === "scholarship" || draft.extracted.category === "opportunity") {
+        opportunity = {
+          ...(draft.extracted.deadline ? { deadline: draft.extracted.deadline } : {}),
+          ...(draft.extracted.eligibility ? { eligibility: [draft.extracted.eligibility] } : {}),
+          ...(item.source?.originalUrl ? { officialLink: item.source.originalUrl } : {}),
+        };
+      }
+
+      // Update the item with Gemini's classification + refined v2 fields
       await itemsRepo.updateItem(item.id, {
         category: draft.extracted.category as ItemCategory,
         deadline: draft.extracted.deadline ?? null,
         confidence: draft.confidence,
         qualityFlags: updatedQualityFlags,
+        audienceFitScore: scoring.audienceFitScore,
+        geoTag: scoring.geoTag,
+        ...(opportunity ? { opportunity } : {}),
       });
 
       // Build FR + HT content_version payloads with quality gates

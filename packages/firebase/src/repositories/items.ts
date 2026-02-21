@@ -83,9 +83,26 @@ export async function updateItem(
   id: string,
   data: Partial<CreateItem>,
 ): Promise<void> {
+  // Strip undefined values — Firestore rejects them
+  const clean = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined),
+  );
   await collection()
     .doc(id)
-    .update({ ...data, updatedAt: FieldValue.serverTimestamp() });
+    .update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
+}
+
+/** Get a single item by its dedupeGroupId (newest first). */
+export async function listByDedupeGroupId(
+  dedupeGroupId: string,
+  limit = 10,
+): Promise<Item[]> {
+  const snap = await collection()
+    .where("dedupeGroupId", "==", dedupeGroupId)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Item);
 }
 
 export async function deleteItem(id: string): Promise<void> {

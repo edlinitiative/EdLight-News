@@ -50,11 +50,36 @@ export interface RawItem {
   createdAt: Timestamp;
 }
 
+// ── Shared enums & value objects ───────────────────────────────────────────
+export type GeoTag = "HT" | "Diaspora" | "Global";
+
+/** The original + aggregator source links */
+export interface ItemSource {
+  name: string;
+  originalUrl: string;
+  aggregatorUrl?: string;
+}
+
+/** Structured opportunity data (for Bourses / Ressources) */
+export interface Opportunity {
+  deadline?: string; // ISO date string
+  eligibility?: string[];
+  coverage?: string;
+  howToApply?: string;
+  officialLink?: string;
+}
+
 // ── Quality flags (shared across items + content_versions) ─────────────────
 export interface QualityFlags {
   hasSourceUrl: boolean;
   needsReview: boolean;
   lowConfidence: boolean;
+  /** Source could not be traced to original publisher */
+  weakSource?: boolean;
+  /** Bourses item without a deadline */
+  missingDeadline?: boolean;
+  /** Content deemed off-mission for student audience */
+  offMission?: boolean;
   reasons: string[];
 }
 
@@ -84,6 +109,21 @@ export interface Item {
   confidence: number; // 0-1 scale
   qualityFlags: QualityFlags;
   citations: Citation[];
+
+  // ── New v2 fields (optional for backwards compat) ─────────────────────
+  /** Geographic relevance tag */
+  geoTag?: GeoTag;
+  /** 0-1 audience-fit score for auto-publish gating */
+  audienceFitScore?: number;
+  /** SHA-256 hash for dedup clustering (normalizedTitle + domain) */
+  dedupeGroupId?: string;
+  /** Structured source provenance */
+  source?: ItemSource;
+  /** Structured opportunity data (Bourses / Ressources) */
+  opportunity?: Opportunity;
+  /** When the original article was published */
+  publishedAt?: Timestamp | null;
+
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -97,6 +137,12 @@ export interface Citation {
 export type ContentChannel = "web" | "ig" | "wa";
 export type ContentLanguage = "fr" | "ht";
 export type ContentStatus = "draft" | "review" | "published";
+
+/** Structured body section for rich rendering */
+export interface ContentSection {
+  heading: string;
+  content: string;
+}
 
 export interface ContentVersion {
   id: string;
@@ -113,6 +159,11 @@ export interface ContentVersion {
   category?: ItemCategory;
   qualityFlags?: QualityFlags;
   citations: Citation[];
+
+  // ── New v2 fields ─────────────────────────────────────────────────────
+  /** Structured body sections for richer rendering */
+  sections?: ContentSection[];
+
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
