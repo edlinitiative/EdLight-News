@@ -191,24 +191,29 @@ export default async function ArticlePage({
     (s) => s.language === otherLang && s.channel === "web",
   );
 
-  // Find related articles by dedupeGroupId
+  // Find related articles by dedupeGroupId (wrapped in try/catch —
+  // the composite index may not yet exist in Firestore)
   let relatedArticles: ContentVersion[] = [];
-  if (item?.dedupeGroupId) {
-    const relatedItems = await itemsRepo.listByDedupeGroupId(item.dedupeGroupId, 5);
-    const relatedItemIds = relatedItems
-      .filter((ri) => ri.id !== item.id)
-      .map((ri) => ri.id);
+  try {
+    if (item?.dedupeGroupId) {
+      const relatedItems = await itemsRepo.listByDedupeGroupId(item.dedupeGroupId, 5);
+      const relatedItemIds = relatedItems
+        .filter((ri) => ri.id !== item.id)
+        .map((ri) => ri.id);
 
-    if (relatedItemIds.length > 0) {
-      // Get content versions for related items
-      const cvPromises = relatedItemIds.map((id) =>
-        contentVersionsRepo.listByItemId(id),
-      );
-      const cvArrays = await Promise.all(cvPromises);
-      relatedArticles = cvArrays
-        .flat()
-        .filter((cv) => cv.language === currentLang && cv.channel === "web");
+      if (relatedItemIds.length > 0) {
+        const cvArrays = await Promise.allSettled(
+          relatedItemIds.map((id) => contentVersionsRepo.listByItemId(id)),
+        );
+        relatedArticles = cvArrays
+          .filter((r): r is PromiseFulfilledResult<ContentVersion[]> => r.status === "fulfilled")
+          .flatMap((r) => r.value)
+          .filter((cv) => cv.language === currentLang && cv.channel === "web");
+      }
     }
+  } catch (err) {
+    // Firestore index may not exist yet — degrade gracefully
+    console.warn("[news/[id]] Failed to fetch related articles:", err);
   }
 
   const isBourses =
