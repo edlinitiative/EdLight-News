@@ -96,14 +96,15 @@ export async function generateForItems(): Promise<{
       const isScholarshipWithoutDeadline =
         draft.extracted.category === "scholarship" && !draft.extracted.deadline;
 
-      const isLowConfidence = draft.confidence < 0.6;
+      const isLowConfidence = draft.confidence < 0.6 || isShortContent;
 
       // Re-score with Gemini's category for better accuracy
       const textForScoring = `${item.title} ${item.extractedText || item.summary}`;
       const scoring = computeScoring(item.title, textForScoring, draft.extracted.category);
 
       const updatedReasons = [...(item.qualityFlags?.reasons ?? [])];
-      if (isLowConfidence) updatedReasons.push(`Low confidence: ${draft.confidence}`);
+      if (isShortContent) updatedReasons.push("No extracted article text — generated from title/summary only");
+      if (isLowConfidence && !isShortContent) updatedReasons.push(`Low confidence: ${draft.confidence}`);
       if (isOpportunityWithoutDeadline) updatedReasons.push("Opportunity without deadline");
       if (isScholarshipWithoutDeadline) updatedReasons.push("Scholarship without deadline");
 

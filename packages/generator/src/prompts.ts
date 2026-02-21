@@ -21,6 +21,7 @@ RÈGLES STRICTES:
 5. Si c'est une opportunité (bourse, stage, concours), extrais la date limite et les critères d'éligibilité.
 6. Évalue ta confiance (0.0 à 1.0) que l'article est pertinent et précis.
 7. PERTINENCE HAÏTI: L'article DOIT concerner Haïti, les Haïtiens, la diaspora haïtienne, les Caraïbes francophones, ou des opportunités accessibles aux Haïtiens. Mets haiti_relevant=true SEULEMENT si c'est le cas. Un article sur l'Afrique, l'Asie, ou un autre pays sans lien avec Haïti → haiti_relevant=false.
+8. TEXTE SOURCE INSUFFISANT: Si le texte source fait moins de ~200 mots ou ne contient que le titre et un bref résumé (typique des flux RSS/agrégateurs), mets confidence ≤ 0.4. N'invente JAMAIS de détails absents du texte source. Ne remplis pas le corps avec du texte générique du type "l'article souligne l'importance de...".
 
 ARTICLE SOURCE:
 Titre: ${input.title}
