@@ -54,6 +54,7 @@ export async function fetchEnrichedArticles(
 
     return {
       id: cv.id,
+      itemId: cv.itemId,
       title: cv.title,
       summary: cv.summary,
       body: cv.body,

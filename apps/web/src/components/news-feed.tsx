@@ -19,6 +19,8 @@ import { useLanguage } from "@/lib/language-context";
 // ── Types for serialized data from server ───────────────────────────────────
 export interface FeedItem {
   id: string;
+  /** Parent item ID (used for cross-section dedup on homepage) */
+  itemId?: string;
   title: string;
   summary: string;
   body: string;

@@ -106,6 +106,7 @@ export function enrichArticles(
 
     return {
       id: cv.id,
+      itemId: cv.itemId,
       title: cv.title,
       summary: cv.summary,
       body: cv.body,
@@ -148,9 +149,13 @@ export async function fetchEnrichedFeed(
 
 const SUCCES_KEYWORDS_FR = [
   "accepté",
+  "acceptée",
   "bourse obtenue",
+  "admis",
   "diplômé",
   "recruté",
+  "sélectionné",
+  "récompense",
   "startup",
   "prix",
   "lauréat",
