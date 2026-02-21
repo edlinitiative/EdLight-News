@@ -124,14 +124,17 @@ export async function generateForItems(): Promise<{
         updatedQualityFlags,
         item.citations,
         draft.extracted.category as "news" | "scholarship" | "opportunity" | "event" | "resource" | "local_news",
+        scoring.audienceFitScore,
       );
 
       // Write content_versions to Firestore
       await contentVersionsRepo.createDraftVersionsForItem(item.id, payloads);
 
       generated++;
+      const scoreStr = scoring.audienceFitScore.toFixed(2);
+      const statusStr = payloads[0]?.status ?? "unknown";
       console.log(
-        `[generate] created ${payloads.length} versions for item ${item.id} (category=${draft.extracted.category}, confidence=${draft.confidence})`,
+        `[generate] created ${payloads.length} versions for item ${item.id} (category=${draft.extracted.category}, confidence=${draft.confidence}, score=${scoreStr}, status=${statusStr})`,
       );
     } catch (err) {
       console.error(`[generate] error for item ${item.id}:`, err);

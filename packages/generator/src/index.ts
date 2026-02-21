@@ -13,6 +13,9 @@ import type { ContentChannel, ContentLanguage, ContentStatus, QualityFlags } fro
 export type { GeminiWebDraft } from "./schema.js";
 export { geminiWebDraftSchema } from "./schema.js";
 
+/** Items scoring below this are kept as draft — never auto-published. */
+export const PUBLISH_SCORE_THRESHOLD = 0.65;
+
 export interface GenerateWebDraftInput {
   title: string;
   text: string;
@@ -83,6 +86,7 @@ export function buildContentVersionPayloads(
   qualityFlags: QualityFlags,
   citations: { sourceName: string; sourceUrl: string }[],
   category?: "news" | "scholarship" | "opportunity" | "event" | "resource" | "local_news",
+  audienceFitScore?: number,
 ): Array<{
   channel: ContentChannel;
   language: ContentLanguage;
@@ -109,6 +113,9 @@ export function buildContentVersionPayloads(
   } else if (qualityFlags.lowConfidence) {
     status = "draft";
     draftReason = `Low confidence (${draft.confidence})`;
+  } else if (audienceFitScore !== undefined && audienceFitScore < PUBLISH_SCORE_THRESHOLD) {
+    status = "draft";
+    draftReason = `Low audience-fit score (${audienceFitScore.toFixed(2)})`;
   }
 
   const base = {
