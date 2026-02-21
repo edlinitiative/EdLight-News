@@ -47,7 +47,9 @@ export function ArticleCard({
   const updateCount = (article.dupeCount ?? 1) - 1;
   const hasUpdates = updateCount > 0;
 
-  const hasImage = !!article.imageUrl;
+  // Only show real publisher photos on the site; branded cards ("generated")
+  // are reserved for social media and look odd as article thumbnails.
+  const hasImage = !!article.imageUrl && article.imageSource !== "generated";
   const fallbackGradient =
     FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
 

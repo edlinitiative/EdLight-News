@@ -232,8 +232,8 @@ export default async function ArticlePage({
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
-      {/* Hero image */}
-      {item?.imageUrl && (
+      {/* Hero image — only show real publisher photos, not generated branded cards */}
+      {item?.imageUrl && item?.imageSource !== "generated" && (
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100">
           <img
             src={item.imageUrl}
