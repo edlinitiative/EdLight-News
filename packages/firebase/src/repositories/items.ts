@@ -117,7 +117,7 @@ export async function deleteItem(id: string): Promise<void> {
 export async function listItemsNeedingImages(limit: number): Promise<Item[]> {
   const snap = await collection()
     .orderBy("createdAt", "desc")
-    .limit(limit * 4) // over-fetch to account for items that already have images
+    .limit(limit * 40) // over-fetch: scan 200 items for a limit of 5
     .get();
 
   const results: Item[] = [];

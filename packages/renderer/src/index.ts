@@ -212,8 +212,8 @@ export async function renderBrandedCardPNG(
 
   try {
     const html = buildBrandedCardHTML(opts);
-    await page.setContent(html, { waitUntil: "load" });
-    const buffer = await page.screenshot({ type: "png" });
+    await page.setContent(html, { waitUntil: "load", timeout: 60_000 });
+    const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
     return Buffer.from(buffer);
   } finally {
     await page.close();
