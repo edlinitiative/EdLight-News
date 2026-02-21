@@ -89,23 +89,12 @@ jobs:
             --format='value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
 
-      - name: Grant Cloud Scheduler invoker role
-        run: |
-          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} \
-            --format='value(projectNumber)')
-          gcloud run services add-iam-policy-binding ${{ env.SERVICE }} \
-            --region=${{ env.REGION }} \
-            --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-cloudscheduler.iam.gserviceaccount.com" \
-            --role="roles/run.invoker" \
-            --quiet
 
       - name: Upsert Cloud Scheduler job
         run: |
           # Runs at :15 and :45 — staggered with GitHub Actions (:00/:30) for ~15-min cadence
-          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} \
-            --format='value(projectNumber)')
           TICK_URL="${{ steps.service_url.outputs.url }}/tick"
-          SA="service-${PROJECT_NUMBER}@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+          SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
           if gcloud scheduler jobs describe edlight-news-pipeline \
                --location=${{ env.REGION }} --quiet 2>/dev/null; then
             gcloud scheduler jobs update http edlight-news-pipeline \
