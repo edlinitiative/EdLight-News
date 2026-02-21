@@ -12,6 +12,8 @@ export interface ExtractedArticle {
   text: string;
   publishedAt: Date | null;
   canonicalUrl: string;
+  /** Publisher image URL from og:image / twitter:image meta tags */
+  publisherImageUrl: string | null;
 }
 
 const USER_AGENT =
@@ -97,6 +99,44 @@ export function parseListPage(
 }
 
 /**
+ * Extract the publisher image URL from HTML meta tags.
+ *
+ * Checks og:image, twitter:image, and twitter:image:src in that order.
+ * Resolves relative URLs against baseUrl. Returns null if no valid image found.
+ */
+export function extractPublisherImage(
+  html: string,
+  baseUrl: string,
+): string | null {
+  const $ = cheerio.load(html);
+
+  const candidates = [
+    $('meta[property="og:image"]').attr("content"),
+    $('meta[name="twitter:image"]').attr("content"),
+    $('meta[name="twitter:image:src"]').attr("content"),
+    $('meta[property="og:image:url"]').attr("content"),
+  ];
+
+  for (const raw of candidates) {
+    if (!raw?.trim()) continue;
+    const src = raw.trim();
+
+    // Skip tiny placeholders, data URIs, and SVGs
+    if (src.startsWith("data:")) continue;
+    if (src.endsWith(".svg")) continue;
+
+    try {
+      const resolved = src.startsWith("http") ? src : new URL(src, baseUrl).toString();
+      return resolved;
+    } catch {
+      // URL resolution failed, try next candidate
+    }
+  }
+
+  return null;
+}
+
+/**
  * Fetch an article page and extract its main content.
  *
  * Uses simple heuristics: <article>, role="main", .post-content, .entry-content,
@@ -178,5 +218,9 @@ export async function extractArticleContent(
     $('meta[property="og:url"]').attr("content") ||
     url;
 
-  return { title, text, publishedAt, canonicalUrl };
+  // Publisher image — extract before removing noise (meta tags may be stripped)
+  // We re-parse from the original HTML to ensure meta tags are present
+  const publisherImageUrl = extractPublisherImage(html, url);
+
+  return { title, text, publishedAt, canonicalUrl, publisherImageUrl };
 }

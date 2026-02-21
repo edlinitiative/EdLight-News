@@ -43,6 +43,17 @@ export interface RawItem {
     createdAt: Timestamp;
 }
 export type GeoTag = "HT" | "Diaspora" | "Global";
+/** How the article image was obtained */
+export type ImageSource = "publisher" | "generated" | "fallback";
+/** Metadata about the article image */
+export interface ImageMeta {
+    width?: number;
+    height?: number;
+    /** ISO date when the image was fetched/generated */
+    fetchedAt?: string;
+    /** Original image URL from the publisher (before re-hosting) */
+    originalImageUrl?: string;
+}
 /** The original + aggregator source links */
 export interface ItemSource {
     name: string;
@@ -99,6 +110,12 @@ export interface Item {
     opportunity?: Opportunity;
     /** When the original article was published */
     publishedAt?: Timestamp | null;
+    /** Public URL of the article image (Firebase Storage or publisher CDN) */
+    imageUrl?: string | null;
+    /** How the image was obtained */
+    imageSource?: ImageSource;
+    /** Image metadata */
+    imageMeta?: ImageMeta;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }

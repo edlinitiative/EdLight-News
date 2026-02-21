@@ -59,6 +59,23 @@ declare const sourceSelectorsSchema: z.ZodObject<{
     title?: string | undefined;
 }>;
 declare const geoTagSchema: z.ZodEnum<["HT", "Diaspora", "Global"]>;
+declare const imageSourceSchema: z.ZodEnum<["publisher", "generated", "fallback"]>;
+declare const imageMetaSchema: z.ZodObject<{
+    width: z.ZodOptional<z.ZodNumber>;
+    height: z.ZodOptional<z.ZodNumber>;
+    fetchedAt: z.ZodOptional<z.ZodString>;
+    originalImageUrl: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    width?: number | undefined;
+    height?: number | undefined;
+    fetchedAt?: string | undefined;
+    originalImageUrl?: string | undefined;
+}, {
+    width?: number | undefined;
+    height?: number | undefined;
+    fetchedAt?: string | undefined;
+    originalImageUrl?: string | undefined;
+}>;
 declare const itemSourceSchema: z.ZodObject<{
     name: z.ZodString;
     originalUrl: z.ZodString;
@@ -347,6 +364,24 @@ export declare const itemSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     }>>>;
+    imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "generated", "fallback"]>>;
+    imageMeta: z.ZodOptional<z.ZodObject<{
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+        fetchedAt: z.ZodOptional<z.ZodString>;
+        originalImageUrl: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
+    }, {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
+    }>>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -399,11 +434,6 @@ export declare const itemSchema: z.ZodObject<{
         sourceName: string;
         sourceUrl: string;
     }[];
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
-    extractedText?: string | null | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -411,6 +441,11 @@ export declare const itemSchema: z.ZodObject<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
+    extractedText?: string | null | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -418,6 +453,14 @@ export declare const itemSchema: z.ZodObject<{
         name: string;
         originalUrl: string;
         aggregatorUrl?: string | undefined;
+    } | undefined;
+    imageUrl?: string | null | undefined;
+    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageMeta?: {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
     } | undefined;
 }, {
     title: string;
@@ -451,11 +494,6 @@ export declare const itemSchema: z.ZodObject<{
         sourceName: string;
         sourceUrl: string;
     }[];
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
-    extractedText?: string | null | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -463,6 +501,11 @@ export declare const itemSchema: z.ZodObject<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
+    extractedText?: string | null | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -470,6 +513,14 @@ export declare const itemSchema: z.ZodObject<{
         name: string;
         originalUrl: string;
         aggregatorUrl?: string | undefined;
+    } | undefined;
+    imageUrl?: string | null | undefined;
+    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageMeta?: {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
     } | undefined;
 }>;
 export declare const contentVersionSchema: z.ZodObject<{
@@ -640,6 +691,8 @@ export declare const assetSchema: z.ZodObject<{
     }>;
 }, "strip", z.ZodTypeAny, {
     type: "carousel_image" | "story_image";
+    width: number;
+    height: number;
     id: string;
     url: string;
     createdAt: {
@@ -647,10 +700,10 @@ export declare const assetSchema: z.ZodObject<{
         nanoseconds: number;
     };
     contentVersionId: string;
-    width: number;
-    height: number;
 }, {
     type: "carousel_image" | "story_image";
+    width: number;
+    height: number;
     id: string;
     url: string;
     createdAt: {
@@ -658,8 +711,6 @@ export declare const assetSchema: z.ZodObject<{
         nanoseconds: number;
     };
     contentVersionId: string;
-    width: number;
-    height: number;
 }>;
 export declare const publishQueueEntrySchema: z.ZodObject<{
     id: z.ZodString;
@@ -777,7 +828,7 @@ export declare const metricSchema: z.ZodObject<{
         nanoseconds: number;
     };
 }>;
-export { citationSchema, contentSectionSchema, geoTagSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
+export { citationSchema, contentSectionSchema, geoTagSchema, imageMetaSchema, imageSourceSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
 export declare const createSourceSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     name: z.ZodString;
@@ -996,6 +1047,24 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         seconds: number;
         nanoseconds: number;
     }>>>;
+    imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "generated", "fallback"]>>;
+    imageMeta: z.ZodOptional<z.ZodObject<{
+        width: z.ZodOptional<z.ZodNumber>;
+        height: z.ZodOptional<z.ZodNumber>;
+        fetchedAt: z.ZodOptional<z.ZodString>;
+        originalImageUrl: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
+    }, {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
+    }>>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -1039,11 +1108,6 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         sourceName: string;
         sourceUrl: string;
     }[];
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
-    extractedText?: string | null | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -1051,6 +1115,11 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
+    extractedText?: string | null | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -1058,6 +1127,14 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         name: string;
         originalUrl: string;
         aggregatorUrl?: string | undefined;
+    } | undefined;
+    imageUrl?: string | null | undefined;
+    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageMeta?: {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
     } | undefined;
 }, {
     title: string;
@@ -1082,11 +1159,6 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         sourceName: string;
         sourceUrl: string;
     }[];
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
-    extractedText?: string | null | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -1094,6 +1166,11 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
+    extractedText?: string | null | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -1101,6 +1178,14 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         name: string;
         originalUrl: string;
         aggregatorUrl?: string | undefined;
+    } | undefined;
+    imageUrl?: string | null | undefined;
+    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageMeta?: {
+        width?: number | undefined;
+        height?: number | undefined;
+        fetchedAt?: string | undefined;
+        originalImageUrl?: string | undefined;
     } | undefined;
 }>;
 export declare const createContentVersionSchema: z.ZodObject<Omit<{
@@ -1253,16 +1338,16 @@ export declare const createAssetSchema: z.ZodObject<Omit<{
     }>;
 }, "id" | "createdAt">, "strip", z.ZodTypeAny, {
     type: "carousel_image" | "story_image";
-    url: string;
-    contentVersionId: string;
     width: number;
     height: number;
+    url: string;
+    contentVersionId: string;
 }, {
     type: "carousel_image" | "story_image";
-    url: string;
-    contentVersionId: string;
     width: number;
     height: number;
+    url: string;
+    contentVersionId: string;
 }>;
 export declare const createPublishQueueEntrySchema: z.ZodObject<Omit<{
     id: z.ZodString;

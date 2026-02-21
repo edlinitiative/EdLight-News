@@ -126,6 +126,9 @@ export function enrichArticles(
       geoTag: item?.geoTag,
       deadline: item?.deadline,
       publishedAt,
+      // image fields
+      imageUrl: item?.imageUrl ?? null,
+      imageSource: item?.imageSource,
     };
   });
 }

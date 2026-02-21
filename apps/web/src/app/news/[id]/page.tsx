@@ -232,6 +232,22 @@ export default async function ArticlePage({
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
+      {/* Hero image */}
+      {item?.imageUrl && (
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100">
+          <img
+            src={item.imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+          {item.imageSource === "publisher" && (
+            <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
+              {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Top meta */}
       <div className="flex flex-wrap items-center gap-3">
         {item?.category && (

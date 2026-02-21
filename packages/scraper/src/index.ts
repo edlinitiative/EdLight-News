@@ -4,6 +4,7 @@ export {
   fetchHtml,
   parseListPage,
   extractArticleContent,
+  extractPublisherImage,
   type HTMLItem,
   type ExtractedArticle,
 } from "./html.js";

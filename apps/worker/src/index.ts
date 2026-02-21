@@ -12,6 +12,7 @@ import { tickRouter } from "./routes/tick.js";
 import { ingest } from "./services/ingest.js";
 import { processRawItems } from "./services/process.js";
 import { generateForItems } from "./services/generate.js";
+import { generateImages } from "./jobs/generateImages.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 const app = express();
@@ -43,7 +44,16 @@ async function runTick() {
     const processResult = await processRawItems();
     const generateResult = await generateForItems();
     const published = await contentVersionsRepo.publishEligibleDrafts();
-    console.log("[cron] tick done", { ingestResult, processResult, generateResult, published });
+
+    // Step 5: Generate branded card images (non-critical)
+    let imageResult = { generated: 0, failed: 0 };
+    try {
+      imageResult = await generateImages();
+    } catch (err) {
+      console.warn("[cron] image generation error:", err instanceof Error ? err.message : err);
+    }
+
+    console.log("[cron] tick done", { ingestResult, processResult, generateResult, published, imageResult });
   } catch (err) {
     console.error("[cron] tick error:", err instanceof Error ? err.message : err);
   }

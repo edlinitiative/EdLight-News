@@ -13,6 +13,17 @@ import {
   formatDate,
 } from "@/lib/utils";
 
+/** Category → fallback gradient CSS for cards without images */
+const FALLBACK_GRADIENTS: Record<string, string> = {
+  scholarship: "from-blue-800 to-purple-700",
+  opportunity: "from-purple-700 to-pink-600",
+  news:        "from-teal-700 to-blue-800",
+  event:       "from-orange-700 to-red-700",
+  resource:    "from-green-700 to-cyan-700",
+  local_news:  "from-red-700 to-blue-800",
+};
+const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
+
 export interface ArticleCardProps {
   article: FeedItem;
   lang: ContentLanguage;
@@ -36,60 +47,86 @@ export function ArticleCard({
   const updateCount = (article.dupeCount ?? 1) - 1;
   const hasUpdates = updateCount > 0;
 
+  const hasImage = !!article.imageUrl;
+  const fallbackGradient =
+    FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
+
   return (
     <a
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col rounded-lg border bg-white p-5 transition hover:border-brand-300 hover:shadow-md"
+      className="group flex flex-col rounded-lg border bg-white transition hover:border-brand-300 hover:shadow-md overflow-hidden"
     >
-      {/* Badges row */}
-      <div className="mb-2 flex flex-wrap items-center gap-1.5">
-        {catColor && (
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${catColor}`}
+      {/* Image / gradient thumbnail (16:9 aspect ratio) */}
+      <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+        {hasImage ? (
+          <img
+            src={article.imageUrl!}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div
+            className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
           >
-            {categoryLabel(article.category, lang)}
-          </span>
-        )}
-        {hasUpdates && (
-          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-            +{updateCount}&nbsp;
-            {lang === "fr" ? "mises à jour" : "mizajou"}
-          </span>
+            <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+              {categoryLabel(article.category, lang)}
+            </span>
+          </div>
         )}
       </div>
 
-      {/* Deadline (opportunities only) */}
-      {showDeadline && article.deadline && (
-        <p className="mb-1.5 text-xs font-semibold text-orange-600">
-          {lang === "fr" ? "Limite :" : "Dat limit :"}{" "}
-          {formatDate(article.deadline, lang)}
-        </p>
-      )}
+      <div className="flex flex-1 flex-col p-5">
+        {/* Badges row */}
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          {catColor && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${catColor}`}
+            >
+              {categoryLabel(article.category, lang)}
+            </span>
+          )}
+          {hasUpdates && (
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+              +{updateCount}&nbsp;
+              {lang === "fr" ? "mises à jour" : "mizajou"}
+            </span>
+          )}
+        </div>
 
-      {/* Title */}
-      <h2
-        className={[
-          "font-semibold leading-snug group-hover:text-brand-700",
-          compact ? "mb-1 text-sm" : "mb-2 text-base",
-        ].join(" ")}
-      >
-        {article.title}
-      </h2>
-
-      {/* Summary */}
-      {!compact && (
-        <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500">
-          {article.summary || article.body.slice(0, 150)}
-        </p>
-      )}
-
-      {/* Footer: source · date */}
-      <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
-        {article.sourceName && <span>{article.sourceName}</span>}
-        {article.sourceName && article.publishedAt && <span>·</span>}
-        {article.publishedAt && (
-          <span>{formatDate(article.publishedAt, lang)}</span>
+        {/* Deadline (opportunities only) */}
+        {showDeadline && article.deadline && (
+          <p className="mb-1.5 text-xs font-semibold text-orange-600">
+            {lang === "fr" ? "Limite :" : "Dat limit :"}{" "}
+            {formatDate(article.deadline, lang)}
+          </p>
         )}
+
+        {/* Title */}
+        <h2
+          className={[
+            "font-semibold leading-snug group-hover:text-brand-700",
+            compact ? "mb-1 text-sm" : "mb-2 text-base",
+          ].join(" ")}
+        >
+          {article.title}
+        </h2>
+
+        {/* Summary */}
+        {!compact && (
+          <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500">
+            {article.summary || article.body.slice(0, 150)}
+          </p>
+        )}
+
+        {/* Footer: source · date */}
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+          {article.sourceName && <span>{article.sourceName}</span>}
+          {article.sourceName && article.publishedAt && <span>·</span>}
+          {article.publishedAt && (
+            <span>{formatDate(article.publishedAt, lang)}</span>
+          )}
+        </div>
       </div>
     </a>
   );

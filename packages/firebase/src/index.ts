@@ -1,4 +1,5 @@
 export { getApp, getDb } from "./admin.js";
+export { uploadImageBuffer } from "./storage.js";
 export {
   sourcesRepo,
   rawItemsRepo,

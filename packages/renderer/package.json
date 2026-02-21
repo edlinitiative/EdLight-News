@@ -10,7 +10,8 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@edlight-news/types": "workspace:*"
+    "@edlight-news/types": "workspace:*",
+    "playwright-core": "^1.44.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

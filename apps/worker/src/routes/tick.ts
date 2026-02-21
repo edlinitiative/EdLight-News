@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { ingest } from "../services/ingest.js";
 import { processRawItems } from "../services/process.js";
 import { generateForItems } from "../services/generate.js";
+import { generateImages } from "../jobs/generateImages.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 export const tickRouter = Router();
@@ -25,8 +26,17 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.log(`[tick] published ${published} eligible drafts`);
     }
 
+    // Step 5: Generate branded card images for items that don't have one yet
+    let imageResult = { generated: 0, failed: 0 };
+    try {
+      imageResult = await generateImages();
+    } catch (err) {
+      // Image generation is non-critical — log and continue
+      console.warn("[tick] image generation error:", err instanceof Error ? err.message : err);
+    }
+
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, imageResult });
 
     res.json({
       ok: true,
@@ -36,6 +46,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         process: processResult,
         generate: generateResult,
         published,
+        images: imageResult,
       },
     });
   } catch (err) {

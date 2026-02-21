@@ -24,6 +24,13 @@ const sourceSelectorsSchema = z.object({
     title: z.string().optional(),
 });
 const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
+const imageSourceSchema = z.enum(["publisher", "generated", "fallback"]);
+const imageMetaSchema = z.object({
+    width: z.number().positive().optional(),
+    height: z.number().positive().optional(),
+    fetchedAt: z.string().optional(),
+    originalImageUrl: z.string().url().optional(),
+});
 const itemSourceSchema = z.object({
     name: z.string().min(1),
     originalUrl: z.string().url(),
@@ -97,6 +104,10 @@ export const itemSchema = z.object({
     source: itemSourceSchema.optional(),
     opportunity: opportunitySchema.optional(),
     publishedAt: timestampSchema.nullable().optional(),
+    // image fields
+    imageUrl: z.string().url().nullable().optional(),
+    imageSource: imageSourceSchema.optional(),
+    imageMeta: imageMetaSchema.optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
 });
@@ -152,7 +163,7 @@ export const metricSchema = z.object({
     recordedAt: timestampSchema,
 });
 // ── Re-export sub-schemas for external use ─────────────────────────────────
-export { citationSchema, contentSectionSchema, geoTagSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
+export { citationSchema, contentSectionSchema, geoTagSchema, imageMetaSchema, imageSourceSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
 // ── Create schemas (omit id + timestamps for writes) ───────────────────────
 export const createSourceSchema = sourceSchema.omit({
     id: true,

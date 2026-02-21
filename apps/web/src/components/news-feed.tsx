@@ -43,6 +43,10 @@ export interface FeedItem {
   dupeCount?: number;
   /** True when item has no audienceFitScore (pre-v2 legacy) */
   isLegacy?: boolean;
+  /** Public URL of the article image (Firebase Storage or publisher CDN) */
+  imageUrl?: string | null;
+  /** How the image was obtained: publisher | generated | fallback */
+  imageSource?: string;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

@@ -35,6 +35,7 @@ export async function processRawItems(): Promise<{
       let title = raw.title;
       let extractedText: string | null = null;
       let canonicalUrl = raw.url;
+      let publisherImageUrl: string | null = null;
 
       // Titles that are clearly scraper noise, not real article titles
       const GENERIC_TITLES = new Set([
@@ -50,6 +51,8 @@ export async function processRawItems(): Promise<{
         title = isGenericTitle ? raw.title : scrapedTitle;
         extractedText = article.text || null;
         canonicalUrl = article.canonicalUrl || raw.url;
+        // Capture publisher image if available (og:image / twitter:image)
+        publisherImageUrl = article.publisherImageUrl || null;
       } catch (err) {
         // Article extraction failed — continue with raw data only
         extractedText = null;
@@ -101,6 +104,17 @@ export async function processRawItems(): Promise<{
         dedupeGroupId,
         source: itemSource,
         publishedAt: raw.publishedAt,
+        // image fields — set when publisher provides og:image
+        ...(publisherImageUrl
+          ? {
+              imageUrl: publisherImageUrl,
+              imageSource: "publisher" as const,
+              imageMeta: {
+                fetchedAt: new Date().toISOString(),
+                originalImageUrl: publisherImageUrl,
+              },
+            }
+          : {}),
       });
 
       await rawItemsRepo.markProcessed(raw.id);

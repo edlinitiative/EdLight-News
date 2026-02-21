@@ -12,6 +12,19 @@ const FIREBASE_EXTERNALS = [
 ];
 
 const nextConfig = {
+  // Allow images from Firebase Storage and common publisher CDNs
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "storage.googleapis.com",
+      },
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+      },
+    ],
+  },
   // @edlight-news/firebase is transpiled from source so webpack can bundle it
   // into the serverless function — avoiding the pnpm-symlink runtime resolution
   // problem that occurs when the package is externalised on Vercel.
