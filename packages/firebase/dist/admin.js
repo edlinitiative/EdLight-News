@@ -1,5 +1,5 @@
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { initializeFirestore } from "firebase-admin/firestore";
 let app;
 let db;
 export function getApp() {
@@ -25,13 +25,11 @@ export function getApp() {
 }
 export function getDb() {
     if (!db) {
-        db = getFirestore(getApp());
-        // Use REST transport instead of gRPC.
-        // gRPC requires persistent TLS channels that break in serverless environments
-        // (Vercel, Cloud Functions) under Node 18+ / OpenSSL 3 with error:
-        //   "Getting metadata from plugin failed: DECODER routines::unsupported"
-        // REST uses plain HTTPS, which is reliable in all serverless runtimes.
-        db.settings({ preferRest: true });
+        // Use initializeFirestore (not getFirestore + settings) so preferRest
+        // is wired in before the gRPC channel can be created.
+        // gRPC breaks in serverless (Vercel/Node 18+/OpenSSL 3) with:
+        //   "DECODER routines::unsupported"
+        db = initializeFirestore(getApp(), { preferRest: true });
     }
     return db;
 }
