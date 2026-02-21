@@ -33,7 +33,7 @@ app.listen(PORT, () => {
 
 // ─── Self-scheduling pipeline cron ────────────────────────────────────────────
 const TICK_INTERVAL_MS = parseInt(
-  process.env.TICK_INTERVAL_MS ?? String(2 * 60 * 60 * 1000), // default: 2 h
+  process.env.TICK_INTERVAL_MS ?? String(30 * 60 * 1000), // default: 30 min
   10,
 );
 

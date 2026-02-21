@@ -1,9 +1,9 @@
 name: EdLight News Pipeline
 
 on:
-  # Run automatically every 2 hours
+  # Run automatically every 30 minutes to catch breaking news quickly
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "*/30 * * * *"
   # Also allow manual trigger from GitHub Actions tab
   workflow_dispatch:
 

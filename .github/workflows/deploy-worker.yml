@@ -1,0 +1,90 @@
+name: Deploy Worker to Cloud Run
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/worker/**"
+      - "packages/**"
+      - "tsconfig.base.json"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: edlight-news
+  REGION: us-central1
+  SERVICE: edlight-news-worker
+  # Artifact Registry image path — repository created once with:
+  #   gcloud artifacts repositories create edlight-news \
+  #     --repository-format=docker --location=us-central1
+  IMAGE: us-central1-docker.pkg.dev/edlight-news/edlight-news/worker
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --file apps/worker/Dockerfile \
+            --tag ${{ env.IMAGE }}:${{ github.sha }} \
+            --tag ${{ env.IMAGE }}:latest \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.IMAGE }}:${{ github.sha }}
+          docker push ${{ env.IMAGE }}:latest
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}:${{ github.sha }}
+          # Keep exactly 1 instance running at all times (always-on worker)
+          flags: >-
+            --min-instances=1
+            --max-instances=1
+            --memory=1Gi
+            --cpu=1
+            --timeout=3600
+            --no-allow-unauthenticated
+          env_vars: |
+            FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+            FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
+            TICK_INTERVAL_MS=1800000
+            PROCESS_BATCH_LIMIT=15
+            IMAGE_BATCH_LIMIT=5
+
+      - name: Show service URL
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "Worker deployed at: $URL"
+          echo "WORKER_URL=$URL" >> $GITHUB_STEP_SUMMARY
