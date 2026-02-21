@@ -57,6 +57,19 @@ jobs:
           docker push ${{ env.IMAGE }}:${{ github.sha }}
           docker push ${{ env.IMAGE }}:latest
 
+      - name: Store private key in Secret Manager
+        run: |
+          # FIREBASE_PRIVATE_KEY contains real newlines — Secret Manager preserves them;
+          # passing multiline values through env_vars corrupts the PEM format.
+          if gcloud secrets describe firebase-private-key --quiet 2>/dev/null; then
+            echo "${{ secrets.FIREBASE_PRIVATE_KEY }}" | \
+              gcloud secrets versions add firebase-private-key --data-file=-
+          else
+            echo "${{ secrets.FIREBASE_PRIVATE_KEY }}" | \
+              gcloud secrets create firebase-private-key \
+                --data-file=- --replication-policy=automatic
+          fi
+
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -74,12 +87,13 @@ jobs:
           env_vars: |
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
-            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
             TICK_INTERVAL_MS=1800000
             PROCESS_BATCH_LIMIT=15
             IMAGE_BATCH_LIMIT=5
+          secrets: |
+            FIREBASE_PRIVATE_KEY=firebase-private-key:latest
 
       - name: Get service URL
         id: service_url
