@@ -1,0 +1,96 @@
+/**
+ * ArticleCard — shared display component for all section grids.
+ *
+ * Works in both server and client component contexts because it
+ * uses no React hooks. Dates are formatted statically (not relative).
+ */
+
+import type { ContentLanguage } from "@edlight-news/types";
+import type { FeedItem } from "@/components/news-feed";
+import {
+  categoryLabel,
+  CATEGORY_COLORS,
+  formatDate,
+} from "@/lib/utils";
+
+export interface ArticleCardProps {
+  article: FeedItem;
+  lang: ContentLanguage;
+  /** Show the deadline badge (used on opportunities cards). */
+  showDeadline?: boolean;
+  /** Compact layout: no summary text, smaller heading. */
+  compact?: boolean;
+}
+
+export function ArticleCard({
+  article,
+  lang,
+  showDeadline = false,
+  compact = false,
+}: ArticleCardProps) {
+  const catColor = article.category
+    ? (CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600")
+    : null;
+
+  // dupeCount includes the canonical version itself, so updates = dupeCount - 1
+  const updateCount = (article.dupeCount ?? 1) - 1;
+  const hasUpdates = updateCount > 0;
+
+  return (
+    <a
+      href={`/news/${article.id}?lang=${lang}`}
+      className="group flex flex-col rounded-lg border bg-white p-5 transition hover:border-brand-300 hover:shadow-md"
+    >
+      {/* Badges row */}
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        {catColor && (
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${catColor}`}
+          >
+            {categoryLabel(article.category, lang)}
+          </span>
+        )}
+        {hasUpdates && (
+          <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+            +{updateCount}&nbsp;
+            {lang === "fr" ? "mises à jour" : "mizajou"}
+          </span>
+        )}
+      </div>
+
+      {/* Deadline (opportunities only) */}
+      {showDeadline && article.deadline && (
+        <p className="mb-1.5 text-xs font-semibold text-orange-600">
+          {lang === "fr" ? "Limite :" : "Dat limit :"}{" "}
+          {formatDate(article.deadline, lang)}
+        </p>
+      )}
+
+      {/* Title */}
+      <h2
+        className={[
+          "font-semibold leading-snug group-hover:text-brand-700",
+          compact ? "mb-1 text-sm" : "mb-2 text-base",
+        ].join(" ")}
+      >
+        {article.title}
+      </h2>
+
+      {/* Summary */}
+      {!compact && (
+        <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500">
+          {article.summary || article.body.slice(0, 150)}
+        </p>
+      )}
+
+      {/* Footer: source · date */}
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+        {article.sourceName && <span>{article.sourceName}</span>}
+        {article.sourceName && article.publishedAt && <span>·</span>}
+        {article.publishedAt && (
+          <span>{formatDate(article.publishedAt, lang)}</span>
+        )}
+      </div>
+    </a>
+  );
+}

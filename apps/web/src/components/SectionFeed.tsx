@@ -1,0 +1,85 @@
+"use client";
+
+import { useState } from "react";
+import type { ContentLanguage } from "@edlight-news/types";
+import type { FeedItem } from "@/components/news-feed";
+import { ArticleCard } from "@/components/ArticleCard";
+
+type SortMode = "relevance" | "latest";
+
+export interface SectionFeedProps {
+  articles: FeedItem[];
+  lang: ContentLanguage;
+  /** Which sort mode is shown by default. */
+  defaultSort?: SortMode;
+  /** Message shown when the filtered list is empty. */
+  emptyMessage?: { fr: string; ht: string };
+}
+
+export function SectionFeed({
+  articles,
+  lang,
+  defaultSort = "relevance",
+  emptyMessage,
+}: SectionFeedProps) {
+  const [sort, setSort] = useState<SortMode>(defaultSort);
+
+  const sorted = [...articles].sort((a, b) => {
+    if (sort === "relevance") {
+      const diff = (b.audienceFitScore ?? 0) - (a.audienceFitScore ?? 0);
+      if (diff !== 0) return diff;
+    }
+    const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    return tB - tA;
+  });
+
+  if (sorted.length === 0) {
+    return (
+      <p className="py-20 text-center text-gray-400">
+        {emptyMessage?.[lang] ??
+          (lang === "fr"
+            ? "Aucun article disponible pour le moment."
+            : "Pa gen atik disponib kounye a.")}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Sort toggle */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-gray-500">
+          {lang === "fr" ? "Trier par :" : "Triye pa :"}
+        </span>
+        {(["relevance", "latest"] as SortMode[]).map((opt) => (
+          <button
+            key={opt}
+            onClick={() => setSort(opt)}
+            className={[
+              "rounded-full px-3 py-1 text-sm font-medium transition",
+              sort === opt
+                ? "bg-brand-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+            ].join(" ")}
+          >
+            {opt === "relevance"
+              ? lang === "fr"
+                ? "Pertinence"
+                : "Pètinans"
+              : lang === "fr"
+                ? "Dernières"
+                : "Dènye"}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {sorted.map((article) => (
+          <ArticleCard key={article.id} article={article} lang={lang} />
+        ))}
+      </div>
+    </div>
+  );
+}

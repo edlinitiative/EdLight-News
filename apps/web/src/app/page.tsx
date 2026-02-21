@@ -1,119 +1,231 @@
+/**
+ * Accueil — multi-section curated homepage.
+ *
+ * Fetches one pool of enriched articles then applies different filters/ranking
+ * per section, so there is only one Firestore read per page load.
+ *
+ * Sections:
+ *  A) À la une                — top 6 scored + publisher-balanced
+ *  B) Opportunités à ne pas manquer — scholarship/opportunity with deadline, sorted soonest first
+ *  C) Haïti (pour étudiants)  — geoTag=HT or category=local_news
+ *  D) Ressources utiles       — category=resource
+ *  E) Succès / Inspiration    — category=succes OR keyword inference (placeholder if empty)
+ */
+
 import Link from "next/link";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
-import { fetchEnrichedArticles } from "@/lib/feed";
-import { rankFeed } from "@/lib/ranking";
-import { categoryLabel, CATEGORY_COLORS } from "@/lib/utils";
+import { fetchEnrichedFeed, isSuccessArticle } from "@/lib/content";
+import { rankAndDeduplicate } from "@/lib/ranking";
+import { ArticleCard } from "@/components/ArticleCard";
 
 export const dynamic = "force-dynamic";
 
-// ── Article card ────────────────────────────────────────────────────────────
+// ── Section header helper ─────────────────────────────────────────────────────
 
-function ArticleCard({
-  article,
-  lang,
+function SectionHeader({
+  title,
+  href,
+  cta,
 }: {
-  article: FeedItem;
-  lang: ContentLanguage;
+  title: string;
+  href: string;
+  cta: string;
 }) {
-  const catColor =
-    article.category && article.category !== "news"
-      ? (CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600")
-      : null;
-
   return (
-    <a
-      href={"/news/" + article.id + "?lang=" + lang}
-      className="group block rounded-lg border p-5 transition hover:border-brand-300 hover:shadow-md"
-    >
-      {catColor && (
-        <span
-          className={
-            "mb-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium " +
-            catColor
-          }
-        >
-          {categoryLabel(article.category, lang)}
-        </span>
-      )}
-      <h2 className="mb-2 text-base font-semibold leading-snug group-hover:text-brand-700">
-        {article.title}
-      </h2>
-      <p className="line-clamp-2 text-sm text-gray-500">
-        {article.summary || article.body.slice(0, 150)}
-      </p>
-      {article.sourceName && (
-        <p className="mt-3 text-xs text-gray-400">{article.sourceName}</p>
-      )}
-    </a>
+    <div className="flex items-center justify-between">
+      <h2 className="text-xl font-bold">{title}</h2>
+      <Link
+        href={href}
+        className="text-sm font-medium text-brand-700 hover:underline"
+      >
+        {cta}
+      </Link>
+    </div>
   );
 }
 
-// ── Page ────────────────────────────────────────────────────────────────────
+// ── Reusable section grid ─────────────────────────────────────────────────────
 
-export default async function HomePage({
+function SectionGrid({
+  articles,
+  lang,
+  showDeadline = false,
+}: {
+  articles: FeedItem[];
+  lang: ContentLanguage;
+  showDeadline?: boolean;
+}) {
+  return (
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {articles.map((a) => (
+        <ArticleCard
+          key={a.id}
+          article={a}
+          lang={lang}
+          showDeadline={showDeadline}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
+export default async function AccueilPage({
   searchParams,
 }: {
   searchParams: { lang?: string };
 }) {
   const lang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
+  const langQ = lang === "ht" ? "?lang=ht" : "";
 
-  // Fetch a generous pool then rank down to 6 curated articles.
-  // Threshold 0.80: only high-confidence, on-mission articles surface.
-  // Publisher cap 2-in-top-6: no single source dominates the homepage.
-  const enriched = await fetchEnrichedArticles(lang, 50);
-  const ranked = rankFeed(enriched, {
+  // ── Fetch one large pool (server-side, one Firestore read) ────────────────
+  const allArticles = await fetchEnrichedFeed(lang, 200);
+
+  // ── A) À la une — top 6 high-confidence, publisher-balanced ──────────────
+  const alaune = rankAndDeduplicate(allArticles, {
     audienceFitThreshold: 0.80,
     publisherCap: 2,
     topN: 6,
-  });
-  const featured = ranked.slice(0, 6);
+  }).slice(0, 6);
 
-  const newsHref = "/news" + (lang === "ht" ? "?lang=ht" : "");
+  // ── B) Opportunités — scholarship/opportunity with deadline, soonest first ─
+  const opps = allArticles
+    .filter(
+      (a) =>
+        (a.category === "scholarship" || a.category === "opportunity") &&
+        Boolean(a.deadline),
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime(),
+    )
+    .slice(0, 6);
+
+  // ── C) Haïti — geoTag=HT or category=local_news ──────────────────────────
+  const haitiPool = allArticles.filter(
+    (a) => a.geoTag === "HT" || a.category === "local_news",
+  );
+  const haiti = rankAndDeduplicate(haitiPool, {
+    audienceFitThreshold: 0.75,
+    publisherCap: 3,
+    topN: 6,
+  }).slice(0, 6);
+
+  // ── D) Ressources utiles — category=resource ──────────────────────────────
+  const resPool = allArticles.filter((a) => a.category === "resource");
+  const ressources = rankAndDeduplicate(resPool, {
+    audienceFitThreshold: 0.65,
+    publisherCap: 3,
+    topN: 6,
+  }).slice(0, 6);
+
+  // ── E) Succès / Inspiration — category=succes OR keyword inference ─────────
+  const succesPool = allArticles.filter(isSuccessArticle);
+  const succes = rankAndDeduplicate(succesPool, {
+    audienceFitThreshold: 0.65,
+    publisherCap: 2,
+    topN: 4,
+  }).slice(0, 4);
+
+  // ── i18n ─────────────────────────────────────────────────────────────────
+  const fr = lang === "fr";
+  const lq = (path: string) => path + langQ;
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-14">
       {/* Hero */}
       <section className="space-y-4 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight">
-          {lang === "fr"
-            ? "Bienvenu sur EdLight News"
-            : "Byenveni sou EdLight News"}
+          {fr
+            ? "Actualités éducatives pour les étudiants haïtiens"
+            : "Nouvèl edikasyon pou elèv ayisyen yo"}
         </h1>
         <p className="mx-auto max-w-xl text-lg text-gray-600">
-          {lang === "fr"
-            ? "Actualités éducatives, bourses et opportunités pour les étudiants haïtiens — en français et en créole."
-            : "Nouvèl edikasyon, bous detid, ak opòtinite pou elèv ayisyen yo — an fransè ak kreyòl."}
+          {fr
+            ? "Bourses, opportunités, et nouvelles d'Haïti — en français et en créole."
+            : "Bous, opòtinite, ak nouvèl Ayiti — an fransè ak kreyòl."}
         </p>
         <Link
-          href={newsHref}
-          className="inline-block rounded-lg bg-brand-600 px-6 py-3 text-white hover:bg-brand-700"
+          href={lq("/news")}
+          className="inline-block rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700"
         >
-          {lang === "fr" ? "Voir toutes les actualités →" : "Wè tout nouvèl yo →"}
+          {fr ? "Voir toutes les nouvelles →" : "Wè tout nouvèl yo →"}
         </Link>
       </section>
 
-      {/* Curated featured articles */}
-      {featured.length > 0 && (
+      {/* A) À la une */}
+      {alaune.length > 0 && (
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">
-              {lang === "fr" ? "Dernières nouvelles" : "Dènye nouvèl"}
-            </h2>
-            <Link
-              href={newsHref}
-              className="text-sm font-medium text-brand-700 hover:underline"
-            >
-              {lang === "fr" ? "Voir tout →" : "Wè tout →"}
-            </Link>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((article) => (
-              <ArticleCard key={article.id} article={article} lang={lang} />
-            ))}
-          </div>
+          <SectionHeader
+            title={fr ? "À la une" : "Aktyalite"}
+            href={lq("/news")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={alaune} lang={lang} />
         </section>
       )}
+
+      {/* B) Opportunités */}
+      {opps.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            title={
+              fr ? "Opportunités à ne pas manquer" : "Okazyon pou sezi"
+            }
+            href={lq("/opportunites")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={opps} lang={lang} showDeadline />
+        </section>
+      )}
+
+      {/* C) Haïti */}
+      {haiti.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            title={fr ? "Haïti — pour les étudiants" : "Ayiti — pou elèv"}
+            href={lq("/haiti")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={haiti} lang={lang} />
+        </section>
+      )}
+
+      {/* D) Ressources */}
+      {ressources.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            title={fr ? "Ressources utiles" : "Resous itil"}
+            href={lq("/ressources")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={ressources} lang={lang} />
+        </section>
+      )}
+
+      {/* E) Succès — placeholder when no keyword-matching articles */}
+      <section className="space-y-4">
+        <SectionHeader
+          title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
+          href={lq("/succes")}
+          cta={fr ? "Voir tout →" : "Wè tout →"}
+        />
+        {succes.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {succes.map((a) => (
+              <ArticleCard key={a.id} article={a} lang={lang} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
+            <p className="text-base">
+              {fr ? "Bientôt — revenez vite !" : "Byento — tounen vit !"}
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

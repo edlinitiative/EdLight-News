@@ -110,3 +110,10 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
   // Final order: curated top N → publisher-bumped overflow → rest
   return [...topSlots, ...deferred, ...remainder];
 }
+
+/**
+ * Alias used by curated page routes.
+ * Identical behaviour to rankFeed; the dupeCount field on each returned
+ * article serves as the "updateCount" (how many duplicate stories were merged).
+ */
+export const rankAndDeduplicate = rankFeed;

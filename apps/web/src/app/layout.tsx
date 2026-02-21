@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
-import { LanguageToggle } from "@/components/language-toggle";
+import { NavBar } from "@/components/NavBar";
 
 export const metadata: Metadata = {
   title: "EdLight News",
@@ -16,25 +16,33 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body>
+      <body className="flex min-h-screen flex-col bg-gray-50">
         <LanguageProvider>
-          <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-            <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-              <a href="/" className="text-xl font-bold text-brand-700">
+          <NavBar />
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+            {children}
+          </main>
+          <footer className="mt-16 border-t bg-white py-8 text-sm text-gray-500">
+            <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 sm:flex-row sm:justify-between">
+              <span className="font-semibold text-brand-700">
                 EdLight News
-              </a>
-              <nav className="flex items-center gap-4">
-                <a href="/news" className="text-sm hover:underline">
-                  Nouvèl
+              </span>
+              <nav className="flex flex-wrap items-center gap-4">
+                <a href="/sources" className="hover:text-gray-700 hover:underline">
+                  Sources
                 </a>
-                <a href="/admin" className="text-sm hover:underline">
-                  Admin
+                <a href="/about" className="hover:text-gray-700 hover:underline">
+                  À propos
                 </a>
-                <LanguageToggle />
+                <a href="/contact" className="hover:text-gray-700 hover:underline">
+                  Contact
+                </a>
               </nav>
+              <span className="text-xs text-gray-400">
+                © {new Date().getFullYear()} EdLight Initiative
+              </span>
             </div>
-          </header>
-          <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+          </footer>
         </LanguageProvider>
       </body>
     </html>
