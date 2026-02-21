@@ -13,6 +13,8 @@ export function getApp() {
             }
             // Handle escaped newlines from .env files (dotenv stores \\n literally)
             privateKey = privateKey.replace(/\\n/g, "\n");
+            // Strip surrounding quotes that some env-var managers embed in the value
+            privateKey = privateKey.replace(/^["']|["']$/g, "");
             app = initializeApp({
                 credential: cert({ projectId, clientEmail, privateKey }),
             });

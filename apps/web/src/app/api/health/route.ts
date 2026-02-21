@@ -15,6 +15,7 @@ export async function GET() {
   }
 
   privateKey = privateKey.replace(/\\n/g, "\n");
+  privateKey = privateKey.replace(/^["']|["']$/g, "");
   errors.push(`key starts with: ${privateKey.substring(0, 30)}`);
   errors.push(`key ends with: ${privateKey.substring(privateKey.length - 30)}`);
 
