@@ -121,9 +121,15 @@ function TrustSignals({
 export function NewsFeed({
   articles: rawArticles,
   serverLang,
+  preRanked = false,
 }: {
   articles: FeedItem[];
   serverLang: ContentLanguage;
+  /**
+   * When true, the server already applied score filtering, dedup, and
+   * publisher balancing. Skip the equivalent client-side gates.
+   */
+  preRanked?: boolean;
 }) {
   const { language: clientLang, setLanguage } = useLanguage();
   const router = useRouter();
@@ -180,20 +186,20 @@ export function NewsFeed({
     return [...collapsed, ...ungrouped];
   }, [rawArticles]);
 
-  // Audience-fit filtering: keep scored items >= threshold, legacy items gated by toggle
+  // Audience-fit filtering.
+  // When preRanked=true the server already applied threshold + dedup;
+  // skip client-side gates so server-curated legacy items remain visible.
   const qualityFiltered = useMemo(() => {
-    return dedupedArticles.filter((a) => {
-      if (isLegacyItem(a)) {
-        // Legacy items (no score) only shown when toggle is ON
-        return showLegacy;
-      }
-      // Scored items must meet threshold
-      return getAudienceFitScore(a) >= SCORE_THRESHOLD;
-    }).map((a) => ({
-      ...a,
-      isLegacy: isLegacyItem(a),
-    }));
-  }, [dedupedArticles, showLegacy]);
+    if (preRanked) {
+      return dedupedArticles.map((a) => ({ ...a, isLegacy: isLegacyItem(a) }));
+    }
+    return dedupedArticles
+      .filter((a) => {
+        if (isLegacyItem(a)) return showLegacy;
+        return getAudienceFitScore(a) >= SCORE_THRESHOLD;
+      })
+      .map((a) => ({ ...a, isLegacy: isLegacyItem(a) }));
+  }, [dedupedArticles, showLegacy, preRanked]);
 
   // Count legacy items available (for the toggle label)
   const legacyCount = useMemo(() => {
@@ -310,8 +316,8 @@ export function NewsFeed({
         </select>
       </div>
 
-      {/* Legacy toggle */}
-      {legacyCount > 0 && (
+      {/* Legacy toggle — only shown when not server-pre-ranked */}
+      {!preRanked && legacyCount > 0 && (
         <label className="flex items-center gap-2 text-sm text-gray-500">
           <input
             type="checkbox"
