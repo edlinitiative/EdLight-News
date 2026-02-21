@@ -91,14 +91,17 @@ jobs:
 
       - name: Upsert Cloud Scheduler job
         run: |
-          # Every 15 minutes — sole trigger for the pipeline (no internal cron)
+          # ⚠️  SCHEDULING: Cloud Scheduler fires at :15 and :45 ONLY.
+          # GitHub Actions pipeline.yml fires at :00 and :30 (runs directly in GHA runner).
+          # Together they give ~15-min effective cadence at ZERO cost.
+          # DO NOT change this to */15 — that would overlap with GHA and double work+cost.
           TICK_URL="${{ steps.service_url.outputs.url }}/tick"
           SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
           if gcloud scheduler jobs describe edlight-news-pipeline \
                --location=${{ env.REGION }} --quiet 2>/dev/null; then
             gcloud scheduler jobs update http edlight-news-pipeline \
               --location=${{ env.REGION }} \
-              --schedule="*/15 * * * *" \
+              --schedule="15,45 * * * *" \
               --uri="$TICK_URL" \
               --http-method=POST \
               --oidc-service-account-email="$SA" \
@@ -107,7 +110,7 @@ jobs:
           else
             gcloud scheduler jobs create http edlight-news-pipeline \
               --location=${{ env.REGION }} \
-              --schedule="*/15 * * * *" \
+              --schedule="15,45 * * * *" \
               --uri="$TICK_URL" \
               --http-method=POST \
               --oidc-service-account-email="$SA" \
