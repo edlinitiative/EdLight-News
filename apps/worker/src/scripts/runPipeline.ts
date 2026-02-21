@@ -14,6 +14,7 @@ dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
 import { ingest } from "../services/ingest.js";
 import { processRawItems } from "../services/process.js";
 import { generateForItems } from "../services/generate.js";
+import { generateImages } from "../jobs/generateImages.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 async function main() {
@@ -32,6 +33,15 @@ async function main() {
   console.log("\n=== Publish Step ===");
   const published = await contentVersionsRepo.publishEligibleDrafts();
   console.log(`Published ${published} eligible drafts`);
+
+  console.log("\n=== Image Generation Step ===");
+  try {
+    const imageResult = await generateImages();
+    console.log(JSON.stringify(imageResult, null, 2));
+  } catch (err) {
+    // Non-critical — Chromium may not be available in all environments
+    console.warn("Image generation skipped:", err instanceof Error ? err.message : err);
+  }
 
   process.exit(0);
 }

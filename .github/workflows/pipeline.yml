@@ -10,7 +10,7 @@ on:
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -27,6 +27,13 @@ jobs:
           node-version: 20
           cache: "pnpm"
 
+      - name: Install Chromium (for Playwright image rendering)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends chromium-browser || \
+          sudo apt-get install -y --no-install-recommends chromium
+          echo "PLAYWRIGHT_CHROMIUM_PATH=$(which chromium-browser || which chromium)" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -40,4 +47,5 @@ jobs:
           FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
         run: npx tsx src/scripts/runPipeline.ts
