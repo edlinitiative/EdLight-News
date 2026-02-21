@@ -9,9 +9,18 @@ import {
 } from "@edlight-news/generator";
 import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/types";
 import { computeScoring } from "./scoring.js";
+import { PUBLISH_SCORE_THRESHOLD } from "@edlight-news/generator";
 
 /** Max items to generate per tick (Gemini calls are ~2-5s each) */
 const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "5", 10);
+
+/**
+ * Items scoring below this at ingest are skipped entirely — no Gemini call.
+ * This is deliberately much lower than PUBLISH_SCORE_THRESHOLD (0.65)
+ * because the generate step re-scores with the refined category which can
+ * push scores up. But items this low are hopeless.
+ */
+const SKIP_GENERATION_THRESHOLD = PUBLISH_SCORE_THRESHOLD * 0.4; // 0.26
 
 export async function generateForItems(): Promise<{
   generated: number;
@@ -32,6 +41,18 @@ export async function generateForItems(): Promise<{
       // Skip if already has web content versions
       const hasVersions = await contentVersionsRepo.hasWebVersions(item.id);
       if (hasVersions) {
+        skipped++;
+        continue;
+      }
+
+      // Skip Gemini call entirely if ingest score is hopelessly low
+      if (
+        item.audienceFitScore !== undefined &&
+        item.audienceFitScore < SKIP_GENERATION_THRESHOLD
+      ) {
+        console.log(
+          `[generate] SKIPPED item ${item.id} — pre-score too low (${item.audienceFitScore.toFixed(2)} < ${SKIP_GENERATION_THRESHOLD.toFixed(2)})`,
+        );
         skipped++;
         continue;
       }
