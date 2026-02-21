@@ -82,4 +82,25 @@ export async function listByDedupeGroupId(dedupeGroupId, limit = 10) {
 export async function deleteItem(id) {
     await collection().doc(id).delete();
 }
+/**
+ * List items that have no imageSource field yet (never been processed for images).
+ * Fetches newest items first and filters in-memory since Firestore can't query
+ * for missing fields. Bounded by `limit`.
+ */
+export async function listItemsNeedingImages(limit) {
+    const snap = await collection()
+        .orderBy("createdAt", "desc")
+        .limit(limit * 4) // over-fetch to account for items that already have images
+        .get();
+    const results = [];
+    for (const doc of snap.docs) {
+        const data = doc.data();
+        if (data.imageSource)
+            continue; // already processed
+        results.push({ ...data, id: doc.id });
+        if (results.length >= limit)
+            break;
+    }
+    return results;
+}
 //# sourceMappingURL=items.js.map

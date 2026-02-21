@@ -10,7 +10,6 @@
 
 import { itemsRepo, uploadImageBuffer } from "@edlight-news/firebase";
 import { renderBrandedCardPNG } from "@edlight-news/renderer";
-import type { Item } from "@edlight-news/types";
 
 const IMAGE_BATCH_LIMIT = parseInt(
   process.env.IMAGE_BATCH_LIMIT ?? "5",
@@ -28,8 +27,7 @@ export async function generateImages(): Promise<{
   let generated = 0;
   let failed = 0;
 
-  // Find items without any image processing yet
-  const candidates = await listItemsNeedingImages(IMAGE_BATCH_LIMIT);
+  const candidates = await itemsRepo.listItemsNeedingImages(IMAGE_BATCH_LIMIT);
 
   if (candidates.length === 0) {
     return { generated: 0, failed: 0 };
@@ -82,11 +80,9 @@ export async function generateImages(): Promise<{
 
       // Mark as fallback so we don't retry endlessly
       try {
-        await itemsRepo.updateItem(item.id, {
-          imageSource: "fallback",
-        });
+        await itemsRepo.updateItem(item.id, { imageSource: "fallback" });
       } catch {
-        // Ignore update failure
+        // ignore
       }
 
       failed++;
@@ -97,30 +93,3 @@ export async function generateImages(): Promise<{
   return { generated, failed };
 }
 
-/**
- * List items that have no imageSource field (never been processed for images).
- * Orders by createdAt desc so newest items get images first.
- */
-async function listItemsNeedingImages(limit: number): Promise<Item[]> {
-  // Firestore doesn't support "field does not exist" queries natively.
-  // Instead, we query recent items and filter in-memory.
-  // This is bounded by the limit parameter.
-  const { getDb } = await import("@edlight-news/firebase");
-  const db = getDb();
-  const snapshot = await db
-    .collection("items")
-    .orderBy("createdAt", "desc")
-    .limit(limit * 3) // Over-fetch to account for items that already have images
-    .get();
-
-  const items: Item[] = [];
-  for (const doc of snapshot.docs) {
-    const data = doc.data() as Item;
-    // Skip items that already have an image or have been attempted
-    if (data.imageSource) continue;
-    items.push({ ...data, id: doc.id });
-    if (items.length >= limit) break;
-  }
-
-  return items;
-}

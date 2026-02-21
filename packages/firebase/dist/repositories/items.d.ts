@@ -22,4 +22,10 @@ export declare function updateItem(id: string, data: Partial<CreateItem>): Promi
 /** Get a single item by its dedupeGroupId (newest first). */
 export declare function listByDedupeGroupId(dedupeGroupId: string, limit?: number): Promise<Item[]>;
 export declare function deleteItem(id: string): Promise<void>;
+/**
+ * List items that have no imageSource field yet (never been processed for images).
+ * Fetches newest items first and filters in-memory since Firestore can't query
+ * for missing fields. Bounded by `limit`.
+ */
+export declare function listItemsNeedingImages(limit: number): Promise<Item[]>;
 //# sourceMappingURL=items.d.ts.map
