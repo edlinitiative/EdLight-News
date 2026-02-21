@@ -103,6 +103,11 @@ export function ArticleCard({
             {formatDate(article.deadline, lang)}
           </p>
         )}
+        {showDeadline && !article.deadline && article.missingDeadline && (
+          <p className="mb-1.5 text-xs font-semibold text-amber-500">
+            {lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime"}
+          </p>
+        )}
 
         {/* Title */}
         <h2

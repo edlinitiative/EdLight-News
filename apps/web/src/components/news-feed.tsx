@@ -39,6 +39,8 @@ export interface FeedItem {
   publishedAt?: string | null; // ISO string
   deadline?: string | null;
   geoTag?: string;
+  /** High-level content vertical (e.g. "opportunites") */
+  vertical?: string;
   /** How many items share the same dedupeGroupId */
   dupeCount?: number;
   /** True when item has no audienceFitScore (pre-v2 legacy) */
@@ -214,9 +216,34 @@ export function NewsFeed({
     return dedupedArticles.filter((a) => isLegacyItem(a)).length;
   }, [dedupedArticles]);
 
-  // Category filter
+  // Fixed category pills — always visible even if count is 0
+  const FIXED_NEWS_PILLS: FeedCategory[] = [
+    "all",
+    "news",
+    "local_news",
+    "scholarship",
+    "resource",
+  ];
+
+  // Category filter — "scholarship" pill matches all opportunity subcategories
+  const OPPORTUNITY_CATS = new Set([
+    "scholarship",
+    "opportunity",
+    "bourses",
+    "concours",
+    "stages",
+    "programmes",
+  ]);
+
   const categoryFiltered = useMemo(() => {
     if (activeCategory === "all") return qualityFiltered;
+    if (activeCategory === "scholarship") {
+      return qualityFiltered.filter(
+        (a) =>
+          OPPORTUNITY_CATS.has(a.category ?? "") ||
+          a.vertical === "opportunites",
+      );
+    }
     return qualityFiltered.filter((a) => a.category === activeCategory);
   }, [qualityFiltered, activeCategory]);
 
@@ -259,12 +286,6 @@ export function NewsFeed({
     }
     return items;
   }, [searchFiltered, sort]);
-
-  // Available categories from data (based on visible items)
-  const availableCategories = useMemo(() => {
-    const cats = new Set(qualityFiltered.map((a) => a.category).filter(Boolean));
-    return ["all", ...Array.from(cats)] as FeedCategory[];
-  }, [qualityFiltered]);
 
   // Navigate with category
   const handleCategory = (cat: FeedCategory) => {
@@ -339,29 +360,27 @@ export function NewsFeed({
         </label>
       )}
 
-      {/* Category filter pills */}
-      {availableCategories.length > 2 && (
-        <div className="flex flex-wrap gap-2">
-          {availableCategories.map((cat) => {
-            const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
-            const isActive = cat === activeCategory;
-            return (
-              <button
-                key={cat}
-                onClick={() => handleCategory(cat)}
-                className={
-                  "rounded-full px-3 py-1 text-sm font-medium transition " +
-                  (isActive
-                    ? "bg-brand-700 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200")
-                }
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Category filter pills — always visible */}
+      <div className="flex flex-wrap gap-2">
+        {FIXED_NEWS_PILLS.map((cat) => {
+          const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
+          const isActive = cat === activeCategory;
+          return (
+            <button
+              key={cat}
+              onClick={() => handleCategory(cat)}
+              className={
+                "rounded-full px-3 py-1 text-sm font-medium transition " +
+                (isActive
+                  ? "bg-brand-700 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200")
+              }
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Empty state */}
       {sorted.length === 0 && (

@@ -8,7 +8,7 @@
 import { callGemini } from "./client.js";
 import { buildWebDraftPrompt } from "./prompts.js";
 import { geminiWebDraftSchema, type GeminiWebDraft } from "./schema.js";
-import type { ContentChannel, ContentLanguage, ContentStatus, QualityFlags } from "@edlight-news/types";
+import type { ContentChannel, ContentLanguage, ContentStatus, ItemCategory, QualityFlags } from "@edlight-news/types";
 
 export type { GeminiWebDraft } from "./schema.js";
 export { geminiWebDraftSchema } from "./schema.js";
@@ -85,7 +85,7 @@ export function buildContentVersionPayloads(
   itemId: string,
   qualityFlags: QualityFlags,
   citations: { sourceName: string; sourceUrl: string }[],
-  category?: "news" | "scholarship" | "opportunity" | "event" | "resource" | "local_news",
+  category?: ItemCategory,
   audienceFitScore?: number,
 ): Array<{
   channel: ContentChannel;
@@ -95,7 +95,7 @@ export function buildContentVersionPayloads(
   body: string;
   status: ContentStatus;
   draftReason?: string;
-  category?: "news" | "scholarship" | "opportunity" | "event" | "resource" | "local_news";
+  category?: ItemCategory;
   qualityFlags: QualityFlags;
   citations: { sourceName: string; sourceUrl: string }[];
 }> {

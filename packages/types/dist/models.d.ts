@@ -91,7 +91,7 @@ export interface QualityFlags {
     offMission?: boolean;
     reasons: string[];
 }
-export type ItemCategory = "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
+export type ItemCategory = "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes";
 export interface Item {
     id: string;
     rawItemId: string;
@@ -109,6 +109,8 @@ export interface Item {
     confidence: number;
     qualityFlags: QualityFlags;
     citations: Citation[];
+    /** High-level content vertical (e.g. "opportunites") */
+    vertical?: string;
     /** Geographic relevance tag */
     geoTag?: GeoTag;
     /** 0-1 audience-fit score for auto-publish gating */

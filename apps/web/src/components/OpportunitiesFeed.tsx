@@ -26,8 +26,13 @@ const SUBCAT_KEYWORDS: Record<Exclude<SubCat, "all">, string[]> = {
 
 function matchesSubCat(article: FeedItem, sub: SubCat): boolean {
   if (sub === "all") return true;
-  // Direct category match for scholarships
-  if (sub === "bourses" && article.category === "scholarship") return true;
+  const cat = article.category;
+  // Direct category match (new subcategories + legacy categories)
+  if (sub === "bourses" && (cat === "bourses" || cat === "scholarship")) return true;
+  if (sub === "concours" && cat === "concours") return true;
+  if (sub === "stages" && cat === "stages") return true;
+  if (sub === "programmes" && (cat === "programmes" || cat === "opportunity")) return true;
+  // Fallback: keyword match for items with a generic category
   const text = `${article.title} ${article.summary}`.toLowerCase();
   return SUBCAT_KEYWORDS[sub].some((k) => text.includes(k));
 }
@@ -51,7 +56,7 @@ export interface OpportunitiesFeedProps {
 
 export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   const [subCat, setSubCat] = useState<SubCat>("all");
-  const [sort, setSort] = useState<SortMode>("deadline");
+  const [sort, setSort] = useState<SortMode>("relevance");
   const [includeNoDeadline, setIncludeNoDeadline] = useState(false);
 
   const filtered = useMemo(() => {
@@ -153,12 +158,18 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((article) => (
-            <ArticleCard
-              key={article.id}
-              article={article}
-              lang={lang}
-              showDeadline
-            />
+            <div key={article.id} className="relative">
+              {article.missingDeadline && (
+                <span className="absolute right-2 top-2 z-10 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  {lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime"}
+                </span>
+              )}
+              <ArticleCard
+                article={article}
+                lang={lang}
+                showDeadline
+              />
+            </div>
           ))}
         </div>
       )}

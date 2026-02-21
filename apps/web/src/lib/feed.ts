@@ -71,6 +71,7 @@ export async function fetchEnrichedArticles(
       audienceFitScore: item?.audienceFitScore,
       dedupeGroupId: item?.dedupeGroupId,
       geoTag: item?.geoTag,
+      vertical: item?.vertical,
       deadline: item?.deadline,
       publishedAt,
       // image fields

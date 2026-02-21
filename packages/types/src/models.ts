@@ -116,7 +116,11 @@ export type ItemCategory =
   | "news"
   | "event"
   | "resource"
-  | "local_news";
+  | "local_news"
+  | "bourses"
+  | "concours"
+  | "stages"
+  | "programmes";
 
 export interface Item {
   id: string;
@@ -137,6 +141,8 @@ export interface Item {
   citations: Citation[];
 
   // ── New v2 fields (optional for backwards compat) ─────────────────────
+  /** High-level content vertical (e.g. "opportunites") */
+  vertical?: string;
   /** Geographic relevance tag */
   geoTag?: GeoTag;
   /** 0-1 audience-fit score for auto-publish gating */

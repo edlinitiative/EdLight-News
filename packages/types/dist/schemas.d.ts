@@ -303,7 +303,7 @@ export declare const itemSchema: z.ZodObject<{
     summary: z.ZodString;
     canonicalUrl: z.ZodString;
     extractedText: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    category: z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news"]>;
+    category: z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news", "bourses", "concours", "stages", "programmes"]>;
     deadline: z.ZodNullable<z.ZodString>;
     evergreen: z.ZodBoolean;
     confidence: z.ZodNumber;
@@ -342,6 +342,7 @@ export declare const itemSchema: z.ZodObject<{
         sourceName: string;
         sourceUrl: string;
     }>, "many">;
+    vertical: z.ZodOptional<z.ZodString>;
     geoTag: z.ZodOptional<z.ZodEnum<["HT", "Diaspora", "Global"]>>;
     audienceFitScore: z.ZodOptional<z.ZodNumber>;
     dedupeGroupId: z.ZodOptional<z.ZodString>;
@@ -465,7 +466,7 @@ export declare const itemSchema: z.ZodObject<{
     rawItemId: string;
     summary: string;
     canonicalUrl: string;
-    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
+    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes";
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -493,6 +494,7 @@ export declare const itemSchema: z.ZodObject<{
         nanoseconds: number;
     } | null | undefined;
     extractedText?: string | null | undefined;
+    vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -535,7 +537,7 @@ export declare const itemSchema: z.ZodObject<{
     rawItemId: string;
     summary: string;
     canonicalUrl: string;
-    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
+    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes";
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -563,6 +565,7 @@ export declare const itemSchema: z.ZodObject<{
         nanoseconds: number;
     } | null | undefined;
     extractedText?: string | null | undefined;
+    vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -600,7 +603,7 @@ export declare const contentVersionSchema: z.ZodObject<{
     body: z.ZodString;
     status: z.ZodEnum<["draft", "review", "published"]>;
     draftReason: z.ZodOptional<z.ZodString>;
-    category: z.ZodOptional<z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news"]>>;
+    category: z.ZodOptional<z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news", "bourses", "concours", "stages", "programmes"]>>;
     qualityFlags: z.ZodOptional<z.ZodObject<{
         hasSourceUrl: z.ZodBoolean;
         needsReview: z.ZodBoolean;
@@ -687,7 +690,7 @@ export declare const contentVersionSchema: z.ZodObject<{
     itemId: string;
     channel: "web" | "ig" | "wa";
     body: string;
-    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | undefined;
+    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
     qualityFlags?: {
         hasSourceUrl: boolean;
         needsReview: boolean;
@@ -723,7 +726,7 @@ export declare const contentVersionSchema: z.ZodObject<{
     itemId: string;
     channel: "web" | "ig" | "wa";
     body: string;
-    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | undefined;
+    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
     qualityFlags?: {
         hasSourceUrl: boolean;
         needsReview: boolean;
@@ -1030,7 +1033,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
     summary: z.ZodString;
     canonicalUrl: z.ZodString;
     extractedText: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    category: z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news"]>;
+    category: z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news", "bourses", "concours", "stages", "programmes"]>;
     deadline: z.ZodNullable<z.ZodString>;
     evergreen: z.ZodBoolean;
     confidence: z.ZodNumber;
@@ -1069,6 +1072,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         sourceName: string;
         sourceUrl: string;
     }>, "many">;
+    vertical: z.ZodOptional<z.ZodString>;
     geoTag: z.ZodOptional<z.ZodEnum<["HT", "Diaspora", "Global"]>>;
     audienceFitScore: z.ZodOptional<z.ZodNumber>;
     dedupeGroupId: z.ZodOptional<z.ZodString>;
@@ -1183,7 +1187,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
     rawItemId: string;
     summary: string;
     canonicalUrl: string;
-    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
+    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes";
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -1211,6 +1215,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     } | null | undefined;
     extractedText?: string | null | undefined;
+    vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -1244,7 +1249,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
     rawItemId: string;
     summary: string;
     canonicalUrl: string;
-    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news";
+    category: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes";
     evergreen: boolean;
     confidence: number;
     qualityFlags: {
@@ -1272,6 +1277,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     } | null | undefined;
     extractedText?: string | null | undefined;
+    vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
@@ -1309,7 +1315,7 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     body: z.ZodString;
     status: z.ZodEnum<["draft", "review", "published"]>;
     draftReason: z.ZodOptional<z.ZodString>;
-    category: z.ZodOptional<z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news"]>>;
+    category: z.ZodOptional<z.ZodEnum<["scholarship", "opportunity", "news", "event", "resource", "local_news", "bourses", "concours", "stages", "programmes"]>>;
     qualityFlags: z.ZodOptional<z.ZodObject<{
         hasSourceUrl: z.ZodBoolean;
         needsReview: z.ZodBoolean;
@@ -1387,7 +1393,7 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     itemId: string;
     channel: "web" | "ig" | "wa";
     body: string;
-    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | undefined;
+    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
     qualityFlags?: {
         hasSourceUrl: boolean;
         needsReview: boolean;
@@ -1414,7 +1420,7 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     itemId: string;
     channel: "web" | "ig" | "wa";
     body: string;
-    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | undefined;
+    category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
     qualityFlags?: {
         hasSourceUrl: boolean;
         needsReview: boolean;

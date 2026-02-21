@@ -443,5 +443,59 @@
       "articleBody": ".description, .content, main .content",
       "title": "h1"
     }
+  },
+  {
+    "_group": "opportunities",
+    "name": "Google News — Bourses étudiants haïtiens",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=bourse+%C3%A9tudiants+ha%C3%AFtiens+OR+scholarship+Haiti&hl=fr&gl=HT&ceid=HT:fr",
+    "language": "fr",
+    "pollCadenceSec": 7200,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "name": "Google News — Concours stages programmes Haiti",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=concours+OR+stage+OR+programme+%C3%A9tudiants+Haiti&hl=fr&gl=HT&ceid=HT:fr",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "name": "Opportunity Desk",
+    "type": "rss",
+    "url": "https://opportunitydesk.org/feed/",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "name": "After School Africa",
+    "type": "rss",
+    "url": "https://www.afterschoolafrica.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "name": "Scholars4Dev",
+    "type": "rss",
+    "url": "https://www.scholars4dev.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "name": "Google News — Bourses Caraïbes francophones",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=bourse+OR+fellowship+OR+scholarship+Cara%C3%AFbes+OR+Caribbean+francophone&hl=fr&ceid=FR:fr",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
   }
 ]

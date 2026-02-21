@@ -100,6 +100,10 @@ export const itemSchema = z.object({
         "event",
         "resource",
         "local_news",
+        "bourses",
+        "concours",
+        "stages",
+        "programmes",
     ]),
     deadline: z.string().nullable(),
     evergreen: z.boolean(),
@@ -107,6 +111,7 @@ export const itemSchema = z.object({
     qualityFlags: qualityFlagsSchema,
     citations: z.array(citationSchema).min(1),
     // v2 fields — optional for backwards compat
+    vertical: z.string().optional(),
     geoTag: geoTagSchema.optional(),
     audienceFitScore: z.number().min(0).max(1).optional(),
     dedupeGroupId: z.string().optional(),
@@ -134,7 +139,7 @@ export const contentVersionSchema = z.object({
     body: z.string().min(1),
     status: z.enum(["draft", "review", "published"]),
     draftReason: z.string().optional(),
-    category: z.enum(["scholarship", "opportunity", "news", "event", "resource", "local_news"]).optional(),
+    category: z.enum(["scholarship", "opportunity", "news", "event", "resource", "local_news", "bourses", "concours", "stages", "programmes"]).optional(),
     qualityFlags: qualityFlagsSchema.optional(),
     citations: z.array(citationSchema).min(1),
     // v2 fields

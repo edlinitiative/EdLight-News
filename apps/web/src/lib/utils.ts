@@ -91,7 +91,11 @@ export type FeedCategory =
   | "scholarship"
   | "opportunity"
   | "event"
-  | "resource";
+  | "resource"
+  | "bourses"
+  | "concours"
+  | "stages"
+  | "programmes";
 
 export const CATEGORY_LABELS: Record<FeedCategory, { fr: string; ht: string }> = {
   all:         { fr: "Tout",          ht: "Tout"      },
@@ -101,6 +105,10 @@ export const CATEGORY_LABELS: Record<FeedCategory, { fr: string; ht: string }> =
   opportunity: { fr: "Opportunités",  ht: "Okazyon"   },
   event:       { fr: "Événements",    ht: "Evènman"   },
   resource:    { fr: "Ressources",    ht: "Resous"    },
+  bourses:     { fr: "Bourses",       ht: "Bous"      },
+  concours:    { fr: "Concours",      ht: "Konkou"    },
+  stages:      { fr: "Stages",        ht: "Estaj"     },
+  programmes:  { fr: "Programmes",    ht: "Pwogram"   },
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -110,6 +118,10 @@ export const CATEGORY_COLORS: Record<string, string> = {
   event:       "bg-teal-50 text-teal-700",
   resource:    "bg-green-50 text-green-700",
   news:        "bg-gray-50 text-gray-700",
+  bourses:     "bg-purple-50 text-purple-700",
+  concours:    "bg-orange-50 text-orange-700",
+  stages:      "bg-cyan-50 text-cyan-700",
+  programmes:  "bg-indigo-50 text-indigo-700",
 };
 
 export function categoryLabel(cat: string | undefined, lang: ContentLanguage): string {

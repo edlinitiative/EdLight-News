@@ -124,6 +124,7 @@ export function enrichArticles(
       audienceFitScore: item?.audienceFitScore,
       dedupeGroupId: item?.dedupeGroupId,
       geoTag: item?.geoTag,
+      vertical: item?.vertical,
       deadline: item?.deadline,
       publishedAt,
       // image fields

@@ -22,10 +22,21 @@ export default async function OpportunitesPage({
 
   const allArticles = await fetchEnrichedFeed(lang, 200);
 
-  // Keep scholarship + opportunity categories; off-mission and dedup handled
-  // by rankAndDeduplicate, but keep limit generous so client sort/filter works.
+  // Keep all opportunity-type items: by vertical, legacy categories, and new subcategories.
+  // Items without deadlines are included — the client handles sort/filter logic.
+  const OPPORTUNITY_CATEGORIES = new Set([
+    "scholarship",
+    "opportunity",
+    "bourses",
+    "concours",
+    "stages",
+    "programmes",
+  ]);
+
   const opportunityPool = allArticles.filter(
-    (a) => a.category === "scholarship" || a.category === "opportunity",
+    (a) =>
+      a.vertical === "opportunites" ||
+      OPPORTUNITY_CATEGORIES.has(a.category ?? ""),
   );
 
   const articles = rankAndDeduplicate(opportunityPool, {

@@ -9,6 +9,7 @@ import {
 } from "@edlight-news/generator";
 import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/types";
 import { computeScoring } from "./scoring.js";
+import { classifyItem } from "./classify.js";
 import { PUBLISH_SCORE_THRESHOLD } from "@edlight-news/generator";
 
 /** Max items to generate per tick (Gemini calls are ~2-5s each) */
@@ -90,54 +91,111 @@ export async function generateForItems(): Promise<{
         continue;
       }
 
-      // Build updated quality flags from Gemini's analysis
-      const isOpportunityWithoutDeadline =
-        draft.extracted.category === "opportunity" && !draft.extracted.deadline;
-
-      const isScholarshipWithoutDeadline =
-        draft.extracted.category === "scholarship" && !draft.extracted.deadline;
-
       const isLowConfidence = draft.confidence < 0.6 || isShortContent;
 
       // Re-score with Gemini's category for better accuracy
       const textForScoring = `${item.title} ${item.extractedText || item.summary}`;
       const scoring = computeScoring(item.title, textForScoring, draft.extracted.category);
 
+      // ── Deterministic opportunity classification on full text ──────────
+      const classification = classifyItem(
+        item.title,
+        item.summary,
+        item.extractedText ?? "",
+      );
+
+      // Determine final category: deterministic classifier wins for opportunities
+      let finalCategory: ItemCategory;
+      let finalVertical: string | undefined;
+      let finalDeadline: string | null;
+      let finalOpportunity: Opportunity | undefined;
+
+      if (classification.isOpportunity) {
+        // Deterministic classifier detected opportunity keywords → use its subcategory
+        finalCategory = classification.category!;
+        finalVertical = "opportunites";
+        finalDeadline = classification.deadline ?? draft.extracted.deadline ?? null;
+        finalOpportunity = {
+          ...(classification.opportunity ?? {}),
+          ...(draft.extracted.deadline && !classification.deadline
+            ? { deadline: draft.extracted.deadline }
+            : {}),
+          ...(draft.extracted.eligibility
+            ? { eligibility: [draft.extracted.eligibility] }
+            : {}),
+          ...(item.source?.originalUrl
+            ? { officialLink: item.source.originalUrl }
+            : {}),
+        };
+      } else if (
+        draft.extracted.category === "scholarship" ||
+        draft.extracted.category === "opportunity"
+      ) {
+        // Gemini detected opportunity but deterministic didn't → keep Gemini's
+        finalCategory = draft.extracted.category as ItemCategory;
+        finalVertical = "opportunites";
+        finalDeadline = draft.extracted.deadline ?? null;
+        finalOpportunity = {
+          ...(draft.extracted.deadline
+            ? { deadline: draft.extracted.deadline }
+            : {}),
+          ...(draft.extracted.eligibility
+            ? { eligibility: [draft.extracted.eligibility] }
+            : {}),
+          ...(item.source?.originalUrl
+            ? { officialLink: item.source.originalUrl }
+            : {}),
+        };
+      } else {
+        finalCategory = draft.extracted.category as ItemCategory;
+        finalVertical = undefined;
+        finalDeadline = draft.extracted.deadline ?? null;
+        finalOpportunity = undefined;
+      }
+
+      const isOpportunityType =
+        finalVertical === "opportunites" ||
+        ["scholarship", "opportunity", "bourses", "concours", "stages", "programmes"].includes(
+          finalCategory,
+        );
+      const isMissingDeadline = isOpportunityType && !finalDeadline;
+
       const updatedReasons = [...(item.qualityFlags?.reasons ?? [])];
-      if (isShortContent) updatedReasons.push("No extracted article text — generated from title/summary only");
-      if (isLowConfidence && !isShortContent) updatedReasons.push(`Low confidence: ${draft.confidence}`);
-      if (isOpportunityWithoutDeadline) updatedReasons.push("Opportunity without deadline");
-      if (isScholarshipWithoutDeadline) updatedReasons.push("Scholarship without deadline");
+      if (isShortContent)
+        updatedReasons.push(
+          "No extracted article text — generated from title/summary only",
+        );
+      if (isLowConfidence && !isShortContent)
+        updatedReasons.push(`Low confidence: ${draft.confidence}`);
+      if (isMissingDeadline)
+        updatedReasons.push("Opportunity without deadline");
 
       const updatedQualityFlags: QualityFlags = {
         hasSourceUrl: item.qualityFlags?.hasSourceUrl ?? true,
-        needsReview: isOpportunityWithoutDeadline || isScholarshipWithoutDeadline,
+        needsReview: isOpportunityType && isMissingDeadline,
         lowConfidence: isLowConfidence,
         weakSource: item.qualityFlags?.weakSource ?? false,
-        missingDeadline: isOpportunityWithoutDeadline || isScholarshipWithoutDeadline,
-        offMission: scoring.offMission || (item.qualityFlags?.offMission ?? false),
+        missingDeadline: isMissingDeadline,
+        offMission:
+          scoring.offMission || (item.qualityFlags?.offMission ?? false),
         reasons: updatedReasons,
       };
 
-      // Build opportunity struct for scholarship/opportunity items
-      let opportunity: Opportunity | undefined;
-      if (draft.extracted.category === "scholarship" || draft.extracted.category === "opportunity") {
-        opportunity = {
-          ...(draft.extracted.deadline ? { deadline: draft.extracted.deadline } : {}),
-          ...(draft.extracted.eligibility ? { eligibility: [draft.extracted.eligibility] } : {}),
-          ...(item.source?.originalUrl ? { officialLink: item.source.originalUrl } : {}),
-        };
-      }
+      // Effective geoTag: use classifier's for opportunities, else scoring's
+      const effectiveGeoTag = classification.isOpportunity
+        ? (classification.geoTag ?? scoring.geoTag)
+        : scoring.geoTag;
 
-      // Update the item with Gemini's classification + refined v2 fields
+      // Update the item with refined classification + v2 fields
       await itemsRepo.updateItem(item.id, {
-        category: draft.extracted.category as ItemCategory,
-        deadline: draft.extracted.deadline ?? null,
+        category: finalCategory,
+        vertical: finalVertical,
+        deadline: finalDeadline,
         confidence: draft.confidence,
         qualityFlags: updatedQualityFlags,
         audienceFitScore: scoring.audienceFitScore,
-        geoTag: scoring.geoTag,
-        ...(opportunity ? { opportunity } : {}),
+        geoTag: effectiveGeoTag,
+        ...(finalOpportunity ? { opportunity: finalOpportunity } : {}),
       });
 
       // Build FR + HT content_version payloads with quality gates
@@ -146,7 +204,7 @@ export async function generateForItems(): Promise<{
         item.id,
         updatedQualityFlags,
         item.citations,
-        draft.extracted.category as "news" | "scholarship" | "opportunity" | "event" | "resource" | "local_news",
+        finalCategory,
         scoring.audienceFitScore,
       );
 

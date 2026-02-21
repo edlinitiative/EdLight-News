@@ -7,6 +7,7 @@ import {
   computeDedupeGroupId,
   buildItemSource,
 } from "./scoring.js";
+import { classifyItem } from "./classify.js";
 
 /** Max raw_items to process per tick (article extraction can be slow) */
 const BATCH_LIMIT = parseInt(process.env.PROCESS_BATCH_LIMIT ?? "10", 10);
@@ -75,14 +76,36 @@ export async function processRawItems(): Promise<{
       if (weakSource) reasons.push("Could not trace original publisher");
       if (scoring.offMission) reasons.push("Possibly off-mission content");
 
+      // ── Deterministic opportunity classification ───────────────────────
+      const classification = classifyItem(
+        title,
+        raw.description ?? "",
+        extractedText ?? "",
+      );
+
+      if (classification.missingDeadline) {
+        reasons.push("Opportunity without deadline (deterministic)");
+      }
+
       const qualityFlags: QualityFlags = {
         hasSourceUrl,
         needsReview: false,
         lowConfidence: false,
         weakSource,
+        missingDeadline: classification.missingDeadline ?? false,
         offMission: scoring.offMission,
         reasons,
       };
+
+      // Use deterministic category if opportunity detected; else default "news"
+      const initialCategory = classification.isOpportunity
+        ? classification.category!
+        : "news";
+
+      // If classifier identified an opportunity, boost the audience-fit score
+      const effectiveGeoTag = classification.isOpportunity
+        ? (classification.geoTag ?? scoring.geoTag)
+        : scoring.geoTag;
 
       // Upsert item keyed by canonical URL (deduplicates across sources)
       const summary = raw.description?.trim() || title;
@@ -94,17 +117,19 @@ export async function processRawItems(): Promise<{
         summary,
         canonicalUrl,
         extractedText,
-        category: "news", // default; the generate step classifies via Gemini
-        deadline: null,
+        category: initialCategory,
+        deadline: classification.deadline ?? null,
         evergreen: false,
         confidence: 0, // set by generate step
         qualityFlags,
         citations: [{ sourceName: source.name, sourceUrl: raw.url }],
         // v2 fields
-        geoTag: scoring.geoTag,
+        vertical: classification.isOpportunity ? "opportunites" : undefined,
+        geoTag: effectiveGeoTag,
         audienceFitScore: scoring.audienceFitScore,
         dedupeGroupId,
         source: itemSource,
+        opportunity: classification.opportunity,
         publishedAt: raw.publishedAt,
         // image fields — set when publisher provides og:image with sufficient confidence
         ...(publisherImageUrl && publisherImageConfidence >= 0.6
