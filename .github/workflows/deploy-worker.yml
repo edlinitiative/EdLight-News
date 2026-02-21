@@ -77,7 +77,6 @@ jobs:
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             FIREBASE_STORAGE_BUCKET=${{ secrets.FIREBASE_STORAGE_BUCKET }}
-            TICK_INTERVAL_MS=1800000
             PROCESS_BATCH_LIMIT=15
             IMAGE_BATCH_LIMIT=5
 
@@ -92,14 +91,14 @@ jobs:
 
       - name: Upsert Cloud Scheduler job
         run: |
-          # Runs at :15 and :45 — staggered with GitHub Actions (:00/:30) for ~15-min cadence
+          # Every 15 minutes — sole trigger for the pipeline (no internal cron)
           TICK_URL="${{ steps.service_url.outputs.url }}/tick"
           SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
           if gcloud scheduler jobs describe edlight-news-pipeline \
                --location=${{ env.REGION }} --quiet 2>/dev/null; then
             gcloud scheduler jobs update http edlight-news-pipeline \
               --location=${{ env.REGION }} \
-              --schedule="15,45 * * * *" \
+              --schedule="*/15 * * * *" \
               --uri="$TICK_URL" \
               --http-method=POST \
               --oidc-service-account-email="$SA" \
@@ -108,7 +107,7 @@ jobs:
           else
             gcloud scheduler jobs create http edlight-news-pipeline \
               --location=${{ env.REGION }} \
-              --schedule="15,45 * * * *" \
+              --schedule="*/15 * * * *" \
               --uri="$TICK_URL" \
               --http-method=POST \
               --oidc-service-account-email="$SA" \
