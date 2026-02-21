@@ -5,44 +5,40 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const errors: string[] = [];
 
-  // Step 1: env vars
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
   errors.push(`env: projectId=${projectId ? "ok" : "MISSING"} email=${clientEmail ? "ok" : "MISSING"} key=${privateKey ? `${privateKey.length}chars` : "MISSING"}`);
 
-  // Step 2: firebase-admin module load
-  try {
-    const { getApps } = await import("firebase-admin/app");
-    errors.push(`firebase-admin/app: loaded, apps=${getApps().length}`);
-  } catch (e) {
-    errors.push(`firebase-admin/app LOAD ERROR: ${e}`);
+  if (!projectId || !clientEmail || !privateKey) {
     return NextResponse.json({ errors }, { status: 500 });
   }
 
-  // Step 3: firebase init
-  try {
-    const { getApp } = await import("@edlight-news/firebase");
-    const app = getApp();
-    errors.push(`getApp: ok, name=${app.name}`);
-  } catch (e) {
-    errors.push(`getApp ERROR: ${e}`);
-    return NextResponse.json({ errors }, { status: 500 });
-  }
+  privateKey = privateKey.replace(/\\n/g, "\n");
+  errors.push(`key starts with: ${privateKey.substring(0, 30)}`);
+  errors.push(`key ends with: ${privateKey.substring(privateKey.length - 30)}`);
 
-  // Step 4: Firestore getDb + settings
   try {
-    const { getDb } = await import("@edlight-news/firebase");
-    const db = getDb();
-    errors.push(`getDb: ok`);
+    const { initializeApp, cert, getApps } = await import("firebase-admin/app");
+    const { initializeFirestore } = await import("firebase-admin/firestore");
 
-    // Step 5: simple Firestore query
+    let app;
+    if (getApps().length === 0) {
+      app = initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
+    } else {
+      app = getApps()[0]!;
+    }
+    errors.push(`app: ok`);
+
+    const db = initializeFirestore(app, { preferRest: true });
+    errors.push(`db: ok, preferRest applied`);
+
     const snap = await db.collection("content_versions").limit(1).get();
-    errors.push(`Firestore query: ok, docs=${snap.size}`);
-  } catch (e) {
-    errors.push(`Firestore ERROR: ${e}`);
-    return NextResponse.json({ errors }, { status: 500 });
+    errors.push(`query: ok, docs=${snap.size}`);
+  } catch (e: any) {
+    errors.push(`ERROR: ${e.message}`);
+    errors.push(`stack: ${e.stack?.split("\n").slice(0, 3).join(" | ")}`);
   }
 
-  return NextResponse.json({ ok: true, steps: errors });
+  return NextResponse.json({ steps: errors });
 }
