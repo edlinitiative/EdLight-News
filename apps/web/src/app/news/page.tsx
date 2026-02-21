@@ -18,14 +18,16 @@ export default async function NewsPage({
   // Batch-fetch parent items for v2 field denormalization
   const itemIds = [...new Set(all.map((a) => a.itemId))];
   const itemMap = new Map<string, Item>();
-  // Fetch in parallel batches of 10
+  // Fetch in parallel batches of 10 — allSettled so one failure doesn't crash the page
   for (let i = 0; i < itemIds.length; i += 10) {
     const batch = itemIds.slice(i, i + 10);
-    const results = await Promise.all(
+    const results = await Promise.allSettled(
       batch.map((id) => itemsRepo.getItem(id)),
     );
-    for (const item of results) {
-      if (item) itemMap.set(item.id, item);
+    for (const result of results) {
+      if (result.status === "fulfilled" && result.value) {
+        itemMap.set(result.value.id, result.value);
+      }
     }
   }
 

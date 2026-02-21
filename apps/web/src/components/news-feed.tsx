@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
+  formatDate,
   formatRelativeDate,
   categoryLabel,
   CATEGORY_COLORS,
@@ -71,9 +72,11 @@ function CategoryBadge({ category, lang }: { category?: string; lang: ContentLan
 function TrustSignals({
   item,
   lang,
+  mounted = false,
 }: {
   item: FeedItem;
   lang: ContentLanguage;
+  mounted?: boolean;
 }) {
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-400">
@@ -98,7 +101,9 @@ function TrustSignals({
       {item.sourceName && item.publishedAt && <span>·</span>}
       {/* Published date */}
       {item.publishedAt && (
-        <span>{formatRelativeDate(item.publishedAt, lang)}</span>
+        <span suppressHydrationWarning>
+          {mounted ? formatRelativeDate(item.publishedAt, lang) : ""}
+        </span>
       )}
       {/* Subtle quality labels */}
       {item.weakSource && (
@@ -123,6 +128,10 @@ export function NewsFeed({
   const { language: clientLang, setLanguage } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Guard: only render time-dependent content after hydration
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Sync language from URL param
   const urlLang = searchParams.get("lang") as ContentLanguage | null;
@@ -388,7 +397,7 @@ export function NewsFeed({
             <p className="line-clamp-3 text-sm text-gray-600">
               {article.summary || article.body.slice(0, 200)}
             </p>
-            <TrustSignals item={article} lang={lang} />
+            <TrustSignals item={article} lang={lang} mounted={mounted} />
           </Link>
         ))}
       </div>
