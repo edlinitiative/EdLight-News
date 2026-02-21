@@ -240,7 +240,7 @@ export default async function ArticlePage({
             alt=""
             className="h-full w-full object-cover"
           />
-          {item.imageSource === "publisher" && (
+          {(item.imageSource === "publisher" || item.imageSource === "screenshot") && (
             <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
               {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
             </span>

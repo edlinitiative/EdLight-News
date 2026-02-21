@@ -24,7 +24,7 @@ const sourceSelectorsSchema = z.object({
     title: z.string().optional(),
 });
 const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
-const imageSourceSchema = z.enum(["publisher", "generated", "fallback"]);
+const imageSourceSchema = z.enum(["publisher", "screenshot", "generated", "fallback"]);
 const imageMetaSchema = z.object({
     width: z.number().positive().optional(),
     height: z.number().positive().optional(),

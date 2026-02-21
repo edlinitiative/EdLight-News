@@ -231,6 +231,81 @@ export async function closeBrowser(): Promise<void> {
   }
 }
 
+// ── Screenshot hero image ─────────────────────────────────────────────────
+
+/**
+ * Navigate to a URL and capture a cropped hero screenshot.
+ *
+ * Takes a 1200×630 viewport screenshot (standard social share dimensions),
+ * waits for the page to settle, then captures the top portion of the page
+ * where the hero image / header typically lives.
+ *
+ * Returns a PNG Buffer, or null if the page fails to load or times out.
+ */
+export async function screenshotHeroImage(
+  url: string,
+): Promise<Buffer | null> {
+  let page;
+  try {
+    const browser = await getBrowser();
+    page = await browser.newPage({
+      viewport: { width: 1200, height: 630 },
+    });
+
+    // Block unnecessary resources to speed up loading
+    await page.route("**/*", (route) => {
+      const type = route.request().resourceType();
+      if (["font", "media", "websocket"].includes(type)) {
+        return route.abort();
+      }
+      return route.continue();
+    });
+
+    await page.goto(url, {
+      waitUntil: "domcontentloaded",
+      timeout: 20_000,
+    });
+
+    // Wait a bit for lazy images and client-rendered content
+    await page.waitForTimeout(2_000);
+
+    // Remove common overlay elements that block the hero
+    await page.evaluate(() => {
+      const selectors = [
+        '[class*="cookie"]', '[class*="Cookie"]',
+        '[class*="consent"]', '[class*="Consent"]',
+        '[class*="popup"]', '[class*="Popup"]',
+        '[class*="modal"]', '[class*="Modal"]',
+        '[class*="overlay"]', '[class*="Overlay"]',
+        '[class*="banner"]', '[id*="cookie"]',
+        '[id*="consent"]', '[id*="popup"]',
+      ];
+      for (const sel of selectors) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (globalThis as any).document.querySelectorAll(sel).forEach((el: any) => {
+          el.style.display = "none";
+        });
+      }
+    });
+
+    const buffer = await page.screenshot({
+      type: "png",
+      timeout: 30_000,
+      clip: { x: 0, y: 0, width: 1200, height: 630 },
+    });
+
+    return Buffer.from(buffer);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[renderer] screenshot failed for ${url}: ${msg}`);
+    return null;
+  } finally {
+    if (page) {
+      try { await page.close(); } catch { /* ignore */ }
+    }
+  }
+}
+
 // ── Legacy placeholders (kept for backwards compat) ───────────────────────
 
 export async function renderCarousel(

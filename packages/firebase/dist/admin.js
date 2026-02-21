@@ -8,16 +8,21 @@ export function getApp() {
             const projectId = process.env.FIREBASE_PROJECT_ID;
             const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
             let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-            if (!projectId || !clientEmail || !privateKey) {
-                throw new Error("Missing Firebase credentials. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY.");
+            if (privateKey && clientEmail && projectId) {
+                // Explicit service-account credentials (local dev / GitHub Actions)
+                // Handle escaped newlines from .env files (dotenv stores \\n literally)
+                privateKey = privateKey.replace(/\\n/g, "\n");
+                // Strip surrounding quotes that some env-var managers embed in the value
+                privateKey = privateKey.replace(/^["']|["']$/g, "");
+                app = initializeApp({
+                    credential: cert({ projectId, clientEmail, privateKey }),
+                });
             }
-            // Handle escaped newlines from .env files (dotenv stores \\n literally)
-            privateKey = privateKey.replace(/\\n/g, "\n");
-            // Strip surrounding quotes that some env-var managers embed in the value
-            privateKey = privateKey.replace(/^["']|["']$/g, "");
-            app = initializeApp({
-                credential: cert({ projectId, clientEmail, privateKey }),
-            });
+            else {
+                // Application Default Credentials — used on Cloud Run where the
+                // service account is attached to the instance directly (no key needed)
+                app = initializeApp({ projectId: projectId ?? undefined });
+            }
         }
         else {
             app = getApps()[0];

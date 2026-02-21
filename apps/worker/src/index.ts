@@ -46,7 +46,7 @@ async function runTick() {
     const published = await contentVersionsRepo.publishEligibleDrafts();
 
     // Step 5: Generate branded card images (non-critical)
-    let imageResult = { generated: 0, failed: 0 };
+    let imageResult = { generated: 0, screenshotted: 0, failed: 0 };
     try {
       imageResult = await generateImages();
     } catch (err) {

@@ -1,15 +1,18 @@
 /**
  * Image generation job — runs as Step 5 of the /tick pipeline.
  *
- * Picks up to IMAGE_BATCH_LIMIT items that have no image yet,
- * renders a branded card for each, uploads to Firebase Storage,
- * and updates the item document.
+ * For each item that needs an image:
+ * 1. Try to screenshot the source article page (real visual content)
+ * 2. Fall back to a branded card (for social media use)
  *
  * Bounded work per tick so it never blocks the pipeline.
  */
 
 import { itemsRepo, uploadImageBuffer } from "@edlight-news/firebase";
-import { renderBrandedCardPNG } from "@edlight-news/renderer";
+import {
+  renderBrandedCardPNG,
+  screenshotHeroImage,
+} from "@edlight-news/renderer";
 
 const IMAGE_BATCH_LIMIT = parseInt(
   process.env.IMAGE_BATCH_LIMIT ?? "5",
@@ -18,26 +21,57 @@ const IMAGE_BATCH_LIMIT = parseInt(
 
 /**
  * Query items that have no image yet (imageSource is undefined)
- * and generate branded cards for them.
+ * and generate images for them.
  */
 export async function generateImages(): Promise<{
   generated: number;
+  screenshotted: number;
   failed: number;
 }> {
   let generated = 0;
+  let screenshotted = 0;
   let failed = 0;
 
   const candidates = await itemsRepo.listItemsNeedingImages(IMAGE_BATCH_LIMIT);
 
   if (candidates.length === 0) {
-    return { generated: 0, failed: 0 };
+    return { generated: 0, screenshotted: 0, failed: 0 };
   }
 
   console.log(`[images] ${candidates.length} items need images`);
 
   for (const item of candidates) {
     try {
-      // Parse date for the card
+      // ── Strategy 1: Screenshot the source article page ──────────────
+      const sourceUrl =
+        item.source?.originalUrl ??
+        item.citations?.[0]?.sourceUrl ??
+        item.canonicalUrl;
+
+      if (sourceUrl) {
+        const screenshotBuffer = await screenshotHeroImage(sourceUrl);
+        if (screenshotBuffer) {
+          const storagePath = `images/items/${item.id}_screenshot.png`;
+          const publicUrl = await uploadImageBuffer(storagePath, screenshotBuffer);
+
+          await itemsRepo.updateItem(item.id, {
+            imageUrl: publicUrl,
+            imageSource: "screenshot",
+            imageMeta: {
+              width: 1200,
+              height: 630,
+              fetchedAt: new Date().toISOString(),
+              originalImageUrl: sourceUrl,
+            },
+          });
+
+          screenshotted++;
+          console.log(`[images] screenshot for item ${item.id} from ${sourceUrl}`);
+          continue; // next item
+        }
+      }
+
+      // ── Strategy 2: Branded card (for social media) ─────────────────
       const pubAt = item.publishedAt as
         | { seconds?: number; _seconds?: number }
         | null
@@ -49,7 +83,6 @@ export async function generateImages(): Promise<{
         ? new Date(pubSecs * 1000).toISOString().slice(0, 10)
         : undefined;
 
-      // Render the branded card
       const pngBuffer = await renderBrandedCardPNG({
         title: item.title,
         category: item.category,
@@ -57,11 +90,9 @@ export async function generateImages(): Promise<{
         date: dateStr,
       });
 
-      // Upload to Firebase Storage
       const storagePath = `images/items/${item.id}.png`;
       const publicUrl = await uploadImageBuffer(storagePath, pngBuffer);
 
-      // Update the item with the image URL
       await itemsRepo.updateItem(item.id, {
         imageUrl: publicUrl,
         imageSource: "generated",
@@ -73,7 +104,7 @@ export async function generateImages(): Promise<{
       });
 
       generated++;
-      console.log(`[images] generated image for item ${item.id}`);
+      console.log(`[images] generated branded card for item ${item.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[images] failed for item ${item.id}: ${msg}`);
@@ -89,7 +120,9 @@ export async function generateImages(): Promise<{
     }
   }
 
-  console.log(`[images] generated=${generated} failed=${failed}`);
-  return { generated, failed };
+  console.log(
+    `[images] screenshotted=${screenshotted} generated=${generated} failed=${failed}`,
+  );
+  return { generated, screenshotted, failed };
 }
 

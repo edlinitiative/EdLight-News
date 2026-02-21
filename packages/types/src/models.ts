@@ -54,7 +54,7 @@ export interface RawItem {
 export type GeoTag = "HT" | "Diaspora" | "Global";
 
 /** How the article image was obtained */
-export type ImageSource = "publisher" | "generated" | "fallback";
+export type ImageSource = "publisher" | "screenshot" | "generated" | "fallback";
 
 /** Metadata about the article image */
 export interface ImageMeta {

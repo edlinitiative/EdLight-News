@@ -59,7 +59,7 @@ declare const sourceSelectorsSchema: z.ZodObject<{
     title?: string | undefined;
 }>;
 declare const geoTagSchema: z.ZodEnum<["HT", "Diaspora", "Global"]>;
-declare const imageSourceSchema: z.ZodEnum<["publisher", "generated", "fallback"]>;
+declare const imageSourceSchema: z.ZodEnum<["publisher", "screenshot", "generated", "fallback"]>;
 declare const imageMetaSchema: z.ZodObject<{
     width: z.ZodOptional<z.ZodNumber>;
     height: z.ZodOptional<z.ZodNumber>;
@@ -365,7 +365,7 @@ export declare const itemSchema: z.ZodObject<{
         nanoseconds: number;
     }>>>;
     imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "generated", "fallback"]>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "screenshot", "generated", "fallback"]>>;
     imageMeta: z.ZodOptional<z.ZodObject<{
         width: z.ZodOptional<z.ZodNumber>;
         height: z.ZodOptional<z.ZodNumber>;
@@ -455,7 +455,7 @@ export declare const itemSchema: z.ZodObject<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
@@ -515,7 +515,7 @@ export declare const itemSchema: z.ZodObject<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
@@ -1048,7 +1048,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     }>>>;
     imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "generated", "fallback"]>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "screenshot", "generated", "fallback"]>>;
     imageMeta: z.ZodOptional<z.ZodObject<{
         width: z.ZodOptional<z.ZodNumber>;
         height: z.ZodOptional<z.ZodNumber>;
@@ -1129,7 +1129,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
@@ -1180,7 +1180,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;

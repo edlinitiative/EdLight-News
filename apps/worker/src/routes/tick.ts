@@ -27,7 +27,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
 
     // Step 5: Generate branded card images for items that don't have one yet
-    let imageResult = { generated: 0, failed: 0 };
+    let imageResult = { generated: 0, screenshotted: 0, failed: 0 };
     try {
       imageResult = await generateImages();
     } catch (err) {
