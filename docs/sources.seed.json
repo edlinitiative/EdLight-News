@@ -81,7 +81,7 @@
   {
     "name": "ReliefWeb — Haiti",
     "type": "rss",
-    "url": "https://reliefweb.int/updates/rss.xml?advanced-search=%28PC113%29",
+    "url": "https://reliefweb.int/updates/rss.xml?primary_country=133",
     "language": "fr",
     "pollCadenceSec": 7200,
     "priority": "hot"
@@ -91,6 +91,7 @@
     "type": "html",
     "url": "https://www.usaid.gov/haiti",
     "language": "fr",
+    "active": false,
     "pollCadenceSec": 43200,
     "priority": "hot",
     "selectors": {
@@ -104,6 +105,7 @@
     "type": "html",
     "url": "https://ht.usembassy.gov/news-events/",
     "language": "fr",
+    "active": false,
     "pollCadenceSec": 43200,
     "priority": "hot",
     "selectors": {
@@ -130,6 +132,7 @@
     "type": "rss",
     "url": "https://www.who.int/feeds/entity/countries/hti/en/rss.xml",
     "language": "fr",
+    "active": false,
     "pollCadenceSec": 43200,
     "priority": "normal"
   },
@@ -294,6 +297,7 @@
     "type": "html",
     "url": "https://www.haiti.campusfrance.org/actualites",
     "language": "fr",
+    "active": false,
     "pollCadenceSec": 86400,
     "priority": "hot",
     "selectors": {
@@ -343,21 +347,16 @@
   },
   {
     "name": "AUF — Agence Universitaire Francophonie",
-    "type": "html",
-    "url": "https://www.auf.org/nouvelles/appels-a-candidatures/",
+    "type": "rss",
+    "url": "https://www.auf.org/feed/",
     "language": "fr",
     "pollCadenceSec": 43200,
-    "priority": "hot",
-    "selectors": {
-      "listItem": ".node a, .card a, article a",
-      "articleBody": ".field--name-body, .node__content, main .content",
-      "title": "h1.page-title, h1"
-    }
+    "priority": "hot"
   },
   {
     "name": "Bourses du Gouvernement Français (BGF)",
     "type": "html",
-    "url": "https://www.campusfrance.org/fr/bourses-du-gouvernement-francais",
+    "url": "https://www.campusfrance.org/fr/les-bourses-du-gouvernement-francais-bgf",
     "language": "fr",
     "pollCadenceSec": 86400,
     "priority": "hot",

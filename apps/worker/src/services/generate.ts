@@ -18,9 +18,10 @@ const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "5", 10);
  * Items scoring below this at ingest are skipped entirely — no Gemini call.
  * This is deliberately much lower than PUBLISH_SCORE_THRESHOLD (0.65)
  * because the generate step re-scores with the refined category which can
- * push scores up. But items this low are hopeless.
+ * push scores up. 0.35 ≈ 0.23 — captures items with a single Haiti mention
+ * (score=0.25) that Gemini can elevate once it reads the full text.
  */
-const SKIP_GENERATION_THRESHOLD = PUBLISH_SCORE_THRESHOLD * 0.4; // 0.26
+const SKIP_GENERATION_THRESHOLD = PUBLISH_SCORE_THRESHOLD * 0.35; // ~0.23
 
 export async function generateForItems(): Promise<{
   generated: number;

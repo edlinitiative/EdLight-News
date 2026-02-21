@@ -29,6 +29,8 @@ interface SeedSource {
   language: "fr" | "ht";
   pollCadenceSec: number;
   priority: "hot" | "normal";
+  /** Set to false to disable a source without removing it from the seed file */
+  active?: boolean;
   selectors?: {
     listItem?: string;
     articleBody?: string;
@@ -66,7 +68,7 @@ async function main() {
       url: seed.url,
       type: seed.type,
       language: seed.language,
-      active: true,
+      active: seed.active ?? true,
       pollCadenceSec: seed.pollCadenceSec,
       priority: seed.priority,
       updatedAt: FieldValue.serverTimestamp(),
