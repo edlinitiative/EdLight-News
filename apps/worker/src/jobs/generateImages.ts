@@ -113,16 +113,18 @@ async function processItemImage(
             downloaded.contentType,
           );
 
+          const meta: Record<string, unknown> = {
+            fetchedAt: new Date().toISOString(),
+            originalImageUrl: picked.url,
+          };
+          if (downloaded.width) meta.width = downloaded.width;
+          if (downloaded.height) meta.height = downloaded.height;
+
           await itemsRepo.updateItem(item.id, {
             imageUrl: publicUrl,
             imageSource: "publisher" as ImageSource,
             imageConfidence: picked.confidence,
-            imageMeta: {
-              width: downloaded.width,
-              height: downloaded.height,
-              fetchedAt: new Date().toISOString(),
-              originalImageUrl: picked.url,
-            },
+            imageMeta: meta as Item["imageMeta"],
           });
 
           result.publisher++;
@@ -159,8 +161,8 @@ async function processItemImage(
           imageSource: "wikidata" as ImageSource,
           imageConfidence: 0.85,
           imageMeta: {
-            width: downloaded.width,
-            height: downloaded.height,
+            ...(downloaded.width ? { width: downloaded.width } : {}),
+            ...(downloaded.height ? { height: downloaded.height } : {}),
             fetchedAt: new Date().toISOString(),
             originalImageUrl: wdResult.imageUrl,
           },
