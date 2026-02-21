@@ -38,7 +38,23 @@ export interface FeedItem {
   geoTag?: string;
   /** How many items share the same dedupeGroupId */
   dupeCount?: number;
+  /** True when item has no audienceFitScore (pre-v2 legacy) */
+  isLegacy?: boolean;
 }
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Return the item's audienceFitScore, or 0 if missing (legacy). */
+function getAudienceFitScore(item: FeedItem): number {
+  return item.audienceFitScore ?? 0;
+}
+
+/** Whether an item is legacy (no audienceFitScore set). */
+function isLegacyItem(item: FeedItem): boolean {
+  return item.audienceFitScore === undefined || item.audienceFitScore === null;
+}
+
+const SCORE_THRESHOLD = 0.65;
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
@@ -121,6 +137,7 @@ export function NewsFeed({
   // State
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("latest");
+  const [showLegacy, setShowLegacy] = useState(false);
   const [activeCategory, setActiveCategory] = useState<FeedCategory>(
     (searchParams.get("category") as FeedCategory) ?? "all",
   );
@@ -154,11 +171,31 @@ export function NewsFeed({
     return [...collapsed, ...ungrouped];
   }, [rawArticles]);
 
+  // Audience-fit filtering: keep scored items >= threshold, legacy items gated by toggle
+  const qualityFiltered = useMemo(() => {
+    return dedupedArticles.filter((a) => {
+      if (isLegacyItem(a)) {
+        // Legacy items (no score) only shown when toggle is ON
+        return showLegacy;
+      }
+      // Scored items must meet threshold
+      return getAudienceFitScore(a) >= SCORE_THRESHOLD;
+    }).map((a) => ({
+      ...a,
+      isLegacy: isLegacyItem(a),
+    }));
+  }, [dedupedArticles, showLegacy]);
+
+  // Count legacy items available (for the toggle label)
+  const legacyCount = useMemo(() => {
+    return dedupedArticles.filter((a) => isLegacyItem(a)).length;
+  }, [dedupedArticles]);
+
   // Category filter
   const categoryFiltered = useMemo(() => {
-    if (activeCategory === "all") return dedupedArticles;
-    return dedupedArticles.filter((a) => a.category === activeCategory);
-  }, [dedupedArticles, activeCategory]);
+    if (activeCategory === "all") return qualityFiltered;
+    return qualityFiltered.filter((a) => a.category === activeCategory);
+  }, [qualityFiltered, activeCategory]);
 
   // Search filter
   const searchFiltered = useMemo(() => {
@@ -200,11 +237,11 @@ export function NewsFeed({
     return items;
   }, [searchFiltered, sort]);
 
-  // Available categories from data
+  // Available categories from data (based on visible items)
   const availableCategories = useMemo(() => {
-    const cats = new Set(rawArticles.map((a) => a.category).filter(Boolean));
+    const cats = new Set(qualityFiltered.map((a) => a.category).filter(Boolean));
     return ["all", ...Array.from(cats)] as FeedCategory[];
-  }, [rawArticles]);
+  }, [qualityFiltered]);
 
   // Navigate with category
   const handleCategory = (cat: FeedCategory) => {
@@ -264,6 +301,21 @@ export function NewsFeed({
         </select>
       </div>
 
+      {/* Legacy toggle */}
+      {legacyCount > 0 && (
+        <label className="flex items-center gap-2 text-sm text-gray-500">
+          <input
+            type="checkbox"
+            checked={showLegacy}
+            onChange={(e) => setShowLegacy(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-400"
+          />
+          {lang === "fr"
+            ? `Afficher les anciens articles (${legacyCount})`
+            : `Montre ansyen atik yo (${legacyCount})`}
+        </label>
+      )}
+
       {/* Category filter pills */}
       {availableCategories.length > 2 && (
         <div className="flex flex-wrap gap-2">
@@ -316,6 +368,11 @@ export function NewsFeed({
               {article.geoTag === "HT" && (
                 <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
                   🇭🇹
+                </span>
+              )}
+              {article.isLegacy && (
+                <span className="inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                  {lang === "fr" ? "Ancien contenu" : "Ansyen kontni"}
                 </span>
               )}
               {(article.dupeCount ?? 0) > 1 && (
