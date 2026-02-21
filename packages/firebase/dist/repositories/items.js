@@ -90,18 +90,30 @@ export async function deleteItem(id) {
  * are excluded at the query level. The imageSource check is still done
  * in-memory because Firestore can't query for missing fields.
  */
+/**
+ * Image sources that the new pipeline considers "stale" — items with these
+ * sources AND no imageConfidence field were processed by the old code and
+ * should be re-processed through the upgraded 4-tier pipeline.
+ */
+const STALE_IMAGE_SOURCES = new Set(["screenshot", "fallback", "generated"]);
 export async function listItemsNeedingImages(limit) {
     const IMAGE_SCORE_THRESHOLD = 0.5;
     const snap = await collection()
         .where("audienceFitScore", ">=", IMAGE_SCORE_THRESHOLD)
         .orderBy("audienceFitScore", "desc") // highest-value items first
-        .limit(limit * 20) // over-fetch to account for items that already have images
+        .limit(limit * 30) // over-fetch to account for items that already have good images
         .get();
     const results = [];
     for (const doc of snap.docs) {
         const data = doc.data();
-        if (data.imageSource)
-            continue; // already processed
+        // No imageSource at all → needs processing
+        const needsImage = !data.imageSource;
+        // Old stale source with no confidence → re-process through new pipeline
+        const isStale = !!data.imageSource &&
+            STALE_IMAGE_SOURCES.has(data.imageSource) &&
+            (data.imageConfidence === undefined || data.imageConfidence === null);
+        if (!needsImage && !isStale)
+            continue;
         results.push({ ...data, id: doc.id });
         if (results.length >= limit)
             break;

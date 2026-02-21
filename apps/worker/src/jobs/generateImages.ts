@@ -15,6 +15,11 @@ import {
   renderBrandedCardPNG,
   screenshotArticleImage,
 } from "@edlight-news/renderer";
+import {
+  fetchHtml,
+  extractCandidateImages,
+  pickBestImage,
+} from "@edlight-news/scraper";
 import type { Item, ImageSource, ImageAttribution, EntityRef } from "@edlight-news/types";
 import { detectPersonName, fetchWikidataImage } from "../services/wikidata.js";
 
@@ -86,12 +91,51 @@ async function processItemImage(
     item.citations?.[0]?.sourceUrl ??
     item.canonicalUrl;
 
-  // ── Strategy 1: Re-validate / fetch publisher image ─────────────────
-  // The process step may have already set a publisher image. If the item
-  // still has imageSource === undefined, it means no publisher image was
-  // found during static HTML extraction. We could try Playwright-based
-  // extraction here, but for now we rely on the static extraction +
-  // the confidence check done in the process step.
+  // Track whether this is a stale re-process (old screenshot/fallback) to
+  // avoid falling back to screenshot again at the end.
+  const isReprocess = !!item.imageSource;
+
+  // ── Strategy 1: Publisher image (fetch HTML → extract og:image etc.) ─
+  if (sourceUrl) {
+    try {
+      const html = await fetchHtml(sourceUrl);
+      const candidates = extractCandidateImages(html, sourceUrl);
+      const picked = pickBestImage(candidates);
+
+      if (picked.url && picked.confidence >= PUBLISHER_CONFIDENCE_THRESHOLD) {
+        const downloaded = await downloadImage(picked.url);
+        if (downloaded && downloaded.buffer.length > 5_000) {
+          const ext = picked.url.includes(".png") ? "png" : "jpg";
+          const storagePath = `images/items/${item.id}_publisher.${ext}`;
+          const publicUrl = await uploadImageBuffer(
+            storagePath,
+            downloaded.buffer,
+            downloaded.contentType,
+          );
+
+          await itemsRepo.updateItem(item.id, {
+            imageUrl: publicUrl,
+            imageSource: "publisher" as ImageSource,
+            imageConfidence: picked.confidence,
+            imageMeta: {
+              width: downloaded.width,
+              height: downloaded.height,
+              fetchedAt: new Date().toISOString(),
+              originalImageUrl: picked.url,
+            },
+          });
+
+          result.publisher++;
+          console.log(`[images] publisher image for item ${item.id} (confidence=${picked.confidence.toFixed(2)})`);
+          return true;
+        }
+      }
+    } catch (err) {
+      // HTML fetch or parse failed — continue to next strategy
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[images] publisher extraction failed for ${item.id}: ${msg}`);
+    }
+  }
 
   // ── Strategy 2: Wikidata portrait for public personalities ──────────
   const personName = detectPersonName(item.title, item.category);
@@ -177,7 +221,9 @@ async function processItemImage(
   }
 
   // ── Strategy 4: Screenshot fallback ─────────────────────────────────
-  if (sourceUrl) {
+  // Skip if this item is being re-processed (already had a screenshot) to
+  // avoid an infinite reprocessing loop.
+  if (sourceUrl && !isReprocess) {
     const screenshotResult = await screenshotArticleImage(sourceUrl);
     if (screenshotResult) {
       const storagePath = `images/items/${item.id}_screenshot.png`;

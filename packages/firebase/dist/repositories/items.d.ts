@@ -28,13 +28,5 @@ export declare function updateItem(id: string, data: ItemUpdate): Promise<void>;
 /** Get a single item by its dedupeGroupId (newest first). */
 export declare function listByDedupeGroupId(dedupeGroupId: string, limit?: number): Promise<Item[]>;
 export declare function deleteItem(id: string): Promise<void>;
-/**
- * List items that have no imageSource field yet and meet the minimum score
- * threshold for image generation (audienceFitScore >= 0.5).
- *
- * Uses a Firestore inequality filter on audienceFitScore so low-value items
- * are excluded at the query level. The imageSource check is still done
- * in-memory because Firestore can't query for missing fields.
- */
 export declare function listItemsNeedingImages(limit: number): Promise<Item[]>;
 //# sourceMappingURL=items.d.ts.map
