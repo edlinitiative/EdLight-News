@@ -110,14 +110,20 @@ export async function deleteItem(id: string): Promise<void> {
 }
 
 /**
- * List items that have no imageSource field yet (never been processed for images).
- * Fetches newest items first and filters in-memory since Firestore can't query
- * for missing fields. Bounded by `limit`.
+ * List items that have no imageSource field yet and meet the minimum score
+ * threshold for image generation (audienceFitScore >= 0.5).
+ *
+ * Uses a Firestore inequality filter on audienceFitScore so low-value items
+ * are excluded at the query level. The imageSource check is still done
+ * in-memory because Firestore can't query for missing fields.
  */
 export async function listItemsNeedingImages(limit: number): Promise<Item[]> {
+  const IMAGE_SCORE_THRESHOLD = 0.5;
+
   const snap = await collection()
-    .orderBy("createdAt", "desc")
-    .limit(limit * 40) // over-fetch: scan 200 items for a limit of 5
+    .where("audienceFitScore", ">=", IMAGE_SCORE_THRESHOLD)
+    .orderBy("audienceFitScore", "desc") // highest-value items first
+    .limit(limit * 20) // over-fetch to account for items that already have images
     .get();
 
   const results: Item[] = [];
