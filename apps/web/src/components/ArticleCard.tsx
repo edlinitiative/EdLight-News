@@ -47,9 +47,9 @@ export function ArticleCard({
   const updateCount = (article.dupeCount ?? 1) - 1;
   const hasUpdates = updateCount > 0;
 
-  // Only show real publisher photos on the site; branded cards ("generated")
-  // are reserved for social media and look odd as article thumbnails.
-  const hasImage = !!article.imageUrl && article.imageSource !== "generated";
+  // Show images from publisher, wikidata, branded, and screenshot sources.
+  // Only hide items with no imageUrl at all.
+  const hasImage = !!article.imageUrl;
   const fallbackGradient =
     FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
 

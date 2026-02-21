@@ -76,6 +76,7 @@ export async function fetchEnrichedArticles(
       // image fields
       imageUrl: item?.imageUrl ?? null,
       imageSource: item?.imageSource,
+      imageAttribution: item?.imageAttribution,
     };
   });
 }

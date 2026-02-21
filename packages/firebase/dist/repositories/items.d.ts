@@ -1,5 +1,11 @@
-import type { Item } from "@edlight-news/types";
+import type { Item, ImageAttribution, EntityRef } from "@edlight-news/types";
 import { type CreateItem } from "@edlight-news/types";
+/** Fields that can be updated on an item (superset of CreateItem for image pipeline). */
+export type ItemUpdate = Partial<CreateItem> & {
+    imageConfidence?: number;
+    imageAttribution?: ImageAttribution;
+    entity?: EntityRef;
+};
 export declare function createItem(data: CreateItem): Promise<Item>;
 export declare function getItem(id: string): Promise<Item | null>;
 export declare function findByCanonicalUrl(canonicalUrl: string): Promise<Item | null>;
@@ -18,7 +24,7 @@ export declare function upsertItemByCanonicalUrl(data: CreateItem): Promise<{
  */
 export declare function listItemsByCategory(category: string): Promise<Item[]>;
 export declare function listRecentItems(limit?: number): Promise<Item[]>;
-export declare function updateItem(id: string, data: Partial<CreateItem>): Promise<void>;
+export declare function updateItem(id: string, data: ItemUpdate): Promise<void>;
 /** Get a single item by its dedupeGroupId (newest first). */
 export declare function listByDedupeGroupId(dedupeGroupId: string, limit?: number): Promise<Item[]>;
 export declare function deleteItem(id: string): Promise<void>;

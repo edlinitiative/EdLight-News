@@ -1,7 +1,14 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { getDb } from "../admin.js";
-import type { Item } from "@edlight-news/types";
+import type { Item, ImageSource, ImageAttribution, EntityRef, ImageMeta } from "@edlight-news/types";
 import { createItemSchema, type CreateItem } from "@edlight-news/types";
+
+/** Fields that can be updated on an item (superset of CreateItem for image pipeline). */
+export type ItemUpdate = Partial<CreateItem> & {
+  imageConfidence?: number;
+  imageAttribution?: ImageAttribution;
+  entity?: EntityRef;
+};
 
 const COLLECTION = "items";
 
@@ -81,7 +88,7 @@ export async function listRecentItems(limit = 50): Promise<Item[]> {
 
 export async function updateItem(
   id: string,
-  data: Partial<CreateItem>,
+  data: ItemUpdate,
 ): Promise<void> {
   // Strip undefined values — Firestore rejects them
   const clean = Object.fromEntries(

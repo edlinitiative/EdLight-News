@@ -30,13 +30,24 @@ const sourceSelectorsSchema = z.object({
 
 const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
 
-const imageSourceSchema = z.enum(["publisher", "screenshot", "generated", "fallback"]);
+const imageSourceSchema = z.enum(["publisher", "wikidata", "branded", "screenshot"]);
 
 const imageMetaSchema = z.object({
   width: z.number().positive().optional(),
   height: z.number().positive().optional(),
   fetchedAt: z.string().optional(),
   originalImageUrl: z.string().url().optional(),
+});
+
+const imageAttributionSchema = z.object({
+  name: z.string().optional(),
+  url: z.string().url().optional(),
+  license: z.string().optional(),
+});
+
+const entityRefSchema = z.object({
+  personName: z.string().optional(),
+  wikidataId: z.string().optional(),
 });
 
 const itemSourceSchema = z.object({
@@ -120,7 +131,10 @@ export const itemSchema = z.object({
   // image fields
   imageUrl: z.string().url().nullable().optional(),
   imageSource: imageSourceSchema.optional(),
+  imageConfidence: z.number().min(0).max(1).optional(),
   imageMeta: imageMetaSchema.optional(),
+  imageAttribution: imageAttributionSchema.optional(),
+  entity: entityRefSchema.optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -184,7 +198,9 @@ export const metricSchema = z.object({
 export {
   citationSchema,
   contentSectionSchema,
+  entityRefSchema,
   geoTagSchema,
+  imageAttributionSchema,
   imageMetaSchema,
   imageSourceSchema,
   itemSourceSchema,

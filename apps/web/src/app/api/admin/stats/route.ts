@@ -16,7 +16,7 @@ export async function GET() {
       sourcesActive,
     ] = await Promise.all([
       db.collection("items").count().get(),
-      db.collection("items").where("imageSource", "in", ["publisher", "generated"]).count().get(),
+      db.collection("items").where("imageSource", "in", ["publisher", "wikidata", "branded", "screenshot"]).count().get(),
       db.collection("content_versions").count().get(),
       db.collection("content_versions").where("status", "==", "published").count().get(),
       db.collection("content_versions").where("status", "==", "draft").count().get(),

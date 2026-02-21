@@ -54,7 +54,7 @@ export interface RawItem {
 export type GeoTag = "HT" | "Diaspora" | "Global";
 
 /** How the article image was obtained */
-export type ImageSource = "publisher" | "screenshot" | "generated" | "fallback";
+export type ImageSource = "publisher" | "wikidata" | "branded" | "screenshot";
 
 /** Metadata about the article image */
 export interface ImageMeta {
@@ -64,6 +64,19 @@ export interface ImageMeta {
   fetchedAt?: string;
   /** Original image URL from the publisher (before re-hosting) */
   originalImageUrl?: string;
+}
+
+/** Attribution for images that require credit (Wikidata, etc.) */
+export interface ImageAttribution {
+  name?: string;
+  url?: string;
+  license?: string;
+}
+
+/** Linked entity reference (e.g., public personality) */
+export interface EntityRef {
+  personName?: string;
+  wikidataId?: string;
 }
 
 /** The original + aggregator source links */
@@ -142,8 +155,14 @@ export interface Item {
   imageUrl?: string | null;
   /** How the image was obtained */
   imageSource?: ImageSource;
+  /** 0-1 confidence that the image is relevant/correct */
+  imageConfidence?: number;
   /** Image metadata */
   imageMeta?: ImageMeta;
+  /** Attribution for images that require credit */
+  imageAttribution?: ImageAttribution;
+  /** Linked entity (e.g., person detected in title) */
+  entity?: EntityRef;
 
   createdAt: Timestamp;
   updatedAt: Timestamp;

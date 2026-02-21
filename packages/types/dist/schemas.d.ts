@@ -59,7 +59,7 @@ declare const sourceSelectorsSchema: z.ZodObject<{
     title?: string | undefined;
 }>;
 declare const geoTagSchema: z.ZodEnum<["HT", "Diaspora", "Global"]>;
-declare const imageSourceSchema: z.ZodEnum<["publisher", "screenshot", "generated", "fallback"]>;
+declare const imageSourceSchema: z.ZodEnum<["publisher", "wikidata", "branded", "screenshot"]>;
 declare const imageMetaSchema: z.ZodObject<{
     width: z.ZodOptional<z.ZodNumber>;
     height: z.ZodOptional<z.ZodNumber>;
@@ -75,6 +75,29 @@ declare const imageMetaSchema: z.ZodObject<{
     height?: number | undefined;
     fetchedAt?: string | undefined;
     originalImageUrl?: string | undefined;
+}>;
+declare const imageAttributionSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    url: z.ZodOptional<z.ZodString>;
+    license: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    name?: string | undefined;
+    url?: string | undefined;
+    license?: string | undefined;
+}, {
+    name?: string | undefined;
+    url?: string | undefined;
+    license?: string | undefined;
+}>;
+declare const entityRefSchema: z.ZodObject<{
+    personName: z.ZodOptional<z.ZodString>;
+    wikidataId: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    personName?: string | undefined;
+    wikidataId?: string | undefined;
+}, {
+    personName?: string | undefined;
+    wikidataId?: string | undefined;
 }>;
 declare const itemSourceSchema: z.ZodObject<{
     name: z.ZodString;
@@ -164,8 +187,8 @@ export declare const sourceSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "rss" | "html";
     name: string;
-    id: string;
     url: string;
+    id: string;
     language: "fr" | "ht";
     active: boolean;
     pollCadenceSec: number;
@@ -187,8 +210,8 @@ export declare const sourceSchema: z.ZodObject<{
 }, {
     type: "rss" | "html";
     name: string;
-    id: string;
     url: string;
+    id: string;
     language: "fr" | "ht";
     active: boolean;
     createdAt: {
@@ -240,8 +263,8 @@ export declare const rawItemSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     status: "new" | "processed" | "skipped";
     title: string;
-    id: string;
     url: string;
+    id: string;
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -257,8 +280,8 @@ export declare const rawItemSchema: z.ZodObject<{
 }, {
     status: "new" | "processed" | "skipped";
     title: string;
-    id: string;
     url: string;
+    id: string;
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -365,7 +388,8 @@ export declare const itemSchema: z.ZodObject<{
         nanoseconds: number;
     }>>>;
     imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "screenshot", "generated", "fallback"]>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "wikidata", "branded", "screenshot"]>>;
+    imageConfidence: z.ZodOptional<z.ZodNumber>;
     imageMeta: z.ZodOptional<z.ZodObject<{
         width: z.ZodOptional<z.ZodNumber>;
         height: z.ZodOptional<z.ZodNumber>;
@@ -381,6 +405,29 @@ export declare const itemSchema: z.ZodObject<{
         height?: number | undefined;
         fetchedAt?: string | undefined;
         originalImageUrl?: string | undefined;
+    }>>;
+    imageAttribution: z.ZodOptional<z.ZodObject<{
+        name: z.ZodOptional<z.ZodString>;
+        url: z.ZodOptional<z.ZodString>;
+        license: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    }, {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    }>>;
+    entity: z.ZodOptional<z.ZodObject<{
+        personName: z.ZodOptional<z.ZodString>;
+        wikidataId: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
+    }, {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
     }>>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
@@ -455,12 +502,22 @@ export declare const itemSchema: z.ZodObject<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
+    imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
         fetchedAt?: string | undefined;
         originalImageUrl?: string | undefined;
+    } | undefined;
+    imageAttribution?: {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    } | undefined;
+    entity?: {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
     } | undefined;
 }, {
     title: string;
@@ -515,12 +572,22 @@ export declare const itemSchema: z.ZodObject<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
+    imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
         fetchedAt?: string | undefined;
         originalImageUrl?: string | undefined;
+    } | undefined;
+    imageAttribution?: {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    } | undefined;
+    entity?: {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
     } | undefined;
 }>;
 export declare const contentVersionSchema: z.ZodObject<{
@@ -693,8 +760,8 @@ export declare const assetSchema: z.ZodObject<{
     type: "carousel_image" | "story_image";
     width: number;
     height: number;
-    id: string;
     url: string;
+    id: string;
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -704,8 +771,8 @@ export declare const assetSchema: z.ZodObject<{
     type: "carousel_image" | "story_image";
     width: number;
     height: number;
-    id: string;
     url: string;
+    id: string;
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -828,7 +895,7 @@ export declare const metricSchema: z.ZodObject<{
         nanoseconds: number;
     };
 }>;
-export { citationSchema, contentSectionSchema, geoTagSchema, imageMetaSchema, imageSourceSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
+export { citationSchema, contentSectionSchema, entityRefSchema, geoTagSchema, imageAttributionSchema, imageMetaSchema, imageSourceSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
 export declare const createSourceSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     name: z.ZodString;
@@ -1048,7 +1115,8 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     }>>>;
     imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "screenshot", "generated", "fallback"]>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "wikidata", "branded", "screenshot"]>>;
+    imageConfidence: z.ZodOptional<z.ZodNumber>;
     imageMeta: z.ZodOptional<z.ZodObject<{
         width: z.ZodOptional<z.ZodNumber>;
         height: z.ZodOptional<z.ZodNumber>;
@@ -1064,6 +1132,29 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         height?: number | undefined;
         fetchedAt?: string | undefined;
         originalImageUrl?: string | undefined;
+    }>>;
+    imageAttribution: z.ZodOptional<z.ZodObject<{
+        name: z.ZodOptional<z.ZodString>;
+        url: z.ZodOptional<z.ZodString>;
+        license: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    }, {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    }>>;
+    entity: z.ZodOptional<z.ZodObject<{
+        personName: z.ZodOptional<z.ZodString>;
+        wikidataId: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
+    }, {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
     }>>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
@@ -1129,12 +1220,22 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
+    imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
         fetchedAt?: string | undefined;
         originalImageUrl?: string | undefined;
+    } | undefined;
+    imageAttribution?: {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    } | undefined;
+    entity?: {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
     } | undefined;
 }, {
     title: string;
@@ -1180,12 +1281,22 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         aggregatorUrl?: string | undefined;
     } | undefined;
     imageUrl?: string | null | undefined;
-    imageSource?: "publisher" | "screenshot" | "generated" | "fallback" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
+    imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
         height?: number | undefined;
         fetchedAt?: string | undefined;
         originalImageUrl?: string | undefined;
+    } | undefined;
+    imageAttribution?: {
+        name?: string | undefined;
+        url?: string | undefined;
+        license?: string | undefined;
+    } | undefined;
+    entity?: {
+        personName?: string | undefined;
+        wikidataId?: string | undefined;
     } | undefined;
 }>;
 export declare const createContentVersionSchema: z.ZodObject<Omit<{

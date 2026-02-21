@@ -1,7 +1,7 @@
 /**
  * @edlight-news/renderer
  *
- * Generates branded card images for articles using Playwright.
+ * Generates branded card images and captures article screenshots using Playwright.
  * Falls back gracefully if Chromium is unavailable.
  */
 
@@ -35,7 +35,6 @@ let _browser: Browser | null = null;
 async function getBrowser(): Promise<Browser> {
   if (_browser?.isConnected()) return _browser;
 
-  // Try common Chromium paths — Cloud Run, Debian, Alpine, macOS
   const executablePaths = [
     process.env.PLAYWRIGHT_CHROMIUM_PATH,
     "/usr/bin/chromium-browser",
@@ -61,30 +60,46 @@ async function getBrowser(): Promise<Browser> {
     }
   }
 
-  // Last resort: let playwright-core try to find a browser
   _browser = await chromium.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
   return _browser;
 }
 
+// ── Branded card sizes ────────────────────────────────────────────────────
+export type BrandedCardSize = "landscape" | "square";
+
+const SIZE_DIMS: Record<BrandedCardSize, { width: number; height: number }> = {
+  landscape: { width: 1200, height: 630 },
+  square: { width: 1080, height: 1080 },
+};
+
 /**
  * Build the branded card HTML string.
- * 1080×1080 card with gradient, category pill, title, source, and EdLight branding.
+ * Supports both 1200×630 (landscape / social share) and 1080×1080 (Instagram).
  */
 function buildBrandedCardHTML(opts: {
   title: string;
   category?: string;
   sourceName?: string;
   date?: string;
+  size: BrandedCardSize;
 }): string {
+  const { width, height } = SIZE_DIMS[opts.size];
   const gradient = CATEGORY_GRADIENTS[opts.category ?? ""] ?? DEFAULT_GRADIENT;
   const catLabel = CATEGORY_LABELS[opts.category ?? ""] ?? "";
   const source = opts.sourceName ?? "";
   const date = opts.date ?? "";
   const metaParts = [source, date].filter(Boolean).join(" · ");
 
-  // Truncate title to ~160 chars to prevent overflow
+  const isLandscape = opts.size === "landscape";
+  const padding = isLandscape ? 60 : 80;
+  const catFontSize = isLandscape ? 18 : 22;
+  const titleFontSize = isLandscape ? 42 : 54;
+  const titleMaxClamp = isLandscape ? 5 : 7;
+  const metaFontSize = isLandscape ? 18 : 22;
+  const brandFontSize = isLandscape ? 24 : 30;
+
   const title =
     opts.title.length > 160
       ? opts.title.slice(0, 157) + "…"
@@ -97,14 +112,14 @@ function buildBrandedCardHTML(opts: {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    width: 1080px;
-    height: 1080px;
+    width: ${width}px;
+    height: ${height}px;
     font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: ${gradient};
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 80px;
+    padding: ${padding}px;
     color: white;
     overflow: hidden;
   }
@@ -118,7 +133,7 @@ function buildBrandedCardHTML(opts: {
     backdrop-filter: blur(8px);
     border-radius: 24px;
     padding: 10px 24px;
-    font-size: 22px;
+    font-size: ${catFontSize}px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -129,15 +144,14 @@ function buildBrandedCardHTML(opts: {
     align-items: center;
   }
   .title {
-    font-size: 54px;
+    font-size: ${titleFontSize}px;
     font-weight: 800;
     line-height: 1.2;
     letter-spacing: -0.5px;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-    max-height: 520px;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 7;
+    -webkit-line-clamp: ${titleMaxClamp};
     -webkit-box-orient: vertical;
   }
   .bottom {
@@ -146,7 +160,7 @@ function buildBrandedCardHTML(opts: {
     align-items: flex-end;
   }
   .meta {
-    font-size: 22px;
+    font-size: ${metaFontSize}px;
     opacity: 0.75;
     max-width: 650px;
     overflow: hidden;
@@ -154,7 +168,7 @@ function buildBrandedCardHTML(opts: {
     white-space: nowrap;
   }
   .brand {
-    font-size: 30px;
+    font-size: ${brandFontSize}px;
     font-weight: 800;
     opacity: 0.9;
     letter-spacing: 0.5px;
@@ -194,10 +208,12 @@ export interface BrandedCardOptions {
   category?: ItemCategory;
   sourceName?: string;
   date?: string;
+  /** Default: "square" (1080×1080) for backwards compat */
+  size?: BrandedCardSize;
 }
 
 /**
- * Render a 1080×1080 branded card PNG for an article.
+ * Render a branded card PNG for an article.
  * Returns a Buffer containing the PNG image data.
  *
  * @throws if Chromium cannot be launched.
@@ -205,13 +221,15 @@ export interface BrandedCardOptions {
 export async function renderBrandedCardPNG(
   opts: BrandedCardOptions,
 ): Promise<Buffer> {
+  const size = opts.size ?? "square";
+  const { width, height } = SIZE_DIMS[size];
   const browser = await getBrowser();
   const page = await browser.newPage({
-    viewport: { width: 1080, height: 1080 },
+    viewport: { width, height },
   });
 
   try {
-    const html = buildBrandedCardHTML(opts);
+    const html = buildBrandedCardHTML({ ...opts, size });
     await page.setContent(html, { waitUntil: "load", timeout: 60_000 });
     const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
     return Buffer.from(buffer);
@@ -231,28 +249,55 @@ export async function closeBrowser(): Promise<void> {
   }
 }
 
-// ── Screenshot hero image ─────────────────────────────────────────────────
+// ── Smart screenshot (article element, not full page) ─────────────────────
+
+/** Selectors to try when looking for the article hero/header area */
+const ARTICLE_CONTAINER_SELECTORS = [
+  "article header",
+  "article .post-thumbnail",
+  "article .featured-image",
+  ".entry-header",
+  ".post-header",
+  ".article-header",
+  ".hero-image",
+  "[class*='hero']",
+  "article",
+  '[role="main"]',
+  "main",
+];
+
+/** Selectors for overlay/popup elements that should be hidden */
+const OVERLAY_SELECTORS = [
+  '[class*="cookie"]', '[class*="Cookie"]',
+  '[class*="consent"]', '[class*="Consent"]',
+  '[class*="popup"]', '[class*="Popup"]',
+  '[class*="modal"]', '[class*="Modal"]',
+  '[class*="overlay"]', '[class*="Overlay"]',
+  '[class*="banner"]', '[id*="cookie"]',
+  '[id*="consent"]', '[id*="popup"]',
+];
 
 /**
- * Navigate to a URL and capture a cropped hero screenshot.
+ * Navigate to a URL and capture a smart screenshot of the article area.
  *
- * Takes a 1200×630 viewport screenshot (standard social share dimensions),
- * waits for the page to settle, then captures the top portion of the page
- * where the hero image / header typically lives.
+ * Strategy:
+ * 1. Try to find a large <img> element inside the article and screenshot it.
+ * 2. Fall back to screenshotting the article container element.
+ * 3. Last resort: clip the top 1200×630 of the viewport.
  *
- * Returns a PNG Buffer, or null if the page fails to load or times out.
+ * Returns a PNG Buffer, or null if the page fails to load.
  */
-export async function screenshotHeroImage(
+export async function screenshotArticleImage(
   url: string,
-): Promise<Buffer | null> {
+): Promise<{ buffer: Buffer; width: number; height: number } | null> {
   let page;
   try {
     const browser = await getBrowser();
     page = await browser.newPage({
-      viewport: { width: 1200, height: 630 },
+      viewport: { width: 1200, height: 800 },
     });
 
-    // Block unnecessary resources to speed up loading
+    // Block unnecessary resources
     await page.route("**/*", (route) => {
       const type = route.request().resourceType();
       if (["font", "media", "websocket"].includes(type)) {
@@ -266,35 +311,113 @@ export async function screenshotHeroImage(
       timeout: 20_000,
     });
 
-    // Wait a bit for lazy images and client-rendered content
-    await page.waitForTimeout(2_000);
+    // Wait for lazy images and client-rendered content
+    await page.waitForTimeout(2_500);
 
-    // Remove common overlay elements that block the hero
-    await page.evaluate(() => {
-      const selectors = [
-        '[class*="cookie"]', '[class*="Cookie"]',
-        '[class*="consent"]', '[class*="Consent"]',
-        '[class*="popup"]', '[class*="Popup"]',
-        '[class*="modal"]', '[class*="Modal"]',
-        '[class*="overlay"]', '[class*="Overlay"]',
-        '[class*="banner"]', '[id*="cookie"]',
-        '[id*="consent"]', '[id*="popup"]',
-      ];
+    // Remove overlay elements
+    await page.evaluate((selectors: string[]) => {
       for (const sel of selectors) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (globalThis as any).document.querySelectorAll(sel).forEach((el: any) => {
           el.style.display = "none";
         });
       }
+    }, OVERLAY_SELECTORS);
+
+    // ── Strategy 1: Find a large hero image element ─────────────────────
+    const heroImg = await page.evaluate(() => {
+      const doc = (globalThis as any).document;
+
+      // Look for large images inside article-like containers first
+      const containers = doc.querySelectorAll(
+        "article, [role='main'], main, .content, .post-content, .entry-content"
+      );
+      const allImages: any[] = [];
+
+      for (const c of containers) {
+        allImages.push(...Array.from(c.querySelectorAll("img")));
+      }
+      // Also check top-level hero patterns
+      const heroSelectors = [
+        ".hero-image img",
+        ".featured-image img",
+        ".post-thumbnail img",
+        "[class*='hero'] img",
+        "figure img",
+      ];
+      for (const sel of heroSelectors) {
+        allImages.push(...Array.from(doc.querySelectorAll(sel)));
+      }
+
+      // Find the first image that is visually large
+      for (const img of allImages) {
+        const rect = img.getBoundingClientRect();
+        if (rect.width >= 400 && rect.height >= 200 && rect.top < 1200) {
+          return {
+            found: true,
+            x: Math.max(0, rect.x),
+            y: Math.max(0, rect.y),
+            width: Math.min(rect.width, 1200),
+            height: Math.min(rect.height, 800),
+          };
+        }
+      }
+      return { found: false, x: 0, y: 0, width: 0, height: 0 };
     });
 
+    if (heroImg.found && heroImg.width > 0 && heroImg.height > 0) {
+      const buffer = await page.screenshot({
+        type: "png",
+        timeout: 30_000,
+        clip: {
+          x: heroImg.x,
+          y: heroImg.y,
+          width: heroImg.width,
+          height: heroImg.height,
+        },
+      });
+      return {
+        buffer: Buffer.from(buffer),
+        width: Math.round(heroImg.width),
+        height: Math.round(heroImg.height),
+      };
+    }
+
+    // ── Strategy 2: Screenshot article container element ────────────────
+    for (const sel of ARTICLE_CONTAINER_SELECTORS) {
+      const el = await page.$(sel);
+      if (!el) continue;
+
+      const box = await el.boundingBox();
+      if (!box || box.width < 300 || box.height < 200) continue;
+
+      // Clip to reasonable max dimensions
+      const clipW = Math.min(box.width, 1200);
+      const clipH = Math.min(box.height, 630);
+      const buffer = await page.screenshot({
+        type: "png",
+        timeout: 30_000,
+        clip: {
+          x: box.x,
+          y: box.y,
+          width: clipW,
+          height: clipH,
+        },
+      });
+      return {
+        buffer: Buffer.from(buffer),
+        width: Math.round(clipW),
+        height: Math.round(clipH),
+      };
+    }
+
+    // ── Strategy 3: Fallback to viewport crop ───────────────────────────
     const buffer = await page.screenshot({
       type: "png",
       timeout: 30_000,
       clip: { x: 0, y: 0, width: 1200, height: 630 },
     });
-
-    return Buffer.from(buffer);
+    return { buffer: Buffer.from(buffer), width: 1200, height: 630 };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[renderer] screenshot failed for ${url}: ${msg}`);
@@ -304,6 +427,16 @@ export async function screenshotHeroImage(
       try { await page.close(); } catch { /* ignore */ }
     }
   }
+}
+
+/**
+ * @deprecated Use screenshotArticleImage instead. Kept for backwards compat.
+ */
+export async function screenshotHeroImage(
+  url: string,
+): Promise<Buffer | null> {
+  const result = await screenshotArticleImage(url);
+  return result?.buffer ?? null;
 }
 
 // ── Legacy placeholders (kept for backwards compat) ───────────────────────

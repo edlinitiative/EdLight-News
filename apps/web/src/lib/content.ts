@@ -129,6 +129,7 @@ export function enrichArticles(
       // image fields
       imageUrl: item?.imageUrl ?? null,
       imageSource: item?.imageSource,
+      imageAttribution: item?.imageAttribution,
     };
   });
 }

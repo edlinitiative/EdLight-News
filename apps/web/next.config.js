@@ -12,7 +12,7 @@ const FIREBASE_EXTERNALS = [
 ];
 
 const nextConfig = {
-  // Allow images from Firebase Storage and common publisher CDNs
+  // Allow images from Firebase Storage, Wikimedia Commons, and common publisher CDNs
   images: {
     remotePatterns: [
       {
@@ -22,6 +22,14 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "firebasestorage.googleapis.com",
+      },
+      {
+        protocol: "https",
+        hostname: "commons.wikimedia.org",
+      },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
       },
     ],
   },

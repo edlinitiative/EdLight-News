@@ -14,10 +14,36 @@ export interface ExtractedArticle {
   canonicalUrl: string;
   /** Publisher image URL from og:image / twitter:image meta tags */
   publisherImageUrl: string | null;
+  /** Publisher image confidence 0-1 */
+  publisherImageConfidence: number;
+}
+
+// ── Candidate image types ─────────────────────────────────────────────────
+export type CandidateKind = "og" | "twitter" | "jsonld" | "rss" | "body";
+
+export interface CandidateImage {
+  url: string;
+  kind: CandidateKind;
+  /** 0-1 hint for how reliable this source typically is */
+  scoreHint: number;
+  /** If srcset provided the width, record it here */
+  width?: number;
+}
+
+export interface PickedImage {
+  url: string | null;
+  confidence: number;
 }
 
 const USER_AGENT =
   "Mozilla/5.0 (compatible; EdLight-News/1.0; +https://edlight.org) AppleWebKit/537.36";
+
+// ── Junk image patterns ───────────────────────────────────────────────────
+const JUNK_PATTERNS = [
+  "avatar", "icon", "logo", "emoji", "gravatar", "spinner",
+  "placeholder", "ad-", "/ads/", "pixel", "badge", "button",
+  "sprite", "tracking", "1x1", "spacer",
+];
 
 /**
  * Fetch raw HTML from a URL.
@@ -37,9 +63,6 @@ export async function fetchHtml(url: string): Promise<string> {
 
 /**
  * Scrape a web page by CSS selector and return extracted items.
- *
- * @param pageUrl - The URL to fetch
- * @param selector - CSS selector that matches repeating item containers
  */
 export async function scrapeHTML(
   pageUrl: string,
@@ -71,10 +94,6 @@ export async function scrapeHTML(
 
 /**
  * Parse a list/index page and return article URLs.
- *
- * @param html - Raw HTML string
- * @param listItemSelector - CSS selector for link containers
- * @param baseUrl - Base URL for resolving relative hrefs
  */
 export function parseListPage(
   html: string,
@@ -98,56 +117,56 @@ export function parseListPage(
   return urls;
 }
 
+// ── Image candidate extraction ────────────────────────────────────────────
+
 /**
- * Extract the best article image URL from HTML.
- *
- * Multi-strategy approach (in priority order):
- * 1. Open Graph / Twitter Card meta tags
- * 2. JSON-LD schema.org image
- * 3. First large image inside the article body
- *
- * Resolves relative URLs against baseUrl. Returns null if no valid image found.
+ * Extract all candidate images from HTML using multiple strategies.
+ * Returns an array of candidates sorted by scoreHint descending.
  */
-export function extractPublisherImage(
+export function extractCandidateImages(
   html: string,
   baseUrl: string,
-): string | null {
+): CandidateImage[] {
   const $ = cheerio.load(html);
+  const seen = new Set<string>();
+  const candidates: CandidateImage[] = [];
 
-  // ── Strategy 1: Meta tags (og:image, twitter:image) ──────────────────
-  const metaCandidates = [
-    $('meta[property="og:image"]').attr("content"),
-    $('meta[property="og:image:secure_url"]').attr("content"),
-    $('meta[property="og:image:url"]').attr("content"),
-    $('meta[name="twitter:image"]').attr("content"),
-    $('meta[name="twitter:image:src"]').attr("content"),
-    $('link[rel="image_src"]').attr("href"),
-  ];
-
-  for (const raw of metaCandidates) {
+  function addCandidate(raw: string | undefined | null, kind: CandidateKind, scoreHint: number, width?: number) {
     const url = resolveImageUrl(raw, baseUrl);
-    if (url) return url;
+    if (!url || seen.has(url)) return;
+    if (isJunkImage(url)) return;
+    seen.add(url);
+    candidates.push({ url, kind, scoreHint, width });
   }
 
-  // ── Strategy 2: JSON-LD structured data ───────────────────────────────
-  $('script[type="application/ld+json"]').each((_i, el) => {
-    // Return early handled below
-  });
+  // ── Strategy 1: Open Graph meta tags ──────────────────────────────────
+  addCandidate($('meta[property="og:image"]').attr("content"), "og", 0.95);
+  addCandidate($('meta[property="og:image:secure_url"]').attr("content"), "og", 0.93);
+  addCandidate($('meta[property="og:image:url"]').attr("content"), "og", 0.91);
 
+  // ── Strategy 2: Twitter Card meta tags ────────────────────────────────
+  addCandidate($('meta[name="twitter:image"]').attr("content"), "twitter", 0.90);
+  addCandidate($('meta[name="twitter:image:src"]').attr("content"), "twitter", 0.88);
+
+  // ── Strategy 3: link rel="image_src" ──────────────────────────────────
+  addCandidate($('link[rel="image_src"]').attr("href"), "og", 0.85);
+
+  // ── Strategy 4: JSON-LD structured data ───────────────────────────────
   for (const el of $('script[type="application/ld+json"]').toArray()) {
     try {
       const ld = JSON.parse($(el).html() ?? "");
       const items = Array.isArray(ld) ? ld : [ld];
       for (const item of items) {
-        // Handle @graph pattern (WordPress, etc.)
         const nodes = item["@graph"] ? item["@graph"] : [item];
         for (const node of nodes) {
           if (!node) continue;
-          // Look for image on Article, NewsArticle, BlogPosting, WebPage types
           const imgField =
             node.image ?? node.thumbnailUrl ?? node.primaryImageOfPage?.url;
-          const imgUrl = extractImageFromLd(imgField, baseUrl);
-          if (imgUrl) return imgUrl;
+          const ldUrl = extractImageFromLd(imgField, baseUrl);
+          if (ldUrl && !seen.has(ldUrl) && !isJunkImage(ldUrl)) {
+            seen.add(ldUrl);
+            candidates.push({ url: ldUrl, kind: "jsonld", scoreHint: 0.87 });
+          }
         }
       }
     } catch {
@@ -155,7 +174,7 @@ export function extractPublisherImage(
     }
   }
 
-  // ── Strategy 3: First large image in article body ─────────────────────
+  // ── Strategy 5: Article body images ───────────────────────────────────
   const articleSelectors = [
     "article",
     '[role="main"]',
@@ -172,38 +191,96 @@ export function extractPublisherImage(
     if (!container.length) continue;
 
     for (const img of container.find("img").toArray()) {
-      const src = $(img).attr("src") || $(img).attr("data-src") || $(img).attr("data-lazy-src");
-      const url = resolveImageUrl(src, baseUrl);
-      if (!url) continue;
+      const src =
+        $(img).attr("src") ||
+        $(img).attr("data-src") ||
+        $(img).attr("data-lazy-src");
 
-      // Skip tiny images (icons, avatars, tracking pixels)
-      const width = parseInt($(img).attr("width") ?? "0", 10);
-      const height = parseInt($(img).attr("height") ?? "0", 10);
-      if ((width > 0 && width < 200) || (height > 0 && height < 150)) continue;
+      // Check for srcset and parse largest image
+      const srcset = $(img).attr("srcset");
+      const srcsetResult = parseSrcsetLargest(srcset, baseUrl);
 
-      // Skip common non-content image patterns
-      const lower = url.toLowerCase();
-      if (
-        lower.includes("avatar") ||
-        lower.includes("icon") ||
-        lower.includes("logo") ||
-        lower.includes("emoji") ||
-        lower.includes("gravatar") ||
-        lower.includes("spinner") ||
-        lower.includes("placeholder") ||
-        lower.includes("ad-") ||
-        lower.includes("/ads/") ||
-        lower.includes("pixel") ||
-        lower.includes("badge") ||
-        lower.includes("button")
-      ) continue;
+      const imgWidth = parseInt($(img).attr("width") ?? "0", 10);
+      const imgHeight = parseInt($(img).attr("height") ?? "0", 10);
 
-      return url;
+      // Skip tiny images
+      if ((imgWidth > 0 && imgWidth < 200) || (imgHeight > 0 && imgHeight < 150)) continue;
+
+      // Prefer srcset largest; fall back to src
+      if (srcsetResult) {
+        addCandidate(srcsetResult.url, "body", 0.65, srcsetResult.width);
+      }
+      addCandidate(src, "body", 0.55, imgWidth > 0 ? imgWidth : undefined);
+    }
+
+    // Only process the first matching container
+    break;
+  }
+
+  // Sort by scoreHint descending
+  candidates.sort((a, b) => b.scoreHint - a.scoreHint);
+  return candidates;
+}
+
+/**
+ * Pick the best image from a list of candidates.
+ * Returns the URL and a confidence score (0-1).
+ */
+export function pickBestImage(candidates: CandidateImage[]): PickedImage {
+  if (candidates.length === 0) {
+    return { url: null, confidence: 0 };
+  }
+
+  // Already sorted by scoreHint; refine with heuristics
+  let bestCandidate = candidates[0]!;
+  let bestScore = bestCandidate.scoreHint;
+
+  for (const c of candidates) {
+    let score = c.scoreHint;
+
+    // Boost for size hints in URL
+    const lower = c.url.toLowerCase();
+    if (/(?:1200|1024|large|full|hero|featured)/i.test(lower)) {
+      score += 0.05;
+    }
+
+    // Boost if srcset reported a large width
+    if (c.width && c.width >= 800) {
+      score += 0.08;
+    } else if (c.width && c.width >= 600) {
+      score += 0.04;
+    }
+
+    // Slight penalty for very long URLs (often tracking / ad URLs)
+    if (c.url.length > 500) {
+      score -= 0.05;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCandidate = c;
     }
   }
 
-  return null;
+  // Clamp confidence to 0-1
+  const confidence = Math.min(1, Math.max(0, bestScore));
+  return { url: bestCandidate.url, confidence };
 }
+
+/**
+ * Legacy wrapper — extract the best publisher image URL from HTML.
+ * Calls extractCandidateImages + pickBestImage under the hood.
+ */
+export function extractPublisherImage(
+  html: string,
+  baseUrl: string,
+): string | null {
+  const candidates = extractCandidateImages(html, baseUrl);
+  const picked = pickBestImage(candidates);
+  return picked.url;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
 
 /** Resolve and validate a candidate image URL. Returns null if invalid. */
 function resolveImageUrl(raw: string | undefined | null, baseUrl: string): string | null {
@@ -220,6 +297,12 @@ function resolveImageUrl(raw: string | undefined | null, baseUrl: string): strin
   } catch {
     return null;
   }
+}
+
+/** Check if a URL looks like a junk/non-content image. */
+function isJunkImage(url: string): boolean {
+  const lower = url.toLowerCase();
+  return JUNK_PATTERNS.some((p) => lower.includes(p));
 }
 
 /** Extract an image URL from a JSON-LD image field (string, object, or array). */
@@ -246,11 +329,39 @@ function extractImageFromLd(
   return null;
 }
 
+/** Parse a srcset attribute and return the largest image URL + width. */
+function parseSrcsetLargest(
+  srcset: string | undefined | null,
+  baseUrl: string,
+): { url: string; width: number } | null {
+  if (!srcset) return null;
+
+  let bestUrl: string | null = null;
+  let bestWidth = 0;
+
+  // srcset format: "url 300w, url 600w, ..."
+  for (const part of srcset.split(",")) {
+    const tokens = part.trim().split(/\s+/);
+    if (tokens.length < 2) continue;
+    const url = resolveImageUrl(tokens[0], baseUrl);
+    if (!url) continue;
+
+    const descriptor = tokens[1]!;
+    const widthMatch = descriptor.match(/^(\d+)w$/);
+    if (widthMatch) {
+      const w = parseInt(widthMatch[1]!, 10);
+      if (w > bestWidth) {
+        bestWidth = w;
+        bestUrl = url;
+      }
+    }
+  }
+
+  return bestUrl ? { url: bestUrl, width: bestWidth } : null;
+}
+
 /**
  * Fetch an article page and extract its main content.
- *
- * Uses simple heuristics: <article>, role="main", .post-content, .entry-content,
- * or falls back to <body>. Strips nav, footer, aside, script, style.
  */
 export async function extractArticleContent(
   url: string,
@@ -281,7 +392,6 @@ export async function extractArticleContent(
     text = $(selectors.articleBody).first().text().trim();
   }
   if (!text) {
-    // Try common article selectors
     const articleSelectors = [
       "article",
       '[role="main"]',
@@ -303,10 +413,8 @@ export async function extractArticleContent(
     text = $("body").text().trim();
   }
 
-  // Clean up whitespace: collapse runs of whitespace/newlines
+  // Clean up whitespace
   text = text.replace(/\s{2,}/g, " ").trim();
-
-  // Truncate extremely long articles to ~10k chars to avoid blowing LLM context
   if (text.length > 10_000) {
     text = text.slice(0, 10_000) + "…";
   }
@@ -328,9 +436,16 @@ export async function extractArticleContent(
     $('meta[property="og:url"]').attr("content") ||
     url;
 
-  // Publisher image — extract before removing noise (meta tags may be stripped)
-  // We re-parse from the original HTML to ensure meta tags are present
-  const publisherImageUrl = extractPublisherImage(html, url);
+  // Publisher image — extract using the candidate system
+  const candidates = extractCandidateImages(html, url);
+  const picked = pickBestImage(candidates);
 
-  return { title, text, publishedAt, canonicalUrl, publisherImageUrl };
+  return {
+    title,
+    text,
+    publishedAt,
+    canonicalUrl,
+    publisherImageUrl: picked.url,
+    publisherImageConfidence: picked.confidence,
+  };
 }

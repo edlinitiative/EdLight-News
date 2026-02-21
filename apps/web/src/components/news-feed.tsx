@@ -45,8 +45,10 @@ export interface FeedItem {
   isLegacy?: boolean;
   /** Public URL of the article image (Firebase Storage or publisher CDN) */
   imageUrl?: string | null;
-  /** How the image was obtained: publisher | generated | fallback */
+  /** How the image was obtained: publisher | wikidata | branded | screenshot */
   imageSource?: string;
+  /** Image attribution info (e.g., Wikidata) */
+  imageAttribution?: { name?: string; url?: string; license?: string };
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

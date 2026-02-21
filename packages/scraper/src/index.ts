@@ -5,7 +5,12 @@ export {
   parseListPage,
   extractArticleContent,
   extractPublisherImage,
+  extractCandidateImages,
+  pickBestImage,
   type HTMLItem,
   type ExtractedArticle,
+  type CandidateImage,
+  type CandidateKind,
+  type PickedImage,
 } from "./html.js";
 export { computeHash } from "./dedupe.js";

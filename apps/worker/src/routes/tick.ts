@@ -26,8 +26,8 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.log(`[tick] published ${published} eligible drafts`);
     }
 
-    // Step 5: Generate branded card images for items that don't have one yet
-    let imageResult = { generated: 0, screenshotted: 0, failed: 0 };
+    // Step 5: Generate images for items that don't have one yet
+    let imageResult = { publisher: 0, wikidata: 0, branded: 0, screenshotted: 0, failed: 0 };
     try {
       imageResult = await generateImages();
     } catch (err) {
