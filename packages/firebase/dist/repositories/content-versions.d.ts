@@ -19,6 +19,11 @@ export declare function listByItemId(itemId: string): Promise<ContentVersion[]>;
 export declare function hasWebVersions(itemId: string): Promise<boolean>;
 export declare function updateContentVersionStatus(id: string, status: ContentStatus): Promise<void>;
 /**
+ * General-purpose update for any content_version fields.
+ * Used by the synthesis pipeline to update title, body, sections, etc.
+ */
+export declare function updateContentVersion(id: string, data: Record<string, unknown>): Promise<void>;
+/**
  * Bulk-publish all draft content_versions that have passed quality gates
  * (no draftReason set). Called as a cleanup sweep after generate.
  */

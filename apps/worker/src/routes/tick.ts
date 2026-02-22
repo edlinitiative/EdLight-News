@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { ingest } from "../services/ingest.js";
 import { processRawItems } from "../services/process.js";
 import { generateForItems } from "../services/generate.js";
+import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
@@ -26,7 +27,16 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.log(`[tick] published ${published} eligible drafts`);
     }
 
-    // Step 5: Generate images for items that don't have one yet
+    // Step 5: Synthesis — create/update multi-source living articles
+    let synthesisResult = { synthesized: 0, updated: 0, skipped: 0, errors: 0 };
+    try {
+      synthesisResult = await runSynthesis();
+    } catch (err) {
+      // Synthesis is non-critical — log and continue
+      console.warn("[tick] synthesis error:", err instanceof Error ? err.message : err);
+    }
+
+    // Step 6: Generate images for items that don't have one yet
     let imageResult = { publisher: 0, wikidata: 0, branded: 0, screenshotted: 0, failed: 0 };
     try {
       imageResult = await generateImages();
@@ -36,7 +46,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
 
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, imageResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult });
 
     res.json({
       ok: true,
@@ -46,6 +56,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         process: processResult,
         generate: generateResult,
         published,
+        synthesis: synthesisResult,
         images: imageResult,
       },
     });

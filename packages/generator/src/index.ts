@@ -13,6 +13,23 @@ import type { ContentChannel, ContentLanguage, ContentStatus, ItemCategory, Qual
 export type { GeminiWebDraft } from "./schema.js";
 export { geminiWebDraftSchema } from "./schema.js";
 
+// ── Re-export synthesis module ──────────────────────────────────────────────
+export {
+  generateSynthesisFromPacket,
+  validateSynthesisGrounding,
+  buildSynthesisPrompt,
+  geminiSynthesisSchema,
+  SYNTHESIS_PROMPT_VERSION,
+} from "./synthesis.js";
+export type {
+  GeminiSynthesisOutput,
+  SynthesisSource,
+  SynthesisPacket,
+  GenerateSynthesisResult,
+  GenerateSynthesisError,
+  ValidationResult,
+} from "./synthesis.js";
+
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.65;
 

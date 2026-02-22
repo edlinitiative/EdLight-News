@@ -52,6 +52,21 @@ const opportunitySchema = z.object({
     howToApply: z.string().optional(),
     officialLink: z.string().url().optional(),
 });
+const synthesisSourceRefSchema = z.object({
+    itemId: z.string().min(1),
+    title: z.string().min(1),
+    sourceName: z.string().min(1),
+    publishedAt: z.string().optional(),
+});
+const synthesisMetaSchema = z.object({
+    sourceItemIds: z.array(z.string().min(1)),
+    sourceCount: z.number().int().min(1),
+    publisherDomains: z.array(z.string()),
+    model: z.string().min(1),
+    promptVersion: z.string().min(1),
+    validationPassed: z.boolean(),
+    lastSynthesizedAt: z.string(),
+});
 const contentSectionSchema = z.object({
     heading: z.string().min(1),
     content: z.string().min(1),
@@ -125,6 +140,13 @@ export const itemSchema = z.object({
     imageMeta: imageMetaSchema.optional(),
     imageAttribution: imageAttributionSchema.optional(),
     entity: entityRefSchema.optional(),
+    // synthesis fields
+    itemType: z.enum(["source", "synthesis"]).optional(),
+    clusterId: z.string().optional(),
+    synthesisMeta: synthesisMetaSchema.optional(),
+    lastMajorUpdateAt: timestampSchema.nullable().optional(),
+    effectiveDate: z.string().optional(),
+    sourceList: z.array(synthesisSourceRefSchema).optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
 });
@@ -144,6 +166,8 @@ export const contentVersionSchema = z.object({
     citations: z.array(citationSchema).min(1),
     // v2 fields
     sections: z.array(contentSectionSchema).optional(),
+    whatChanged: z.string().optional(),
+    synthesisTags: z.array(z.string()).optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
 });
@@ -180,7 +204,7 @@ export const metricSchema = z.object({
     recordedAt: timestampSchema,
 });
 // ── Re-export sub-schemas for external use ─────────────────────────────────
-export { citationSchema, contentSectionSchema, entityRefSchema, geoTagSchema, imageAttributionSchema, imageMetaSchema, imageSourceSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, timestampSchema, };
+export { citationSchema, contentSectionSchema, entityRefSchema, geoTagSchema, imageAttributionSchema, imageMetaSchema, imageSourceSchema, itemSourceSchema, opportunitySchema, qualityFlagsSchema, sourceSelectorsSchema, synthesisMetaSchema, synthesisSourceRefSchema, timestampSchema, };
 // ── Create schemas (omit id + timestamps for writes) ───────────────────────
 export const createSourceSchema = sourceSchema.omit({
     id: true,

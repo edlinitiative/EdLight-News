@@ -28,5 +28,14 @@ export declare function updateItem(id: string, data: ItemUpdate): Promise<void>;
 /** Get a single item by its dedupeGroupId (newest first). */
 export declare function listByDedupeGroupId(dedupeGroupId: string, limit?: number): Promise<Item[]>;
 export declare function deleteItem(id: string): Promise<void>;
+/** Find an existing synthesis item by its clusterId. */
+export declare function findSynthesisByClusterId(clusterId: string): Promise<Item | null>;
+/**
+ * List recent source items (non-synthesis) that have a dedupeGroupId.
+ * Used by synthesis cluster selection.
+ */
+export declare function listRecentSourceItems(sinceDaysAgo: number, limit?: number): Promise<Item[]>;
+/** Set lastMajorUpdateAt to server timestamp (for synthesis living updates). */
+export declare function setLastMajorUpdate(id: string): Promise<void>;
 export declare function listItemsNeedingImages(limit: number): Promise<Item[]>;
 //# sourceMappingURL=items.d.ts.map

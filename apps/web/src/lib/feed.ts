@@ -78,6 +78,18 @@ export async function fetchEnrichedArticles(
       imageUrl: item?.imageUrl ?? null,
       imageSource: item?.imageSource,
       imageAttribution: item?.imageAttribution,
+      // synthesis fields
+      itemType: item?.itemType,
+      sourceCount: item?.synthesisMeta?.sourceCount,
+      publisherDomains: item?.synthesisMeta?.publisherDomains,
+      lastMajorUpdateAt: (() => {
+        const lmu = item?.lastMajorUpdateAt;
+        const s = toSecs(lmu);
+        return s ? new Date(s * 1000).toISOString() : null;
+      })(),
+      whatChanged: cv.whatChanged,
+      synthesisTags: cv.synthesisTags,
+      sourceList: item?.sourceList,
     };
   });
 }

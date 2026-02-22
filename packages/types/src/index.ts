@@ -12,6 +12,9 @@ export type {
   EntityRef,
   ItemSource,
   Opportunity,
+  ItemType,
+  SynthesisSourceRef,
+  SynthesisMeta,
   Item,
   ItemCategory,
   Citation,
@@ -55,6 +58,8 @@ export {
   opportunitySchema,
   qualityFlagsSchema,
   sourceSelectorsSchema,
+  synthesisMetaSchema,
+  synthesisSourceRefSchema,
   timestampSchema,
 } from "./schemas.js";
 

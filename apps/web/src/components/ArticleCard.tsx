@@ -88,7 +88,13 @@ export function ArticleCard({
               {categoryLabel(article.category, lang)}
             </span>
           )}
-          {hasUpdates && (
+          {article.itemType === "synthesis" && (
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+              {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
+              {lang === "fr" ? "sources" : "sous"}
+            </span>
+          )}
+          {hasUpdates && article.itemType !== "synthesis" && (
             <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
               +{updateCount}&nbsp;
               {lang === "fr" ? "mises à jour" : "mizajou"}
@@ -126,10 +132,14 @@ export function ArticleCard({
           </p>
         )}
 
-        {/* Footer: source · date */}
+        {/* Footer: source · date (or source count for synthesis) */}
         <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
-          {article.sourceName && <span>{article.sourceName}</span>}
-          {article.sourceName && article.publishedAt && <span>·</span>}
+          {article.itemType === "synthesis" && article.sourceCount ? (
+            <span>{article.sourceCount} {lang === "fr" ? "sources" : "sous"}</span>
+          ) : article.sourceName ? (
+            <span>{article.sourceName}</span>
+          ) : null}
+          {(article.sourceName || (article.itemType === "synthesis" && article.sourceCount)) && article.publishedAt && <span>·</span>}
           {article.publishedAt && (
             <span>{formatDate(article.publishedAt, lang)}</span>
           )}

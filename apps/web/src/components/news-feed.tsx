@@ -51,6 +51,21 @@ export interface FeedItem {
   imageSource?: string;
   /** Image attribution info (e.g., Wikidata) */
   imageAttribution?: { name?: string; url?: string; license?: string };
+  // synthesis fields
+  /** Item type: "source" (default) or "synthesis" (multi-source living article) */
+  itemType?: string;
+  /** Number of source articles (synthesis only) */
+  sourceCount?: number;
+  /** Publisher domains contributing to synthesis */
+  publisherDomains?: string[];
+  /** When synthesis was last updated (ISO string) */
+  lastMajorUpdateAt?: string | null;
+  /** What changed in the latest synthesis update */
+  whatChanged?: string;
+  /** Status tags: confirmed, unconfirmed, evolving */
+  synthesisTags?: string[];
+  /** Source article refs (synthesis only) */
+  sourceList?: { itemId: string; title: string; sourceName: string; publishedAt?: string }[];
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -90,8 +105,12 @@ function TrustSignals({
 }) {
   return (
     <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-400">
-      {/* Source name */}
-      {item.sourceName && (
+      {/* Source name or source count for synthesis */}
+      {item.itemType === "synthesis" && item.sourceCount ? (
+        <span>
+          {item.sourceCount} {lang === "fr" ? "sources" : "sous"}
+        </span>
+      ) : item.sourceName ? (
         <span>
           {item.sourceUrl ? (
             <a
@@ -107,10 +126,17 @@ function TrustSignals({
             item.sourceName
           )}
         </span>
+      ) : null}
+      {(item.sourceName || (item.itemType === "synthesis" && item.sourceCount)) && item.publishedAt && <span>·</span>}
+      {/* Last updated date for synthesis, or published date */}
+      {item.itemType === "synthesis" && item.lastMajorUpdateAt && (
+        <span suppressHydrationWarning>
+          {mounted
+            ? `${lang === "fr" ? "Mis à jour" : "Mizajou"} ${formatRelativeDate(item.lastMajorUpdateAt, lang)}`
+            : ""}
+        </span>
       )}
-      {item.sourceName && item.publishedAt && <span>·</span>}
-      {/* Published date */}
-      {item.publishedAt && (
+      {item.itemType !== "synthesis" && item.publishedAt && (
         <span suppressHydrationWarning>
           {mounted ? formatRelativeDate(item.publishedAt, lang) : ""}
         </span>
@@ -407,6 +433,12 @@ export function NewsFeed({
           >
             <div className="mb-2 flex items-center gap-2">
               <CategoryBadge category={article.category} lang={lang} />
+              {article.itemType === "synthesis" && (
+                <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
+                  {lang === "fr" ? "sources" : "sous"}
+                </span>
+              )}
               {article.geoTag === "HT" && (
                 <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
                   🇭🇹
@@ -417,7 +449,7 @@ export function NewsFeed({
                   {lang === "fr" ? "Ancien contenu" : "Ansyen kontni"}
                 </span>
               )}
-              {(article.dupeCount ?? 0) > 1 && (
+              {(article.dupeCount ?? 0) > 1 && article.itemType !== "synthesis" && (
                 <span className="text-xs text-gray-400">
                   +{(article.dupeCount ?? 1) - 1}{" "}
                   {lang === "fr" ? "mises à jour" : "mizajou"}

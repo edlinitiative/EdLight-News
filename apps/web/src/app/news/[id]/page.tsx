@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
-import type { ContentVersion, ContentLanguage, Item } from "@edlight-news/types";
+import type { ContentVersion, ContentLanguage, Item, ContentSection } from "@edlight-news/types";
 import {
   formatDate,
   categoryLabel,
@@ -167,6 +167,105 @@ function RelatedUpdates({
   );
 }
 
+// ── Synthesis-specific components ───────────────────────────────────────────
+
+function SynthesisBadge({
+  item,
+  lang,
+}: {
+  item: Item;
+  lang: ContentLanguage;
+}) {
+  if (item.itemType !== "synthesis") return null;
+  const sourceCount = item.synthesisMeta?.sourceCount ?? 0;
+  const cvTags = item.sourceList; // placeholder, tags come from CV not item
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+        {lang === "fr" ? "Synthèse" : "Sentèz"} · {sourceCount}{" "}
+        {lang === "fr" ? "sources" : "sous"}
+      </span>
+    </div>
+  );
+}
+
+function SynthesisSections({
+  sections,
+}: {
+  sections: ContentSection[];
+}) {
+  if (!sections || sections.length === 0) return null;
+  return (
+    <div className="space-y-6">
+      {sections.map((section, i) => (
+        <section key={i}>
+          <h2 className="mb-2 text-xl font-bold">{section.heading}</h2>
+          <div className="prose prose-lg prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
+            <ReactMarkdown>{section.content}</ReactMarkdown>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function SynthesisSourcesList({
+  item,
+  lang,
+}: {
+  item: Item;
+  lang: ContentLanguage;
+}) {
+  const sourceList = item.sourceList;
+  if (!sourceList || sourceList.length === 0) return null;
+
+  return (
+    <section className="rounded-lg border bg-gray-50/50 p-5">
+      <h2 className="mb-3 text-base font-semibold">
+        {lang === "fr"
+          ? `📰 Sources (${sourceList.length})`
+          : `📰 Sous (${sourceList.length})`}
+      </h2>
+      <ul className="space-y-2">
+        {sourceList.map((src, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm">
+            <span className="mt-0.5 flex-shrink-0 text-gray-400">•</span>
+            <div>
+              <span className="font-medium">{src.sourceName}</span>
+              <span className="text-gray-400"> — </span>
+              <span className="text-gray-600">{src.title}</span>
+              {src.publishedAt && (
+                <span className="ml-1 text-xs text-gray-400">
+                  ({formatDate(src.publishedAt, lang)})
+                </span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function WhatChangedNote({
+  whatChanged,
+  lang,
+}: {
+  whatChanged: string | null | undefined;
+  lang: ContentLanguage;
+}) {
+  if (!whatChanged) return null;
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+      <p className="text-sm font-medium text-amber-800">
+        {lang === "fr" ? "🔄 Dernière mise à jour :" : "🔄 D\u00e8nye mizajou :"}
+      </p>
+      <p className="mt-1 text-sm text-amber-700">{whatChanged}</p>
+    </div>
+  );
+}
+
 // ── Main page ───────────────────────────────────────────────────────────────
 
 export default async function ArticlePage({
@@ -218,6 +317,7 @@ export default async function ArticlePage({
 
   const isBourses =
     item?.category === "scholarship" || item?.category === "opportunity";
+  const isSynthesis = item?.itemType === "synthesis";
 
   const catColor = CATEGORY_COLORS[item?.category ?? ""] ?? "bg-gray-100 text-gray-600";
 
@@ -229,6 +329,11 @@ export default async function ArticlePage({
   const createdAt = article.createdAt as { seconds?: number; _seconds?: number } | undefined;
   const createdSecs = createdAt?.seconds ?? (createdAt as Record<string, number> | undefined)?._seconds;
   const createdDate = createdSecs ? formatDate({ seconds: createdSecs }, currentLang) : null;
+
+  // Last major update date (synthesis only)
+  const lmuAt = item?.lastMajorUpdateAt as { seconds?: number; _seconds?: number } | null | undefined;
+  const lmuSecs = lmuAt?.seconds ?? (lmuAt as Record<string, number> | null)?._seconds;
+  const lastUpdateDate = lmuSecs ? formatDate({ seconds: lmuSecs }, currentLang) : null;
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
@@ -271,6 +376,7 @@ export default async function ArticlePage({
             {categoryLabel(item.category, currentLang)}
           </span>
         )}
+        {isSynthesis && item && <SynthesisBadge item={item} lang={currentLang} />}
         {item?.geoTag === "HT" && (
           <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
             🇭🇹 {currentLang === "fr" ? "Haïti" : "Ayiti"}
@@ -285,14 +391,19 @@ export default async function ArticlePage({
       {(pubDate || createdDate) && (
         <p className="text-sm text-gray-500">
           {currentLang === "fr" ? "Publié le" : "Pibliye"} {pubDate || createdDate}
+          {isSynthesis && lastUpdateDate && (
+            <span className="ml-2 text-emerald-600">
+              · {currentLang === "fr" ? "Mis à jour le" : "Mizajou"} {lastUpdateDate}
+            </span>
+          )}
         </p>
       )}
 
       {/* Title */}
       <h1 className="text-3xl font-bold leading-tight">{article.title}</h1>
 
-      {/* Source links */}
-      <SourceLinks item={item} />
+      {/* Source links (non-synthesis only) */}
+      {!isSynthesis && <SourceLinks item={item} />}
 
       {/* Summary */}
       {article.summary && (
@@ -301,13 +412,30 @@ export default async function ArticlePage({
         </p>
       )}
 
+      {/* What changed note (synthesis living updates) */}
+      {isSynthesis && (
+        <WhatChangedNote
+          whatChanged={article.whatChanged}
+          lang={currentLang}
+        />
+      )}
+
       {/* Bourses structured fiche */}
       {isBourses && item && <BoursesFiche item={item} lang={currentLang} />}
 
-      {/* Body — rendered as markdown */}
-      <div className="prose prose-lg prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
-        <ReactMarkdown>{article.body}</ReactMarkdown>
-      </div>
+      {/* Body: sections for synthesis, markdown for regular */}
+      {isSynthesis && article.sections && article.sections.length > 0 ? (
+        <SynthesisSections sections={article.sections} />
+      ) : (
+        <div className="prose prose-lg prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
+          <ReactMarkdown>{article.body}</ReactMarkdown>
+        </div>
+      )}
+
+      {/* Synthesis sources list */}
+      {isSynthesis && item && (
+        <SynthesisSourcesList item={item} lang={currentLang} />
+      )}
 
       {/* Switch language link */}
       {siblingVersion && (

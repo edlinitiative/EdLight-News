@@ -43,11 +43,19 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     return a.audienceFitScore >= audienceFitThreshold;
   });
 
-  // ── 3. Dedupe by dedupeGroupId (keep newest publishedAt) ─────────────────
+  // ── 2b. Synthesis boost: +0.15 to audienceFitScore for synthesis items ───
+  const boosted = thresholded.map((a) => {
+    if (a.itemType === "synthesis" && a.audienceFitScore != null) {
+      return { ...a, audienceFitScore: Math.min(1, a.audienceFitScore + 0.15) };
+    }
+    return a;
+  });
+
+  // ── 3. Dedupe by dedupeGroupId (prefer synthesis, then newest) ───────────
   const groups = new Map<string, FeedItem & { dupeCount: number }>();
   const ungrouped: FeedItem[] = [];
 
-  for (const a of thresholded) {
+  for (const a of boosted) {
     if (!a.dedupeGroupId) {
       ungrouped.push(a);
       continue;
@@ -56,15 +64,28 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     if (!prev) {
       groups.set(a.dedupeGroupId, { ...a, dupeCount: 1 });
     } else {
-      const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const tP = prev.publishedAt ? new Date(prev.publishedAt).getTime() : 0;
-      if (tA > tP) {
-        groups.set(a.dedupeGroupId, {
-          ...a,
-          dupeCount: prev.dupeCount + 1,
-        });
-      } else {
+      // Prefer synthesis items over source items within the same group
+      const prevIsSynthesis = prev.itemType === "synthesis";
+      const currIsSynthesis = a.itemType === "synthesis";
+
+      if (currIsSynthesis && !prevIsSynthesis) {
+        // Current is synthesis, prev is source → replace with synthesis
+        groups.set(a.dedupeGroupId, { ...a, dupeCount: prev.dupeCount + 1 });
+      } else if (!currIsSynthesis && prevIsSynthesis) {
+        // Current is source, prev is synthesis → keep synthesis
         prev.dupeCount += 1;
+      } else {
+        // Both same type → keep newest publishedAt
+        const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const tP = prev.publishedAt ? new Date(prev.publishedAt).getTime() : 0;
+        if (tA > tP) {
+          groups.set(a.dedupeGroupId, {
+            ...a,
+            dupeCount: prev.dupeCount + 1,
+          });
+        } else {
+          prev.dupeCount += 1;
+        }
       }
     }
   }

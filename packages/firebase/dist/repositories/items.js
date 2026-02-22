@@ -1,4 +1,4 @@
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getDb } from "../admin.js";
 import { createItemSchema } from "@edlight-news/types";
 const COLLECTION = "items";
@@ -81,6 +81,43 @@ export async function listByDedupeGroupId(dedupeGroupId, limit = 10) {
 }
 export async function deleteItem(id) {
     await collection().doc(id).delete();
+}
+// ── Synthesis helpers ───────────────────────────────────────────────────────
+/** Find an existing synthesis item by its clusterId. */
+export async function findSynthesisByClusterId(clusterId) {
+    const snap = await collection()
+        .where("itemType", "==", "synthesis")
+        .where("clusterId", "==", clusterId)
+        .limit(1)
+        .get();
+    if (snap.empty)
+        return null;
+    const doc = snap.docs[0];
+    return { id: doc.id, ...doc.data() };
+}
+/**
+ * List recent source items (non-synthesis) that have a dedupeGroupId.
+ * Used by synthesis cluster selection.
+ */
+export async function listRecentSourceItems(sinceDaysAgo, limit = 500) {
+    const since = new Date();
+    since.setDate(since.getDate() - sinceDaysAgo);
+    const sinceTimestamp = Timestamp.fromDate(since);
+    const snap = await collection()
+        .where("createdAt", ">=", sinceTimestamp)
+        .orderBy("createdAt", "desc")
+        .limit(limit)
+        .get();
+    return snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((item) => !!item.dedupeGroupId && item.itemType !== "synthesis");
+}
+/** Set lastMajorUpdateAt to server timestamp (for synthesis living updates). */
+export async function setLastMajorUpdate(id) {
+    await collection().doc(id).update({
+        lastMajorUpdateAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+    });
 }
 /**
  * List items that have no imageSource field yet and meet the minimum score

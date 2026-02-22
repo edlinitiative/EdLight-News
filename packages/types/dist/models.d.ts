@@ -79,6 +79,24 @@ export interface Opportunity {
     howToApply?: string;
     officialLink?: string;
 }
+export type ItemType = "source" | "synthesis";
+/** Denormalized reference to a source article included in a synthesis */
+export interface SynthesisSourceRef {
+    itemId: string;
+    title: string;
+    sourceName: string;
+    publishedAt?: string;
+}
+/** Metadata about a synthesis (multi-source) article */
+export interface SynthesisMeta {
+    sourceItemIds: string[];
+    sourceCount: number;
+    publisherDomains: string[];
+    model: string;
+    promptVersion: string;
+    validationPassed: boolean;
+    lastSynthesizedAt: string;
+}
 export interface QualityFlags {
     hasSourceUrl: boolean;
     needsReview: boolean;
@@ -135,6 +153,18 @@ export interface Item {
     imageAttribution?: ImageAttribution;
     /** Linked entity (e.g., person detected in title) */
     entity?: EntityRef;
+    /** "source" (default) or "synthesis" (multi-source living article) */
+    itemType?: ItemType;
+    /** Cluster identifier (= dedupeGroupId of source items) */
+    clusterId?: string;
+    /** Synthesis metadata: sources, model, validation */
+    synthesisMeta?: SynthesisMeta;
+    /** When the synthesis was last meaningfully updated */
+    lastMajorUpdateAt?: Timestamp | null;
+    /** Latest publishedAt among source items (ISO string) */
+    effectiveDate?: string;
+    /** Denormalized list of source article references */
+    sourceList?: SynthesisSourceRef[];
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -167,6 +197,10 @@ export interface ContentVersion {
     citations: Citation[];
     /** Structured body sections for richer rendering */
     sections?: ContentSection[];
+    /** Editorial note about what changed (synthesis only) */
+    whatChanged?: string;
+    /** Status tags: "confirmed", "unconfirmed", "evolving" (synthesis only) */
+    synthesisTags?: string[];
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }

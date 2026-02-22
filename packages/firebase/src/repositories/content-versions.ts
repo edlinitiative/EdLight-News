@@ -121,6 +121,22 @@ export async function updateContentVersionStatus(
 }
 
 /**
+ * General-purpose update for any content_version fields.
+ * Used by the synthesis pipeline to update title, body, sections, etc.
+ */
+export async function updateContentVersion(
+  id: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  const clean = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined),
+  );
+  await collection()
+    .doc(id)
+    .update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
+}
+
+/**
  * Bulk-publish all draft content_versions that have passed quality gates
  * (no draftReason set). Called as a cleanup sweep after generate.
  */
