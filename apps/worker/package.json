@@ -11,6 +11,7 @@
     "backfill:items": "tsx src/scripts/backfillLegacyItems.ts",
     "backfill:dedupe": "tsx src/scripts/backfillDedupeGroups.ts",
     "backfill:clusters": "tsx src/scripts/backfillSemanticClusters.ts",
+    "backfill:gn-publishers": "tsx src/scripts/backfillGoogleNewsPublishers.ts",
     "demote:low-quality": "tsx src/scripts/demoteLowQuality.ts"
   },
   "dependencies": {

@@ -43,10 +43,29 @@ function isGoogleNewsFeed(feedUrl: string): boolean {
 export function parseGoogleNewsTitle(raw: string): { cleanTitle: string; publisherName: string | undefined } {
   const idx = raw.lastIndexOf(" - ");
   if (idx > 0 && idx < raw.length - 3) {
-    return {
-      cleanTitle: raw.slice(0, idx).trim(),
-      publisherName: raw.slice(idx + 3).trim(),
-    };
+    let publisherName = raw.slice(idx + 3).trim();
+    let cleanTitle = raw.slice(0, idx).trim();
+
+    // Some publishers (e.g. HaitiLibre) use double-space before their name:
+    //   "Haïti - Éducation : Headline  HaitiLibre"
+    // In that case the " - " split gives a very long "publisher".
+    // Fall back to the text after the last double-whitespace (may be NBSP \u00a0).
+    if (publisherName.length > 40) {
+      // Match 2+ consecutive spaces or non-breaking spaces
+      const dblWsRe = /[\s\u00a0]{2,}/g;
+      let lastMatch: RegExpExecArray | null = null;
+      let m: RegExpExecArray | null;
+      while ((m = dblWsRe.exec(raw)) !== null) lastMatch = m;
+      if (lastMatch && lastMatch.index > 0) {
+        const candidate = raw.slice(lastMatch.index + lastMatch[0].length).trim();
+        if (candidate.length > 0 && candidate.length <= 40) {
+          publisherName = candidate;
+          cleanTitle = raw.slice(0, lastMatch.index).trim();
+        }
+      }
+    }
+
+    return { cleanTitle, publisherName };
   }
   return { cleanTitle: raw, publisherName: undefined };
 }
