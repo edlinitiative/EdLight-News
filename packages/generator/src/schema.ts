@@ -12,6 +12,13 @@ export const geminiWebDraftSchema = z.object({
   body_ht: z.string().min(10),
   confidence: z.number().min(0).max(1),
   haiti_relevant: z.boolean(),
+  /**
+   * Semantic cluster slug — a short lowercase-english identifier
+   * for the underlying *story* (not the article). Articles about the same
+   * event/topic from different publishers should produce the same slug.
+   * Format: kebab-case, 3-6 words, e.g. "haiti-child-recruitment-un-2026"
+   */
+  cluster_slug: z.string().min(5).max(120),
   extracted: z.object({
     deadline: z.string().nullable(),
     eligibility: z.string().nullable(),

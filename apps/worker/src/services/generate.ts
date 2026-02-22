@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import {
   itemsRepo,
   contentVersionsRepo,
@@ -11,6 +12,14 @@ import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/type
 import { computeScoring } from "./scoring.js";
 import { classifyItem } from "./classify.js";
 import { PUBLISH_SCORE_THRESHOLD } from "@edlight-news/generator";
+
+/** Hash a Gemini cluster_slug to a 16-hex-char dedupeGroupId. */
+function slugToDedupeGroupId(slug: string): string {
+  return createHash("sha256")
+    .update(slug.toLowerCase().trim())
+    .digest("hex")
+    .slice(0, 16);
+}
 
 /** Max items to generate per tick (Gemini calls are ~2-5s each) */
 const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "5", 10);
@@ -186,6 +195,11 @@ export async function generateForItems(): Promise<{
         ? (classification.geoTag ?? scoring.geoTag)
         : scoring.geoTag;
 
+      // Compute semantic dedupeGroupId from Gemini's cluster_slug
+      const semanticGroupId = draft.cluster_slug
+        ? slugToDedupeGroupId(draft.cluster_slug)
+        : undefined;
+
       // Update the item with refined classification + v2 fields
       await itemsRepo.updateItem(item.id, {
         category: finalCategory,
@@ -196,6 +210,7 @@ export async function generateForItems(): Promise<{
         audienceFitScore: scoring.audienceFitScore,
         geoTag: effectiveGeoTag,
         ...(finalOpportunity ? { opportunity: finalOpportunity } : {}),
+        ...(semanticGroupId ? { dedupeGroupId: semanticGroupId } : {}),
       });
 
       // Build FR + HT content_version payloads with quality gates

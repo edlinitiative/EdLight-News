@@ -13,6 +13,8 @@ import type { ContentChannel, ContentLanguage, ContentStatus, ItemCategory, Qual
 export type { GeminiWebDraft } from "./schema.js";
 export { geminiWebDraftSchema } from "./schema.js";
 
+export { callGemini } from "./client.js";
+
 // ── Re-export synthesis module ──────────────────────────────────────────────
 export {
   generateSynthesisFromPacket,
