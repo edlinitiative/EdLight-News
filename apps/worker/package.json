@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "seed:sources": "tsx src/scripts/seedSources.ts",
     "backfill:items": "tsx src/scripts/backfillLegacyItems.ts",
+    "backfill:dedupe": "tsx src/scripts/backfillDedupeGroups.ts",
     "demote:low-quality": "tsx src/scripts/demoteLowQuality.ts"
   },
   "dependencies": {
