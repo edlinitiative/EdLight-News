@@ -144,12 +144,12 @@ export async function processRawItems(): Promise<{
         qualityFlags,
         citations: [{ sourceName: source.name, sourceUrl: raw.url }],
         // v2 fields
-        vertical: classification.isOpportunity ? "opportunites" : undefined,
+        ...(classification.isOpportunity ? { vertical: "opportunites" } : {}),
         geoTag: effectiveGeoTag,
         audienceFitScore: scoring.audienceFitScore,
         dedupeGroupId,
         source: itemSource,
-        opportunity: classification.opportunity,
+        ...(classification.opportunity ? { opportunity: classification.opportunity } : {}),
         publishedAt: raw.publishedAt,
         // image fields — set when publisher provides og:image with sufficient confidence
         ...(publisherImageUrl && publisherImageConfidence >= 0.6
