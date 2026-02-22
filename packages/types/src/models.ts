@@ -97,7 +97,7 @@ export interface Opportunity {
 
 // ── Synthesis types ────────────────────────────────────────────────────────
 
-export type ItemType = "source" | "synthesis";
+export type ItemType = "source" | "synthesis" | "utility";
 
 /** Denormalized reference to a source article included in a synthesis */
 export interface SynthesisSourceRef {
@@ -116,6 +116,99 @@ export interface SynthesisMeta {
   promptVersion: string;
   validationPassed: boolean;
   lastSynthesizedAt: string; // ISO date string
+}
+
+// ── Utility types ──────────────────────────────────────────────────────────
+export type UtilitySeries =
+  | "StudyAbroad"
+  | "Career"
+  | "ScholarshipRadar"
+  | "HaitiHistory"
+  | "HaitiFactOfTheDay"
+  | "HaitianOfTheWeek";
+
+export type UtilityType =
+  | "study_abroad"
+  | "career"
+  | "scholarship"
+  | "opportunity"
+  | "history"
+  | "daily_fact"
+  | "profile";
+
+export type UtilityAudience = "lycee" | "universite" | "international";
+export type UtilityRegion = "HT" | "US" | "CA" | "FR" | "DO" | "RU" | "Global";
+
+export interface UtilityCitation {
+  label: string;
+  url: string;
+}
+
+export interface ExtractedFacts {
+  deadlines?: { label: string; dateISO: string; sourceUrl: string }[];
+  requirements?: string[];
+  steps?: string[];
+  eligibility?: string[];
+}
+
+export interface UtilityMeta {
+  series: UtilitySeries;
+  utilityType: UtilityType;
+  region?: UtilityRegion[];
+  audience?: UtilityAudience[];
+  tags?: string[];
+  citations: UtilityCitation[];
+  extractedFacts?: ExtractedFacts;
+  rotationKey?: string;
+}
+
+// ── Source citation (displayed at bottom of content) ──────────────────────
+export interface SourceCitation {
+  name: string;
+  url: string;
+}
+
+// ── Firestore collection: utility_sources ─────────────────────────────────
+export type UtilitySourceType = "rss" | "html" | "pdf" | "calendar";
+
+export interface UtilitySourceParsingHints {
+  selectorMain?: string;
+  selectorDate?: string;
+}
+
+export interface UtilitySource {
+  id: string;
+  label: string;
+  url: string;
+  series: UtilitySeries;
+  rotationKey?: string;
+  type: UtilitySourceType;
+  allowlistDomain: string;
+  priority: number;
+  region: UtilityRegion[];
+  utilityTypes: UtilityType[];
+  parsingHints?: UtilitySourceParsingHints;
+  active: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ── Firestore collection: utility_queue ───────────────────────────────────
+export type UtilityQueueStatus = "queued" | "processing" | "done" | "failed";
+
+export interface UtilityQueueEntry {
+  id: string;
+  status: UtilityQueueStatus;
+  series: UtilitySeries;
+  rotationKey?: string;
+  langTargets: ContentLanguage[];
+  sourceIds: string[];
+  runAt: Timestamp;
+  attempts: number;
+  lastError?: string;
+  failReasons?: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 // ── Quality flags (shared across items + content_versions) ─────────────────
@@ -194,8 +287,10 @@ export interface Item {
   entity?: EntityRef;
 
   // ── Synthesis fields (only for itemType="synthesis") ──────────────────
-  /** "source" (default) or "synthesis" (multi-source living article) */
+  /** "source" (default), "synthesis", or "utility" (student-focused original content) */
   itemType?: ItemType;
+  /** Utility content metadata (only for itemType="utility") */
+  utilityMeta?: UtilityMeta;
   /** Cluster identifier (= dedupeGroupId of source items) */
   clusterId?: string;
   /** Synthesis metadata: sources, model, validation */
@@ -250,6 +345,8 @@ export interface ContentVersion {
   whatChanged?: string;
   /** Status tags: "confirmed", "unconfirmed", "evolving" (synthesis only) */
   synthesisTags?: string[];
+  /** Source citations displayed at bottom of content (utility posts) */
+  sourceCitations?: SourceCitation[];
 
   createdAt: Timestamp;
   updatedAt: Timestamp;

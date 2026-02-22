@@ -3,48 +3,24 @@
 import { useState, useMemo } from "react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
-import { ArticleCard } from "@/components/ArticleCard";
+import { OpportunityCard } from "@/components/OpportunityCard";
+import {
+  deriveSubcategory,
+  parseDeadline,
+  SUBCAT_LABELS,
+  type OpportunitySubCat,
+} from "@/lib/opportunities";
 
-// ── Subcategory definitions ──────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────────
 
-type SubCat = "all" | "bourses" | "concours" | "stages" | "programmes";
-
-const SUBCAT_LABELS: Record<SubCat, { fr: string; ht: string }> = {
-  all:        { fr: "Tout",       ht: "Tout"    },
-  bourses:    { fr: "Bourses",    ht: "Bous"    },
-  concours:   { fr: "Concours",   ht: "Konkou"  },
-  stages:     { fr: "Stages",     ht: "Estaj"   },
-  programmes: { fr: "Programmes", ht: "Pwogram" },
-};
-
-const SUBCAT_KEYWORDS: Record<Exclude<SubCat, "all">, string[]> = {
-  bourses:    ["bourse", "scholarship", "grant", "aide financière", "aide financiere"],
-  concours:   ["concours", "compétition", "competition", "prix", "award", "challenge"],
-  stages:     ["stage", "internship", "intern", "stagiaire"],
-  programmes: ["programme", "program", "fellowship", "résidence", "residence", "mentorat"],
-};
-
-function matchesSubCat(article: FeedItem, sub: SubCat): boolean {
-  if (sub === "all") return true;
-  const cat = article.category;
-  // Direct category match (new subcategories + legacy categories)
-  if (sub === "bourses" && (cat === "bourses" || cat === "scholarship")) return true;
-  if (sub === "concours" && cat === "concours") return true;
-  if (sub === "stages" && cat === "stages") return true;
-  if (sub === "programmes" && (cat === "programmes" || cat === "opportunity")) return true;
-  // Fallback: keyword match for items with a generic category
-  const text = `${article.title} ${article.summary}`.toLowerCase();
-  return SUBCAT_KEYWORDS[sub].some((k) => text.includes(k));
-}
-
-// ── Sort modes ───────────────────────────────────────────────────────────────
+type SubCatFilter = "all" | OpportunitySubCat;
 
 type SortMode = "deadline" | "relevance" | "latest";
 
 const SORT_LABELS: Record<SortMode, { fr: string; ht: string }> = {
-  deadline:   { fr: "Deadline proche", ht: "Dat limit"  },
-  relevance:  { fr: "Pertinence",      ht: "Pètinans"   },
-  latest:     { fr: "Dernières",       ht: "Dènye"      },
+  deadline:  { fr: "Deadline proche", ht: "Dat limit" },
+  relevance: { fr: "Pertinence",     ht: "Pètinans"  },
+  latest:    { fr: "Dernières",      ht: "Dènye"     },
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -55,38 +31,62 @@ export interface OpportunitiesFeedProps {
 }
 
 export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
-  const [subCat, setSubCat] = useState<SubCat>("all");
+  const [subCat, setSubCat] = useState<SubCatFilter>("all");
   const [sort, setSort] = useState<SortMode>("relevance");
   const [includeNoDeadline, setIncludeNoDeadline] = useState(false);
 
-  const filtered = useMemo(() => {
-    let result = articles.filter((a) => matchesSubCat(a, subCat));
-    // When sorting by deadline, hide items without one unless toggle enabled
-    if (sort === "deadline" && !includeNoDeadline) {
-      result = result.filter((a) => Boolean(a.deadline));
-    }
-    return result;
-  }, [articles, subCat, sort, includeNoDeadline]);
+  // Pre-compute derived subcategory + deadline per article (once)
+  const enriched = useMemo(
+    () =>
+      articles.map((a) => ({
+        article: a,
+        subCat: deriveSubcategory(a),
+        deadline: parseDeadline(a, lang),
+      })),
+    [articles, lang],
+  );
 
+  // Filter by selected subcategory pill
+  const filtered = useMemo(() => {
+    let result =
+      subCat === "all"
+        ? enriched
+        : enriched.filter((e) => e.subCat === subCat);
+
+    // When sorting by deadline, hide items with missing deadlines unless toggled
+    if (sort === "deadline" && !includeNoDeadline) {
+      result = result.filter((e) => !e.deadline.missing);
+    }
+
+    return result;
+  }, [enriched, subCat, sort, includeNoDeadline]);
+
+  // Sort
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
       if (sort === "deadline") {
-        const hasA = Boolean(a.deadline);
-        const hasB = Boolean(b.deadline);
-        if (hasA && !hasB) return -1;
-        if (!hasA && hasB) return 1;
-        if (hasA && hasB) {
+        // Items with deadlines come first
+        if (!a.deadline.missing && b.deadline.missing) return -1;
+        if (a.deadline.missing && !b.deadline.missing) return 1;
+        if (a.deadline.iso && b.deadline.iso) {
           return (
-            new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime()
+            new Date(a.deadline.iso).getTime() -
+            new Date(b.deadline.iso).getTime()
           );
         }
       }
       if (sort === "relevance") {
-        const diff = (b.audienceFitScore ?? 0) - (a.audienceFitScore ?? 0);
+        const diff =
+          (b.article.audienceFitScore ?? 0) -
+          (a.article.audienceFitScore ?? 0);
         if (diff !== 0) return diff;
       }
-      const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      const tA = a.article.publishedAt
+        ? new Date(a.article.publishedAt).getTime()
+        : 0;
+      const tB = b.article.publishedAt
+        ? new Date(b.article.publishedAt).getTime()
+        : 0;
       return tB - tA;
     });
   }, [filtered, sort]);
@@ -96,7 +96,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       {/* Subcategory pills */}
       <div className="flex flex-wrap gap-2">
         {(
-          ["all", "bourses", "concours", "stages", "programmes"] as SubCat[]
+          ["all", "bourses", "concours", "stages", "programmes"] as SubCatFilter[]
         ).map((s) => (
           <button
             key={s}
@@ -157,19 +157,12 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
         </p>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {sorted.map((article) => (
-            <div key={article.id} className="relative">
-              {article.missingDeadline && (
-                <span className="absolute right-2 top-2 z-10 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                  {lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime"}
-                </span>
-              )}
-              <ArticleCard
-                article={article}
-                lang={lang}
-                showDeadline
-              />
-            </div>
+          {sorted.map((entry) => (
+            <OpportunityCard
+              key={entry.article.id}
+              article={entry.article}
+              lang={lang}
+            />
           ))}
         </div>
       )}

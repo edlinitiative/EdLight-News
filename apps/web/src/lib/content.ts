@@ -133,6 +133,8 @@ export function enrichArticles(
       imageAttribution: item?.imageAttribution,
       // synthesis fields
       itemType: item?.itemType,
+      utilityType: item?.utilityMeta?.utilityType,
+      series: item?.utilityMeta?.series,
       sourceCount: item?.synthesisMeta?.sourceCount,
       publisherDomains: item?.synthesisMeta?.publisherDomains,
       lastMajorUpdateAt: (() => {

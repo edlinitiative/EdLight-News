@@ -4,6 +4,7 @@ import { processRawItems } from "../services/process.js";
 import { generateForItems } from "../services/generate.js";
 import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
+import { runUtilityEngine } from "../services/utility.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 export const tickRouter = Router();
@@ -45,8 +46,17 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.warn("[tick] image generation error:", err instanceof Error ? err.message : err);
     }
 
+    // Step 7: Utility Engine — generate student-focused original content
+    let utilityResult = { seeded: 0, processed: 0, published: 0, needsReview: 0, errors: 0 };
+    try {
+      utilityResult = await runUtilityEngine();
+    } catch (err) {
+      // Utility engine is non-critical — log and continue
+      console.warn("[tick] utility engine error:", err instanceof Error ? err.message : err);
+    }
+
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult });
 
     res.json({
       ok: true,
@@ -58,6 +68,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         published,
         synthesis: synthesisResult,
         images: imageResult,
+        utility: utilityResult,
       },
     });
   } catch (err) {

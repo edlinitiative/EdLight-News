@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
+import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle } from "lucide-react";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
 import type { ContentVersion, ContentLanguage, Item, ContentSection } from "@edlight-news/types";
 import {
@@ -120,7 +121,8 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
   return (
     <div className="rounded-lg border bg-purple-50/50 p-5">
       <h2 className="mb-3 text-base font-semibold">
-        {lang === "fr" ? "📋 Fiche Bourse" : "📋 Fich Bous"}
+        <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
+        {lang === "fr" ? "Fiche Bourse" : "Fich Bous"}
       </h2>
       <dl className="space-y-2">
         {rows.map(({ label, value }, i) => (
@@ -190,7 +192,7 @@ function SynthesisBadge({
   );
 }
 
-function SynthesisSections({
+function StructuredSections({
   sections,
 }: {
   sections: ContentSection[];
@@ -223,9 +225,10 @@ function SynthesisSourcesList({
   return (
     <section className="rounded-lg border bg-gray-50/50 p-5">
       <h2 className="mb-3 text-base font-semibold">
+        <Newspaper className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr"
-          ? `📰 Sources (${sourceList.length})`
-          : `📰 Sous (${sourceList.length})`}
+          ? `Sources (${sourceList.length})`
+          : `Sous (${sourceList.length})`}
       </h2>
       <ul className="space-y-2">
         {sourceList.map((src, i) => (
@@ -248,6 +251,158 @@ function SynthesisSourcesList({
   );
 }
 
+// ── Utility-specific components ─────────────────────────────────────────────
+
+function UtilityBadge({
+  item,
+  lang,
+}: {
+  item: Item;
+  lang: ContentLanguage;
+}) {
+  if (item.itemType !== "utility") return null;
+  const typeLabels: Record<string, { fr: string; ht: string }> = {
+    deadline: { fr: "Date limite", ht: "Dat limit" },
+    exam: { fr: "Examen / Concours", ht: "Egzamen / Konkou" },
+    admissions: { fr: "Admissions", ht: "Admisyon" },
+    scholarship: { fr: "Bourse", ht: "Bous" },
+    internship: { fr: "Stage / Emploi", ht: "Estaj / Travay" },
+    guide: { fr: "Guide pratique", ht: "Gid pratik" },
+  };
+  const ut = item.utilityMeta?.utilityType ?? "guide";
+  const label = typeLabels[ut]?.[lang] ?? ut;
+  return (
+    <span className="inline-block rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700">
+      <ClipboardList className="mr-1 inline-block h-3 w-3" />{label}
+    </span>
+  );
+}
+
+function UtilityFactsFiche({
+  item,
+  lang,
+}: {
+  item: Item;
+  lang: ContentLanguage;
+}) {
+  const meta = item.utilityMeta;
+  if (!meta?.extractedFacts) return null;
+  const facts = meta.extractedFacts;
+  const hasContent =
+    (facts.deadlines?.length ?? 0) > 0 ||
+    (facts.requirements?.length ?? 0) > 0 ||
+    (facts.steps?.length ?? 0) > 0 ||
+    (facts.eligibility?.length ?? 0) > 0;
+  if (!hasContent) return null;
+
+  return (
+    <div className="rounded-lg border bg-violet-50/50 p-5">
+      <h2 className="mb-3 text-base font-semibold">
+        <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
+        {lang === "fr" ? "Informations clés" : "Enfòmasyon kle"}
+      </h2>
+      <dl className="space-y-3">
+        {facts.deadlines && facts.deadlines.length > 0 && (
+          <div>
+            <dt className="font-medium text-gray-600 text-sm">
+              {lang === "fr" ? "Dates limites" : "Dat limit yo"}
+            </dt>
+            <dd className="mt-1">
+              <ul className="space-y-1">
+                {facts.deadlines.map((d, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm">
+                    <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0 text-orange-500" />
+                    <span>
+                      {d.label}
+                      {d.dateISO ? (
+                        <span className="ml-1 font-semibold text-orange-600">{d.dateISO}</span>
+                      ) : (
+                        <span className="ml-1 italic text-gray-400">
+                          {lang === "fr" ? "(à confirmer)" : "(pou konfime)"}
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        )}
+        {facts.eligibility && facts.eligibility.length > 0 && (
+          <div>
+            <dt className="font-medium text-gray-600 text-sm">
+              {lang === "fr" ? "Éligibilité" : "Elijibilite"}
+            </dt>
+            <dd className="mt-1">
+              <ul className="list-disc pl-4 space-y-0.5 text-sm">
+                {facts.eligibility.map((e, i) => <li key={i}>{e}</li>)}
+              </ul>
+            </dd>
+          </div>
+        )}
+        {facts.requirements && facts.requirements.length > 0 && (
+          <div>
+            <dt className="font-medium text-gray-600 text-sm">
+              {lang === "fr" ? "Exigences" : "Egzijans yo"}
+            </dt>
+            <dd className="mt-1">
+              <ul className="list-disc pl-4 space-y-0.5 text-sm">
+                {facts.requirements.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            </dd>
+          </div>
+        )}
+        {facts.steps && facts.steps.length > 0 && (
+          <div>
+            <dt className="font-medium text-gray-600 text-sm">
+              {lang === "fr" ? "Étapes" : "Etap yo"}
+            </dt>
+            <dd className="mt-1">
+              <ol className="list-decimal pl-4 space-y-0.5 text-sm">
+                {facts.steps.map((s, i) => <li key={i}>{s}</li>)}
+              </ol>
+            </dd>
+          </div>
+        )}
+      </dl>
+    </div>
+  );
+}
+
+function UtilitySourceCitations({
+  article,
+  lang,
+}: {
+  article: ContentVersion;
+  lang: ContentLanguage;
+}) {
+  const cites = (article as any).sourceCitations as { name: string; url: string }[] | undefined;
+  if (!cites || cites.length === 0) return null;
+  return (
+    <section className="rounded-lg border bg-gray-50/50 p-5">
+      <h2 className="mb-3 text-base font-semibold">
+        <Paperclip className="mr-1.5 inline-block h-4 w-4" />
+        {lang === "fr" ? "Sources consultées" : "Sous konsilte"}
+      </h2>
+      <ul className="space-y-2">
+        {cites.map((c, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm">
+            <span className="mt-0.5 flex-shrink-0 text-gray-400">•</span>
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand-700 hover:underline"
+            >
+              {c.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function WhatChangedNote({
   whatChanged,
   lang,
@@ -259,7 +414,8 @@ function WhatChangedNote({
   return (
     <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
       <p className="text-sm font-medium text-amber-800">
-        {lang === "fr" ? "🔄 Dernière mise à jour :" : "🔄 D\u00e8nye mizajou :"}
+        <RefreshCw className="mr-1.5 inline-block h-4 w-4" />
+        {lang === "fr" ? "Dernière mise à jour :" : "Dènye mizajou :"}
       </p>
       <p className="mt-1 text-sm text-amber-700">{whatChanged}</p>
     </div>
@@ -318,6 +474,7 @@ export default async function ArticlePage({
   const isBourses =
     item?.category === "scholarship" || item?.category === "opportunity";
   const isSynthesis = item?.itemType === "synthesis";
+  const isUtility = item?.itemType === "utility";
 
   const catColor = CATEGORY_COLORS[item?.category ?? ""] ?? "bg-gray-100 text-gray-600";
 
@@ -377,9 +534,10 @@ export default async function ArticlePage({
           </span>
         )}
         {isSynthesis && item && <SynthesisBadge item={item} lang={currentLang} />}
+        {isUtility && item && <UtilityBadge item={item} lang={currentLang} />}
         {item?.geoTag === "HT" && (
           <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
-            🇭🇹 {currentLang === "fr" ? "Haïti" : "Ayiti"}
+            <MapPin className="mr-0.5 inline-block h-3 w-3" />{currentLang === "fr" ? "Haïti" : "Ayiti"}
           </span>
         )}
         <span className="text-xs text-gray-400 uppercase">
@@ -421,15 +579,23 @@ export default async function ArticlePage({
       )}
 
       {/* Bourses structured fiche */}
-      {isBourses && item && <BoursesFiche item={item} lang={currentLang} />}
+      {isBourses && !isUtility && item && <BoursesFiche item={item} lang={currentLang} />}
 
-      {/* Body: sections for synthesis, markdown for regular */}
-      {isSynthesis && article.sections && article.sections.length > 0 ? (
-        <SynthesisSections sections={article.sections} />
+      {/* Utility facts fiche */}
+      {isUtility && item && <UtilityFactsFiche item={item} lang={currentLang} />}
+
+      {/* Body: structured sections for synthesis/utility, markdown for regular */}
+      {(isSynthesis || isUtility) && article.sections && article.sections.length > 0 ? (
+        <StructuredSections sections={article.sections} />
       ) : (
         <div className="prose prose-lg prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
           <ReactMarkdown>{article.body}</ReactMarkdown>
         </div>
+      )}
+
+      {/* Utility source citations */}
+      {isUtility && (
+        <UtilitySourceCitations article={article} lang={currentLang} />
       )}
 
       {/* Synthesis sources list */}

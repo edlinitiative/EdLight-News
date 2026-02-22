@@ -100,6 +100,24 @@ The pipeline runs every **~15 minutes at zero cost** using two free-tier service
 
 ## Development
 
+### Icons — Lucide only, no emojis
+
+All icons in the web app **must** use [Lucide React](https://lucide.dev/) (`lucide-react`). **Do not use emoji characters** (e.g. 📅, 📋, 🇭🇹) in any rendered UI — they render inconsistently across platforms and look unprofessional. Import the icon you need from `lucide-react` and render it as a React component:
+
+```tsx
+import { Calendar, ClipboardList, MapPin } from "lucide-react";
+
+// Inline with text
+<Calendar className="mr-1.5 inline-block h-4 w-4" />
+
+// In a flex container
+<div className="flex items-center gap-2">
+  <MapPin className="h-4 w-4" /> Haïti
+</div>
+```
+
+Browse all available icons at [lucide.dev/icons](https://lucide.dev/icons).
+
 ```bash
 pnpm install
 pnpm turbo build          # build all 8 packages

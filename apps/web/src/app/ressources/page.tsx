@@ -1,7 +1,9 @@
 /**
  * /ressources — Resources feed.
  *
- * Server component: filters articles by category=resource.
+ * Server component: includes category=resource items AND utility magazine
+ * posts (series: Career, StudyAbroad, HaitiHistory, HaitiFactOfTheDay,
+ * HaitianOfTheWeek).
  * Client component (SectionFeed): handles sort toggle (Pertinence / Dernières).
  */
 
@@ -12,6 +14,15 @@ import { SectionFeed } from "@/components/SectionFeed";
 
 export const dynamic = "force-dynamic";
 
+/** Series that surface on /ressources */
+const RESOURCE_SERIES = new Set([
+  "Career",
+  "StudyAbroad",
+  "HaitiHistory",
+  "HaitiFactOfTheDay",
+  "HaitianOfTheWeek",
+]);
+
 export default async function RessourcesPage({
   searchParams,
 }: {
@@ -21,12 +32,16 @@ export default async function RessourcesPage({
 
   const allArticles = await fetchEnrichedFeed(lang, 200);
 
-  const resourcePool = allArticles.filter((a) => a.category === "resource");
+  const resourcePool = allArticles.filter(
+    (a) =>
+      a.category === "resource" ||
+      (a.itemType === "utility" && a.series && RESOURCE_SERIES.has(a.series)),
+  );
 
   const articles = rankAndDeduplicate(resourcePool, {
-    audienceFitThreshold: 0.65,
+    audienceFitThreshold: 0.60,
     publisherCap: 4,
-    topN: 40,
+    topN: 50,
   });
 
   const fr = lang === "fr";
@@ -39,8 +54,8 @@ export default async function RessourcesPage({
         </h1>
         <p className="text-gray-500">
           {fr
-            ? "Guides, outils et ressources pour les étudiants haïtiens."
-            : "Gid, zouti ak resous pou elèv ayisyen."}
+            ? "Guides, carrière, étudier à l'étranger, histoire — tout pour les étudiants haïtiens."
+            : "Gid, karyè, etidye aletranje, istwa — tout pou elèv ayisyen."}
         </p>
       </div>
 

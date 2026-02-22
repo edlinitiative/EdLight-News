@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { CheckCircle, XCircle } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,7 +60,9 @@ function ResultRow({ label, value }: { label: string; value: string | number }) 
 
 function TickResultPanel({ result }: { result: TickResult }) {
   const bg = result.ok ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200";
-  const icon = result.ok ? "✅" : "❌";
+  const icon = result.ok
+    ? <CheckCircle className="inline-block h-5 w-5 text-green-600" />
+    : <XCircle className="inline-block h-5 w-5 text-red-600" />;
   const heading = result.timedOut
     ? "Pipeline triggered (still running)"
     : result.ok

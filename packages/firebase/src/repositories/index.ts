@@ -5,3 +5,5 @@ export * as contentVersionsRepo from "./content-versions.js";
 export * as assetsRepo from "./assets.js";
 export * as publishQueueRepo from "./publish-queue.js";
 export * as metricsRepo from "./metrics.js";
+export * as utilitySourcesRepo from "./utility-sources.js";
+export * as utilityQueueRepo from "./utility-queue.js";

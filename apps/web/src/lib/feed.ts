@@ -80,6 +80,7 @@ export async function fetchEnrichedArticles(
       imageAttribution: item?.imageAttribution,
       // synthesis fields
       itemType: item?.itemType,
+      utilityType: item?.utilityMeta?.utilityType,
       sourceCount: item?.synthesisMeta?.sourceCount,
       publisherDomains: item?.synthesisMeta?.publisherDomains,
       lastMajorUpdateAt: (() => {

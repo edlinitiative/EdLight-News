@@ -30,6 +30,20 @@ export type {
   PublishTarget,
   PublishStatus,
   Metric,
+  // Utility types
+  UtilitySeries,
+  UtilityType,
+  UtilityAudience,
+  UtilityRegion,
+  UtilityCitation,
+  ExtractedFacts,
+  UtilityMeta,
+  SourceCitation,
+  UtilitySourceType,
+  UtilitySourceParsingHints,
+  UtilitySource,
+  UtilityQueueStatus,
+  UtilityQueueEntry,
 } from "./models.js";
 
 export {
@@ -61,6 +75,19 @@ export {
   synthesisMetaSchema,
   synthesisSourceRefSchema,
   timestampSchema,
+  // Utility schemas
+  sourceCitationSchema,
+  utilitySeriesSchema,
+  utilityTypeSchema,
+  utilityAudienceSchema,
+  utilityRegionSchema,
+  utilityCitationSchema,
+  extractedFactsSchema,
+  utilityMetaSchema,
+  utilitySourceSchema,
+  utilityQueueEntrySchema,
+  createUtilitySourceSchema,
+  createUtilityQueueEntrySchema,
 } from "./schemas.js";
 
 export type {
@@ -71,4 +98,6 @@ export type {
   CreateAsset,
   CreatePublishQueueEntry,
   CreateMetric,
+  CreateUtilitySource,
+  CreateUtilityQueueEntry,
 } from "./schemas.js";

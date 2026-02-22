@@ -6,18 +6,22 @@
  *
  * Cross-section uniqueness: a Set of used content-version IDs and
  * dedupeGroupIds is maintained across sections so the same article
- * never appears twice on the page. Priority: À la une → Opportunités →
- * Haïti → Ressources → Succès.
+ * never appears twice on the page. Priority follows section order.
  *
  * Sections:
- *  A) À la une                      — top 6, threshold 0.80, cap 2
- *  B) Opportunités à deadline proche — deadline ASC, cap 2, limit 6
- *  C) Haïti — pour les étudiants    — geoTag=HT or local_news, threshold 0.75
- *  D) Ressources utiles             — category=resource, threshold 0.70
- *  E) Succès & Inspiration          — keyword inference, threshold 0.70, limit 4
+ *  U1) Opportunités & Deadlines    — series=ScholarshipRadar or has deadlines
+ *  U2) Guides & Carrière           — series=Career
+ *  U3) Étudier à l'étranger        — series=StudyAbroad
+ *  U4) Histoire & Fèt du jour      — series=HaitiHistory | HaitiFactOfTheDay
+ *  A)  Fil — Actualités            — top non-utility articles
+ *  B)  Opportunités à deadline proche — deadline ASC, cap 2, limit 6
+ *  C)  Haïti — pour les étudiants  — geoTag=HT or local_news, threshold 0.75
+ *  D)  Ressources utiles           — category=resource, threshold 0.70
+ *  E)  Succès & Inspiration        — keyword inference, threshold 0.70, limit 4
  */
 
 import Link from "next/link";
+import { Calendar, BookOpen, GraduationCap, Globe, Landmark } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { fetchEnrichedFeed, isSuccessArticle } from "@/lib/content";
@@ -73,14 +77,18 @@ function SectionHeader({
   title,
   href,
   cta,
+  icon,
 }: {
   title: string;
   href: string;
   cta: string;
+  icon?: React.ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-xl font-bold">{title}</h2>
+      <h2 className="flex items-center gap-2 text-xl font-bold">
+        {icon}{title}
+      </h2>
       <Link
         href={href}
         className="text-sm font-medium text-brand-700 hover:underline"
@@ -143,8 +151,76 @@ export default async function AccueilPage({
   // Cross-section uniqueness tracker
   const claimer = createSectionClaimer();
 
+  // ── U1) Opportunités & Deadlines — ScholarshipRadar or has deadlines ────
+  const utilityOppsPool = claimer
+    .unclaimed(pool)
+    .filter(
+      (a) =>
+        (a.itemType === "utility" && a.series === "ScholarshipRadar") ||
+        (a.itemType === "utility" &&
+          a.utilityType === "scholarship") ||
+        (a.deadline && (a.category === "scholarship" || a.category === "bourses")),
+    );
+  const utilityOppsDeduped = rankAndDeduplicate(utilityOppsPool, {
+    audienceFitThreshold: 0,
+    publisherCap: 6,
+    topN: 6,
+  });
+  utilityOppsDeduped.sort((a, b) => {
+    const dA = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+    const dB = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+    if (dA !== dB) return dA - dB;
+    return (b.audienceFitScore ?? 0) - (a.audienceFitScore ?? 0);
+  });
+  const utilityOpps = claimer.claim(utilityOppsDeduped.slice(0, 6));
+
+  // ── U2) Guides & Carrière — series=Career ────────────────────────────────
+  const utilityCareerPool = claimer
+    .unclaimed(pool)
+    .filter(
+      (a) =>
+        a.itemType === "utility" && a.series === "Career",
+    );
+  const utilityCareerRanked = rankAndDeduplicate(utilityCareerPool, {
+    audienceFitThreshold: 0,
+    publisherCap: 6,
+    topN: 6,
+  }).slice(0, 6);
+  const utilityCareer = claimer.claim(utilityCareerRanked);
+
+  // ── U3) Étudier à l'étranger — series=StudyAbroad ────────────────────────
+  const utilityStudyPool = claimer
+    .unclaimed(pool)
+    .filter(
+      (a) =>
+        a.itemType === "utility" && a.series === "StudyAbroad",
+    );
+  const utilityStudyRanked = rankAndDeduplicate(utilityStudyPool, {
+    audienceFitThreshold: 0,
+    publisherCap: 6,
+    topN: 6,
+  }).slice(0, 6);
+  const utilityStudy = claimer.claim(utilityStudyRanked);
+
+  // ── U4) Histoire & Fèt du jour — HaitiHistory | HaitiFactOfTheDay ────────
+  const utilityHistPool = claimer
+    .unclaimed(pool)
+    .filter(
+      (a) =>
+        a.itemType === "utility" &&
+        (a.series === "HaitiHistory" ||
+          a.series === "HaitiFactOfTheDay" ||
+          a.series === "HaitianOfTheWeek"),
+    );
+  const utilityHistRanked = rankAndDeduplicate(utilityHistPool, {
+    audienceFitThreshold: 0,
+    publisherCap: 6,
+    topN: 6,
+  }).slice(0, 6);
+  const utilityHist = claimer.claim(utilityHistRanked);
+
   // ── A) À la une — top 6, threshold 0.80, publisher cap 2 ─────────────────
-  const alauneRanked = rankAndDeduplicate(pool, {
+  const alauneRanked = rankAndDeduplicate(claimer.unclaimed(pool), {
     audienceFitThreshold: 0.80,
     publisherCap: 2,
     topN: 6,
@@ -229,6 +305,60 @@ export default async function AccueilPage({
           {fr ? "Voir toutes les nouvelles →" : "Wè tout nouvèl yo →"}
         </Link>
       </section>
+
+      {/* U1) Opportunités & Deadlines — ScholarshipRadar */}
+      {utilityOpps.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            icon={<Calendar className="h-5 w-5 text-brand-600" />}
+            title={
+              fr ? "Opportunités & Deadlines" : "Okazyon & Dat Limit"
+            }
+            href={lq("/opportunites")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={utilityOpps} lang={lang} showDeadline />
+        </section>
+      )}
+
+      {/* U2) Guides & Carrière */}
+      {utilityCareer.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            icon={<BookOpen className="h-5 w-5 text-brand-600" />}
+            title={fr ? "Guides & Carrière" : "Gid & Karyè"}
+            href={lq("/ressources")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={utilityCareer} lang={lang} />
+        </section>
+      )}
+
+      {/* U3) Étudier à l'étranger */}
+      {utilityStudy.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            icon={<Globe className="h-5 w-5 text-brand-600" />}
+            title={fr ? "Étudier à l'étranger" : "Etidye aletranje"}
+            href={lq("/ressources")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={utilityStudy} lang={lang} />
+        </section>
+      )}
+
+      {/* U4) Histoire & Fèt du jour */}
+      {utilityHist.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            icon={<Landmark className="h-5 w-5 text-brand-600" />}
+            title={fr ? "Histoire & Fèt du jour" : "Istwa & Fèt du jou"}
+            href={lq("/haiti")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <SectionGrid articles={utilityHist} lang={lang} />
+        </section>
+      )}
 
       {/* A) À la une */}
       {alaune.length > 0 && (

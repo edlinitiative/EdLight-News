@@ -8,4 +8,6 @@ export {
   assetsRepo,
   publishQueueRepo,
   metricsRepo,
+  utilitySourcesRepo,
+  utilityQueueRepo,
 } from "./repositories/index.js";

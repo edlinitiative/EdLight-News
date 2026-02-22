@@ -32,6 +32,23 @@ export type {
   ValidationResult,
 } from "./synthesis.js";
 
+// ── Re-export utility module ────────────────────────────────────────────────
+export {
+  generateUtilityFromPackets,
+  validateUtilityJson,
+  buildUtilityPrompt,
+  geminiUtilitySchema,
+  UTILITY_PROMPT_VERSION,
+} from "./utility.js";
+export type {
+  GeminiUtilityOutput,
+  UtilitySourcePacket,
+  UtilityGenerateInput,
+  GenerateUtilityResult,
+  GenerateUtilityError,
+  UtilityValidationResult,
+} from "./utility.js";
+
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.65;
 

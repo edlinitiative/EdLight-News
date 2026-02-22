@@ -182,6 +182,338 @@ declare const contentSectionSchema: z.ZodObject<{
     heading: string;
     content: string;
 }>;
+export declare const sourceCitationSchema: z.ZodObject<{
+    name: z.ZodString;
+    url: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    url: string;
+}, {
+    name: string;
+    url: string;
+}>;
+export declare const utilitySeriesSchema: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+export declare const utilityTypeSchema: z.ZodEnum<["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]>;
+export declare const utilityAudienceSchema: z.ZodEnum<["lycee", "universite", "international"]>;
+export declare const utilityRegionSchema: z.ZodEnum<["HT", "US", "CA", "FR", "DO", "RU", "Global"]>;
+export declare const utilityCitationSchema: z.ZodObject<{
+    label: z.ZodString;
+    url: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    url: string;
+    label: string;
+}, {
+    url: string;
+    label: string;
+}>;
+export declare const extractedFactsSchema: z.ZodObject<{
+    deadlines: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        dateISO: z.ZodString;
+        sourceUrl: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        sourceUrl: string;
+        label: string;
+        dateISO: string;
+    }, {
+        sourceUrl: string;
+        label: string;
+        dateISO: string;
+    }>, "many">>;
+    requirements: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    steps: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    eligibility?: string[] | undefined;
+    deadlines?: {
+        sourceUrl: string;
+        label: string;
+        dateISO: string;
+    }[] | undefined;
+    requirements?: string[] | undefined;
+    steps?: string[] | undefined;
+}, {
+    eligibility?: string[] | undefined;
+    deadlines?: {
+        sourceUrl: string;
+        label: string;
+        dateISO: string;
+    }[] | undefined;
+    requirements?: string[] | undefined;
+    steps?: string[] | undefined;
+}>;
+export declare const utilityMetaSchema: z.ZodObject<{
+    series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+    utilityType: z.ZodEnum<["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]>;
+    region: z.ZodOptional<z.ZodArray<z.ZodEnum<["HT", "US", "CA", "FR", "DO", "RU", "Global"]>, "many">>;
+    audience: z.ZodOptional<z.ZodArray<z.ZodEnum<["lycee", "universite", "international"]>, "many">>;
+    tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    citations: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        url: string;
+        label: string;
+    }, {
+        url: string;
+        label: string;
+    }>, "many">;
+    extractedFacts: z.ZodOptional<z.ZodObject<{
+        deadlines: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            label: z.ZodString;
+            dateISO: z.ZodString;
+            sourceUrl: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            sourceUrl: string;
+            label: string;
+            dateISO: string;
+        }, {
+            sourceUrl: string;
+            label: string;
+            dateISO: string;
+        }>, "many">>;
+        requirements: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        steps: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    }, "strip", z.ZodTypeAny, {
+        eligibility?: string[] | undefined;
+        deadlines?: {
+            sourceUrl: string;
+            label: string;
+            dateISO: string;
+        }[] | undefined;
+        requirements?: string[] | undefined;
+        steps?: string[] | undefined;
+    }, {
+        eligibility?: string[] | undefined;
+        deadlines?: {
+            sourceUrl: string;
+            label: string;
+            dateISO: string;
+        }[] | undefined;
+        requirements?: string[] | undefined;
+        steps?: string[] | undefined;
+    }>>;
+    rotationKey: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+    citations: {
+        url: string;
+        label: string;
+    }[];
+    region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+    audience?: ("lycee" | "universite" | "international")[] | undefined;
+    tags?: string[] | undefined;
+    extractedFacts?: {
+        eligibility?: string[] | undefined;
+        deadlines?: {
+            sourceUrl: string;
+            label: string;
+            dateISO: string;
+        }[] | undefined;
+        requirements?: string[] | undefined;
+        steps?: string[] | undefined;
+    } | undefined;
+    rotationKey?: string | undefined;
+}, {
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+    citations: {
+        url: string;
+        label: string;
+    }[];
+    region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+    audience?: ("lycee" | "universite" | "international")[] | undefined;
+    tags?: string[] | undefined;
+    extractedFacts?: {
+        eligibility?: string[] | undefined;
+        deadlines?: {
+            sourceUrl: string;
+            label: string;
+            dateISO: string;
+        }[] | undefined;
+        requirements?: string[] | undefined;
+        steps?: string[] | undefined;
+    } | undefined;
+    rotationKey?: string | undefined;
+}>;
+export declare const utilitySourceSchema: z.ZodObject<{
+    id: z.ZodString;
+    label: z.ZodString;
+    url: z.ZodString;
+    series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+    rotationKey: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<["rss", "html", "pdf", "calendar"]>;
+    allowlistDomain: z.ZodString;
+    priority: z.ZodDefault<z.ZodNumber>;
+    region: z.ZodArray<z.ZodEnum<["HT", "US", "CA", "FR", "DO", "RU", "Global"]>, "many">;
+    utilityTypes: z.ZodArray<z.ZodEnum<["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]>, "many">;
+    parsingHints: z.ZodOptional<z.ZodObject<{
+        selectorMain: z.ZodOptional<z.ZodString>;
+        selectorDate: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    }, {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    }>>;
+    active: z.ZodBoolean;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    type: "rss" | "html" | "pdf" | "calendar";
+    url: string;
+    label: string;
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    region: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[];
+    id: string;
+    allowlistDomain: string;
+    priority: number;
+    utilityTypes: ("study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile")[];
+    active: boolean;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    rotationKey?: string | undefined;
+    parsingHints?: {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    } | undefined;
+}, {
+    type: "rss" | "html" | "pdf" | "calendar";
+    url: string;
+    label: string;
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    region: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[];
+    id: string;
+    allowlistDomain: string;
+    utilityTypes: ("study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile")[];
+    active: boolean;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    rotationKey?: string | undefined;
+    priority?: number | undefined;
+    parsingHints?: {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    } | undefined;
+}>;
+export declare const utilityQueueEntrySchema: z.ZodObject<{
+    id: z.ZodString;
+    status: z.ZodEnum<["queued", "processing", "done", "failed"]>;
+    series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+    rotationKey: z.ZodOptional<z.ZodString>;
+    langTargets: z.ZodArray<z.ZodEnum<["fr", "ht"]>, "many">;
+    sourceIds: z.ZodArray<z.ZodString, "many">;
+    runAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    attempts: z.ZodNumber;
+    lastError: z.ZodOptional<z.ZodString>;
+    failReasons: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    status: "queued" | "processing" | "done" | "failed";
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    langTargets: ("fr" | "ht")[];
+    sourceIds: string[];
+    runAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    attempts: number;
+    rotationKey?: string | undefined;
+    lastError?: string | undefined;
+    failReasons?: string[] | undefined;
+}, {
+    status: "queued" | "processing" | "done" | "failed";
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    langTargets: ("fr" | "ht")[];
+    sourceIds: string[];
+    runAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    attempts: number;
+    rotationKey?: string | undefined;
+    lastError?: string | undefined;
+    failReasons?: string[] | undefined;
+}>;
 export declare const sourceSchema: z.ZodObject<{
     id: z.ZodString;
     name: z.ZodString;
@@ -230,10 +562,8 @@ export declare const sourceSchema: z.ZodObject<{
     name: string;
     url: string;
     id: string;
-    language: "fr" | "ht";
-    active: boolean;
-    pollCadenceSec: number;
     priority: "hot" | "normal";
+    active: boolean;
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -242,6 +572,8 @@ export declare const sourceSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
+    language: "fr" | "ht";
+    pollCadenceSec: number;
     selector?: string | undefined;
     selectors?: {
         listItem?: string | undefined;
@@ -253,7 +585,6 @@ export declare const sourceSchema: z.ZodObject<{
     name: string;
     url: string;
     id: string;
-    language: "fr" | "ht";
     active: boolean;
     createdAt: {
         seconds: number;
@@ -263,6 +594,8 @@ export declare const sourceSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
+    language: "fr" | "ht";
+    priority?: "hot" | "normal" | undefined;
     selector?: string | undefined;
     selectors?: {
         listItem?: string | undefined;
@@ -270,7 +603,6 @@ export declare const sourceSchema: z.ZodObject<{
         title?: string | undefined;
     } | undefined;
     pollCadenceSec?: number | undefined;
-    priority?: "hot" | "normal" | undefined;
 }>;
 export declare const rawItemSchema: z.ZodObject<{
     id: z.ZodString;
@@ -471,7 +803,7 @@ export declare const itemSchema: z.ZodObject<{
         personName?: string | undefined;
         wikidataId?: string | undefined;
     }>>;
-    itemType: z.ZodOptional<z.ZodEnum<["source", "synthesis"]>>;
+    itemType: z.ZodOptional<z.ZodEnum<["source", "synthesis", "utility"]>>;
     clusterId: z.ZodOptional<z.ZodString>;
     synthesisMeta: z.ZodOptional<z.ZodObject<{
         sourceItemIds: z.ZodArray<z.ZodString, "many">;
@@ -497,6 +829,102 @@ export declare const itemSchema: z.ZodObject<{
         promptVersion: string;
         validationPassed: boolean;
         lastSynthesizedAt: string;
+    }>>;
+    utilityMeta: z.ZodOptional<z.ZodObject<{
+        series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+        utilityType: z.ZodEnum<["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]>;
+        region: z.ZodOptional<z.ZodArray<z.ZodEnum<["HT", "US", "CA", "FR", "DO", "RU", "Global"]>, "many">>;
+        audience: z.ZodOptional<z.ZodArray<z.ZodEnum<["lycee", "universite", "international"]>, "many">>;
+        tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        citations: z.ZodArray<z.ZodObject<{
+            label: z.ZodString;
+            url: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            url: string;
+            label: string;
+        }, {
+            url: string;
+            label: string;
+        }>, "many">;
+        extractedFacts: z.ZodOptional<z.ZodObject<{
+            deadlines: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                dateISO: z.ZodString;
+                sourceUrl: z.ZodString;
+            }, "strip", z.ZodTypeAny, {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }, {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }>, "many">>;
+            requirements: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+            steps: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+            eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        }, "strip", z.ZodTypeAny, {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        }, {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        }>>;
+        rotationKey: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
+    }, {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
     }>>;
     lastMajorUpdateAt: z.ZodOptional<z.ZodNullable<z.ZodObject<{
         seconds: z.ZodNumber;
@@ -548,6 +976,10 @@ export declare const itemSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     title: string;
     deadline: string | null;
+    citations: {
+        sourceName: string;
+        sourceUrl: string;
+    }[];
     id: string;
     createdAt: {
         seconds: number;
@@ -573,10 +1005,6 @@ export declare const itemSchema: z.ZodObject<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    citations: {
-        sourceName: string;
-        sourceUrl: string;
-    }[];
     source?: {
         name: string;
         originalUrl: string;
@@ -616,7 +1044,7 @@ export declare const itemSchema: z.ZodObject<{
         personName?: string | undefined;
         wikidataId?: string | undefined;
     } | undefined;
-    itemType?: "source" | "synthesis" | undefined;
+    itemType?: "source" | "synthesis" | "utility" | undefined;
     clusterId?: string | undefined;
     synthesisMeta?: {
         sourceItemIds: string[];
@@ -626,6 +1054,28 @@ export declare const itemSchema: z.ZodObject<{
         promptVersion: string;
         validationPassed: boolean;
         lastSynthesizedAt: string;
+    } | undefined;
+    utilityMeta?: {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
     } | undefined;
     lastMajorUpdateAt?: {
         seconds: number;
@@ -641,6 +1091,10 @@ export declare const itemSchema: z.ZodObject<{
 }, {
     title: string;
     deadline: string | null;
+    citations: {
+        sourceName: string;
+        sourceUrl: string;
+    }[];
     id: string;
     createdAt: {
         seconds: number;
@@ -666,10 +1120,6 @@ export declare const itemSchema: z.ZodObject<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    citations: {
-        sourceName: string;
-        sourceUrl: string;
-    }[];
     source?: {
         name: string;
         originalUrl: string;
@@ -709,7 +1159,7 @@ export declare const itemSchema: z.ZodObject<{
         personName?: string | undefined;
         wikidataId?: string | undefined;
     } | undefined;
-    itemType?: "source" | "synthesis" | undefined;
+    itemType?: "source" | "synthesis" | "utility" | undefined;
     clusterId?: string | undefined;
     synthesisMeta?: {
         sourceItemIds: string[];
@@ -719,6 +1169,28 @@ export declare const itemSchema: z.ZodObject<{
         promptVersion: string;
         validationPassed: boolean;
         lastSynthesizedAt: string;
+    } | undefined;
+    utilityMeta?: {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
     } | undefined;
     lastMajorUpdateAt?: {
         seconds: number;
@@ -790,6 +1262,16 @@ export declare const contentVersionSchema: z.ZodObject<{
     }>, "many">>;
     whatChanged: z.ZodOptional<z.ZodString>;
     synthesisTags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    sourceCitations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        url: string;
+    }, {
+        name: string;
+        url: string;
+    }>, "many">>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -814,8 +1296,11 @@ export declare const contentVersionSchema: z.ZodObject<{
     status: "draft" | "review" | "published";
     title: string;
     itemId: string;
+    citations: {
+        sourceName: string;
+        sourceUrl: string;
+    }[];
     id: string;
-    language: "fr" | "ht";
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -824,11 +1309,8 @@ export declare const contentVersionSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
+    language: "fr" | "ht";
     summary: string;
-    citations: {
-        sourceName: string;
-        sourceUrl: string;
-    }[];
     channel: "web" | "ig" | "wa";
     body: string;
     category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
@@ -848,12 +1330,19 @@ export declare const contentVersionSchema: z.ZodObject<{
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
+    sourceCitations?: {
+        name: string;
+        url: string;
+    }[] | undefined;
 }, {
     status: "draft" | "review" | "published";
     title: string;
     itemId: string;
+    citations: {
+        sourceName: string;
+        sourceUrl: string;
+    }[];
     id: string;
-    language: "fr" | "ht";
     createdAt: {
         seconds: number;
         nanoseconds: number;
@@ -862,11 +1351,8 @@ export declare const contentVersionSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
+    language: "fr" | "ht";
     summary: string;
-    citations: {
-        sourceName: string;
-        sourceUrl: string;
-    }[];
     channel: "web" | "ig" | "wa";
     body: string;
     category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
@@ -886,6 +1372,10 @@ export declare const contentVersionSchema: z.ZodObject<{
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
+    sourceCitations?: {
+        name: string;
+        url: string;
+    }[] | undefined;
 }>;
 export declare const assetSchema: z.ZodObject<{
     id: z.ZodString;
@@ -965,7 +1455,7 @@ export declare const publishQueueEntrySchema: z.ZodObject<{
         nanoseconds: number;
     }>;
 }, "strip", z.ZodTypeAny, {
-    status: "pending" | "in_progress" | "done" | "failed";
+    status: "done" | "failed" | "pending" | "in_progress";
     id: string;
     createdAt: {
         seconds: number;
@@ -984,7 +1474,7 @@ export declare const publishQueueEntrySchema: z.ZodObject<{
         nanoseconds: number;
     } | undefined;
 }, {
-    status: "pending" | "in_progress" | "done" | "failed";
+    status: "done" | "failed" | "pending" | "in_progress";
     id: string;
     createdAt: {
         seconds: number;
@@ -1091,10 +1581,10 @@ export declare const createSourceSchema: z.ZodObject<Omit<{
     type: "rss" | "html";
     name: string;
     url: string;
-    language: "fr" | "ht";
-    active: boolean;
-    pollCadenceSec: number;
     priority: "hot" | "normal";
+    active: boolean;
+    language: "fr" | "ht";
+    pollCadenceSec: number;
     selector?: string | undefined;
     selectors?: {
         listItem?: string | undefined;
@@ -1105,8 +1595,9 @@ export declare const createSourceSchema: z.ZodObject<Omit<{
     type: "rss" | "html";
     name: string;
     url: string;
-    language: "fr" | "ht";
     active: boolean;
+    language: "fr" | "ht";
+    priority?: "hot" | "normal" | undefined;
     selector?: string | undefined;
     selectors?: {
         listItem?: string | undefined;
@@ -1114,7 +1605,6 @@ export declare const createSourceSchema: z.ZodObject<Omit<{
         title?: string | undefined;
     } | undefined;
     pollCadenceSec?: number | undefined;
-    priority?: "hot" | "normal" | undefined;
 }>;
 export declare const createRawItemSchema: z.ZodObject<Omit<{
     id: z.ZodString;
@@ -1305,7 +1795,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         personName?: string | undefined;
         wikidataId?: string | undefined;
     }>>;
-    itemType: z.ZodOptional<z.ZodEnum<["source", "synthesis"]>>;
+    itemType: z.ZodOptional<z.ZodEnum<["source", "synthesis", "utility"]>>;
     clusterId: z.ZodOptional<z.ZodString>;
     synthesisMeta: z.ZodOptional<z.ZodObject<{
         sourceItemIds: z.ZodArray<z.ZodString, "many">;
@@ -1331,6 +1821,102 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         promptVersion: string;
         validationPassed: boolean;
         lastSynthesizedAt: string;
+    }>>;
+    utilityMeta: z.ZodOptional<z.ZodObject<{
+        series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+        utilityType: z.ZodEnum<["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]>;
+        region: z.ZodOptional<z.ZodArray<z.ZodEnum<["HT", "US", "CA", "FR", "DO", "RU", "Global"]>, "many">>;
+        audience: z.ZodOptional<z.ZodArray<z.ZodEnum<["lycee", "universite", "international"]>, "many">>;
+        tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        citations: z.ZodArray<z.ZodObject<{
+            label: z.ZodString;
+            url: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            url: string;
+            label: string;
+        }, {
+            url: string;
+            label: string;
+        }>, "many">;
+        extractedFacts: z.ZodOptional<z.ZodObject<{
+            deadlines: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                label: z.ZodString;
+                dateISO: z.ZodString;
+                sourceUrl: z.ZodString;
+            }, "strip", z.ZodTypeAny, {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }, {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }>, "many">>;
+            requirements: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+            steps: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+            eligibility: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+        }, "strip", z.ZodTypeAny, {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        }, {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        }>>;
+        rotationKey: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
+    }, {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
     }>>;
     lastMajorUpdateAt: z.ZodOptional<z.ZodNullable<z.ZodObject<{
         seconds: z.ZodNumber;
@@ -1382,6 +1968,10 @@ export declare const createItemSchema: z.ZodObject<Omit<{
 }, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
     title: string;
     deadline: string | null;
+    citations: {
+        sourceName: string;
+        sourceUrl: string;
+    }[];
     sourceId: string;
     rawItemId: string;
     summary: string;
@@ -1398,10 +1988,6 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    citations: {
-        sourceName: string;
-        sourceUrl: string;
-    }[];
     source?: {
         name: string;
         originalUrl: string;
@@ -1441,7 +2027,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         personName?: string | undefined;
         wikidataId?: string | undefined;
     } | undefined;
-    itemType?: "source" | "synthesis" | undefined;
+    itemType?: "source" | "synthesis" | "utility" | undefined;
     clusterId?: string | undefined;
     synthesisMeta?: {
         sourceItemIds: string[];
@@ -1451,6 +2037,28 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         promptVersion: string;
         validationPassed: boolean;
         lastSynthesizedAt: string;
+    } | undefined;
+    utilityMeta?: {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
     } | undefined;
     lastMajorUpdateAt?: {
         seconds: number;
@@ -1466,6 +2074,10 @@ export declare const createItemSchema: z.ZodObject<Omit<{
 }, {
     title: string;
     deadline: string | null;
+    citations: {
+        sourceName: string;
+        sourceUrl: string;
+    }[];
     sourceId: string;
     rawItemId: string;
     summary: string;
@@ -1482,10 +2094,6 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    citations: {
-        sourceName: string;
-        sourceUrl: string;
-    }[];
     source?: {
         name: string;
         originalUrl: string;
@@ -1525,7 +2133,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         personName?: string | undefined;
         wikidataId?: string | undefined;
     } | undefined;
-    itemType?: "source" | "synthesis" | undefined;
+    itemType?: "source" | "synthesis" | "utility" | undefined;
     clusterId?: string | undefined;
     synthesisMeta?: {
         sourceItemIds: string[];
@@ -1535,6 +2143,28 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         promptVersion: string;
         validationPassed: boolean;
         lastSynthesizedAt: string;
+    } | undefined;
+    utilityMeta?: {
+        series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+        utilityType: "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+        citations: {
+            url: string;
+            label: string;
+        }[];
+        region?: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[] | undefined;
+        audience?: ("lycee" | "universite" | "international")[] | undefined;
+        tags?: string[] | undefined;
+        extractedFacts?: {
+            eligibility?: string[] | undefined;
+            deadlines?: {
+                sourceUrl: string;
+                label: string;
+                dateISO: string;
+            }[] | undefined;
+            requirements?: string[] | undefined;
+            steps?: string[] | undefined;
+        } | undefined;
+        rotationKey?: string | undefined;
     } | undefined;
     lastMajorUpdateAt?: {
         seconds: number;
@@ -1606,6 +2236,16 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     }>, "many">>;
     whatChanged: z.ZodOptional<z.ZodString>;
     synthesisTags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    sourceCitations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        url: string;
+    }, {
+        name: string;
+        url: string;
+    }>, "many">>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -1630,12 +2270,12 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     status: "draft" | "review" | "published";
     title: string;
     itemId: string;
-    language: "fr" | "ht";
-    summary: string;
     citations: {
         sourceName: string;
         sourceUrl: string;
     }[];
+    language: "fr" | "ht";
+    summary: string;
     channel: "web" | "ig" | "wa";
     body: string;
     category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
@@ -1655,16 +2295,20 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
+    sourceCitations?: {
+        name: string;
+        url: string;
+    }[] | undefined;
 }, {
     status: "draft" | "review" | "published";
     title: string;
     itemId: string;
-    language: "fr" | "ht";
-    summary: string;
     citations: {
         sourceName: string;
         sourceUrl: string;
     }[];
+    language: "fr" | "ht";
+    summary: string;
     channel: "web" | "ig" | "wa";
     body: string;
     category?: "scholarship" | "opportunity" | "news" | "event" | "resource" | "local_news" | "bourses" | "concours" | "stages" | "programmes" | undefined;
@@ -1684,6 +2328,10 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
+    sourceCitations?: {
+        name: string;
+        url: string;
+    }[] | undefined;
 }>;
 export declare const createAssetSchema: z.ZodObject<Omit<{
     id: z.ZodString;
@@ -1753,7 +2401,7 @@ export declare const createPublishQueueEntrySchema: z.ZodObject<Omit<{
         nanoseconds: number;
     }>;
 }, "id" | "createdAt">, "strip", z.ZodTypeAny, {
-    status: "pending" | "in_progress" | "done" | "failed";
+    status: "done" | "failed" | "pending" | "in_progress";
     contentVersionId: string;
     target: "ig" | "wa";
     scheduledAt: {
@@ -1767,7 +2415,7 @@ export declare const createPublishQueueEntrySchema: z.ZodObject<Omit<{
         nanoseconds: number;
     } | undefined;
 }, {
-    status: "pending" | "in_progress" | "done" | "failed";
+    status: "done" | "failed" | "pending" | "in_progress";
     contentVersionId: string;
     target: "ig" | "wa";
     scheduledAt: {
@@ -1819,6 +2467,146 @@ export declare const createMetricSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     };
 }>;
+export declare const createUtilitySourceSchema: z.ZodObject<Omit<{
+    id: z.ZodString;
+    label: z.ZodString;
+    url: z.ZodString;
+    series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+    rotationKey: z.ZodOptional<z.ZodString>;
+    type: z.ZodEnum<["rss", "html", "pdf", "calendar"]>;
+    allowlistDomain: z.ZodString;
+    priority: z.ZodDefault<z.ZodNumber>;
+    region: z.ZodArray<z.ZodEnum<["HT", "US", "CA", "FR", "DO", "RU", "Global"]>, "many">;
+    utilityTypes: z.ZodArray<z.ZodEnum<["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]>, "many">;
+    parsingHints: z.ZodOptional<z.ZodObject<{
+        selectorMain: z.ZodOptional<z.ZodString>;
+        selectorDate: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    }, {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    }>>;
+    active: z.ZodBoolean;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
+    type: "rss" | "html" | "pdf" | "calendar";
+    url: string;
+    label: string;
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    region: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[];
+    allowlistDomain: string;
+    priority: number;
+    utilityTypes: ("study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile")[];
+    active: boolean;
+    rotationKey?: string | undefined;
+    parsingHints?: {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    } | undefined;
+}, {
+    type: "rss" | "html" | "pdf" | "calendar";
+    url: string;
+    label: string;
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    region: ("HT" | "Global" | "US" | "CA" | "FR" | "DO" | "RU")[];
+    allowlistDomain: string;
+    utilityTypes: ("study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile")[];
+    active: boolean;
+    rotationKey?: string | undefined;
+    priority?: number | undefined;
+    parsingHints?: {
+        selectorMain?: string | undefined;
+        selectorDate?: string | undefined;
+    } | undefined;
+}>;
+export declare const createUtilityQueueEntrySchema: z.ZodObject<Omit<{
+    id: z.ZodString;
+    status: z.ZodEnum<["queued", "processing", "done", "failed"]>;
+    series: z.ZodEnum<["StudyAbroad", "Career", "ScholarshipRadar", "HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]>;
+    rotationKey: z.ZodOptional<z.ZodString>;
+    langTargets: z.ZodArray<z.ZodEnum<["fr", "ht"]>, "many">;
+    sourceIds: z.ZodArray<z.ZodString, "many">;
+    runAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    attempts: z.ZodNumber;
+    lastError: z.ZodOptional<z.ZodString>;
+    failReasons: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
+    status: "queued" | "processing" | "done" | "failed";
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    langTargets: ("fr" | "ht")[];
+    sourceIds: string[];
+    runAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    attempts: number;
+    rotationKey?: string | undefined;
+    lastError?: string | undefined;
+    failReasons?: string[] | undefined;
+}, {
+    status: "queued" | "processing" | "done" | "failed";
+    series: "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
+    langTargets: ("fr" | "ht")[];
+    sourceIds: string[];
+    runAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    attempts: number;
+    rotationKey?: string | undefined;
+    lastError?: string | undefined;
+    failReasons?: string[] | undefined;
+}>;
 export type CreateSource = z.infer<typeof createSourceSchema>;
 export type CreateRawItem = z.infer<typeof createRawItemSchema>;
 export type CreateItem = z.infer<typeof createItemSchema>;
@@ -1826,4 +2614,6 @@ export type CreateContentVersion = z.infer<typeof createContentVersionSchema>;
 export type CreateAsset = z.infer<typeof createAssetSchema>;
 export type CreatePublishQueueEntry = z.infer<typeof createPublishQueueEntrySchema>;
 export type CreateMetric = z.infer<typeof createMetricSchema>;
+export type CreateUtilitySource = z.infer<typeof createUtilitySourceSchema>;
+export type CreateUtilityQueueEntry = z.infer<typeof createUtilityQueueEntrySchema>;
 //# sourceMappingURL=schemas.d.ts.map

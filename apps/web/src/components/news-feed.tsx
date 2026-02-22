@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { MapPin } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
   formatDate,
@@ -52,8 +53,12 @@ export interface FeedItem {
   /** Image attribution info (e.g., Wikidata) */
   imageAttribution?: { name?: string; url?: string; license?: string };
   // synthesis fields
-  /** Item type: "source" (default) or "synthesis" (multi-source living article) */
+  /** Item type: "source" (default), "synthesis", or "utility" (student-focused) */
   itemType?: string;
+  /** Utility type: deadline, exam, admissions, scholarship, internship, guide */
+  utilityType?: string;
+  /** Utility magazine series (e.g. StudyAbroad, Career, ScholarshipRadar) */
+  series?: string;
   /** Number of source articles (synthesis only) */
   sourceCount?: number;
   /** Publisher domains contributing to synthesis */
@@ -441,7 +446,7 @@ export function NewsFeed({
               )}
               {article.geoTag === "HT" && (
                 <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
-                  🇭🇹
+                  <MapPin className="inline-block h-3 w-3" />
                 </span>
               )}
               {article.isLegacy && (

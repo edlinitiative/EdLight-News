@@ -46,5 +46,16 @@ service cloud.firestore {
     match /metrics/{metricId} {
       allow read, write: if false;
     }
+
+    // Utility sources: public read, server writes
+    match /utility_sources/{sourceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Utility queue: server-only
+    match /utility_queue/{entryId} {
+      allow read, write: if false;
+    }
   }
 }

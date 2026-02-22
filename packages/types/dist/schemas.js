@@ -71,6 +71,80 @@ const contentSectionSchema = z.object({
     heading: z.string().min(1),
     content: z.string().min(1),
 });
+export const sourceCitationSchema = z.object({
+    name: z.string().min(1),
+    url: z.string().url(),
+});
+// ── Utility schemas ───────────────────────────────────────────────────────────
+export const utilitySeriesSchema = z.enum([
+    "StudyAbroad",
+    "Career",
+    "ScholarshipRadar",
+    "HaitiHistory",
+    "HaitiFactOfTheDay",
+    "HaitianOfTheWeek",
+]);
+export const utilityTypeSchema = z.enum(["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]);
+export const utilityAudienceSchema = z.enum(["lycee", "universite", "international"]);
+export const utilityRegionSchema = z.enum(["HT", "US", "CA", "FR", "DO", "RU", "Global"]);
+export const utilityCitationSchema = z.object({
+    label: z.string().min(1),
+    url: z.string().url(),
+});
+export const extractedFactsSchema = z.object({
+    deadlines: z.array(z.object({
+        label: z.string().min(1),
+        dateISO: z.string(),
+        sourceUrl: z.string().url(),
+    })).optional(),
+    requirements: z.array(z.string()).optional(),
+    steps: z.array(z.string()).optional(),
+    eligibility: z.array(z.string()).optional(),
+});
+export const utilityMetaSchema = z.object({
+    series: utilitySeriesSchema,
+    utilityType: utilityTypeSchema,
+    region: z.array(utilityRegionSchema).optional(),
+    audience: z.array(utilityAudienceSchema).optional(),
+    tags: z.array(z.string()).optional(),
+    citations: z.array(utilityCitationSchema).min(1),
+    extractedFacts: extractedFactsSchema.optional(),
+    rotationKey: z.string().optional(),
+});
+const utilitySourceParsingHintsSchema = z.object({
+    selectorMain: z.string().optional(),
+    selectorDate: z.string().optional(),
+});
+export const utilitySourceSchema = z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    url: z.string().url(),
+    series: utilitySeriesSchema,
+    rotationKey: z.string().optional(),
+    type: z.enum(["rss", "html", "pdf", "calendar"]),
+    allowlistDomain: z.string().min(1),
+    priority: z.number().int().min(0).max(100).default(50),
+    region: z.array(utilityRegionSchema).min(1),
+    utilityTypes: z.array(utilityTypeSchema).min(1),
+    parsingHints: utilitySourceParsingHintsSchema.optional(),
+    active: z.boolean(),
+    createdAt: timestampSchema,
+    updatedAt: timestampSchema,
+});
+export const utilityQueueEntrySchema = z.object({
+    id: z.string().min(1),
+    status: z.enum(["queued", "processing", "done", "failed"]),
+    series: utilitySeriesSchema,
+    rotationKey: z.string().optional(),
+    langTargets: z.array(z.enum(["fr", "ht"])).min(1),
+    sourceIds: z.array(z.string().min(1)).min(1),
+    runAt: timestampSchema,
+    attempts: z.number().int().min(0),
+    lastError: z.string().optional(),
+    failReasons: z.array(z.string()).optional(),
+    createdAt: timestampSchema,
+    updatedAt: timestampSchema,
+});
 // ── sources ────────────────────────────────────────────────────────────────
 export const sourceSchema = z.object({
     id: z.string().min(1),
@@ -141,9 +215,10 @@ export const itemSchema = z.object({
     imageAttribution: imageAttributionSchema.optional(),
     entity: entityRefSchema.optional(),
     // synthesis fields
-    itemType: z.enum(["source", "synthesis"]).optional(),
+    itemType: z.enum(["source", "synthesis", "utility"]).optional(),
     clusterId: z.string().optional(),
     synthesisMeta: synthesisMetaSchema.optional(),
+    utilityMeta: utilityMetaSchema.optional(),
     lastMajorUpdateAt: timestampSchema.nullable().optional(),
     effectiveDate: z.string().optional(),
     sourceList: z.array(synthesisSourceRefSchema).optional(),
@@ -168,6 +243,7 @@ export const contentVersionSchema = z.object({
     sections: z.array(contentSectionSchema).optional(),
     whatChanged: z.string().optional(),
     synthesisTags: z.array(z.string()).optional(),
+    sourceCitations: z.array(sourceCitationSchema).optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
 });
@@ -235,5 +311,15 @@ export const createPublishQueueEntrySchema = publishQueueEntrySchema.omit({
 });
 export const createMetricSchema = metricSchema.omit({
     id: true,
+});
+export const createUtilitySourceSchema = utilitySourceSchema.omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+});
+export const createUtilityQueueEntrySchema = utilityQueueEntrySchema.omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
 });
 //# sourceMappingURL=schemas.js.map

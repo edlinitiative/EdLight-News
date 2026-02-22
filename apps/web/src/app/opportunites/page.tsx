@@ -36,7 +36,8 @@ export default async function OpportunitesPage({
   const opportunityPool = allArticles.filter(
     (a) =>
       a.vertical === "opportunites" ||
-      OPPORTUNITY_CATEGORIES.has(a.category ?? ""),
+      OPPORTUNITY_CATEGORIES.has(a.category ?? "") ||
+      (a.itemType === "utility" && a.series === "ScholarshipRadar"),
   );
 
   const articles = rankAndDeduplicate(opportunityPool, {

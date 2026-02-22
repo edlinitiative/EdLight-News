@@ -10,6 +10,7 @@
     "composite": false
   },
   "include": ["src"],
+  "exclude": ["src/scripts/createIndexes.ts", "src/scripts/verifyUtilityItem.ts", "src/scripts/deactivateStaleSources.ts"],
   "references": [
     { "path": "../../packages/types" },
     { "path": "../../packages/firebase" },

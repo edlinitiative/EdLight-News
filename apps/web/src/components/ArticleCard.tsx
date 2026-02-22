@@ -6,6 +6,7 @@
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
+import { ClipboardList } from "lucide-react";
 import type { FeedItem } from "@/components/news-feed";
 import {
   categoryLabel,
@@ -92,6 +93,11 @@ export function ArticleCard({
             <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
               {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
               {lang === "fr" ? "sources" : "sous"}
+            </span>
+          )}
+          {article.itemType === "utility" && (
+            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+              <ClipboardList className="mr-1 inline-block h-3 w-3" />{lang === "fr" ? "Guide étudiant" : "Gid etidyan"}
             </span>
           )}
           {hasUpdates && article.itemType !== "synthesis" && (

@@ -43,8 +43,11 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     return a.audienceFitScore >= audienceFitThreshold;
   });
 
-  // ── 2b. Synthesis boost: +0.15 to audienceFitScore for synthesis items ───
+  // ── 2b. Boost: utility +0.25, synthesis +0.15 to audienceFitScore ──────
   const boosted = thresholded.map((a) => {
+    if (a.itemType === "utility" && a.audienceFitScore != null) {
+      return { ...a, audienceFitScore: Math.min(1, a.audienceFitScore + 0.25) };
+    }
     if (a.itemType === "synthesis" && a.audienceFitScore != null) {
       return { ...a, audienceFitScore: Math.min(1, a.audienceFitScore + 0.15) };
     }
