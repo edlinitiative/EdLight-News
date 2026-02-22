@@ -184,13 +184,16 @@ function normalizeTitle(title: string): string {
 }
 
 /**
- * Compute dedupeGroupId = sha256(normalizedTitle + publisherDomain).
+ * Compute dedupeGroupId = sha256(normalizedTitle).
+ *
+ * Domain is intentionally excluded so that articles about the same story
+ * from different publishers share the same group — which is required by the
+ * synthesis pipeline to detect multi-source clusters.
  */
-export function computeDedupeGroupId(title: string, url: string): string {
+export function computeDedupeGroupId(title: string, _url?: string): string {
   const normalized = normalizeTitle(title);
-  const domain = extractDomain(url);
   return createHash("sha256")
-    .update(`${normalized}::${domain}`)
+    .update(normalized)
     .digest("hex")
     .slice(0, 16); // 16 hex chars = 64 bits, plenty for grouping
 }
