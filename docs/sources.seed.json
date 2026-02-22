@@ -87,6 +87,62 @@
     "priority": "hot"
   },
   {
+    "name": "Haitian Times",
+    "type": "rss",
+    "url": "https://haitiantimes.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot"
+  },
+  {
+    "name": "RFI — Amériques",
+    "type": "rss",
+    "url": "https://www.rfi.fr/fr/am%C3%A9riques/rss",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot"
+  },
+  {
+    "name": "France 24 — Amériques",
+    "type": "rss",
+    "url": "https://www.france24.com/fr/am%C3%A9riques/rss",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot"
+  },
+  {
+    "name": "BBC — Latin America & Caribbean",
+    "type": "rss",
+    "url": "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot"
+  },
+  {
+    "name": "Al Jazeera — World",
+    "type": "rss",
+    "url": "https://www.aljazeera.com/xml/rss/all.xml",
+    "language": "fr",
+    "pollCadenceSec": 7200,
+    "priority": "normal"
+  },
+  {
+    "name": "Google News — Haiti (EN / US media)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=Haiti&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 3600,
+    "priority": "hot"
+  },
+  {
+    "name": "UN News — Migrants & Refugees",
+    "type": "rss",
+    "url": "https://news.un.org/feed/subscribe/fr/news/topic/migrants-and-refugees/feed/rss.xml",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+  {
     "name": "USAID Haiti",
     "type": "html",
     "url": "https://www.usaid.gov/haiti",

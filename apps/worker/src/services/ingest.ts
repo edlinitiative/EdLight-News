@@ -95,7 +95,11 @@ async function fetchSource(
   source: Source,
 ): Promise<{ title: string; url: string; description: string; publishedAt: Date | null }[]> {
   if (source.type === "rss") {
-    return fetchRSS(source.url);
+    const items = await fetchRSS(source.url);
+    // For Google News items that have a resolved publisher URL,
+    // keep the GN link as-is but let process step use extractOriginalUrl.
+    // The title is already cleaned (publisher suffix removed by fetchRSS).
+    return items;
   }
 
   if (source.type === "html") {

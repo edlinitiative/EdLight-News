@@ -1,11 +1,12 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { rawItemsRepo, itemsRepo, sourcesRepo } from "@edlight-news/firebase";
-import { extractArticleContent } from "@edlight-news/scraper";
+import { extractArticleContent, parseGoogleNewsTitle } from "@edlight-news/scraper";
 import type { QualityFlags } from "@edlight-news/types";
 import {
   computeScoring,
   computeDedupeGroupId,
   buildItemSource,
+  isAggregatorUrl,
 } from "./scoring.js";
 import { classifyItem } from "./classify.js";
 
@@ -46,20 +47,39 @@ export async function processRawItems(): Promise<{
         "attention required!", "site en maintenance",
       ]);
 
-      try {
-        const article = await extractArticleContent(raw.url, source.selectors);
-        const scrapedTitle = article.title?.trim() ?? "";
-        const isGenericTitle = !scrapedTitle || GENERIC_TITLES.has(scrapedTitle.toLowerCase());
-        title = isGenericTitle ? raw.title : scrapedTitle;
-        extractedText = article.text || null;
-        canonicalUrl = article.canonicalUrl || raw.url;
-        // Capture publisher image if available (og:image / twitter:image)
-        publisherImageUrl = article.publisherImageUrl || null;
-        publisherImageConfidence = article.publisherImageConfidence ?? 0;
-      } catch (err) {
-        // Article extraction failed — continue with raw data only
+      // For Google News / aggregator URLs, skip article extraction entirely
+      // (they serve JS interstitials that can't be scraped).
+      // Instead, parse the publisher name from the title suffix.
+      const isAggregator = isAggregatorUrl(raw.url);
+      let effectiveSourceName = source.name;
+
+      if (isAggregator) {
+        // Google News titles: "Article Title - Publisher Name"
+        const { cleanTitle, publisherName } = parseGoogleNewsTitle(raw.title);
+        title = cleanTitle || raw.title;
         extractedText = null;
-        console.warn(`[process] extraction failed for ${raw.url}:`, err);
+        // Keep the aggregator URL as canonical — will be overridden by
+        // the publisher name-based source info below.
+        if (publisherName) {
+          // Override source name with the actual publisher
+          effectiveSourceName = publisherName;
+        }
+      } else {
+        try {
+          const article = await extractArticleContent(raw.url, source.selectors);
+          const scrapedTitle = article.title?.trim() ?? "";
+          const isGenericTitle = !scrapedTitle || GENERIC_TITLES.has(scrapedTitle.toLowerCase());
+          title = isGenericTitle ? raw.title : scrapedTitle;
+          extractedText = article.text || null;
+          canonicalUrl = article.canonicalUrl || raw.url;
+          // Capture publisher image if available (og:image / twitter:image)
+          publisherImageUrl = article.publisherImageUrl || null;
+          publisherImageConfidence = article.publisherImageConfidence ?? 0;
+        } catch (err) {
+          // Article extraction failed — continue with raw data only
+          extractedText = null;
+          console.warn(`[process] extraction failed for ${raw.url}:`, err);
+        }
       }
 
       // Build initial quality flags (generate step refines after Gemini call)
@@ -71,7 +91,7 @@ export async function processRawItems(): Promise<{
       const textForScoring = `${title} ${extractedText || raw.description || ""}`;
       const scoring = computeScoring(title, textForScoring);
       const dedupeGroupId = computeDedupeGroupId(title, canonicalUrl);
-      const { source: itemSource, weakSource } = buildItemSource(source.name, raw.url);
+      const { source: itemSource, weakSource } = buildItemSource(effectiveSourceName, raw.url);
 
       if (weakSource) reasons.push("Could not trace original publisher");
       if (scoring.offMission) reasons.push("Possibly off-mission content");

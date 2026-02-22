@@ -5,6 +5,10 @@ export interface RSSItem {
   url: string;
   description: string;
   publishedAt: Date | null;
+  /** Real publisher URL extracted from Google News <source url="..."> tag */
+  publisherUrl?: string;
+  /** Publisher name from Google News <source> tag or title suffix */
+  publisherName?: string;
 }
 
 const USER_AGENT =
@@ -16,19 +20,81 @@ const parser = new RSSParser({
     "User-Agent": USER_AGENT,
     Accept: "application/rss+xml, application/xml, text/xml, */*",
   },
+  customFields: {
+    item: [["source", { keepArray: false }]],
+  },
 });
+
+// ── Google News helpers ───────────────────────────────────────────────────
+
+/** Detect whether a feed URL is from Google News. */
+function isGoogleNewsFeed(feedUrl: string): boolean {
+  try {
+    return new URL(feedUrl).hostname === "news.google.com";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Google News titles are formatted as "Article Title - Publisher Name".
+ * Strip the suffix and return { cleanTitle, publisherName }.
+ */
+export function parseGoogleNewsTitle(raw: string): { cleanTitle: string; publisherName: string | undefined } {
+  const idx = raw.lastIndexOf(" - ");
+  if (idx > 0 && idx < raw.length - 3) {
+    return {
+      cleanTitle: raw.slice(0, idx).trim(),
+      publisherName: raw.slice(idx + 3).trim(),
+    };
+  }
+  return { cleanTitle: raw, publisherName: undefined };
+}
 
 /**
  * Fetch and parse an RSS feed. Returns normalised items.
+ *
+ * For Google News feeds, also extracts the real publisher URL from the
+ * `<source url="...">` tag and strips the publisher suffix from titles.
  */
 export async function fetchRSS(feedUrl: string): Promise<RSSItem[]> {
   const feed = await parser.parseURL(feedUrl);
+  const isGN = isGoogleNewsFeed(feedUrl);
 
-  return (feed.items ?? []).map((item) => ({
-    title: item.title?.trim() ?? "",
-    url: item.link?.trim() ?? "",
-    description:
-      item.contentSnippet?.trim() ?? item.content?.trim() ?? "",
-    publishedAt: item.isoDate ? new Date(item.isoDate) : null,
-  }));
+  return (feed.items ?? []).map((item) => {
+    const rawTitle = item.title?.trim() ?? "";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sourceTag = (item as any).source as
+      | { $: { url?: string }; _?: string }
+      | string
+      | undefined;
+
+    let title = rawTitle;
+    let publisherUrl: string | undefined;
+    let publisherName: string | undefined;
+
+    if (isGN) {
+      // Extract publisher from <source url="...">Publisher</source>
+      if (sourceTag && typeof sourceTag === "object" && "$" in sourceTag) {
+        publisherUrl = sourceTag.$.url;
+        publisherName = typeof sourceTag._ === "string" ? sourceTag._.trim() : undefined;
+      }
+      // Also parse from title suffix ("Title - Publisher")
+      const parsed = parseGoogleNewsTitle(rawTitle);
+      title = parsed.cleanTitle;
+      if (!publisherName && parsed.publisherName) {
+        publisherName = parsed.publisherName;
+      }
+    }
+
+    return {
+      title,
+      url: item.link?.trim() ?? "",
+      description:
+        item.contentSnippet?.trim() ?? item.content?.trim() ?? "",
+      publishedAt: item.isoDate ? new Date(item.isoDate) : null,
+      publisherUrl,
+      publisherName,
+    };
+  });
 }

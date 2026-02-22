@@ -26,7 +26,7 @@ import type {
   ContentStatus,
 } from "@edlight-news/types";
 import type { SynthesisSource, SynthesisPacket } from "@edlight-news/generator";
-import { extractDomain } from "./scoring.js";
+import { extractDomain, isAggregatorUrl } from "./scoring.js";
 
 // ── Constants (Part I — safety bounds) ──────────────────────────────────────
 
@@ -38,6 +38,18 @@ const MIN_AUDIENCE_SCORE = 0.75;
 const CLUSTER_WINDOW_DAYS = 3; // 72 hours
 
 // ── Types ───────────────────────────────────────────────────────────────────
+
+/**
+ * Resolve the effective publisher identity for an item.
+ * For items sourced through Google News / aggregators, the canonicalUrl
+ * may still be news.google.com, so we fall back to the source name.
+ */
+function itemPublisher(item: Item): string {
+  const domain = extractDomain(item.canonicalUrl);
+  if (!isAggregatorUrl(item.canonicalUrl)) return domain;
+  // Use source.name as publisher identity for aggregator-sourced items
+  return item.source?.name?.toLowerCase().replace(/\s+/g, "-") ?? domain;
+}
 
 interface ClusterCandidate {
   dedupeGroupId: string;
@@ -83,7 +95,7 @@ async function selectClusters(): Promise<ClusterCandidate[]> {
     if (clusterItems.length < MIN_CLUSTER_SIZE) continue;
 
     const publishers = [
-      ...new Set(clusterItems.map((i) => extractDomain(i.canonicalUrl))),
+      ...new Set(clusterItems.map((i) => itemPublisher(i))),
     ];
     if (publishers.length < MIN_DISTINCT_PUBLISHERS) continue;
 
@@ -127,7 +139,7 @@ function buildSourcePacket(
   // First pass: one item per publisher (diversity)
   for (const item of sorted) {
     if (selected.length >= MAX_SOURCES_PER_SYNTHESIS) break;
-    const domain = extractDomain(item.canonicalUrl);
+    const domain = itemPublisher(item);
     if (!usedPublishers.has(domain)) {
       selected.push(item);
       usedPublishers.add(domain);

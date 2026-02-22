@@ -1,4 +1,5 @@
 export { fetchRSS, type RSSItem } from "./rss.js";
+export { parseGoogleNewsTitle } from "./rss.js";
 export {
   scrapeHTML,
   fetchHtml,
