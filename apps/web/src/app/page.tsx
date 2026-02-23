@@ -36,12 +36,19 @@ import {
   DollarSign,
   BookOpen,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { fetchEnrichedFeed } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { ArticleCard } from "@/components/ArticleCard";
+import { DeadlineBadge } from "@/components/DeadlineBadge";
+import {
+  parseISODateSafe,
+  daysUntil,
+  getNextRelevantDate,
+} from "@/lib/deadlines";
 import {
   fetchAllUniversities,
   fetchScholarshipsClosingSoon,
@@ -189,6 +196,55 @@ export default async function AccueilPage({
   }).slice(0, 8);
   const newsArticles = claimer.claim(newsRanked);
 
+  // ── Urgency data: "À ne pas rater cette semaine" ─────────────────────────
+  type UrgencyItem = {
+    id: string;
+    kind: "bourse" | "calendrier";
+    title: string;
+    dateISO: string;
+    days: number;
+    href: string;
+  };
+
+  const urgencyItems: UrgencyItem[] = [];
+
+  // Scholarships within 30 days
+  for (const s of closingScholarships30.slice(0, 5)) {
+    const d = parseISODateSafe(s.deadline?.dateISO);
+    if (!d) continue;
+    const days = daysUntil(d);
+    if (days < 0 || days > 30) continue;
+    urgencyItems.push({
+      id: s.id,
+      kind: "bourse",
+      title: s.name,
+      dateISO: s.deadline!.dateISO!,
+      days,
+      href: lq("/bourses"),
+    });
+  }
+
+  // Calendar events within 14 days
+  for (const ev of upcomingEvents.slice(0, 5)) {
+    const d = getNextRelevantDate(ev);
+    if (!d) continue;
+    const days = daysUntil(d);
+    if (days < 0 || days > 14) continue;
+    const iso = ev.dateISO ?? ev.startDateISO ?? "";
+    urgencyItems.push({
+      id: ev.id,
+      kind: "calendrier",
+      title: ev.title,
+      dateISO: iso,
+      days,
+      href: lq("/calendrier"),
+    });
+  }
+
+  // Sort by soonest, take top 6
+  urgencyItems.sort((a, b) => a.days - b.days);
+  const topUrgent = urgencyItems.slice(0, 6);
+
   return (
     <div className="space-y-12">
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -236,6 +292,59 @@ export default async function AccueilPage({
           </Link>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  URGENCY — À ne pas rater cette semaine
+       * ═══════════════════════════════════════════════════════════════════ */}
+      {topUrgent.length > 0 && (
+        <section className="space-y-4 rounded-xl border-2 border-red-200 bg-red-50/30 p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-xl font-bold text-red-800">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              {fr ? "À ne pas rater cette semaine" : "Sa pou pa rate semèn sa"}
+            </h2>
+            <Link
+              href={lq("/closing-soon")}
+              className="text-sm font-medium text-red-700 hover:underline"
+            >
+              {fr ? "Voir tout →" : "Wè tout →"}
+            </Link>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {topUrgent.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="flex items-center gap-3 rounded-lg border border-red-100 bg-white p-3 transition hover:shadow-sm hover:border-red-300"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-sm">
+                  {item.kind === "bourse" ? (
+                    <DollarSign className="h-4 w-4 text-amber-600" />
+                  ) : (
+                    <CalendarDays className="h-4 w-4 text-blue-600" />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                    {item.title}
+                  </p>
+                </div>
+                <DeadlineBadge
+                  dateISO={item.dateISO}
+                  windowDays={item.kind === "bourse" ? 30 : 14}
+                  lang={lang}
+                  prefix={
+                    item.kind === "bourse"
+                      ? undefined
+                      : { fr: "Événement", ht: "Evènman" }
+                  }
+                  variant="compact"
+                />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════
        *  S1 — Calendrier: Prochaines échéances (above the fold)

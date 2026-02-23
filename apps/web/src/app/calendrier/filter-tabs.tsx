@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { ContentLanguage, CalendarEventType } from "@edlight-news/types";
 import { MetaBadges } from "@/components/MetaBadges";
+import { DeadlineBadge } from "@/components/DeadlineBadge";
 
 type FilterTab = "tous" | "haiti" | "international";
 
@@ -166,7 +167,13 @@ export function CalendarFilterTabs({
                     </a>
                   ))}
                 </div>
-                <div className="mt-1">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <DeadlineBadge
+                    dateISO={e.dateISO}
+                    windowDays={14}
+                    lang={lang}
+                    prefix={{ fr: "Événement", ht: "Evènman" }}
+                  />
                   <MetaBadges
                     verifiedAt={e.verifiedAt as any}
                     updatedAt={e.updatedAt as any}
@@ -216,6 +223,13 @@ export function CalendarFilterTabs({
                   )}
                   <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
                     <span>{s.countryFlag} {s.countryLabel}</span>
+                  </div>
+                  <div className="mt-1">
+                    <DeadlineBadge
+                      dateISO={s.dateISO}
+                      windowDays={30}
+                      lang={lang}
+                    />
                   </div>
                   {s.howToApplyUrl && (
                     <a

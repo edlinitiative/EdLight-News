@@ -10,6 +10,7 @@
 import type { ContentLanguage } from "@edlight-news/types";
 import { GraduationCap, Globe, MapPin, CalendarClock } from "lucide-react";
 import type { FeedItem } from "@/components/news-feed";
+import { DeadlineBadge } from "@/components/DeadlineBadge";
 import {
   categoryLabel,
   CATEGORY_COLORS,
@@ -118,6 +119,14 @@ export function OpportunityCard({ article, lang }: OpportunityCardProps) {
               ? (lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime")
               : `${lang === "fr" ? "Clôture" : "Fèmti"}: ${deadline.label}`}
           </span>
+          {!deadline.missing && deadline.iso && (
+            <DeadlineBadge
+              dateISO={deadline.iso}
+              windowDays={30}
+              lang={lang}
+              variant="compact"
+            />
+          )}
         </div>
 
         {/* Title */}

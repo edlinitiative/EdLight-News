@@ -15,6 +15,7 @@ import {
   COUNTRY_LABELS,
 } from "@/lib/datasets";
 import { MetaBadges } from "@/components/MetaBadges";
+import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
 
 export const dynamic = "force-dynamic";
@@ -140,6 +141,14 @@ export default async function BoursesPage({
                   {formatDate(s.deadline.dateISO, lang)}
                 </p>
               )}
+              {/* Urgency badge */}
+              <div className="mt-1">
+                <DeadlineBadge
+                  dateISO={s.deadline?.dateISO}
+                  windowDays={30}
+                  lang={lang}
+                />
+              </div>
 
               {/* Haitian-friendly indicator */}
               {s.eligibleCountries?.includes("HT") && (
