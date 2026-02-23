@@ -82,9 +82,14 @@ function derivedCategoryInfo(
   }
 
   if (!article.category) return null;
+  // Category is opp-adjacent but content doesn't look like an opportunity
+  // → remap to avoid misleading "Concours"/"Stages" labels on general news.
+  const displayCat = OPP_CATEGORIES.has(article.category)
+    ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
+    : article.category;
   return {
-    label: categoryLabel(article.category, lang),
-    color: CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600",
+    label: categoryLabel(displayCat, lang),
+    color: CATEGORY_COLORS[displayCat] ?? "bg-gray-100 text-gray-600",
   };
 }
 

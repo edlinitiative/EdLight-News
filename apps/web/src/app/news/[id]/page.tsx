@@ -463,9 +463,11 @@ export default async function ArticlePage({
   // Find related articles by dedupeGroupId (wrapped in try/catch —
   // the composite index may not yet exist in Firestore)
   let relatedArticles: ContentVersion[] = [];
+  let dedupeGroupItems: Item[] = [];
   try {
     if (item?.dedupeGroupId) {
       const relatedItems = await itemsRepo.listByDedupeGroupId(item.dedupeGroupId, 5);
+      dedupeGroupItems = relatedItems;
       const relatedItemIds = relatedItems
         .filter((ri) => ri.id !== item.id)
         .map((ri) => ri.id);
@@ -483,6 +485,33 @@ export default async function ArticlePage({
   } catch (err) {
     // Firestore index may not exist yet — degrade gracefully
     console.warn("[news/[id]] Failed to fetch related articles:", err);
+  }
+
+  // ── Pick best image across dedup group (same logic as ranking.ts) ──────
+  // The card feed runs mergeGroup() which selects the highest-quality image
+  // across all duplicates.  The detail page must do the same so the hero
+  // matches what the user saw on the card.
+  const IMAGE_RANK: Record<string, number> = {
+    publisher: 4,
+    wikidata: 3,
+    branded: 2,
+    screenshot: 1,
+  };
+  let heroImageUrl = item?.imageUrl ?? null;
+  let heroImageSource = item?.imageSource ?? null;
+  let heroImageAttribution = item?.imageAttribution ?? null;
+  if (dedupeGroupItems.length > 0) {
+    let bestScore = IMAGE_RANK[item?.imageSource ?? ""] ?? (item?.imageUrl ? 0 : -1);
+    for (const sibling of dedupeGroupItems) {
+      if (!sibling.imageUrl) continue;
+      const score = IMAGE_RANK[sibling.imageSource ?? ""] ?? 0;
+      if (score > bestScore) {
+        bestScore = score;
+        heroImageUrl = sibling.imageUrl;
+        heroImageSource = sibling.imageSource ?? null;
+        heroImageAttribution = sibling.imageAttribution ?? null;
+      }
+    }
   }
 
   const isSynthesis = item?.itemType === "synthesis";
@@ -542,13 +571,19 @@ export default async function ArticlePage({
   const isBourses = derivedSubCat === "bourses" || (!derivedSubCat &&
     (item?.category === "scholarship" || item?.category === "opportunity"));
 
-  // Use derived subcategory colour for opportunity items, fall back to legacy
+  // Use derived subcategory colour for opportunity items, fall back to legacy.
+  // When an opp-adjacent category failed the smell test, remap to avoid
+  // misleading "Concours"/"Stages" labels on general news articles.
+  const rawCat = item?.category ?? "";
+  const fallbackCat = OPPORTUNITY_CATEGORIES.has(rawCat)
+    ? (item?.geoTag === "HT" || item?.vertical === "haiti" ? "local_news" : "news")
+    : rawCat;
   const catColor = derivedSubCat
     ? SUBCAT_COLORS[derivedSubCat]
-    : (CATEGORY_COLORS[item?.category ?? ""] ?? "bg-gray-100 text-gray-600");
+    : (CATEGORY_COLORS[fallbackCat] ?? "bg-gray-100 text-gray-600");
   const catLabel = derivedSubCat
     ? SUBCAT_LABELS[derivedSubCat][currentLang]
-    : categoryLabel(item?.category ?? "", currentLang);
+    : categoryLabel(fallbackCat, currentLang);
 
   // Timestamp to date
   const pubAt = item?.publishedAt as { seconds?: number; _seconds?: number } | null | undefined;
@@ -566,31 +601,31 @@ export default async function ArticlePage({
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
-      {/* Hero image — show all image sources */}
-      {item?.imageUrl && (
+      {/* Hero image — best image from dedup group (mirrors card logic) */}
+      {heroImageUrl && (
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100">
           <img
-            src={item.imageUrl}
+            src={heroImageUrl}
             alt=""
             className="h-full w-full object-cover"
           />
           {/* Image credit label */}
-          {item.imageSource === "publisher" && (
+          {heroImageSource === "publisher" && (
             <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
               {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
             </span>
           )}
-          {item.imageSource === "wikidata" && (
+          {heroImageSource === "wikidata" && (
             <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-              {item.imageAttribution?.name
-                ? `Photo : ${item.imageAttribution.name}`
+              {heroImageAttribution?.name
+                ? `Photo : ${heroImageAttribution.name}`
                 : "Wikimedia Commons"}
-              {item.imageAttribution?.license
-                ? ` (${item.imageAttribution.license})`
+              {heroImageAttribution?.license
+                ? ` (${heroImageAttribution.license})`
                 : ""}
             </span>
           )}
-          {item.imageSource === "screenshot" && (
+          {heroImageSource === "screenshot" && (
             <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
               {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
             </span>

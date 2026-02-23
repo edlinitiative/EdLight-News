@@ -155,10 +155,15 @@ function CategoryBadge({ article, lang }: { article: FeedItem; lang: ContentLang
   }
 
   if (!article.category) return null;
-  const color = CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600";
+  // Category is opp-adjacent but content doesn't look like an opportunity
+  // → remap to avoid misleading "Concours"/"Stages" labels on general news.
+  const displayCat = OPP_CATEGORIES.has(article.category)
+    ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
+    : article.category;
+  const color = CATEGORY_COLORS[displayCat] ?? "bg-gray-100 text-gray-600";
   return (
     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
-      {categoryLabel(article.category, lang)}
+      {categoryLabel(displayCat, lang)}
     </span>
   );
 }
