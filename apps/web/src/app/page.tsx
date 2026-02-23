@@ -135,7 +135,16 @@ export default async function AccueilPage({
   const lq = (path: string) => path + langQ;
   const fr = lang === "fr";
 
-  // ── Fetch data in parallel ────────────────────────────────────────────────
+  // ── Fetch data in parallel (resilient — individual failures produce empty arrays) ──
+  const safeFetch = async <T,>(fn: () => Promise<T>, fallback: T, label: string): Promise<T> => {
+    try {
+      return await fn();
+    } catch (err) {
+      console.error(`[EdLight] ${label} fetch failed:`, err);
+      return fallback;
+    }
+  };
+
   const [
     allArticles,
     upcomingEvents,
@@ -144,12 +153,12 @@ export default async function AccueilPage({
     allPathways,
     allUniversities,
   ] = await Promise.all([
-    fetchEnrichedFeed(lang, 300),
-    fetchUpcomingCalendarEvents(),
-    fetchScholarshipsClosingSoon(30),
-    fetchScholarshipsClosingSoon(45),
-    fetchAllPathways(),
-    fetchAllUniversities(),
+    safeFetch(() => fetchEnrichedFeed(lang, 300), [], "enrichedFeed"),
+    safeFetch(fetchUpcomingCalendarEvents, [], "upcomingEvents"),
+    safeFetch(() => fetchScholarshipsClosingSoon(30), [], "scholarships30"),
+    safeFetch(() => fetchScholarshipsClosingSoon(45), [], "scholarships45"),
+    safeFetch(fetchAllPathways, [], "pathways"),
+    safeFetch(fetchAllUniversities, [], "universities"),
   ]);
 
   // Pre-filter: drop off-mission articles
@@ -591,7 +600,7 @@ export default async function AccueilPage({
               {latestHistoryPost.title}
             </h3>
             <p className="mt-2 text-sm text-gray-600 line-clamp-3">
-              {latestHistoryPost.summary || latestHistoryPost.body.slice(0, 250)}
+              {latestHistoryPost.summary || latestHistoryPost.body?.slice(0, 250) || ""}
             </p>
             <Link
               href={`/news/${latestHistoryPost.id}${langQ}`}

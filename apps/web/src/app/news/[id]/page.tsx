@@ -439,10 +439,20 @@ export default async function ArticlePage({
   const currentLang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
 
   // Get parent item for v2 fields
-  const item = await itemsRepo.getItem(article.itemId);
+  let item: Awaited<ReturnType<typeof itemsRepo.getItem>> = null;
+  try {
+    item = await itemsRepo.getItem(article.itemId);
+  } catch (err) {
+    console.error("[EdLight] news/[id] item fetch failed:", err);
+  }
 
   // Find sibling version in the other language
-  const siblings = await contentVersionsRepo.listByItemId(article.itemId);
+  let siblings: Awaited<ReturnType<typeof contentVersionsRepo.listByItemId>> = [];
+  try {
+    siblings = await contentVersionsRepo.listByItemId(article.itemId);
+  } catch (err) {
+    console.error("[EdLight] news/[id] siblings fetch failed:", err);
+  }
   const otherLang: ContentLanguage = article.language === "fr" ? "ht" : "fr";
   const siblingVersion = siblings.find(
     (s) => s.language === otherLang && s.channel === "web",

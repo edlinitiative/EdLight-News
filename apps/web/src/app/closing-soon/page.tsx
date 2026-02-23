@@ -53,10 +53,18 @@ export default async function ClosingSoonPage({
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
 
-  const [scholarships, calEvents] = await Promise.all([
-    fetchScholarshipsClosingSoon(30),
-    fetchUpcomingCalendarEvents(),
-  ]);
+  let scholarships: Awaited<ReturnType<typeof fetchScholarshipsClosingSoon>>;
+  let calEvents: Awaited<ReturnType<typeof fetchUpcomingCalendarEvents>>;
+  try {
+    [scholarships, calEvents] = await Promise.all([
+      fetchScholarshipsClosingSoon(30),
+      fetchUpcomingCalendarEvents(),
+    ]);
+  } catch (err) {
+    console.error("[EdLight] /closing-soon fetch failed:", err);
+    scholarships = [];
+    calEvents = [];
+  }
 
   // Build unified list
   const items: ClosingItem[] = [];

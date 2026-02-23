@@ -14,7 +14,13 @@ export default async function NewsPage({
   const language: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
 
   // Fetch enriched articles (content_versions + parent item metadata)
-  const enriched = await fetchEnrichedArticles(language, 200);
+  let enriched: Awaited<ReturnType<typeof fetchEnrichedArticles>>;
+  try {
+    enriched = await fetchEnrichedArticles(language, 200);
+  } catch (err) {
+    console.error("[EdLight] /news fetch failed:", err);
+    enriched = [];
+  }
 
   // Server-side ranking:
   //   - drop offMission items

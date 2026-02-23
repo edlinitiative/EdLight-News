@@ -19,7 +19,13 @@ export default async function HaitiPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
 
-  const allArticles = await fetchEnrichedFeed(lang, 200);
+  let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
+  try {
+    allArticles = await fetchEnrichedFeed(lang, 200);
+  } catch (err) {
+    console.error("[EdLight] /haiti fetch failed:", err);
+    allArticles = [];
+  }
 
   const haitiPool = allArticles.filter(
     (a) => a.geoTag === "HT" || a.category === "local_news",

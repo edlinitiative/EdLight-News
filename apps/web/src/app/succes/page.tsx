@@ -19,7 +19,13 @@ export default async function SuccesPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
 
-  const allArticles = await fetchEnrichedFeed(lang, 200);
+  let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
+  try {
+    allArticles = await fetchEnrichedFeed(lang, 200);
+  } catch (err) {
+    console.error("[EdLight] /succes fetch failed:", err);
+    allArticles = [];
+  }
 
   // Strict gating — no keyword fallback
   const articles = allArticles

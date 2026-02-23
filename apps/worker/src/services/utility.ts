@@ -599,6 +599,8 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           audienceFitScore,
           geoTag: utilityMeta.region?.includes("HT") ? ("HT" as const) : ("Global" as const),
           imageSource: "branded" as const,
+          // HaitianOfTheWeek items are success stories by definition
+          ...(job.series === "HaitianOfTheWeek" ? { successTag: true } : {}),
         };
 
         const { item } = await itemsRepo.upsertItemByCanonicalUrl(itemData);

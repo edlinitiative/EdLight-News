@@ -62,12 +62,24 @@ export default async function HistoirePage({
   const selectedMonth = searchParams.month ?? todayMD.split("-")[0]!;
 
   // Fetch data in parallel
-  const [todayEntries, todayHolidays, monthEntries, allHolidays] = await Promise.all([
-    fetchAlmanacByMonthDay(todayMD),
-    fetchHolidaysByMonthDay(todayMD),
-    fetchAlmanacByMonth(selectedMonth),
-    fetchAllHolidays(),
-  ]);
+  let todayEntries: Awaited<ReturnType<typeof fetchAlmanacByMonthDay>>;
+  let todayHolidays: Awaited<ReturnType<typeof fetchHolidaysByMonthDay>>;
+  let monthEntries: Awaited<ReturnType<typeof fetchAlmanacByMonth>>;
+  let allHolidays: Awaited<ReturnType<typeof fetchAllHolidays>>;
+  try {
+    [todayEntries, todayHolidays, monthEntries, allHolidays] = await Promise.all([
+      fetchAlmanacByMonthDay(todayMD),
+      fetchHolidaysByMonthDay(todayMD),
+      fetchAlmanacByMonth(selectedMonth),
+      fetchAllHolidays(),
+    ]);
+  } catch (err) {
+    console.error("[EdLight] /histoire fetch failed:", err);
+    todayEntries = [];
+    todayHolidays = [];
+    monthEntries = [];
+    allHolidays = [];
+  }
 
   const [, todayDay] = todayMD.split("-");
   const monthIndex = parseInt(selectedMonth, 10) - 1;

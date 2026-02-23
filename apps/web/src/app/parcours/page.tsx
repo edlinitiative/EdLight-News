@@ -26,7 +26,13 @@ export default async function ParcoursPage({
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
 
-  const pathways = await fetchAllPathways();
+  let pathways: Awaited<ReturnType<typeof fetchAllPathways>>;
+  try {
+    pathways = await fetchAllPathways();
+  } catch (err) {
+    console.error("[EdLight] /parcours fetch failed:", err);
+    pathways = [];
+  }
 
   return (
     <div className="space-y-8">

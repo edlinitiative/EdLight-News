@@ -53,10 +53,18 @@ export default async function BoursesPage({
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
 
-  const [allScholarships, closingSoon] = await Promise.all([
-    fetchScholarshipsForHaiti(),
-    fetchScholarshipsClosingSoon(60),
-  ]);
+  let allScholarships: Awaited<ReturnType<typeof fetchScholarshipsForHaiti>>;
+  let closingSoon: Awaited<ReturnType<typeof fetchScholarshipsClosingSoon>>;
+  try {
+    [allScholarships, closingSoon] = await Promise.all([
+      fetchScholarshipsForHaiti(),
+      fetchScholarshipsClosingSoon(60),
+    ]);
+  } catch (err) {
+    console.error("[EdLight] /bourses fetch failed:", err);
+    allScholarships = [];
+    closingSoon = [];
+  }
 
   return (
     <div className="space-y-8">

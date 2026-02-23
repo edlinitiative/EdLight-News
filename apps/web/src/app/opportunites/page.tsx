@@ -20,7 +20,13 @@ export default async function OpportunitesPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
 
-  const allArticles = await fetchEnrichedFeed(lang, 200);
+  let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
+  try {
+    allArticles = await fetchEnrichedFeed(lang, 200);
+  } catch (err) {
+    console.error("[EdLight] /opportunites fetch failed:", err);
+    allArticles = [];
+  }
 
   // Keep all opportunity-type items: by vertical, legacy categories, and new subcategories.
   // Items without deadlines are included — the client handles sort/filter logic.

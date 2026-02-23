@@ -33,7 +33,13 @@ export default async function UniversitesPage({
   const fr = lang === "fr";
   const filterCountry = searchParams.country as DatasetCountry | undefined;
 
-  const grouped = await fetchUniversitiesGrouped();
+  let grouped: Awaited<ReturnType<typeof fetchUniversitiesGrouped>>;
+  try {
+    grouped = await fetchUniversitiesGrouped();
+  } catch (err) {
+    console.error("[EdLight] /universites fetch failed:", err);
+    grouped = {};
+  }
 
   // If a country filter is applied, only show that country
   const countries = filterCountry

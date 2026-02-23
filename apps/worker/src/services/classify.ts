@@ -47,6 +47,26 @@ const PROGRAMMES_KEYWORDS = [
   "appel à candidatures",
 ];
 
+/**
+ * Keywords indicating a success / achievement / inspiration story.
+ * Covers both French and Kreyòl Ayisyen variants.
+ */
+const SUCCESS_KEYWORDS = [
+  // French
+  "succes", "réussite", "reussite", "accomplissement", "distinction",
+  "honneur", "fierté", "fierte", "exploit", "laureat", "lauréat",
+  "medaille", "médaille", "champion", "remporte", "diplome obtenu",
+  "diplômé", "diplome", "palmares", "palmarès", "primé", "prime",
+  "parcours inspirant", "histoire inspirante", "modele de reussite",
+  "parcours exemplaire", "haïtien qui brille", "haitien qui brille",
+  "haïtienne qui brille", "haitienne qui brille",
+  // Kreyòl Ayisyen
+  "siksè", "sikse", "reyisit", "akonplisman", "fyète", "fyete",
+  "chanpyon", "onè", "one",
+  // English loan words common in Haitian press
+  "success story", "achievement", "award-winning", "honored",
+];
+
 /** Union of all opportunity keywords — used for the top-level check. */
 const ALL_OPPORTUNITY_KEYWORDS = [
   ...BOURSES_KEYWORDS,
@@ -174,6 +194,8 @@ export interface ClassificationResult {
   geoTag?: GeoTag;
   /** Structured opportunity payload for Firestore. */
   opportunity?: Opportunity;
+  /** Whether the item is a success / achievement / inspiration story. */
+  isSuccessStory: boolean;
 }
 
 /**
@@ -190,9 +212,12 @@ export function classifyItem(
 ): ClassificationResult {
   const combinedText = normalizeText(`${title} ${summary} ${body}`);
 
+  // ── Success story detection (runs for ALL items) ──────────────────────
+  const isSuccessStory = containsAny(combinedText, SUCCESS_KEYWORDS);
+
   // ── Quick exit if no opportunity signal ────────────────────────────────
   if (!containsAny(combinedText, ALL_OPPORTUNITY_KEYWORDS)) {
-    return { isOpportunity: false };
+    return { isOpportunity: false, isSuccessStory };
   }
 
   // ── Determine subcategory (priority order: Bourses > Stages > Concours > Programmes) ──
@@ -229,5 +254,6 @@ export function classifyItem(
     missingDeadline,
     geoTag,
     opportunity,
+    isSuccessStory,
   };
 }

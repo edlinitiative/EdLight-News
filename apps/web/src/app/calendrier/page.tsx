@@ -125,13 +125,25 @@ export default async function CalendrierPage({
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
 
-  const [calendarData, structuredUpcoming, structuredAll, scholarships90] =
-    await Promise.all([
-      fetchCalendarData(lang),
-      fetchUpcomingCalendarEvents(),
-      fetchAllCalendarEvents(),
-      fetchScholarshipsClosingSoon(90),
-    ]);
+  let calendarData: Awaited<ReturnType<typeof fetchCalendarData>>;
+  let structuredUpcoming: Awaited<ReturnType<typeof fetchUpcomingCalendarEvents>>;
+  let structuredAll: Awaited<ReturnType<typeof fetchAllCalendarEvents>>;
+  let scholarships90: Awaited<ReturnType<typeof fetchScholarshipsClosingSoon>>;
+  try {
+    [calendarData, structuredUpcoming, structuredAll, scholarships90] =
+      await Promise.all([
+        fetchCalendarData(lang),
+        fetchUpcomingCalendarEvents(),
+        fetchAllCalendarEvents(),
+        fetchScholarshipsClosingSoon(90),
+      ]);
+  } catch (err) {
+    console.error("[EdLight] /calendrier fetch failed:", err);
+    calendarData = { item: null, deadlines: [], hasUpcoming: false };
+    structuredUpcoming = [];
+    structuredAll = [];
+    scholarships90 = [];
+  }
 
   const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
     exam: <FileText className="h-5 w-5 text-orange-600" />,

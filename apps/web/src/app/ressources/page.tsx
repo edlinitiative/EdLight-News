@@ -31,7 +31,13 @@ export default async function RessourcesPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
 
-  const allArticles = await fetchEnrichedFeed(lang, 200);
+  let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
+  try {
+    allArticles = await fetchEnrichedFeed(lang, 200);
+  } catch (err) {
+    console.error("[EdLight] /ressources fetch failed:", err);
+    allArticles = [];
+  }
 
   const resourcePool = allArticles.filter(
     (a) =>
