@@ -80,3 +80,20 @@ export async function update(id: string, data: Partial<CreateHaitiHistoryAlmanac
   );
   await collection().doc(id).update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
 }
+
+/** Delete an almanac entry by ID. */
+export async function remove(id: string): Promise<void> {
+  await collection().doc(id).delete();
+}
+
+/** Find and delete by monthDay + title_fr (inverse of upsertByTitle). */
+export async function removeByMonthDayAndTitle(monthDay: string, title_fr: string): Promise<boolean> {
+  const snap = await collection()
+    .where("monthDay", "==", monthDay)
+    .where("title_fr", "==", title_fr)
+    .limit(1)
+    .get();
+  if (snap.empty) return false;
+  await snap.docs[0]!.ref.delete();
+  return true;
+}

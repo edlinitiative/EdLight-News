@@ -13,4 +13,8 @@ export declare function upsertByTitle(data: CreateHaitiHistoryAlmanacEntry): Pro
     created: boolean;
 }>;
 export declare function update(id: string, data: Partial<CreateHaitiHistoryAlmanacEntry>): Promise<void>;
+/** Delete an almanac entry by ID. */
+export declare function remove(id: string): Promise<void>;
+/** Find and delete by monthDay + title_fr (inverse of upsertByTitle). */
+export declare function removeByMonthDayAndTitle(monthDay: string, title_fr: string): Promise<boolean>;
 //# sourceMappingURL=haiti-history-almanac.d.ts.map

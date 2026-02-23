@@ -63,4 +63,20 @@ export async function update(id, data) {
     const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined && v !== null));
     await collection().doc(id).update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
 }
+/** Delete an almanac entry by ID. */
+export async function remove(id) {
+    await collection().doc(id).delete();
+}
+/** Find and delete by monthDay + title_fr (inverse of upsertByTitle). */
+export async function removeByMonthDayAndTitle(monthDay, title_fr) {
+    const snap = await collection()
+        .where("monthDay", "==", monthDay)
+        .where("title_fr", "==", title_fr)
+        .limit(1)
+        .get();
+    if (snap.empty)
+        return false;
+    await snap.docs[0].ref.delete();
+    return true;
+}
 //# sourceMappingURL=haiti-history-almanac.js.map
