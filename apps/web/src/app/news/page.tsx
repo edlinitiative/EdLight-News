@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { NewsFeed } from "@/components/news-feed";
 import { fetchEnrichedArticles } from "@/lib/feed";
@@ -5,6 +6,10 @@ import { rankFeed } from "@/lib/ranking";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Fil — EdLight News",
+};
 
 export default async function NewsPage({
   searchParams,

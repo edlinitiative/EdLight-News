@@ -10,6 +10,12 @@ import {
   SUBCAT_LABELS,
   type OpportunitySubCat,
 } from "@/lib/opportunities";
+import {
+  classifyOpportunity,
+  type OpportunitySubcategory,
+  type ClassificationResult,
+} from "@/lib/opportunityClassifier";
+import { getDeadlineStatus, type DeadlineStatus } from "@/lib/opportunityDeadline";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +29,22 @@ const SORT_LABELS: Record<SortMode, { fr: string; ht: string }> = {
   latest:    { fr: "Dernières",      ht: "Dènye"     },
 };
 
+/** Map the new PascalCase subcategory to the existing lowercase OpportunitySubCat. */
+function toSubCat(sc: OpportunitySubcategory): OpportunitySubCat {
+  const map: Record<OpportunitySubcategory, OpportunitySubCat> = {
+    Bourses: "bourses",
+    Programmes: "programmes",
+    Stages: "stages",
+    Concours: "concours",
+    Ressources: "ressources",
+    Autre: "autre",
+  };
+  return map[sc];
+}
+
+/** Number of days after expiry beyond which items are hidden by default. */
+const EXPIRED_HIDE_THRESHOLD_DAYS = 14;
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export interface OpportunitiesFeedProps {
@@ -34,19 +56,54 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   const [subCat, setSubCat] = useState<SubCatFilter>("all");
   const [sort, setSort] = useState<SortMode>("relevance");
   const [includeNoDeadline, setIncludeNoDeadline] = useState(false);
+  const [showExpired, setShowExpired] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Pre-compute derived subcategory + deadline per article (once)
+  // Pre-compute derived classification + deadline per article (once)
   const enriched = useMemo(
     () =>
-      articles.map((a) => ({
-        article: a,
-        subCat: deriveSubcategory(a),
-        deadline: parseDeadline(a, lang),
-      })),
+      articles.map((a) => {
+        const classification = classifyOpportunity({
+          title: a.title,
+          summary: a.summary,
+          body: a.body,
+          existingCategory: a.category,
+        });
+        const derivedSubCat = toSubCat(classification.subcategory);
+        const deadline = parseDeadline(a, lang);
+        const deadlineStatus = getDeadlineStatus(
+          a.deadline ?? deadline.iso,
+        );
+        return {
+          article: a,
+          subCat: derivedSubCat,
+          classification,
+          deadline,
+          deadlineStatus,
+        };
+      }),
     [articles, lang],
   );
 
-  // Filter by selected subcategory pill
+  // Pill counts — based on derived classification, not original category
+  const pillCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: 0 };
+    for (const e of enriched) {
+      counts.all = (counts.all ?? 0) + 1;
+      counts[e.subCat] = (counts[e.subCat] ?? 0) + 1;
+    }
+    return counts;
+  }, [enriched]);
+
+  // Does the query match an item? (for search-based override of expired hiding)
+  const matchesSearch = (a: typeof enriched[number]): boolean => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const blob = `${a.article.title ?? ""} ${a.article.summary ?? ""}`.toLowerCase();
+    return blob.includes(q);
+  };
+
+  // Filter by selected subcategory pill + expired/search logic
   const filtered = useMemo(() => {
     let result =
       subCat === "all"
@@ -58,17 +115,41 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       result = result.filter((e) => !e.deadline.missing);
     }
 
-    return result;
-  }, [enriched, subCat, sort, includeNoDeadline]);
+    // Hide deeply expired items (>14 days) unless user explicitly searches or toggles
+    if (!showExpired) {
+      result = result.filter(
+        (e) =>
+          !e.deadlineStatus.isExpired ||
+          (e.deadlineStatus.daysPast ?? 0) <= EXPIRED_HIDE_THRESHOLD_DAYS ||
+          matchesSearch(e),
+      );
+    }
 
-  // Sort
+    return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enriched, subCat, sort, includeNoDeadline, showExpired, searchQuery]);
+
+  // Sort: non-expired first, then expired by most recent deadline
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
+      // Non-expired items always come before expired
+      const aExpired = a.deadlineStatus.isExpired ? 1 : 0;
+      const bExpired = b.deadlineStatus.isExpired ? 1 : 0;
+      if (aExpired !== bExpired) return aExpired - bExpired;
+
       if (sort === "deadline") {
         // Items with deadlines come first
         if (!a.deadline.missing && b.deadline.missing) return -1;
         if (a.deadline.missing && !b.deadline.missing) return 1;
         if (a.deadline.iso && b.deadline.iso) {
+          // For expired items, most recently expired first (desc)
+          if (a.deadlineStatus.isExpired && b.deadlineStatus.isExpired) {
+            return (
+              new Date(b.deadline.iso).getTime() -
+              new Date(a.deadline.iso).getTime()
+            );
+          }
+          // For non-expired, soonest deadline first (asc)
           return (
             new Date(a.deadline.iso).getTime() -
             new Date(b.deadline.iso).getTime()
@@ -93,24 +174,41 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
 
   return (
     <div className="space-y-6">
+      {/* Search input */}
+      <div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
+          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+        />
+      </div>
+
       {/* Subcategory pills */}
       <div className="flex flex-wrap gap-2">
         {(
-          ["all", "bourses", "concours", "stages", "programmes"] as SubCatFilter[]
-        ).map((s) => (
-          <button
-            key={s}
-            onClick={() => setSubCat(s)}
-            className={[
-              "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
-              subCat === s
-                ? "bg-brand-600 text-white shadow-sm"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
-            ].join(" ")}
-          >
-            {SUBCAT_LABELS[s][lang]}
-          </button>
-        ))}
+          ["all", "bourses", "concours", "stages", "programmes", "ressources", "autre"] as SubCatFilter[]
+        ).map((s) => {
+          const count = pillCounts[s] ?? 0;
+          // Hide pills with zero count (except "all")
+          if (s !== "all" && count === 0) return null;
+          return (
+            <button
+              key={s}
+              onClick={() => setSubCat(s)}
+              className={[
+                "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
+                subCat === s
+                  ? "bg-brand-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+              ].join(" ")}
+            >
+              {SUBCAT_LABELS[s][lang]}
+              <span className="ml-1.5 text-xs opacity-70">({count})</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Sort controls row */}
@@ -146,6 +244,16 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
             {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
           </label>
         )}
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500">
+          <input
+            type="checkbox"
+            checked={showExpired}
+            onChange={(e) => setShowExpired(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
+        </label>
       </div>
 
       {/* Results */}
@@ -162,6 +270,9 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
               key={entry.article.id}
               article={entry.article}
               lang={lang}
+              derivedSubcategory={entry.subCat}
+              classification={entry.classification}
+              deadlineStatus={entry.deadlineStatus}
             />
           ))}
         </div>

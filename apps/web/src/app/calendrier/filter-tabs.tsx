@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import type { ContentLanguage, CalendarEventType } from "@edlight-news/types";
+import type { CalendarGeoLabel } from "@/lib/geo";
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 
@@ -36,6 +37,7 @@ interface HaitiItem {
   sources?: { label: string; url: string }[] | null;
   verifiedAt?: unknown;
   updatedAt?: unknown;
+  geoLabel: CalendarGeoLabel;
 }
 
 interface IntlItem {
@@ -48,6 +50,7 @@ interface IntlItem {
   countryFlag?: string;
   eligibility?: string | null;
   howToApplyUrl?: string | null;
+  geoLabel: CalendarGeoLabel;
 }
 
 const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
@@ -71,14 +74,25 @@ export function CalendarFilterTabs({
   const [tab, setTab] = useState<FilterTab>("tous");
   const fr = lang === "fr";
 
+  // Geo-based filtering
+  const geoFilter = (label: CalendarGeoLabel): boolean =>
+    tab === "tous" || (tab === "haiti" ? label === "HT" : label === "International");
+
+  const filteredHaiti = haitiItems.filter((i) => geoFilter(i.geoLabel));
+  const filteredIntl = intlItems.filter((i) => geoFilter(i.geoLabel));
+
+  const haitiGeoCount =
+    haitiItems.filter((i) => i.geoLabel === "HT").length +
+    intlItems.filter((i) => i.geoLabel === "HT").length;
+  const intlGeoCount =
+    haitiItems.filter((i) => i.geoLabel === "International").length +
+    intlItems.filter((i) => i.geoLabel === "International").length;
+
   const tabs: { key: FilterTab; label: string; count: number }[] = [
     { key: "tous", label: fr ? "Tous" : "Tout", count: haitiItems.length + intlItems.length },
-    { key: "haiti", label: fr ? "Haïti" : "Ayiti", count: haitiItems.length },
-    { key: "international", label: "International", count: intlItems.length },
+    { key: "haiti", label: fr ? "Haïti" : "Ayiti", count: haitiGeoCount },
+    { key: "international", label: "International", count: intlGeoCount },
   ];
-
-  const showHaiti = tab === "tous" || tab === "haiti";
-  const showIntl = tab === "tous" || tab === "international";
 
   return (
     <div className="space-y-6">
@@ -101,14 +115,14 @@ export function CalendarFilterTabs({
       </div>
 
       {/* Haiti events */}
-      {showHaiti && haitiItems.length > 0 && (
+      {filteredHaiti.length > 0 && (
         <section className="space-y-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-blue-800">
-            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs font-semibold text-blue-700">HT</span>
+            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs font-semibold text-blue-700">Haïti</span>
             {fr ? "Événements Haïti" : "Evènman Ayiti"}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {haitiItems.map((e) => (
+            {filteredHaiti.map((e) => (
               <div
                 key={e.id}
                 className="rounded-lg border-l-4 border-blue-400 bg-blue-50/50 p-4"
@@ -187,16 +201,16 @@ export function CalendarFilterTabs({
       )}
 
       {/* International scholarship deadlines */}
-      {showIntl && intlItems.length > 0 && (
+      {filteredIntl.length > 0 && (
         <section className="space-y-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-emerald-800">
             <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
-              <Globe className="h-3 w-3" /> Intl
+              <Globe className="h-3 w-3" /> International
             </span>
             {fr ? "Bourses internationales — Dates limites" : "Bous entènasyonal — Dat limit"}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {intlItems.map((s) => {
+            {filteredIntl.map((s) => {
               const dateObj = s.dateISO
                 ? new Date(s.dateISO + "T00:00:00")
                 : null;
@@ -250,9 +264,7 @@ export function CalendarFilterTabs({
       )}
 
       {/* Empty state */}
-      {((tab === "haiti" && haitiItems.length === 0) ||
-        (tab === "international" && intlItems.length === 0) ||
-        (tab === "tous" && haitiItems.length === 0 && intlItems.length === 0)) && (
+      {filteredHaiti.length === 0 && filteredIntl.length === 0 && (
         <div className="rounded-lg border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
           <CalendarDays className="mx-auto mb-2 h-8 w-8" />
           <p>{fr ? "Aucun événement pour ce filtre." : "Pa gen evènman pou filt sa a."}</p>

@@ -60,6 +60,7 @@ import {
   COUNTRY_LABELS,
   TUITION_LABELS,
 } from "@/lib/datasets";
+import { getCalendarGeoLabel } from "@/lib/geo";
 
 export const dynamic = "force-dynamic";
 
@@ -381,6 +382,7 @@ export default async function AccueilPage({
             {/* Haiti events */}
             {haitiEvents.map((ev) => {
               const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
+              const evGeo = getCalendarGeoLabel(ev);
               return (
                 <div key={ev.id} className="flex items-start gap-3 rounded-lg border border-blue-100 bg-white p-4">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-600 text-white">
@@ -397,9 +399,15 @@ export default async function AccueilPage({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
-                        HT
-                      </span>
+                      {evGeo === "HT" ? (
+                        <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                          Haïti
+                        </span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                          <Globe className="h-3 w-3" /> International
+                        </span>
+                      )}
                       <p className="font-medium text-gray-900 line-clamp-1">{ev.title}</p>
                     </div>
                     {ev.institution && (
@@ -414,6 +422,7 @@ export default async function AccueilPage({
             {intlScholarships.map((s) => {
               const dl = s.deadline;
               const dateObj = dl?.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
+              const sGeo = getCalendarGeoLabel(s);
               return (
                 <div key={s.id} className="flex items-start gap-3 rounded-lg border border-amber-100 bg-white p-4">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-amber-500 text-white">
@@ -430,9 +439,15 @@ export default async function AccueilPage({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                        <Globe className="h-3 w-3" /> Intl
-                      </span>
+                      {sGeo === "HT" ? (
+                        <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                          Haïti
+                        </span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                          <Globe className="h-3 w-3" /> International
+                        </span>
+                      )}
                       <p className="font-medium text-gray-900 line-clamp-1">{s.name}</p>
                     </div>
                     {dl?.dateISO && (

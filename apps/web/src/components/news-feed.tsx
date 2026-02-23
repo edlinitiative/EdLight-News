@@ -334,7 +334,7 @@ export function NewsFeed({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">
-          {lang === "fr" ? "Actualités" : "Nouvèl"}
+          {lang === "fr" ? "Fil — Actualités" : "Fil — Nouvèl"}
         </h1>
         <span className="text-sm text-gray-400">
           {sorted.length} {lang === "fr" ? "articles" : "atik"}

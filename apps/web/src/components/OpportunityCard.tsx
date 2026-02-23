@@ -1,14 +1,14 @@
 /**
  * OpportunityCard — extends ArticleCard with opportunity-specific chips.
  *
- * Renders Level, Region, and Deadline chips below the category badge row.
- * Uses deriveSubcategory / inferLevel / inferRegion from lib/opportunities.
+ * Renders Level, Region, Deadline, and derived subcategory chips.
+ * Shows expired badge with reduced opacity when deadline has passed.
  */
 
 "use client";
 
 import type { ContentLanguage } from "@edlight-news/types";
-import { GraduationCap, Globe, MapPin, CalendarClock } from "lucide-react";
+import { GraduationCap, Globe, MapPin, CalendarClock, AlertCircle } from "lucide-react";
 import type { FeedItem } from "@/components/news-feed";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import {
@@ -22,7 +22,11 @@ import {
   levelLabel,
   regionLabel,
   parseDeadline,
+  SUBCAT_LABELS,
+  type OpportunitySubCat,
 } from "@/lib/opportunities";
+import type { ClassificationResult } from "@/lib/opportunityClassifier";
+import type { DeadlineStatus } from "@/lib/opportunityDeadline";
 
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
@@ -35,29 +39,57 @@ const FALLBACK_GRADIENTS: Record<string, string> = {
 };
 const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
 
+/** Derived subcategory → badge colour */
+const SUBCAT_COLORS: Record<OpportunitySubCat, string> = {
+  bourses:    "bg-purple-50 text-purple-700",
+  concours:   "bg-orange-50 text-orange-700",
+  stages:     "bg-cyan-50 text-cyan-700",
+  programmes: "bg-indigo-50 text-indigo-700",
+  ressources: "bg-green-50 text-green-700",
+  autre:      "bg-gray-100 text-gray-600",
+};
+
 export interface OpportunityCardProps {
   article: FeedItem;
   lang: ContentLanguage;
+  /** Derived subcategory from the classifier (optional — falls back to legacy). */
+  derivedSubcategory?: OpportunitySubCat;
+  /** Full classification result (subcategory + confidence). */
+  classification?: ClassificationResult;
+  /** Deadline status from the deadline utility. */
+  deadlineStatus?: DeadlineStatus;
 }
 
-export function OpportunityCard({ article, lang }: OpportunityCardProps) {
-  const catColor = article.category
-    ? (CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600")
-    : null;
-
+export function OpportunityCard({
+  article,
+  lang,
+  derivedSubcategory,
+  classification,
+  deadlineStatus,
+}: OpportunityCardProps) {
   const hasImage = !!article.imageUrl;
   const fallbackGradient =
     FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
+
+  const isExpired = deadlineStatus?.isExpired ?? false;
 
   // ── Derived chips ────────────────────────────────────────────────────────
   const level = inferLevel(article);
   const region = inferRegion(article);
   const deadline = parseDeadline(article, lang);
 
+  // Use derived subcategory (from classifier) for badge label
+  const subCat = derivedSubcategory ?? "programmes";
+  const subCatColor = SUBCAT_COLORS[subCat];
+  const subCatLabel = SUBCAT_LABELS[subCat][lang];
+
   return (
     <a
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col rounded-lg border bg-white transition hover:border-brand-300 hover:shadow-md overflow-hidden"
+      className={[
+        "group flex flex-col rounded-lg border bg-white transition hover:border-brand-300 hover:shadow-md overflow-hidden",
+        isExpired ? "opacity-80" : "",
+      ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
       <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
@@ -73,20 +105,31 @@ export function OpportunityCard({ article, lang }: OpportunityCardProps) {
             className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
           >
             <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-              {categoryLabel(article.category, lang)}
+              {subCatLabel}
             </span>
+          </div>
+        )}
+
+        {/* Expired overlay badge */}
+        {isExpired && (
+          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-red-600/90 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
+            <AlertCircle className="h-3 w-3" />
+            {lang === "fr" ? "Expiré" : "Ekspire"}
           </div>
         )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        {/* Category badge */}
+        {/* Category badge — uses derived subcategory */}
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          {catColor && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${catColor}`}
-            >
-              {categoryLabel(article.category, lang)}
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${subCatColor}`}
+          >
+            {subCatLabel}
+          </span>
+          {classification && classification.confidence !== "high" && (
+            <span className="rounded-full bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400">
+              {classification.confidence === "medium" ? "~" : "?"}
             </span>
           )}
         </div>
@@ -109,17 +152,21 @@ export function OpportunityCard({ article, lang }: OpportunityCardProps) {
           </span>
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-              deadline.missing
-                ? "bg-amber-50 text-amber-600"
-                : "bg-orange-50 text-orange-600"
+              isExpired
+                ? "bg-red-50 text-red-600"
+                : deadline.missing
+                  ? "bg-amber-50 text-amber-600"
+                  : "bg-orange-50 text-orange-600"
             }`}
           >
             <CalendarClock className="h-3 w-3" />
-            {deadline.missing
-              ? (lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime")
-              : `${lang === "fr" ? "Clôture" : "Fèmti"}: ${deadline.label}`}
+            {isExpired
+              ? (lang === "fr" ? "Expiré" : "Ekspire")
+              : deadline.missing
+                ? (lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime")
+                : `${lang === "fr" ? "Clôture" : "Fèmti"}: ${deadline.label}`}
           </span>
-          {!deadline.missing && deadline.iso && (
+          {!isExpired && !deadline.missing && deadline.iso && (
             <DeadlineBadge
               dateISO={deadline.iso}
               windowDays={30}

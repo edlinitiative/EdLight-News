@@ -7,10 +7,20 @@
 
 import type { FeedItem } from "@/components/news-feed";
 import type { ContentLanguage } from "@edlight-news/types";
+import {
+  classifyOpportunity,
+  type OpportunitySubcategory,
+} from "./opportunityClassifier";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type OpportunitySubCat = "bourses" | "concours" | "stages" | "programmes";
+export type OpportunitySubCat =
+  | "bourses"
+  | "concours"
+  | "stages"
+  | "programmes"
+  | "ressources"
+  | "autre";
 
 export type StudyLevel = "lycee" | "licence" | "master" | "doctorat";
 
@@ -40,73 +50,32 @@ function textBlob(article: FeedItem): string {
   return norm(`${article.title ?? ""} ${article.summary ?? ""} ${article.body ?? ""}`);
 }
 
-// ── A) Deterministic subcategory mapping ─────────────────────────────────────
+// ── A) Deterministic subcategory mapping (delegates to classifier) ───────────
 
-const BOURSES_KW = [
-  "bourse", "scholarship", "fellowship", "grant", "financement",
-  "prise en charge", "daad", "auf", "erasmus", "tuition",
-  "allocation", "stipend", "bursary",
-];
-
-const STAGES_KW = [
-  "stage", "internship", "alternance", "apprentissage",
-  "trainee", "apprenticeship",
-];
-
-const CONCOURS_KW = [
-  "concours", "competition", "hackathon", "prix", "award",
-  "challenge", "olympiade", "trophee", "laureat",
-];
-
-const PROGRAMMES_KW = [
-  "inscription", "inscriptions", "admission", "admissions",
-  "master", "licence", "doctorat", "programme", "formation",
-  "cohorte", "appel a candidatures", "appel a candidature",
-  "candidature", "postuler", "apply", "enrollment", "registration",
-];
-
-function matchesAny(text: string, keywords: string[]): boolean {
-  return keywords.some((k) => text.includes(k));
-}
+/** Map PascalCase classifier output to internal lowercase subcategory. */
+const SUBCAT_MAP: Record<OpportunitySubcategory, OpportunitySubCat> = {
+  Bourses: "bourses",
+  Concours: "concours",
+  Stages: "stages",
+  Programmes: "programmes",
+  Ressources: "ressources",
+  Autre: "autre",
+};
 
 /**
- * Admission-specific keywords that should route to "programmes" even
- * when the text also contains "concours" (e.g. UEH admissions).
+ * Classify an opportunity article into a subcategory.
+ * Delegates to the deterministic keyword classifier.
  */
-const ADMISSION_PRIORITY_KW = [
-  "admission", "admissions", "inscription", "inscriptions",
-  "appel a candidatures", "appel a candidature", "enrollment",
-  "registration", "ueh", "menfp",
-];
-
-/** Classify an opportunity article into one of the four subcategories. */
 export function deriveSubcategory(article: FeedItem): OpportunitySubCat {
-  const blob = textBlob(article);
-
-  // Priority 1: bourses (strongest signal)
-  if (matchesAny(blob, BOURSES_KW)) return "bourses";
-
-  // Priority 2: stages
-  if (matchesAny(blob, STAGES_KW)) return "stages";
-
-  // Priority 3: admissions/programmes BEFORE concours —
-  // prevents UEH admissions from being tagged "concours"
-  if (matchesAny(blob, ADMISSION_PRIORITY_KW)) return "programmes";
-
-  // Priority 4: concours (only if no admission keywords)
-  if (matchesAny(blob, CONCOURS_KW)) return "concours";
-
-  // Priority 5: remaining programme keywords
-  if (matchesAny(blob, PROGRAMMES_KW)) return "programmes";
-
-  // Fallback to raw category if it matches
-  const cat = article.category;
-  if (cat === "bourses" || cat === "scholarship") return "bourses";
-  if (cat === "concours") return "concours";
-  if (cat === "stages") return "stages";
-  if (cat === "programmes" || cat === "opportunity") return "programmes";
-
-  return "programmes"; // ultimate default
+  const result = classifyOpportunity({
+    title: article.title ?? "",
+    summary: article.summary,
+    body: article.body,
+    category: article.category,
+    publisher: article.sourceName,
+    url: article.sourceUrl,
+  });
+  return SUBCAT_MAP[result.subcategory];
 }
 
 // ── B) Deadline parsing ──────────────────────────────────────────────────────
@@ -250,9 +219,20 @@ export function regionLabel(region: RegionChip, lang: ContentLanguage): string {
 // ── Subcategory labels ───────────────────────────────────────────────────────
 
 export const SUBCAT_LABELS: Record<OpportunitySubCat | "all", { fr: string; ht: string }> = {
-  all:        { fr: "Tout",       ht: "Tout"    },
-  bourses:    { fr: "Bourses",    ht: "Bous"    },
-  concours:   { fr: "Concours",   ht: "Konkou"  },
-  stages:     { fr: "Stages",     ht: "Estaj"   },
-  programmes: { fr: "Programmes", ht: "Pwogram" },
+  all:        { fr: "Tout",        ht: "Tout"    },
+  bourses:    { fr: "Bourses",     ht: "Bous"    },
+  concours:   { fr: "Concours",    ht: "Konkou"  },
+  stages:     { fr: "Stages",      ht: "Estaj"   },
+  programmes: { fr: "Programmes",  ht: "Pwogram" },
+  ressources: { fr: "Ressources",  ht: "Resous"  },
+  autre:      { fr: "Autre",       ht: "Lòt"     },
+};
+/** Subcategory → Tailwind color classes for badges. */
+export const SUBCAT_COLORS: Record<OpportunitySubCat, string> = {
+  bourses:    "bg-purple-50 text-purple-700",
+  concours:   "bg-orange-50 text-orange-700",
+  stages:     "bg-cyan-50 text-cyan-700",
+  programmes: "bg-indigo-50 text-indigo-700",
+  ressources: "bg-green-50 text-green-700",
+  autre:      "bg-gray-100 text-gray-600",
 };
