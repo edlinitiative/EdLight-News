@@ -13,6 +13,51 @@ import {
   CATEGORY_COLORS,
   formatDate,
 } from "@/lib/utils";
+import { classifyOpportunity } from "@/lib/opportunityClassifier";
+import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
+
+/** Opportunity category values that should use the derived classifier. */
+const OPP_CATEGORIES = new Set([
+  "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
+]);
+
+const SUBCAT_MAP: Record<string, OpportunitySubCat> = {
+  Bourses: "bourses", Programmes: "programmes", Stages: "stages",
+  Concours: "concours", Ressources: "ressources", Autre: "autre",
+};
+
+/** Derive display category for an article. For opportunity items, uses the
+ *  keyword classifier; for everything else, falls back to raw category. */
+function derivedCategoryInfo(
+  article: FeedItem,
+  lang: ContentLanguage,
+): { label: string; color: string } | null {
+  const isOpp =
+    article.vertical === "opportunites" ||
+    OPP_CATEGORIES.has(article.category ?? "");
+
+  if (isOpp) {
+    const result = classifyOpportunity({
+      title: article.title ?? "",
+      summary: article.summary,
+      body: article.body,
+      category: article.category,
+      publisher: article.sourceName,
+      url: article.sourceUrl,
+    });
+    const sc = SUBCAT_MAP[result.subcategory] ?? "autre";
+    return {
+      label: SUBCAT_LABELS[sc][lang],
+      color: SUBCAT_COLORS[sc],
+    };
+  }
+
+  if (!article.category) return null;
+  return {
+    label: categoryLabel(article.category, lang),
+    color: CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600",
+  };
+}
 
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
@@ -40,9 +85,7 @@ export function ArticleCard({
   showDeadline = false,
   compact = false,
 }: ArticleCardProps) {
-  const catColor = article.category
-    ? (CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600")
-    : null;
+  const catInfo = derivedCategoryInfo(article, lang);
 
   // dupeCount includes the canonical version itself, so updates = dupeCount - 1
   const updateCount = (article.dupeCount ?? 1) - 1;
@@ -76,7 +119,7 @@ export function ArticleCard({
             className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
           >
             <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-              {categoryLabel(article.category, lang)}
+              {catInfo?.label ?? ""}
             </span>
           </div>
         )}
@@ -85,11 +128,11 @@ export function ArticleCard({
       <div className="flex flex-1 flex-col p-5">
         {/* Badges row */}
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          {catColor && (
+          {catInfo && (
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${catColor}`}
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${catInfo.color}`}
             >
-              {categoryLabel(article.category, lang)}
+              {catInfo.label}
             </span>
           )}
           {article.itemType === "synthesis" && (

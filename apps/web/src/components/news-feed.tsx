@@ -15,6 +15,8 @@ import {
   type FeedCategory,
   type SortOption,
 } from "@/lib/utils";
+import { classifyOpportunity } from "@/lib/opportunityClassifier";
+import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { useLanguage } from "@/lib/language-context";
 
 // ── Types for serialized data from server ───────────────────────────────────
@@ -91,12 +93,42 @@ const SCORE_THRESHOLD = 0.65;
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function CategoryBadge({ category, lang }: { category?: string; lang: ContentLanguage }) {
-  if (!category) return null;
-  const color = CATEGORY_COLORS[category] ?? "bg-gray-100 text-gray-600";
+const OPP_CATEGORIES = new Set([
+  "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
+]);
+
+const SUBCAT_MAP: Record<string, OpportunitySubCat> = {
+  Bourses: "bourses", Programmes: "programmes", Stages: "stages",
+  Concours: "concours", Ressources: "ressources", Autre: "autre",
+};
+
+function CategoryBadge({ article, lang }: { article: FeedItem; lang: ContentLanguage }) {
+  const isOpp =
+    article.vertical === "opportunites" ||
+    OPP_CATEGORIES.has(article.category ?? "");
+
+  if (isOpp) {
+    const result = classifyOpportunity({
+      title: article.title ?? "",
+      summary: article.summary,
+      body: article.body,
+      category: article.category,
+      publisher: article.sourceName,
+      url: article.sourceUrl,
+    });
+    const sc = SUBCAT_MAP[result.subcategory] ?? "autre";
+    return (
+      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${SUBCAT_COLORS[sc]}`}>
+        {SUBCAT_LABELS[sc][lang]}
+      </span>
+    );
+  }
+
+  if (!article.category) return null;
+  const color = CATEGORY_COLORS[article.category] ?? "bg-gray-100 text-gray-600";
   return (
     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
-      {categoryLabel(category, lang)}
+      {categoryLabel(article.category, lang)}
     </span>
   );
 }
@@ -439,7 +471,7 @@ export function NewsFeed({
             className="group block rounded-lg border p-5 transition hover:border-brand-300 hover:shadow-md"
           >
             <div className="mb-2 flex items-center gap-2">
-              <CategoryBadge category={article.category} lang={lang} />
+              <CategoryBadge article={article} lang={lang} />
               {article.itemType === "synthesis" && (
                 <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                   {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
