@@ -11,7 +11,7 @@ import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function OpportunitesPage({
   searchParams,

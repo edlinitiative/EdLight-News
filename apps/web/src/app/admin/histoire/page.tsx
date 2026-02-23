@@ -14,7 +14,7 @@ import {
 } from "@/lib/datasets";
 import type { HistoryPublishLog } from "@edlight-news/types";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // admin: must stay dynamic
 
 function StatusBadge({ status }: { status: HistoryPublishLog["status"] }) {
   switch (status) {

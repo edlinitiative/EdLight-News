@@ -62,7 +62,7 @@ import {
 } from "@/lib/datasets";
 import { getCalendarGeoLabel } from "@/lib/geo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // ISR: regenerate every 5 minutes
 
 // ── Cross-section dedup helper ────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@ import { fetchEnrichedArticles } from "@/lib/feed";
 import { rankFeed } from "@/lib/ranking";
 import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Fil — EdLight News",

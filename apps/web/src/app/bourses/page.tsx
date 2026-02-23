@@ -21,7 +21,7 @@ import { BoursesFilters, type SerializedScholarship } from "@/components/Bourses
 import { ScholarshipStartHere } from "@/components/ScholarshipStartHere";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Bourses | EdLight News",

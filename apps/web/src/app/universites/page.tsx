@@ -17,7 +17,7 @@ import {
 import { MetaBadges } from "@/components/MetaBadges";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "Universités | EdLight News",

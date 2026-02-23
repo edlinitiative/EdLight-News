@@ -5,6 +5,7 @@
  * All functions are server-only (Firebase Admin SDK).
  */
 
+import { unstable_cache } from "next/cache";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
 import { formatContentVersion } from "@edlight-news/generator";
 import type {
@@ -163,16 +164,18 @@ export function enrichArticles(
 
 /**
  * One-call helper: fetch → enrich → return EnrichedArticle[].
- * Used by every page route.
+ * Used by every page route. Cached for 5 minutes via unstable_cache
+ * so concurrent/near-simultaneous page renders share the same result.
  */
-export async function fetchEnrichedFeed(
-  lang: ContentLanguage,
-  limit = 200,
-): Promise<EnrichedArticle[]> {
-  const cvs = await fetchContentVersions({ lang, limit });
-  const itemMap = await fetchItemsByIds(cvs.map((cv) => cv.itemId));
-  return enrichArticles(cvs, itemMap);
-}
+export const fetchEnrichedFeed = unstable_cache(
+  async (lang: ContentLanguage, limit: number = 200): Promise<EnrichedArticle[]> => {
+    const cvs = await fetchContentVersions({ lang, limit });
+    const itemMap = await fetchItemsByIds(cvs.map((cv) => cv.itemId));
+    return enrichArticles(cvs, itemMap);
+  },
+  ["enriched-feed"],
+  { revalidate: 300, tags: ["feed"] },
+);
 
 // ── Strict success gating (shared by homepage + /succes page) ────────────────
 

@@ -11,7 +11,7 @@ import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function SuccesPage({
   searchParams,

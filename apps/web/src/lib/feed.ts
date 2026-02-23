@@ -4,16 +4,17 @@
  * metadata (audienceFitScore, dedupeGroupId, geoTag, source, …).
  *
  * Used by both the homepage and /news page so the enrichment logic
- * lives in exactly one place.
+ * lives in exactly one place. Cached via unstable_cache (5 min).
  */
 
+import { unstable_cache } from "next/cache";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
 import type { ContentLanguage, Item } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 
-export async function fetchEnrichedArticles(
+async function _fetchEnrichedArticles(
   language: ContentLanguage,
-  limit = 200,
+  limit: number = 200,
 ): Promise<FeedItem[]> {
   const all = await contentVersionsRepo.listPublishedForWeb(language, limit);
 
@@ -95,3 +96,9 @@ export async function fetchEnrichedArticles(
     };
   });
 }
+
+export const fetchEnrichedArticles = unstable_cache(
+  _fetchEnrichedArticles,
+  ["enriched-articles"],
+  { revalidate: 300, tags: ["feed"] },
+);

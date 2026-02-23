@@ -11,7 +11,7 @@ import { FileEdit, Clock, CheckCircle, XCircle, Eye } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { Draft, DraftStatus } from "@edlight-news/types";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // admin: must stay dynamic
 
 const FEATURE_ENABLED = process.env.FEATURE_CONTRIBUTORS === "true";
 

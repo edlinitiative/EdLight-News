@@ -11,7 +11,7 @@ import { MapPin } from "lucide-react";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 900;
 
 export const metadata: Metadata = {
   title: "Parcours | EdLight News",

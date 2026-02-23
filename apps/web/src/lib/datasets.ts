@@ -3,8 +3,10 @@
  *
  * Fetches universities, scholarships, calendar events, and pathways
  * from Firestore for the web frontend. All functions are server-only.
+ * Heavy reads are cached via unstable_cache to avoid redundant Firestore hits.
  */
 
+import { unstable_cache } from "next/cache";
 import {
   universitiesRepo,
   scholarshipsRepo,
@@ -28,67 +30,85 @@ import type {
 
 // ── Universities ─────────────────────────────────────────────────────────────
 
-export async function fetchAllUniversities(): Promise<University[]> {
-  return universitiesRepo.listAll();
-}
+export const fetchAllUniversities = unstable_cache(
+  async (): Promise<University[]> => universitiesRepo.listAll(),
+  ["universities-all"],
+  { revalidate: 900, tags: ["universities"] },
+);
 
-export async function fetchUniversitiesByCountry(
-  country: DatasetCountry,
-): Promise<University[]> {
-  return universitiesRepo.listByCountry(country);
-}
+export const fetchUniversitiesByCountry = unstable_cache(
+  async (country: DatasetCountry): Promise<University[]> =>
+    universitiesRepo.listByCountry(country),
+  ["universities-country"],
+  { revalidate: 900, tags: ["universities"] },
+);
 
 export async function fetchUniversity(id: string): Promise<University | null> {
   return universitiesRepo.get(id);
 }
 
-export async function fetchHaitianFriendlyUniversities(): Promise<University[]> {
-  const all = await universitiesRepo.listAll();
-  return all.filter((u) => u.haitianFriendly);
-}
+export const fetchHaitianFriendlyUniversities = unstable_cache(
+  async (): Promise<University[]> => {
+    const all = await universitiesRepo.listAll();
+    return all.filter((u) => u.haitianFriendly);
+  },
+  ["universities-haitian-friendly"],
+  { revalidate: 900, tags: ["universities"] },
+);
 
 /** Group universities by country for the overview page. */
-export async function fetchUniversitiesGrouped(): Promise<
-  Record<string, University[]>
-> {
-  const all = await universitiesRepo.listAll();
-  const grouped: Record<string, University[]> = {};
-  for (const uni of all) {
-    if (!grouped[uni.country]) grouped[uni.country] = [];
-    grouped[uni.country]!.push(uni);
-  }
-  return grouped;
-}
+export const fetchUniversitiesGrouped = unstable_cache(
+  async (): Promise<Record<string, University[]>> => {
+    const all = await universitiesRepo.listAll();
+    const grouped: Record<string, University[]> = {};
+    for (const uni of all) {
+      if (!grouped[uni.country]) grouped[uni.country] = [];
+      grouped[uni.country]!.push(uni);
+    }
+    return grouped;
+  },
+  ["universities-grouped"],
+  { revalidate: 900, tags: ["universities"] },
+);
 
 // ── Scholarships ─────────────────────────────────────────────────────────────
 
-export async function fetchAllScholarships(): Promise<Scholarship[]> {
-  return scholarshipsRepo.listAll();
-}
+export const fetchAllScholarships = unstable_cache(
+  async (): Promise<Scholarship[]> => scholarshipsRepo.listAll(),
+  ["scholarships-all"],
+  { revalidate: 300, tags: ["scholarships"] },
+);
 
 export async function fetchScholarship(id: string): Promise<Scholarship | null> {
   return scholarshipsRepo.get(id);
 }
 
-export async function fetchScholarshipsForHaiti(): Promise<Scholarship[]> {
-  return scholarshipsRepo.listEligibleForHaiti();
-}
+export const fetchScholarshipsForHaiti = unstable_cache(
+  async (): Promise<Scholarship[]> => scholarshipsRepo.listEligibleForHaiti(),
+  ["scholarships-haiti"],
+  { revalidate: 300, tags: ["scholarships"] },
+);
 
-export async function fetchScholarshipsClosingSoon(
-  days = 30,
-): Promise<Scholarship[]> {
-  return scholarshipsRepo.listClosingSoon(days);
-}
+export const fetchScholarshipsClosingSoon = unstable_cache(
+  async (days: number = 30): Promise<Scholarship[]> =>
+    scholarshipsRepo.listClosingSoon(days),
+  ["scholarships-closing"],
+  { revalidate: 300, tags: ["scholarships"] },
+);
 
 // ── Haiti Education Calendar ─────────────────────────────────────────────────
 
-export async function fetchAllCalendarEvents(): Promise<HaitiCalendarEvent[]> {
-  return haitiCalendarRepo.listAll();
-}
+export const fetchAllCalendarEvents = unstable_cache(
+  async (): Promise<HaitiCalendarEvent[]> => haitiCalendarRepo.listAll(),
+  ["calendar-all"],
+  { revalidate: 300, tags: ["calendar"] },
+);
 
-export async function fetchUpcomingCalendarEvents(): Promise<HaitiCalendarEvent[]> {
-  return haitiCalendarRepo.listUpcoming();
-}
+export const fetchUpcomingCalendarEvents = unstable_cache(
+  async (): Promise<HaitiCalendarEvent[]> => haitiCalendarRepo.listUpcoming(),
+  ["calendar-upcoming"],
+  { revalidate: 300, tags: ["calendar"] },
+);
 
 export async function fetchCalendarEvent(
   id: string,
@@ -98,19 +118,22 @@ export async function fetchCalendarEvent(
 
 // ── Pathways ─────────────────────────────────────────────────────────────────
 
-export async function fetchAllPathways(): Promise<Pathway[]> {
-  return pathwaysRepo.listAll();
-}
+export const fetchAllPathways = unstable_cache(
+  async (): Promise<Pathway[]> => pathwaysRepo.listAll(),
+  ["pathways-all"],
+  { revalidate: 900, tags: ["pathways"] },
+);
 
 export async function fetchPathway(id: string): Promise<Pathway | null> {
   return pathwaysRepo.get(id);
 }
 
-export async function fetchPathwaysByGoal(
-  goalKey: PathwayGoalKey,
-): Promise<Pathway[]> {
-  return pathwaysRepo.listByGoalKey(goalKey);
-}
+export const fetchPathwaysByGoal = unstable_cache(
+  async (goalKey: PathwayGoalKey): Promise<Pathway[]> =>
+    pathwaysRepo.listByGoalKey(goalKey),
+  ["pathways-goal"],
+  { revalidate: 900, tags: ["pathways"] },
+);
 
 // ── Country display helpers ──────────────────────────────────────────────────
 
@@ -136,33 +159,41 @@ export const TUITION_LABELS: Record<string, { fr: string; ht: string }> = {
 
 // ── Haiti History Almanac ────────────────────────────────────────────────────
 
-export async function fetchAlmanacByMonthDay(
-  monthDay: string,
-): Promise<HaitiHistoryAlmanacEntry[]> {
-  return haitiHistoryAlmanacRepo.listByMonthDay(monthDay);
-}
+export const fetchAlmanacByMonthDay = unstable_cache(
+  async (monthDay: string): Promise<HaitiHistoryAlmanacEntry[]> =>
+    haitiHistoryAlmanacRepo.listByMonthDay(monthDay),
+  ["almanac-monthday"],
+  { revalidate: 3600, tags: ["almanac"] },
+);
 
-export async function fetchAlmanacByMonth(
-  month: string,
-): Promise<HaitiHistoryAlmanacEntry[]> {
-  return haitiHistoryAlmanacRepo.listByMonth(month);
-}
+export const fetchAlmanacByMonth = unstable_cache(
+  async (month: string): Promise<HaitiHistoryAlmanacEntry[]> =>
+    haitiHistoryAlmanacRepo.listByMonth(month),
+  ["almanac-month"],
+  { revalidate: 3600, tags: ["almanac"] },
+);
 
-export async function fetchAllAlmanacEntries(): Promise<HaitiHistoryAlmanacEntry[]> {
-  return haitiHistoryAlmanacRepo.listAll();
-}
+export const fetchAllAlmanacEntries = unstable_cache(
+  async (): Promise<HaitiHistoryAlmanacEntry[]> =>
+    haitiHistoryAlmanacRepo.listAll(),
+  ["almanac-all"],
+  { revalidate: 3600, tags: ["almanac"] },
+);
 
 // ── Haiti Holidays ──────────────────────────────────────────────────────────
 
-export async function fetchHolidaysByMonthDay(
-  monthDay: string,
-): Promise<HaitiHoliday[]> {
-  return haitiHolidaysRepo.listByMonthDay(monthDay);
-}
+export const fetchHolidaysByMonthDay = unstable_cache(
+  async (monthDay: string): Promise<HaitiHoliday[]> =>
+    haitiHolidaysRepo.listByMonthDay(monthDay),
+  ["holidays-monthday"],
+  { revalidate: 3600, tags: ["holidays"] },
+);
 
-export async function fetchAllHolidays(): Promise<HaitiHoliday[]> {
-  return haitiHolidaysRepo.listAll();
-}
+export const fetchAllHolidays = unstable_cache(
+  async (): Promise<HaitiHoliday[]> => haitiHolidaysRepo.listAll(),
+  ["holidays-all"],
+  { revalidate: 3600, tags: ["holidays"] },
+);
 
 // ── History Publish Log ─────────────────────────────────────────────────────
 
@@ -172,11 +203,12 @@ export async function fetchHistoryLogByDate(
   return historyPublishLogRepo.getByDate(dateISO);
 }
 
-export async function fetchRecentHistoryLogs(
-  limit = 30,
-): Promise<HistoryPublishLog[]> {
-  return historyPublishLogRepo.listRecent(limit);
-}
+export const fetchRecentHistoryLogs = unstable_cache(
+  async (limit: number = 30): Promise<HistoryPublishLog[]> =>
+    historyPublishLogRepo.listRecent(limit),
+  ["history-logs"],
+  { revalidate: 900, tags: ["history-logs"] },
+);
 
 // ── Haiti timezone helper (UTC-5, no DST) ────────────────────────────────────
 

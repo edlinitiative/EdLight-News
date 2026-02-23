@@ -23,7 +23,7 @@ import {
 } from "@/lib/deadlines";
 import { ClosingSoonTabs } from "./tabs";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata = {
   title: "Échéances à venir | EdLight News",

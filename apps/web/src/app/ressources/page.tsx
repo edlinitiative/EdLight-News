@@ -12,7 +12,7 @@ import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 /** Series that surface on /ressources */
 const RESOURCE_SERIES = new Set([

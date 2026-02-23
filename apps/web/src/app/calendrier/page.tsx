@@ -37,7 +37,7 @@ import { CalendarFilterTabs } from "./filter-tabs";
 import { MetaBadges } from "@/components/MetaBadges";
 import { getCalendarGeoLabel } from "@/lib/geo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 function DeadlineRow({
   dl,

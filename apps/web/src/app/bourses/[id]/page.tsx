@@ -29,7 +29,7 @@ import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
