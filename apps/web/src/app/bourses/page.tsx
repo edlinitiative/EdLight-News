@@ -17,8 +17,9 @@ import {
   fetchScholarshipsForHaiti,
   fetchScholarshipsClosingSoon,
 } from "@/lib/datasets";
-import { BoursesFilters, FILTER_PARAM_KEYS, type SerializedScholarship } from "@/components/BoursesFilters";
+import { BoursesFilters, type SerializedScholarship } from "@/components/BoursesFilters";
 import { ScholarshipStartHere } from "@/components/ScholarshipStartHere";
+import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 
 export const dynamic = "force-dynamic";
 

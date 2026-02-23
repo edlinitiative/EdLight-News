@@ -17,9 +17,9 @@ import { GraduationCap, CalendarDays, BookOpen, CheckCircle, Paperclip, AlertTri
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
+import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 
-/** Search-param keys used for filtering (exported for page-level visibility checks). */
-export const FILTER_PARAM_KEYS = ["funding", "level", "country", "eligibility", "type", "sort"] as const;
+export { FILTER_PARAM_KEYS };
 
 // ── Serializable scholarship type (no Firestore Timestamps) ────────────────
 
