@@ -68,20 +68,6 @@
     "createdBy": "seed"
   },
   {
-    "monthDay": "02-12",
-    "year": 1806,
-    "title_fr": "Naissance d'Alexandre Pétion à Port-au-Prince",
-    "summary_fr": "Alexandre Pétion, né le 2 avril 1770, fut le premier président de la République d'Haïti (sud). Il est surtout connu pour avoir aidé Simón Bolívar dans sa lutte pour l'indépendance de l'Amérique du Sud.",
-    "student_takeaway_fr": "Pétion a montré que la solidarité internationale est importante : il a soutenu Bolívar en échange de la promesse d'abolir l'esclavage.",
-    "tags": ["politics", "diplomacy"],
-    "sources": [
-      { "label": "Wikipedia – Alexandre Pétion", "url": "https://en.wikipedia.org/wiki/Alexandre_P%C3%A9tion" },
-      { "label": "Britannica – Pétion", "url": "https://www.britannica.com/biography/Alexandre-Petion" }
-    ],
-    "confidence": "high",
-    "createdBy": "seed"
-  },
-  {
     "monthDay": "02-17",
     "year": 1807,
     "title_fr": "Henri Christophe proclame l'État du Nord",
@@ -487,7 +473,7 @@
   },
   {
     "monthDay": "02-23",
-    "year": 1943,
+    "year": 1944,
     "title_fr": "Jacques Roumain publie 'Gouverneurs de la rosée'",
     "summary_fr": "Jacques Roumain, né en 1907, publie 'Gouverneurs de la rosée' en 1944. Ce roman est considéré comme un chef-d'œuvre de la littérature haïtienne et caribéenne, traduit dans plus de 20 langues.",
     "student_takeaway_fr": "Roumain est l'un des plus grands écrivains haïtiens. Lire 'Gouverneurs de la rosée' est essentiel pour comprendre la littérature haïtienne.",
