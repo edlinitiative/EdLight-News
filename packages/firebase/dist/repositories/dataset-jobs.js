@@ -32,7 +32,7 @@ export async function listQueued() {
     return listByStatus("queued");
 }
 export async function update(id, data) {
-    const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+    const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined && v !== null));
     await collection().doc(id).update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
 }
 export async function markProcessing(id) {
@@ -50,7 +50,7 @@ export async function markDone(id) {
 export async function markFailed(id, error) {
     await collection().doc(id).update({
         status: "failed",
-        error,
+        lastError: error,
         updatedAt: FieldValue.serverTimestamp(),
     });
 }

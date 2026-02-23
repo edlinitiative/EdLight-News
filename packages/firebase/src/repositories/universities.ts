@@ -36,7 +36,7 @@ export async function listByCountry(country: DatasetCountry): Promise<University
 
 export async function update(id: string, data: Partial<CreateUniversity>): Promise<void> {
   const clean = Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== undefined),
+    Object.entries(data).filter(([, v]) => v !== undefined && v !== null),
   );
   await collection().doc(id).update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
 }
@@ -55,7 +55,7 @@ export async function upsertByName(
   if (!existing.empty) {
     const doc = existing.docs[0]!;
     const clean = Object.fromEntries(
-      Object.entries(validated).filter(([, v]) => v !== undefined),
+      Object.entries(validated).filter(([, v]) => v !== undefined && v !== null),
     );
     await doc.ref.update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
     const snap = await doc.ref.get();

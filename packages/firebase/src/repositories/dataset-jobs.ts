@@ -40,7 +40,7 @@ export async function listQueued(): Promise<DatasetJob[]> {
 
 export async function update(id: string, data: Partial<CreateDatasetJob>): Promise<void> {
   const clean = Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== undefined),
+    Object.entries(data).filter(([, v]) => v !== undefined && v !== null),
   );
   await collection().doc(id).update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
 }
@@ -62,7 +62,7 @@ export async function markDone(id: string): Promise<void> {
 export async function markFailed(id: string, error: string): Promise<void> {
   await collection().doc(id).update({
     status: "failed",
-    error,
+    lastError: error,
     updatedAt: FieldValue.serverTimestamp(),
   });
 }

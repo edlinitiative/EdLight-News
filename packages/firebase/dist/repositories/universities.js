@@ -28,7 +28,7 @@ export async function listByCountry(country) {
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 export async function update(id, data) {
-    const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+    const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined && v !== null));
     await collection().doc(id).update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
 }
 /** Upsert by name + country (used for seeding). */
@@ -41,7 +41,7 @@ export async function upsertByName(data) {
         .get();
     if (!existing.empty) {
         const doc = existing.docs[0];
-        const clean = Object.fromEntries(Object.entries(validated).filter(([, v]) => v !== undefined));
+        const clean = Object.fromEntries(Object.entries(validated).filter(([, v]) => v !== undefined && v !== null));
         await doc.ref.update({ ...clean, updatedAt: FieldValue.serverTimestamp() });
         const snap = await doc.ref.get();
         return { university: { id: doc.id, ...snap.data() }, created: false };
