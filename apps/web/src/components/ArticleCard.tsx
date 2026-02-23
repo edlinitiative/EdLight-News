@@ -59,8 +59,11 @@ export function ArticleCard({
       href={`/news/${article.id}?lang=${lang}`}
       className="group flex flex-col rounded-lg border bg-white transition hover:border-brand-300 hover:shadow-md overflow-hidden"
     >
-      {/* Image / gradient thumbnail (16:9 aspect ratio) */}
-      <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+      {/* Image / gradient thumbnail — compact uses smaller aspect ratio */}
+      <div className={[
+        "relative w-full overflow-hidden bg-gray-100",
+        compact ? "aspect-[2/1]" : "aspect-video",
+      ].join(" ")}>
         {hasImage ? (
           <img
             src={article.imageUrl!}

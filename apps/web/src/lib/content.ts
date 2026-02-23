@@ -196,9 +196,26 @@ const SUCCES_KEYWORDS_HT = [
   "pri",
 ];
 
+/**
+ * Exclusion keywords — articles containing these are NOT success stories,
+ * even if they match positive keywords (e.g. "prix" in a crime context).
+ */
+const SUCCES_EXCLUSION_KEYWORDS = [
+  "tué", "tuée", "attaque", "gang", "kidnapping", "assassinat",
+  "police", "fusillade", "inflation", "sanction", "violence",
+  "meurtre", "viol", "émeute", "pillage", "incendie criminel",
+  "insécurité", "coup de feu", "balle", "arme", "mort",
+  "détenu", "prisonnier", "crise", "massacre", "agression",
+];
+
 export function isSuccessArticle(article: EnrichedArticle): boolean {
+  const text = `${article.title ?? ""} ${article.summary ?? ""}`.toLowerCase();
+
+  // Hard gate: reject any article mentioning crime/violence/insecurity
+  if (SUCCES_EXCLUSION_KEYWORDS.some((k) => text.includes(k))) return false;
+
+  // Positive: explicit category or keyword match
   if (article.category === "succes") return true;
-  const text = `${article.title} ${article.summary}`.toLowerCase();
   return (
     SUCCES_KEYWORDS_FR.some((k) => text.includes(k)) ||
     SUCCES_KEYWORDS_HT.some((k) => text.includes(k))

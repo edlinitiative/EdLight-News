@@ -69,14 +69,34 @@ function matchesAny(text: string, keywords: string[]): boolean {
   return keywords.some((k) => text.includes(k));
 }
 
+/**
+ * Admission-specific keywords that should route to "programmes" even
+ * when the text also contains "concours" (e.g. UEH admissions).
+ */
+const ADMISSION_PRIORITY_KW = [
+  "admission", "admissions", "inscription", "inscriptions",
+  "appel a candidatures", "appel a candidature", "enrollment",
+  "registration", "ueh", "menfp",
+];
+
 /** Classify an opportunity article into one of the four subcategories. */
 export function deriveSubcategory(article: FeedItem): OpportunitySubCat {
   const blob = textBlob(article);
 
-  // Ordered priority: bourses → stages → concours → programmes
+  // Priority 1: bourses (strongest signal)
   if (matchesAny(blob, BOURSES_KW)) return "bourses";
+
+  // Priority 2: stages
   if (matchesAny(blob, STAGES_KW)) return "stages";
+
+  // Priority 3: admissions/programmes BEFORE concours —
+  // prevents UEH admissions from being tagged "concours"
+  if (matchesAny(blob, ADMISSION_PRIORITY_KW)) return "programmes";
+
+  // Priority 4: concours (only if no admission keywords)
   if (matchesAny(blob, CONCOURS_KW)) return "concours";
+
+  // Priority 5: remaining programme keywords
   if (matchesAny(blob, PROGRAMMES_KW)) return "programmes";
 
   // Fallback to raw category if it matches

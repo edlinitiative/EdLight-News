@@ -13,7 +13,7 @@ const NAV_ITEMS = [
   { href: "/bourses",         fr: "Bourses",       ht: "Bous"         },
   { href: "/universites",     fr: "Universités",   ht: "Inivèsite"   },
   { href: "/parcours",        fr: "Parcours",      ht: "Pakou"        },
-  { href: "/calendrier-haiti",fr: "Calendrier",    ht: "Kalandriye"   },
+  { href: "/calendrier",      fr: "Calendrier",    ht: "Kalandriye"   },
   { href: "/haiti",           fr: "Haïti",         ht: "Ayiti"        },
   { href: "/ressources",      fr: "Ressources",    ht: "Resous"       },
   { href: "/succes",          fr: "Succès",        ht: "Siksè"        },
