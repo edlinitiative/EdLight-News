@@ -118,6 +118,8 @@ function isRedundant(aNorm: string, existing: Set<string>): boolean {
  *    from other versions' summaries
  *  - Use the longest body as the base, then append unique paragraphs
  *    from other versions' bodies
+ *  - Pick the best image across all versions
+ *    (publisher > wikidata > branded > screenshot > none)
  *  - Merge citations from all versions
  */
 function mergeGroup(
@@ -190,6 +192,27 @@ function mergeGroup(
     }
   }
   winner.body = bestBody;
+
+  // ── Pick best image ───────────────────────────────────────────────────────
+  // Rank: publisher (real photo) > wikidata > branded > screenshot > none
+  const IMAGE_RANK: Record<string, number> = {
+    publisher: 4,
+    wikidata: 3,
+    branded: 2,
+    screenshot: 1,
+  };
+
+  let bestImageScore = -1;
+  for (const item of items) {
+    if (!item.imageUrl) continue;
+    const score = IMAGE_RANK[item.imageSource ?? ""] ?? 0;
+    if (score > bestImageScore) {
+      bestImageScore = score;
+      winner.imageUrl = item.imageUrl;
+      winner.imageSource = item.imageSource;
+      winner.imageAttribution = item.imageAttribution;
+    }
+  }
 
   // ── Merge citations ──────────────────────────────────────────────────────
   const seenCitations = new Set(

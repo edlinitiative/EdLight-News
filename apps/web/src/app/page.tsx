@@ -193,14 +193,12 @@ export default async function AccueilPage({
   }
 
   // ── S_succes data: Succès & Inspiration (strict gating, no fallback)
-  const succesArticles = allArticles
-    .filter(isSuccessArticle)
-    .sort((a, b) => {
-      const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-      return tB - tA;
-    })
-    .slice(0, 6);
+  const succesPool = allArticles.filter(isSuccessArticle);
+  const succesArticles = rankAndDeduplicate(succesPool, {
+    audienceFitThreshold: 0.5,
+    publisherCap: 2,
+    topN: 6,
+  }).slice(0, 6);
 
   // ── S5 data: News feed (top 8, deduped)
   const newsRanked = rankAndDeduplicate(claimer.unclaimed(pool), {
