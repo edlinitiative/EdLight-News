@@ -154,6 +154,15 @@ export default async function CalendrierPage({
     closure: <Lock className="h-5 w-5 text-gray-500" />,
   };
 
+  // ── Timestamp → ISO-string helper (Firestore Timestamps are class instances
+  //    that cannot cross the server→client boundary) ─────────────────────────
+  const tsToISO = (v: unknown): string | null => {
+    if (!v || typeof v !== "object") return null;
+    const t = v as { seconds?: number; _seconds?: number; toDate?: () => Date };
+    const secs = t.seconds ?? t._seconds;
+    return secs ? new Date(secs * 1000).toISOString() : null;
+  };
+
   // Build unified list for filter tabs
   const haitiItems = structuredUpcoming.map((e) => ({
     id: e.id,
@@ -167,8 +176,8 @@ export default async function CalendrierPage({
     eventType: e.eventType,
     officialUrl: e.officialUrl,
     sources: e.sources,
-    verifiedAt: e.verifiedAt as unknown as string | null,
-    updatedAt: e.updatedAt as unknown as string | null,
+    verifiedAt: tsToISO(e.verifiedAt),
+    updatedAt: tsToISO(e.updatedAt),
   }));
 
   const intlItems = scholarships90.map((s) => ({
