@@ -7,6 +7,7 @@
 
 import { z } from "zod";
 import { callGemini } from "./client.js";
+import { editorialBlockForKey } from "./editorial-tone.js";
 
 // ── Gemini output schema for synthesis ──────────────────────────────────────
 
@@ -64,7 +65,11 @@ export function buildSynthesisPrompt(packet: SynthesisPacket): string {
     ? `\nNOTE: Ceci est une MISE À JOUR d'une synthèse existante: "${packet.existingSynthesisTitle}". Les sources marquées [NOUVELLE] sont des ajouts récents. Indique ce qui a changé dans "what_changed".\n`
     : "";
 
+  const editorial = editorialBlockForKey("news");
+
   return `Tu es rédacteur en chef pour EdLight News, une plateforme d'actualités éducatives pour les étudiants haïtiens.
+
+${editorial}
 
 Synthétise les ${packet.sources.length} articles sources ci-dessous sur le MÊME sujet en UN SEUL article de synthèse complet, en FRANÇAIS et en KREYÒL AYISYEN.
 ${updateContext}

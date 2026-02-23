@@ -49,6 +49,19 @@ export type {
   UtilityValidationResult,
 } from "./utility.js";
 
+// ── Re-export editorial tone module ─────────────────────────────────────────
+export {
+  getEditorialDirective,
+  getEditorialDirectiveByKey,
+  formatEditorialBlock,
+  editorialBlockForSeries,
+  editorialBlockForKey,
+} from "./editorial-tone.js";
+export type {
+  EditorialToneKey,
+  EditorialDirective,
+} from "./editorial-tone.js";
+
 // ── Re-export dataset content module ────────────────────────────────────────
 export {
   generateDatasetArticle,

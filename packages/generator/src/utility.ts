@@ -8,6 +8,7 @@
 import { z } from "zod";
 import { callGemini } from "./client.js";
 import type { UtilitySeries } from "@edlight-news/types";
+import { editorialBlockForSeries } from "./editorial-tone.js";
 
 // ── Gemini output schema for utility content ────────────────────────────────
 
@@ -137,7 +138,7 @@ RÈGLES SPÉCIALES CALENDRIER:
 
 // ── Prompt builder ──────────────────────────────────────────────────────────
 
-export const UTILITY_PROMPT_VERSION = "utility-magazine-v2";
+export const UTILITY_PROMPT_VERSION = "utility-magazine-v3";
 
 export function buildUtilityPrompt(input: UtilityGenerateInput): string {
   const sourcesBlock = input.sourcePackets
@@ -152,9 +153,12 @@ export function buildUtilityPrompt(input: UtilityGenerateInput): string {
     : "";
 
   const seriesInstr = SERIES_INSTRUCTIONS[input.series];
+  const editorial = editorialBlockForSeries(input.series);
 
   return `Tu es un rédacteur expert pour EdLight Student Utility Magazine, une publication éducative pour les étudiants haïtiens.
 ${rotationNote}
+${editorial}
+
 ${seriesInstr}
 
 RÈGLES STRICTES DE GROUNDING:
@@ -163,8 +167,7 @@ RÈGLES STRICTES DE GROUNDING:
 3. Si une information manque, écris "à confirmer" — n'INVENTE JAMAIS.
 4. N'utilise JAMAIS les expressions: "je pense", "peut-être", "probablement", "il semble que", "il est possible", "on peut supposer".
 5. Cite les sources par nom dans le texte (ex: "Selon Campus France…").
-6. Ton: student-friendly, actionnable, pas de drame politique.
-7. Termine par une liste Sources.
+6. Termine par une liste Sources.
 
 SOURCES:
 ${sourcesBlock}

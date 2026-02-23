@@ -3,13 +3,19 @@
  * Tuned for Haitian students: concise, accurate, actionable.
  */
 
+import { editorialBlockForKey } from "./editorial-tone.js";
+
 export function buildWebDraftPrompt(input: {
   title: string;
   text: string;
   sourceUrl: string;
   sourceName: string;
 }): string {
+  const editorial = editorialBlockForKey("news");
+
   return `Tu es un rédacteur professionnel pour EdLight News, une plateforme d'actualités éducatives pour les étudiants haïtiens.
+
+${editorial}
 
 À partir de l'article source ci-dessous, génère du contenu pour le web en FRANÇAIS et en KREYÒL AYISYEN.
 
