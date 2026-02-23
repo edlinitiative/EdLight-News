@@ -63,6 +63,25 @@ export type {
   GenerateDatasetArticleError,
 } from "./datasets.js";
 
+// ── Re-export dataset verification module ───────────────────────────────────
+export {
+  verifyUniversity,
+  verifyScholarship,
+  verifyCalendarEvent,
+  verifyUniversitySchema,
+  verifyScholarshipSchema,
+  verifyCalendarEventSchema,
+  VERIFY_CONFIDENCE_THRESHOLD,
+} from "./verify.js";
+export type {
+  VerifyUniversityResult,
+  VerifyScholarshipResult,
+  VerifyCalendarEventResult,
+  VerifyResult,
+  VerifySuccess,
+  VerifyError,
+} from "./verify.js";
+
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.65;
 

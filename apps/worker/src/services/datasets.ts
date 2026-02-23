@@ -26,6 +26,12 @@ import {
 } from "@edlight-news/firebase";
 import type { DatasetJob, DatasetName } from "@edlight-news/types";
 import { fetchHtml } from "@edlight-news/scraper";
+import {
+  verifyUniversity,
+  verifyScholarship,
+  verifyCalendarEvent,
+  VERIFY_CONFIDENCE_THRESHOLD,
+} from "@edlight-news/generator";
 
 // ── Configuration ──────────────────────────────────────────────────────────
 
@@ -102,6 +108,20 @@ async function probeUrl(url: string, label: string): Promise<boolean> {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[datasets] probe failed for ${label}: ${url} — ${msg}`);
     return false;
+  }
+}
+
+/**
+ * Fetch HTML from a URL, returning null (not throwing) on failure.
+ * Logs the error for observability.
+ */
+async function safeFetchHtml(url: string, label: string): Promise<string | null> {
+  try {
+    return await fetchHtml(url);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[datasets] fetch failed for ${label}: ${url} — ${msg}`);
+    return null;
   }
 }
 
@@ -205,19 +225,17 @@ async function processJob(job: DatasetJob): Promise<void> {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── Refresh functions — Verification-only (no LLM rewrite yet) ─────────────
+// ── Refresh functions — Phase 2: LLM-powered verification ──────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 //
-// Phase 1: Source-URL health checks.
-//   For each record in the dataset, probe the primary source URL(s).
-//   - If reachable: update verifiedAt timestamp (data confirmed still live).
-//   - If 404/timeout: log a warning but DO NOT delete or modify the record.
-//     The record keeps its last-good data until manual review.
+// For universities, scholarships, and calendar events:
+//   1. Fetch HTML from the source URL (skip record on 404/timeout)
+//   2. Send HTML + current record to Gemini for structured field extraction
+//   3. If Gemini says page is irrelevant or low confidence → skip (preserve data)
+//   4. Diff extracted fields against current record → only write changes
+//   5. Null-safe repository layer filters out undefined/null → no accidental wipes
 //
-// Phase 2 (future): LLM-powered diff.
-//   Fetch page content, send to Gemini to extract structured fields,
-//   diff against current record, and upsert only changed fields.
-//   The null-safe repository layer ensures no field is ever wiped.
+// For pathways: URL-probe only (no single source page to parse)
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function refreshUniversities(_job: DatasetJob): Promise<void> {
@@ -231,28 +249,83 @@ async function refreshUniversities(_job: DatasetJob): Promise<void> {
     return;
   }
 
-  let reachable = 0;
-  let unreachable = 0;
+  let verified = 0;
+  let updated = 0;
+  let skipped = 0;
 
   for (const uni of all) {
-    const ok = await probeUrl(uni.admissionsUrl, `university:${uni.name}`);
-    if (ok) {
-      // Touch verifiedAt to confirm the source is still live
+    const html = await safeFetchHtml(uni.admissionsUrl, `university:${uni.name}`);
+    if (!html) { skipped++; continue; }
+
+    const result = await verifyUniversity(
+      { name: uni.name, country: uni.country, admissionsUrl: uni.admissionsUrl },
+      html,
+    );
+
+    if (!result.ok) {
+      console.warn(`[datasets] verify failed for university:${uni.name} — ${result.error}`);
+      skipped++;
+      continue;
+    }
+
+    const d = result.data;
+
+    // Page is no longer relevant (e.g. redirected to homepage, error page)
+    if (!d.pageRelevant) {
+      console.warn(`[datasets] university:${uni.name} — page no longer relevant, preserving existing data`);
+      skipped++;
+      continue;
+    }
+
+    // Low confidence extraction — don't trust it
+    if (d.confidence < VERIFY_CONFIDENCE_THRESHOLD) {
+      console.warn(`[datasets] university:${uni.name} — low confidence (${d.confidence}), skipping update`);
+      skipped++;
+      continue;
+    }
+
+    // Build partial update from extracted fields (only what Gemini found)
+    const patch: Record<string, unknown> = {};
+    if (d.city && d.city !== uni.city) patch.city = d.city;
+    if (d.tuitionBand && d.tuitionBand !== uni.tuitionBand) patch.tuitionBand = d.tuitionBand;
+    if (d.internationalAdmissionsUrl && d.internationalAdmissionsUrl !== uni.internationalAdmissionsUrl) {
+      patch.internationalAdmissionsUrl = d.internationalAdmissionsUrl;
+    }
+    if (d.scholarshipUrl && d.scholarshipUrl !== uni.scholarshipUrl) patch.scholarshipUrl = d.scholarshipUrl;
+    if (d.languages && JSON.stringify(d.languages) !== JSON.stringify(uni.languages)) patch.languages = d.languages;
+    if (d.applicationPlatform || d.englishTests || d.frenchTests) {
+      const newReqs = {
+        applicationPlatform: d.applicationPlatform ?? uni.requirements?.applicationPlatform,
+        englishTests: d.englishTests ?? uni.requirements?.englishTests,
+        frenchTests: d.frenchTests ?? uni.requirements?.frenchTests,
+      };
+      if (JSON.stringify(newReqs) !== JSON.stringify(uni.requirements)) patch.requirements = newReqs;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      await universitiesRepo.update(uni.id, {
+        name: uni.name,
+        country: uni.country,
+        admissionsUrl: uni.admissionsUrl,
+        sources: uni.sources,
+        ...patch,
+      } as Parameters<typeof universitiesRepo.update>[1]);
+      updated++;
+      console.log(`[datasets] university:${uni.name} — updated ${Object.keys(patch).join(", ")}`);
+    } else {
+      // No changes, just touch updatedAt to confirm verified
       await universitiesRepo.update(uni.id, {
         name: uni.name,
         country: uni.country,
         admissionsUrl: uni.admissionsUrl,
         sources: uni.sources,
       });
-      reachable++;
-    } else {
-      // Source unreachable — keep existing data, do NOT wipe
-      unreachable++;
     }
+    verified++;
   }
 
   console.log(
-    `[datasets] refreshUniversities: ${reachable} reachable, ${unreachable} unreachable out of ${all.length}`,
+    `[datasets] refreshUniversities: ${verified} verified, ${updated} updated, ${skipped} skipped out of ${all.length}`,
   );
 }
 
@@ -267,12 +340,81 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
     return;
   }
 
-  let reachable = 0;
-  let unreachable = 0;
+  let verified = 0;
+  let updated = 0;
+  let skipped = 0;
 
   for (const s of all) {
-    const ok = await probeUrl(s.officialUrl, `scholarship:${s.name}`);
-    if (ok) {
+    const html = await safeFetchHtml(s.officialUrl, `scholarship:${s.name}`);
+    if (!html) { skipped++; continue; }
+
+    const result = await verifyScholarship(
+      { name: s.name, country: s.country, officialUrl: s.officialUrl },
+      html,
+    );
+
+    if (!result.ok) {
+      console.warn(`[datasets] verify failed for scholarship:${s.name} — ${result.error}`);
+      skipped++;
+      continue;
+    }
+
+    const d = result.data;
+
+    if (!d.pageRelevant) {
+      console.warn(`[datasets] scholarship:${s.name} — page no longer relevant, preserving existing data`);
+      skipped++;
+      continue;
+    }
+
+    if (d.confidence < VERIFY_CONFIDENCE_THRESHOLD) {
+      console.warn(`[datasets] scholarship:${s.name} — low confidence (${d.confidence}), skipping update`);
+      skipped++;
+      continue;
+    }
+
+    // Build partial update — only changed fields
+    const patch: Record<string, unknown> = {};
+    if (d.fundingType && d.fundingType !== s.fundingType) patch.fundingType = d.fundingType;
+    if (d.eligibilitySummary && d.eligibilitySummary !== s.eligibilitySummary) patch.eligibilitySummary = d.eligibilitySummary;
+    if (d.requirements && JSON.stringify(d.requirements) !== JSON.stringify(s.requirements)) patch.requirements = d.requirements;
+    if (d.howToApplyUrl && d.howToApplyUrl !== s.howToApplyUrl) patch.howToApplyUrl = d.howToApplyUrl;
+    if (d.eligibleCountries && JSON.stringify(d.eligibleCountries) !== JSON.stringify(s.eligibleCountries)) {
+      patch.eligibleCountries = d.eligibleCountries;
+    }
+    if (d.recurring !== undefined && d.recurring !== s.recurring) patch.recurring = d.recurring;
+
+    // Deadline — the most important field for scholarships
+    if (d.deadlineDateISO || d.deadlineNotes) {
+      const newDeadline = {
+        dateISO: d.deadlineDateISO ?? s.deadline?.dateISO,
+        notes: d.deadlineNotes ?? s.deadline?.notes,
+        sourceUrl: s.deadline?.sourceUrl ?? s.officialUrl,
+      };
+      if (
+        newDeadline.dateISO !== s.deadline?.dateISO ||
+        newDeadline.notes !== s.deadline?.notes
+      ) {
+        patch.deadline = newDeadline;
+        console.log(
+          `[datasets] scholarship:${s.name} — deadline changed: ${s.deadline?.dateISO ?? "none"} → ${newDeadline.dateISO ?? "none"}`,
+        );
+      }
+    }
+
+    if (Object.keys(patch).length > 0) {
+      await scholarshipsRepo.update(s.id, {
+        name: s.name,
+        country: s.country,
+        level: s.level,
+        fundingType: (patch.fundingType as typeof s.fundingType) ?? s.fundingType,
+        officialUrl: s.officialUrl,
+        sources: s.sources,
+        ...patch,
+      } as Parameters<typeof scholarshipsRepo.update>[1]);
+      updated++;
+      console.log(`[datasets] scholarship:${s.name} — updated ${Object.keys(patch).join(", ")}`);
+    } else {
       await scholarshipsRepo.update(s.id, {
         name: s.name,
         country: s.country,
@@ -281,14 +423,12 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
         officialUrl: s.officialUrl,
         sources: s.sources,
       });
-      reachable++;
-    } else {
-      unreachable++;
     }
+    verified++;
   }
 
   console.log(
-    `[datasets] refreshScholarships: ${reachable} reachable, ${unreachable} unreachable out of ${all.length}`,
+    `[datasets] refreshScholarships: ${verified} verified, ${updated} updated, ${skipped} skipped out of ${all.length}`,
   );
 }
 
@@ -303,7 +443,8 @@ async function refreshPathways(_job: DatasetJob): Promise<void> {
     return;
   }
 
-  // Pathways don't have a single "official URL" — verify the links in their sources
+  // Pathways are curated step-by-step guides — no single source page to LLM-parse.
+  // Phase 2 for pathways = URL probe only (verify links still live).
   let verified = 0;
   let broken = 0;
 
@@ -314,11 +455,10 @@ async function refreshPathways(_job: DatasetJob): Promise<void> {
       if (!ok) {
         allSourcesOk = false;
         broken++;
-        break; // one broken source is enough to flag this pathway
+        break;
       }
     }
     if (allSourcesOk) {
-      // Touch updatedAt to confirm sources still live
       await pathwaysRepo.update(p.id, {
         title_fr: p.title_fr,
         title_ht: p.title_ht,
@@ -346,12 +486,62 @@ async function refreshHaitiCalendar(_job: DatasetJob): Promise<void> {
     return;
   }
 
-  let reachable = 0;
-  let unreachable = 0;
+  let verified = 0;
+  let updated = 0;
+  let skipped = 0;
 
   for (const evt of all) {
-    const ok = await probeUrl(evt.officialUrl, `calendar:${evt.title}`);
-    if (ok) {
+    const html = await safeFetchHtml(evt.officialUrl, `calendar:${evt.title}`);
+    if (!html) { skipped++; continue; }
+
+    const result = await verifyCalendarEvent(
+      { title: evt.title, institution: evt.institution, officialUrl: evt.officialUrl },
+      html,
+    );
+
+    if (!result.ok) {
+      console.warn(`[datasets] verify failed for calendar:${evt.title} — ${result.error}`);
+      skipped++;
+      continue;
+    }
+
+    const d = result.data;
+
+    if (!d.pageRelevant) {
+      console.warn(`[datasets] calendar:${evt.title} — page no longer relevant, preserving existing data`);
+      skipped++;
+      continue;
+    }
+
+    if (d.confidence < VERIFY_CONFIDENCE_THRESHOLD) {
+      console.warn(`[datasets] calendar:${evt.title} — low confidence (${d.confidence}), skipping update`);
+      skipped++;
+      continue;
+    }
+
+    const patch: Record<string, unknown> = {};
+    if (d.startDateISO && d.startDateISO !== evt.startDateISO) patch.startDateISO = d.startDateISO;
+    if (d.endDateISO && d.endDateISO !== evt.endDateISO) patch.endDateISO = d.endDateISO;
+    if (d.dateISO && d.dateISO !== evt.dateISO) {
+      patch.dateISO = d.dateISO;
+      console.log(`[datasets] calendar:${evt.title} — date changed: ${evt.dateISO ?? "none"} → ${d.dateISO}`);
+    }
+    if (d.location && d.location !== evt.location) patch.location = d.location;
+    if (d.notes && d.notes !== evt.notes) patch.notes = d.notes;
+
+    if (Object.keys(patch).length > 0) {
+      await haitiCalendarRepo.update(evt.id, {
+        institution: evt.institution,
+        eventType: evt.eventType,
+        level: evt.level,
+        title: evt.title,
+        officialUrl: evt.officialUrl,
+        sources: evt.sources,
+        ...patch,
+      } as Parameters<typeof haitiCalendarRepo.update>[1]);
+      updated++;
+      console.log(`[datasets] calendar:${evt.title} — updated ${Object.keys(patch).join(", ")}`);
+    } else {
       await haitiCalendarRepo.update(evt.id, {
         institution: evt.institution,
         eventType: evt.eventType,
@@ -360,13 +550,11 @@ async function refreshHaitiCalendar(_job: DatasetJob): Promise<void> {
         officialUrl: evt.officialUrl,
         sources: evt.sources,
       });
-      reachable++;
-    } else {
-      unreachable++;
     }
+    verified++;
   }
 
   console.log(
-    `[datasets] refreshHaitiCalendar: ${reachable} reachable, ${unreachable} unreachable out of ${all.length}`,
+    `[datasets] refreshHaitiCalendar: ${verified} verified, ${updated} updated, ${skipped} skipped out of ${all.length}`,
   );
 }
