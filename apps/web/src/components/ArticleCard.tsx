@@ -8,6 +8,7 @@
 import type { ContentLanguage } from "@edlight-news/types";
 import { ClipboardList } from "lucide-react";
 import type { FeedItem } from "@/components/news-feed";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
   categoryLabel,
   CATEGORY_COLORS,
@@ -142,11 +143,20 @@ export function ArticleCard({
         compact ? "aspect-[2/1]" : "aspect-video",
       ].join(" ")}>
         {hasImage ? (
-          <img
+          <ImageWithFallback
             src={article.imageUrl!}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fallback={
+              <div
+                className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
+              >
+                <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                  {catInfo?.label ?? ""}
+                </span>
+              </div>
+            }
           />
         ) : (
           <div

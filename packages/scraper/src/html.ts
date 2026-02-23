@@ -157,11 +157,33 @@ export function extractCandidateImages(
       const ld = JSON.parse($(el).html() ?? "");
       const items = Array.isArray(ld) ? ld : [ld];
       for (const item of items) {
-        const nodes = item["@graph"] ? item["@graph"] : [item];
+        const nodes: Record<string, unknown>[] = item["@graph"] ? item["@graph"] : [item];
+
+        // Build @id lookup map so we can resolve cross-references
+        // (e.g. WordPress Yoast "#primaryimage" → actual ImageObject node)
+        const idMap = new Map<string, Record<string, unknown>>();
+        for (const n of nodes) {
+          if (n && typeof n["@id"] === "string") idMap.set(n["@id"], n);
+        }
+
+        /** Resolve a JSON-LD field that may be an @id reference. */
+        const resolveRef = (field: unknown): unknown => {
+          if (!field || typeof field !== "object" || Array.isArray(field)) return field;
+          const obj = field as Record<string, unknown>;
+          if (typeof obj["@id"] === "string" && Object.keys(obj).length <= 2) {
+            // Looks like a reference — resolve it
+            return idMap.get(obj["@id"]) ?? field;
+          }
+          return field;
+        };
+
         for (const node of nodes) {
           if (!node) continue;
-          const imgField =
-            node.image ?? node.thumbnailUrl ?? node.primaryImageOfPage?.url;
+          // Resolve @id references before extracting image URLs
+          const imgField = resolveRef(node.image)
+            ?? node.thumbnailUrl
+            ?? (resolveRef((node.primaryImageOfPage as Record<string, unknown>)?.url
+                ?? node.primaryImageOfPage));
           const ldUrl = extractImageFromLd(imgField, baseUrl);
           if (ldUrl && !seen.has(ldUrl) && !isJunkImage(ldUrl)) {
             seen.add(ldUrl);
@@ -293,7 +315,11 @@ function resolveImageUrl(raw: string | undefined | null, baseUrl: string): strin
   if (src.endsWith(".gif") && src.includes("1x1")) return null;
 
   try {
-    return src.startsWith("http") ? src : new URL(src, baseUrl).toString();
+    const resolved = src.startsWith("http") ? src : new URL(src, baseUrl).toString();
+    // Reject URLs with fragment identifiers — they point to page anchors,
+    // not image resources (e.g. WordPress Yoast "#primaryimage" refs).
+    if (resolved.includes("#")) return null;
+    return resolved;
   } catch {
     return null;
   }
@@ -305,7 +331,10 @@ function isJunkImage(url: string): boolean {
   return JUNK_PATTERNS.some((p) => lower.includes(p));
 }
 
-/** Extract an image URL from a JSON-LD image field (string, object, or array). */
+/** Extract an image URL from a JSON-LD image field (string, object, or array).
+ *  NOTE: We intentionally do NOT fall back to obj["@id"] — in JSON-LD, @id is a
+ *  cross-reference identifier (e.g. WordPress Yoast "#primaryimage"), not a
+ *  content URL.  Use the @graph resolver below for @id references. */
 function extractImageFromLd(
   field: unknown,
   baseUrl: string,
@@ -321,8 +350,9 @@ function extractImageFromLd(
   }
   if (typeof field === "object" && field !== null) {
     const obj = field as Record<string, unknown>;
+    // Only use url / contentUrl — never @id (it's an identifier, not a resource)
     return resolveImageUrl(
-      (obj.url ?? obj.contentUrl ?? obj["@id"]) as string | undefined,
+      (obj.url ?? obj.contentUrl) as string | undefined,
       baseUrl,
     );
   }

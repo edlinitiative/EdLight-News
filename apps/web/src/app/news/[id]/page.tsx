@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
 import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle } from "lucide-react";
@@ -604,7 +605,7 @@ export default async function ArticlePage({
       {/* Hero image — best image from dedup group (mirrors card logic) */}
       {heroImageUrl && (
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100">
-          <img
+          <ImageWithFallback
             src={heroImageUrl}
             alt=""
             className="h-full w-full object-cover"
