@@ -28,6 +28,9 @@
       "@edlight-news/firebase": [
         "../../packages/firebase/dist/index.d.ts"
       ],
+      "@edlight-news/generator": [
+        "../../packages/generator/dist/index.d.ts"
+      ],
       "@edlight-news/types": [
         "../../packages/types/dist/index.d.ts"
       ]

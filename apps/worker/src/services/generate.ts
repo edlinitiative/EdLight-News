@@ -7,6 +7,7 @@ import {
 import {
   generateWebDraftFRHT,
   buildContentVersionPayloads,
+  formatContentVersion,
 } from "@edlight-news/generator";
 import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/types";
 import { computeScoring } from "./scoring.js";
@@ -214,7 +215,7 @@ export async function generateForItems(): Promise<{
       });
 
       // Build FR + HT content_version payloads with quality gates
-      const payloads = buildContentVersionPayloads(
+      const rawPayloads = buildContentVersionPayloads(
         draft,
         item.id,
         updatedQualityFlags,
@@ -222,6 +223,18 @@ export async function generateForItems(): Promise<{
         finalCategory,
         scoring.audienceFitScore,
       );
+
+      // Post-process for consistent house style
+      const payloads = rawPayloads.map((p) => {
+        const formatted = formatContentVersion({
+          lang: p.language as "fr" | "ht",
+          title: p.title,
+          summary: p.summary,
+          body: p.body,
+          series: "News",
+        });
+        return { ...p, ...formatted };
+      });
 
       // Write content_versions to Firestore
       await contentVersionsRepo.createDraftVersionsForItem(item.id, payloads);

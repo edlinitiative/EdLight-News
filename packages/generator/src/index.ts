@@ -49,6 +49,15 @@ export type {
   UtilityValidationResult,
 } from "./utility.js";
 
+// ── Re-export postprocess module ────────────────────────────────────────────
+export { formatContentVersion } from "./postprocess/formatContentVersion.js";
+export type {
+  FormatContentVersionInput,
+  FormatContentVersionOutput,
+  ContentSection as PostprocessContentSection,
+  SourceCitation as PostprocessSourceCitation,
+} from "./postprocess/formatContentVersion.js";
+
 // ── Re-export editorial tone module ─────────────────────────────────────────
 export {
   getEditorialDirective,

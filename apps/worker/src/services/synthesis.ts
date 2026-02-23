@@ -14,6 +14,7 @@ import {
   generateSynthesisFromPacket,
   validateSynthesisGrounding,
   SYNTHESIS_PROMPT_VERSION,
+  formatContentVersion,
 } from "@edlight-news/generator";
 import type {
   Item,
@@ -313,11 +314,27 @@ async function createOrUpdateSynthesis(
       (c, i, arr) => arr.findIndex((x) => x.sourceUrl === c.sourceUrl) === i,
     );
 
-  // Build body text from sections (backwards-compatible fallback)
-  const bodyFr = output.sections_fr
+  // Post-process for consistent house style
+  const fmtFr = formatContentVersion({
+    lang: "fr",
+    title: output.title_fr,
+    summary: output.summary_fr,
+    sections: output.sections_fr,
+    series: "News",
+  });
+  const fmtHt = formatContentVersion({
+    lang: "ht",
+    title: output.title_ht,
+    summary: output.summary_ht,
+    sections: output.sections_ht,
+    series: "News",
+  });
+
+  // Build body text from formatted sections (backwards-compatible fallback)
+  const bodyFr = (fmtFr.sections ?? output.sections_fr)
     .map((s) => `## ${s.heading}\n\n${s.content}`)
     .join("\n\n");
-  const bodyHt = output.sections_ht
+  const bodyHt = (fmtHt.sections ?? output.sections_ht)
     .map((s) => `## ${s.heading}\n\n${s.content}`)
     .join("\n\n");
 

@@ -6,6 +6,7 @@
  */
 
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
+import { formatContentVersion } from "@edlight-news/generator";
 import type {
   ContentLanguage,
   ContentVersion,
@@ -96,6 +97,15 @@ export function enrichArticles(
   return cvs.map((cv): EnrichedArticle => {
     const item = itemMap.get(cv.itemId);
 
+    /* ── render-time formatting pass (idempotent safety net) ── */
+    const formatted = formatContentVersion({
+      lang: cv.language as "fr" | "ht",
+      title: cv.title,
+      summary: cv.summary,
+      body: cv.body,
+      series: (item?.utilityMeta?.series as string) ?? "News",
+    });
+
     const cvSecs = toEpochSecs(cv.createdAt);
     const itemPubSecs = toEpochSecs(item?.publishedAt);
     const publishedAt = itemPubSecs
@@ -107,9 +117,9 @@ export function enrichArticles(
     return {
       id: cv.id,
       itemId: cv.itemId,
-      title: cv.title,
-      summary: cv.summary,
-      body: cv.body,
+      title: formatted.title,
+      summary: formatted.summary ?? cv.summary,
+      body: formatted.body ?? cv.body,
       status: cv.status,
       category: cv.category ?? item?.category,
       draftReason: cv.draftReason,

@@ -29,6 +29,7 @@ import {
 import {
   generateUtilityFromPackets,
   validateUtilityJson,
+  formatContentVersion,
 } from "@edlight-news/generator";
 import type { UtilitySourcePacket } from "@edlight-news/generator";
 import { extractArticleContent } from "@edlight-news/scraper";
@@ -535,10 +536,18 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
               const calendarDraftReason = validation.passed
                 ? undefined
                 : `Validation issues: ${validation.issues.join("; ")}`;
-              await contentVersionsRepo.updateContentVersion(cv.id, {
+              const fmtCal = formatContentVersion({
+                lang: isFr ? "fr" : "ht",
                 title: isFr ? output.title_fr : output.title_ht,
                 summary: isFr ? output.summary_fr : output.summary_ht,
-                body: (isFr ? output.sections_fr : output.sections_ht)
+                sections: isFr ? output.sections_fr : output.sections_ht,
+                sourceCitations,
+                series: job.series,
+              });
+              await contentVersionsRepo.updateContentVersion(cv.id, {
+                title: fmtCal.title,
+                summary: fmtCal.summary,
+                body: (fmtCal.sections ?? (isFr ? output.sections_fr : output.sections_ht))
                   .map((s) => `## ${s.heading}\n\n${s.content}`)
                   .join("\n\n"),
                 status: calendarStatus,
@@ -548,8 +557,8 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
                   sourceName: c.label,
                   sourceUrl: c.url,
                 })),
-                sections: isFr ? output.sections_fr : output.sections_ht,
-                sourceCitations,
+                sections: fmtCal.sections ?? (isFr ? output.sections_fr : output.sections_ht),
+                sourceCitations: fmtCal.sourceCitations ?? sourceCitations,
               });
             }
 
@@ -610,13 +619,21 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
 
         for (const lang of job.langTargets as ContentLanguage[]) {
           const isFr = lang === "fr";
+          const fmtUtil = formatContentVersion({
+            lang: isFr ? "fr" : "ht",
+            title: isFr ? output.title_fr : output.title_ht,
+            summary: isFr ? output.summary_fr : output.summary_ht,
+            sections: isFr ? output.sections_fr : output.sections_ht,
+            sourceCitations,
+            series: job.series,
+          });
           await contentVersionsRepo.createContentVersion({
             itemId: item.id,
             channel: "web",
             language: lang,
-            title: isFr ? output.title_fr : output.title_ht,
-            summary: isFr ? output.summary_fr : output.summary_ht,
-            body: (isFr ? output.sections_fr : output.sections_ht)
+            title: fmtUtil.title,
+            summary: fmtUtil.summary ?? (isFr ? output.summary_fr : output.summary_ht),
+            body: (fmtUtil.sections ?? (isFr ? output.sections_fr : output.sections_ht))
               .map((s) => `## ${s.heading}\n\n${s.content}`)
               .join("\n\n"),
             status,
@@ -627,8 +644,8 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
               sourceName: c.label,
               sourceUrl: c.url,
             })),
-            sections: isFr ? output.sections_fr : output.sections_ht,
-            sourceCitations,
+            sections: fmtUtil.sections ?? (isFr ? output.sections_fr : output.sections_ht),
+            sourceCitations: fmtUtil.sourceCitations ?? sourceCitations,
           });
         }
 

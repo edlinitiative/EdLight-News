@@ -19,6 +19,7 @@ import {
   itemsRepo,
   contentVersionsRepo,
 } from "@edlight-news/firebase";
+import { formatContentVersion } from "@edlight-news/generator";
 import type {
   HaitiHistoryAlmanacEntry,
   HaitiHoliday,
@@ -274,19 +275,31 @@ export async function runHistoryDailyPublisher(): Promise<{
     // Create content versions
     for (const lang of ["fr", "ht"] as ContentLanguage[]) {
       const content = lang === "fr" ? frContent : htContent;
+      const fmtHist = formatContentVersion({
+        lang,
+        title: content.title,
+        summary: content.summary,
+        body: content.body,
+        sections: content.sections,
+        sourceCitations: allCitations.map((c) => ({
+          name: c.sourceName,
+          url: c.sourceUrl,
+        })),
+        series: "HaitiHistory",
+      });
       await contentVersionsRepo.createContentVersion({
         itemId: item.id,
         channel: "web",
         language: lang,
-        title: content.title,
-        summary: content.summary,
-        body: content.body,
+        title: fmtHist.title,
+        summary: fmtHist.summary ?? content.summary,
+        body: fmtHist.body ?? content.body,
         status: "published",
         category: "Haiti" as any,
         qualityFlags,
         citations: allCitations,
-        sections: content.sections,
-        sourceCitations: allCitations.map((c) => ({
+        sections: fmtHist.sections ?? content.sections,
+        sourceCitations: fmtHist.sourceCitations ?? allCitations.map((c) => ({
           name: c.sourceName,
           url: c.sourceUrl,
         })),

@@ -23,6 +23,9 @@ importers:
       '@edlight-news/firebase':
         specifier: workspace:*
         version: link:../../packages/firebase
+      '@edlight-news/generator':
+        specifier: workspace:*
+        version: link:../../packages/generator
       '@edlight-news/types':
         specifier: workspace:*
         version: link:../../packages/types
