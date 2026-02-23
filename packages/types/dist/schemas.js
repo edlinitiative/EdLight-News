@@ -82,6 +82,7 @@ export const utilitySeriesSchema = z.enum([
     "StudyAbroad",
     "Career",
     "ScholarshipRadar",
+    "ScholarshipRadarWeekly",
     "HaitiHistory",
     "HaitiFactOfTheDay",
     "HaitianOfTheWeek",
@@ -372,6 +373,9 @@ export const universitySchema = z.object({
     updatedAt: timestampSchema,
 });
 // ── scholarships ───────────────────────────────────────────────────────────
+export const scholarshipKindSchema = z.enum(["program", "directory"]);
+export const scholarshipHaitianEligibilitySchema = z.enum(["yes", "no", "unknown"]);
+export const scholarshipDeadlineAccuracySchema = z.enum(["exact", "month-only", "varies", "unknown"]);
 export const scholarshipFundingTypeSchema = z.enum([
     "full", "partial", "stipend", "tuition-only", "unknown",
 ]);
@@ -388,6 +392,9 @@ export const scholarshipSchema = z.object({
     eligibleCountries: z.array(z.string()).optional(),
     level: z.array(academicLevelSchema).min(1),
     fundingType: scholarshipFundingTypeSchema,
+    kind: scholarshipKindSchema.optional(),
+    haitianEligibility: scholarshipHaitianEligibilitySchema.optional(),
+    deadlineAccuracy: scholarshipDeadlineAccuracySchema.optional(),
     deadline: scholarshipDeadlineSchema.optional(),
     officialUrl: z.string().url(),
     howToApplyUrl: z.string().url().optional(),

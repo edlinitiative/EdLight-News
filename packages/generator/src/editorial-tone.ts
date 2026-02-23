@@ -198,6 +198,7 @@ const DIRECTIVES: Record<EditorialToneKey, EditorialDirective> = {
 const SERIES_TONE_MAP: Record<UtilitySeries, EditorialToneKey> = {
   HaitiHistory: "history",
   ScholarshipRadar: "scholarship",
+  ScholarshipRadarWeekly: "scholarship",
   StudyAbroad: "study-abroad",
   Career: "career",
   HaitianOfTheWeek: "profile",

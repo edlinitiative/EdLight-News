@@ -17,6 +17,8 @@
     "test:utility-engine": "tsx src/scripts/testUtilityEngine.ts",
     "seed:universities": "tsx src/scripts/seedUniversities.ts",
     "seed:scholarships": "tsx src/scripts/seedScholarships.ts",
+    "seed:scholarships-ca-fr-uk": "tsx src/scripts/seedScholarshipsCaFrUk.ts",
+    "generate:scholarship-radar-weekly": "tsx src/scripts/generateScholarshipRadarWeekly.ts",
     "seed:haiti-calendar": "tsx src/scripts/seedHaitiCalendar.ts",
     "seed:pathways": "tsx src/scripts/seedPathways.ts",
     "seed:haiti-history-almanac": "tsx src/scripts/seedHaitiHistoryAlmanac.ts",

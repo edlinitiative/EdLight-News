@@ -115,6 +115,8 @@ function seriesToUtilityType(series: UtilitySeries): UtilityType {
       return "career";
     case "ScholarshipRadar":
       return "scholarship";
+    case "ScholarshipRadarWeekly":
+      return "scholarship";
     case "HaitiHistory":
       return "history";
     case "HaitiFactOfTheDay":
@@ -131,6 +133,8 @@ function seriesToUtilityType(series: UtilitySeries): UtilityType {
 function seriesToCategory(series: UtilitySeries): ItemCategory {
   switch (series) {
     case "ScholarshipRadar":
+      return "bourses";
+    case "ScholarshipRadarWeekly":
       return "bourses";
     case "HaitiEducationCalendar":
       return "resource";

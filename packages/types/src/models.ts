@@ -123,6 +123,7 @@ export type UtilitySeries =
   | "StudyAbroad"
   | "Career"
   | "ScholarshipRadar"
+  | "ScholarshipRadarWeekly"
   | "HaitiHistory"
   | "HaitiFactOfTheDay"
   | "HaitianOfTheWeek"
@@ -517,6 +518,15 @@ export interface University {
 
 // ── Firestore collection: scholarships ─────────────────────────────────────
 
+/** Whether the record is a direct application programme or a directory listing */
+export type ScholarshipKind = "program" | "directory";
+
+/** Haitian student eligibility status */
+export type ScholarshipHaitianEligibility = "yes" | "no" | "unknown";
+
+/** How precise the deadline information is */
+export type ScholarshipDeadlineAccuracy = "exact" | "month-only" | "varies" | "unknown";
+
 export type ScholarshipFundingType =
   | "full" | "partial" | "stipend" | "tuition-only" | "unknown";
 
@@ -534,6 +544,12 @@ export interface Scholarship {
   eligibleCountries?: string[];
   level: AcademicLevel[];
   fundingType: ScholarshipFundingType;
+  /** Whether this is a direct programme or a directory listing */
+  kind?: ScholarshipKind;
+  /** Explicit Haitian eligibility status */
+  haitianEligibility?: ScholarshipHaitianEligibility;
+  /** How precise the deadline information is */
+  deadlineAccuracy?: ScholarshipDeadlineAccuracy;
   deadline?: ScholarshipDeadline;
   officialUrl: string;
   howToApplyUrl?: string;

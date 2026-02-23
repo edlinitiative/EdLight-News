@@ -66,6 +66,7 @@ const HT_MONTH_MAP = new Map<string, string>(
 const INLINE_SOURCE_SERIES = new Set([
   "HaitiHistory",
   "ScholarshipRadar",
+  "ScholarshipRadarWeekly",
   "StudyAbroad",
   "Career",
   "HaitianOfTheWeek",

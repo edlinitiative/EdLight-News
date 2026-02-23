@@ -92,7 +92,9 @@ STRUCTURE OBLIGATOIRE:
 - Section "Comment postuler" (étapes, lien officiel)
 - Section "Date limite" (date exacte avec sourceUrl, ou "à confirmer")
 Extrais ABSOLUMENT la date limite et le lien officiel de candidature.`,
-
+  ScholarshipRadarWeekly: `TYPE: DIGEST BOURSES HEBDOMADAIRE
+Ce type est généré par script (pas par Gemini). Si tu reçois ce prompt, retourne
+un résumé simple des bourses avec dates limites proches.`,
   HaitiHistory: `TYPE: HISTOIRE D'HAÏTI (contenu snackable)
 Crée un article historique court mais riche pour un étudiant haïtien.
 STRUCTURE OBLIGATOIRE:

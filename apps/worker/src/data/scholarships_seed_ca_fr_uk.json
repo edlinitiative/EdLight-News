@@ -1,0 +1,281 @@
+[
+  {
+    "name": "Bourses Vanier du Canada",
+    "country": "CA",
+    "kind": "program",
+    "fundingType": "full",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["phd"],
+    "deadline": {
+      "notes": "Les candidatures passent par l'université d'accueil; les dates varient par établissement.",
+      "sourceUrl": "https://vanier.gc.ca/en/nomination_process-processus_de_mise_en_candidature.html"
+    },
+    "officialUrl": "https://vanier.gc.ca/en/home-accueil.html",
+    "howToApplyUrl": "https://vanier.gc.ca/en/nomination_process-processus_de_mise_en_candidature.html",
+    "eligibilitySummary": "Bourses doctorales prestigieuses du Canada (50 000 CAD/an pendant 3 ans). Ouvertes aux étudiants internationaux via l'université d'accueil.",
+    "tags": ["prestigious", "government", "canada", "phd", "research"],
+    "sources": [
+      { "label": "Vanier CGS Official", "url": "https://vanier.gc.ca/en/home-accueil.html" }
+    ]
+  },
+  {
+    "name": "Bourses d'études Trudeau",
+    "country": "CA",
+    "kind": "program",
+    "fundingType": "full",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["phd"],
+    "deadline": {
+      "notes": "Appels gérés par la Fondation Trudeau; les dates varient chaque cycle.",
+      "sourceUrl": "https://www.trudeaufoundation.ca/scholarships"
+    },
+    "officialUrl": "https://www.trudeaufoundation.ca/scholarships",
+    "howToApplyUrl": "https://www.trudeaufoundation.ca/scholarships",
+    "eligibilitySummary": "Bourses de la Fondation Trudeau pour doctorants en sciences humaines et sociales. Inclut financement, mentorat et engagement communautaire.",
+    "tags": ["prestigious", "foundation", "canada", "phd", "social-sciences"],
+    "sources": [
+      { "label": "Fondation Trudeau", "url": "https://www.trudeaufoundation.ca/scholarships" }
+    ]
+  },
+  {
+    "name": "EduCanada — Bourses pour étrangers",
+    "country": "CA",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd", "short_programs"],
+    "officialUrl": "https://www.educanada.ca/scholarships-bourses/index.aspx?lang=fra",
+    "eligibilitySummary": "Portail officiel du gouvernement canadien regroupant des centaines de bourses disponibles pour étudiants internationaux au Canada.",
+    "tags": ["directory", "government", "canada"],
+    "sources": [
+      { "label": "EduCanada Official", "url": "https://www.educanada.ca/scholarships-bourses/index.aspx?lang=fra" }
+    ]
+  },
+  {
+    "name": "Universités Canada — Répertoire de bourses",
+    "country": "CA",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd"],
+    "officialUrl": "https://www.univcan.ca/programs-and-scholarships/",
+    "eligibilitySummary": "Répertoire officiel d'Universités Canada listant les programmes de bourses offerts par les universités membres à travers le pays.",
+    "tags": ["directory", "canada", "universities"],
+    "sources": [
+      { "label": "Universités Canada", "url": "https://www.univcan.ca/programs-and-scholarships/" }
+    ]
+  },
+  {
+    "name": "Exemption des droits de scolarité supplémentaires — Québec",
+    "country": "CA",
+    "kind": "program",
+    "fundingType": "tuition-only",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor", "master", "phd"],
+    "officialUrl": "https://www.quebec.ca/education/aide-financiere-aux-etudes/bourses-exemption-droits-scolarite",
+    "howToApplyUrl": "https://www.quebec.ca/education/aide-financiere-aux-etudes/bourses-exemption-droits-scolarite",
+    "eligibilitySummary": "Programme québécois d'exemption de droits de scolarité supplémentaires. Les étudiants haïtiens bénéficient d'une entente bilatérale leur permettant de payer les mêmes frais qu'un résident québécois.",
+    "tags": ["quebec", "tuition-exemption", "haiti-specific"],
+    "sources": [
+      { "label": "Gouvernement du Québec", "url": "https://www.quebec.ca/education/aide-financiere-aux-etudes/bourses-exemption-droits-scolarite" }
+    ]
+  },
+
+  {
+    "name": "Bourses Eiffel — Excellence Internationale",
+    "country": "FR",
+    "kind": "program",
+    "fundingType": "full",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "month-only",
+    "eligibleCountries": [],
+    "level": ["master", "phd"],
+    "deadline": {
+      "month": 1,
+      "notes": "Candidatures via les établissements d'enseignement supérieur français, généralement avant janvier.",
+      "sourceUrl": "https://www.campusfrance.org/fr/le-programme-de-bourses-eiffel"
+    },
+    "officialUrl": "https://www.campusfrance.org/fr/le-programme-de-bourses-eiffel",
+    "howToApplyUrl": "https://www.campusfrance.org/fr/le-programme-de-bourses-eiffel",
+    "eligibilitySummary": "Programme d'excellence du ministère français de l'Europe et des Affaires étrangères. Couvre allocation mensuelle, voyage, logement, assurance. Candidatures via l'établissement d'accueil.",
+    "tags": ["prestigious", "government", "france", "excellence"],
+    "sources": [
+      { "label": "Campus France — Eiffel", "url": "https://www.campusfrance.org/fr/le-programme-de-bourses-eiffel" }
+    ]
+  },
+  {
+    "name": "Bourses du Gouvernement Français (BGF)",
+    "country": "FR",
+    "kind": "program",
+    "fundingType": "partial",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["master", "phd"],
+    "deadline": {
+      "notes": "Les BGF sont gérées par les ambassades; les dates varient par pays. Consulter l'ambassade de France en Haïti.",
+      "sourceUrl": "https://www.campusfrance.org/fr/les-bourses-du-gouvernement-francais-BGF"
+    },
+    "officialUrl": "https://www.campusfrance.org/fr/les-bourses-du-gouvernement-francais-BGF",
+    "eligibilitySummary": "Bourses attribuées par les ambassades de France. Couvrent généralement l'allocation mensuelle et la couverture sociale. Les critères varient selon le poste diplomatique.",
+    "tags": ["government", "france", "embassy"],
+    "sources": [
+      { "label": "Campus France — BGF", "url": "https://www.campusfrance.org/fr/les-bourses-du-gouvernement-francais-BGF" }
+    ]
+  },
+  {
+    "name": "Campus France — Trouvez votre bourse",
+    "country": "FR",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd", "short_programs"],
+    "officialUrl": "https://www.campusfrance.org/fr/les-bourses-pour-etudier-en-france",
+    "eligibilitySummary": "Moteur de recherche officiel de Campus France pour trouver des bourses d'études en France. Permet de filtrer par pays d'origine, niveau et domaine.",
+    "tags": ["directory", "government", "france", "campus-france"],
+    "sources": [
+      { "label": "Campus France — Bourses", "url": "https://www.campusfrance.org/fr/les-bourses-pour-etudier-en-france" }
+    ]
+  },
+  {
+    "name": "France — Catalogue des bourses (CampusBourses)",
+    "country": "FR",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd"],
+    "officialUrl": "https://campusbourses.campusfrance.org/",
+    "eligibilitySummary": "CampusBourses est l'outil officiel de Campus France pour rechercher toutes les aides financières disponibles pour étudier en France : bourses gouvernementales, régionales, universitaires et privées.",
+    "tags": ["directory", "france", "campus-france", "search-tool"],
+    "sources": [
+      { "label": "CampusBourses", "url": "https://campusbourses.campusfrance.org/" }
+    ]
+  },
+  {
+    "name": "Bourses Émile Boutmy — Sciences Po Paris",
+    "country": "FR",
+    "kind": "program",
+    "fundingType": "partial",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master"],
+    "deadline": {
+      "notes": "Les dates varient par programme (undergraduate vs. graduate) et par cycle d'admission Sciences Po.",
+      "sourceUrl": "https://www.sciencespo.fr/en/admissions/financial-aid/emile-boutmy-scholarships/"
+    },
+    "officialUrl": "https://www.sciencespo.fr/en/admissions/financial-aid/emile-boutmy-scholarships/",
+    "howToApplyUrl": "https://www.sciencespo.fr/en/admissions/financial-aid/emile-boutmy-scholarships/",
+    "eligibilitySummary": "Bourses de Sciences Po Paris pour étudiants internationaux non-UE. Réductions de frais de scolarité et/ou allocation selon le profil.",
+    "tags": ["university", "france", "sciences-po", "partial"],
+    "sources": [
+      { "label": "Sciences Po — Émile Boutmy", "url": "https://www.sciencespo.fr/en/admissions/financial-aid/emile-boutmy-scholarships/" }
+    ]
+  },
+
+  {
+    "name": "Chevening Scholarships",
+    "country": "UK",
+    "kind": "program",
+    "fundingType": "full",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "exact",
+    "eligibleCountries": ["HT"],
+    "level": ["master"],
+    "deadline": {
+      "dateISO": "2026-11-05",
+      "notes": "Cycle annuel — les candidatures ouvrent généralement en août.",
+      "sourceUrl": "https://www.chevening.org/scholarships/"
+    },
+    "officialUrl": "https://www.chevening.org/",
+    "howToApplyUrl": "https://www.chevening.org/scholarships/",
+    "eligibilitySummary": "Bourses du gouvernement britannique pour des leaders émergents. Couvre frais de scolarité, allocation mensuelle, vol aller-retour et visa. Haïti figure sur la liste des pays éligibles.",
+    "tags": ["prestigious", "government", "uk"],
+    "sources": [
+      { "label": "Chevening Official", "url": "https://www.chevening.org/scholarships/" }
+    ]
+  },
+  {
+    "name": "Commonwealth Scholarships (CSFP)",
+    "country": "UK",
+    "kind": "program",
+    "fundingType": "full",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": ["HT"],
+    "level": ["master", "phd"],
+    "deadline": {
+      "notes": "Les dates limites varient par pays et par catégorie de bourse. Consulter le site du CSC.",
+      "sourceUrl": "https://cscuk.fcdo.gov.uk/scholarships/"
+    },
+    "officialUrl": "https://cscuk.fcdo.gov.uk/",
+    "howToApplyUrl": "https://cscuk.fcdo.gov.uk/apply/",
+    "eligibilitySummary": "Bourses pour citoyens du Commonwealth et pays éligibles. Couvre frais de scolarité, allocation, voyage, et plus.",
+    "tags": ["prestigious", "government", "uk", "developing-countries"],
+    "sources": [
+      { "label": "CSFP Official", "url": "https://cscuk.fcdo.gov.uk/scholarships/" }
+    ]
+  },
+  {
+    "name": "GREAT Scholarships — Study UK",
+    "country": "UK",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd"],
+    "officialUrl": "https://study-uk.britishcouncil.org/scholarships/great-scholarships",
+    "eligibilitySummary": "Portail du British Council regroupant les bourses GREAT offertes par des universités britanniques partenaires. Les critères et montants varient par université.",
+    "tags": ["directory", "uk", "british-council"],
+    "sources": [
+      { "label": "GREAT Scholarships", "url": "https://study-uk.britishcouncil.org/scholarships/great-scholarships" }
+    ]
+  },
+  {
+    "name": "Study UK — Recherche de bourses",
+    "country": "UK",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd", "short_programs"],
+    "officialUrl": "https://study-uk.britishcouncil.org/scholarships",
+    "eligibilitySummary": "Moteur de recherche officiel du British Council pour trouver des bourses d'études au Royaume-Uni. Permet de filtrer par pays, niveau et domaine.",
+    "tags": ["directory", "uk", "british-council", "search-tool"],
+    "sources": [
+      { "label": "Study UK — Scholarships", "url": "https://study-uk.britishcouncil.org/scholarships" }
+    ]
+  },
+  {
+    "name": "University of Edinburgh — Global Scholarships",
+    "country": "UK",
+    "kind": "directory",
+    "fundingType": "unknown",
+    "haitianEligibility": "unknown",
+    "deadlineAccuracy": "varies",
+    "eligibleCountries": [],
+    "level": ["bachelor", "master", "phd"],
+    "officialUrl": "https://www.ed.ac.uk/student-funding/undergraduate/international",
+    "eligibilitySummary": "Page officielle de l'Université d'Édimbourg listant les bourses disponibles pour étudiants internationaux à tous les niveaux d'études.",
+    "tags": ["directory", "uk", "university", "edinburgh"],
+    "sources": [
+      { "label": "University of Edinburgh — Funding", "url": "https://www.ed.ac.uk/student-funding/undergraduate/international" }
+    ]
+  }
+]
