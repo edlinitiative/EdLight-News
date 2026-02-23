@@ -23,6 +23,8 @@ export async function upsert(data: {
   holidayId?: string;
   status: HistoryPublishStatus;
   error?: string;
+  validationWarnings?: string[];
+  validationErrors?: string[];
 }): Promise<HistoryPublishLog> {
   const ref = collection().doc(data.dateISO);
   await ref.set(

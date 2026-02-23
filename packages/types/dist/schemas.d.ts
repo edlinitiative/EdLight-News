@@ -4297,6 +4297,8 @@ export declare const historyPublishLogSchema: z.ZodObject<{
     holidayId: z.ZodOptional<z.ZodString>;
     status: z.ZodEnum<["done", "skipped", "failed"]>;
     error: z.ZodOptional<z.ZodString>;
+    validationWarnings: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    validationErrors: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -4319,6 +4321,8 @@ export declare const historyPublishLogSchema: z.ZodObject<{
     publishedItemId?: string | undefined;
     holidayId?: string | undefined;
     error?: string | undefined;
+    validationWarnings?: string[] | undefined;
+    validationErrors?: string[] | undefined;
 }, {
     status: "skipped" | "done" | "failed";
     dateISO: string;
@@ -4331,6 +4335,8 @@ export declare const historyPublishLogSchema: z.ZodObject<{
     publishedItemId?: string | undefined;
     holidayId?: string | undefined;
     error?: string | undefined;
+    validationWarnings?: string[] | undefined;
+    validationErrors?: string[] | undefined;
 }>;
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;
 export type CreateScholarship = z.infer<typeof createScholarshipSchema>;

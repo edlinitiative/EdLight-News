@@ -707,6 +707,8 @@ export const historyPublishLogSchema = z.object({
   holidayId: z.string().optional(),
   status: z.enum(["done", "skipped", "failed"]),
   error: z.string().optional(),
+  validationWarnings: z.array(z.string()).optional(),
+  validationErrors: z.array(z.string()).optional(),
   createdAt: timestampSchema,
 });
 

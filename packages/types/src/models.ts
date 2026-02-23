@@ -462,6 +462,10 @@ export interface HistoryPublishLog {
   holidayId?: string;
   status: HistoryPublishStatus;
   error?: string;
+  /** Validation warnings logged during publish (not user-facing) */
+  validationWarnings?: string[];
+  /** Validation errors that blocked publishing */
+  validationErrors?: string[];
   createdAt: Timestamp;
 }
 

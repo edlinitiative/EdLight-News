@@ -13,7 +13,7 @@ import {
 } from "@/lib/utils";
 import { MetaBadges } from "@/components/MetaBadges";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
-import { classifyOpportunity } from "@/lib/opportunityClassifier";
+import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 
 export const dynamic = "force-dynamic";
@@ -526,26 +526,10 @@ export default async function ArticlePage({
   // Smell test: only apply classifier when content actually looks like an
   // opportunity — prevents general news articles with stale opp-adjacent
   // categories (e.g. crime news with category "concours") from mis-labelling.
-  const OPP_SMELL_KW = [
-    "bourse", "scholarship", "fellowship", "grant",
-    "concours", "competition", "hackathon", "prix", "award",
-    "stage", "internship", "apprentissage",
-    "programme", "formation", "inscription", "admission", "candidature",
-    "master", "licence", "doctorat", "diplome",
-    "financement", "aide", "subvention", "allocation",
-    "postuler", "apply", "deadline", "date limite", "cloture",
-    "etudiant", "student", "universitaire", "university",
-    "emploi", "job", "recrutement",
-    "opportunit", "okazyon", "bous", "estaj", "konkou",
-  ];
-  const smellBlob = `${article.title ?? ""} ${article.summary ?? ""}`
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
   const passesSmellTest =
     item?.vertical === "opportunites" ||
     item?.itemType === "utility" ||
-    OPP_SMELL_KW.some((kw) => smellBlob.includes(kw));
+    contentLooksLikeOpportunity(article.title ?? "", article.summary);
 
   const isOpportunity =
     (item?.vertical === "opportunites" ||

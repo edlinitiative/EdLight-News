@@ -9,6 +9,8 @@ export declare function upsert(data: {
     holidayId?: string;
     status: HistoryPublishStatus;
     error?: string;
+    validationWarnings?: string[];
+    validationErrors?: string[];
 }): Promise<HistoryPublishLog>;
 /** List recent publish log entries. */
 export declare function listRecent(limit?: number): Promise<HistoryPublishLog[]>;

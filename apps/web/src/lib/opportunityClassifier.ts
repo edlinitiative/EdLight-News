@@ -134,6 +134,73 @@ const RESSOURCES_KW = [
   "checklist", "toolkit", "step by step",
 ] as const;
 
+// ── Smell test (shared across all badge-rendering surfaces) ──────────────────
+
+/**
+ * Curated keyword list for quick opportunity detection.
+ *
+ * Only **high-confidence** indicators — avoids ambiguous words that
+ * commonly appear in general news (crime, politics, finance):
+ *   ✗ "programme" → "programme politique", "programme du gouvernement"
+ *   ✗ "formation" → substring of "informations", "formation militaire"
+ *   ✗ "prix"      → "prix des produits" (commodity price), not award
+ *   ✗ "aide"      → "aide humanitaire", "aide internationale"
+ *   ✗ "emploi"    → general employment discussion
+ *   ✗ "recrutement" → gang / military recruitment warnings
+ *   ✗ "etudiant"  → articles *about* students vs *for* students
+ *   ✗ "financement" / "subvention" / "allocation" → general govt spending
+ *
+ * Word-boundary regex (`\b`) prevents substring false positives
+ * (e.g. "formation" inside "informations").
+ */
+const SMELL_REGEXES: RegExp[] = (() => {
+  const keywords = [
+    // ── Scholarships / funding ──
+    "bourse", "bourses", "scholarship", "fellowship", "bursary", "stipend",
+    // ── Internships / training ──
+    "stage", "stages", "internship", "alternance", "apprentissage",
+    // ── Academic admissions ──
+    "inscription", "inscriptions", "admission", "admissions",
+    "candidature", "candidatures",
+    // ── Academic programs (specific enough with word boundary) ──
+    "master", "licence", "doctorat", "diplome", "mba", "bootcamp",
+    // ── Competitions ──
+    "concours", "hackathon", "olympiade",
+    // ── Application actions ──
+    "postuler", "deadline", "date limite", "cloture",
+    // ── Academic context ──
+    "universitaire", "university",
+    // ── Opportunity generic ──
+    "opportunit",
+    // ── Haitian Creole ──
+    "okazyon", "bous", "estaj", "konkou",
+  ];
+  return keywords.map((kw) => {
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Multi-word phrases: match literally (word boundaries implied by spaces)
+    if (kw.includes(" ")) return new RegExp(escaped);
+    // Single words: require word boundary on both sides
+    return new RegExp(`\\b${escaped}\\b`);
+  });
+})();
+
+/**
+ * Quick smell test: does the title/summary actually contain opportunity
+ * keywords?  Prevents general-news articles with stale opp-adjacent
+ * Firestore categories (e.g. crime news with category "concours") from
+ * being run through the opportunity classifier.
+ *
+ * Exported so ArticleCard, news-feed CategoryBadge, and the /news/[id]
+ * detail page can all share the same logic (DRY).
+ */
+export function contentLooksLikeOpportunity(
+  title: string,
+  summary?: string,
+): boolean {
+  const blob = normalise(`${title} ${summary ?? ""}`);
+  return SMELL_REGEXES.some((re) => re.test(blob));
+}
+
 // ── Matching helpers ─────────────────────────────────────────────────────────
 
 /** Count how many keywords from the list appear in the text. */

@@ -26,6 +26,11 @@ import type {
   ContentLanguage,
   QualityFlags,
 } from "@edlight-news/types";
+import {
+  validateHistoryContent,
+  validateHistorySources,
+  attemptYearFallback,
+} from "../validation/historyValidation.js";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -239,6 +244,85 @@ export async function runHistoryDailyPublisher(): Promise<{
       }
     }
 
+    // ── Validation gate ───────────────────────────────────────────────────
+    const validationSources = allCitations.map((c) => ({ name: c.sourceName, url: c.sourceUrl }));
+    const topConfidence = sortedEntries[0]?.confidence;
+
+    let contentResult = validateHistoryContent({
+      title: frContent.title,
+      sections: frContent.sections,
+      sources: validationSources,
+    });
+    const sourceResult = validateHistorySources({
+      sources: validationSources,
+      confidence: topConfidence,
+    });
+
+    // Merge results
+    let allErrors = [...contentResult.errors, ...sourceResult.errors];
+    let allWarnings = [...contentResult.warnings, ...sourceResult.warnings];
+    let appliedFallback = false;
+    let effectiveTitle = frContent.title;
+
+    // Part 5 — Year fallback: if only a year-mismatch error, try removing year from title
+    if (allErrors.length > 0) {
+      const yearMismatchErrors = contentResult.errors.filter((e) =>
+        e.startsWith("Year mismatch between title and body"),
+      );
+      const nonYearErrors = allErrors.filter(
+        (e) => !e.startsWith("Year mismatch between title and body"),
+      );
+
+      if (yearMismatchErrors.length === 1 && nonYearErrors.length === 0 && sourceResult.isValid) {
+        const fallback = attemptYearFallback({
+          title: frContent.title,
+          sections: frContent.sections,
+          sources: validationSources,
+        });
+
+        if (fallback.cleanedTitle) {
+          effectiveTitle = fallback.cleanedTitle;
+          contentResult = fallback.result;
+          allErrors = [...contentResult.errors, ...sourceResult.errors];
+          allWarnings = [...contentResult.warnings, ...sourceResult.warnings];
+          appliedFallback = true;
+          console.warn(
+            `[history-publisher] Year fallback applied for ${monthDay}: "${frContent.title}" → "${effectiveTitle}"`,
+          );
+        }
+      }
+    }
+
+    // Block publishing on validation errors
+    if (allErrors.length > 0) {
+      const errorDetail = allErrors.join("; ");
+      console.error(
+        `[history-publisher] Validation failed for ${monthDay}:\n  Errors: ${allErrors.join("\n  ")}\n  Warnings: ${allWarnings.join("\n  ")}`,
+      );
+      await historyPublishLogRepo.upsert({
+        dateISO,
+        almanacEntryIds: sortedEntries.map((e) => e.id),
+        holidayId: holidays[0]?.id,
+        status: "failed",
+        error: `Validation failed: ${errorDetail}`,
+        validationErrors: allErrors,
+        validationWarnings: allWarnings,
+      });
+      return { published: false, skipped: false, reason: `Validation failed: ${errorDetail}` };
+    }
+
+    // Log warnings (non-blocking)
+    if (allWarnings.length > 0) {
+      console.warn(
+        `[history-publisher] Validation warnings for ${monthDay}: ${allWarnings.join("; ")}`,
+      );
+    }
+
+    // Apply effective title (may have been cleaned by fallback)
+    if (appliedFallback) {
+      frContent.title = effectiveTitle;
+    }
+
     const qualityFlags: QualityFlags = {
       hasSourceUrl: true,
       needsReview: false,
@@ -313,6 +397,7 @@ export async function runHistoryDailyPublisher(): Promise<{
       almanacEntryIds: sortedEntries.map((e) => e.id),
       holidayId: holidays[0]?.id,
       status: "done",
+      validationWarnings: allWarnings.length > 0 ? allWarnings : undefined,
     });
 
     console.log(

@@ -3,6 +3,10 @@
  *
  * Displays today's history entries + holiday for the current MM-DD,
  * plus a monthly archive browser.
+ *
+ * NOTE: Validation warnings (validationWarnings on HistoryPublishLog) are
+ * internal-only and MUST NOT be surfaced in this page. They are logged in
+ * the history_publish_log Firestore collection for editorial review only.
  */
 
 import Link from "next/link";

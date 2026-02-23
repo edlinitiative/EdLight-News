@@ -15,7 +15,7 @@ import {
   type FeedCategory,
   type SortOption,
 } from "@/lib/utils";
-import { classifyOpportunity } from "@/lib/opportunityClassifier";
+import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { useLanguage } from "@/lib/language-context";
 
@@ -102,33 +102,10 @@ const SUBCAT_MAP: Record<string, OpportunitySubCat> = {
   Concours: "concours", Ressources: "ressources", Autre: "autre",
 };
 
-/**
- * Quick smell test: does the title/summary actually contain opportunity
- * keywords? Prevents general news articles with a stale opp-adjacent
- * category (e.g. crime news with category "concours") from being
- * treated as opportunities.
- */
-const OPP_SMELL_KW = [
-  "bourse", "scholarship", "fellowship", "grant",
-  "concours", "competition", "hackathon", "prix", "award",
-  "stage", "internship", "apprentissage",
-  "programme", "formation", "inscription", "admission", "candidature",
-  "master", "licence", "doctorat", "diplome",
-  "financement", "aide", "subvention", "allocation",
-  "postuler", "apply", "deadline", "date limite", "cloture",
-  "etudiant", "student", "universitaire", "university",
-  "emploi", "job", "recrutement",
-  "opportunit", "okazyon", "bous", "estaj", "konkou",
-];
-
 function looksLikeOpportunity(article: FeedItem): boolean {
   if (article.vertical === "opportunites") return true;
   if (article.itemType === "utility") return true;
-  const blob = `${article.title ?? ""} ${article.summary ?? ""}`
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  return OPP_SMELL_KW.some((kw) => blob.includes(kw));
+  return contentLooksLikeOpportunity(article.title ?? "", article.summary);
 }
 
 function CategoryBadge({ article, lang }: { article: FeedItem; lang: ContentLanguage }) {
