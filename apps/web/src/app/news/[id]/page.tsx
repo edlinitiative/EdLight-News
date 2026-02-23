@@ -12,6 +12,8 @@ import {
 } from "@/lib/utils";
 import { MetaBadges } from "@/components/MetaBadges";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
+import { classifyOpportunity } from "@/lib/opportunityClassifier";
+import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 
 export const dynamic = "force-dynamic";
 
@@ -483,12 +485,44 @@ export default async function ArticlePage({
     console.warn("[news/[id]] Failed to fetch related articles:", err);
   }
 
-  const isBourses =
-    item?.category === "scholarship" || item?.category === "opportunity";
   const isSynthesis = item?.itemType === "synthesis";
   const isUtility = item?.itemType === "utility";
 
-  const catColor = CATEGORY_COLORS[item?.category ?? ""] ?? "bg-gray-100 text-gray-600";
+  // Derive subcategory using the classifier for opportunity items
+  const OPPORTUNITY_CATEGORIES = new Set([
+    "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
+  ]);
+  const isOpportunity =
+    item?.vertical === "opportunites" ||
+    OPPORTUNITY_CATEGORIES.has(item?.category ?? "");
+
+  let derivedSubCat: OpportunitySubCat | null = null;
+  if (isOpportunity) {
+    const result = classifyOpportunity({
+      title: article.title ?? "",
+      summary: article.summary,
+      body: article.body,
+      category: item?.category,
+      publisher: item?.source?.name,
+      url: item?.source?.originalUrl ?? item?.canonicalUrl,
+    });
+    const map: Record<string, OpportunitySubCat> = {
+      Bourses: "bourses", Programmes: "programmes", Stages: "stages",
+      Concours: "concours", Ressources: "ressources", Autre: "autre",
+    };
+    derivedSubCat = map[result.subcategory] ?? null;
+  }
+
+  const isBourses = derivedSubCat === "bourses" || (!derivedSubCat &&
+    (item?.category === "scholarship" || item?.category === "opportunity"));
+
+  // Use derived subcategory colour for opportunity items, fall back to legacy
+  const catColor = derivedSubCat
+    ? SUBCAT_COLORS[derivedSubCat]
+    : (CATEGORY_COLORS[item?.category ?? ""] ?? "bg-gray-100 text-gray-600");
+  const catLabel = derivedSubCat
+    ? SUBCAT_LABELS[derivedSubCat][currentLang]
+    : categoryLabel(item?.category ?? "", currentLang);
 
   // Timestamp to date
   const pubAt = item?.publishedAt as { seconds?: number; _seconds?: number } | null | undefined;
@@ -540,9 +574,9 @@ export default async function ArticlePage({
 
       {/* Top meta */}
       <div className="flex flex-wrap items-center gap-3">
-        {item?.category && (
+        {(derivedSubCat || item?.category) && (
           <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${catColor}`}>
-            {categoryLabel(item.category, currentLang)}
+            {catLabel}
           </span>
         )}
         {isSynthesis && item && <SynthesisBadge item={item} lang={currentLang} />}
