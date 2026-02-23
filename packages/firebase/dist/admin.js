@@ -18,6 +18,12 @@ export function getApp() {
                     credential: cert({ projectId, clientEmail, privateKey }),
                 });
             }
+            else if (process.env.VERCEL) {
+                // On Vercel, ADC is not available — FIREBASE_PRIVATE_KEY must be set.
+                throw new Error("Firebase init failed: FIREBASE_PRIVATE_KEY is not set. " +
+                    "Add it to your Vercel project Environment Variables and redeploy. " +
+                    `(have PROJECT_ID=${!!projectId}, CLIENT_EMAIL=${!!clientEmail})`);
+            }
             else {
                 // Application Default Credentials — used on Cloud Run where the
                 // service account is attached to the instance directly (no key needed)
