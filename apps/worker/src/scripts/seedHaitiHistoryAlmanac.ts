@@ -44,7 +44,7 @@ async function main() {
         console.log(`  🔄 Updated: ${entry.monthDay} — ${entry.title_fr}`);
       }
     } catch (err) {
-      console.error(`  ❌ Failed: ${entry.monthDay} — ${entry.title_fr}`, err);
+      console.error(`  ❌ Failed: ${entry.monthDay} — ${entry.title_fr}`, err instanceof Error ? err.message : String(err));
     }
   }
 
