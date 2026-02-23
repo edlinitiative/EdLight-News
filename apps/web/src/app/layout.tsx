@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "EdLight News",
   description:
     "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function RootLayout({
