@@ -8,8 +8,8 @@
  *  1. Drop offMission articles
  *  2. Drop scored articles below audienceFitThreshold
  *     (articles with NO score — legacy/pre-v2 — always pass)
- *  3. Deduplicate by dedupeGroupId, keeping the newest publishedAt per group
- *  3b. Title-similarity dedup (safety net for mismatched / missing dedupeGroupIds)
+ *  3. Deduplicate by dedupeGroupId — merge content from all versions in each group
+ *  3b. Title-similarity dedup (safety net for mismatched / missing dedupeGroupIds) — also merges content
  *  4. Sort: scored articles first (desc by score), then legacy; secondary = publishedAt desc
  *  5. Publisher diversity cap: within the top `topN` slots, no publisher
  *     appears more than `publisherCap` times; bumped articles are inserted
@@ -75,6 +75,138 @@ function bigramDice(a: string, b: string): number {
 /** Similarity threshold above which two titles are considered the same story. */
 const DICE_THRESHOLD = 0.65;
 
+// ── Content merging helpers ──────────────────────────────────────────────────
+
+/**
+ * Split text into sentences (handling French punctuation).
+ * Returns normalised (lowercase, no accents) sentences for comparison,
+ * paired with the original text.
+ */
+function splitSentences(text: string): { norm: string; raw: string }[] {
+  if (!text) return [];
+  // Split on sentence-ending punctuation followed by whitespace or end
+  const raw = text
+    .split(/(?<=[.!?…])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 15); // skip tiny fragments
+  return raw.map((r) => ({ norm: normTitle(r), raw: r }));
+}
+
+/**
+ * Check whether sentence `a` is substantially contained within any sentence
+ * in the `existing` set (>70% word overlap → considered redundant).
+ */
+function isRedundant(aNorm: string, existing: Set<string>): boolean {
+  const aWords = new Set(aNorm.split(" ").filter((w) => w.length > 2));
+  if (aWords.size === 0) return true;
+  for (const e of existing) {
+    const eWords = new Set(e.split(" ").filter((w) => w.length > 2));
+    let overlap = 0;
+    for (const w of aWords) if (eWords.has(w)) overlap++;
+    if (overlap / aWords.size > 0.7) return true;
+  }
+  return false;
+}
+
+/**
+ * Merge a group of duplicate articles into one winner, combining unique
+ * information from all versions so nothing is lost.
+ *
+ * Strategy:
+ *  - Pick the best "shell" (synthesis > source, newest publishedAt)
+ *  - Use the longest summary as the base, then append unique sentences
+ *    from other versions' summaries
+ *  - Use the longest body as the base, then append unique paragraphs
+ *    from other versions' bodies
+ *  - Merge citations from all versions
+ */
+function mergeGroup(
+  items: FeedItem[],
+): FeedItem & { dupeCount: number } {
+  if (items.length === 1) return { ...items[0], dupeCount: 1 };
+
+  // Sort: synthesis first, then by publishedAt desc, then by content length desc
+  const sorted = [...items].sort((a, b) => {
+    const aSynth = a.itemType === "synthesis" ? 1 : 0;
+    const bSynth = b.itemType === "synthesis" ? 1 : 0;
+    if (aSynth !== bSynth) return bSynth - aSynth;
+    const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+    const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+    if (tA !== tB) return tB - tA;
+    // Tiebreak by content richness
+    const lenA = (a.summary?.length ?? 0) + (a.body?.length ?? 0);
+    const lenB = (b.summary?.length ?? 0) + (b.body?.length ?? 0);
+    return lenB - lenA;
+  });
+
+  // Winner shell = first after sorting
+  const winner = { ...sorted[0], dupeCount: items.length };
+  const losers = sorted.slice(1);
+
+  // ── Merge summaries ──────────────────────────────────────────────────────
+  // Start with the longest summary as base
+  const allBySum = [...items].sort(
+    (a, b) => (b.summary?.length ?? 0) - (a.summary?.length ?? 0),
+  );
+  let bestSummary = allBySum[0].summary ?? "";
+  const existingSentences = new Set(
+    splitSentences(bestSummary).map((s) => s.norm),
+  );
+
+  for (const loser of losers) {
+    if (!loser.summary) continue;
+    for (const sent of splitSentences(loser.summary)) {
+      if (!isRedundant(sent.norm, existingSentences)) {
+        bestSummary += " " + sent.raw;
+        existingSentences.add(sent.norm);
+      }
+    }
+  }
+  winner.summary = bestSummary;
+
+  // ── Merge bodies ─────────────────────────────────────────────────────────
+  const allByBody = [...items].sort(
+    (a, b) => (b.body?.length ?? 0) - (a.body?.length ?? 0),
+  );
+  let bestBody = allByBody[0].body ?? "";
+  const existingBodySentences = new Set(
+    splitSentences(bestBody).map((s) => s.norm),
+  );
+
+  for (const loser of losers) {
+    if (!loser.body) continue;
+    // Split body into paragraphs (double newline) for coarser merging
+    const paragraphs = loser.body.split(/\n\n+/).filter((p) => p.trim().length > 20);
+    for (const para of paragraphs) {
+      const paraSentences = splitSentences(para);
+      // If >50% of sentences are new, append the whole paragraph
+      const newCount = paraSentences.filter(
+        (s) => !isRedundant(s.norm, existingBodySentences),
+      ).length;
+      if (paraSentences.length > 0 && newCount / paraSentences.length > 0.5) {
+        bestBody += "\n\n" + para;
+        for (const s of paraSentences) existingBodySentences.add(s.norm);
+      }
+    }
+  }
+  winner.body = bestBody;
+
+  // ── Merge citations ──────────────────────────────────────────────────────
+  const seenCitations = new Set(
+    (winner.citations ?? []).map((c) => c.sourceUrl),
+  );
+  for (const loser of losers) {
+    for (const c of loser.citations ?? []) {
+      if (!seenCitations.has(c.sourceUrl)) {
+        winner.citations = [...(winner.citations ?? []), c];
+        seenCitations.add(c.sourceUrl);
+      }
+    }
+  }
+
+  return winner;
+}
+
 export interface RankOptions {
   /**
    * Minimum audienceFitScore to include.
@@ -112,8 +244,8 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     return a;
   });
 
-  // ── 3. Dedupe by dedupeGroupId (prefer synthesis, then newest) ───────────
-  const groups = new Map<string, FeedItem & { dupeCount: number }>();
+  // ── 3. Dedupe by dedupeGroupId — collect groups for content merging ────────
+  const groupCollector = new Map<string, FeedItem[]>();
   const ungrouped: FeedItem[] = [];
 
   for (const a of boosted) {
@@ -121,89 +253,56 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
       ungrouped.push(a);
       continue;
     }
-    const prev = groups.get(a.dedupeGroupId);
-    if (!prev) {
-      groups.set(a.dedupeGroupId, { ...a, dupeCount: 1 });
-    } else {
-      // Prefer synthesis items over source items within the same group
-      const prevIsSynthesis = prev.itemType === "synthesis";
-      const currIsSynthesis = a.itemType === "synthesis";
-
-      if (currIsSynthesis && !prevIsSynthesis) {
-        // Current is synthesis, prev is source → replace with synthesis
-        groups.set(a.dedupeGroupId, { ...a, dupeCount: prev.dupeCount + 1 });
-      } else if (!currIsSynthesis && prevIsSynthesis) {
-        // Current is source, prev is synthesis → keep synthesis
-        prev.dupeCount += 1;
-      } else {
-        // Both same type → keep newest publishedAt
-        const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-        const tP = prev.publishedAt ? new Date(prev.publishedAt).getTime() : 0;
-        if (tA > tP) {
-          groups.set(a.dedupeGroupId, {
-            ...a,
-            dupeCount: prev.dupeCount + 1,
-          });
-        } else {
-          prev.dupeCount += 1;
-        }
-      }
-    }
+    const list = groupCollector.get(a.dedupeGroupId) ?? [];
+    list.push(a);
+    groupCollector.set(a.dedupeGroupId, list);
   }
 
-  const afterGroupId: FeedItem[] = [...groups.values(), ...ungrouped];
+  const afterGroupId: FeedItem[] = [
+    ...[...groupCollector.values()].map(mergeGroup),
+    ...ungrouped,
+  ];
 
   // ── 3b. Title-similarity dedup (safety net for mismatched dedupeGroupIds) ─
+  // Collect articles with similar titles into groups, then merge each group.
   // Two passes:
   //   a) Exact titleKey match (fast, O(n))
-  //   b) Pairwise bigram-Dice for remaining short titles (O(n²), n is small)
-  const titleGroups = new Map<string, FeedItem & { dupeCount: number }>();
-  const titleUngrouped: (FeedItem & { dupeCount: number })[] = [];
-
-  const pickBetter = (
-    prev: FeedItem & { dupeCount: number },
-    curr: FeedItem,
-  ): FeedItem & { dupeCount: number } => {
-    const prevSynth = prev.itemType === "synthesis";
-    const currSynth = curr.itemType === "synthesis";
-    if (currSynth && !prevSynth) return { ...curr, dupeCount: prev.dupeCount + 1 };
-    if (!currSynth && prevSynth) { prev.dupeCount += 1; return prev; }
-    const tC = curr.publishedAt ? new Date(curr.publishedAt).getTime() : 0;
-    const tP = prev.publishedAt ? new Date(prev.publishedAt).getTime() : 0;
-    if (tC > tP) return { ...curr, dupeCount: prev.dupeCount + 1 };
-    prev.dupeCount += 1;
-    return prev;
-  };
+  //   b) Pairwise bigram-Dice across all remaining items (O(n²), n is small)
+  const titleBuckets = new Map<string, FeedItem[]>();
+  const titleOrphans: FeedItem[] = [];
 
   for (const a of afterGroupId) {
     const key = titleKey(a.title ?? "");
-    if (!key) { titleUngrouped.push({ ...a, dupeCount: (a as any).dupeCount ?? 1 }); continue; }
-    const prev = titleGroups.get(key);
-    if (!prev) {
-      titleGroups.set(key, { ...a, dupeCount: (a as any).dupeCount ?? 1 });
-    } else {
-      titleGroups.set(key, pickBetter(prev, a));
-    }
+    if (!key) { titleOrphans.push(a); continue; }
+    const list = titleBuckets.get(key) ?? [];
+    list.push(a);
+    titleBuckets.set(key, list);
   }
 
-  // Pass (b): pairwise Dice across ALL remaining items (titleGroups + orphans).
-  // O(n²) but n ≤ 40 so negligible.
-  const candidates = [...titleGroups.values(), ...titleUngrouped];
-  const merged: (FeedItem & { dupeCount: number })[] = [];
+  // Merge each titleKey bucket
+  const afterTitleKey = [
+    ...[...titleBuckets.values()].map(mergeGroup),
+    ...titleOrphans.map((a) => ({ ...a, dupeCount: (a as any).dupeCount ?? 1 }) as FeedItem & { dupeCount: number }),
+  ];
 
-  for (const item of candidates) {
+  // Pass (b): pairwise Dice across ALL remaining items.
+  // O(n²) but n ≤ 40 so negligible.
+  const mergedBuckets: FeedItem[][] = [];
+
+  for (const item of afterTitleKey) {
     let matched = false;
-    for (let i = 0; i < merged.length; i++) {
-      if (bigramDice(item.title ?? "", merged[i].title ?? "") >= DICE_THRESHOLD) {
-        merged[i] = pickBetter(merged[i], item);
+    for (let i = 0; i < mergedBuckets.length; i++) {
+      // Compare against the first item in each bucket (representative)
+      if (bigramDice(item.title ?? "", mergedBuckets[i][0].title ?? "") >= DICE_THRESHOLD) {
+        mergedBuckets[i].push(item);
         matched = true;
         break;
       }
     }
-    if (!matched) merged.push(item);
+    if (!matched) mergedBuckets.push([item]);
   }
 
-  const deduped: FeedItem[] = merged;
+  const deduped: FeedItem[] = mergedBuckets.map(mergeGroup);
 
   // ── 4. Sort: scored first (desc), then legacy; tiebreak publishedAt desc ──
   deduped.sort((a, b) => {
