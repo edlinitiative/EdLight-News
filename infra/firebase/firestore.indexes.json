@@ -147,13 +147,6 @@
         { "fieldPath": "monthDay", "order": "ASCENDING" },
         { "fieldPath": "name_fr", "order": "ASCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "history_publish_log",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "dateISO", "order": "DESCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []
