@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import type { ContentLanguage, CalendarEventType } from "@edlight-news/types";
+import { MetaBadges } from "@/components/MetaBadges";
 
 type FilterTab = "tous" | "haiti" | "international";
 
@@ -32,6 +33,8 @@ interface HaitiItem {
   eventType: CalendarEventType;
   officialUrl?: string | null;
   sources?: { label: string; url: string }[] | null;
+  verifiedAt?: unknown;
+  updatedAt?: unknown;
 }
 
 interface IntlItem {
@@ -162,6 +165,13 @@ export function CalendarFilterTabs({
                       {src.label}
                     </a>
                   ))}
+                </div>
+                <div className="mt-1">
+                  <MetaBadges
+                    verifiedAt={e.verifiedAt as any}
+                    updatedAt={e.updatedAt as any}
+                    lang={lang}
+                  />
                 </div>
               </div>
             ))}

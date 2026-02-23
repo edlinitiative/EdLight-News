@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { BookOpen, Calendar, Star, ArrowLeft, Tag } from "lucide-react";
 import type { ContentLanguage, AlmanacTag } from "@edlight-news/types";
+import { MetaBadges } from "@/components/MetaBadges";
 import {
   fetchAlmanacByMonthDay,
   fetchHolidaysByMonthDay,
@@ -169,6 +170,13 @@ export default async function HistoirePage({
                         ✓ {fr ? "Vérifié" : "Verifye"}
                       </span>
                     )}
+                  </div>
+                  <div className="mt-1">
+                    <MetaBadges
+                      verifiedAt={entry.verifiedAt}
+                      updatedAt={entry.updatedAt}
+                      lang={lang}
+                    />
                   </div>
                   {entry.sources.length > 0 && (
                     <div className="mt-2 text-xs text-gray-500">

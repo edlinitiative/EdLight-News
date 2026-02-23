@@ -10,6 +10,8 @@ import {
   CATEGORY_COLORS,
   extractDomain,
 } from "@/lib/utils";
+import { MetaBadges } from "@/components/MetaBadges";
+import { ReportIssueButton } from "@/components/ReportIssueButton";
 
 export const dynamic = "force-dynamic";
 
@@ -557,6 +559,17 @@ export default async function ArticlePage({
         </p>
       )}
 
+      {/* Trust badges */}
+      {isUtility && item && (
+        <MetaBadges
+          verifiedAt={item.updatedAt}
+          updatedAt={item.lastMajorUpdateAt}
+          publishedAt={item.publishedAt ?? article.createdAt}
+          lang={currentLang}
+          variant="full"
+        />
+      )}
+
       {/* Title */}
       <h1 className="text-3xl font-bold leading-tight">{article.title}</h1>
 
@@ -664,6 +677,14 @@ export default async function ArticlePage({
               : "Dat limit pou konfime")}
         </p>
       )}
+
+      {/* Report issue button */}
+      <div className="border-t pt-4">
+        <ReportIssueButton
+          itemId={article.itemId || article.id}
+          lang={currentLang}
+        />
+      </div>
 
       {/* Back link */}
       <div className="pt-4">

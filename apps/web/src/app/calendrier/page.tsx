@@ -34,6 +34,7 @@ import {
   COUNTRY_LABELS,
 } from "@/lib/datasets";
 import { CalendarFilterTabs } from "./filter-tabs";
+import { MetaBadges } from "@/components/MetaBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -154,6 +155,8 @@ export default async function CalendrierPage({
     eventType: e.eventType,
     officialUrl: e.officialUrl,
     sources: e.sources,
+    verifiedAt: e.verifiedAt as unknown as string | null,
+    updatedAt: e.updatedAt as unknown as string | null,
   }));
 
   const intlItems = scholarships90.map((s) => ({

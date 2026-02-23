@@ -14,6 +14,7 @@ import {
   COUNTRY_LABELS,
   TUITION_LABELS,
 } from "@/lib/datasets";
+import { MetaBadges } from "@/components/MetaBadges";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -181,6 +182,14 @@ export default async function UniversitesPage({
                         ))}
                       </div>
                     )}
+                    {/* Trust badges */}
+                    <div className="mt-2">
+                      <MetaBadges
+                        verifiedAt={uni.verifiedAt}
+                        updatedAt={uni.updatedAt}
+                        lang={lang}
+                      />
+                    </div>
                   </div>
                 );
               })}

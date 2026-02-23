@@ -14,6 +14,8 @@ import {
   fetchScholarshipsClosingSoon,
   COUNTRY_LABELS,
 } from "@/lib/datasets";
+import { MetaBadges } from "@/components/MetaBadges";
+import { ReportIssueButton } from "@/components/ReportIssueButton";
 
 export const dynamic = "force-dynamic";
 
@@ -209,6 +211,15 @@ export default async function BoursesPage({
                   ))}
                 </div>
               )}
+              {/* Trust badges */}
+              <div className="mt-2 flex items-center justify-between">
+                <MetaBadges
+                  verifiedAt={s.verifiedAt}
+                  updatedAt={s.updatedAt}
+                  lang={lang}
+                />
+                <ReportIssueButton itemId={s.id} lang={lang} />
+              </div>
             </div>
           );
         })}
