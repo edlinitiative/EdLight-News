@@ -49,6 +49,20 @@ export type {
   UtilityValidationResult,
 } from "./utility.js";
 
+// ── Re-export dataset content module ────────────────────────────────────────
+export {
+  generateDatasetArticle,
+  buildDatasetPrompt,
+  geminiDatasetArticleSchema,
+  DATASET_PROMPT_VERSION,
+} from "./datasets.js";
+export type {
+  GeminiDatasetArticle,
+  DatasetArticleType,
+  GenerateDatasetArticleResult,
+  GenerateDatasetArticleError,
+} from "./datasets.js";
+
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.65;
 

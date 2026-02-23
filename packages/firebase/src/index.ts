@@ -10,4 +10,11 @@ export {
   metricsRepo,
   utilitySourcesRepo,
   utilityQueueRepo,
+  universitiesRepo,
+  scholarshipsRepo,
+  haitiCalendarRepo,
+  pathwaysRepo,
+  datasetJobsRepo,
+  contributorProfilesRepo,
+  draftsRepo,
 } from "./repositories/index.js";

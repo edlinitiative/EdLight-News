@@ -97,8 +97,8 @@ export interface SynthesisMeta {
     validationPassed: boolean;
     lastSynthesizedAt: string;
 }
-export type UtilitySeries = "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek";
-export type UtilityType = "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile";
+export type UtilitySeries = "StudyAbroad" | "Career" | "ScholarshipRadar" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek" | "HaitiEducationCalendar";
+export type UtilityType = "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile" | "school_calendar";
 export type UtilityAudience = "lycee" | "universite" | "international";
 export type UtilityRegion = "HT" | "US" | "CA" | "FR" | "DO" | "RU" | "Global";
 export interface UtilityCitation {
@@ -114,6 +114,7 @@ export interface ExtractedFacts {
     requirements?: string[];
     steps?: string[];
     eligibility?: string[];
+    notes?: string[];
 }
 export interface UtilityMeta {
     series: UtilitySeries;
@@ -124,6 +125,8 @@ export interface UtilityMeta {
     citations: UtilityCitation[];
     extractedFacts?: ExtractedFacts;
     rotationKey?: string;
+    /** SHA-256 hash of sorted deadlines for cheap change detection (calendar series) */
+    calendarHash?: string;
 }
 export interface SourceCitation {
     name: string;
@@ -308,5 +311,148 @@ export interface Metric {
     clicks: number;
     shares: number;
     recordedAt: Timestamp;
+}
+export type DatasetCountry = "US" | "CA" | "FR" | "UK" | "DO" | "MX" | "CN" | "RU" | "HT" | "Global";
+export type AcademicLevel = "bachelor" | "master" | "phd" | "short_programs";
+export type TuitionBand = "low" | "medium" | "high" | "unknown";
+/** Reusable citation for structured records */
+export interface DatasetCitation {
+    label: string;
+    url: string;
+}
+/** Reusable deadline entry with required sourceUrl */
+export interface DatasetDeadline {
+    label: string;
+    monthRange?: string;
+    dateISO?: string;
+    sourceUrl: string;
+}
+export interface UniversityRequirements {
+    englishTests?: string[];
+    frenchTests?: string[];
+    applicationPlatform?: string;
+}
+export interface University {
+    id: string;
+    name: string;
+    country: DatasetCountry;
+    city?: string;
+    languages?: string[];
+    levelSupport?: AcademicLevel[];
+    tuitionBand?: TuitionBand;
+    admissionsUrl: string;
+    internationalAdmissionsUrl?: string;
+    scholarshipUrl?: string;
+    requirements?: UniversityRequirements;
+    typicalDeadlines?: DatasetDeadline[];
+    haitianFriendly?: boolean;
+    tags?: string[];
+    sources: DatasetCitation[];
+    verifiedAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export type ScholarshipFundingType = "full" | "partial" | "stipend" | "tuition-only" | "unknown";
+export interface ScholarshipDeadline {
+    dateISO?: string;
+    month?: number;
+    notes?: string;
+    sourceUrl: string;
+}
+export interface Scholarship {
+    id: string;
+    name: string;
+    country: DatasetCountry;
+    eligibleCountries?: string[];
+    level: AcademicLevel[];
+    fundingType: ScholarshipFundingType;
+    deadline?: ScholarshipDeadline;
+    officialUrl: string;
+    howToApplyUrl?: string;
+    requirements?: string[];
+    eligibilitySummary?: string;
+    recurring?: boolean;
+    tags?: string[];
+    sources: DatasetCitation[];
+    verifiedAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export type CalendarEventType = "rentree" | "registration" | "exam" | "results" | "admissions" | "closure";
+export type CalendarLevel = "ns1" | "ns2" | "ns3" | "ns4" | "bac" | "university" | "general";
+export interface HaitiCalendarEvent {
+    id: string;
+    institution: string;
+    eventType: CalendarEventType;
+    level: CalendarLevel[];
+    title: string;
+    startDateISO?: string;
+    endDateISO?: string;
+    dateISO?: string;
+    location?: string;
+    officialUrl: string;
+    notes?: string;
+    sources: DatasetCitation[];
+    verifiedAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export type PathwayGoalKey = "study_abroad" | "career" | "scholarship" | "haiti_calendar";
+export interface PathwayStep {
+    title_fr: string;
+    title_ht: string;
+    description_fr: string;
+    description_ht: string;
+    links: DatasetCitation[];
+}
+export interface Pathway {
+    id: string;
+    title_fr: string;
+    title_ht: string;
+    goalKey: PathwayGoalKey;
+    country?: DatasetCountry;
+    steps: PathwayStep[];
+    recommendedUniversityIds?: string[];
+    recommendedScholarshipIds?: string[];
+    sources: DatasetCitation[];
+    updatedAt: Timestamp;
+}
+export type DatasetName = "universities" | "scholarships" | "haiti_calendar" | "pathways";
+export type DatasetJobStatus = "queued" | "processing" | "done" | "failed";
+export interface DatasetJob {
+    id: string;
+    status: DatasetJobStatus;
+    dataset: DatasetName;
+    runAt: Timestamp;
+    attempts: number;
+    sourceIds?: string[];
+    targetId?: string;
+    lastError?: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export type ContributorRole = "intern" | "editor" | "admin";
+export interface ContributorProfile {
+    id: string;
+    name: string;
+    email?: string;
+    role: ContributorRole;
+    verified: boolean;
+    payoutRate?: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export type DraftStatus = "draft" | "submitted" | "approved" | "rejected";
+export interface Draft {
+    id: string;
+    authorId: string;
+    title_fr: string;
+    body_fr: string;
+    title_ht?: string;
+    body_ht?: string;
+    series?: UtilitySeries;
+    status: DraftStatus;
+    citations: DatasetCitation[];
+    reviewNote?: string;
+    payoutDue?: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 //# sourceMappingURL=models.d.ts.map

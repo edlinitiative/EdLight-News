@@ -58,6 +58,79 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "runAt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "universities",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "country", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "scholarships",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "country", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "haiti_education_calendar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "eventType", "order": "ASCENDING" },
+        { "fieldPath": "dateISO", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "haiti_education_calendar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "level", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "dateISO", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "pathways",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "goalKey", "order": "ASCENDING" },
+        { "fieldPath": "country", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "dataset_jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "runAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "dataset_jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "dataset", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "drafts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "drafts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "authorId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -34,6 +34,7 @@ export const geminiUtilitySchema = z.object({
     requirements: z.array(z.string()),
     steps: z.array(z.string()),
     eligibility: z.array(z.string()),
+    notes: z.array(z.string()).optional(),
   }),
   citations: z.array(
     z.object({ label: z.string().min(1), url: z.string().url() }),
@@ -117,6 +118,21 @@ STRUCTURE OBLIGATOIRE:
 - Section "Leçons pour les étudiants" (ce qu'on peut apprendre)
 - Section "Sources" (biographie, interviews, références)
 Sois inspirant mais factuel. Chaque affirmation DOIT être sourcée.`,
+
+  HaitiEducationCalendar: `TYPE: CALENDRIER ÉDUCATION HAÏTI
+Crée un calendrier vivant des échéances scolaires et universitaires en Haïti.
+STRUCTURE OBLIGATOIRE:
+- Section "Dates clés" (liste de TOUTES les échéances détectées: rentrée, inscriptions, examens Bac/NS, résultats, admissions UEH, admissions universités privées)
+- Section "Comment s'inscrire" (étapes concrètes pour les inscriptions en cours ou à venir)
+- Section "Liens officiels" (liens vers MENFP, UEH, universités — UNIQUEMENT les URLs des sources fournies)
+- Section "À confirmer" (dates/infos non confirmées par une source officielle)
+RÈGLES SPÉCIALES CALENDRIER:
+1. Chaque date DOIT avoir un sourceUrl pointant vers la source officielle.
+2. Si une date ne peut PAS être confirmée par une source officielle (priority>=100), mets-la dans "À confirmer" avec dateISO="".
+3. N'INVENTE JAMAIS de date. Écris "date à confirmer" si l'information manque.
+4. Utilise le champ "notes" pour les perturbations/mises à jour/grèves/reports.
+5. Inclus ABSOLUMENT les mots-clés: inscription, admission, concours, bac, NS, rentrée, calendrier, résultats, session.
+6. Le contenu DOIT être ancré dans les sources officielles haïtiennes (MENFP, UEH).`,
 };
 
 // ── Prompt builder ──────────────────────────────────────────────────────────
@@ -165,7 +181,8 @@ RÉPONDS UNIQUEMENT en JSON valide:
     "deadlines": [{"label":"…","dateISO":"2026-03-15","sourceUrl":"https://…"}],
     "requirements": ["…"],
     "steps": ["…"],
-    "eligibility": ["…"]
+    "eligibility": ["…"],
+    "notes": ["…"]
   },
   "citations": [{"label":"…","url":"https://…"}]
 }`;
@@ -273,7 +290,7 @@ export function validateUtilityJson(
   // 3. Citation count by series
   const citCount = output.citations.length;
   const needsTwo = ["StudyAbroad", "Career", "HaitiHistory", "HaitianOfTheWeek"];
-  const needsOne = ["ScholarshipRadar", "HaitiFactOfTheDay"];
+  const needsOne = ["ScholarshipRadar", "HaitiFactOfTheDay", "HaitiEducationCalendar"];
 
   if (needsTwo.includes(series) && citCount < 2) {
     issues.push(`${series} requires at least 2 citations, got ${citCount}`);
@@ -330,6 +347,45 @@ export function validateUtilityJson(
       i.includes("references unknown sourceUrl") ||
       i.includes("Speculation marker"),
   );
+
+  // 7. HaitiEducationCalendar strict validation
+  if (series === "HaitiEducationCalendar") {
+    // Require at least 1 citation from an official domain (priority >= 100 → tracked via allowlistDomains)
+    const officialDomains = new Set(["menfp.gouv.ht", "ueh.edu.ht"]);
+    const hasOfficialCitation = output.citations.some((c) => {
+      try {
+        const citDomain = new URL(c.url).hostname.replace(/^www\./, "").toLowerCase();
+        return [...officialDomains].some(
+          (d) => citDomain === d || citDomain.endsWith(`.${d}`),
+        );
+      } catch {
+        return false;
+      }
+    });
+    if (!hasOfficialCitation) {
+      issues.push("HaitiEducationCalendar: no citation from an official domain (menfp.gouv.ht or ueh.edu.ht)");
+    }
+
+    // Every deadline with a dateISO must have a sourceUrl in the allowlist
+    if (allowlistDomains && allowlistDomains.length > 0) {
+      const dlDomainSet = new Set(allowlistDomains.map((d) => d.toLowerCase()));
+      for (const dl of output.facts.deadlines) {
+        if (dl.dateISO && dl.dateISO.length > 0) {
+          try {
+            const dlDomain = new URL(dl.sourceUrl).hostname.replace(/^www\./, "").toLowerCase();
+            const dlAllowed = [...dlDomainSet].some(
+              (d) => dlDomain === d || dlDomain.endsWith(`.${d}`),
+            );
+            if (!dlAllowed) {
+              issues.push(`Calendar deadline "${dl.label}" sourceUrl domain not in allowlist: ${dlDomain}`);
+            }
+          } catch {
+            issues.push(`Calendar deadline "${dl.label}" has invalid sourceUrl: ${dl.sourceUrl}`);
+          }
+        }
+      }
+    }
+  }
 
   return { passed: !hasCritical && issues.length === 0, issues };
 }

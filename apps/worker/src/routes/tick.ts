@@ -5,6 +5,7 @@ import { generateForItems } from "../services/generate.js";
 import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { runUtilityEngine } from "../services/utility.js";
+import { runDatasetRefresh } from "../services/datasets.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 export const tickRouter = Router();
@@ -55,8 +56,17 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.warn("[tick] utility engine error:", err instanceof Error ? err.message : err);
     }
 
+    // Step 8: Dataset refresh — verify / update structured datasets
+    let datasetResult = { enqueued: 0, processed: 0, errors: 0 };
+    try {
+      datasetResult = await runDatasetRefresh();
+    } catch (err) {
+      // Dataset refresh is non-critical — log and continue
+      console.warn("[tick] dataset refresh error:", err instanceof Error ? err.message : err);
+    }
+
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult });
 
     res.json({
       ok: true,
@@ -69,6 +79,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         synthesis: synthesisResult,
         images: imageResult,
         utility: utilityResult,
+        datasets: datasetResult,
       },
     });
   } catch (err) {

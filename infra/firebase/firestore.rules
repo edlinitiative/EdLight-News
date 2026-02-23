@@ -57,5 +57,46 @@ service cloud.firestore {
     match /utility_queue/{entryId} {
       allow read, write: if false;
     }
+
+    // ── Student Intelligence Platform collections ──────────────────────────
+
+    // Universities: public read, server-only writes
+    match /universities/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Scholarships: public read, server-only writes
+    match /scholarships/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Haiti education calendar: public read, server-only writes
+    match /haiti_education_calendar/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Pathways: public read, server-only writes
+    match /pathways/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Dataset jobs: server-only
+    match /dataset_jobs/{docId} {
+      allow read, write: if false;
+    }
+
+    // Contributor profiles: server-only
+    match /contributor_profiles/{docId} {
+      allow read, write: if false;
+    }
+
+    // Drafts: server-only
+    match /drafts/{docId} {
+      allow read, write: if false;
+    }
   }
 }

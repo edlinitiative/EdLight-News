@@ -21,6 +21,7 @@ const RESOURCE_SERIES = new Set([
   "HaitiHistory",
   "HaitiFactOfTheDay",
   "HaitianOfTheWeek",
+  "HaitiEducationCalendar",
 ]);
 
 export default async function RessourcesPage({

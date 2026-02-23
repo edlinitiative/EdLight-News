@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+/** ISO date string in YYYY-MM-DD format */
+const isoDateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected ISO date YYYY-MM-DD");
+
 /** Firestore Timestamp is validated as an object with seconds & nanoseconds */
 const timestampSchema = z.object({
   seconds: z.number(),
@@ -99,8 +102,9 @@ export const utilitySeriesSchema = z.enum([
   "HaitiHistory",
   "HaitiFactOfTheDay",
   "HaitianOfTheWeek",
+  "HaitiEducationCalendar",
 ]);
-export const utilityTypeSchema = z.enum(["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile"]);
+export const utilityTypeSchema = z.enum(["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile", "school_calendar"]);
 export const utilityAudienceSchema = z.enum(["lycee", "universite", "international"]);
 export const utilityRegionSchema = z.enum(["HT", "US", "CA", "FR", "DO", "RU", "Global"]);
 
@@ -112,12 +116,13 @@ export const utilityCitationSchema = z.object({
 export const extractedFactsSchema = z.object({
   deadlines: z.array(z.object({
     label: z.string().min(1),
-    dateISO: z.string(),
+    dateISO: isoDateString,
     sourceUrl: z.string().url(),
   })).optional(),
   requirements: z.array(z.string()).optional(),
   steps: z.array(z.string()).optional(),
   eligibility: z.array(z.string()).optional(),
+  notes: z.array(z.string()).optional(),
 });
 
 export const utilityMetaSchema = z.object({
@@ -129,6 +134,7 @@ export const utilityMetaSchema = z.object({
   citations: z.array(utilityCitationSchema).min(1),
   extractedFacts: extractedFactsSchema.optional(),
   rotationKey: z.string().optional(),
+  calendarHash: z.string().optional(),
 });
 
 const utilitySourceParsingHintsSchema = z.object({
@@ -387,3 +393,248 @@ export type CreatePublishQueueEntry = z.infer<typeof createPublishQueueEntrySche
 export type CreateMetric = z.infer<typeof createMetricSchema>;
 export type CreateUtilitySource = z.infer<typeof createUtilitySourceSchema>;
 export type CreateUtilityQueueEntry = z.infer<typeof createUtilityQueueEntrySchema>;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Student Intelligence Platform — dataset schemas ─────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const datasetCountrySchema = z.enum([
+  "US", "CA", "FR", "UK", "DO", "MX", "CN", "RU", "HT", "Global",
+]);
+
+export const academicLevelSchema = z.enum(["bachelor", "master", "phd", "short_programs"]);
+
+export const tuitionBandSchema = z.enum(["low", "medium", "high", "unknown"]);
+
+export const datasetCitationSchema = z.object({
+  label: z.string().min(1),
+  url: z.string().url(),
+});
+
+export const datasetDeadlineSchema = z.object({
+  label: z.string().min(1),
+  monthRange: z.string().optional(),
+  dateISO: isoDateString.optional(),
+  sourceUrl: z.string().url(),
+});
+
+// ── universities ───────────────────────────────────────────────────────────
+
+const universityRequirementsSchema = z.object({
+  englishTests: z.array(z.string()).optional(),
+  frenchTests: z.array(z.string()).optional(),
+  applicationPlatform: z.string().optional(),
+});
+
+export const universitySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  country: datasetCountrySchema,
+  city: z.string().optional(),
+  languages: z.array(z.string()).optional(),
+  levelSupport: z.array(academicLevelSchema).optional(),
+  tuitionBand: tuitionBandSchema.optional(),
+  admissionsUrl: z.string().url(),
+  internationalAdmissionsUrl: z.string().url().optional(),
+  scholarshipUrl: z.string().url().optional(),
+  requirements: universityRequirementsSchema.optional(),
+  typicalDeadlines: z.array(datasetDeadlineSchema).optional(),
+  haitianFriendly: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
+  sources: z.array(datasetCitationSchema).min(1),
+  verifiedAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+// ── scholarships ───────────────────────────────────────────────────────────
+
+export const scholarshipFundingTypeSchema = z.enum([
+  "full", "partial", "stipend", "tuition-only", "unknown",
+]);
+
+const scholarshipDeadlineSchema = z.object({
+  dateISO: isoDateString.optional(),
+  month: z.number().int().min(1).max(12).optional(),
+  notes: z.string().optional(),
+  sourceUrl: z.string().url(),
+});
+
+export const scholarshipSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  country: datasetCountrySchema,
+  eligibleCountries: z.array(z.string()).optional(),
+  level: z.array(academicLevelSchema).min(1),
+  fundingType: scholarshipFundingTypeSchema,
+  deadline: scholarshipDeadlineSchema.optional(),
+  officialUrl: z.string().url(),
+  howToApplyUrl: z.string().url().optional(),
+  requirements: z.array(z.string()).optional(),
+  eligibilitySummary: z.string().optional(),
+  recurring: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
+  sources: z.array(datasetCitationSchema).min(1),
+  verifiedAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+// ── haiti_education_calendar ───────────────────────────────────────────────
+
+export const calendarEventTypeSchema = z.enum([
+  "rentree", "registration", "exam", "results", "admissions", "closure",
+]);
+
+export const calendarLevelSchema = z.enum([
+  "ns1", "ns2", "ns3", "ns4", "bac", "university", "general",
+]);
+
+export const haitiCalendarEventSchema = z.object({
+  id: z.string().min(1),
+  institution: z.string().min(1),
+  eventType: calendarEventTypeSchema,
+  level: z.array(calendarLevelSchema).min(1),
+  title: z.string().min(1),
+  startDateISO: isoDateString.optional(),
+  endDateISO: isoDateString.optional(),
+  dateISO: isoDateString.optional(),
+  location: z.string().optional(),
+  officialUrl: z.string().url(),
+  notes: z.string().optional(),
+  sources: z.array(datasetCitationSchema).min(1),
+  verifiedAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+// ── pathways ───────────────────────────────────────────────────────────────
+
+export const pathwayGoalKeySchema = z.enum([
+  "study_abroad", "career", "scholarship", "haiti_calendar",
+]);
+
+const pathwayStepSchema = z.object({
+  title_fr: z.string().min(1),
+  title_ht: z.string().min(1),
+  description_fr: z.string().min(1),
+  description_ht: z.string().min(1),
+  links: z.array(datasetCitationSchema),
+});
+
+export const pathwaySchema = z.object({
+  id: z.string().min(1),
+  title_fr: z.string().min(1),
+  title_ht: z.string().min(1),
+  goalKey: pathwayGoalKeySchema,
+  country: datasetCountrySchema.optional(),
+  steps: z.array(pathwayStepSchema).min(1),
+  recommendedUniversityIds: z.array(z.string()).optional(),
+  recommendedScholarshipIds: z.array(z.string()).optional(),
+  sources: z.array(datasetCitationSchema).min(1),
+  updatedAt: timestampSchema,
+});
+
+// ── dataset_jobs ───────────────────────────────────────────────────────────
+
+export const datasetNameSchema = z.enum([
+  "universities", "scholarships", "haiti_calendar", "pathways",
+]);
+
+export const datasetJobSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(["queued", "processing", "done", "failed"]),
+  dataset: datasetNameSchema,
+  runAt: timestampSchema,
+  attempts: z.number().int().min(0),
+  sourceIds: z.array(z.string()).optional(),
+  targetId: z.string().optional(),
+  lastError: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+// ── contributor_profiles ───────────────────────────────────────────────────
+
+export const contributorRoleSchema = z.enum(["intern", "editor", "admin"]);
+
+export const contributorProfileSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  email: z.string().email().optional(),
+  role: contributorRoleSchema,
+  verified: z.boolean(),
+  payoutRate: z.number().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+// ── drafts ─────────────────────────────────────────────────────────────────
+
+export const draftStatusSchema = z.enum(["draft", "submitted", "approved", "rejected"]);
+
+export const draftSchema = z.object({
+  id: z.string().min(1),
+  authorId: z.string().min(1),
+  title_fr: z.string().min(1),
+  body_fr: z.string().min(1),
+  title_ht: z.string().optional(),
+  body_ht: z.string().optional(),
+  series: utilitySeriesSchema.optional(),
+  status: draftStatusSchema,
+  citations: z.array(datasetCitationSchema),
+  reviewNote: z.string().optional(),
+  payoutDue: z.number().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+// ── Create schemas for datasets ────────────────────────────────────────────
+
+export const createUniversitySchema = universitySchema.omit({
+  id: true,
+  verifiedAt: true,
+  updatedAt: true,
+});
+
+export const createScholarshipSchema = scholarshipSchema.omit({
+  id: true,
+  verifiedAt: true,
+  updatedAt: true,
+});
+
+export const createHaitiCalendarEventSchema = haitiCalendarEventSchema.omit({
+  id: true,
+  verifiedAt: true,
+  updatedAt: true,
+});
+
+export const createPathwaySchema = pathwaySchema.omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const createDatasetJobSchema = datasetJobSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const createContributorProfileSchema = contributorProfileSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const createDraftSchema = draftSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// ── Inferred create types for datasets ─────────────────────────────────────
+
+export type CreateUniversity = z.infer<typeof createUniversitySchema>;
+export type CreateScholarship = z.infer<typeof createScholarshipSchema>;
+export type CreateHaitiCalendarEvent = z.infer<typeof createHaitiCalendarEventSchema>;
+export type CreatePathway = z.infer<typeof createPathwaySchema>;
+export type CreateDatasetJob = z.infer<typeof createDatasetJobSchema>;
+export type CreateContributorProfile = z.infer<typeof createContributorProfileSchema>;
+export type CreateDraft = z.infer<typeof createDraftSchema>;

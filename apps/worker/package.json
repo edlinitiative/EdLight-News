@@ -14,7 +14,12 @@
     "backfill:gn-publishers": "tsx src/scripts/backfillGoogleNewsPublishers.ts",
     "demote:low-quality": "tsx src/scripts/demoteLowQuality.ts",
     "seed:utility-sources": "tsx src/scripts/seedUtilitySources.ts",
-    "test:utility-engine": "tsx src/scripts/testUtilityEngine.ts"
+    "test:utility-engine": "tsx src/scripts/testUtilityEngine.ts",
+    "seed:universities": "tsx src/scripts/seedUniversities.ts",
+    "seed:scholarships": "tsx src/scripts/seedScholarships.ts",
+    "seed:haiti-calendar": "tsx src/scripts/seedHaitiCalendar.ts",
+    "seed:pathways": "tsx src/scripts/seedPathways.ts",
+    "seed:all-datasets": "tsx src/scripts/seedUniversities.ts && tsx src/scripts/seedScholarships.ts && tsx src/scripts/seedHaitiCalendar.ts && tsx src/scripts/seedPathways.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

@@ -204,3 +204,74 @@ export function isSuccessArticle(article: EnrichedArticle): boolean {
     SUCCES_KEYWORDS_HT.some((k) => text.includes(k))
   );
 }
+
+// ── Calendar deadline types ──────────────────────────────────────────────────
+
+export interface CalendarDeadline {
+  label: string;
+  dateISO: string;
+  sourceUrl: string;
+}
+
+export interface CalendarData {
+  item: EnrichedArticle | null;
+  deadlines: CalendarDeadline[];
+  hasUpcoming: boolean;
+}
+
+/**
+ * Fetch the most recent HaitiEducationCalendar item and extract its deadlines.
+ * Used by the homepage calendar block and /calendrier-haiti page.
+ */
+export async function fetchCalendarData(
+  lang: ContentLanguage,
+): Promise<CalendarData> {
+  const allArticles = await fetchEnrichedFeed(lang, 200);
+
+  // Find the most recent HaitiEducationCalendar utility item
+  // Sort by lastMajorUpdateAt desc (then publishedAt)
+  const calendarItems = allArticles
+    .filter(
+      (a) =>
+        a.itemType === "utility" && a.series === "HaitiEducationCalendar",
+    )
+    .sort((a, b) => {
+      const tA = a.lastMajorUpdateAt
+        ? new Date(a.lastMajorUpdateAt).getTime()
+        : a.publishedAt
+          ? new Date(a.publishedAt).getTime()
+          : 0;
+      const tB = b.lastMajorUpdateAt
+        ? new Date(b.lastMajorUpdateAt).getTime()
+        : b.publishedAt
+          ? new Date(b.publishedAt).getTime()
+          : 0;
+      return tB - tA;
+    });
+
+  if (calendarItems.length === 0) {
+    return { item: null, deadlines: [], hasUpcoming: false };
+  }
+
+  const calItem = calendarItems[0]!;
+
+  // Extract deadlines from the item's body or from Firestore extractedFacts
+  // We get deadlines from the parent item via itemsRepo
+  const itemMap = await fetchItemsByIds([calItem.itemId ?? ""]);
+  const parentItem = calItem.itemId ? itemMap.get(calItem.itemId) : undefined;
+  const rawDeadlines = parentItem?.utilityMeta?.extractedFacts?.deadlines ?? [];
+
+  const now = new Date();
+  const upcoming = rawDeadlines
+    .filter((d) => d.dateISO && d.dateISO.length > 0 && new Date(d.dateISO) >= now)
+    .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+
+  const recent = rawDeadlines
+    .filter((d) => d.dateISO && d.dateISO.length > 0)
+    .sort((a, b) => b.dateISO.localeCompare(a.dateISO));
+
+  const hasUpcoming = upcoming.length > 0;
+  const deadlines = hasUpcoming ? upcoming : recent;
+
+  return { item: calItem, deadlines, hasUpcoming };
+}

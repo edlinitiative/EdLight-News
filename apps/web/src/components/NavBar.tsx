@@ -8,12 +8,16 @@ import { LanguageToggle } from "@/components/language-toggle";
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { href: "/",             fr: "Accueil",       ht: "Akèy"    },
-  { href: "/opportunites", fr: "Opportunités",  ht: "Okazyon" },
-  { href: "/haiti",        fr: "Haïti",         ht: "Ayiti"   },
-  { href: "/ressources",   fr: "Ressources",    ht: "Resous"  },
-  { href: "/succes",       fr: "Succès",        ht: "Siksè"   },
-  { href: "/news",         fr: "Fil",           ht: "Fil"     },
+  { href: "/",                fr: "Accueil",       ht: "Akèy"         },
+  { href: "/opportunites",    fr: "Opportunités",  ht: "Okazyon"      },
+  { href: "/bourses",         fr: "Bourses",       ht: "Bous"         },
+  { href: "/universites",     fr: "Universités",   ht: "Inivèsite"   },
+  { href: "/parcours",        fr: "Parcours",      ht: "Pakou"        },
+  { href: "/calendrier-haiti",fr: "Calendrier",    ht: "Kalandriye"   },
+  { href: "/haiti",           fr: "Haïti",         ht: "Ayiti"        },
+  { href: "/ressources",      fr: "Ressources",    ht: "Resous"       },
+  { href: "/succes",          fr: "Succès",        ht: "Siksè"        },
+  { href: "/news",            fr: "Fil",           ht: "Fil"          },
 ] as const;
 
 // ── Inner component (needs useSearchParams → must be inside Suspense) ────────

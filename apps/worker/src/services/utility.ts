@@ -18,6 +18,7 @@
  * Called as a step in /tick alongside the existing scraper pipeline.
  */
 
+import { createHash } from "crypto";
 import { Timestamp } from "firebase-admin/firestore";
 import {
   utilitySourcesRepo,
@@ -47,6 +48,11 @@ const MAX_JOBS_PER_TICK = parseInt(process.env.UTILITY_MAX_JOBS_PER_TICK ?? "2",
 const MAX_TEXT_PER_SOURCE = 2000;
 const MAX_SOURCES_PER_JOB = 5;
 const ENABLE_RU = process.env.ENABLE_RU_STUDYABROAD === "true";
+
+/** Max sources to pull for calendar jobs */
+const MAX_CALENDAR_SOURCES = 8;
+/** Only create a new calendar item if none exists in last N days */
+const CALENDAR_DEDUP_DAYS = 30;
 
 // ── Haiti timezone offset (UTC-5 / EST, Haiti does not observe DST) ─────
 const HAITI_UTC_OFFSET_HOURS = -5;
@@ -114,6 +120,8 @@ function seriesToUtilityType(series: UtilitySeries): UtilityType {
       return "daily_fact";
     case "HaitianOfTheWeek":
       return "profile";
+    case "HaitiEducationCalendar":
+      return "school_calendar";
   }
 }
 
@@ -123,6 +131,8 @@ function seriesToCategory(series: UtilitySeries): ItemCategory {
   switch (series) {
     case "ScholarshipRadar":
       return "bourses";
+    case "HaitiEducationCalendar":
+      return "resource";
     default:
       return "resource";
   }
@@ -179,7 +189,10 @@ function getScheduledSlots(): ScheduledSlot[] {
   const hour = getHaitiHour();
   const dow = getHaitiDayOfWeek(); // 0=Sun … 6=Sat
   const slots: ScheduledSlot[] = [];
-
+  // ── 06:45 slot: HaitiEducationCalendar (ALWAYS-ON, daily) ─────────────
+  if (hour >= 6 && hour < 9) {
+    slots.push({ series: "HaitiEducationCalendar", rotationKey: "HT" });
+  }
   // ── 07:30 slot: ScholarshipRadar ─────────────────────────────────────────
   if (hour >= 7 && hour < 10) {
     slots.push({ series: "ScholarshipRadar" });
@@ -219,6 +232,57 @@ function getScheduledSlots(): ScheduledSlot[] {
   }
 
   return slots;
+}
+
+// ── Calendar change detection helpers ────────────────────────────────────────
+
+/** Compute a SHA-256 hash over sorted deadlines for cheap change detection. */
+function computeCalendarHash(deadlines: { label: string; dateISO: string; sourceUrl: string }[]): string {
+  const sorted = [...deadlines].sort((a, b) =>
+    `${a.dateISO}|${a.label}`.localeCompare(`${b.dateISO}|${b.label}`),
+  );
+  return createHash("sha256").update(JSON.stringify(sorted)).digest("hex");
+}
+
+/**
+ * Find the most recent existing calendar item (living post) within CALENDAR_DEDUP_DAYS.
+ * Returns null if no item found or if it's too old.
+ */
+async function findExistingCalendarItem(): Promise<import("@edlight-news/types").Item | null> {
+  // Use items collection: look for utility items with series="HaitiEducationCalendar"
+  const snap = await (await import("@edlight-news/firebase")).itemsRepo
+    .listRecentItems(200);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - CALENDAR_DEDUP_DAYS);
+  const cutoffMs = cutoff.getTime();
+
+  for (const item of snap) {
+    if (
+      item.itemType === "utility" &&
+      item.utilityMeta?.series === "HaitiEducationCalendar"
+    ) {
+      // Check if item is within the dedup window
+      const createdMs = item.createdAt instanceof Timestamp
+        ? item.createdAt.toMillis()
+        : new Date(item.createdAt as unknown as string).getTime();
+      if (createdMs >= cutoffMs) return item;
+    }
+  }
+  return null;
+}
+
+// ── Calendar education keywords for date detection ──────────────────────────
+
+const CALENDAR_KEYWORDS = [
+  "inscription", "admission", "concours", "bac", "ns ",
+  "rentrée", "calendrier", "résultats", "session", "examen",
+  "épreuve", "philo", "enregistrement", "rétho",
+];
+
+/** Detect Haiti education keywords in text. */
+function hasCalendarKeywords(text: string): boolean {
+  const lower = text.toLowerCase();
+  return CALENDAR_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
 // ── Main engine ─────────────────────────────────────────────────────────────
@@ -268,8 +332,11 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
         continue;
       }
 
-      // Take top sources by priority (max MAX_SOURCES_PER_JOB)
-      const topSources = sources.slice(0, MAX_SOURCES_PER_JOB);
+      // Take top sources by priority (max varies by series)
+      const maxSources = slot.series === "HaitiEducationCalendar"
+        ? MAX_CALENDAR_SOURCES
+        : MAX_SOURCES_PER_JOB;
+      const topSources = sources.slice(0, maxSources);
 
       await utilityQueueRepo.enqueueJob({
         series: slot.series,
@@ -374,9 +441,23 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
             requirements: output.facts.requirements,
             steps: output.facts.steps,
             eligibility: output.facts.eligibility,
+            ...(output.facts.notes && output.facts.notes.length > 0
+              ? { notes: output.facts.notes }
+              : {}),
           },
           ...(job.rotationKey ? { rotationKey: job.rotationKey } : {}),
         };
+
+        // Compute calendar hash for change detection
+        if (job.series === "HaitiEducationCalendar") {
+          utilityMeta.calendarHash = computeCalendarHash(
+            output.facts.deadlines.map((d) => ({
+              label: d.label,
+              dateISO: d.dateISO,
+              sourceUrl: d.sourceUrl,
+            })),
+          );
+        }
 
         // Build quality flags
         const qualityFlags: QualityFlags = {
@@ -385,6 +466,11 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           lowConfidence: false,
           reasons: validation.issues,
         };
+
+        // HaitiEducationCalendar strict: if validation fails, set needsReview but don't promote
+        if (job.series === "HaitiEducationCalendar" && !validation.passed) {
+          qualityFlags.needsReview = true;
+        }
 
         // Audience fit score
         const audienceFitScore = validation.passed ? 0.92 : 0.70;
@@ -395,6 +481,94 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
         const nearestDeadline = deadlines.length > 0 ? deadlines[0]!.dateISO : null;
 
+        // ── Calendar living-post logic ──────────────────────────────────────
+        // For HaitiEducationCalendar: update existing item if one exists within
+        // CALENDAR_DEDUP_DAYS, and only if deadlines actually changed.
+        if (job.series === "HaitiEducationCalendar") {
+          const existingCalendar = await findExistingCalendarItem();
+
+          if (existingCalendar) {
+            const oldHash = existingCalendar.utilityMeta?.calendarHash ?? "";
+            const newHash = utilityMeta.calendarHash ?? "";
+
+            if (oldHash === newHash && oldHash.length > 0) {
+              // No meaningful change — skip regeneration
+              console.log(
+                `[utility] Calendar item ${existingCalendar.id} unchanged (hash match) — skipping update`,
+              );
+              await utilityQueueRepo.markDone(job.id);
+              continue;
+            }
+
+            // Major update: deadlines changed
+            console.log(
+              `[utility] Calendar item ${existingCalendar.id} has changes — updating living post`,
+            );
+
+            await itemsRepo.updateItem(existingCalendar.id, {
+              title: output.title_fr,
+              summary: output.summary_fr,
+              confidence: validation.passed ? 0.9 : 0.6,
+              qualityFlags,
+              citations: output.citations.map((c) => ({
+                sourceName: c.label,
+                sourceUrl: c.url,
+              })),
+              utilityMeta,
+              audienceFitScore,
+              deadline: nearestDeadline,
+              evergreen: !nearestDeadline,
+            });
+            await itemsRepo.setLastMajorUpdate(existingCalendar.id);
+
+            // Update content versions
+            const existingCvs = await contentVersionsRepo.listByItemId(existingCalendar.id);
+            const sourceCitations = output.citations.map((c) => ({
+              name: c.label,
+              url: c.url,
+            }));
+
+            for (const cv of existingCvs) {
+              if (cv.channel !== "web") continue;
+              const isFr = cv.language === "fr";
+              const calendarStatus = validation.passed ? ("published" as const) : ("review" as const);
+              const calendarDraftReason = validation.passed
+                ? undefined
+                : `Validation issues: ${validation.issues.join("; ")}`;
+              await contentVersionsRepo.updateContentVersion(cv.id, {
+                title: isFr ? output.title_fr : output.title_ht,
+                summary: isFr ? output.summary_fr : output.summary_ht,
+                body: (isFr ? output.sections_fr : output.sections_ht)
+                  .map((s) => `## ${s.heading}\n\n${s.content}`)
+                  .join("\n\n"),
+                status: calendarStatus,
+                ...(calendarDraftReason ? { draftReason: calendarDraftReason } : {}),
+                qualityFlags,
+                citations: output.citations.map((c) => ({
+                  sourceName: c.label,
+                  sourceUrl: c.url,
+                })),
+                sections: isFr ? output.sections_fr : output.sections_ht,
+                sourceCitations,
+              });
+            }
+
+            if (validation.passed) {
+              await utilityQueueRepo.markDone(job.id);
+              result.published++;
+              console.log(`[utility] Updated calendar living post ${existingCalendar.id}`);
+            } else {
+              await utilityQueueRepo.markFailed(job.id, validation.issues);
+              result.needsReview++;
+              console.log(
+                `[utility] Calendar ${existingCalendar.id} needs review: ${validation.issues.join("; ")}`,
+              );
+            }
+            continue; // Skip normal item creation
+          }
+        }
+
+        // ── Normal item creation (non-calendar or first calendar) ───────────
         // Create item
         const itemData = {
           rawItemId: `utility-${job.id}`,
