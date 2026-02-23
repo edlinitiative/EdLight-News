@@ -185,12 +185,48 @@ const SUCCESS_BLOCKED_TAGS = [
 ];
 
 /**
+ * Opportunity-like keywords — articles dominated by these are likely
+ * opportunities (scholarships, contests, deadlines) not success stories.
+ * The LLM backfill sometimes misclassifies these.
+ */
+const OPPORTUNITY_SIGNAL_KW = [
+  "postuler", "candidature", "candidater", "apply",
+  "date limite", "deadline", "cloture",
+  "inscription", "admissions",
+  "prix", "award", "recompense", "competition",
+  "appel a candidatures",
+];
+
+/**
+ * Positive success-story keywords — at least one must appear for
+ * articles gated solely via successTag (LLM-assigned).
+ */
+const SUCCESS_POSITIVE_KW = [
+  "reussite", "succes", "inspire", "parcours", "fierte",
+  "accomplissement", "distinction", "honneur", "pionnier",
+  "premiere", "premier", "laureat", "excellence",
+  "diaspora", "communaute", "haitien", "haitienne",
+  "nomination", "elu", "fondateur", "fondatrice",
+  "portrait", "profil", "temoignage",
+];
+
+function _normForSuccess(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+/**
  * Strict gate: only articles explicitly tagged as success stories
  * or HaitianOfTheWeek utility items pass through.
  *
  * Rules:
  *  1. itemType == "utility" AND series == "HaitianOfTheWeek" → allowed
  *  2. successTag == true → allowed (any itemType)
+ *     - but rejected if blocked tags present
+ *     - but rejected if text is dominated by opportunity keywords
+ *       without any positive success keywords (catches LLM mis-tags)
  *  3. Everything else → rejected
  *
  * Hard filter: if an article contains blocked tags AND successTag !== true → excluded.
@@ -213,6 +249,21 @@ export function isSuccessArticle(article: EnrichedArticle): boolean {
   if (article.successTag === true) {
     // Hard filter: blocked tags override even successTag
     if (hasBlockedTag) return false;
+
+    // Guard against LLM mis-tags: if the article reads like an opportunity
+    // (awards, deadlines, competitions) and has no positive success signals,
+    // reject it.
+    const blob = _normForSuccess(
+      `${article.title ?? ""} ${article.summary ?? ""}`,
+    );
+    const hasOppSignal = OPPORTUNITY_SIGNAL_KW.some((kw) => blob.includes(kw));
+    if (hasOppSignal) {
+      const hasSuccessSignal = SUCCESS_POSITIVE_KW.some((kw) =>
+        blob.includes(kw),
+      );
+      if (!hasSuccessSignal) return false;
+    }
+
     return true;
   }
 

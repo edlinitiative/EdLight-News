@@ -39,14 +39,16 @@ function normTitle(t: string): string {
 }
 
 /**
- * Build a dedup key from the first 8 significant words of a normalised title.
+ * Build a dedup key from the first 4 significant words of a normalised title.
  * Skips stop-words so minor phrasing differences don't change the key.
+ * 4 words is enough to identify the core topic while ignoring subtitle
+ * variations (e.g. "Cap Talent Lab 2026: Plus de 200…" vs "…: Rencontre…").
  */
 function titleKey(title: string): string {
   const words = normTitle(title)
     .split(" ")
     .filter((w) => w.length > 1 && !STOP.has(w));
-  return words.slice(0, 8).join(" ");
+  return words.slice(0, 4).join(" ");
 }
 
 /**
@@ -184,18 +186,21 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     }
   }
 
-  // Pass (b): pairwise Dice for any titleUngrouped vs titleGroups values
-  const merged = [...titleGroups.values()];
-  for (const orphan of titleUngrouped) {
+  // Pass (b): pairwise Dice across ALL remaining items (titleGroups + orphans).
+  // O(n²) but n ≤ 40 so negligible.
+  const candidates = [...titleGroups.values(), ...titleUngrouped];
+  const merged: (FeedItem & { dupeCount: number })[] = [];
+
+  for (const item of candidates) {
     let matched = false;
     for (let i = 0; i < merged.length; i++) {
-      if (bigramDice(orphan.title ?? "", merged[i].title ?? "") >= DICE_THRESHOLD) {
-        merged[i] = pickBetter(merged[i], orphan);
+      if (bigramDice(item.title ?? "", merged[i].title ?? "") >= DICE_THRESHOLD) {
+        merged[i] = pickBetter(merged[i], item);
         matched = true;
         break;
       }
     }
-    if (!matched) merged.push(orphan);
+    if (!matched) merged.push(item);
   }
 
   const deduped: FeedItem[] = merged;

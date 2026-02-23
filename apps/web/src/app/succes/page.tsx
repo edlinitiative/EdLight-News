@@ -8,6 +8,7 @@
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/lib/content";
+import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 
 export const dynamic = "force-dynamic";
@@ -28,14 +29,14 @@ export default async function SuccesPage({
   }
 
   // Strict gating — no keyword fallback
-  const articles = allArticles
-    .filter(isSuccessArticle)
-    .sort((a, b) => {
-      const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-      const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-      return tB - tA;
-    })
-    .slice(0, 12);
+  const successPool = allArticles.filter(isSuccessArticle);
+
+  // Deduplicate + rank (same pipeline as other pages)
+  const articles = rankAndDeduplicate(successPool, {
+    audienceFitThreshold: 0.5,
+    publisherCap: 4,
+    topN: 12,
+  });
 
   const fr = lang === "fr";
 

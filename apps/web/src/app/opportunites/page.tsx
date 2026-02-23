@@ -39,11 +39,40 @@ export default async function OpportunitesPage({
     "programmes",
   ]);
 
+  /**
+   * Content "smell test" — at least one opportunity keyword must appear in
+   * the title or summary. Prevents general news articles that were
+   * mis-classified with vertical=opportunites from polluting the feed.
+   */
+  const OPP_KEYWORDS = [
+    "bourse", "bourses", "scholarship", "fellowship", "grant",
+    "concours", "competition", "hackathon", "prix", "award",
+    "stage", "internship", "apprentissage",
+    "programme", "formation", "inscription", "admission", "candidature",
+    "master", "licence", "doctorat", "diplome",
+    "financement", "aide", "subvention", "allocation",
+    "postuler", "apply", "deadline", "date limite", "cloture",
+    "etudiant", "student", "universitaire", "university",
+    "emploi", "job", "recrutement", "talent",
+    "opportunit", "okazyon",
+  ];
+
+  function looksLikeOpportunity(a: typeof allArticles[number]): boolean {
+    // Utility items with the ScholarshipRadar series always pass
+    if (a.itemType === "utility" && a.series === "ScholarshipRadar") return true;
+    const blob = `${a.title ?? ""} ${a.summary ?? ""}`
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    return OPP_KEYWORDS.some((kw) => blob.includes(kw));
+  }
+
   const opportunityPool = allArticles.filter(
     (a) =>
-      a.vertical === "opportunites" ||
-      OPPORTUNITY_CATEGORIES.has(a.category ?? "") ||
-      (a.itemType === "utility" && a.series === "ScholarshipRadar"),
+      (a.vertical === "opportunites" ||
+        OPPORTUNITY_CATEGORIES.has(a.category ?? "") ||
+        (a.itemType === "utility" && a.series === "ScholarshipRadar")) &&
+      looksLikeOpportunity(a),
   );
 
   const articles = rankAndDeduplicate(opportunityPool, {
