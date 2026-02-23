@@ -13,7 +13,6 @@ import {
 import {
   classifyOpportunity,
   type OpportunitySubcategory,
-  type ClassificationResult,
 } from "@/lib/opportunityClassifier";
 import { getDeadlineStatus, type DeadlineStatus } from "@/lib/opportunityDeadline";
 
@@ -67,7 +66,9 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
           title: a.title,
           summary: a.summary,
           body: a.body,
-          existingCategory: a.category,
+          category: a.category,
+          publisher: a.sourceName,
+          url: a.sourceUrl,
         });
         const derivedSubCat = toSubCat(classification.subcategory);
         const deadline = parseDeadline(a, lang);
@@ -188,7 +189,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       {/* Subcategory pills */}
       <div className="flex flex-wrap gap-2">
         {(
-          ["all", "bourses", "concours", "stages", "programmes", "ressources", "autre"] as SubCatFilter[]
+          ["all", "bourses", "programmes", "stages", "concours", "ressources"] as SubCatFilter[]
         ).map((s) => {
           const count = pillCounts[s] ?? 0;
           // Hide pills with zero count (except "all")

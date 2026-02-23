@@ -23,6 +23,7 @@ import {
   regionLabel,
   parseDeadline,
   SUBCAT_LABELS,
+  SUBCAT_COLORS,
   type OpportunitySubCat,
 } from "@/lib/opportunities";
 import type { ClassificationResult } from "@/lib/opportunityClassifier";
@@ -38,16 +39,6 @@ const FALLBACK_GRADIENTS: Record<string, string> = {
   local_news:  "from-red-700 to-blue-800",
 };
 const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
-
-/** Derived subcategory → badge colour */
-const SUBCAT_COLORS: Record<OpportunitySubCat, string> = {
-  bourses:    "bg-purple-50 text-purple-700",
-  concours:   "bg-orange-50 text-orange-700",
-  stages:     "bg-cyan-50 text-cyan-700",
-  programmes: "bg-indigo-50 text-indigo-700",
-  ressources: "bg-green-50 text-green-700",
-  autre:      "bg-gray-100 text-gray-600",
-};
 
 export interface OpportunityCardProps {
   article: FeedItem;
