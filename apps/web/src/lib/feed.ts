@@ -91,6 +91,7 @@ export async function fetchEnrichedArticles(
       whatChanged: cv.whatChanged,
       synthesisTags: cv.synthesisTags,
       sourceList: item?.sourceList,
+      successTag: item?.successTag,
     };
   });
 }

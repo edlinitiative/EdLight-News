@@ -19,6 +19,10 @@
  *  S5) Fil — Actualité générale
  *      Existing news feed (limit 8), only below the fold
  *
+ *  S_succes) Succès & Inspiration
+ *      Strict gating: successTag==true OR HaitianOfTheWeek utility items
+ *      No generic news leakage. Clean empty-state.
+ *
  * Single Firestore read for articles, parallel reads for datasets.
  * Cross-section dedup ensures no article appears twice.
  */
@@ -39,7 +43,7 @@ import {
 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
-import { fetchEnrichedFeed } from "@/lib/content";
+import { fetchEnrichedFeed, isSuccessArticle } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { ArticleCard } from "@/components/ArticleCard";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
@@ -178,6 +182,16 @@ export default async function AccueilPage({
     if (picked) rotatedUnis.push(picked);
     ci++;
   }
+
+  // ── S_succes data: Succès & Inspiration (strict gating, no fallback)
+  const succesArticles = allArticles
+    .filter(isSuccessArticle)
+    .sort((a, b) => {
+      const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return tB - tA;
+    })
+    .slice(0, 6);
 
   // ── S5 data: News feed (top 8, deduped)
   const newsRanked = rankAndDeduplicate(claimer.unclaimed(pool), {
@@ -585,6 +599,39 @@ export default async function AccueilPage({
             >
               {fr ? "Lire →" : "Li →"}
             </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  S_succes — Succès & Inspiration (strict gating)
+       * ═══════════════════════════════════════════════════════════════════ */}
+      {succesArticles.length > 0 ? (
+        <section className="space-y-4 rounded-xl border-2 border-emerald-200 bg-emerald-50/40 p-6">
+          <SectionHeader
+            icon={<Award className="h-5 w-5 text-emerald-600" />}
+            title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
+            href={lq("/succes")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {succesArticles.map((a) => (
+              <ArticleCard key={a.id} article={a} lang={lang} compact />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="space-y-4 rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/20 p-6">
+          <SectionHeader
+            icon={<Award className="h-5 w-5 text-emerald-600" />}
+            title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
+            href={lq("/succes")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+          <div className="py-8 text-center text-gray-400">
+            <p className="text-base">
+              {fr ? "Aucun profil publié récemment." : "Pa gen pwofil pibliye dènyèman."}
+            </p>
           </div>
         </section>
       )}

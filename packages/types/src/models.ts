@@ -307,6 +307,9 @@ export interface Item {
   /** Denormalized list of source article references */
   sourceList?: SynthesisSourceRef[];
 
+  /** Explicitly tagged as a success / achievement story */
+  successTag?: boolean;
+
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

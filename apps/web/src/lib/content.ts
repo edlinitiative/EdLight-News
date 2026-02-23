@@ -154,6 +154,7 @@ export function enrichArticles(
       whatChanged: cv.whatChanged,
       synthesisTags: cv.synthesisTags,
       sourceList: item?.sourceList,
+      successTag: item?.successTag,
     };
   });
 }
@@ -173,63 +174,50 @@ export async function fetchEnrichedFeed(
   return enrichArticles(cvs, itemMap);
 }
 
-// ── Success keyword matcher (shared by homepage + /succes page) ──────────────
+// ── Strict success gating (shared by homepage + /succes page) ────────────────
 
-const SUCCES_KEYWORDS_FR = [
-  "accepté",
-  "acceptée",
-  "bourse obtenue",
-  "admis",
-  "diplômé",
-  "recruté",
-  "sélectionné",
-  "récompense",
-  "startup",
-  "prix",
-  "lauréat",
-  "réussi",
-  "médaille",
-  "distinction",
-  "mention",
-  "gagnant",
-  "remporté",
-];
-
-const SUCCES_KEYWORDS_HT = [
-  "aksepte",
-  "diplome",
-  "rekrite",
-  "siksè",
-  "reyisi",
-  "laurea",
-  "bous",
-  "pri",
+/**
+ * Hard-exclusion tags — if ANY of these appear in synthesisTags,
+ * the article is rejected UNLESS successTag is explicitly true.
+ */
+const SUCCESS_BLOCKED_TAGS = [
+  "politique", "inflation", "crise", "violence",
 ];
 
 /**
- * Exclusion keywords — articles containing these are NOT success stories,
- * even if they match positive keywords (e.g. "prix" in a crime context).
+ * Strict gate: only articles explicitly tagged as success stories
+ * or HaitianOfTheWeek utility items pass through.
+ *
+ * Rules:
+ *  1. itemType == "utility" AND series == "HaitianOfTheWeek" → allowed
+ *  2. successTag == true → allowed (any itemType)
+ *  3. Everything else → rejected
+ *
+ * Hard filter: if an article contains blocked tags AND successTag !== true → excluded.
  */
-const SUCCES_EXCLUSION_KEYWORDS = [
-  "tué", "tuée", "attaque", "gang", "kidnapping", "assassinat",
-  "police", "fusillade", "inflation", "sanction", "violence",
-  "meurtre", "viol", "émeute", "pillage", "incendie criminel",
-  "insécurité", "coup de feu", "balle", "arme", "mort",
-  "détenu", "prisonnier", "crise", "massacre", "agression",
-];
-
 export function isSuccessArticle(article: EnrichedArticle): boolean {
-  const text = `${article.title ?? ""} ${article.summary ?? ""}`.toLowerCase();
+  const hasBlockedTag =
+    Array.isArray(article.synthesisTags) &&
+    article.synthesisTags.some((t) =>
+      SUCCESS_BLOCKED_TAGS.includes(t.toLowerCase()),
+    );
 
-  // Hard gate: reject any article mentioning crime/violence/insecurity
-  if (SUCCES_EXCLUSION_KEYWORDS.some((k) => text.includes(k))) return false;
+  // HaitianOfTheWeek utility items are always success stories
+  if (article.itemType === "utility" && article.series === "HaitianOfTheWeek") {
+    // … unless they somehow carry a blocked tag without explicit successTag
+    if (hasBlockedTag && article.successTag !== true) return false;
+    return true;
+  }
 
-  // Positive: explicit category or keyword match
-  if (article.category === "succes") return true;
-  return (
-    SUCCES_KEYWORDS_FR.some((k) => text.includes(k)) ||
-    SUCCES_KEYWORDS_HT.some((k) => text.includes(k))
-  );
+  // Explicit successTag is the primary gate
+  if (article.successTag === true) {
+    // Hard filter: blocked tags override even successTag
+    if (hasBlockedTag) return false;
+    return true;
+  }
+
+  // No fallback to keyword matching — reject everything else
+  return false;
 }
 
 // ── Calendar deadline types ──────────────────────────────────────────────────

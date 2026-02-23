@@ -227,6 +227,7 @@ export const itemSchema = z.object({
     lastMajorUpdateAt: timestampSchema.nullable().optional(),
     effectiveDate: z.string().optional(),
     sourceList: z.array(synthesisSourceRefSchema).optional(),
+    successTag: z.boolean().optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
 });

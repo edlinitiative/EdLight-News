@@ -1,14 +1,13 @@
 /**
  * /succes — Success & Inspiration feed.
  *
- * Server component: filters articles by category=succes OR keyword inference
- * (see lib/content.ts :: isSuccessArticle).
- * Renders a placeholder section when no matching articles are found.
+ * Strict gating: only items with successTag === true
+ * OR utilityMeta.series === "HaitianOfTheWeek" are shown.
+ * No fallback to generic news.
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/lib/content";
-import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 
 export const dynamic = "force-dynamic";
@@ -22,13 +21,15 @@ export default async function SuccesPage({
 
   const allArticles = await fetchEnrichedFeed(lang, 200);
 
-  const succesPool = allArticles.filter(isSuccessArticle);
-
-  const articles = rankAndDeduplicate(succesPool, {
-    audienceFitThreshold: 0.60,
-    publisherCap: 3,
-    topN: 40,
-  });
+  // Strict gating — no keyword fallback
+  const articles = allArticles
+    .filter(isSuccessArticle)
+    .sort((a, b) => {
+      const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return tB - tA;
+    })
+    .slice(0, 12);
 
   const fr = lang === "fr";
 
@@ -54,12 +55,7 @@ export default async function SuccesPage({
       ) : (
         <div className="rounded-lg border-2 border-dashed border-gray-200 py-24 text-center text-gray-400">
           <p className="text-lg font-medium">
-            {fr ? "Bientôt…" : "Byento…"}
-          </p>
-          <p className="mt-2 text-sm">
-            {fr
-              ? "Des histoires de succès arrivent bientôt. Revenez vite !"
-              : "Istwa siksè ap vini byento. Tounen vit !"}
+            {fr ? "Aucun profil publié récemment." : "Pa gen pwofil pibliye dènyèman."}
           </p>
         </div>
       )}

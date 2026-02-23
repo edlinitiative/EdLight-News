@@ -972,6 +972,7 @@ export declare const itemSchema: z.ZodObject<{
         itemId: string;
         publishedAt?: string | undefined;
     }>, "many">>;
+    successTag: z.ZodOptional<z.ZodBoolean>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -1109,6 +1110,7 @@ export declare const itemSchema: z.ZodObject<{
         itemId: string;
         publishedAt?: string | undefined;
     }[] | undefined;
+    successTag?: boolean | undefined;
 }, {
     title: string;
     deadline: string | null;
@@ -1226,6 +1228,7 @@ export declare const itemSchema: z.ZodObject<{
         itemId: string;
         publishedAt?: string | undefined;
     }[] | undefined;
+    successTag?: boolean | undefined;
 }>;
 export declare const contentVersionSchema: z.ZodObject<{
     id: z.ZodString;
@@ -1976,6 +1979,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         itemId: string;
         publishedAt?: string | undefined;
     }>, "many">>;
+    successTag: z.ZodOptional<z.ZodBoolean>;
     createdAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -2104,6 +2108,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         itemId: string;
         publishedAt?: string | undefined;
     }[] | undefined;
+    successTag?: boolean | undefined;
 }, {
     title: string;
     deadline: string | null;
@@ -2212,6 +2217,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         itemId: string;
         publishedAt?: string | undefined;
     }[] | undefined;
+    successTag?: boolean | undefined;
 }>;
 export declare const createContentVersionSchema: z.ZodObject<Omit<{
     id: z.ZodString;

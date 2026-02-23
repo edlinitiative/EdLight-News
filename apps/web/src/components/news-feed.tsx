@@ -71,6 +71,8 @@ export interface FeedItem {
   synthesisTags?: string[];
   /** Source article refs (synthesis only) */
   sourceList?: { itemId: string; title: string; sourceName: string; publishedAt?: string }[];
+  /** Explicitly tagged as a success / achievement story */
+  successTag?: boolean;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
