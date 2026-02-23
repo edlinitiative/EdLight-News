@@ -22,7 +22,8 @@
     "seed:haiti-history-almanac": "tsx src/scripts/seedHaitiHistoryAlmanac.ts",
     "seed:haiti-holidays": "tsx src/scripts/seedHaitiHolidays.ts",
     "seed:all-datasets": "tsx src/scripts/seedUniversities.ts && tsx src/scripts/seedScholarships.ts && tsx src/scripts/seedHaitiCalendar.ts && tsx src/scripts/seedPathways.ts && tsx src/scripts/seedHaitiHistoryAlmanac.ts && tsx src/scripts/seedHaitiHolidays.ts",
-    "backfill:format-content-versions": "tsx src/scripts/backfillFormatContentVersions.ts"
+    "backfill:format-content-versions": "tsx src/scripts/backfillFormatContentVersions.ts",
+    "backfill:success-tags": "tsx src/scripts/backfillSuccessTags.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

@@ -48,24 +48,49 @@ const PROGRAMMES_KEYWORDS = [
 ];
 
 /**
- * Keywords indicating a success / achievement / inspiration story.
- * Covers both French and Kreyòl Ayisyen variants.
+ * Multi-word phrases that strongly indicate a success / inspiration story.
+ * Checked via simple substring matching (safe because they are long enough
+ * to avoid false positives).
  */
-const SUCCESS_KEYWORDS = [
+const SUCCESS_PHRASES = [
   // French
-  "succes", "réussite", "reussite", "accomplissement", "distinction",
-  "honneur", "fierté", "fierte", "exploit", "laureat", "lauréat",
-  "medaille", "médaille", "champion", "remporte", "diplome obtenu",
-  "diplômé", "diplome", "palmares", "palmarès", "primé", "prime",
   "parcours inspirant", "histoire inspirante", "modele de reussite",
-  "parcours exemplaire", "haïtien qui brille", "haitien qui brille",
-  "haïtienne qui brille", "haitienne qui brille",
-  // Kreyòl Ayisyen
-  "siksè", "sikse", "reyisit", "akonplisman", "fyète", "fyete",
-  "chanpyon", "onè", "one",
-  // English loan words common in Haitian press
-  "success story", "achievement", "award-winning", "honored",
+  "parcours exemplaire", "haitien qui brille", "haitienne qui brille",
+  "diplome obtenu", "histoire de reussite",
+  // English
+  "success story", "award-winning",
 ];
+
+/**
+ * Shorter keywords that indicate success BUT require word-boundary
+ * matching (\b) to avoid false positives like "one" in "someone".
+ * All entries are already accent-stripped for NFD-normalized text.
+ */
+const SUCCESS_WORDS = [
+  // French (accent-stripped forms)
+  "reussite", "accomplissement", "laureat",
+  "medaille", "palmares", "remporte",
+  // Kreyòl Ayisyen (accent-stripped forms)
+  "sikse", "reyisit", "akonplisman", "chanpyon",
+  // English
+  "achievement",
+];
+
+/** Pre-compiled word-boundary regex for success words. */
+const SUCCESS_WORDS_RE = new RegExp(
+  SUCCESS_WORDS.map((w) => `\\b${w}\\b`).join("|"),
+  "i",
+);
+
+/** Check whether text signals a success / inspiration story. */
+function matchesSuccessSignal(normalizedText: string): boolean {
+  // 1. Multi-word phrase substring match (cheap, no false-positive risk)
+  for (const phrase of SUCCESS_PHRASES) {
+    if (normalizedText.includes(normalizeText(phrase))) return true;
+  }
+  // 2. Single-word boundary match (avoids partial hits)
+  return SUCCESS_WORDS_RE.test(normalizedText);
+}
 
 /** Union of all opportunity keywords — used for the top-level check. */
 const ALL_OPPORTUNITY_KEYWORDS = [
@@ -213,7 +238,7 @@ export function classifyItem(
   const combinedText = normalizeText(`${title} ${summary} ${body}`);
 
   // ── Success story detection (runs for ALL items) ──────────────────────
-  const isSuccessStory = containsAny(combinedText, SUCCESS_KEYWORDS);
+  const isSuccessStory = matchesSuccessSignal(combinedText);
 
   // ── Quick exit if no opportunity signal ────────────────────────────────
   if (!containsAny(combinedText, ALL_OPPORTUNITY_KEYWORDS)) {
