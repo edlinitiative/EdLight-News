@@ -18,6 +18,30 @@ import {
 import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { useLanguage } from "@/lib/language-context";
+import { isAllowedInStudentFeed } from "@/lib/studentFeedFilter";
+
+// ── Feed mode ───────────────────────────────────────────────────────────────
+export type FeedMode = "student" | "all";
+
+const LS_MODE_KEY = "edlight-feed-mode";
+
+function readPersistedMode(): FeedMode {
+  if (typeof window === "undefined") return "student";
+  try {
+    const v = localStorage.getItem(LS_MODE_KEY);
+    return v === "all" ? "all" : "student";
+  } catch {
+    return "student";
+  }
+}
+
+function persistMode(mode: FeedMode): void {
+  try {
+    localStorage.setItem(LS_MODE_KEY, mode);
+  } catch {
+    /* noop – private browsing */
+  }
+}
 
 // ── Types for serialized data from server ───────────────────────────────────
 export interface FeedItem {
@@ -235,6 +259,21 @@ export function NewsFeed({
     }
   }, [urlLang, clientLang, setLanguage]);
 
+  // Feed mode (student-first vs all)
+  const urlMode = searchParams.get("mode") as FeedMode | null;
+  const [feedMode, setFeedMode] = useState<FeedMode>(
+    urlMode === "all" ? "all" : urlMode === "student" ? "student" : readPersistedMode(),
+  );
+
+  // Keep URL + localStorage in sync when mode changes
+  const handleModeChange = (mode: FeedMode) => {
+    setFeedMode(mode);
+    persistMode(mode);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("mode", mode);
+    router.push(`/news?${params.toString()}`, { scroll: false });
+  };
+
   // State
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("latest");
@@ -292,6 +331,25 @@ export function NewsFeed({
     return dedupedArticles.filter((a) => isLegacyItem(a)).length;
   }, [dedupedArticles]);
 
+  // ── Student-mode filter ─────────────────────────────────────────────────
+  const studentFiltered = useMemo(() => {
+    if (feedMode === "all") return qualityFiltered;
+    return qualityFiltered.filter((a) =>
+      isAllowedInStudentFeed({
+        title: a.title,
+        summary: a.summary,
+        category: a.category,
+        tags: a.synthesisTags,
+        publisher: a.sourceName,
+        geoLabel: a.geoTag,
+      }),
+    );
+  }, [qualityFiltered, feedMode]);
+
+  /** True when student mode actually hid some items */
+  const studentModeFiltered =
+    feedMode === "student" && studentFiltered.length < qualityFiltered.length;
+
   // Fixed category pills — always visible even if count is 0
   const FIXED_NEWS_PILLS: FeedCategory[] = [
     "all",
@@ -312,16 +370,37 @@ export function NewsFeed({
   ]);
 
   const categoryFiltered = useMemo(() => {
-    if (activeCategory === "all") return qualityFiltered;
+    if (activeCategory === "all") return studentFiltered;
     if (activeCategory === "scholarship") {
-      return qualityFiltered.filter(
+      return studentFiltered.filter(
         (a) =>
           OPPORTUNITY_CATS.has(a.category ?? "") ||
           a.vertical === "opportunites",
       );
     }
-    return qualityFiltered.filter((a) => a.category === activeCategory);
-  }, [qualityFiltered, activeCategory]);
+    return studentFiltered.filter((a) => a.category === activeCategory);
+  }, [studentFiltered, activeCategory]);
+
+  // Pill counts — reflect the student-filtered (or full) set
+  const pillCounts = useMemo(() => {
+    const counts: Partial<Record<FeedCategory, number>> = {};
+    counts.all = studentFiltered.length;
+    for (const pill of FIXED_NEWS_PILLS) {
+      if (pill === "all") continue;
+      if (pill === "scholarship") {
+        counts.scholarship = studentFiltered.filter(
+          (a) =>
+            OPPORTUNITY_CATS.has(a.category ?? "") ||
+            a.vertical === "opportunites",
+        ).length;
+      } else {
+        counts[pill] = studentFiltered.filter(
+          (a) => a.category === pill,
+        ).length;
+      }
+    }
+    return counts;
+  }, [studentFiltered]);
 
   // Search filter
   const searchFiltered = useMemo(() => {
@@ -384,8 +463,37 @@ export function NewsFeed({
         </span>
       </div>
 
-      {/* Search + Sort bar */}
+      {/* Mode toggle + Search + Sort bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {/* Segmented control: Fil étudiant / Tout */}
+        <div className="inline-flex rounded-lg border bg-gray-50 p-0.5">
+          {(["student", "all"] as const).map((mode) => {
+            const isActive = mode === feedMode;
+            const label =
+              mode === "student"
+                ? lang === "fr"
+                  ? "Fil étudiant"
+                  : "Fil etidyan"
+                : lang === "fr"
+                  ? "Tout"
+                  : "Tout";
+            return (
+              <button
+                key={mode}
+                onClick={() => handleModeChange(mode)}
+                className={
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition " +
+                  (isActive
+                    ? "bg-white text-brand-700 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700")
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="relative flex-1">
           <input
             type="text"
@@ -436,10 +544,11 @@ export function NewsFeed({
         </label>
       )}
 
-      {/* Category filter pills — always visible */}
+      {/* Category filter pills — always visible, counts reflect current mode */}
       <div className="flex flex-wrap gap-2">
         {FIXED_NEWS_PILLS.map((cat) => {
           const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
+          const count = pillCounts[cat] ?? 0;
           const isActive = cat === activeCategory;
           return (
             <button
@@ -453,10 +562,20 @@ export function NewsFeed({
               }
             >
               {label}
+              <span className="ml-1 opacity-60">{count}</span>
             </button>
           );
         })}
       </div>
+
+      {/* Student-mode info note */}
+      {studentModeFiltered && (
+        <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          {lang === "fr"
+            ? "Le fil étudiant masque certaines actualités générales. Passez sur \u00ab\u202FTout\u202F\u00bb pour tout afficher."
+            : "Fil etidyan an kache kèk nouvèl jeneral. Chwazi \u00ab\u202FTout\u202F\u00bb pou wè tout."}
+        </p>
+      )}
 
       {/* Empty state */}
       {sorted.length === 0 && (

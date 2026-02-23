@@ -8,13 +8,13 @@ import { Suspense } from "react";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Fil — EdLight News",
+  title: "Fil — Actualités · EdLight News",
 };
 
 export default async function NewsPage({
   searchParams,
 }: {
-  searchParams: { lang?: string; category?: string };
+  searchParams: { lang?: string; category?: string; mode?: string };
 }) {
   const language: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
 
