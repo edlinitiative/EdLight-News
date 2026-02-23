@@ -33,8 +33,6 @@ const CONCOURS_KEYWORDS = [
   "concours",
   "competition",
   "hackathon",
-  "prix",
-  "award",
 ];
 
 const PROGRAMMES_KEYWORDS = [
@@ -92,13 +90,62 @@ function matchesSuccessSignal(normalizedText: string): boolean {
   return SUCCESS_WORDS_RE.test(normalizedText);
 }
 
-/** Union of all opportunity keywords — used for the top-level check. */
-const ALL_OPPORTUNITY_KEYWORDS = [
-  ...BOURSES_KEYWORDS,
-  ...STAGES_KEYWORDS,
-  ...CONCOURS_KEYWORDS,
-  ...PROGRAMMES_KEYWORDS,
-];
+// ── Word-boundary matching (prevents substring false positives) ─────────
+
+/** Pre-compile word-boundary regexes for a keyword list. */
+function buildWBRegexes(keywords: readonly string[]): RegExp[] {
+  return keywords.map((kw) => {
+    const norm = normalizeText(kw);
+    const escaped = norm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Multi-word phrases: match literally (spaces act as natural boundaries)
+    if (kw.includes(" ")) return new RegExp(escaped);
+    // Single words: require word boundary on both sides
+    return new RegExp(`\\b${escaped}\\b`);
+  });
+}
+
+function matchesAnyWB(text: string, regexes: readonly RegExp[]): boolean {
+  return regexes.some((re) => re.test(text));
+}
+
+// Pre-compiled word-boundary regexes for subcategory keyword sets
+const BOURSES_WB = buildWBRegexes(BOURSES_KEYWORDS);
+const STAGES_WB = buildWBRegexes(STAGES_KEYWORDS);
+const CONCOURS_WB = buildWBRegexes(CONCOURS_KEYWORDS);
+const PROGRAMMES_WB = buildWBRegexes(PROGRAMMES_KEYWORDS);
+
+/**
+ * Conservative opportunity gate keywords.
+ *
+ * Only high-confidence indicators that rarely appear in general news.
+ * Deliberately excludes ambiguous words common in Haitian news context:
+ *   ✗ "programme"   → "programme politique", "programme du gouvernement"
+ *   ✗ "formation"   → "formation militaire", "formation du gouvernement"
+ *   ✗ "prix"        → commodity prices, exchange rates
+ *   ✗ "award"       → general recognition
+ *   ✗ "competition" → generic usage in non-opportunity contexts
+ *   ✗ "cohorte"     → medical / demographic usage
+ *   ✗ "admission"   → political admission / acknowledgement
+ */
+const OPPORTUNITY_GATE_KW = [
+  // Scholarships / funding
+  "bourse", "scholarship", "fellowship", "financement", "tuition", "prise en charge",
+  // Internships
+  "stage", "internship", "alternance",
+  // Competitions (high-signal only)
+  "concours", "hackathon",
+  // Admissions / registration
+  "inscription", "candidature", "appel a candidatures",
+  // Academic programmes (specific degree types)
+  "master", "licence", "doctorat", "bootcamp",
+  // Application actions
+  "postuler", "deadline", "date limite",
+  // Generic opportunity
+  "opportunit",
+  // Haitian Creole
+  "okazyon", "bous", "estaj", "konkou",
+] as const;
+const OPPORTUNITY_GATE_RE = buildWBRegexes(OPPORTUNITY_GATE_KW);
 
 const HAITI_ENTITIES = [
   "haiti",
@@ -240,18 +287,22 @@ export function classifyItem(
   // ── Success story detection (runs for ALL items) ──────────────────────
   const isSuccessStory = matchesSuccessSignal(combinedText);
 
-  // ── Quick exit if no opportunity signal ────────────────────────────────
-  if (!containsAny(combinedText, ALL_OPPORTUNITY_KEYWORDS)) {
+  // ── Quick exit if no high-confidence opportunity signal ────────────────
+  // Uses a conservative gate with word-boundary regex to prevent general
+  // news articles from being misclassified as opportunities.
+  if (!matchesAnyWB(combinedText, OPPORTUNITY_GATE_RE)) {
     return { isOpportunity: false, isSuccessStory };
   }
 
   // ── Determine subcategory (priority order: Bourses > Stages > Concours > Programmes) ──
+  // Uses word-boundary matching to prevent substring false positives
+  // (e.g. "formation" inside "informations").
   let category: ItemCategory;
-  if (containsAny(combinedText, BOURSES_KEYWORDS)) {
+  if (matchesAnyWB(combinedText, BOURSES_WB)) {
     category = "bourses";
-  } else if (containsAny(combinedText, STAGES_KEYWORDS)) {
+  } else if (matchesAnyWB(combinedText, STAGES_WB)) {
     category = "stages";
-  } else if (containsAny(combinedText, CONCOURS_KEYWORDS)) {
+  } else if (matchesAnyWB(combinedText, CONCOURS_WB)) {
     category = "concours";
   } else {
     category = "programmes";

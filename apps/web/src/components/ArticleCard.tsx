@@ -28,7 +28,6 @@ const SUBCAT_MAP: Record<string, OpportunitySubCat> = {
 };
 
 function looksLikeOpportunity(article: FeedItem): boolean {
-  if (article.vertical === "opportunites") return true;
   if (article.itemType === "utility") return true;
   return contentLooksLikeOpportunity(article.title ?? "", article.summary);
 }

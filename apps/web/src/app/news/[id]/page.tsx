@@ -527,7 +527,6 @@ export default async function ArticlePage({
   // opportunity — prevents general news articles with stale opp-adjacent
   // categories (e.g. crime news with category "concours") from mis-labelling.
   const passesSmellTest =
-    item?.vertical === "opportunites" ||
     item?.itemType === "utility" ||
     contentLooksLikeOpportunity(article.title ?? "", article.summary);
 
