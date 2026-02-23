@@ -29,6 +29,7 @@ RÈGLES STRICTES:
 7. PERTINENCE HAÏTI: L'article DOIT concerner Haïti, les Haïtiens, la diaspora haïtienne, les Caraïbes francophones, ou des opportunités accessibles aux Haïtiens. Mets haiti_relevant=true SEULEMENT si c'est le cas. Un article sur l'Afrique, l'Asie, ou un autre pays sans lien avec Haïti → haiti_relevant=false.
 8. TEXTE SOURCE INSUFFISANT: Si le texte source fait moins de ~200 mots ou ne contient que le titre et un bref résumé (typique des flux RSS/agrégateurs), mets confidence ≤ 0.4. N'invente JAMAIS de détails absents du texte source. Ne remplis pas le corps avec du texte générique du type "l'article souligne l'importance de...".
 9. CLUSTER_SLUG: Génère un identifiant court en anglais (kebab-case, 3-6 mots) qui identifie le SUJET/ÉVÉNEMENT sous-jacent, PAS l'article lui-même. Deux articles de sources différentes sur le même événement DOIVENT produire le MÊME slug. Exemples: "haiti-child-recruitment-un-2026", "richardson-viano-winter-olympics-2026", "taiwan-scholarships-haiti-2026". Inclure l'année si pertinent.
+10. SUCCÈS / INSPIRATION: Mets is_success_story=true si l'article raconte une réussite, un accomplissement ou une histoire inspirante d'un Haïtien, d'un groupe haïtien ou d'une institution haïtienne. Exemples: prix, diplômes, reconnaissance internationale, victoires sportives, réalisations communautaires, parcours exemplaires. Mets is_success_story=false sinon.
 
 ARTICLE SOURCE:
 Titre: ${input.title}
@@ -48,6 +49,7 @@ RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
   "body_ht": "Kò atik la an kreyòl ayisyen (3-6 paragraf, enfòmatif e itil)",
   "confidence": 0.85,
   "haiti_relevant": true,
+  "is_success_story": false,
   "cluster_slug": "story-topic-keyword-year",
   "extracted": {
     "deadline": "2026-03-15 ou null si pas de deadline",

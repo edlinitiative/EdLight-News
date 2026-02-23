@@ -13,6 +13,12 @@ export const geminiWebDraftSchema = z.object({
   confidence: z.number().min(0).max(1),
   haiti_relevant: z.boolean(),
   /**
+   * Whether the article describes a success, achievement, or inspirational story
+   * about a Haitian individual, group, or institution. Examples: awards, graduations,
+   * international recognition, athletic victories, community achievements.
+   */
+  is_success_story: z.boolean(),
+  /**
    * Semantic cluster slug — a short lowercase-english identifier
    * for the underlying *story* (not the article). Articles about the same
    * event/topic from different publishers should produce the same slug.

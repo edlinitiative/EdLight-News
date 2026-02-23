@@ -202,6 +202,10 @@ export async function generateForItems(): Promise<{
         : undefined;
 
       // Update the item with refined classification + v2 fields
+      // Success tag: deterministic keyword match OR Gemini detection (logical OR)
+      const isSuccessStory =
+        classification.isSuccessStory || draft.is_success_story === true;
+
       await itemsRepo.updateItem(item.id, {
         category: finalCategory,
         vertical: finalVertical,
@@ -212,6 +216,7 @@ export async function generateForItems(): Promise<{
         geoTag: effectiveGeoTag,
         ...(finalOpportunity ? { opportunity: finalOpportunity } : {}),
         ...(semanticGroupId ? { dedupeGroupId: semanticGroupId } : {}),
+        ...(isSuccessStory ? { successTag: true } : {}),
       });
 
       // Build FR + HT content_version payloads with quality gates

@@ -151,6 +151,8 @@ export async function processRawItems(): Promise<{
         source: itemSource,
         ...(classification.opportunity ? { opportunity: classification.opportunity } : {}),
         publishedAt: raw.publishedAt,
+        // success story tagging (deterministic keyword match)
+        ...(classification.isSuccessStory ? { successTag: true } : {}),
         // image fields — set when publisher provides og:image with sufficient confidence
         ...(publisherImageUrl && publisherImageConfidence >= 0.6
           ? {
