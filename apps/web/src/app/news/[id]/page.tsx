@@ -28,7 +28,7 @@ export async function generateMetadata({
   if (!article) return { title: "Not found" };
   return {
     title: `${article.title} — EdLight News`,
-    description: article.summary || article.body.slice(0, 160),
+    description: article.summary || article.body?.slice(0, 160) || "",
   };
 }
 
@@ -643,11 +643,11 @@ export default async function ArticlePage({
       )}
 
       {/* Legacy citations (for older items without source object) */}
-      {!item?.source && article.citations.length > 0 && (
+      {!item?.source && (article.citations?.length ?? 0) > 0 && (
         <section className="border-t pt-4">
           <h2 className="text-base font-semibold">Sources</h2>
           <ul className="mt-2 space-y-1">
-            {article.citations.map((c, i) => (
+            {(article.citations ?? []).map((c, i) => (
               <li key={i}>
                 <a
                   href={c.sourceUrl}

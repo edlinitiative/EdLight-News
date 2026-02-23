@@ -299,7 +299,7 @@ export function formatContentVersion(
   const { lang, series } = input;
 
   // 1. Title cleanup
-  let title = input.title.trim();
+  let title = (input.title ?? "").trim();
   title = stripLeadingEmoji(title);
   title = stripTrailingPunct(title);
   title = collapseSpaces(title);

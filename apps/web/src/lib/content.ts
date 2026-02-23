@@ -100,9 +100,9 @@ export function enrichArticles(
     /* ── render-time formatting pass (idempotent safety net) ── */
     const formatted = formatContentVersion({
       lang: cv.language as "fr" | "ht",
-      title: cv.title,
-      summary: cv.summary,
-      body: cv.body,
+      title: cv.title ?? "",
+      summary: cv.summary ?? undefined,
+      body: cv.body ?? undefined,
       series: (item?.utilityMeta?.series as string) ?? "News",
     });
 

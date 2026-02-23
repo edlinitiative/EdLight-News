@@ -137,7 +137,7 @@ export function ArticleCard({
         {/* Summary */}
         {!compact && (
           <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500">
-            {article.summary || article.body.slice(0, 150)}
+            {article.summary || article.body?.slice(0, 150) || ""}
           </p>
         )}
 

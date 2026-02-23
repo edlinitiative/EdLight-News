@@ -287,7 +287,7 @@ export function NewsFeed({
     return categoryFiltered.filter(
       (a) =>
         a.title.toLowerCase().includes(q) ||
-        a.summary.toLowerCase().includes(q),
+        (a.summary ?? "").toLowerCase().includes(q),
     );
   }, [categoryFiltered, search]);
 
@@ -467,7 +467,7 @@ export function NewsFeed({
               {article.title}
             </h2>
             <p className="line-clamp-3 text-sm text-gray-600">
-              {article.summary || article.body.slice(0, 200)}
+              {article.summary || article.body?.slice(0, 200) || ""}
             </p>
             <TrustSignals item={article} lang={lang} mounted={mounted} />
           </Link>
