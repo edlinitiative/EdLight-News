@@ -47,6 +47,8 @@ const REFRESH_CADENCES: Record<DatasetName, number> = {
   scholarships: 24 * 3600,            // daily (deadlines move fast)
   pathways: 14 * 24 * 3600,           // every 2 weeks
   haiti_calendar: 24 * 3600,          // daily
+  haiti_history_almanac: 30 * 24 * 3600, // monthly (curated, rarely changes)
+  haiti_holidays: 90 * 24 * 3600,        // quarterly (very stable)
 };
 
 /**
@@ -59,6 +61,8 @@ const MIN_RECORD_COUNTS: Record<DatasetName, number> = {
   scholarships: 5,
   pathways: 2,
   haiti_calendar: 5,
+  haiti_history_almanac: 20,
+  haiti_holidays: 5,
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

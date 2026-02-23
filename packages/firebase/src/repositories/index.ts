@@ -14,3 +14,6 @@ export * as pathwaysRepo from "./pathways.js";
 export * as datasetJobsRepo from "./dataset-jobs.js";
 export * as contributorProfilesRepo from "./contributor-profiles.js";
 export * as draftsRepo from "./drafts.js";
+export * as haitiHistoryAlmanacRepo from "./haiti-history-almanac.js";
+export * as haitiHolidaysRepo from "./haiti-holidays.js";
+export * as historyPublishLogRepo from "./history-publish-log.js";

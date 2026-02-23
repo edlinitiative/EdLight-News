@@ -19,7 +19,9 @@
     "seed:scholarships": "tsx src/scripts/seedScholarships.ts",
     "seed:haiti-calendar": "tsx src/scripts/seedHaitiCalendar.ts",
     "seed:pathways": "tsx src/scripts/seedPathways.ts",
-    "seed:all-datasets": "tsx src/scripts/seedUniversities.ts && tsx src/scripts/seedScholarships.ts && tsx src/scripts/seedHaitiCalendar.ts && tsx src/scripts/seedPathways.ts"
+    "seed:haiti-history-almanac": "tsx src/scripts/seedHaitiHistoryAlmanac.ts",
+    "seed:haiti-holidays": "tsx src/scripts/seedHaitiHolidays.ts",
+    "seed:all-datasets": "tsx src/scripts/seedUniversities.ts && tsx src/scripts/seedScholarships.ts && tsx src/scripts/seedHaitiCalendar.ts && tsx src/scripts/seedPathways.ts && tsx src/scripts/seedHaitiHistoryAlmanac.ts && tsx src/scripts/seedHaitiHolidays.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

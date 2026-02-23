@@ -312,6 +312,51 @@ export interface Metric {
     shares: number;
     recordedAt: Timestamp;
 }
+export type AlmanacConfidence = "high" | "medium";
+export type AlmanacCreatedBy = "seed" | "admin" | "intern" | "import";
+export type AlmanacTag = "independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution";
+export interface HaitiHistoryAlmanacEntry {
+    id: string;
+    /** MM-DD (e.g. "02-22") */
+    monthDay: string;
+    /** Optional year; null for recurring or unspecified */
+    year?: number | null;
+    title_fr: string;
+    summary_fr: string;
+    /** 1-sentence student takeaway */
+    student_takeaway_fr: string;
+    tags?: AlmanacTag[];
+    sources: DatasetCitation[];
+    confidence: AlmanacConfidence;
+    createdBy: AlmanacCreatedBy;
+    verifiedAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export interface HaitiHoliday {
+    id: string;
+    /** MM-DD */
+    monthDay: string;
+    name_fr: string;
+    name_ht: string;
+    description_fr?: string;
+    description_ht?: string;
+    isNationalHoliday?: boolean;
+    sources: DatasetCitation[];
+    verifiedAt: Timestamp;
+    updatedAt: Timestamp;
+}
+export type HistoryPublishStatus = "done" | "skipped" | "failed";
+export interface HistoryPublishLog {
+    id: string;
+    /** YYYY-MM-DD */
+    dateISO: string;
+    publishedItemId?: string;
+    almanacEntryIds: string[];
+    holidayId?: string;
+    status: HistoryPublishStatus;
+    error?: string;
+    createdAt: Timestamp;
+}
 export type DatasetCountry = "US" | "CA" | "FR" | "UK" | "DO" | "MX" | "CN" | "RU" | "HT" | "Global";
 export type AcademicLevel = "bachelor" | "master" | "phd" | "short_programs";
 export type TuitionBand = "low" | "medium" | "high" | "unknown";
@@ -414,7 +459,7 @@ export interface Pathway {
     sources: DatasetCitation[];
     updatedAt: Timestamp;
 }
-export type DatasetName = "universities" | "scholarships" | "haiti_calendar" | "pathways";
+export type DatasetName = "universities" | "scholarships" | "haiti_calendar" | "pathways" | "haiti_history_almanac" | "haiti_holidays";
 export type DatasetJobStatus = "queued" | "processing" | "done" | "failed";
 export interface DatasetJob {
     id: string;

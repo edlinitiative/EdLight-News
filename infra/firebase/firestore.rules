@@ -98,5 +98,24 @@ service cloud.firestore {
     match /drafts/{docId} {
       allow read, write: if false;
     }
+
+    // ── Haiti History Almanac collections ───────────────────────────────
+
+    // Haiti history almanac: public read, server-only writes
+    match /haiti_history_almanac/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Haiti holidays: public read, server-only writes
+    match /haiti_holidays/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // History publish log: server-only
+    match /history_publish_log/{docId} {
+      allow read, write: if false;
+    }
   }
 }

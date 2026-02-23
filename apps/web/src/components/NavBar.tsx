@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/universites",     fr: "Universités",   ht: "Inivèsite"   },
   { href: "/parcours",        fr: "Parcours",      ht: "Pakou"        },
   { href: "/calendrier",      fr: "Calendrier",    ht: "Kalandriye"   },
+  { href: "/histoire",        fr: "Histoire",      ht: "Istwa"        },
   { href: "/haiti",           fr: "Haïti",         ht: "Ayiti"        },
   { href: "/ressources",      fr: "Ressources",    ht: "Resous"       },
   { href: "/succes",          fr: "Succès",        ht: "Siksè"        },

@@ -6,6 +6,7 @@ import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { runUtilityEngine } from "../services/utility.js";
 import { runDatasetRefresh } from "../services/datasets.js";
+import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 export const tickRouter = Router();
@@ -65,8 +66,17 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.warn("[tick] dataset refresh error:", err instanceof Error ? err.message : err);
     }
 
+    // Step 9: Haiti History Daily Publisher — template-based history post
+    let historyResult: { published: boolean; skipped: boolean; reason: string; itemId?: string } = { published: false, skipped: false, reason: "not-run" };
+    try {
+      historyResult = await runHistoryDailyPublisher();
+    } catch (err) {
+      // History publisher is non-critical — log and continue
+      console.warn("[tick] history publisher error:", err instanceof Error ? err.message : err);
+    }
+
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, historyResult });
 
     res.json({
       ok: true,
@@ -80,6 +90,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         images: imageResult,
         utility: utilityResult,
         datasets: datasetResult,
+        history: historyResult,
       },
     });
   } catch (err) {

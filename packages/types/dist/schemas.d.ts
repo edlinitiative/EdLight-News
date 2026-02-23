@@ -1024,10 +1024,11 @@ export declare const itemSchema: z.ZodObject<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -1035,16 +1036,15 @@ export declare const itemSchema: z.ZodObject<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    source?: {
-        name: string;
-        originalUrl: string;
-        aggregatorUrl?: string | undefined;
-    } | undefined;
     imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
@@ -1141,10 +1141,11 @@ export declare const itemSchema: z.ZodObject<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -1152,16 +1153,15 @@ export declare const itemSchema: z.ZodObject<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    source?: {
-        name: string;
-        originalUrl: string;
-        aggregatorUrl?: string | undefined;
-    } | undefined;
     imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
@@ -2019,10 +2019,11 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -2030,16 +2031,15 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    source?: {
-        name: string;
-        originalUrl: string;
-        aggregatorUrl?: string | undefined;
-    } | undefined;
     imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
@@ -2127,10 +2127,11 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         missingDeadline?: boolean | undefined;
         offMission?: boolean | undefined;
     };
-    publishedAt?: {
-        seconds: number;
-        nanoseconds: number;
-    } | null | undefined;
+    source?: {
+        name: string;
+        originalUrl: string;
+        aggregatorUrl?: string | undefined;
+    } | undefined;
     opportunity?: {
         deadline?: string | undefined;
         eligibility?: string[] | undefined;
@@ -2138,16 +2139,15 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         howToApply?: string | undefined;
         officialLink?: string | undefined;
     } | undefined;
+    publishedAt?: {
+        seconds: number;
+        nanoseconds: number;
+    } | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    source?: {
-        name: string;
-        originalUrl: string;
-        aggregatorUrl?: string | undefined;
-    } | undefined;
     imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
@@ -2778,7 +2778,7 @@ export declare const universitySchema: z.ZodObject<{
     city?: string | undefined;
     languages?: string[] | undefined;
     levelSupport?: ("bachelor" | "master" | "phd" | "short_programs")[] | undefined;
-    tuitionBand?: "unknown" | "low" | "medium" | "high" | undefined;
+    tuitionBand?: "high" | "medium" | "low" | "unknown" | undefined;
     internationalAdmissionsUrl?: string | undefined;
     scholarshipUrl?: string | undefined;
     typicalDeadlines?: {
@@ -2814,7 +2814,7 @@ export declare const universitySchema: z.ZodObject<{
     city?: string | undefined;
     languages?: string[] | undefined;
     levelSupport?: ("bachelor" | "master" | "phd" | "short_programs")[] | undefined;
-    tuitionBand?: "unknown" | "low" | "medium" | "high" | undefined;
+    tuitionBand?: "high" | "medium" | "low" | "unknown" | undefined;
     internationalAdmissionsUrl?: string | undefined;
     scholarshipUrl?: string | undefined;
     typicalDeadlines?: {
@@ -3157,11 +3157,11 @@ export declare const pathwaySchema: z.ZodObject<{
     recommendedUniversityIds?: string[] | undefined;
     recommendedScholarshipIds?: string[] | undefined;
 }>;
-export declare const datasetNameSchema: z.ZodEnum<["universities", "scholarships", "haiti_calendar", "pathways"]>;
+export declare const datasetNameSchema: z.ZodEnum<["universities", "scholarships", "haiti_calendar", "pathways", "haiti_history_almanac", "haiti_holidays"]>;
 export declare const datasetJobSchema: z.ZodObject<{
     id: z.ZodString;
     status: z.ZodEnum<["queued", "processing", "done", "failed"]>;
-    dataset: z.ZodEnum<["universities", "scholarships", "haiti_calendar", "pathways"]>;
+    dataset: z.ZodEnum<["universities", "scholarships", "haiti_calendar", "pathways", "haiti_history_almanac", "haiti_holidays"]>;
     runAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -3212,7 +3212,7 @@ export declare const datasetJobSchema: z.ZodObject<{
         nanoseconds: number;
     };
     attempts: number;
-    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways";
+    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways" | "haiti_history_almanac" | "haiti_holidays";
     sourceIds?: string[] | undefined;
     lastError?: string | undefined;
     targetId?: string | undefined;
@@ -3232,7 +3232,7 @@ export declare const datasetJobSchema: z.ZodObject<{
         nanoseconds: number;
     };
     attempts: number;
-    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways";
+    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways" | "haiti_history_almanac" | "haiti_holidays";
     sourceIds?: string[] | undefined;
     lastError?: string | undefined;
     targetId?: string | undefined;
@@ -3276,7 +3276,7 @@ export declare const contributorProfileSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
-    role: "intern" | "editor" | "admin";
+    role: "admin" | "intern" | "editor";
     verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
@@ -3291,7 +3291,7 @@ export declare const contributorProfileSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
-    role: "intern" | "editor" | "admin";
+    role: "admin" | "intern" | "editor";
     verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
@@ -3474,7 +3474,7 @@ export declare const createUniversitySchema: z.ZodObject<Omit<{
     city?: string | undefined;
     languages?: string[] | undefined;
     levelSupport?: ("bachelor" | "master" | "phd" | "short_programs")[] | undefined;
-    tuitionBand?: "unknown" | "low" | "medium" | "high" | undefined;
+    tuitionBand?: "high" | "medium" | "low" | "unknown" | undefined;
     internationalAdmissionsUrl?: string | undefined;
     scholarshipUrl?: string | undefined;
     typicalDeadlines?: {
@@ -3501,7 +3501,7 @@ export declare const createUniversitySchema: z.ZodObject<Omit<{
     city?: string | undefined;
     languages?: string[] | undefined;
     levelSupport?: ("bachelor" | "master" | "phd" | "short_programs")[] | undefined;
-    tuitionBand?: "unknown" | "low" | "medium" | "high" | undefined;
+    tuitionBand?: "high" | "medium" | "low" | "unknown" | undefined;
     internationalAdmissionsUrl?: string | undefined;
     scholarshipUrl?: string | undefined;
     typicalDeadlines?: {
@@ -3797,7 +3797,7 @@ export declare const createPathwaySchema: z.ZodObject<Omit<{
 export declare const createDatasetJobSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     status: z.ZodEnum<["queued", "processing", "done", "failed"]>;
-    dataset: z.ZodEnum<["universities", "scholarships", "haiti_calendar", "pathways"]>;
+    dataset: z.ZodEnum<["universities", "scholarships", "haiti_calendar", "pathways", "haiti_history_almanac", "haiti_holidays"]>;
     runAt: z.ZodObject<{
         seconds: z.ZodNumber;
         nanoseconds: z.ZodNumber;
@@ -3839,7 +3839,7 @@ export declare const createDatasetJobSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     };
     attempts: number;
-    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways";
+    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways" | "haiti_history_almanac" | "haiti_holidays";
     sourceIds?: string[] | undefined;
     lastError?: string | undefined;
     targetId?: string | undefined;
@@ -3850,7 +3850,7 @@ export declare const createDatasetJobSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     };
     attempts: number;
-    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways";
+    dataset: "haiti_calendar" | "universities" | "scholarships" | "pathways" | "haiti_history_almanac" | "haiti_holidays";
     sourceIds?: string[] | undefined;
     lastError?: string | undefined;
     targetId?: string | undefined;
@@ -3884,13 +3884,13 @@ export declare const createContributorProfileSchema: z.ZodObject<Omit<{
     }>;
 }, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
     name: string;
-    role: "intern" | "editor" | "admin";
+    role: "admin" | "intern" | "editor";
     verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
 }, {
     name: string;
-    role: "intern" | "editor" | "admin";
+    role: "admin" | "intern" | "editor";
     verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
@@ -3964,6 +3964,346 @@ export declare const createDraftSchema: z.ZodObject<Omit<{
     body_ht?: string | undefined;
     reviewNote?: string | undefined;
     payoutDue?: number | undefined;
+}>;
+export declare const almanacConfidenceSchema: z.ZodEnum<["high", "medium"]>;
+export declare const almanacCreatedBySchema: z.ZodEnum<["seed", "admin", "intern", "import"]>;
+export declare const almanacTagSchema: z.ZodEnum<["independence", "culture", "education", "politics", "science", "military", "economy", "literature", "art", "religion", "sports", "disaster", "diplomacy", "resistance", "revolution"]>;
+export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
+    id: z.ZodString;
+    monthDay: z.ZodString;
+    year: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    title_fr: z.ZodString;
+    summary_fr: z.ZodString;
+    student_takeaway_fr: z.ZodString;
+    tags: z.ZodOptional<z.ZodArray<z.ZodEnum<["independence", "culture", "education", "politics", "science", "military", "economy", "literature", "art", "religion", "sports", "disaster", "diplomacy", "resistance", "revolution"]>, "many">>;
+    sources: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        url: string;
+        label: string;
+    }, {
+        url: string;
+        label: string;
+    }>, "many">;
+    confidence: z.ZodEnum<["high", "medium"]>;
+    createdBy: z.ZodEnum<["seed", "admin", "intern", "import"]>;
+    verifiedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    confidence: "high" | "medium";
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    verifiedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    title_fr: string;
+    monthDay: string;
+    summary_fr: string;
+    student_takeaway_fr: string;
+    createdBy: "seed" | "admin" | "intern" | "import";
+    tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
+    year?: number | null | undefined;
+}, {
+    id: string;
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    confidence: "high" | "medium";
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    verifiedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    title_fr: string;
+    monthDay: string;
+    summary_fr: string;
+    student_takeaway_fr: string;
+    createdBy: "seed" | "admin" | "intern" | "import";
+    tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
+    year?: number | null | undefined;
+}>;
+export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
+    id: z.ZodString;
+    monthDay: z.ZodString;
+    year: z.ZodOptional<z.ZodNullable<z.ZodNumber>>;
+    title_fr: z.ZodString;
+    summary_fr: z.ZodString;
+    student_takeaway_fr: z.ZodString;
+    tags: z.ZodOptional<z.ZodArray<z.ZodEnum<["independence", "culture", "education", "politics", "science", "military", "economy", "literature", "art", "religion", "sports", "disaster", "diplomacy", "resistance", "revolution"]>, "many">>;
+    sources: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        url: string;
+        label: string;
+    }, {
+        url: string;
+        label: string;
+    }>, "many">;
+    confidence: z.ZodEnum<["high", "medium"]>;
+    createdBy: z.ZodEnum<["seed", "admin", "intern", "import"]>;
+    verifiedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "id" | "updatedAt" | "verifiedAt">, "strip", z.ZodTypeAny, {
+    confidence: "high" | "medium";
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    title_fr: string;
+    monthDay: string;
+    summary_fr: string;
+    student_takeaway_fr: string;
+    createdBy: "seed" | "admin" | "intern" | "import";
+    tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
+    year?: number | null | undefined;
+}, {
+    confidence: "high" | "medium";
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    title_fr: string;
+    monthDay: string;
+    summary_fr: string;
+    student_takeaway_fr: string;
+    createdBy: "seed" | "admin" | "intern" | "import";
+    tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
+    year?: number | null | undefined;
+}>;
+export type CreateHaitiHistoryAlmanacEntry = z.infer<typeof createHaitiHistoryAlmanacEntrySchema>;
+export declare const haitiHolidaySchema: z.ZodObject<{
+    id: z.ZodString;
+    monthDay: z.ZodString;
+    name_fr: z.ZodString;
+    name_ht: z.ZodString;
+    description_fr: z.ZodOptional<z.ZodString>;
+    description_ht: z.ZodOptional<z.ZodString>;
+    isNationalHoliday: z.ZodOptional<z.ZodBoolean>;
+    sources: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        url: string;
+        label: string;
+    }, {
+        url: string;
+        label: string;
+    }>, "many">;
+    verifiedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    verifiedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    monthDay: string;
+    name_fr: string;
+    name_ht: string;
+    description_fr?: string | undefined;
+    description_ht?: string | undefined;
+    isNationalHoliday?: boolean | undefined;
+}, {
+    id: string;
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    verifiedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    monthDay: string;
+    name_fr: string;
+    name_ht: string;
+    description_fr?: string | undefined;
+    description_ht?: string | undefined;
+    isNationalHoliday?: boolean | undefined;
+}>;
+export declare const createHaitiHolidaySchema: z.ZodObject<Omit<{
+    id: z.ZodString;
+    monthDay: z.ZodString;
+    name_fr: z.ZodString;
+    name_ht: z.ZodString;
+    description_fr: z.ZodOptional<z.ZodString>;
+    description_ht: z.ZodOptional<z.ZodString>;
+    isNationalHoliday: z.ZodOptional<z.ZodBoolean>;
+    sources: z.ZodArray<z.ZodObject<{
+        label: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        url: string;
+        label: string;
+    }, {
+        url: string;
+        label: string;
+    }>, "many">;
+    verifiedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "id" | "updatedAt" | "verifiedAt">, "strip", z.ZodTypeAny, {
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    monthDay: string;
+    name_fr: string;
+    name_ht: string;
+    description_fr?: string | undefined;
+    description_ht?: string | undefined;
+    isNationalHoliday?: boolean | undefined;
+}, {
+    sources: {
+        url: string;
+        label: string;
+    }[];
+    monthDay: string;
+    name_fr: string;
+    name_ht: string;
+    description_fr?: string | undefined;
+    description_ht?: string | undefined;
+    isNationalHoliday?: boolean | undefined;
+}>;
+export type CreateHaitiHoliday = z.infer<typeof createHaitiHolidaySchema>;
+export declare const historyPublishLogSchema: z.ZodObject<{
+    id: z.ZodString;
+    dateISO: z.ZodString;
+    publishedItemId: z.ZodOptional<z.ZodString>;
+    almanacEntryIds: z.ZodArray<z.ZodString, "many">;
+    holidayId: z.ZodOptional<z.ZodString>;
+    status: z.ZodEnum<["done", "skipped", "failed"]>;
+    error: z.ZodOptional<z.ZodString>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    status: "skipped" | "done" | "failed";
+    dateISO: string;
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    almanacEntryIds: string[];
+    publishedItemId?: string | undefined;
+    holidayId?: string | undefined;
+    error?: string | undefined;
+}, {
+    status: "skipped" | "done" | "failed";
+    dateISO: string;
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    almanacEntryIds: string[];
+    publishedItemId?: string | undefined;
+    holidayId?: string | undefined;
+    error?: string | undefined;
 }>;
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;
 export type CreateScholarship = z.infer<typeof createScholarshipSchema>;

@@ -17,4 +17,7 @@ export {
   datasetJobsRepo,
   contributorProfilesRepo,
   draftsRepo,
+  haitiHistoryAlmanacRepo,
+  haitiHolidaysRepo,
+  historyPublishLogRepo,
 } from "./repositories/index.js";

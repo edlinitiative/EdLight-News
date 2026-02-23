@@ -68,6 +68,14 @@ export type {
   ContributorProfile,
   DraftStatus,
   Draft,
+  // History almanac types
+  AlmanacConfidence,
+  AlmanacCreatedBy,
+  AlmanacTag,
+  HaitiHistoryAlmanacEntry,
+  HaitiHoliday,
+  HistoryPublishStatus,
+  HistoryPublishLog,
 } from "./models.js";
 
 export {
@@ -139,6 +147,15 @@ export {
   createDatasetJobSchema,
   createContributorProfileSchema,
   createDraftSchema,
+  // History almanac schemas
+  almanacConfidenceSchema,
+  almanacCreatedBySchema,
+  almanacTagSchema,
+  haitiHistoryAlmanacEntrySchema,
+  createHaitiHistoryAlmanacEntrySchema,
+  haitiHolidaySchema,
+  createHaitiHolidaySchema,
+  historyPublishLogSchema,
 } from "./schemas.js";
 
 export type {
@@ -159,4 +176,7 @@ export type {
   CreateDatasetJob,
   CreateContributorProfile,
   CreateDraft,
+  // History create types
+  CreateHaitiHistoryAlmanacEntry,
+  CreateHaitiHoliday,
 } from "./schemas.js";

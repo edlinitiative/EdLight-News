@@ -1,0 +1,112 @@
+[
+  {
+    "monthDay": "01-01",
+    "name_fr": "Jour de l'Indépendance",
+    "name_ht": "Jou Endepandans",
+    "description_fr": "Commémoration de la déclaration d'indépendance d'Haïti le 1er janvier 1804, faisant du pays la première république noire libre au monde.",
+    "description_ht": "Selebrasyon deklarasyon endepandans Ayiti 1ye janvye 1804, ki fè peyi a premye repiblik nwa lib nan mond lan.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – Haitian Independence", "url": "https://en.wikipedia.org/wiki/Haitian_Revolution" }
+    ]
+  },
+  {
+    "monthDay": "01-02",
+    "name_fr": "Jour des Aïeux",
+    "name_ht": "Jou Zansèt",
+    "description_fr": "Hommage aux héros de l'indépendance et aux ancêtres qui se sont battus pour la liberté d'Haïti.",
+    "description_ht": "Omaj pou ewo endepandans yo ak zansèt ki te goumen pou libète Ayiti.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – Jour des Aïeux", "url": "https://fr.wikipedia.org/wiki/Jour_des_A%C3%AFeux" }
+    ]
+  },
+  {
+    "monthDay": "02-07",
+    "name_fr": "Carnaval / Fête de la Démocratie",
+    "name_ht": "Kanaval / Fèt Demokrasi",
+    "description_fr": "Le 7 février marque la fin de la dictature Duvalier en 1986 et le début de l'ère démocratique. Le Carnaval haïtien se tient généralement autour de cette période.",
+    "description_ht": "7 fevriye make fen diktati Duvalier an 1986 ak kòmansman epòk demokratik la. Kanaval ayisyen fèt jeneralman nan peryòd sa a.",
+    "isNationalHoliday": false,
+    "sources": [
+      { "label": "Wikipedia – Haitian Carnival", "url": "https://en.wikipedia.org/wiki/Haitian_Carnival" }
+    ]
+  },
+  {
+    "monthDay": "04-14",
+    "name_fr": "Jour des Amériques",
+    "name_ht": "Jou Amerik yo",
+    "description_fr": "Célébration de la coopération interaméricaine et du rôle historique d'Haïti dans la libération des peuples des Amériques.",
+    "description_ht": "Selebrasyon koperasyon entè-ameriken ak wòl istorik Ayiti nan liberasyon pèp Amerik yo.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "OAS – Pan American Day", "url": "https://en.wikipedia.org/wiki/Pan_American_Day" }
+    ]
+  },
+  {
+    "monthDay": "05-01",
+    "name_fr": "Fête du Travail et de l'Agriculture",
+    "name_ht": "Fèt Travay ak Agrikilti",
+    "description_fr": "Journée honorant les travailleurs et agriculteurs haïtiens, colonne vertébrale de l'économie nationale.",
+    "description_ht": "Jou pou onore travayè ak agrikiltè ayisyen, kolòn vètebral ekonomi nasyonal la.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – International Workers' Day", "url": "https://en.wikipedia.org/wiki/International_Workers%27_Day" }
+    ]
+  },
+  {
+    "monthDay": "05-18",
+    "name_fr": "Jour du Drapeau et de l'Université",
+    "name_ht": "Jou Drapo ak Inivèsite",
+    "description_fr": "Commémoration de la création du drapeau haïtien au Congrès de l'Arcahaie le 18 mai 1803. C'est aussi la fête de l'Université d'État d'Haïti.",
+    "description_ht": "Komemorason kreyasyon drapo ayisyen an nan Kongrè Lakayè 18 me 1803. Se tou fèt Inivèsite Leta Ayiti.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – Flag Day Haiti", "url": "https://en.wikipedia.org/wiki/Flag_of_Haiti" }
+    ]
+  },
+  {
+    "monthDay": "10-17",
+    "name_fr": "Jour de Dessalines",
+    "name_ht": "Jou Desalin",
+    "description_fr": "Commémoration de l'assassinat de Jean-Jacques Dessalines, père fondateur et premier dirigeant de la nation haïtienne, le 17 octobre 1806.",
+    "description_ht": "Komemorason asasinay Jean-Jacques Dessalines, papa fondatè ak premye dirijan nasyon ayisyen an, 17 oktòb 1806.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – Jean-Jacques Dessalines", "url": "https://en.wikipedia.org/wiki/Jean-Jacques_Dessalines" }
+    ]
+  },
+  {
+    "monthDay": "11-01",
+    "name_fr": "La Toussaint",
+    "name_ht": "Latousèn",
+    "description_fr": "Fête catholique et vodou honorant les morts, profondément enracinée dans la culture haïtienne. Les familles visitent les cimetières et préparent des offrandes.",
+    "description_ht": "Fèt katolik ak vodou pou onore mò yo, ki gen rasin pwofon nan kilti ayisyen. Fanmi yo vizite simityè epi prepare ofrann.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – All Saints' Day", "url": "https://en.wikipedia.org/wiki/All_Saints%27_Day" }
+    ]
+  },
+  {
+    "monthDay": "11-18",
+    "name_fr": "Jour de la Bataille de Vertières",
+    "name_ht": "Jou Batay Vètyè",
+    "description_fr": "Commémoration de la victoire décisive des forces haïtiennes sur l'armée napoléonienne le 18 novembre 1803, victoire qui a ouvert la voie à l'indépendance.",
+    "description_ht": "Komemorason viktwa desizif fòs ayisyen sou lame Napoleon an 18 novanm 1803, viktwa ki te ouvri chemen endepandans lan.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – Battle of Vertières", "url": "https://en.wikipedia.org/wiki/Battle_of_Verti%C3%A8res" }
+    ]
+  },
+  {
+    "monthDay": "12-05",
+    "name_fr": "Jour de la Découverte d'Haïti",
+    "name_ht": "Jou Dekouvèt Ayiti",
+    "description_fr": "Marque l'arrivée de Christophe Colomb sur l'île d'Hispaniola le 5 décembre 1492, tout en honorant les peuples Taïnos qui y vivaient depuis des millénaires.",
+    "description_ht": "Make arive Kristòf Kolon sou zile Ispanyola 5 desanm 1492, pandan n ap onore pèp Tayino ki te viv la depi plizyè milenè.",
+    "isNationalHoliday": true,
+    "sources": [
+      { "label": "Wikipedia – Hispaniola", "url": "https://en.wikipedia.org/wiki/Hispaniola" }
+    ]
+  }
+]

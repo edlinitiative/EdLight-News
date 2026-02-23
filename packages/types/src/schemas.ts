@@ -536,6 +536,7 @@ export const pathwaySchema = z.object({
 
 export const datasetNameSchema = z.enum([
   "universities", "scholarships", "haiti_calendar", "pathways",
+  "haiti_history_almanac", "haiti_holidays",
 ]);
 
 export const datasetJobSchema = z.object({
@@ -627,6 +628,75 @@ export const createDraftSchema = draftSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// ── haiti_history_almanac ──────────────────────────────────────────────────
+
+export const almanacConfidenceSchema = z.enum(["high", "medium"]);
+export const almanacCreatedBySchema = z.enum(["seed", "admin", "intern", "import"]);
+export const almanacTagSchema = z.enum([
+  "independence", "culture", "education", "politics", "science",
+  "military", "economy", "literature", "art", "religion",
+  "sports", "disaster", "diplomacy", "resistance", "revolution",
+]);
+
+export const haitiHistoryAlmanacEntrySchema = z.object({
+  id: z.string().min(1),
+  monthDay: z.string().regex(/^\d{2}-\d{2}$/, "Expected MM-DD"),
+  year: z.number().int().nullable().optional(),
+  title_fr: z.string().min(1),
+  summary_fr: z.string().min(1),
+  student_takeaway_fr: z.string().min(1),
+  tags: z.array(almanacTagSchema).optional(),
+  sources: z.array(datasetCitationSchema).min(1),
+  confidence: almanacConfidenceSchema,
+  createdBy: almanacCreatedBySchema,
+  verifiedAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createHaitiHistoryAlmanacEntrySchema = haitiHistoryAlmanacEntrySchema.omit({
+  id: true,
+  verifiedAt: true,
+  updatedAt: true,
+});
+
+export type CreateHaitiHistoryAlmanacEntry = z.infer<typeof createHaitiHistoryAlmanacEntrySchema>;
+
+// ── haiti_holidays ─────────────────────────────────────────────────────────
+
+export const haitiHolidaySchema = z.object({
+  id: z.string().min(1),
+  monthDay: z.string().regex(/^\d{2}-\d{2}$/, "Expected MM-DD"),
+  name_fr: z.string().min(1),
+  name_ht: z.string().min(1),
+  description_fr: z.string().optional(),
+  description_ht: z.string().optional(),
+  isNationalHoliday: z.boolean().optional(),
+  sources: z.array(datasetCitationSchema).min(1),
+  verifiedAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createHaitiHolidaySchema = haitiHolidaySchema.omit({
+  id: true,
+  verifiedAt: true,
+  updatedAt: true,
+});
+
+export type CreateHaitiHoliday = z.infer<typeof createHaitiHolidaySchema>;
+
+// ── history_publish_log ────────────────────────────────────────────────────
+
+export const historyPublishLogSchema = z.object({
+  id: z.string().min(1),
+  dateISO: isoDateString,
+  publishedItemId: z.string().optional(),
+  almanacEntryIds: z.array(z.string()),
+  holidayId: z.string().optional(),
+  status: z.enum(["done", "skipped", "failed"]),
+  error: z.string().optional(),
+  createdAt: timestampSchema,
 });
 
 // ── Inferred create types for datasets ─────────────────────────────────────

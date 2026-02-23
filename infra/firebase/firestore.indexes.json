@@ -131,6 +131,29 @@
         { "fieldPath": "authorId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "haiti_history_almanac",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "monthDay", "order": "ASCENDING" },
+        { "fieldPath": "title_fr", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "haiti_holidays",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "monthDay", "order": "ASCENDING" },
+        { "fieldPath": "name_fr", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "history_publish_log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "dateISO", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

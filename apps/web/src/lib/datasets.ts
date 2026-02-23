@@ -10,6 +10,9 @@ import {
   scholarshipsRepo,
   haitiCalendarRepo,
   pathwaysRepo,
+  haitiHistoryAlmanacRepo,
+  haitiHolidaysRepo,
+  historyPublishLogRepo,
 } from "@edlight-news/firebase";
 import type {
   University,
@@ -18,6 +21,9 @@ import type {
   Pathway,
   DatasetCountry,
   PathwayGoalKey,
+  HaitiHistoryAlmanacEntry,
+  HaitiHoliday,
+  HistoryPublishLog,
 } from "@edlight-news/types";
 
 // ── Universities ─────────────────────────────────────────────────────────────
@@ -127,3 +133,66 @@ export const TUITION_LABELS: Record<string, { fr: string; ht: string }> = {
   medium: { fr: "Moyen (5-20k USD/an)", ht: "Mwayen (5-20k USD/ane)" },
   high: { fr: "Élevé (>20k USD/an)", ht: "Wo (>20k USD/ane)" },
 };
+
+// ── Haiti History Almanac ────────────────────────────────────────────────────
+
+export async function fetchAlmanacByMonthDay(
+  monthDay: string,
+): Promise<HaitiHistoryAlmanacEntry[]> {
+  return haitiHistoryAlmanacRepo.listByMonthDay(monthDay);
+}
+
+export async function fetchAlmanacByMonth(
+  month: string,
+): Promise<HaitiHistoryAlmanacEntry[]> {
+  return haitiHistoryAlmanacRepo.listByMonth(month);
+}
+
+export async function fetchAllAlmanacEntries(): Promise<HaitiHistoryAlmanacEntry[]> {
+  return haitiHistoryAlmanacRepo.listAll();
+}
+
+// ── Haiti Holidays ──────────────────────────────────────────────────────────
+
+export async function fetchHolidaysByMonthDay(
+  monthDay: string,
+): Promise<HaitiHoliday[]> {
+  return haitiHolidaysRepo.listByMonthDay(monthDay);
+}
+
+export async function fetchAllHolidays(): Promise<HaitiHoliday[]> {
+  return haitiHolidaysRepo.listAll();
+}
+
+// ── History Publish Log ─────────────────────────────────────────────────────
+
+export async function fetchHistoryLogByDate(
+  dateISO: string,
+): Promise<HistoryPublishLog | null> {
+  return historyPublishLogRepo.getByDate(dateISO);
+}
+
+export async function fetchRecentHistoryLogs(
+  limit = 30,
+): Promise<HistoryPublishLog[]> {
+  return historyPublishLogRepo.listRecent(limit);
+}
+
+// ── Haiti timezone helper (UTC-5, no DST) ────────────────────────────────────
+
+export function getHaitiMonthDay(): string {
+  const utc = new Date();
+  const haiti = new Date(utc.getTime() - 5 * 60 * 60 * 1000);
+  const mm = String(haiti.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(haiti.getUTCDate()).padStart(2, "0");
+  return `${mm}-${dd}`;
+}
+
+export function getHaitiDateISO(): string {
+  const utc = new Date();
+  const haiti = new Date(utc.getTime() - 5 * 60 * 60 * 1000);
+  const yyyy = haiti.getUTCFullYear();
+  const mm = String(haiti.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(haiti.getUTCDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}

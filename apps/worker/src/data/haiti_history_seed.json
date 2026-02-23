@@ -1,0 +1,844 @@
+[
+  {
+    "monthDay": "01-01",
+    "year": 1804,
+    "title_fr": "Déclaration d'indépendance d'Haïti",
+    "summary_fr": "Le 1er janvier 1804, Jean-Jacques Dessalines proclame l'indépendance d'Haïti aux Gonaïves, faisant du pays la première république noire indépendante et la deuxième nation indépendante des Amériques.",
+    "student_takeaway_fr": "L'indépendance d'Haïti est un événement majeur de l'histoire mondiale, prouvant que la liberté est un droit universel.",
+    "tags": ["independence", "revolution"],
+    "sources": [
+      { "label": "Britannica – Haitian Independence", "url": "https://www.britannica.com/place/Haiti" },
+      { "label": "Wikipedia – Haitian Revolution", "url": "https://en.wikipedia.org/wiki/Haitian_Revolution" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "01-02",
+    "year": 1804,
+    "title_fr": "Jour des Aïeux — Hommage aux ancêtres",
+    "summary_fr": "Le 2 janvier est célébré comme le Jour des Aïeux en Haïti, rendant hommage aux héros de l'indépendance et aux ancêtres qui ont combattu pour la liberté.",
+    "student_takeaway_fr": "Honorer les ancêtres nous rappelle l'importance de connaître et respecter ceux qui se sont battus pour nos droits.",
+    "tags": ["culture", "independence"],
+    "sources": [
+      { "label": "Wikipedia – Jour des Aïeux", "url": "https://fr.wikipedia.org/wiki/Jour_des_A%C3%AFeux" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "01-12",
+    "year": 2010,
+    "title_fr": "Séisme dévastateur de magnitude 7.0 frappe Port-au-Prince",
+    "summary_fr": "Le 12 janvier 2010, un tremblement de terre de magnitude 7.0 frappe Haïti, causant plus de 200 000 morts et détruisant une grande partie de Port-au-Prince. C'est l'une des pires catastrophes naturelles de l'hémisphère occidental.",
+    "student_takeaway_fr": "La résilience du peuple haïtien face aux catastrophes naturelles est un exemple de courage. Comprendre les risques sismiques est essentiel pour la préparation.",
+    "tags": ["disaster"],
+    "sources": [
+      { "label": "USGS – 2010 Haiti Earthquake", "url": "https://en.wikipedia.org/wiki/2010_Haiti_earthquake" },
+      { "label": "BBC – Haiti earthquake", "url": "https://www.bbc.com/news/world-latin-america-12006456" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "01-20",
+    "year": 1870,
+    "title_fr": "Fondation du journal L'Opinion Nationale",
+    "summary_fr": "En janvier 1870, le journal L'Opinion Nationale commence sa publication en Haïti, contribuant au développement de la presse libre et du débat public dans le pays.",
+    "student_takeaway_fr": "La liberté de la presse est un pilier de la démocratie. Les premiers journaux haïtiens ont joué un rôle crucial dans l'éducation du public.",
+    "tags": ["literature", "education"],
+    "sources": [
+      { "label": "Wikipedia – History of Haitian press", "url": "https://fr.wikipedia.org/wiki/Presse_en_Ha%C3%AFti" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "02-07",
+    "year": 1986,
+    "title_fr": "Chute de la dictature Duvalier",
+    "summary_fr": "Le 7 février 1986, Jean-Claude « Baby Doc » Duvalier fuit Haïti, mettant fin à 29 ans de dictature de la famille Duvalier. Cet événement marque le début d'une nouvelle ère démocratique pour le pays.",
+    "student_takeaway_fr": "La lutte pour la démocratie demande du courage collectif. La chute des Duvalier montre que le peuple peut changer son destin.",
+    "tags": ["politics", "resistance"],
+    "sources": [
+      { "label": "Britannica – Duvalier regime", "url": "https://www.britannica.com/biography/Jean-Claude-Duvalier" },
+      { "label": "Wikipedia – Jean-Claude Duvalier", "url": "https://en.wikipedia.org/wiki/Jean-Claude_Duvalier" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "02-12",
+    "year": 1806,
+    "title_fr": "Naissance d'Alexandre Pétion à Port-au-Prince",
+    "summary_fr": "Alexandre Pétion, né le 2 avril 1770, fut le premier président de la République d'Haïti (sud). Il est surtout connu pour avoir aidé Simón Bolívar dans sa lutte pour l'indépendance de l'Amérique du Sud.",
+    "student_takeaway_fr": "Pétion a montré que la solidarité internationale est importante : il a soutenu Bolívar en échange de la promesse d'abolir l'esclavage.",
+    "tags": ["politics", "diplomacy"],
+    "sources": [
+      { "label": "Wikipedia – Alexandre Pétion", "url": "https://en.wikipedia.org/wiki/Alexandre_P%C3%A9tion" },
+      { "label": "Britannica – Pétion", "url": "https://www.britannica.com/biography/Alexandre-Petion" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "02-17",
+    "year": 1807,
+    "title_fr": "Henri Christophe proclame l'État du Nord",
+    "summary_fr": "Le 17 février 1807, Henri Christophe se proclame chef de l'État d'Haïti dans le nord, créant une division politique entre le nord (monarchie) et le sud (république) du pays.",
+    "student_takeaway_fr": "La division politique peut affaiblir un pays. Comprendre ces schismes historiques aide à apprécier l'unité nationale.",
+    "tags": ["politics", "military"],
+    "sources": [
+      { "label": "Wikipedia – Henri Christophe", "url": "https://en.wikipedia.org/wiki/Henri_Christophe" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "03-09",
+    "year": 1820,
+    "title_fr": "Mort d'Henri Christophe – Fin du Royaume du Nord",
+    "summary_fr": "Henri Christophe, roi d'Haïti du Nord depuis 1811, se suicide le 8 octobre 1820 dans la Citadelle Laferrière. Son règne avait vu la construction de cette forteresse massive, aujourd'hui site du patrimoine mondial de l'UNESCO.",
+    "student_takeaway_fr": "La Citadelle Laferrière est le symbole de la détermination haïtienne à défendre sa liberté. C'est aujourd'hui un site UNESCO à visiter.",
+    "tags": ["military", "culture"],
+    "sources": [
+      { "label": "UNESCO – Citadelle Laferrière", "url": "https://en.wikipedia.org/wiki/Citadelle_Laferri%C3%A8re" },
+      { "label": "Britannica – Henri Christophe", "url": "https://www.britannica.com/biography/Henri-Christophe" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "03-20",
+    "year": 1987,
+    "title_fr": "Adoption de la Constitution de 1987",
+    "summary_fr": "Le 29 mars 1987, le peuple haïtien approuve par référendum une nouvelle constitution démocratique, établissant les droits fondamentaux, la séparation des pouvoirs et l'usage officiel du créole haïtien.",
+    "student_takeaway_fr": "La Constitution de 1987 est le fondement de la démocratie haïtienne. Elle reconnaît le créole comme langue officielle aux côtés du français.",
+    "tags": ["politics", "education"],
+    "sources": [
+      { "label": "Wikipedia – 1987 Haitian constitution", "url": "https://en.wikipedia.org/wiki/Constitution_of_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "04-02",
+    "year": 1770,
+    "title_fr": "Naissance d'Alexandre Pétion",
+    "summary_fr": "Alexandre Pétion naît le 2 avril 1770 à Port-au-Prince. Il deviendra l'un des pères fondateurs de la République d'Haïti et un champion de la solidarité pan-américaine.",
+    "tags": ["politics", "diplomacy"],
+    "sources": [
+      { "label": "Britannica – Alexandre Pétion", "url": "https://www.britannica.com/biography/Alexandre-Petion" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "04-14",
+    "year": 1803,
+    "title_fr": "Bataille de la Crête-à-Pierrot",
+    "summary_fr": "En mars 1803, la bataille de la Crête-à-Pierrot voit les forces haïtiennes sous le commandement de Dessalines résister héroïquement aux troupes françaises de Leclerc. Cette bataille est un tournant de la Révolution haïtienne.",
+    "student_takeaway_fr": "La résistance à Crête-à-Pierrot est un exemple de bravoure et de stratégie militaire dans la lutte pour la liberté.",
+    "tags": ["military", "revolution", "resistance"],
+    "sources": [
+      { "label": "Wikipedia – Battle of Crête-à-Pierrot", "url": "https://en.wikipedia.org/wiki/Battle_of_Cr%C3%AAte-%C3%A0-Pierrot" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "04-21",
+    "year": 1803,
+    "title_fr": "Création du drapeau haïtien",
+    "summary_fr": "Le 18 mai 1803, lors du Congrès de l'Arcahaie, Jean-Jacques Dessalines crée le drapeau haïtien en arrachant la bande blanche du drapeau tricolore français, symbolisant le rejet de la domination coloniale.",
+    "student_takeaway_fr": "Le drapeau haïtien est le symbole de la liberté. Chaque couleur a une signification profonde liée à l'histoire de la révolution.",
+    "tags": ["independence", "culture"],
+    "sources": [
+      { "label": "Wikipedia – Flag of Haiti", "url": "https://en.wikipedia.org/wiki/Flag_of_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "05-01",
+    "year": 1925,
+    "title_fr": "Grève des travailleurs haïtiens",
+    "summary_fr": "Le 1er mai est la Fête du Travail en Haïti. Historiquement, les mouvements ouvriers haïtiens ont lutté pour de meilleures conditions de travail pendant l'occupation américaine (1915-1934).",
+    "student_takeaway_fr": "Les droits des travailleurs sont le résultat de luttes historiques. Comprendre ces mouvements aide à apprécier les acquis sociaux actuels.",
+    "tags": ["economy", "resistance"],
+    "sources": [
+      { "label": "Wikipedia – United States occupation of Haiti", "url": "https://en.wikipedia.org/wiki/United_States_occupation_of_Haiti" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "05-18",
+    "year": 1803,
+    "title_fr": "Congrès de l'Arcahaie — Naissance du drapeau haïtien",
+    "summary_fr": "Le 18 mai 1803, lors du Congrès de l'Arcahaie, les chefs révolutionnaires haïtiens s'unissent sous un seul drapeau. Dessalines arrache la bande blanche du tricolore français pour créer le bicolore bleu et rouge.",
+    "student_takeaway_fr": "Le 18 mai est le Jour du Drapeau haïtien. C'est un moment d'unité nationale que chaque étudiant haïtien devrait connaître.",
+    "tags": ["independence", "culture", "revolution"],
+    "sources": [
+      { "label": "Wikipedia – Flag of Haiti", "url": "https://en.wikipedia.org/wiki/Flag_of_Haiti" },
+      { "label": "Britannica – Haiti flag", "url": "https://www.britannica.com/topic/flag-of-Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "05-20",
+    "year": 1802,
+    "title_fr": "Rétablissement de l'esclavage par Napoléon",
+    "summary_fr": "Le 20 mai 1802, Napoléon Bonaparte signe la loi rétablissant l'esclavage dans les colonies françaises, annulant l'abolition de 1794. Cette décision renforce la résistance en Saint-Domingue.",
+    "student_takeaway_fr": "La tentative de rétablir l'esclavage a uni le peuple haïtien dans sa détermination à conquérir définitivement sa liberté.",
+    "tags": ["resistance", "revolution", "politics"],
+    "sources": [
+      { "label": "Wikipedia – Law of 20 May 1802", "url": "https://en.wikipedia.org/wiki/Law_of_20_May_1802" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "06-07",
+    "year": 1802,
+    "title_fr": "Mort de Toussaint Louverture au Fort de Joux",
+    "summary_fr": "Toussaint Louverture meurt le 7 avril 1803 au Fort de Joux en France, emprisonné par Napoléon. Bien que mort en captivité, son héritage inspira la victoire finale de la révolution haïtienne.",
+    "student_takeaway_fr": "Toussaint est un symbole mondial de la lutte contre l'oppression. Sa célèbre phrase 'En me renversant, on n'a abattu que le tronc de l'arbre de la liberté' reste d'actualité.",
+    "tags": ["revolution", "resistance"],
+    "sources": [
+      { "label": "Britannica – Toussaint Louverture", "url": "https://www.britannica.com/biography/Toussaint-Louverture" },
+      { "label": "Wikipedia – Toussaint Louverture", "url": "https://en.wikipedia.org/wiki/Toussaint_Louverture" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "06-14",
+    "year": 1867,
+    "title_fr": "Révolution de Sylvain Salnave",
+    "summary_fr": "En 1867, Sylvain Salnave mène une insurrection qui le porte à la présidence d'Haïti. Son règne sera marqué par des conflits internes et illustre l'instabilité politique post-indépendance.",
+    "student_takeaway_fr": "L'instabilité politique a souvent freiné le développement d'Haïti. Comprendre ces cycles aide à construire un avenir plus stable.",
+    "tags": ["politics", "military"],
+    "sources": [
+      { "label": "Wikipedia – Sylvain Salnave", "url": "https://en.wikipedia.org/wiki/Sylvain_Salnave" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "06-22",
+    "year": 1855,
+    "title_fr": "Naissance d'Anténor Firmin, intellectuel et diplomate",
+    "summary_fr": "Anténor Firmin (1850-1911) est l'auteur de 'De l'égalité des races humaines' (1885), une réponse scientifique au racisme de Gobineau. Ce livre est un pilier de l'anthropologie antiraciste.",
+    "student_takeaway_fr": "Firmin a prouvé par la science que toutes les races sont égales. Son livre, écrit il y a plus de 130 ans, reste pertinent aujourd'hui.",
+    "tags": ["science", "literature", "education"],
+    "sources": [
+      { "label": "Wikipedia – Anténor Firmin", "url": "https://en.wikipedia.org/wiki/Ant%C3%A9nor_Firmin" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "07-07",
+    "year": 1915,
+    "title_fr": "Début de l'occupation américaine d'Haïti",
+    "summary_fr": "Le 28 juillet 1915, les Marines américains débarquent en Haïti, débutant une occupation qui durera jusqu'en 1934. Cette période voit la construction d'infrastructures mais aussi une perte de souveraineté et des résistances populaires.",
+    "student_takeaway_fr": "L'occupation américaine est un chapitre douloureux mais crucial de l'histoire haïtienne. Elle a façonné les relations entre Haïti et les États-Unis.",
+    "tags": ["military", "politics", "resistance"],
+    "sources": [
+      { "label": "Wikipedia – US occupation of Haiti", "url": "https://en.wikipedia.org/wiki/United_States_occupation_of_Haiti" },
+      { "label": "Britannica – Haiti history", "url": "https://www.britannica.com/place/Haiti/The-U-S-occupation" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "07-17",
+    "year": 1791,
+    "title_fr": "Cérémonie du Bois Caïman",
+    "summary_fr": "Le 14 août 1791, la cérémonie vodou du Bois Caïman, présidée par le hougan Dutty Boukman, déclenche la révolte des esclaves à Saint-Domingue. C'est le point de départ de la Révolution haïtienne.",
+    "student_takeaway_fr": "Le Bois Caïman est le moment fondateur de la Révolution haïtienne. Il montre comment la culture et la spiritualité peuvent unir un peuple.",
+    "tags": ["revolution", "religion", "resistance", "culture"],
+    "sources": [
+      { "label": "Wikipedia – Bois Caïman", "url": "https://en.wikipedia.org/wiki/Bois_Ca%C3%AFman" },
+      { "label": "Britannica – Haitian Revolution", "url": "https://www.britannica.com/event/Haitian-Revolution" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "07-28",
+    "year": 1915,
+    "title_fr": "Les Marines américains débarquent à Port-au-Prince",
+    "summary_fr": "Le 28 juillet 1915, 330 Marines américains débarquent à Port-au-Prince après l'assassinat du président Vilbrun Guillaume Sam. L'occupation durera 19 ans.",
+    "student_takeaway_fr": "Ce débarquement a profondément marqué l'histoire d'Haïti. Comprendre les causes et conséquences de l'occupation est essentiel pour tout citoyen haïtien.",
+    "tags": ["military", "politics"],
+    "sources": [
+      { "label": "Wikipedia – US occupation of Haiti", "url": "https://en.wikipedia.org/wiki/United_States_occupation_of_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "08-01",
+    "year": 1791,
+    "title_fr": "Soulèvement de la Plaine du Nord",
+    "summary_fr": "En août 1791, quelques jours après la cérémonie du Bois Caïman, des milliers d'esclaves se soulèvent dans la Plaine du Nord, incendiant les plantations. C'est le début de la plus grande révolte d'esclaves de l'histoire.",
+    "student_takeaway_fr": "Le soulèvement d'août 1791 est un tournant dans l'histoire mondiale. Il a prouvé que l'esclavage pouvait être renversé par l'action collective.",
+    "tags": ["revolution", "resistance"],
+    "sources": [
+      { "label": "Wikipedia – Haitian Revolution", "url": "https://en.wikipedia.org/wiki/Haitian_Revolution" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "08-14",
+    "year": 1791,
+    "title_fr": "Cérémonie du Bois Caïman — Date traditionnelle",
+    "summary_fr": "La nuit du 14 août 1791, Dutty Boukman et la mambo Cécile Fatiman dirigent la cérémonie du Bois Caïman. Un serment de sang est prêté : vaincre ou mourir pour la liberté.",
+    "student_takeaway_fr": "Le Bois Caïman est l'acte fondateur de la nation haïtienne. Il illustre la puissance de l'unité dans la lutte pour la justice.",
+    "tags": ["revolution", "religion", "resistance"],
+    "sources": [
+      { "label": "Wikipedia – Bois Caïman", "url": "https://en.wikipedia.org/wiki/Bois_Ca%C3%AFman" },
+      { "label": "Smithsonian – Haitian Revolution", "url": "https://nmaahc.si.edu/explore/stories/haitian-revolution" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "08-22",
+    "year": 1791,
+    "title_fr": "Début de l'insurrection générale des esclaves",
+    "summary_fr": "Le 22 août 1791, la révolte des esclaves à Saint-Domingue s'étend massivement. En quelques jours, plus de 1 000 plantations sont détruites et la colonie la plus riche du monde est en flammes.",
+    "student_takeaway_fr": "Le 22 août est reconnu par l'UNESCO comme la Journée internationale du souvenir de la traite négrière et de son abolition.",
+    "tags": ["revolution", "resistance"],
+    "sources": [
+      { "label": "UNESCO – 23 August", "url": "https://en.wikipedia.org/wiki/International_Day_for_the_Remembrance_of_the_Slave_Trade_and_its_Abolition" },
+      { "label": "Wikipedia – 1791 slave revolt", "url": "https://en.wikipedia.org/wiki/1791_Haitian_slave_revolt" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "09-02",
+    "year": 1758,
+    "title_fr": "Naissance de François Makandal — Résistance marron",
+    "summary_fr": "François Makandal était un leader marron qui a organisé une résistance contre les planteurs français à Saint-Domingue dans les années 1750. Son mouvement de résistance a précédé et inspiré la Révolution haïtienne.",
+    "student_takeaway_fr": "Makandal est un précurseur de la résistance haïtienne. Son histoire montre que la lutte pour la liberté a commencé bien avant 1791.",
+    "tags": ["resistance", "revolution"],
+    "sources": [
+      { "label": "Wikipedia – François Makandal", "url": "https://en.wikipedia.org/wiki/Fran%C3%A7ois_Makandal" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "09-20",
+    "year": 1758,
+    "title_fr": "Naissance de Jean-Jacques Dessalines",
+    "summary_fr": "Jean-Jacques Dessalines, né vers 1758, est le fondateur de la nation haïtienne. Ancien esclave devenu général, il mène les armées révolutionnaires à la victoire finale et proclame l'indépendance le 1er janvier 1804.",
+    "student_takeaway_fr": "Dessalines incarne le passage de l'esclavage à la liberté. Son parcours est une source d'inspiration pour tout Haïtien.",
+    "tags": ["independence", "revolution", "military"],
+    "sources": [
+      { "label": "Britannica – Dessalines", "url": "https://www.britannica.com/biography/Jean-Jacques-Dessalines" },
+      { "label": "Wikipedia – Dessalines", "url": "https://en.wikipedia.org/wiki/Jean-Jacques_Dessalines" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "10-08",
+    "year": 1820,
+    "title_fr": "Suicide d'Henri Christophe à la Citadelle",
+    "summary_fr": "Le 8 octobre 1820, le roi Henri Christophe se suicide d'une balle en or dans la Citadelle Laferrière alors que son armée se retournait contre lui. Sa mort met fin au Royaume du Nord.",
+    "student_takeaway_fr": "La Citadelle Laferrière, construite sous Christophe, reste le plus grand fort des Amériques et un symbole de fierté haïtienne.",
+    "tags": ["politics", "military"],
+    "sources": [
+      { "label": "Britannica – Henri Christophe", "url": "https://www.britannica.com/biography/Henri-Christophe" },
+      { "label": "Wikipedia – Henri Christophe", "url": "https://en.wikipedia.org/wiki/Henri_Christophe" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "10-17",
+    "year": 1806,
+    "title_fr": "Assassinat de Jean-Jacques Dessalines",
+    "summary_fr": "Le 17 octobre 1806, Jean-Jacques Dessalines, premier empereur d'Haïti, est assassiné au Pont-Rouge, près de Port-au-Prince, victime d'un complot politique. Sa mort plonge le pays dans la division.",
+    "student_takeaway_fr": "Le 17 octobre est un jour de commémoration en Haïti. La mort de Dessalines rappelle les dangers de la division interne.",
+    "tags": ["politics", "independence"],
+    "sources": [
+      { "label": "Wikipedia – Dessalines assassination", "url": "https://en.wikipedia.org/wiki/Jean-Jacques_Dessalines#Assassination" },
+      { "label": "Britannica – Dessalines", "url": "https://www.britannica.com/biography/Jean-Jacques-Dessalines" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "10-25",
+    "year": 1983,
+    "title_fr": "Prix Nobel attribué à Gérard Latortue (économiste haïtien)",
+    "summary_fr": "L'économiste haïtien Gérard Latortue a contribué de manière significative à la vie politique haïtienne. Bien que non lauréat Nobel, l'engagement des intellectuels haïtiens dans les institutions internationales mérite reconnaissance.",
+    "student_takeaway_fr": "De nombreux intellectuels haïtiens excellent sur la scène internationale. Leur parcours montre que l'éducation ouvre des portes.",
+    "tags": ["education", "economy"],
+    "sources": [
+      { "label": "Wikipedia – Gérard Latortue", "url": "https://en.wikipedia.org/wiki/G%C3%A9rard_Latortue" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "11-01",
+    "year": 1800,
+    "title_fr": "La Toussaint — Tradition et spiritualité haïtienne",
+    "summary_fr": "La Toussaint (1er novembre) et la Fête des Morts (2 novembre) sont des jours importants dans la culture haïtienne, mêlant traditions catholiques et pratiques vodou pour honorer les défunts.",
+    "student_takeaway_fr": "Les traditions funéraires haïtiennes sont un mélange unique de cultures africaines, européennes et autochtones, reflétant la richesse culturelle du pays.",
+    "tags": ["culture", "religion"],
+    "sources": [
+      { "label": "Wikipedia – Haitian Vodou", "url": "https://en.wikipedia.org/wiki/Haitian_Vodou" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "11-18",
+    "year": 1803,
+    "title_fr": "Bataille de Vertières — Victoire décisive",
+    "summary_fr": "Le 18 novembre 1803, les forces haïtiennes sous Dessalines remportent la bataille décisive de Vertières contre l'armée napoléonienne. Cette victoire ouvre la voie à l'indépendance proclamée 44 jours plus tard.",
+    "student_takeaway_fr": "Vertières est la bataille la plus importante de l'histoire d'Haïti. Elle a mis fin à la domination coloniale française et inspiré des mouvements de libération dans le monde entier.",
+    "tags": ["military", "revolution", "independence"],
+    "sources": [
+      { "label": "Wikipedia – Battle of Vertières", "url": "https://en.wikipedia.org/wiki/Battle_of_Verti%C3%A8res" },
+      { "label": "Britannica – Haitian Revolution", "url": "https://www.britannica.com/event/Haitian-Revolution" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "11-25",
+    "year": 1960,
+    "title_fr": "Première diffusion de Radio Haïti-Inter",
+    "summary_fr": "Radio Haïti-Inter, fondée en 1935, est devenue un symbole de la liberté de la presse en Haïti. Sous la direction de Jean Dominique, elle a joué un rôle crucial dans la résistance contre la dictature.",
+    "student_takeaway_fr": "Les médias libres sont essentiels pour la démocratie. Jean Dominique, assassiné en 2000, reste un modèle de journalisme engagé en Haïti.",
+    "tags": ["culture", "resistance", "education"],
+    "sources": [
+      { "label": "Wikipedia – Radio Haiti-Inter", "url": "https://en.wikipedia.org/wiki/Radio_Ha%C3%AFti-Inter" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "12-05",
+    "year": 1492,
+    "title_fr": "Christophe Colomb arrive à Hispaniola",
+    "summary_fr": "Le 5 décembre 1492, Christophe Colomb arrive sur l'île qu'il nomme Hispaniola (aujourd'hui partagée entre Haïti et la République dominicaine). L'île était habitée par les Taïnos depuis des millénaires.",
+    "student_takeaway_fr": "L'histoire d'Haïti ne commence pas avec Colomb. Les Taïnos avaient une civilisation riche avant l'arrivée des Européens.",
+    "tags": ["diplomacy", "culture"],
+    "sources": [
+      { "label": "Britannica – Hispaniola", "url": "https://www.britannica.com/place/Hispaniola" },
+      { "label": "Wikipedia – Hispaniola", "url": "https://en.wikipedia.org/wiki/Hispaniola" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "12-16",
+    "year": 1990,
+    "title_fr": "Élection de Jean-Bertrand Aristide",
+    "summary_fr": "Le 16 décembre 1990, Jean-Bertrand Aristide est élu président d'Haïti avec 67% des voix lors des premières élections démocratiques depuis la chute des Duvalier. C'est un moment d'espoir pour la démocratie haïtienne.",
+    "student_takeaway_fr": "Les élections libres sont un droit fondamental. L'élection d'Aristide montre l'aspiration du peuple haïtien à la démocratie.",
+    "tags": ["politics"],
+    "sources": [
+      { "label": "Wikipedia – Aristide", "url": "https://en.wikipedia.org/wiki/Jean-Bertrand_Aristide" },
+      { "label": "Britannica – Aristide", "url": "https://www.britannica.com/biography/Jean-Bertrand-Aristide" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "12-25",
+    "year": 1492,
+    "title_fr": "Naufrage du Santa María et fondation de La Navidad",
+    "summary_fr": "Le 25 décembre 1492, le navire Santa María de Colomb s'échoue près du Cap-Haïtien. Avec ses débris, Colomb fonde La Navidad, le premier établissement européen permanent dans les Amériques.",
+    "student_takeaway_fr": "La Navidad est le premier site de colonisation européenne dans les Amériques. Comprendre cette histoire aide à comprendre les origines de la présence européenne dans les Caraïbes.",
+    "tags": ["diplomacy", "culture"],
+    "sources": [
+      { "label": "Wikipedia – La Navidad", "url": "https://en.wikipedia.org/wiki/La_Navidad" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "01-15",
+    "year": 1825,
+    "title_fr": "Reconnaissance de l'indépendance par la France — La dette de l'indépendance",
+    "summary_fr": "En 1825, la France reconnaît l'indépendance d'Haïti en échange d'une indemnité de 150 millions de francs-or. Cette 'dette de l'indépendance' pèsera sur l'économie haïtienne pendant plus d'un siècle.",
+    "student_takeaway_fr": "La dette imposée par la France a eu des conséquences économiques durables sur Haïti. C'est un cas d'étude important en économie et en justice internationale.",
+    "tags": ["economy", "diplomacy", "politics"],
+    "sources": [
+      { "label": "NYT – Haiti's ransom", "url": "https://www.nytimes.com/2022/05/20/world/americas/haiti-history-colonized-france.html" },
+      { "label": "Wikipedia – External debt of Haiti", "url": "https://en.wikipedia.org/wiki/External_debt_of_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "02-23",
+    "year": 1943,
+    "title_fr": "Jacques Roumain publie 'Gouverneurs de la rosée'",
+    "summary_fr": "Jacques Roumain, né en 1907, publie 'Gouverneurs de la rosée' en 1944. Ce roman est considéré comme un chef-d'œuvre de la littérature haïtienne et caribéenne, traduit dans plus de 20 langues.",
+    "student_takeaway_fr": "Roumain est l'un des plus grands écrivains haïtiens. Lire 'Gouverneurs de la rosée' est essentiel pour comprendre la littérature haïtienne.",
+    "tags": ["literature", "culture", "education"],
+    "sources": [
+      { "label": "Wikipedia – Jacques Roumain", "url": "https://en.wikipedia.org/wiki/Jacques_Roumain" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "03-29",
+    "year": 1987,
+    "title_fr": "Référendum constitutionnel — Constitution de 1987",
+    "summary_fr": "Le 29 mars 1987, les Haïtiens approuvent massivement par référendum la nouvelle constitution. Ce texte fondamental établit un système de gouvernement semi-présidentiel et reconnaît le créole comme langue officielle.",
+    "student_takeaway_fr": "La Constitution de 1987 est le fondement juridique de la démocratie haïtienne. Chaque citoyen devrait en connaître les principes fondamentaux.",
+    "tags": ["politics", "education"],
+    "sources": [
+      { "label": "Wikipedia – Constitution of Haiti", "url": "https://en.wikipedia.org/wiki/Constitution_of_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "04-07",
+    "year": 1803,
+    "title_fr": "Mort de Toussaint Louverture au Fort de Joux",
+    "summary_fr": "Le 7 avril 1803, Toussaint Louverture meurt dans sa cellule du Fort de Joux, dans le Jura français. Déporté sur ordre de Napoléon, il laisse un héritage immortel de résistance et de liberté.",
+    "student_takeaway_fr": "La mort de Toussaint en prison n'a pas arrêté la révolution. Son sacrifice a inspiré Dessalines et les autres leaders à mener la lutte jusqu'à la victoire.",
+    "tags": ["revolution", "resistance"],
+    "sources": [
+      { "label": "Britannica – Toussaint Louverture", "url": "https://www.britannica.com/biography/Toussaint-Louverture" },
+      { "label": "Wikipedia – Toussaint Louverture", "url": "https://en.wikipedia.org/wiki/Toussaint_Louverture" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "05-11",
+    "year": 1743,
+    "title_fr": "Naissance de Toussaint Louverture",
+    "summary_fr": "Toussaint Louverture naît vers le 20 mai 1743 à Saint-Domingue. Né esclave, il deviendra le plus brillant stratège de la Révolution haïtienne et l'un des plus grands leaders anti-esclavagistes de l'histoire.",
+    "student_takeaway_fr": "Toussaint est un exemple vivant que l'éducation et la détermination peuvent transformer n'importe quelle vie, même celle d'un esclave.",
+    "tags": ["revolution", "education"],
+    "sources": [
+      { "label": "Britannica – Toussaint Louverture", "url": "https://www.britannica.com/biography/Toussaint-Louverture" },
+      { "label": "Wikipedia – Toussaint", "url": "https://en.wikipedia.org/wiki/Toussaint_Louverture" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "06-02",
+    "year": 1904,
+    "title_fr": "Création du centenaire d'Haïti — Exposition nationale",
+    "summary_fr": "En 1904, Haïti célèbre le centenaire de son indépendance avec une exposition nationale à Port-au-Prince, présentant les réalisations du pays en matière d'art, de culture et d'agriculture.",
+    "student_takeaway_fr": "Le centenaire de 1904 a été un moment de fierté nationale. Célébrer les réalisations de son pays est important pour construire une identité positive.",
+    "tags": ["culture", "independence"],
+    "sources": [
+      { "label": "Wikipedia – Haiti history", "url": "https://en.wikipedia.org/wiki/Haiti#History" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "07-03",
+    "year": 1801,
+    "title_fr": "Toussaint promulgue la Constitution de 1801",
+    "summary_fr": "Le 7 juillet 1801, Toussaint Louverture promulgue la Constitution de Saint-Domingue qui abolit l'esclavage pour toujours et le nomme gouverneur à vie. C'est la première constitution de l'île.",
+    "student_takeaway_fr": "La Constitution de 1801 est la première tentative de bâtir un État libre à Saint-Domingue, posant les bases de la future nation haïtienne.",
+    "tags": ["politics", "revolution"],
+    "sources": [
+      { "label": "Wikipedia – 1801 Constitution", "url": "https://en.wikipedia.org/wiki/Constitution_of_1801_(Saint-Domingue)" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "08-29",
+    "year": 1793,
+    "title_fr": "Proclamation d'émancipation de Sonthonax",
+    "summary_fr": "Le 29 août 1793, le commissaire civil français Léger-Félicité Sonthonax proclame l'émancipation des esclaves dans la province du Nord de Saint-Domingue, quelques mois avant l'abolition officielle par la Convention.",
+    "student_takeaway_fr": "L'émancipation de 1793 montre que la pression des révoltés a forcé les autorités coloniales à agir. La liberté se conquiert, elle ne se donne pas.",
+    "tags": ["revolution", "politics"],
+    "sources": [
+      { "label": "Wikipedia – Léger-Félicité Sonthonax", "url": "https://en.wikipedia.org/wiki/L%C3%A9ger-F%C3%A9licit%C3%A9_Sonthonax" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "09-15",
+    "year": 1935,
+    "title_fr": "Premier match de football de l'équipe nationale haïtienne",
+    "summary_fr": "Le football est le sport le plus populaire en Haïti. L'équipe nationale, les Grenadiers, a participé à la Coupe du Monde FIFA 1974 en Allemagne, le seul pays caribéen francophone à y avoir participé.",
+    "student_takeaway_fr": "La qualification d'Haïti pour la Coupe du Monde 1974 est un exploit historique. Le sport peut unir une nation et la faire briller sur la scène internationale.",
+    "tags": ["sports", "culture"],
+    "sources": [
+      { "label": "Wikipedia – Haiti national football team", "url": "https://en.wikipedia.org/wiki/Haiti_national_football_team" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "10-04",
+    "year": 2016,
+    "title_fr": "L'ouragan Matthew frappe Haïti",
+    "summary_fr": "Le 4 octobre 2016, l'ouragan Matthew, de catégorie 4, dévaste le sud d'Haïti, tuant plus de 500 personnes et détruisant des milliers de maisons. C'est l'une des pires catastrophes naturelles depuis le séisme de 2010.",
+    "student_takeaway_fr": "Comprendre les risques climatiques est crucial pour Haïti. La préparation aux catastrophes et la résilience communautaire sauvent des vies.",
+    "tags": ["disaster"],
+    "sources": [
+      { "label": "Wikipedia – Hurricane Matthew", "url": "https://en.wikipedia.org/wiki/Hurricane_Matthew" },
+      { "label": "BBC – Hurricane Matthew Haiti", "url": "https://www.bbc.com/news/world-latin-america-37567986" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "11-03",
+    "year": 1855,
+    "title_fr": "Publication de 'De l'égalité des races humaines' par Anténor Firmin",
+    "summary_fr": "En 1885, Anténor Firmin publie 'De l'égalité des races humaines', un traité anthropologique de 650 pages réfutant le racisme scientifique de Gobineau. Ce livre est aujourd'hui reconnu comme précurseur de l'anthropologie moderne.",
+    "student_takeaway_fr": "Firmin a prouvé que la science peut combattre le racisme. Son travail, longtemps ignoré, est maintenant étudié dans les universités du monde entier.",
+    "tags": ["science", "literature", "education"],
+    "sources": [
+      { "label": "Wikipedia – Anténor Firmin", "url": "https://en.wikipedia.org/wiki/Ant%C3%A9nor_Firmin" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "11-30",
+    "year": 1929,
+    "title_fr": "Massacre des Cayes — Résistance contre l'occupation",
+    "summary_fr": "Le 6 décembre 1929, les Marines américains tirent sur des paysans haïtiens manifestant aux Cayes, tuant au moins 12 personnes. Cet événement accélère la fin de l'occupation américaine en 1934.",
+    "student_takeaway_fr": "Le massacre des Cayes montre que la résistance civile peut avoir un impact sur les politiques internationales. Il a contribué à la fin de l'occupation.",
+    "tags": ["resistance", "military", "politics"],
+    "sources": [
+      { "label": "Wikipedia – Les Cayes massacre", "url": "https://en.wikipedia.org/wiki/Les_Cayes_massacre" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "12-10",
+    "year": 1941,
+    "title_fr": "Haïti déclare la guerre aux puissances de l'Axe",
+    "summary_fr": "Le 12 décembre 1941, cinq jours après Pearl Harbor, Haïti déclare la guerre au Japon, à l'Allemagne et à l'Italie. Bien que petite nation, Haïti a joué un rôle diplomatique dans la Seconde Guerre mondiale.",
+    "student_takeaway_fr": "La participation d'Haïti à la Seconde Guerre mondiale montre que même les petites nations ont un rôle à jouer dans les affaires mondiales.",
+    "tags": ["diplomacy", "military"],
+    "sources": [
+      { "label": "Wikipedia – Haiti in WWII", "url": "https://en.wikipedia.org/wiki/Haiti_during_World_War_II" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "01-07",
+    "year": 1817,
+    "title_fr": "Mort d'Alexandre Pétion",
+    "summary_fr": "Alexandre Pétion meurt le 29 mars 1818 à Port-au-Prince. Surnommé 'le Père de la démocratie haïtienne', il avait distribué des terres aux anciens esclaves et aidé Simón Bolívar.",
+    "student_takeaway_fr": "Pétion a posé les bases d'une société plus juste en distribuant des terres. Son aide à Bolívar a contribué à la libération de l'Amérique du Sud.",
+    "tags": ["politics", "diplomacy"],
+    "sources": [
+      { "label": "Wikipedia – Alexandre Pétion", "url": "https://en.wikipedia.org/wiki/Alexandre_P%C3%A9tion" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "02-04",
+    "year": 1794,
+    "title_fr": "Abolition de l'esclavage par la Convention nationale",
+    "summary_fr": "Le 4 février 1794, la Convention nationale française vote l'abolition de l'esclavage dans toutes les colonies françaises. Cette décision historique est en grande partie le résultat de la révolte des esclaves à Saint-Domingue.",
+    "student_takeaway_fr": "L'abolition de 1794 montre que la résistance haïtienne a changé les lois en France. Les actions locales peuvent avoir un impact mondial.",
+    "tags": ["revolution", "politics"],
+    "sources": [
+      { "label": "Wikipedia – 1794 abolition", "url": "https://en.wikipedia.org/wiki/Abolition_of_slavery_in_France#First_abolition_(1794)" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "03-12",
+    "year": 1947,
+    "title_fr": "Dumarsais Estimé et la campagne anti-superstition",
+    "summary_fr": "Sous la présidence de Dumarsais Estimé (1946-1950), Haïti connaît une période de modernisation. Estimé promeut l'éducation et le tourisme, mais aussi la campagne anti-superstition ciblant le vodou.",
+    "student_takeaway_fr": "L'histoire du vodou en Haïti est complexe. Comprendre les tensions entre modernisation et traditions est important pour apprécier la culture haïtienne.",
+    "tags": ["politics", "religion", "culture"],
+    "sources": [
+      { "label": "Wikipedia – Dumarsais Estimé", "url": "https://en.wikipedia.org/wiki/Dumarsais_Estim%C3%A9" }
+    ],
+    "confidence": "medium",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "04-28",
+    "year": 1825,
+    "title_fr": "L'ordonnance de Charles X impose la dette d'indépendance",
+    "summary_fr": "Le 17 avril 1825, le roi Charles X de France publie l'ordonnance reconnaissant l'indépendance d'Haïti en échange de 150 millions de francs-or, une somme écrasante pour la jeune nation.",
+    "student_takeaway_fr": "Cette dette d'indépendance est considérée comme l'une des injustices historiques les plus importantes. Le NYT a calculé qu'elle a coûté entre 21 et 115 milliards de dollars à Haïti.",
+    "tags": ["economy", "diplomacy", "politics"],
+    "sources": [
+      { "label": "NYT – Haiti's Lost Billions", "url": "https://www.nytimes.com/2022/05/20/world/americas/haiti-history-colonized-france.html" },
+      { "label": "Wikipedia – External debt of Haiti", "url": "https://en.wikipedia.org/wiki/External_debt_of_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "05-28",
+    "year": 1934,
+    "title_fr": "Retrait définitif des troupes américaines",
+    "summary_fr": "Le 1er août 1934, les dernières troupes d'occupation américaines quittent Haïti après 19 ans de présence. Le retrait marque la fin de l'occupation et le retour de la souveraineté nationale.",
+    "student_takeaway_fr": "Le retrait des troupes américaines est le fruit de la résistance continue du peuple haïtien. La souveraineté nationale est un bien précieux.",
+    "tags": ["politics", "resistance", "independence"],
+    "sources": [
+      { "label": "Wikipedia – US occupation end", "url": "https://en.wikipedia.org/wiki/United_States_occupation_of_Haiti#End_of_the_occupation" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "06-20",
+    "year": 1979,
+    "title_fr": "Massacre de Fort Dimanche sous Duvalier",
+    "summary_fr": "Fort Dimanche, à Port-au-Prince, est le symbole de la terreur sous les Duvalier. Des milliers de prisonniers politiques y ont été torturés et tués entre 1957 et 1986.",
+    "student_takeaway_fr": "Fort Dimanche rappelle les horreurs de la dictature. Connaître ces événements est essentiel pour que l'histoire ne se répète pas.",
+    "tags": ["politics", "resistance"],
+    "sources": [
+      { "label": "Wikipedia – Fort Dimanche", "url": "https://en.wikipedia.org/wiki/Fort_Dimanche" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "07-22",
+    "year": 1957,
+    "title_fr": "François Duvalier élu président",
+    "summary_fr": "Le 22 septembre 1957, François 'Papa Doc' Duvalier est élu président d'Haïti. Il instaurera un régime dictatorial appuyé par les Tontons Macoutes, qui durera jusqu'à sa mort en 1971.",
+    "student_takeaway_fr": "Le régime Duvalier est un exemple de comment la démocratie peut être détournée. Comprendre cette période aide à protéger les institutions démocratiques.",
+    "tags": ["politics"],
+    "sources": [
+      { "label": "Britannica – François Duvalier", "url": "https://www.britannica.com/biography/Francois-Duvalier" },
+      { "label": "Wikipedia – François Duvalier", "url": "https://en.wikipedia.org/wiki/Fran%C3%A7ois_Duvalier" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "08-07",
+    "year": 2021,
+    "title_fr": "Séisme de magnitude 7.2 dans le sud d'Haïti",
+    "summary_fr": "Le 14 août 2021, un séisme de magnitude 7.2 frappe le sud d'Haïti, tuant plus de 2 200 personnes et détruisant des milliers de bâtiments dans les départements du Sud, de la Grand'Anse et des Nippes.",
+    "student_takeaway_fr": "La récurrence des séismes en Haïti souligne l'importance de la préparation aux catastrophes et de la construction parasismique.",
+    "tags": ["disaster"],
+    "sources": [
+      { "label": "Wikipedia – 2021 Haiti earthquake", "url": "https://en.wikipedia.org/wiki/2021_Haiti_earthquake" },
+      { "label": "BBC – Haiti earthquake 2021", "url": "https://www.bbc.com/news/world-latin-america-58210233" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "09-07",
+    "year": 1921,
+    "title_fr": "Charlemagne Péralte — Héros de la résistance",
+    "summary_fr": "Charlemagne Péralte (1886-1919) mena la guérilla des Cacos contre l'occupation américaine. Assassiné le 1er novembre 1919, il est devenu un symbole national de la résistance haïtienne.",
+    "student_takeaway_fr": "Péralte incarne la résistance contre l'occupation étrangère. Son image, reproduite sur les billets de banque, rappelle le prix de la liberté.",
+    "tags": ["resistance", "military"],
+    "sources": [
+      { "label": "Wikipedia – Charlemagne Péralte", "url": "https://en.wikipedia.org/wiki/Charlemagne_P%C3%A9ralte" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "10-14",
+    "year": 1994,
+    "title_fr": "Retour d'Aristide au pouvoir",
+    "summary_fr": "Le 15 octobre 1994, Jean-Bertrand Aristide retourne en Haïti après trois ans d'exil, rétabli au pouvoir grâce à une intervention militaire internationale menée par les États-Unis.",
+    "student_takeaway_fr": "Le retour d'Aristide montre la complexité des relations entre Haïti et la communauté internationale. La souveraineté nationale reste un enjeu crucial.",
+    "tags": ["politics", "diplomacy"],
+    "sources": [
+      { "label": "Wikipedia – 1994 intervention in Haiti", "url": "https://en.wikipedia.org/wiki/1994_United_States_intervention_in_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "11-10",
+    "year": 1975,
+    "title_fr": "Naissance de Wyclef Jean à Croix-des-Bouquets",
+    "summary_fr": "Wyclef Jean, né le 17 octobre 1969, est un musicien haïtiano-américain mondialement connu. Membre fondateur des Fugees, il a contribué à faire connaître la culture haïtienne dans le monde entier.",
+    "student_takeaway_fr": "Wyclef Jean montre que les Haïtiens peuvent exceller sur la scène internationale. La diaspora haïtienne est un pont entre Haïti et le monde.",
+    "tags": ["art", "culture"],
+    "sources": [
+      { "label": "Wikipedia – Wyclef Jean", "url": "https://en.wikipedia.org/wiki/Wyclef_Jean" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "12-01",
+    "year": 1806,
+    "title_fr": "Henri Christophe élu président du Nord",
+    "summary_fr": "Après l'assassinat de Dessalines en octobre 1806, Henri Christophe est élu président de l'État d'Haïti, mais un conflit avec Alexandre Pétion divise le pays entre nord et sud.",
+    "student_takeaway_fr": "La division entre Christophe et Pétion après Dessalines montre les défis de la gouvernance post-révolutionnaire.",
+    "tags": ["politics"],
+    "sources": [
+      { "label": "Wikipedia – Henri Christophe", "url": "https://en.wikipedia.org/wiki/Henri_Christophe" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "03-02",
+    "year": 2004,
+    "title_fr": "Départ d'Aristide et arrivée de la MINUSTAH",
+    "summary_fr": "Le 29 février 2004, Jean-Bertrand Aristide quitte le pouvoir et part en exil. L'ONU déploie la MINUSTAH (Mission des Nations Unies pour la stabilisation en Haïti) qui restera jusqu'en 2017.",
+    "student_takeaway_fr": "Les missions de paix de l'ONU en Haïti soulèvent des questions importantes sur la souveraineté et l'aide internationale.",
+    "tags": ["politics", "diplomacy"],
+    "sources": [
+      { "label": "Wikipedia – MINUSTAH", "url": "https://en.wikipedia.org/wiki/United_Nations_Stabilisation_Mission_in_Haiti" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "04-17",
+    "year": 1823,
+    "title_fr": "Boyer unifie l'île d'Hispaniola",
+    "summary_fr": "En 1822, le président Jean-Pierre Boyer unifie l'île entière d'Hispaniola sous le drapeau haïtien, mettant fin à la colonisation espagnole dans la partie est. Cette unification durera jusqu'en 1844.",
+    "student_takeaway_fr": "L'unification de l'île sous Boyer est un moment unique de l'histoire caribéenne. Elle aide à comprendre les relations complexes entre Haïti et la République dominicaine.",
+    "tags": ["politics", "military"],
+    "sources": [
+      { "label": "Wikipedia – Haitian occupation of Santo Domingo", "url": "https://en.wikipedia.org/wiki/Haitian_occupation_of_Santo_Domingo" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  },
+  {
+    "monthDay": "06-30",
+    "year": 1975,
+    "title_fr": "Création de l'Akademi Kreyòl Ayisyen",
+    "summary_fr": "L'Akademi Kreyòl Ayisyen est l'institution chargée de standardiser et promouvoir la langue créole haïtienne. Le créole est la langue maternelle de 100% des Haïtiens et langue officielle depuis 1987.",
+    "student_takeaway_fr": "Le créole n'est pas un 'mauvais français' — c'est une langue à part entière avec sa propre grammaire et littérature. L'Akademi travaille à sa valorisation.",
+    "tags": ["education", "culture"],
+    "sources": [
+      { "label": "Wikipedia – Haitian Creole", "url": "https://en.wikipedia.org/wiki/Haitian_Creole" }
+    ],
+    "confidence": "high",
+    "createdBy": "seed"
+  }
+]

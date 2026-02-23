@@ -34,6 +34,8 @@ import {
   Compass,
   Newspaper,
   DollarSign,
+  BookOpen,
+  Star,
 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
@@ -45,6 +47,9 @@ import {
   fetchScholarshipsClosingSoon,
   fetchUpcomingCalendarEvents,
   fetchAllPathways,
+  fetchAlmanacByMonthDay,
+  fetchHolidaysByMonthDay,
+  getHaitiMonthDay,
   COUNTRY_LABELS,
   TUITION_LABELS,
 } from "@/lib/datasets";
@@ -124,6 +129,7 @@ export default async function AccueilPage({
   const fr = lang === "fr";
 
   // ── Fetch data in parallel ────────────────────────────────────────────────
+  const todayMD = getHaitiMonthDay();
   const [
     allArticles,
     upcomingEvents,
@@ -131,6 +137,8 @@ export default async function AccueilPage({
     closingScholarships45,
     allPathways,
     allUniversities,
+    todayAlmanac,
+    todayHolidays,
   ] = await Promise.all([
     fetchEnrichedFeed(lang, 300),
     fetchUpcomingCalendarEvents(),
@@ -138,6 +146,8 @@ export default async function AccueilPage({
     fetchScholarshipsClosingSoon(45),
     fetchAllPathways(),
     fetchAllUniversities(),
+    fetchAlmanacByMonthDay(todayMD),
+    fetchHolidaysByMonthDay(todayMD),
   ]);
 
   // Pre-filter: drop off-mission articles
@@ -211,6 +221,12 @@ export default async function AccueilPage({
             className="inline-flex items-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
           >
             <Compass className="mr-1.5 inline h-4 w-4" />{fr ? "Parcours" : "Pakou"}
+          </Link>
+          <Link
+            href={lq("/histoire")}
+            className="inline-flex items-center rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700"
+          >
+            <BookOpen className="mr-1.5 inline h-4 w-4" />{fr ? "Histoire" : "Istwa"}
           </Link>
           <Link
             href={lq("/news")}
@@ -438,7 +454,81 @@ export default async function AccueilPage({
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  S5 — Fil: Actualité générale (news — below the fold)
+       *  S5 — Histoire & Fèt du jour
+       * ═══════════════════════════════════════════════════════════════════ */}
+      {(todayAlmanac.length > 0 || todayHolidays.length > 0) && (
+        <section className="space-y-4 rounded-xl border-2 border-amber-200 bg-amber-50/40 p-6">
+          <SectionHeader
+            icon={<BookOpen className="h-5 w-5 text-amber-600" />}
+            title={fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
+            href={lq("/histoire")}
+            cta={fr ? "Voir tout →" : "Wè tout →"}
+          />
+
+          {/* Holidays */}
+          {todayHolidays.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {todayHolidays.map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-center gap-2 rounded-lg border border-amber-200 bg-white px-4 py-2.5"
+                >
+                  <Star className="h-4 w-4 text-amber-500 shrink-0" />
+                  <span className="font-semibold text-sm text-gray-900">
+                    {fr ? h.name_fr : h.name_ht}
+                  </span>
+                  {h.isNationalHoliday && (
+                    <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700">
+                      🇭🇹
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Almanac entries (max 2 on homepage) */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {todayAlmanac
+              .sort((a, b) => {
+                if (a.confidence === "high" && b.confidence !== "high") return -1;
+                if (a.confidence !== "high" && b.confidence === "high") return 1;
+                return 0;
+              })
+              .slice(0, 2)
+              .map((entry) => (
+                <div key={entry.id} className="rounded-lg border border-amber-100 bg-white p-4 shadow-sm">
+                  <h3 className="font-semibold text-sm text-gray-900">
+                    {entry.title_fr}
+                    {entry.year && (
+                      <span className="ml-1 text-xs text-gray-400">({entry.year})</span>
+                    )}
+                  </h3>
+                  <p className="mt-1.5 text-xs text-gray-600 line-clamp-3">
+                    {entry.summary_fr}
+                  </p>
+                  {entry.student_takeaway_fr && (
+                    <p className="mt-2 text-xs text-amber-700 line-clamp-2">
+                      💡 {entry.student_takeaway_fr}
+                    </p>
+                  )}
+                </div>
+              ))}
+          </div>
+
+          {todayAlmanac.length > 2 && (
+            <Link
+              href={lq("/histoire")}
+              className="inline-block text-sm font-medium text-amber-700 hover:underline"
+            >
+              +{todayAlmanac.length - 2} {fr ? "autres événements →" : "lòt evènman →"}
+            </Link>
+          )}
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  S6 — Fil: Actualité générale (news — below the fold)
        * ═══════════════════════════════════════════════════════════════════ */}
       <div className="border-t border-gray-200 pt-10">
         <SectionHeader
