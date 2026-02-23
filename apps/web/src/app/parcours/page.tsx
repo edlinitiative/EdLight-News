@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
+import { MapPin } from "lucide-react";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
 
@@ -32,7 +33,7 @@ export default async function ParcoursPage({
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">
-          🛤️ {fr ? "Parcours" : "Pakou"}
+          <MapPin className="mr-1.5 inline h-7 w-7 text-brand-600" /> {fr ? "Parcours" : "Pakou"}
         </h1>
         <p className="text-gray-500">
           {fr

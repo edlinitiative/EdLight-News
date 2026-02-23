@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
+import { GraduationCap, Clock, CalendarDays, BookOpen, CheckCircle, Paperclip } from "lucide-react";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchScholarshipsForHaiti,
@@ -59,7 +60,7 @@ export default async function BoursesPage({
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">
-          🎓 {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
+          <GraduationCap className="mr-1.5 inline h-7 w-7 text-amber-600" /> {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
         </h1>
         <p className="text-gray-500">
           {fr
@@ -72,7 +73,7 @@ export default async function BoursesPage({
       {closingSoon.length > 0 && (
         <div className="rounded-lg border-l-4 border-orange-400 bg-orange-50 p-4">
           <h2 className="font-bold text-orange-800">
-            ⏰ {fr ? "Date limite bientôt !" : "Dat limit byento!"}
+            <Clock className="mr-1 inline h-4 w-4" /> {fr ? "Date limite bientôt !" : "Dat limit byento!"}
           </h2>
           <ul className="mt-2 space-y-1">
             {closingSoon.slice(0, 5).map((s) => (
@@ -126,14 +127,14 @@ export default async function BoursesPage({
               {/* Levels */}
               {s.level && s.level.length > 0 && (
                 <p className="mt-2 text-xs text-gray-400">
-                  📚 {s.level.join(", ")}
+                  <BookOpen className="mr-0.5 inline h-3 w-3" />{s.level.join(", ")}
                 </p>
               )}
 
               {/* Deadline */}
               {s.deadline?.dateISO && (
                 <p className="mt-1 text-xs font-medium text-orange-600">
-                  📅 {fr ? "Date limite:" : "Dat limit:"}{" "}
+                  <CalendarDays className="mr-0.5 inline h-3 w-3" /> {fr ? "Date limite:" : "Dat limit:"}{" "}
                   {formatDate(s.deadline.dateISO, lang)}
                 </p>
               )}
@@ -141,7 +142,7 @@ export default async function BoursesPage({
               {/* Haitian-friendly indicator */}
               {s.eligibleCountries?.includes("HT") && (
                 <p className="mt-1 text-xs text-green-600">
-                  🇭🇹 {fr ? "Ouvert aux Haïtiens" : "Ouvè pou Ayisyen"}
+                  <CheckCircle className="mr-0.5 inline h-3 w-3" /> {fr ? "Ouvert aux Haïtiens" : "Ouvè pou Ayisyen"}
                 </p>
               )}
 
@@ -203,7 +204,7 @@ export default async function BoursesPage({
                       rel="noopener noreferrer"
                       className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-blue-600 hover:underline"
                     >
-                      📎 {src.label}
+                      <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                     </a>
                   ))}
                 </div>

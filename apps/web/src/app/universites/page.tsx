@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage, DatasetCountry } from "@edlight-news/types";
+import { School, DollarSign, Languages, Paperclip, CheckCircle } from "lucide-react";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchUniversitiesGrouped,
@@ -49,7 +50,7 @@ export default async function UniversitesPage({
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">
-          🏫 {fr ? "Universités" : "Inivèsite"}
+          <School className="mr-1.5 inline h-7 w-7 text-brand-600" /> {fr ? "Universités" : "Inivèsite"}
         </h1>
         <p className="text-gray-500">
           {fr
@@ -112,10 +113,10 @@ export default async function UniversitesPage({
                       <h3 className="font-semibold leading-tight">{uni.name}</h3>
                       {uni.haitianFriendly && (
                         <span
-                          className="ml-2 shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
+                          className="ml-2 flex shrink-0 items-center gap-0.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800"
                           title={fr ? "Accueil haïtien" : "Akèy ayisyen"}
                         >
-                          🇭🇹
+                          <CheckCircle className="h-3 w-3" /> HT
                         </span>
                       )}
                     </div>
@@ -124,12 +125,12 @@ export default async function UniversitesPage({
                     )}
                     {tuition && (
                       <p className="mt-1 text-xs text-gray-400">
-                        💰 {fr ? tuition.fr : tuition.ht}
+                        <DollarSign className="mr-0.5 inline h-3 w-3" />{fr ? tuition.fr : tuition.ht}
                       </p>
                     )}
                     {uni.languages && uni.languages.length > 0 && (
                       <p className="mt-1 text-xs text-gray-400">
-                        🗣️ {uni.languages.join(", ")}
+                        <Languages className="mr-0.5 inline h-3 w-3" />{uni.languages.join(", ")}
                       </p>
                     )}
                     {uni.tags && uni.tags.length > 0 && (
@@ -175,7 +176,7 @@ export default async function UniversitesPage({
                             rel="noopener noreferrer"
                             className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-blue-600 hover:underline"
                           >
-                            📎 {src.label}
+                            <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                           </a>
                         ))}
                       </div>

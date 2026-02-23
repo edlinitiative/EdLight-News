@@ -6,7 +6,7 @@
  */
 
 import Link from "next/link";
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { CalendarDays, ExternalLink, FileText, GraduationCap, ClipboardList, BarChart3, School, Lock, Pin, Paperclip } from "lucide-react";
 import type { ContentLanguage, CalendarEventType } from "@edlight-news/types";
 import { fetchCalendarData, getLangFromSearchParams, type CalendarDeadline } from "@/lib/content";
 import { fetchUpcomingCalendarEvents, fetchAllCalendarEvents } from "@/lib/datasets";
@@ -108,9 +108,13 @@ export default async function CalendrierHaitiPage({
     fetchAllCalendarEvents(),
   ]);
 
-  const EVENT_TYPE_ICON: Record<CalendarEventType, string> = {
-    exam: "📝", admissions: "🎓", registration: "📋",
-    results: "📊", rentree: "🏫", closure: "🔒",
+  const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
+    exam: <FileText className="h-5 w-5 text-orange-600" />,
+    admissions: <GraduationCap className="h-5 w-5 text-brand-600" />,
+    registration: <ClipboardList className="h-5 w-5 text-blue-600" />,
+    results: <BarChart3 className="h-5 w-5 text-green-600" />,
+    rentree: <School className="h-5 w-5 text-purple-600" />,
+    closure: <Lock className="h-5 w-5 text-gray-500" />,
   };
 
   // Get ALL deadlines from the parent item (not limited to 5)
@@ -173,7 +177,7 @@ export default async function CalendrierHaitiPage({
       {structuredUpcoming.length > 0 && (
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-brand-800">
-            📅 {fr ? "Événements à venir (Base de données)" : "Evènman k ap vini (Baz done)"}
+            <CalendarDays className="mr-1.5 inline h-5 w-5 text-brand-600" /> {fr ? "Événements à venir (Base de données)" : "Evènman k ap vini (Baz done)"}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {structuredUpcoming.map((e) => (
@@ -182,7 +186,7 @@ export default async function CalendrierHaitiPage({
                 className="rounded-lg border-l-4 border-brand-400 bg-brand-50 p-4"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{EVENT_TYPE_ICON[e.eventType] ?? "📌"}</span>
+                  <span className="flex h-5 w-5 shrink-0 items-center">{EVENT_TYPE_ICON[e.eventType] ?? <Pin className="h-5 w-5 text-gray-400" />}</span>
                   <h3 className="font-semibold">{e.title}</h3>
                 </div>
                 <p className="mt-1 text-sm text-brand-700">
@@ -217,7 +221,7 @@ export default async function CalendrierHaitiPage({
                       rel="noopener noreferrer"
                       className="rounded bg-white/60 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-600 hover:underline"
                     >
-                      📎 {src.label}
+                      <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                     </a>
                   ))}
                 </div>

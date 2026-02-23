@@ -32,7 +32,7 @@
  */
 
 import Link from "next/link";
-import { Calendar, BookOpen, GraduationCap, Globe, Landmark, CalendarDays, MapPin, Award, School } from "lucide-react";
+import { Calendar, BookOpen, GraduationCap, Globe, Landmark, CalendarDays, MapPin, Award, School, Newspaper, Clock } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { fetchEnrichedFeed, isSuccessArticle } from "@/lib/content";
@@ -328,27 +328,27 @@ export default async function AccueilPage({
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
             href={lq("/bourses")}
-            className="inline-block rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700"
+            className="inline-flex items-center rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700"
           >
-            {fr ? "🎓 Bourses ouvertes" : "🎓 Bous ouvè"}
+            <GraduationCap className="mr-1.5 inline h-4 w-4" />{fr ? "Bourses ouvertes" : "Bous ouvè"}
           </Link>
           <Link
             href={lq("/calendrier-haiti")}
-            className="inline-block rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
           >
-            {fr ? "📅 Calendrier" : "📅 Kalandriye"}
+            <CalendarDays className="mr-1.5 inline h-4 w-4" />{fr ? "Calendrier" : "Kalandriye"}
           </Link>
           <Link
             href={lq("/parcours")}
-            className="inline-block rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
+            className="inline-flex items-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
           >
-            {fr ? "🗺️ Parcours" : "🗺️ Pakou"}
+            <MapPin className="mr-1.5 inline h-4 w-4" />{fr ? "Parcours" : "Pakou"}
           </Link>
           <Link
             href={lq("/news")}
-            className="inline-block rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
-            {fr ? "📰 Nouvelles" : "📰 Nouvèl"}
+            <Newspaper className="mr-1.5 inline h-4 w-4" />{fr ? "Nouvelles" : "Nouvèl"}
           </Link>
         </div>
       </section>
@@ -414,8 +414,8 @@ export default async function AccueilPage({
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     {dl?.dateISO && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
-                        ⏰ {new Date(dl.dateISO + "T00:00:00").toLocaleDateString(
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
+                        <Clock className="h-3 w-3" /> {new Date(dl.dateISO + "T00:00:00").toLocaleDateString(
                           fr ? "fr-FR" : "fr-HT",
                           { day: "numeric", month: "short", year: "numeric" },
                         )}
@@ -455,7 +455,9 @@ export default async function AccueilPage({
                 className="group rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md hover:border-brand-300"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">{pw.country ? COUNTRY_LABELS[pw.country]?.flag : "🌍"}</span>
+                  {pw.country && COUNTRY_LABELS[pw.country]?.flag
+                    ? <span className="text-2xl">{COUNTRY_LABELS[pw.country].flag}</span>
+                    : <Globe className="h-6 w-6 text-brand-600" />}
                   <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-700">
                     {fr ? pw.title_fr : (pw.title_ht ?? pw.title_fr)}
                   </h3>
@@ -518,7 +520,7 @@ export default async function AccueilPage({
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {u.haitianFriendly && (
                     <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-800">
-                      🇭🇹 {fr ? "Accueil haïtien" : "Akèy ayisyen"}
+                      HT · {fr ? "Accueil haïtien" : "Akèy ayisyen"}
                     </span>
                   )}
                   {u.tuitionBand && (
@@ -558,7 +560,7 @@ export default async function AccueilPage({
       <div className="border-t border-gray-200 pt-10">
         <h2 className="mb-8 flex items-center gap-2 text-center text-2xl font-bold text-gray-700">
           <span className="mx-auto flex items-center gap-2">
-            📰 {fr ? "Actualités" : "Nouvèl"}
+            <Newspaper className="h-5 w-5" /> {fr ? "Actualités" : "Nouvèl"}
           </span>
         </h2>
 
