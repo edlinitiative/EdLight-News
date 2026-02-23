@@ -43,10 +43,14 @@ function normalise(s: string): string {
     .trim();
 }
 
-/** Build a single searchable blob from all classifier input fields. */
+/** Build a single searchable blob from all classifier input fields.
+ *  NOTE: `category` is deliberately excluded — including it causes circular
+ *  self-confirmation (item has category:"concours" → blob contains "concours"
+ *  → classified as Concours). The raw category is only used as a last-resort
+ *  fallback at the bottom of classifyOpportunity(). */
 function buildBlob(input: ClassifierInput): string {
   return normalise(
-    [input.title, input.summary, input.body, input.category, input.publisher, input.url]
+    [input.title, input.summary, input.body, input.publisher, input.url]
       .filter(Boolean)
       .join(" "),
   );

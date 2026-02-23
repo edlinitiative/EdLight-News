@@ -16,7 +16,7 @@ import {
 import { classifyOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 
-/** Opportunity category values that should use the derived classifier. */
+/** Opportunity category values that might use the derived classifier. */
 const OPP_CATEGORIES = new Set([
   "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
 ]);
@@ -26,6 +26,34 @@ const SUBCAT_MAP: Record<string, OpportunitySubCat> = {
   Concours: "concours", Ressources: "ressources", Autre: "autre",
 };
 
+/**
+ * Quick smell test: does the title/summary actually contain opportunity
+ * keywords? Prevents mis-classified general news (e.g. crime articles with
+ * category "concours") from being treated as opportunities.
+ */
+const OPP_SMELL_KW = [
+  "bourse", "scholarship", "fellowship", "grant",
+  "concours", "competition", "hackathon", "prix", "award",
+  "stage", "internship", "apprentissage",
+  "programme", "formation", "inscription", "admission", "candidature",
+  "master", "licence", "doctorat", "diplome",
+  "financement", "aide", "subvention", "allocation",
+  "postuler", "apply", "deadline", "date limite", "cloture",
+  "etudiant", "student", "universitaire", "university",
+  "emploi", "job", "recrutement",
+  "opportunit", "okazyon", "bous", "estaj", "konkou",
+];
+
+function looksLikeOpportunity(article: FeedItem): boolean {
+  if (article.vertical === "opportunites") return true;
+  if (article.itemType === "utility") return true;
+  const blob = `${article.title ?? ""} ${article.summary ?? ""}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return OPP_SMELL_KW.some((kw) => blob.includes(kw));
+}
+
 /** Derive display category for an article. For opportunity items, uses the
  *  keyword classifier; for everything else, falls back to raw category. */
 function derivedCategoryInfo(
@@ -33,8 +61,9 @@ function derivedCategoryInfo(
   lang: ContentLanguage,
 ): { label: string; color: string } | null {
   const isOpp =
-    article.vertical === "opportunites" ||
-    OPP_CATEGORIES.has(article.category ?? "");
+    (article.vertical === "opportunites" ||
+     OPP_CATEGORIES.has(article.category ?? "")) &&
+    looksLikeOpportunity(article);
 
   if (isOpp) {
     const result = classifyOpportunity({

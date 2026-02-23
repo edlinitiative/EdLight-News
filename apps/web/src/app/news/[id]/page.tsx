@@ -492,9 +492,35 @@ export default async function ArticlePage({
   const OPPORTUNITY_CATEGORIES = new Set([
     "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
   ]);
-  const isOpportunity =
+
+  // Smell test: only apply classifier when content actually looks like an
+  // opportunity — prevents general news articles with stale opp-adjacent
+  // categories (e.g. crime news with category "concours") from mis-labelling.
+  const OPP_SMELL_KW = [
+    "bourse", "scholarship", "fellowship", "grant",
+    "concours", "competition", "hackathon", "prix", "award",
+    "stage", "internship", "apprentissage",
+    "programme", "formation", "inscription", "admission", "candidature",
+    "master", "licence", "doctorat", "diplome",
+    "financement", "aide", "subvention", "allocation",
+    "postuler", "apply", "deadline", "date limite", "cloture",
+    "etudiant", "student", "universitaire", "university",
+    "emploi", "job", "recrutement",
+    "opportunit", "okazyon", "bous", "estaj", "konkou",
+  ];
+  const smellBlob = `${article.title ?? ""} ${article.summary ?? ""}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const passesSmellTest =
     item?.vertical === "opportunites" ||
-    OPPORTUNITY_CATEGORIES.has(item?.category ?? "");
+    item?.itemType === "utility" ||
+    OPP_SMELL_KW.some((kw) => smellBlob.includes(kw));
+
+  const isOpportunity =
+    (item?.vertical === "opportunites" ||
+     OPPORTUNITY_CATEGORIES.has(item?.category ?? "")) &&
+    passesSmellTest;
 
   let derivedSubCat: OpportunitySubCat | null = null;
   if (isOpportunity) {
