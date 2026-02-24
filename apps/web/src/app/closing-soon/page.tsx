@@ -127,11 +127,11 @@ export default async function ClosingSoonPage({
     <div className="space-y-8">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight">
+        <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight dark:text-white">
           <Clock className="h-7 w-7 text-red-600" />
           {fr ? "Échéances à venir" : "Dat limit k ap vini"}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-slate-400">
           {fr
             ? "Bourses qui ferment bientôt et événements du calendrier haïtien à ne pas manquer."
             : "Bous ki pral fèmen byento ak evènman kalandriye ayisyen pou pa rate."}

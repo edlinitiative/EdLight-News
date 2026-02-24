@@ -82,10 +82,10 @@ export default async function OpportunitesPage({
     <div className="space-y-8">
       {/* Page header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">
+        <h1 className="text-3xl font-extrabold tracking-tight dark:text-white">
           {fr ? "Opportunités" : "Okazyon"}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-slate-400">
           {fr
             ? "Bourses, concours, stages et programmes pour étudiants haïtiens."
             : "Bous, konkou, estaj ak pwogram pou elèv ayisyen."}

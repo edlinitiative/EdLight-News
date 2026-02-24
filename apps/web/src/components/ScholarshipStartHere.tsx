@@ -84,10 +84,10 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-xl font-bold tracking-tight text-gray-900">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
           {fr ? "Par où commencer ?" : "Ki kote pou kòmanse ?"}
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
           {fr
             ? "Trois portes d'entrée pour financer vos études."
             : "Twa pòt antre pou finanse etid ou yo."}
@@ -100,15 +100,15 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
             key={entry.country}
             type="button"
             onClick={() => navigate(entry.params)}
-            className="group flex flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
+            className="group flex flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
           >
             <span className="text-2xl leading-none">{entry.flag}</span>
 
-            <h3 className="mt-3 text-sm font-semibold text-gray-900">
+            <h3 className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
               {fr ? entry.label.fr : entry.label.ht}
             </h3>
 
-            <p className="mt-1 flex-1 text-xs text-gray-500">
+            <p className="mt-1 flex-1 text-xs text-gray-500 dark:text-slate-400">
               {fr ? entry.description.fr : entry.description.ht}
             </p>
 

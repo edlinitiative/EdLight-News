@@ -291,7 +291,7 @@ export default async function AccueilPage({
   const boursesPanel = (
     <div className="space-y-5">
       <GeminiHeroImage
-        prompt="Diverse students celebrating scholarship awards on a modern university campus"
+        prompt="Happy diverse group of young students tossing graduation caps in the air outdoors with golden hour sunlight, bokeh background"
         className="h-44 w-full"
       />
       {boursesClosing.length > 0 ? (
@@ -346,7 +346,7 @@ export default async function AccueilPage({
   const calendrierPanel = (
     <div className="space-y-5">
       <GeminiHeroImage
-        prompt="Academic calendar planning workspace with laptop on organized desk at university"
+        prompt="A realistic close-up photo of a physical wall calendar with the word CALENDAR printed clearly at the top, pinned to a clean white wall, with a few dates circled in blue pen, soft natural lighting"
         className="h-44 w-full"
       />
       {(haitiEvents.length > 0 || intlScholarships.length > 0) ? (

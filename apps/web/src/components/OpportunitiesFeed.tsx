@@ -182,7 +182,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
         />
       </div>
 
@@ -202,7 +202,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
                 "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
                 subCat === s
                   ? "bg-brand-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
               ].join(" ")}
             >
               {SUBCAT_LABELS[s][lang]}
@@ -215,7 +215,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       {/* Sort controls row */}
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-slate-400">
             {lang === "fr" ? "Trier :" : "Triye :"}
           </span>
           {(["deadline", "relevance", "latest"] as SortMode[]).map((s) => (
@@ -226,7 +226,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
                 "rounded-full px-3 py-1 text-sm font-medium transition",
                 sort === s
                   ? "bg-brand-600 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
               ].join(" ")}
             >
               {SORT_LABELS[s][lang]}
@@ -235,23 +235,23 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
         </div>
 
         {sort === "deadline" && (
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
             <input
               type="checkbox"
               checked={includeNoDeadline}
               onChange={(e) => setIncludeNoDeadline(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
+              className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
             />
             {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
           </label>
         )}
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500">
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
           <input
             type="checkbox"
             checked={showExpired}
             onChange={(e) => setShowExpired(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
           />
           {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
         </label>
@@ -259,7 +259,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
 
       {/* Results */}
       {sorted.length === 0 ? (
-        <p className="py-20 text-center text-gray-400">
+        <p className="py-20 text-center text-gray-400 dark:text-slate-500">
           {lang === "fr"
             ? "Aucune opportunité trouvée."
             : "Pa gen okazyon jwenn."}

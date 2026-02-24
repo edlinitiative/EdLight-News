@@ -73,7 +73,7 @@ export function ClosingSoonTabs({
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
               tab === t.key
                 ? "bg-red-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
             ].join(" ")}
           >
             {t.label}{" "}
@@ -84,7 +84,7 @@ export function ClosingSoonTabs({
 
       {/* Items list */}
       {filtered.length === 0 ? (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 py-16 text-center text-gray-400">
+        <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 py-16 text-center text-gray-400 dark:text-slate-400">
           <Clock className="mx-auto mb-2 h-8 w-8" />
           <p>
             {fr
@@ -97,7 +97,7 @@ export function ClosingSoonTabs({
           {filtered.map((item) => (
             <div
               key={`${item.kind}-${item.id}`}
-              className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
+              className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
             >
               {/* Kind icon */}
               <div
@@ -132,12 +132,12 @@ export function ClosingSoonTabs({
                         ? (fr ? "Calendrier Haïti" : "Kalandriye Ayiti")
                         : "International"}
                   </span>
-                  <p className="font-medium text-gray-900 line-clamp-1">
+                  <p className="font-medium text-gray-900 dark:text-white line-clamp-1">
                     {item.title}
                   </p>
                 </div>
                 {item.subtitle && (
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
                     {item.subtitle}
                   </p>
                 )}

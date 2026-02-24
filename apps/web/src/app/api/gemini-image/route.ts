@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
 
     // Build the full prompt — instruct for premium edu-tech visuals
     const fullPrompt = [
-      `Generate a beautiful, high-quality illustrative image:`,
+      `Generate a photorealistic, ultra-premium hero image.`,
       prompt,
-      `Style: premium, modern, clean, minimalist.`,
+      `Style: cinematic, editorial-quality, shallow depth of field, natural lighting, 16:9 aspect ratio.`,
       theme === "dark"
-        ? "Use deep navy and dark blue tones with subtle blue accent highlights."
-        : "Use bright, airy tones with soft blue accent highlights and white space.",
-      `Suitable for a top-tier education technology dashboard. No text or watermarks.`,
+        ? "Moody lighting with rich deep blues and navy tones, subtle warm highlights."
+        : "Bright natural daylight, soft warm tones with airy atmosphere.",
+      `This is for a premium education technology platform. The image must look like a high-end stock photo. Only include text if explicitly requested in the prompt, otherwise no text at all.`,
     ].join(" ");
 
     // Try Gemini 2.0 Flash with image generation

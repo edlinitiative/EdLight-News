@@ -72,10 +72,10 @@ export default async function RessourcesPage({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">
+        <h1 className="text-3xl font-extrabold tracking-tight dark:text-white">
           {fr ? "Ressources" : "Resous"}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-slate-400">
           {fr
             ? "Guides, carrière, étudier à l'étranger, histoire — tout pour les étudiants haïtiens."
             : "Gid, karyè, etidye aletranje, istwa — tout pou elèv ayisyen."}

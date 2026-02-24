@@ -36,7 +36,7 @@ export function SectionFeed({
 
   if (sorted.length === 0) {
     return (
-      <p className="py-20 text-center text-gray-400">
+      <p className="py-20 text-center text-gray-400 dark:text-slate-500">
         {emptyMessage?.[lang] ??
           (lang === "fr"
             ? "Aucun article disponible pour le moment."
@@ -49,7 +49,7 @@ export function SectionFeed({
     <div className="space-y-6">
       {/* Sort toggle */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-slate-400">
           {lang === "fr" ? "Trier par :" : "Triye pa :"}
         </span>
         {(["relevance", "latest"] as SortMode[]).map((opt) => (
@@ -60,7 +60,7 @@ export function SectionFeed({
               "rounded-full px-3 py-1 text-sm font-medium transition",
               sort === opt
                 ? "bg-brand-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
             ].join(" ")}
           >
             {opt === "relevance"

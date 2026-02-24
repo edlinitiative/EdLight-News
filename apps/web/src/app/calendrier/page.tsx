@@ -49,16 +49,16 @@ function LegacyDeadlineRow({
   const date = dl.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
 
   return (
-    <div className="flex items-center gap-3 rounded-md border border-gray-100 bg-white px-3 py-2">
+    <div className="flex items-center gap-3 rounded-md border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
       {date && (
-        <span className="shrink-0 text-xs font-semibold tabular-nums text-gray-400">
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-gray-400 dark:text-slate-500">
           {date.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
             day: "numeric",
             month: "short",
           })}
         </span>
       )}
-      <span className="flex-1 truncate text-sm text-gray-700">{dl.label}</span>
+      <span className="flex-1 truncate text-sm text-gray-700 dark:text-slate-300">{dl.label}</span>
       {dl.sourceUrl && (
         <a
           href={dl.sourceUrl}
@@ -149,11 +149,11 @@ export default async function CalendrierPage({
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-7 w-7 text-brand-600" />
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-slate-100">
             {fr ? "Calendrier" : "Kalandriye"}
           </h1>
         </div>
-        <p className="max-w-2xl text-gray-500">
+        <p className="max-w-2xl text-gray-500 dark:text-slate-400">
           {fr
             ? "Examens haïtiens, inscriptions et dates limites de bourses internationales."
             : "Egzamen ayisyen, enskripsyon ak dat limit bous entènasyonal."}
@@ -169,14 +169,14 @@ export default async function CalendrierPage({
 
       {/* Legacy article deadlines — collapsed by default to reduce noise */}
       {hasLegacy && (
-        <details className="rounded-lg border border-gray-200">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50">
-            <span className="text-sm font-medium text-gray-500">
+        <details className="rounded-lg border border-gray-200 dark:border-slate-700">
+          <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700">
+            <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
               {fr
                 ? "📄 Sources additionnelles (articles)"
                 : "📄 Sous adisyonèl (atik)"}
             </span>
-            <span aria-hidden className="text-sm text-gray-400">
+            <span aria-hidden className="text-sm text-gray-400 dark:text-slate-500">
               ▸
             </span>
           </summary>
@@ -189,7 +189,7 @@ export default async function CalendrierPage({
               />
             ))}
             {calendarData.item && (
-              <p className="mt-2 rounded-md bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">
+              <p className="mt-2 rounded-md bg-gray-50 dark:bg-slate-800 px-4 py-3 text-sm font-medium text-gray-600 dark:text-slate-300">
                 {calendarData.item.title}
               </p>
             )}
@@ -199,7 +199,7 @@ export default async function CalendrierPage({
 
       {/* Empty state */}
       {!hasAnyData && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 py-16 text-center text-gray-400">
+        <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 py-16 text-center text-gray-400 dark:text-slate-500">
           <CalendarDays className="mx-auto mb-3 h-10 w-10" />
           <p>
             {fr

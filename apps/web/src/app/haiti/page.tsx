@@ -67,10 +67,10 @@ export default async function HaitiPage({
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-extrabold tracking-tight">
+        <h1 className="text-3xl font-extrabold tracking-tight dark:text-white">
           {fr ? "Haïti" : "Ayiti"}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-slate-400">
           {fr
             ? "Nouvelles locales et actus éducatives directement d'Haïti."
             : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti."}

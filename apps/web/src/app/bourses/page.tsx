@@ -127,7 +127,7 @@ export default async function BoursesPage({
           <GraduationCap className="mr-1.5 inline h-7 w-7 text-brand-600" />{" "}
           {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-slate-400">
           {fr
             ? `${allScholarships.length} bourses ouvertes aux étudiants haïtiens.`
             : `${allScholarships.length} bous ki ouvè pou etidyan ayisyen yo.`}
@@ -136,14 +136,14 @@ export default async function BoursesPage({
 
       {/* Closing soon banner */}
       {closingSoon.length > 0 && (
-        <div className="rounded-lg border-l-4 border-brand-300 bg-brand-50 p-4">
-          <h2 className="font-bold text-brand-800">
+        <div className="rounded-lg border-l-4 border-brand-300 bg-brand-50 dark:bg-brand-900/20 p-4">
+          <h2 className="font-bold text-brand-800 dark:text-brand-300">
             <Clock className="mr-1 inline h-4 w-4" />{" "}
             {fr ? "Date limite bientôt !" : "Dat limit byento!"}
           </h2>
           <ul className="mt-2 space-y-1">
             {closingSoon.slice(0, 5).map((s) => (
-              <li key={s.id} className="text-sm text-brand-700">
+              <li key={s.id} className="text-sm text-brand-700 dark:text-brand-300">
                 <strong>{s.name}</strong>
                 {s.deadline?.dateISO && (
                   <span> — {formatDateBanner(s.deadline.dateISO, lang)}</span>
@@ -159,11 +159,11 @@ export default async function BoursesPage({
         <>
           <ScholarshipStartHere lang={lang} />
           <div className="flex items-center gap-4 py-2">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-gray-400">
+            <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
+            <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500">
               {fr ? "Ou explorez toutes les bourses" : "Oswa eksplore tout bous yo"}
             </span>
-            <div className="h-px flex-1 bg-gray-200" />
+            <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
           </div>
         </>
       )}

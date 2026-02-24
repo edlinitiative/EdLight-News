@@ -72,22 +72,22 @@ function ArchiveMonthBlock({
         })();
 
   return (
-    <details className="overflow-hidden rounded-lg border border-gray-100">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-gray-50">
+    <details className="overflow-hidden rounded-lg border border-gray-100 dark:border-slate-700">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium capitalize text-gray-600">
+          <span className="text-sm font-medium capitalize text-gray-600 dark:text-slate-300">
             {label}
           </span>
-          <span className="rounded-full bg-gray-100 px-1.5 py-px text-xs text-gray-400">
+          <span className="rounded-full bg-gray-100 dark:bg-slate-700 px-1.5 py-px text-xs text-gray-400 dark:text-slate-500">
             {items.length}
           </span>
         </div>
-        <span aria-hidden className="text-sm text-gray-400">
+        <span aria-hidden className="text-sm text-gray-400 dark:text-slate-500">
           ▸
         </span>
       </summary>
 
-      <div className="divide-y divide-gray-50 border-t border-gray-100">
+      <div className="divide-y divide-gray-50 dark:divide-slate-700 border-t border-gray-100 dark:border-slate-700">
         {items.map((item) => {
           const dateISO = getItemDateISO(item);
           const date = dateISO ? parseISODateSafe(dateISO) : null;
@@ -96,22 +96,22 @@ function ArchiveMonthBlock({
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50"
+              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700"
             >
-              <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300">
+              <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300 dark:text-slate-600">
                 {date ? date.getDate() : "?"}
               </span>
               <span
                 className={[
                   "shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium",
                   isHaiti
-                    ? "bg-brand-50 text-brand-600"
-                    : "bg-emerald-50 text-emerald-700",
+                    ? "bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400"
+                    : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300",
                 ].join(" ")}
               >
                 {isHaiti ? "HT" : "Intl"}
               </span>
-              <span className="flex-1 truncate text-sm text-gray-600">
+              <span className="flex-1 truncate text-sm text-gray-600 dark:text-slate-300">
                 {getItemTitle(item)}
               </span>
             </div>
@@ -143,7 +143,7 @@ function ArchiveSection({
       aria-label={fr ? "Prochains mois" : "Mwa k ap vini yo"}
       className="space-y-3"
     >
-      <h2 className="text-base font-bold text-gray-900">
+      <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
         {fr ? "Prochains mois" : "Mwa k ap vini yo"}
       </h2>
       <div className="space-y-2">
@@ -225,7 +225,7 @@ export function CalendarFilterTabs({
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
               geoTab === t.key
                 ? "bg-brand-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600",
             ].join(" ")}
           >
             {t.label}{" "}
@@ -249,7 +249,7 @@ export function CalendarFilterTabs({
               "rounded-full px-3 py-1 text-xs font-medium transition",
               catFilter === p.key
                 ? "bg-gray-800 text-white"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200",
+                : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600",
             ].join(" ")}
           >
             {p.label}
@@ -267,7 +267,7 @@ export function CalendarFilterTabs({
           <ArchiveSection items={buckets.archive} lang={lang} />
 
           {noResults && (
-            <div className="rounded-lg border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
+            <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 py-12 text-center text-gray-400 dark:text-slate-500">
               <CalendarDays className="mx-auto mb-2 h-8 w-8" />
               <p className="text-sm">
                 {fr

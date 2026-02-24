@@ -11,18 +11,24 @@ interface GeminiHeroImageProps {
   fallbackGradient?: string;
   /** Additional CSS classes */
   className?: string;
+  /** When true, regenerate the image when the theme changes. Default false. */
+  themeAware?: boolean;
 }
 
 export function GeminiHeroImage({
   prompt,
   fallbackGradient = "from-brand-600 via-blue-700 to-indigo-800",
   className = "",
+  themeAware = false,
 }: GeminiHeroImageProps) {
   const { theme } = useTheme();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // When themeAware is false, use a fixed key so the same image persists across theme toggles
+  const effectiveTheme = themeAware ? theme : "universal";
 
   useEffect(() => {
     // Cancel any in-flight request
@@ -34,7 +40,7 @@ export function GeminiHeroImage({
     setError(false);
 
     // Check sessionStorage cache first
-    const cacheKey = `gemini_img_${prompt}_${theme}`;
+    const cacheKey = `gemini_img_${prompt}_${effectiveTheme}`;
     try {
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
@@ -47,7 +53,7 @@ export function GeminiHeroImage({
     fetch("/api/gemini-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt, theme }),
+      body: JSON.stringify({ prompt, theme: effectiveTheme }),
       signal: ctrl.signal,
     })
       .then((res) => {
@@ -70,7 +76,7 @@ export function GeminiHeroImage({
       .finally(() => setLoading(false));
 
     return () => ctrl.abort();
-  }, [prompt, theme]);
+  }, [prompt, effectiveTheme]);
 
   // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) {

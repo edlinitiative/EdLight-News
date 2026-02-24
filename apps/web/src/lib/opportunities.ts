@@ -229,10 +229,10 @@ export const SUBCAT_LABELS: Record<OpportunitySubCat | "all", { fr: string; ht: 
 };
 /** Subcategory → Tailwind color classes for badges. */
 export const SUBCAT_COLORS: Record<OpportunitySubCat, string> = {
-  bourses:    "bg-purple-50 text-purple-700",
-  concours:   "bg-indigo-50 text-indigo-700",
-  stages:     "bg-cyan-50 text-cyan-700",
-  programmes: "bg-indigo-50 text-indigo-700",
-  ressources: "bg-green-50 text-green-700",
-  autre:      "bg-gray-100 text-gray-600",
+  bourses:    "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  concours:   "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
+  stages:     "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
+  programmes: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
+  ressources: "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  autre:      "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
 };

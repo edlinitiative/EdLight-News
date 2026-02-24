@@ -44,21 +44,21 @@ export async function generateMetadata({
 // ── Shared constants ─────────────────────────────────────────────────────────
 
 const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> = {
-  independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-brand-100 text-brand-800" },
-  culture:       { fr: "Culture",       ht: "Kilti",        color: "bg-purple-100 text-purple-800" },
-  education:     { fr: "Éducation",     ht: "Edikasyon",    color: "bg-green-100 text-green-800" },
-  politics:      { fr: "Politique",     ht: "Politik",      color: "bg-red-100 text-red-800" },
-  science:       { fr: "Science",       ht: "Syans",        color: "bg-cyan-100 text-cyan-800" },
-  military:      { fr: "Militaire",     ht: "Militè",       color: "bg-gray-100 text-gray-800" },
-  economy:       { fr: "Économie",      ht: "Ekonomi",      color: "bg-yellow-100 text-yellow-800" },
-  literature:    { fr: "Littérature",   ht: "Literati",     color: "bg-indigo-100 text-indigo-800" },
-  art:           { fr: "Art",           ht: "La",           color: "bg-pink-100 text-pink-800" },
-  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-brand-100 text-brand-800" },
-  sports:        { fr: "Sports",        ht: "Espò",         color: "bg-emerald-100 text-emerald-800" },
-  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-gray-200 text-gray-800" },
-  diplomacy:     { fr: "Diplomatie",    ht: "Diplomasi",    color: "bg-teal-100 text-teal-800" },
-  resistance:    { fr: "Résistance",    ht: "Rezistans",    color: "bg-rose-100 text-rose-800" },
-  revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-100 text-red-700" },
+  independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300" },
+  culture:       { fr: "Culture",       ht: "Kilti",        color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" },
+  education:     { fr: "Éducation",     ht: "Edikasyon",    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
+  politics:      { fr: "Politique",     ht: "Politik",      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
+  science:       { fr: "Science",       ht: "Syans",        color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300" },
+  military:      { fr: "Militaire",     ht: "Militè",       color: "bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300" },
+  economy:       { fr: "Économie",      ht: "Ekonomi",      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
+  literature:    { fr: "Littérature",   ht: "Literati",     color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300" },
+  art:           { fr: "Art",           ht: "La",           color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300" },
+  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300" },
+  sports:        { fr: "Sports",        ht: "Espò",         color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
+  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-gray-200 text-gray-800 dark:bg-slate-700 dark:text-slate-300" },
+  diplomacy:     { fr: "Diplomatie",    ht: "Diplomasi",    color: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300" },
+  resistance:    { fr: "Résistance",    ht: "Rezistans",    color: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300" },
+  revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
 };
 
 const MONTH_NAMES_FR = [
@@ -177,39 +177,39 @@ export default async function HistoirePage({
                     className="relative flex gap-4 sm:gap-6"
                   >
                     {/* Timeline dot */}
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-lg ring-4 ring-white sm:h-12 sm:w-12">
+                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-lg ring-4 ring-white dark:ring-slate-900 sm:h-12 sm:w-12">
                       {entry.year != null
                         ? String(entry.year).slice(-2)
                         : String(idx + 1)}
                     </div>
 
                     {/* Card */}
-                    <div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
+                    <div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800 p-5 shadow-sm transition hover:shadow-md sm:p-6">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         {entry.year != null && (
-                          <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">
+                          <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
                             {entry.year}
                           </span>
                         )}
                         {entry.confidence === "high" && (
-                          <span className="rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                          <span className="rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
                             ✓ {fr ? "Vérifié" : "Verifye"}
                           </span>
                         )}
                       </div>
 
-                      <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white sm:text-xl">
                         {entry.title_fr}
                       </h2>
 
-                      <p className="mt-2 text-sm leading-relaxed text-gray-600 sm:text-base">
+                      <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-slate-300 sm:text-base">
                         {entry.summary_fr}
                       </p>
 
                       {entry.student_takeaway_fr && (
-                        <div className="mt-4 flex gap-3 rounded-lg border border-brand-100 bg-brand-50/60 p-4">
+                        <div className="mt-4 flex gap-3 rounded-lg border border-brand-100 bg-brand-50/60 dark:border-brand-800/40 dark:bg-brand-900/20 p-4">
                           <span className="text-lg">💡</span>
-                          <div className="text-sm text-brand-800">
+                          <div className="text-sm text-brand-800 dark:text-brand-300">
                             <strong>
                               {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
                             </strong>{" "}
@@ -225,7 +225,7 @@ export default async function HistoirePage({
                           return (
                             <span
                               key={tag}
-                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
+                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300"}`}
                             >
                               {fr ? t?.fr : t?.ht}
                             </span>
@@ -242,7 +242,7 @@ export default async function HistoirePage({
 
                         {/* Sources */}
                         {entry.sources.length > 0 && (
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-gray-400 dark:text-slate-500">
                             📚{" "}
                             {entry.sources.map((s, i) => (
                               <span key={i}>
@@ -251,7 +251,7 @@ export default async function HistoirePage({
                                   href={s.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-brand-600 hover:underline"
+                                  className="text-brand-600 dark:text-brand-400 hover:underline"
                                 >
                                   {s.label}
                                 </a>
@@ -266,7 +266,7 @@ export default async function HistoirePage({
             </div>
           </div>
         ) : todayHolidays.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
+          <div className="rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 py-12 text-center text-gray-400 dark:text-slate-500">
             <BookOpen className="mx-auto mb-3 h-10 w-10" />
             <p className="text-sm">
               {fr
@@ -283,7 +283,7 @@ export default async function HistoirePage({
       <section className="mx-auto mt-14 max-w-4xl">
         <Suspense
           fallback={
-            <div className="h-48 animate-pulse rounded-xl bg-gray-100" />
+            <div className="h-48 animate-pulse rounded-xl bg-gray-100 dark:bg-slate-800" />
           }
         >
           <HistoireArchive lang={lang} defaultMonth={todayMonth} />

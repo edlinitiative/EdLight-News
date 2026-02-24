@@ -54,7 +54,7 @@ export default async function NewsPage({
   return (
     <Suspense
       fallback={
-        <div className="animate-pulse h-96 rounded-lg bg-gray-100" />
+        <div className="animate-pulse h-96 rounded-lg bg-gray-100 dark:bg-slate-800" />
       }
     >
       {/*
