@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { useTheme } from "@/lib/theme-context";
 import { Sparkles } from "lucide-react";
 
@@ -15,7 +15,7 @@ interface GeminiHeroImageProps {
   themeAware?: boolean;
 }
 
-export function GeminiHeroImage({
+export const GeminiHeroImage = memo(function GeminiHeroImage({
   prompt,
   fallbackGradient = "from-brand-600 via-blue-700 to-indigo-800",
   className = "",
@@ -119,10 +119,14 @@ export function GeminiHeroImage({
       <img
         src={imageUrl}
         alt=""
+        loading="lazy"
+        decoding="async"
         className="h-full w-full object-cover"
       />
       {/* Subtle bottom gradient overlay */}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
     </div>
   );
-}
+});
+
+GeminiHeroImage.displayName = "GeminiHeroImage";

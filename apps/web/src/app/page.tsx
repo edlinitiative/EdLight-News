@@ -62,8 +62,19 @@ import {
   TUITION_LABELS,
 } from "@/lib/datasets";
 import { getCalendarGeo } from "@/lib/calendarGeo";
-import { DashboardTabs } from "@/components/DashboardTabs";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
 import { GeminiHeroImage } from "@/components/GeminiHeroImage";
+
+const DashboardTabs = dynamic(
+  () => import("@/components/DashboardTabs").then((m) => m.DashboardTabs),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-800" />
+    ),
+  },
+);
 
 export const revalidate = 300; // ISR: regenerate every 5 minutes
 
@@ -174,7 +185,7 @@ export default async function AccueilPage({
     allPathways,
     allUniversities,
   ] = await Promise.all([
-    safeFetch(() => fetchEnrichedFeed(lang, 300), [], "enrichedFeed"),
+    safeFetch(() => fetchEnrichedFeed(lang, 100), [], "enrichedFeed"),
     safeFetch(fetchUpcomingCalendarEvents, [], "upcomingEvents"),
     safeFetch(() => fetchScholarshipsClosingSoon(30), [], "scholarships30"),
     safeFetch(() => fetchScholarshipsClosingSoon(45), [], "scholarships45"),
@@ -560,7 +571,7 @@ export default async function AccueilPage({
       />
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  URGENCY — À ne pas rater cette semaine
+       *  URGENCY — À ne pas rater cette semaine (streamed below fold)
        * ═══════════════════════════════════════════════════════════════════ */}
       {topUrgent.length > 0 && (
         <section className="premium-section space-y-4 border-red-200 bg-red-50/30 dark:border-red-800/40 dark:bg-red-950/20">

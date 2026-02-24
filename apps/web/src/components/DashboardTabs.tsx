@@ -44,6 +44,17 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("bourses");
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // Track which tabs have been visited — only mount those panels (perf: avoids 5 simultaneous API calls)
+  const [mountedTabs, setMountedTabs] = useState<Set<TabId>>(new Set(["bourses"]));
+  useEffect(() => {
+    setMountedTabs((prev) => {
+      if (prev.has(activeTab)) return prev;
+      const next = new Set(prev);
+      next.add(activeTab);
+      return next;
+    });
+  }, [activeTab]);
+
   // ── Refs ─────────────────────────────────────────────────────────────────
   const scrollRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -255,7 +266,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
             role="tabpanel"
             aria-label={fr ? tab.fr : tab.ht}
           >
-            {panels[tab.id]}
+            {mountedTabs.has(tab.id) ? panels[tab.id] : null}
           </div>
         ))}
       </div>

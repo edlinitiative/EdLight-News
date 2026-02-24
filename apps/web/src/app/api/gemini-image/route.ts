@@ -24,14 +24,22 @@ export async function POST(req: NextRequest) {
     const cacheKey = `${prompt}::${theme ?? "light"}`;
     const cached = imageCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
-      return NextResponse.json({ image: cached.data });
+      return NextResponse.json(
+        { image: cached.data },
+        {
+          headers: {
+            "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200",
+            "X-Cache": "HIT",
+          },
+        },
+      );
     }
 
     // Build the full prompt — instruct for premium edu-tech visuals
     const fullPrompt = [
       `Generate a photorealistic, ultra-premium hero image.`,
       prompt,
-      `Style: cinematic, editorial-quality, shallow depth of field, natural lighting, 16:9 aspect ratio.`,
+      `Style: cinematic, editorial-quality, shallow depth of field, natural lighting, 16:9 aspect ratio, 800x450 resolution.`,
       theme === "dark"
         ? "Moody lighting with rich deep blues and navy tones, subtle warm highlights."
         : "Bright natural daylight, soft warm tones with airy atmosphere.",
@@ -69,7 +77,14 @@ export async function POST(req: NextRequest) {
     if (imagePart?.inlineData) {
       const dataUrl = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
       imageCache.set(cacheKey, { data: dataUrl, ts: Date.now() });
-      return NextResponse.json({ image: dataUrl });
+      return NextResponse.json(
+        { image: dataUrl },
+        {
+          headers: {
+            "Cache-Control": "public, max-age=3600, s-maxage=3600, stale-while-revalidate=7200",
+          },
+        },
+      );
     }
 
     // No image in response — return graceful fallback signal
