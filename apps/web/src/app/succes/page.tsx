@@ -6,12 +6,28 @@
  * No fallback to generic news.
  */
 
+import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Succès & Inspiration · EdLight News" : "Siksè & Enspirasyon · EdLight News",
+    description: fr
+      ? "Des histoires de réussite qui inspirent la communauté haïtienne."
+      : "Istwa siksè ki enspire kominote ayisyèn nan.",
+  };
+}
 
 export default async function SuccesPage({
   searchParams,

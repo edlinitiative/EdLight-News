@@ -7,6 +7,7 @@
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { ClipboardList } from "lucide-react";
+import Link from "next/link";
 import type { FeedItem } from "@/components/news-feed";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
@@ -110,7 +111,7 @@ export function ArticleCard({
     FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
 
   return (
-    <a
+    <Link
       href={`/news/${article.id}?lang=${lang}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
     >
@@ -218,6 +219,6 @@ export function ArticleCard({
           )}
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

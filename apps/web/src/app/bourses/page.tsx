@@ -23,10 +23,20 @@ import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Bourses | EdLight News",
-  description: "Bourses et opportunités pour étudiants haïtiens",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Bourses & Opportunités · EdLight News" : "Bous & Opòtinite · EdLight News",
+    description: fr
+      ? "Base de données de bourses et opportunités pour étudiants haïtiens."
+      : "Baz done bous ak opòtinite pou elèv ayisyen yo.",
+  };
+}
 
 // ── Timestamp → ISO string helper ──────────────────────────────────────────
 

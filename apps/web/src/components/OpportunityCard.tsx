@@ -9,6 +9,7 @@
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { GraduationCap, Globe, MapPin, CalendarClock, AlertCircle } from "lucide-react";
+import Link from "next/link";
 import type { FeedItem } from "@/components/news-feed";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
@@ -74,7 +75,7 @@ export function OpportunityCard({
   const subCatLabel = SUBCAT_LABELS[subCat][lang];
 
   return (
-    <a
+    <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
         "group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md",
@@ -194,6 +195,6 @@ export function OpportunityCard({
           )}
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

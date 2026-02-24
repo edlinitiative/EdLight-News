@@ -1,288 +1,286 @@
 "use client";
 
+/**
+ * CalendarDashboard — interactive timeline dashboard for /calendrier.
+ *
+ * Export name kept as CalendarFilterTabs for backward compatibility with page.tsx.
+ *
+ * State:
+ *  - geoTab: "tous" | "haiti" | "international"
+ *  - catFilter: "tous" | "examens" | "admissions" | "bourses" | "concours" | "autres"
+ *
+ * Rendering order:
+ *  1. Geo tab row  (Tous · Haïti · International)
+ *  2. Category pill row (Examens · Admissions · Bourses · Concours · Autres)
+ *  3. Urgent Deadlines section
+ *  4. This Week section
+ *  5. This Month section
+ *  6. Archive section
+ *  7. MiniMonthGrid sidebar (xl only)
+ */
+
 import { useState } from "react";
+import { CalendarDays } from "lucide-react";
+import type { ContentLanguage } from "@edlight-news/types";
+import type {
+  CalendarItem,
+  HaitiCalendarItem,
+  IntlCalendarItem,
+  GeoFilter,
+  CategoryFilter,
+} from "@/components/calendar/types";
 import {
-  CalendarDays,
-  Globe,
-  GraduationCap,
-  FileText,
-  ClipboardList,
-  BarChart3,
-  School,
-  Lock,
-  Pin,
-  Clock,
-  Paperclip,
-  DollarSign,
-  ExternalLink,
-} from "lucide-react";
-import type { ContentLanguage, CalendarEventType } from "@edlight-news/types";
-import type { CalendarGeo } from "@/lib/calendarGeo";
-import type { CalendarAudience } from "@/lib/calendarAudience";
-import { MetaBadges } from "@/components/MetaBadges";
-import { DeadlineBadge } from "@/components/DeadlineBadge";
+  filterCalendarItems,
+  getItemTitle,
+  getItemDateISO,
+} from "@/components/calendar/types";
+import {
+  bucketItems,
+  groupArchiveByMonth,
+} from "@/components/calendar/calendarUtils";
+import { UrgentDeadlines } from "@/components/calendar/UrgentDeadlines";
+import { ThisWeek } from "@/components/calendar/ThisWeek";
+import { MonthGrouped } from "@/components/calendar/MonthGrouped";
+import { MiniMonthGrid } from "@/components/calendar/MiniMonthGrid";
+import { parseISODateSafe } from "@/lib/deadlines";
 
-type FilterTab = "tous" | "haiti" | "international";
+// ─── Archive section ──────────────────────────────────────────────────────────
 
-interface HaitiItem {
-  id: string;
-  kind: "haiti";
-  title: string;
-  dateISO?: string;
-  endDateISO?: string | null;
-  notes?: string | null;
-  institution?: string | null;
-  level?: string | string[] | null;
-  eventType: CalendarEventType;
-  officialUrl?: string | null;
-  sources?: { label: string; url: string }[] | null;
-  verifiedAt?: unknown;
-  updatedAt?: unknown;
-  geo: CalendarGeo;
-  audience: CalendarAudience;
+function ArchiveMonthBlock({
+  monthKey,
+  items,
+  lang,
+}: {
+  monthKey: string;
+  items: CalendarItem[];
+  lang: ContentLanguage;
+}) {
+  const fr = lang === "fr";
+
+  const label =
+    monthKey === "nodate"
+      ? fr
+        ? "Date à confirmer"
+        : "Dat pou konfime"
+      : (() => {
+          const yr = parseInt(monthKey.slice(0, 4), 10);
+          const mo = parseInt(monthKey.slice(5, 7), 10) - 1;
+          return new Date(yr, mo, 1).toLocaleDateString(
+            fr ? "fr-FR" : "fr-HT",
+            { month: "long", year: "numeric" },
+          );
+        })();
+
+  return (
+    <details className="overflow-hidden rounded-lg border border-gray-100">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-gray-50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium capitalize text-gray-600">
+            {label}
+          </span>
+          <span className="rounded-full bg-gray-100 px-1.5 py-px text-xs text-gray-400">
+            {items.length}
+          </span>
+        </div>
+        <span aria-hidden className="text-sm text-gray-400">
+          ▸
+        </span>
+      </summary>
+
+      <div className="divide-y divide-gray-50 border-t border-gray-100">
+        {items.map((item) => {
+          const dateISO = getItemDateISO(item);
+          const date = dateISO ? parseISODateSafe(dateISO) : null;
+          const isHaiti = item.geo === "Haiti";
+
+          return (
+            <div
+              key={item.id}
+              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50"
+            >
+              <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300">
+                {date ? date.getDate() : "?"}
+              </span>
+              <span
+                className={[
+                  "shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium",
+                  isHaiti
+                    ? "bg-brand-50 text-brand-600"
+                    : "bg-emerald-50 text-emerald-700",
+                ].join(" ")}
+              >
+                {isHaiti ? "HT" : "Intl"}
+              </span>
+              <span className="flex-1 truncate text-sm text-gray-600">
+                {getItemTitle(item)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </details>
+  );
 }
 
-interface IntlItem {
-  id: string;
-  kind: "international";
-  name: string;
-  dateISO: string | null;
-  country: string;
-  countryLabel?: string;
-  countryFlag?: string;
-  eligibility?: string | null;
-  howToApplyUrl?: string | null;
-  geo: CalendarGeo;
-  audience: CalendarAudience;
+function ArchiveSection({
+  items,
+  lang,
+}: {
+  items: CalendarItem[];
+  lang: ContentLanguage;
+}) {
+  const fr = lang === "fr";
+  const grouped = groupArchiveByMonth(items);
+  if (grouped.size === 0) return null;
+
+  const sortedKeys = [...grouped.keys()]
+    .filter((k) => k !== "nodate")
+    .sort();
+  if (grouped.has("nodate")) sortedKeys.push("nodate");
+
+  return (
+    <section
+      aria-label={fr ? "Prochains mois" : "Mwa k ap vini yo"}
+      className="space-y-3"
+    >
+      <h2 className="text-base font-bold text-gray-900">
+        {fr ? "Prochains mois" : "Mwa k ap vini yo"}
+      </h2>
+      <div className="space-y-2">
+        {sortedKeys.map((key) => (
+          <ArchiveMonthBlock
+            key={key}
+            monthKey={key}
+            items={grouped.get(key)!}
+            lang={lang}
+          />
+        ))}
+      </div>
+    </section>
+  );
 }
 
-const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
-  exam: <FileText className="h-5 w-5 text-orange-600" />,
-  admissions: <GraduationCap className="h-5 w-5 text-brand-600" />,
-  registration: <ClipboardList className="h-5 w-5 text-brand-600" />,
-  results: <BarChart3 className="h-5 w-5 text-green-600" />,
-  rentree: <School className="h-5 w-5 text-purple-600" />,
-  closure: <Lock className="h-5 w-5 text-gray-500" />,
-};
+// ─── Main dashboard ───────────────────────────────────────────────────────────
 
 export function CalendarFilterTabs({
   haitiItems,
   intlItems,
   lang,
 }: {
-  haitiItems: HaitiItem[];
-  intlItems: IntlItem[];
+  haitiItems: HaitiCalendarItem[];
+  intlItems: IntlCalendarItem[];
   lang: ContentLanguage;
 }) {
-  const [tab, setTab] = useState<FilterTab>("tous");
   const fr = lang === "fr";
+  const [geoTab, setGeoTab] = useState<GeoFilter>("tous");
+  const [catFilter, setCatFilter] = useState<CategoryFilter>("tous");
 
-  // Geo-based filtering
-  const geoFilter = (geo: CalendarGeo): boolean =>
-    tab === "tous" || (tab === "haiti" ? geo === "Haiti" : geo === "International");
+  const allItems: CalendarItem[] = [...haitiItems, ...intlItems];
 
-  const filteredHaiti = haitiItems.filter((i) => geoFilter(i.geo));
-  const filteredIntl = intlItems.filter((i) => geoFilter(i.geo));
+  // Geo counts reflect full item set (not category-filtered)
+  const haitiCount = allItems.filter((i) => i.geo === "Haiti").length;
+  const intlCount = allItems.filter((i) => i.geo === "International").length;
 
-  const haitiGeoCount =
-    haitiItems.filter((i) => i.geo === "Haiti").length +
-    intlItems.filter((i) => i.geo === "Haiti").length;
-  const intlGeoCount =
-    haitiItems.filter((i) => i.geo === "International").length +
-    intlItems.filter((i) => i.geo === "International").length;
-
-  const tabs: { key: FilterTab; label: string; count: number }[] = [
-    { key: "tous", label: fr ? "Tous" : "Tout", count: haitiItems.length + intlItems.length },
-    { key: "haiti", label: fr ? "Haïti" : "Ayiti", count: haitiGeoCount },
-    { key: "international", label: "International", count: intlGeoCount },
+  const geoTabs: { key: GeoFilter; label: string; count: number }[] = [
+    { key: "tous", label: fr ? "Tous" : "Tout", count: allItems.length },
+    { key: "haiti", label: fr ? "Haïti" : "Ayiti", count: haitiCount },
+    { key: "international", label: "International", count: intlCount },
   ];
 
+  const catPills: { key: CategoryFilter; label: string }[] = [
+    { key: "tous", label: fr ? "Tous" : "Tout" },
+    { key: "examens", label: fr ? "Examens" : "Egzamen" },
+    { key: "admissions", label: fr ? "Admissions" : "Admisyon" },
+    { key: "bourses", label: fr ? "Bourses" : "Bous" },
+    { key: "concours", label: fr ? "Concours" : "Konkou" },
+    { key: "autres", label: fr ? "Autres" : "Lòt" },
+  ];
+
+  // Filter then bucket
+  const filtered = filterCalendarItems(allItems, geoTab, catFilter);
+  const buckets = bucketItems(filtered);
+
+  const noResults =
+    buckets.urgent.length === 0 &&
+    buckets.thisWeek.length === 0 &&
+    buckets.thisMonth.length === 0 &&
+    buckets.archive.length === 0;
+
   return (
-    <div className="space-y-6">
-      {/* Tab pills */}
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => (
+    <div className="space-y-5">
+      {/* ── Geo tabs ─────────────────────────────────────────────────────────── */}
+      <div
+        role="tablist"
+        aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
+        className="flex flex-wrap gap-2"
+      >
+        {geoTabs.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            type="button"
+            role="tab"
+            aria-selected={geoTab === t.key}
+            onClick={() => setGeoTab(t.key)}
             className={[
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
-              tab === t.key
+              geoTab === t.key
                 ? "bg-brand-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200",
             ].join(" ")}
           >
-            {t.label} <span className="ml-1 opacity-70">({t.count})</span>
+            {t.label}{" "}
+            <span className="ml-1 opacity-70">({t.count})</span>
           </button>
         ))}
       </div>
 
-      {/* Haiti events */}
-      {filteredHaiti.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-brand-800">
-            <span className="rounded bg-brand-100 px-1.5 py-0.5 text-xs font-semibold text-brand-700">Haïti</span>
-            {fr ? "Événements Haïti" : "Evènman Ayiti"}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {filteredHaiti.map((e) => (
-              <div
-                key={e.id}
-                className="rounded-lg border-l-4 border-brand-400 bg-brand-50/50 p-4"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center">
-                    {EVENT_TYPE_ICON[e.eventType] ?? <Pin className="h-5 w-5 text-gray-400" />}
-                  </span>
-                  <h3 className="font-semibold">{e.title}</h3>
-                </div>
-                <p className="mt-1 text-sm text-brand-700">
-                  {e.dateISO
-                    ? new Date(e.dateISO + "T00:00:00").toLocaleDateString(
-                        fr ? "fr-FR" : "fr-HT",
-                        { weekday: "long", day: "numeric", month: "long", year: "numeric" },
-                      )
-                    : (fr ? "Date à confirmer" : "Dat pou konfime")}
-                  {e.endDateISO &&
-                    ` — ${new Date(e.endDateISO + "T00:00:00").toLocaleDateString(
-                      fr ? "fr-FR" : "fr-HT",
-                      { day: "numeric", month: "long" },
-                    )}`}
-                </p>
-                {e.notes && (
-                  <p className="mt-1 text-sm text-gray-600">{e.notes}</p>
-                )}
-                <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-                  {e.institution && <span>{e.institution}</span>}
-                  {e.level && (
-                    <span>
-                      • {Array.isArray(e.level) ? e.level.join(", ") : e.level}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {e.officialUrl && (
-                    <a
-                      href={e.officialUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-medium text-brand-600 hover:underline"
-                    >
-                      {fr ? "Site officiel →" : "Sit ofisyèl →"}
-                    </a>
-                  )}
-                  {e.sources?.map((src, i) => (
-                    <a
-                      key={i}
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded bg-white/60 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-600 hover:underline"
-                    >
-                      <Paperclip className="mr-0.5 inline h-3 w-3" />
-                      {src.label}
-                    </a>
-                  ))}
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <DeadlineBadge
-                    dateISO={e.dateISO}
-                    windowDays={14}
-                    lang={lang}
-                    prefix={{ fr: "Événement", ht: "Evènman" }}
-                  />
-                  <MetaBadges
-                    verifiedAt={e.verifiedAt as any}
-                    updatedAt={e.updatedAt as any}
-                    lang={lang}
-                  />
-                  {e.audience === "HaitianStudents" && (
-                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
-                      {fr ? "Pour Haïti" : "Pou Ayiti"}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* ── Category pills ───────────────────────────────────────────────────── */}
+      <div
+        role="group"
+        aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
+        className="flex flex-wrap gap-1.5"
+      >
+        {catPills.map((p) => (
+          <button
+            key={p.key}
+            type="button"
+            onClick={() => setCatFilter(p.key)}
+            className={[
+              "rounded-full px-3 py-1 text-xs font-medium transition",
+              catFilter === p.key
+                ? "bg-gray-800 text-white"
+                : "bg-gray-100 text-gray-500 hover:bg-gray-200",
+            ].join(" ")}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
 
-      {/* International scholarship deadlines */}
-      {filteredIntl.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-emerald-800">
-            <span className="inline-flex items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
-              <Globe className="h-3 w-3" /> International
-            </span>
-            {fr ? "Bourses internationales — Dates limites" : "Bous entènasyonal — Dat limit"}
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {filteredIntl.map((s) => {
-              const dateObj = s.dateISO
-                ? new Date(s.dateISO + "T00:00:00")
-                : null;
-              return (
-                <div
-                  key={s.id}
-                  className="rounded-lg border-l-4 border-amber-400 bg-amber-50/50 p-4"
-                >
-                  <h3 className="font-semibold text-gray-900">{s.name}</h3>
-                  {dateObj && (
-                    <p className="mt-1 flex items-center gap-1 text-sm text-amber-700">
-                      <Clock className="h-3.5 w-3.5" />
-                      {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                  )}
-                  {s.eligibility && (
-                    <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-                      {s.eligibility}
-                    </p>
-                  )}
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
-                    <span>{s.countryFlag} {s.countryLabel}</span>
-                    {s.audience === "HaitianStudents" && (
-                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
-                        {fr ? "Pour Haïti" : "Pou Ayiti"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1">
-                    <DeadlineBadge
-                      dateISO={s.dateISO}
-                      windowDays={30}
-                      lang={lang}
-                    />
-                  </div>
-                  {s.howToApplyUrl && (
-                    <a
-                      href={s.howToApplyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      {fr ? "Postuler →" : "Aplike →"}
-                    </a>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* ── Two-column layout: timeline + mini grid ───────────────────────────── */}
+      <div className="flex items-start gap-8">
+        {/* Main timeline */}
+        <div className="min-w-0 flex-1 space-y-10">
+          <UrgentDeadlines items={buckets.urgent} lang={lang} />
+          <ThisWeek items={buckets.thisWeek} lang={lang} />
+          <MonthGrouped items={buckets.thisMonth} lang={lang} />
+          <ArchiveSection items={buckets.archive} lang={lang} />
 
-      {/* Empty state */}
-      {filteredHaiti.length === 0 && filteredIntl.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
-          <CalendarDays className="mx-auto mb-2 h-8 w-8" />
-          <p>{fr ? "Aucun événement pour ce filtre." : "Pa gen evènman pou filt sa a."}</p>
+          {noResults && (
+            <div className="rounded-lg border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
+              <CalendarDays className="mx-auto mb-2 h-8 w-8" />
+              <p className="text-sm">
+                {fr
+                  ? "Aucun événement pour ce filtre."
+                  : "Pa gen evènman pou filt sa a."}
+              </p>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Mini month grid — desktop only */}
+        <MiniMonthGrid items={filtered} lang={lang} />
+      </div>
     </div>
   );
 }

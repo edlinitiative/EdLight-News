@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
@@ -161,12 +162,12 @@ function RelatedUpdates({
       <ul className="space-y-2">
         {others.map((a) => (
           <li key={a.id}>
-            <a
+            <Link
               href={`/news/${a.id}?lang=${lang}`}
               className="text-sm text-brand-700 hover:underline"
             >
               {a.title}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
@@ -713,12 +714,12 @@ export default async function ArticlePage({
               ? "Lire cet article en Kreyòl Ayisyen:"
               : "Li atik sa a an Fransè:"}
           </p>
-          <a
+          <Link
             href={`/news/${siblingVersion.id}?lang=${otherLang}`}
             className="mt-1 inline-block font-medium text-brand-700 hover:underline"
           >
             {siblingVersion.title} →
-          </a>
+          </Link>
         </div>
       )}
 
@@ -777,12 +778,12 @@ export default async function ArticlePage({
 
       {/* Back link */}
       <div className="pt-4">
-        <a
+        <Link
           href={`/news?lang=${currentLang}`}
           className="text-sm text-gray-500 hover:text-gray-700"
         >
           ← {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
-        </a>
+        </Link>
       </div>
     </article>
   );

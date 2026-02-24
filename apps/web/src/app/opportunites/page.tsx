@@ -6,6 +6,7 @@
  * sort (deadline / pertinence / dernières), and "inclure sans deadline" toggle.
  */
 
+import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
@@ -13,6 +14,21 @@ import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Opportunités · EdLight News" : "Okazyon · EdLight News",
+    description: fr
+      ? "Bourses, concours, stages et programmes pour étudiants haïtiens."
+      : "Bous, konkou, estaj ak pwogram pou elèv ayisyen.",
+  };
+}
 
 export default async function OpportunitesPage({
   searchParams,

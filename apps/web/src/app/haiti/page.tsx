@@ -7,6 +7,7 @@
  * Client component (HaitiFeed): handles sort + optional "Étudiants" toggle.
  */
 
+import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
@@ -14,6 +15,21 @@ import { getItemGeo } from "@/lib/itemGeo";
 import { HaitiFeed } from "@/components/HaitiFeed";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Haïti · EdLight News" : "Ayiti · EdLight News",
+    description: fr
+      ? "Nouvelles locales et actualités éducatives directement d'Haïti."
+      : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti.",
+  };
+}
 
 export default async function HaitiPage({
   searchParams,

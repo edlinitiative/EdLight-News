@@ -7,12 +7,28 @@
  * Client component (SectionFeed): handles sort toggle (Pertinence / Dernières).
  */
 
+import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 
 export const revalidate = 300;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Ressources · EdLight News" : "Resous · EdLight News",
+    description: fr
+      ? "Guides, carrière, étudier à l'étranger, histoire — tout pour les étudiants haïtiens."
+      : "Gid, karyè, etidye aletranje, istwa — tout pou elèv ayisyen.",
+  };
+}
 
 /** Series that surface on /ressources */
 const RESOURCE_SERIES = new Set([

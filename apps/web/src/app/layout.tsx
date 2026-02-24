@@ -28,17 +28,6 @@ export default function RootLayout({
               <span className="font-semibold text-brand-700">
                 EdLight News
               </span>
-              <nav className="flex flex-wrap items-center gap-4">
-                <a href="/sources" className="hover:text-gray-700 hover:underline">
-                  Sources
-                </a>
-                <a href="/about" className="hover:text-gray-700 hover:underline">
-                  À propos
-                </a>
-                <a href="/contact" className="hover:text-gray-700 hover:underline">
-                  Contact
-                </a>
-              </nav>
               <span className="text-xs text-gray-400">
                 © {new Date().getFullYear()} EdLight Initiative
               </span>

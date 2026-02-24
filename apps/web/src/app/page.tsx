@@ -28,6 +28,7 @@
  */
 
 import Link from "next/link";
+import type { Metadata } from "next";
 import {
   CalendarDays,
   GraduationCap,
@@ -43,7 +44,7 @@ import {
 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
-import { fetchEnrichedFeed, isSuccessArticle } from "@/lib/content";
+import { fetchEnrichedFeed, isSuccessArticle, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { ArticleCard } from "@/components/ArticleCard";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
@@ -63,6 +64,23 @@ import {
 import { getCalendarGeo } from "@/lib/calendarGeo";
 
 export const revalidate = 300; // ISR: regenerate every 5 minutes
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr
+      ? "EdLight News — Actualités éducatives pour étudiants haïtiens"
+      : "EdLight News — Nouvèl edikasyon pou elèv ayisyen yo",
+    description: fr
+      ? "Bourses, calendrier, ressources et actualités pour les étudiants haïtiens."
+      : "Bous, kalandriye, resous ak nouvèl pou elèv ayisyen yo.",
+  };
+}
 
 // ── Cross-section dedup helper ────────────────────────────────────────────────
 

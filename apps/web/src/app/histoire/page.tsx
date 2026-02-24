@@ -3,16 +3,17 @@
  *
  * Today-first layout:
  *   A) Hero: today's almanac entries + holidays (full long-form)
- *   B) Cette semaine: next 7 days mini-cards
- *   C) Explorer par date: collapsible month/tag archive (client-side, lazy)
+ *   B) Explorer l'histoire: weekly/monthly archive (client-side, lazy)
  *
  * NOTE: Validation warnings (on HistoryPublishLog) are internal-only
  * and MUST NOT be surfaced here.
  */
 
 import { Suspense } from "react";
-import { BookOpen, Calendar, Star } from "lucide-react";
+import { BookOpen, Star } from "lucide-react";
+import type { Metadata } from "next";
 import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
+import { getLangFromSearchParams } from "@/lib/content";
 import { MetaBadges } from "@/components/MetaBadges";
 import { HistoireArchive } from "@/components/HistoireArchive";
 import {
@@ -23,9 +24,22 @@ import {
 
 export const revalidate = 900;
 
-export const metadata = {
-  title: "Aujourd'hui dans l'histoire d'Haïti · EdLight News",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr
+      ? "Aujourd'hui dans l'histoire d'Haïti · EdLight News"
+      : "Jodi a nan istwa Ayiti · EdLight News",
+    description: fr
+      ? "Éphéméride haïtienne : événements historiques, fêtes et personnalités du jour."
+      : "Efemerid ayisyen : evènman istorik, fèt ak pèsonalite jou a.",
+  };
+}
 
 // ── Shared constants ─────────────────────────────────────────────────────────
 
@@ -69,30 +83,6 @@ function formatMonthDay(
   return `${parseInt(dd!, 10)} ${name ?? mm}`;
 }
 
-/** Get next N calendar days as MM-DD strings (Haiti timezone). */
-function getNextDays(todayMD: string, count: number): string[] {
-  const [mm, dd] = todayMD.split("-").map(Number) as [number, number];
-  // Use a reference year (2024 = leap year so Feb 29 works)
-  const base = new Date(2024, mm - 1, dd);
-  const days: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const d = new Date(base);
-    d.setDate(base.getDate() + i);
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    days.push(`${m}-${day}`);
-  }
-  return days;
-}
-
-/** First sentence (rough): split on ". " and take the first chunk. */
-function firstSentence(text: string): string {
-  const idx = text.indexOf(". ");
-  if (idx > 0 && idx < 200) return text.slice(0, idx + 1);
-  if (text.length > 160) return text.slice(0, 160).trimEnd() + "…";
-  return text;
-}
-
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HistoirePage({
@@ -118,31 +108,6 @@ export default async function HistoirePage({
     console.error("[EdLight] /histoire today fetch failed:", err);
     todayEntries = [];
     todayHolidays = [];
-  }
-
-  // ── Fetch 7-day lookahead ──────────────────────────────────────────────
-  const weekDays = getNextDays(todayMD, 7);
-  type WeekEntry = { monthDay: string; entry: HaitiHistoryAlmanacEntry };
-  const weekEntries: WeekEntry[] = [];
-
-  try {
-    const results = await Promise.all(
-      weekDays.map((md) => fetchAlmanacByMonthDay(md)),
-    );
-    for (let i = 0; i < weekDays.length; i++) {
-      const md = weekDays[i]!;
-      const dayEntries = results[i] ?? [];
-      // Take the highest-confidence entry per day (skip today — shown in hero)
-      if (md === todayMD) continue;
-      const best = [...dayEntries].sort((a, b) =>
-        a.confidence === "high" && b.confidence !== "high" ? -1 : 1,
-      )[0];
-      if (best) {
-        weekEntries.push({ monthDay: md, entry: best });
-      }
-    }
-  } catch (err) {
-    console.error("[EdLight] /histoire week fetch failed:", err);
   }
 
   return (
@@ -313,70 +278,7 @@ export default async function HistoirePage({
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  SECTION B — Cette semaine dans l'histoire
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {weekEntries.length > 0 && (
-        <section className="mx-auto mt-14 max-w-4xl">
-          <h2 className="mb-5 flex items-center gap-2 text-xl font-bold text-gray-900">
-            <Calendar className="h-5 w-5 text-brand-600" />
-            {fr ? "Cette semaine dans l\u2019histoire" : "Semèn sa a nan istwa"}
-          </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {weekEntries.map(({ monthDay, entry }) => (
-              <div
-                key={entry.id}
-                className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
-              >
-                {/* Date accent stripe */}
-                <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-brand-500 to-indigo-400 opacity-0 transition group-hover:opacity-100" />
-
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-gray-100 text-brand-700 group-hover:bg-brand-50">
-                    <span className="text-lg font-bold leading-tight">
-                      {parseInt(monthDay.split("-")[1]!, 10)}
-                    </span>
-                    <span className="text-[9px] font-medium uppercase text-gray-400">
-                      {(fr ? MONTH_NAMES_FR : MONTH_NAMES_HT)[parseInt(monthDay.split("-")[0]!, 10) - 1]?.slice(0, 3)}
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-gray-900 leading-snug">
-                      {entry.title_fr}
-                    </h3>
-                    {entry.year != null && (
-                      <span className="text-xs text-gray-400">
-                        {entry.year}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <p className="text-xs leading-relaxed text-gray-500 line-clamp-2">
-                  {firstSentence(entry.summary_fr)}
-                </p>
-                {entry.tags && entry.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {entry.tags.slice(0, 2).map((tag) => {
-                      const t = TAG_LABELS[tag];
-                      return (
-                        <span
-                          key={tag}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
-                        >
-                          {fr ? t?.fr : t?.ht}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
-       *  SECTION C — Parcourir par mois (always-visible archive)
+       *  SECTION B — Explorer l'histoire (weekly/monthly archive)
        * ═══════════════════════════════════════════════════════════════════ */}
       <section className="mx-auto mt-14 max-w-4xl">
         <Suspense

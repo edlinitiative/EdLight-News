@@ -9,6 +9,7 @@
 
 import Link from "next/link";
 import { Clock } from "lucide-react";
+import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
@@ -26,10 +27,20 @@ import { ClosingSoonTabs } from "./tabs";
 
 export const revalidate = 300;
 
-export const metadata = {
-  title: "Échéances à venir | EdLight News",
-  description: "Bourses et événements avec des dates limites bientôt.",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Échéances à venir · EdLight News" : "Dat limit k ap vini · EdLight News",
+    description: fr
+      ? "Bourses qui ferment bientôt et événements du calendrier haïtien à ne pas manquer."
+      : "Bous ki pral fèmen byento ak evènman kalandriye ayisyen pou pa rate.",
+  };
+}
 
 // ── Shared item type passed to client ────────────────────────────────────────
 

@@ -13,10 +13,20 @@ import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
 
 export const revalidate = 900;
 
-export const metadata: Metadata = {
-  title: "Parcours | EdLight News",
-  description: "Guides étape par étape pour étudier à l'étranger depuis Haïti",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Parcours · EdLight News" : "Pakou · EdLight News",
+    description: fr
+      ? "Guides étape par étape pour étudier à l'étranger depuis Haïti."
+      : "Gid etap pa etap pou etidye aletranje depi Ayiti.",
+  };
+}
 
 export default async function ParcoursPage({
   searchParams,

@@ -19,10 +19,20 @@ import Link from "next/link";
 
 export const revalidate = 900;
 
-export const metadata: Metadata = {
-  title: "Universités | EdLight News",
-  description: "Base de données d'universités pour étudiants haïtiens",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Universités · EdLight News" : "Inivèsite · EdLight News",
+    description: fr
+      ? "Base de données d'universités pour étudiants haïtiens."
+      : "Baz done inivèsite pou elèv ayisyen yo.",
+  };
+}
 
 export default async function UniversitesPage({
   searchParams,

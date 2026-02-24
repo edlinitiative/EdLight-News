@@ -3,13 +3,25 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { NewsFeed } from "@/components/news-feed";
 import { fetchEnrichedArticles } from "@/lib/feed";
 import { rankFeed } from "@/lib/ranking";
+import { getLangFromSearchParams } from "@/lib/content";
 import { Suspense } from "react";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
-  title: "Fil — Actualités · EdLight News",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  return {
+    title: fr ? "Fil — Actualités · EdLight News" : "Fil — Nouvèl · EdLight News",
+    description: fr
+      ? "Toute l'actualité éducative pour les étudiants haïtiens."
+      : "Tout nouvèl edikasyon pou elèv ayisyen yo.",
+  };
+}
 
 export default async function NewsPage({
   searchParams,
