@@ -38,6 +38,92 @@ export interface PickedImage {
 const USER_AGENT =
   "Mozilla/5.0 (compatible; EdLight-News/1.0; +https://edlight.org) AppleWebKit/537.36";
 
+// ── Bot-protection / CAPTCHA detection ────────────────────────────────────
+
+/**
+ * Patterns that indicate the page is a CAPTCHA, anti-bot challenge,
+ * or other bot-protection interstitial rather than real article content.
+ * Each entry is tested case-insensitively against the extracted body text.
+ */
+const BOT_PROTECTION_PATTERNS: (string | RegExp)[] = [
+  // Cloudflare
+  "checking your browser",
+  "just a moment",
+  "attention required",
+  "enable javascript and cookies",
+  "ddos protection by",
+  "ray id",
+  "cf-browser-verification",
+  "cloudflare",
+  // Generic CAPTCHA / challenge
+  "verify you are human",
+  "are you a human",
+  "complete the security check",
+  "prove you are not a robot",
+  "i'm not a robot",
+  "captcha",
+  "recaptcha",
+  "hcaptcha",
+  // French variants (seen on AlterPresse & other Francophone sites)
+  "tester si vous êtes un visiteur humain",
+  "vérifier que vous êtes humain",
+  "empêcher la soumission automatisée",
+  "mesure contre les robots",
+  "protection anti-spam",
+  "visiteur humain",
+  "soumission automatisée de spam",
+  // Access denied / paywalls
+  "access denied",
+  "403 forbidden",
+  "you don't have permission",
+  "accès refusé",
+  // Bot detection services
+  "perimeterx",
+  "distil networks",
+  "imperva incapsula",
+  "datadome",
+  "press & hold",
+  // Generic interstitials
+  /please wait[.…]*\s*(while we|we are)/i,
+  /checking (if the site|your) (connection|browser)/i,
+];
+
+/**
+ * Returns true when the extracted text looks like a CAPTCHA / anti-bot
+ * challenge page rather than genuine article content.
+ *
+ * Heuristics:
+ *  1. Known pattern match (any pattern hit on short text → bot page)
+ *  2. Entropy check: real articles have diverse vocabulary; challenge
+ *     pages are very short with repetitive boilerplate.
+ */
+export function isBotProtectionPage(text: string): boolean {
+  if (!text || text.length === 0) return false;
+
+  const lower = text.toLowerCase();
+
+  // Fast path: if the text is very short AND matches a known pattern → bot page
+  // For longer text, require 2+ pattern matches (avoid false positives on
+  // articles that merely *mention* CAPTCHAs).
+  let hits = 0;
+  for (const pattern of BOT_PROTECTION_PATTERNS) {
+    if (typeof pattern === "string") {
+      if (lower.includes(pattern)) hits++;
+    } else {
+      if (pattern.test(text)) hits++;
+    }
+  }
+
+  // Short text (< 500 chars): a single pattern match is enough
+  if (text.length < 500 && hits >= 1) return true;
+  // Medium text (< 2000 chars): require 2+ matches
+  if (text.length < 2000 && hits >= 2) return true;
+  // Long text: require 3+ matches (real articles can mention these terms)
+  if (hits >= 3) return true;
+
+  return false;
+}
+
 // ── Junk image patterns ───────────────────────────────────────────────────
 const JUNK_PATTERNS = [
   "avatar", "icon", "logo", "emoji", "gravatar", "spinner",
@@ -447,6 +533,16 @@ export async function extractArticleContent(
   text = text.replace(/\s{2,}/g, " ").trim();
   if (text.length > 10_000) {
     text = text.slice(0, 10_000) + "…";
+  }
+
+  // Bot-protection detection: if the extracted text looks like a CAPTCHA
+  // or anti-bot challenge page, clear the text to prevent downstream
+  // garbage generation.
+  if (isBotProtectionPage(text)) {
+    console.warn(
+      `[scraper] bot-protection page detected for ${url} — discarding extracted text`,
+    );
+    text = "";
   }
 
   // Published date

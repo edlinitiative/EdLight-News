@@ -48,6 +48,16 @@ const HARD_CRIME: readonly string[] = [
   // Carried from v1
   "mort",
   "explosion",
+  // v3 additions — tighter crime/security net
+  "abattu",
+  "violence",
+  "agression",
+  "criminel",
+  "insecurite",
+  "insécurité",
+  "cadavre",
+  "braquage",
+  "arrestation",
 ];
 
 /**
@@ -82,7 +92,11 @@ const EDUCATION_IMPACT: readonly string[] = [
   "reporte",
   "postponed",
   "classes",
+  "enseignant",
   "enseignants",
+  "scolaire",
+  "education",
+  "etudiant",
   // Compound closure phrases for institutions
   "universite fermee",
   "université fermée",
@@ -109,6 +123,8 @@ const GENERIC_EDUCATION_LOCATIONS = new Set<string>([
   "universite",
   "campus",
   "ueh",
+  "education",
+  "etudiant",
 ]);
 
 /**
@@ -126,6 +142,13 @@ const BLOCKLIST_POLITICS: readonly string[] = [
   "premier ministre",
   "manifestation",
   "crise politique",
+  // v3 additions
+  "corruption",
+  "conseil des ministres",
+  "conseil presidentiel",
+  "conseil présidentiel",
+  "pacte national",
+  "gouvernement",
 ];
 
 /**
@@ -177,6 +200,14 @@ const ALLOWLIST: readonly string[] = [
   "bac",
   "menfp",
   "ueh",
+  // v3 additions — positive student-relevance signals
+  "education",
+  "éducation",
+  "etudiant",
+  "étudiant",
+  "recherche",
+  "diplome",
+  "diplôme",
 ];
 
 // ── Categories that are always allowed ──────────────────────────────────────
@@ -197,6 +228,20 @@ const ALWAYS_ALLOW_CATEGORIES = new Set<string>([
   "concours",
   "stages",
   "programmes",
+]);
+
+/**
+ * Categories considered "general news" — articles in these categories
+ * (or with no category) must contain at least one positive student-relevance
+ * signal (ALLOWLIST or EDUCATION_IMPACT keyword) to appear in the student feed.
+ */
+const GENERAL_NEWS_CATEGORIES = new Set<string>([
+  "news",
+  "local_news",
+  "actualites",
+  "actualités",
+  "haiti",
+  "haïti",
 ]);
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -226,7 +271,9 @@ function keywordMatch(haystack: string, normalizedKw: string): boolean {
   if (normalizedKw.includes(" ")) {
     return haystack.includes(normalizedKw);
   }
-  return new RegExp(`\\b${escapeRegex(normalizedKw)}\\b`).test(haystack);
+  // Allow common French suffixes: -e, -s, -es, -ee, -ees
+  // e.g. "tué"→"tue" matches "tuée"→"tuee"; "gang" matches "gangs"
+  return new RegExp(`\\b${escapeRegex(normalizedKw)}(?:e?e?s?)?\\b`).test(haystack);
 }
 
 /** Count how many keywords from `list` appear in `text`. */
@@ -257,6 +304,8 @@ export interface StudentFilterInput {
   tags?: string[];
   publisher?: string;
   geoLabel?: string;
+  vertical?: string;
+  itemType?: string;
 }
 
 /**
@@ -277,11 +326,19 @@ export interface StudentFilterInput {
  * 6. **Default** → allow (general news without blocklist words passes through).
  */
 export function isAllowedInStudentFeed(input: StudentFilterInput): boolean {
-  const { title, summary, category, tags, publisher } = input;
+  const { title, summary, category, tags, publisher, vertical, itemType } = input;
 
-  // ── 1. Hard-allow categories ──────────────────────────────────────────
+  // ── 1. Hard-allow categories / verticals / utility items ────────────
   const normCat = (category ?? "").toLowerCase().trim();
   if (normCat && ALWAYS_ALLOW_CATEGORIES.has(normCat)) {
+    return true;
+  }
+  const normVertical = (vertical ?? "").toLowerCase().trim();
+  if (normVertical && ALWAYS_ALLOW_CATEGORIES.has(normVertical)) {
+    return true;
+  }
+  // Utility items are explicitly student-focused content
+  if (itemType === "utility") {
     return true;
   }
 
@@ -340,6 +397,18 @@ export function isAllowedInStudentFeed(input: StudentFilterInput): boolean {
     } else {
       blocked = true;
       reason = `disaster (disasterHits=${disasterHits}, eduHits=${educationHits}, allowHits=${allowlistHits})`;
+    }
+  }
+
+  // ── POSITIVE SIGNAL: general news requires student-relevance ─────────
+  // Articles in news / local_news / uncategorised must contain at least
+  // one ALLOWLIST or EDUCATION_IMPACT keyword to appear in student feed.
+  if (!blocked) {
+    const isGeneralNews =
+      !normCat || GENERAL_NEWS_CATEGORIES.has(normCat);
+    if (isGeneralNews && allowlistHits === 0 && educationHits === 0) {
+      blocked = true;
+      reason = `general-news-no-student-signal (cat="${normCat}")`;
     }
   }
 

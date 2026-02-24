@@ -146,140 +146,164 @@ export default async function HistoirePage({
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-12">
+    <div className="space-y-0">
       {/* ═══════════════════════════════════════════════════════════════════
-       *  SECTION A — Aujourd'hui (Hero)
+       *  HERO BANNER — immersive gradient with today's date
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="space-y-5">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl flex items-center justify-center gap-2">
-            <BookOpen className="h-8 w-8 text-brand-600" />
-            {fr ? "Aujourd\u2019hui dans l\u2019histoire d\u2019Haïti" : "Jodi a nan istwa Ayiti"}
+      <section className="-mx-4 -mt-8 mb-10 bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 px-4 pb-10 pt-12 text-white sm:px-8">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
+            <BookOpen className="h-4 w-4" />
+            {fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
+          </div>
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
+            {fr ? "Aujourd\u2019hui — " : "Jodi a — "}
+            <span className="text-white/90">
+              {formatMonthDay(todayMD, lang)}
+            </span>
           </h1>
-          <p className="text-lg text-gray-500">
-            {formatMonthDay(todayMD, lang)}
+          <p className="mt-3 text-base text-white/70 sm:text-lg">
+            {fr
+              ? "Découvrez chaque jour ce qui s\u2019est passé dans l\u2019histoire d\u2019Haïti — événements, héros, et fêtes nationales."
+              : "Dekouvri chak jou sa k te pase nan istwa Ayiti — evènman, ewo, ak fèt nasyonal."}
           </p>
-        </div>
 
-        {/* Holiday badges */}
-        {todayHolidays.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-2">
-            {todayHolidays.map((h) => (
-              <div
-                key={h.id}
-                className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-500" />
-                  <span className="font-bold text-gray-900">
-                    {fr ? h.name_fr : h.name_ht}
-                  </span>
+          {/* Holiday badges — inside the hero for visual impact */}
+          {todayHolidays.length > 0 && (
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              {todayHolidays.map((h) => (
+                <div
+                  key={h.id}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm"
+                >
+                  <Star className="h-4 w-4 text-amber-300" />
+                  {fr ? h.name_fr : h.name_ht}
                   {h.isNationalHoliday && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                      🇭🇹 {fr ? "Fête nationale" : "Fèt nasyonal"}
-                    </span>
+                    <span className="ml-1 text-amber-300">🇭🇹</span>
                   )}
                 </div>
-                {(fr ? h.description_fr : h.description_ht) && (
-                  <p className="mt-1 text-sm text-gray-600">
-                    {fr ? h.description_fr : h.description_ht}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Today's history entries — full long-form */}
-        {todayEntries.length > 0 ? (
-          <div className="space-y-6">
-            {todayEntries
-              .sort((a, b) => {
-                if (a.confidence === "high" && b.confidence !== "high") return -1;
-                if (a.confidence !== "high" && b.confidence === "high") return 1;
-                return 0;
-              })
-              .map((entry) => (
-                <article
-                  key={entry.id}
-                  className="rounded-xl border-2 border-amber-200 bg-amber-50/40 p-6 shadow-sm space-y-4"
-                >
-                  <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-                    {entry.title_fr}
-                    {entry.year != null && (
-                      <span className="ml-2 text-base font-normal text-gray-500">
-                        ({entry.year})
-                      </span>
-                    )}
-                  </h2>
-
-                  <p className="text-base leading-relaxed text-gray-700">
-                    {entry.summary_fr}
-                  </p>
-
-                  {entry.student_takeaway_fr && (
-                    <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-                      💡{" "}
-                      <strong>
-                        {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
-                      </strong>{" "}
-                      {entry.student_takeaway_fr}
-                    </div>
-                  )}
-
-                  {/* Tags + confidence */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {entry.tags?.map((tag) => {
-                      const t = TAG_LABELS[tag];
-                      return (
-                        <span
-                          key={tag}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
-                        >
-                          {fr ? t?.fr : t?.ht}
-                        </span>
-                      );
-                    })}
-                    {entry.confidence === "high" && (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-                        ✓ {fr ? "Vérifié" : "Verifye"}
-                      </span>
-                    )}
-                  </div>
-
-                  <MetaBadges
-                    verifiedAt={entry.verifiedAt}
-                    updatedAt={entry.updatedAt}
-                    lang={lang}
-                  />
-
-                  {/* Sources */}
-                  {entry.sources.length > 0 && (
-                    <div className="text-xs text-gray-500">
-                      📚{" "}
-                      {entry.sources.map((s, i) => (
-                        <span key={i}>
-                          {i > 0 && " · "}
-                          <a
-                            href={s.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-brand-600 hover:underline"
-                          >
-                            {s.label}
-                          </a>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </article>
               ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  SECTION A — Today's entries — timeline style
+       * ═══════════════════════════════════════════════════════════════════ */}
+      <section className="mx-auto max-w-4xl px-2 sm:px-0">
+        {todayEntries.length > 0 ? (
+          <div className="relative">
+            {/* Timeline connector line */}
+            {todayEntries.length > 1 && (
+              <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-300 via-brand-200 to-transparent sm:left-6" />
+            )}
+
+            <div className="space-y-8">
+              {todayEntries
+                .sort((a, b) => {
+                  if (a.confidence === "high" && b.confidence !== "high") return -1;
+                  if (a.confidence !== "high" && b.confidence === "high") return 1;
+                  return 0;
+                })
+                .map((entry, idx) => (
+                  <article
+                    key={entry.id}
+                    className="relative flex gap-4 sm:gap-6"
+                  >
+                    {/* Timeline dot */}
+                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-lg ring-4 ring-white sm:h-12 sm:w-12">
+                      {entry.year != null
+                        ? String(entry.year).slice(-2)
+                        : String(idx + 1)}
+                    </div>
+
+                    {/* Card */}
+                    <div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        {entry.year != null && (
+                          <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700">
+                            {entry.year}
+                          </span>
+                        )}
+                        {entry.confidence === "high" && (
+                          <span className="rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                            ✓ {fr ? "Vérifié" : "Verifye"}
+                          </span>
+                        )}
+                      </div>
+
+                      <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
+                        {entry.title_fr}
+                      </h2>
+
+                      <p className="mt-2 text-sm leading-relaxed text-gray-600 sm:text-base">
+                        {entry.summary_fr}
+                      </p>
+
+                      {entry.student_takeaway_fr && (
+                        <div className="mt-4 flex gap-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+                          <span className="text-lg">💡</span>
+                          <div className="text-sm text-blue-800">
+                            <strong>
+                              {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
+                            </strong>{" "}
+                            {entry.student_takeaway_fr}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tags */}
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        {entry.tags?.map((tag) => {
+                          const t = TAG_LABELS[tag];
+                          return (
+                            <span
+                              key={tag}
+                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
+                            >
+                              {fr ? t?.fr : t?.ht}
+                            </span>
+                          );
+                        })}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                        <MetaBadges
+                          verifiedAt={entry.verifiedAt}
+                          updatedAt={entry.updatedAt}
+                          lang={lang}
+                        />
+
+                        {/* Sources */}
+                        {entry.sources.length > 0 && (
+                          <div className="text-xs text-gray-400">
+                            📚{" "}
+                            {entry.sources.map((s, i) => (
+                              <span key={i}>
+                                {i > 0 && " · "}
+                                <a
+                                  href={s.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-brand-600 hover:underline"
+                                >
+                                  {s.label}
+                                </a>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+            </div>
           </div>
         ) : todayHolidays.length === 0 ? (
-          /* Empty state — no fallback to random data */
-          <div className="rounded-lg border-2 border-dashed border-gray-200 py-10 text-center text-gray-400">
-            <BookOpen className="mx-auto mb-2 h-8 w-8" />
-            <p>
+          <div className="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
+            <BookOpen className="mx-auto mb-3 h-10 w-10" />
+            <p className="text-sm">
               {fr
                 ? "Aucune entrée publiée aujourd\u2019hui."
                 : "Pa gen antre pibliye jodi a."}
@@ -292,46 +316,52 @@ export default async function HistoirePage({
        *  SECTION B — Cette semaine dans l'histoire
        * ═══════════════════════════════════════════════════════════════════ */}
       {weekEntries.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="flex items-center gap-2 text-xl font-bold">
-            <Calendar className="h-5 w-5 text-gray-600" />
+        <section className="mx-auto mt-14 max-w-4xl">
+          <h2 className="mb-5 flex items-center gap-2 text-xl font-bold text-gray-900">
+            <Calendar className="h-5 w-5 text-brand-600" />
             {fr ? "Cette semaine dans l\u2019histoire" : "Semèn sa a nan istwa"}
           </h2>
 
-          {/* Horizontal scroll on mobile, grid on desktop */}
-          <div className="flex gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {weekEntries.map(({ monthDay, entry }) => (
               <div
                 key={entry.id}
-                className="min-w-[260px] shrink-0 rounded-lg border bg-white p-4 shadow-sm sm:min-w-0"
+                className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
               >
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white">
-                    {parseInt(monthDay.split("-")[1]!, 10)}
-                  </span>
-                  <span className="text-sm font-medium text-gray-500">
-                    {formatMonthDay(monthDay, lang)}
-                  </span>
-                </div>
-                <h3 className="text-sm font-semibold text-gray-900">
-                  {entry.title_fr}
-                  {entry.year != null && (
-                    <span className="ml-1 text-xs text-gray-400">
-                      ({entry.year})
+                {/* Date accent stripe */}
+                <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-brand-500 to-indigo-400 opacity-0 transition group-hover:opacity-100" />
+
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-gray-100 text-brand-700 group-hover:bg-brand-50">
+                    <span className="text-lg font-bold leading-tight">
+                      {parseInt(monthDay.split("-")[1]!, 10)}
                     </span>
-                  )}
-                </h3>
-                <p className="mt-1 text-xs text-gray-600 line-clamp-2">
+                    <span className="text-[9px] font-medium uppercase text-gray-400">
+                      {(fr ? MONTH_NAMES_FR : MONTH_NAMES_HT)[parseInt(monthDay.split("-")[0]!, 10) - 1]?.slice(0, 3)}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-bold text-gray-900 leading-snug">
+                      {entry.title_fr}
+                    </h3>
+                    {entry.year != null && (
+                      <span className="text-xs text-gray-400">
+                        {entry.year}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs leading-relaxed text-gray-500 line-clamp-2">
                   {firstSentence(entry.summary_fr)}
                 </p>
                 {entry.tags && entry.tags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
+                  <div className="mt-3 flex flex-wrap gap-1">
                     {entry.tags.slice(0, 2).map((tag) => {
                       const t = TAG_LABELS[tag];
                       return (
                         <span
                           key={tag}
-                          className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
                         >
                           {fr ? t?.fr : t?.ht}
                         </span>
@@ -346,15 +376,17 @@ export default async function HistoirePage({
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  SECTION C — Explorer par date (collapsible archive)
+       *  SECTION C — Parcourir par mois (always-visible archive)
        * ═══════════════════════════════════════════════════════════════════ */}
-      <Suspense
-        fallback={
-          <div className="h-14 animate-pulse rounded-lg bg-gray-100" />
-        }
-      >
-        <HistoireArchive lang={lang} defaultMonth={todayMonth} />
-      </Suspense>
+      <section className="mx-auto mt-14 max-w-4xl">
+        <Suspense
+          fallback={
+            <div className="h-48 animate-pulse rounded-xl bg-gray-100" />
+          }
+        >
+          <HistoireArchive lang={lang} defaultMonth={todayMonth} />
+        </Suspense>
+      </section>
     </div>
   );
 }

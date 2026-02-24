@@ -28,6 +28,7 @@ import type {
 } from "@edlight-news/types";
 import type { SynthesisSource, SynthesisPacket } from "@edlight-news/generator";
 import { extractDomain, isAggregatorUrl } from "./scoring.js";
+import { isBotProtectionPage } from "@edlight-news/scraper";
 
 // ── Constants (Part I — safety bounds) ──────────────────────────────────────
 
@@ -233,6 +234,21 @@ async function createOrUpdateSynthesis(
     }
   }
 
+  // Safety: detect and filter bot-protection / CAPTCHA source texts.
+  // If ALL sources are CAPTCHA pages, skip this cluster entirely.
+  const botSourceCount = packet.sources.filter((s) =>
+    isBotProtectionPage(s.text),
+  ).length;
+  if (botSourceCount === packet.sources.length && packet.sources.length > 0) {
+    console.warn(
+      `[synthesis] SKIPPED cluster ${cluster.dedupeGroupId} — all ${packet.sources.length} source(s) are bot-protection pages`,
+    );
+    return {
+      action: "skipped",
+      error: "All source texts are bot-protection/CAPTCHA pages",
+    };
+  }
+
   // Call Gemini to generate synthesis (Part D)
   const result = await generateSynthesisFromPacket(packet);
   if (!result.success) {
@@ -243,7 +259,7 @@ async function createOrUpdateSynthesis(
 
   // Validate grounding (Part E)
   const sourceTexts = packet.sources.map((s) => s.text);
-  const validation = validateSynthesisGrounding(output, sourceTexts);
+  const validation = validateSynthesisGrounding(output, sourceTexts, botSourceCount);
 
   // Determine publication status
   let status: ContentStatus = "published";

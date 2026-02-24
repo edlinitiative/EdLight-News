@@ -342,6 +342,8 @@ export function NewsFeed({
         tags: a.synthesisTags,
         publisher: a.sourceName,
         geoLabel: a.geoTag,
+        vertical: a.vertical,
+        itemType: a.itemType,
       }),
     );
   }, [qualityFiltered, feedMode]);

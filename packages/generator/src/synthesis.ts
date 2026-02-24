@@ -180,8 +180,19 @@ export interface ValidationResult {
 export function validateSynthesisGrounding(
   output: GeminiSynthesisOutput,
   sourceTexts: string[],
+  botProtectionSourceCount?: number,
 ): ValidationResult {
   const issues: string[] = [];
+
+  // 0. Bot-protection / CAPTCHA source check (caller passes count of tainted sources)
+  if (botProtectionSourceCount !== undefined && botProtectionSourceCount > 0) {
+    issues.push(
+      `${botProtectionSourceCount}/${sourceTexts.length} source(s) contain bot-protection/CAPTCHA content`,
+    );
+    if (botProtectionSourceCount === sourceTexts.length && sourceTexts.length > 0) {
+      issues.push("All sources are bot-protection pages — synthesis is invalid");
+    }
+  }
 
   // 1. Confidence check
   if (output.confidence < 0.5) {
@@ -239,7 +250,8 @@ export function validateSynthesisGrounding(
     (i) =>
       i.includes("No French") ||
       i.includes("No Haitian") ||
-      i.startsWith("Low confidence"),
+      i.startsWith("Low confidence") ||
+      i.includes("All sources are bot-protection"),
   );
   const passed = !hasCriticalIssue && (issues.length === 0 || output.confidence >= 0.6);
 

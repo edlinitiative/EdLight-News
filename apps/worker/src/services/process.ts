@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase-admin/firestore";
 import { rawItemsRepo, itemsRepo, sourcesRepo } from "@edlight-news/firebase";
-import { extractArticleContent, parseGoogleNewsTitle } from "@edlight-news/scraper";
+import { extractArticleContent, parseGoogleNewsTitle, isBotProtectionPage } from "@edlight-news/scraper";
 import type { QualityFlags } from "@edlight-news/types";
 import {
   computeScoring,
@@ -80,6 +80,16 @@ export async function processRawItems(): Promise<{
           extractedText = null;
           console.warn(`[process] extraction failed for ${raw.url}:`, err);
         }
+      }
+
+      // Safety net: detect bot-protection / CAPTCHA text in extracted content.
+      // The scraper should already filter this, but double-check here in case
+      // the text was assembled from RSS description + partial extraction.
+      if (extractedText && isBotProtectionPage(extractedText)) {
+        console.warn(
+          `[process] bot-protection text detected in extracted content for ${raw.url} — discarding`,
+        );
+        extractedText = null;
       }
 
       // Build initial quality flags (generate step refines after Gemini call)

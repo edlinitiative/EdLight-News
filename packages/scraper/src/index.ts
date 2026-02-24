@@ -8,6 +8,7 @@ export {
   extractPublisherImage,
   extractCandidateImages,
   pickBestImage,
+  isBotProtectionPage,
   type HTMLItem,
   type ExtractedArticle,
   type CandidateImage,

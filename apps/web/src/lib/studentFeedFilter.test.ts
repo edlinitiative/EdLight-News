@@ -114,14 +114,14 @@ describe("isAllowedInStudentFeed", () => {
     ).toBe(true);
   });
 
-  it("allows generic neutral news without blocklist words", () => {
+  it("blocks generic neutral news without student-relevance signal", () => {
     expect(
       isAllowedInStudentFeed({
         title: "L'économie haïtienne en croissance ce trimestre",
         summary: "Les experts notent une tendance positive.",
         category: "news",
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("allows an article with multiple allowlist hits even with a politics keyword", () => {
@@ -167,6 +167,90 @@ describe("isAllowedInStudentFeed", () => {
       isAllowedInStudentFeed({
         title: "Bourse d'études en France pour étudiants haïtiens",
         summary: "Les candidatures sont ouvertes pour la rentrée 2026.",
+      }),
+    ).toBe(true);
+  });
+
+  // ── v3: French suffix matching ──────────────────────────────────────
+
+  it("blocks crime with French feminine form (tuée)", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Une marchande tuée par un câble à haute tension",
+        summary: "Un drame à Pétion-Ville.",
+        category: "local_news",
+      }),
+    ).toBe(false);
+  });
+
+  it("blocks crime with French plural (gangs)", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Recrutement d'enfants par les gangs en Haïti",
+        category: "news",
+      }),
+    ).toBe(false);
+  });
+
+  it("blocks violence keyword", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Violences redoublées dans les camps de déplacés",
+        category: "news",
+      }),
+    ).toBe(false);
+  });
+
+  // ── v3: General news requires positive student signal ───────────────
+
+  it("blocks general news with no student-relevance signal", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Taux de référence BRH du 22 février : 130 gourdes pour 1 USD",
+        summary: "Le taux sert de référence pour les transactions.",
+        category: "news",
+      }),
+    ).toBe(false);
+  });
+
+  it("blocks political news (corruption)", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "AyiboPost révèle la corruption dans l'administration",
+        summary: "Des transactions en espèces contournent les contrôles.",
+        category: "news",
+      }),
+    ).toBe(false);
+  });
+
+  it("allows general news with education keyword", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "L'UEH et Elms College s'associent pour la formation des enseignants",
+        summary: "Un partenariat pour améliorer l'éducation en Haïti.",
+        category: "news",
+      }),
+    ).toBe(true);
+  });
+
+  // ── v3: Vertical / itemType auto-allow ──────────────────────────────
+
+  it("allows article with opportunites vertical", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Conférence sur le leadership",
+        category: "news",
+        vertical: "opportunites",
+      }),
+    ).toBe(true);
+  });
+
+  it("allows utility item regardless of content", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Dates limites des concours cette semaine",
+        category: "news",
+        itemType: "utility",
       }),
     ).toBe(true);
   });

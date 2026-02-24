@@ -13,6 +13,7 @@ import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/type
 import { computeScoring } from "./scoring.js";
 import { classifyItem } from "./classify.js";
 import { PUBLISH_SCORE_THRESHOLD } from "@edlight-news/generator";
+import { isBotProtectionPage } from "@edlight-news/scraper";
 
 /** Hash a Gemini cluster_slug to a 16-hex-char dedupeGroupId. */
 function slugToDedupeGroupId(slug: string): string {
@@ -73,6 +74,16 @@ export async function generateForItems(): Promise<{
       const textForGeneration =
         item.extractedText || `${item.title}\n\n${item.summary}`;
       const isShortContent = !item.extractedText;
+
+      // Safety: reject items whose text looks like CAPTCHA / bot-protection
+      // content — no point sending garbage to Gemini.
+      if (isBotProtectionPage(textForGeneration)) {
+        console.warn(
+          `[generate] SKIPPED item ${item.id} — text looks like bot-protection/CAPTCHA content`,
+        );
+        skipped++;
+        continue;
+      }
 
       // Get source name for the prompt
       const source = await sourcesRepo.getSource(item.sourceId);
