@@ -455,7 +455,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                   </span>
                 )}
                 {elig === "unknown" && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
                     <HelpCircle className="h-3 w-3" />
                     {fr ? "Haïti: À confirmer" : "Ayiti: Pou konfime"}
                   </span>
@@ -490,7 +490,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Deadline display */}
               {dlLabel && (
-                <p className="mt-1 text-xs font-medium text-orange-600">
+                <p className="mt-1 text-xs font-medium text-brand-600">
                   <CalendarDays className="mr-0.5 inline h-3 w-3" /> {dlLabel}
                 </p>
               )}
@@ -564,7 +564,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                     href={s.deadline.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs font-medium text-orange-500 hover:underline"
+                    className="text-xs font-medium text-brand-500 hover:underline"
                   >
                     {fr ? "Source deadline →" : "Sous dat limit →"}
                   </a>

@@ -572,14 +572,14 @@ export function NewsFeed({
 
       {/* Student-mode info note */}
       {studentModeFiltered && (
-        <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+        <p className="rounded-lg bg-brand-50 px-4 py-2 text-sm text-brand-800">
           {lang === "fr"
             ? "Fil étudiant masque les faits divers et certaines actualités générales."
             : "Fil etidyan an kache fe diver ak kèk nouvèl jeneral."}
           {" "}
           <button
             onClick={() => handleModeChange("all")}
-            className="font-medium underline hover:text-amber-900"
+            className="font-medium underline hover:text-brand-900"
           >
             {lang === "fr" ? "Voir tout" : "Wè tout"}
           </button>
@@ -623,7 +623,7 @@ export function NewsFeed({
                 </span>
               )}
               {article.isLegacy && (
-                <span className="inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                <span className="inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
                   {lang === "fr" ? "Ancien contenu" : "Ansyen kontni"}
                 </span>
               )}

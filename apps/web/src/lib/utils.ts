@@ -114,17 +114,17 @@ export const CATEGORY_LABELS: Record<FeedCategory, { fr: string; ht: string }> =
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  local_news:  "bg-brand-50 text-brand-700",
-  scholarship: "bg-purple-50 text-purple-700",
-  opportunity: "bg-orange-50 text-orange-700",
-  event:       "bg-teal-50 text-teal-700",
-  resource:    "bg-green-50 text-green-700",
-  news:        "bg-gray-50 text-gray-700",
-  bourses:     "bg-purple-50 text-purple-700",
-  concours:    "bg-orange-50 text-orange-700",
-  stages:      "bg-cyan-50 text-cyan-700",
-  programmes:  "bg-indigo-50 text-indigo-700",
-  synthesis:   "bg-emerald-50 text-emerald-700",
+  local_news:  "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300",
+  scholarship: "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  opportunity: "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  event:       "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
+  resource:    "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  news:        "bg-gray-50 text-gray-700 dark:bg-slate-700 dark:text-slate-300",
+  bourses:     "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  concours:    "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
+  stages:      "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
+  programmes:  "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
+  synthesis:   "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
 
 export function categoryLabel(cat: string | undefined, lang: ContentLanguage): string {

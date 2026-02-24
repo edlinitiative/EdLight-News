@@ -103,8 +103,8 @@ export function ClosingSoonTabs({
               <div
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
                   item.kind === "bourse"
-                    ? "bg-amber-100 text-amber-600"
-                    : "bg-brand-100 text-brand-600"
+                    ? "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+                    : "bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
                 }`}
               >
                 {item.kind === "bourse" ? (
@@ -120,10 +120,10 @@ export function ClosingSoonTabs({
                   <span
                     className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                       item.kind === "bourse"
-                        ? "bg-amber-100 text-amber-700"
+                        ? "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
                         : item.geo === "Haiti"
-                          ? "bg-brand-100 text-brand-700"
-                          : "bg-emerald-100 text-emerald-700"
+                          ? "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
                     }`}
                   >
                     {item.kind === "bourse"

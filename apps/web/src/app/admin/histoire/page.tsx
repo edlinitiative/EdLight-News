@@ -56,7 +56,7 @@ export default async function AdminHistoirePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="h-6 w-6 text-amber-600" />
+          <BookOpen className="h-6 w-6 text-brand-600" />
           Admin — Histoire & Fèt
         </h1>
         <Link
@@ -133,7 +133,7 @@ export default async function AdminHistoirePage() {
       {/* Holidays list */}
       <section className="space-y-3">
         <h2 className="text-lg font-bold flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-500" />
+          <Star className="h-5 w-5 text-brand-500" />
           Holidays ({holidays.length})
         </h2>
         <div className="overflow-hidden rounded-lg border">

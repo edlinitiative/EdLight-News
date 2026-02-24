@@ -23,7 +23,7 @@ import { parseISODateSafe } from "@/lib/deadlines";
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 
 const EVENT_ICON: Record<CalendarEventType, React.ReactNode> = {
-  exam: <FileText className="h-3.5 w-3.5 text-orange-600" />,
+  exam: <FileText className="h-3.5 w-3.5 text-brand-600" />,
   admissions: <GraduationCap className="h-3.5 w-3.5 text-brand-600" />,
   registration: <ClipboardList className="h-3.5 w-3.5 text-brand-600" />,
   results: <BarChart3 className="h-3.5 w-3.5 text-green-600" />,

@@ -124,7 +124,7 @@ export default async function BoursesPage({
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">
-          <GraduationCap className="mr-1.5 inline h-7 w-7 text-amber-600" />{" "}
+          <GraduationCap className="mr-1.5 inline h-7 w-7 text-brand-600" />{" "}
           {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
         </h1>
         <p className="text-gray-500">
@@ -136,14 +136,14 @@ export default async function BoursesPage({
 
       {/* Closing soon banner */}
       {closingSoon.length > 0 && (
-        <div className="rounded-lg border-l-4 border-orange-400 bg-orange-50 p-4">
-          <h2 className="font-bold text-orange-800">
+        <div className="rounded-lg border-l-4 border-brand-300 bg-brand-50 p-4">
+          <h2 className="font-bold text-brand-800">
             <Clock className="mr-1 inline h-4 w-4" />{" "}
             {fr ? "Date limite bientôt !" : "Dat limit byento!"}
           </h2>
           <ul className="mt-2 space-y-1">
             {closingSoon.slice(0, 5).map((s) => (
-              <li key={s.id} className="text-sm text-orange-700">
+              <li key={s.id} className="text-sm text-brand-700">
                 <strong>{s.name}</strong>
                 {s.deadline?.dateISO && (
                   <span> — {formatDateBanner(s.deadline.dateISO, lang)}</span>

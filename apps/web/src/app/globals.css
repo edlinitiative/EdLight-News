@@ -3,15 +3,118 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light theme tokens ───────────────────────────────────── */
+  :root {
+    --surface: #ffffff;
+    --surface-raised: #f8fafc;
+    --surface-overlay: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
+    color-scheme: light;
+  }
+
+  /* ── Dark theme tokens ────────────────────────────────────── */
+  .dark {
+    --surface: #0f172a;
+    --surface-raised: #1e293b;
+    --surface-overlay: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: #334155;
+    --border-hover: #475569;
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased transition-colors duration-200;
+  }
+
+  .dark body,
+  body.dark-body {
+    @apply bg-slate-950 text-slate-100;
   }
 
   ::selection {
     @apply bg-brand-100 text-gray-900;
   }
 
+  .dark ::selection {
+    @apply bg-brand-800 text-white;
+  }
+
   :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
     @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-gray-50;
+  }
+
+  .dark :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    @apply ring-brand-400 ring-offset-slate-900;
+  }
+
+  /* Smooth transitions for all theme-dependent elements */
+  * {
+    @apply transition-colors duration-150;
+  }
+
+  /* Override transition for elements that shouldn't animate color */
+  img, video, canvas, svg {
+    transition: none !important;
+  }
+}
+
+@layer components {
+  /* ── Premium card base ────────────────────────────────────── */
+  .premium-card {
+    @apply rounded-[14px] border border-gray-200 bg-white shadow-card transition-all duration-200;
+  }
+  .premium-card:hover {
+    @apply -translate-y-0.5 border-brand-200 shadow-card-hover;
+  }
+  .dark .premium-card {
+    @apply border-slate-700/60 bg-slate-800/80 shadow-card-dark;
+  }
+  .dark .premium-card:hover {
+    @apply border-brand-500/30 shadow-card-dark-hover;
+  }
+
+  /* ── Premium section ──────────────────────────────────────── */
+  .premium-section {
+    @apply rounded-2xl border border-gray-100 bg-white p-6 shadow-card;
+  }
+  .dark .premium-section {
+    @apply border-slate-700/50 bg-slate-800/60 shadow-card-dark;
+  }
+
+  /* ── Tab bar scrollbar ────────────────────────────────────── */
+  .tab-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* ── Tab fade masks ───────────────────────────────────────── */
+  .tab-fade-left::before,
+  .tab-fade-right::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .tab-fade-left::before {
+    left: 0;
+    background: linear-gradient(to right, var(--surface, white), transparent);
+  }
+  .tab-fade-right::after {
+    right: 0;
+    background: linear-gradient(to left, var(--surface, white), transparent);
   }
 }

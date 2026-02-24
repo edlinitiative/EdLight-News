@@ -133,7 +133,7 @@ export default async function ScholarshipDetailPage({
         <div className="flex-1">
           <h1 className="text-2xl font-extrabold tracking-tight">
             {isDirectory && <FolderOpen className="mr-1.5 inline h-6 w-6 text-indigo-500" />}
-            {!isDirectory && <GraduationCap className="mr-1.5 inline h-6 w-6 text-amber-600" />}
+            {!isDirectory && <GraduationCap className="mr-1.5 inline h-6 w-6 text-brand-600" />}
             {s.name}
           </h1>
           {cl && (
@@ -157,7 +157,7 @@ export default async function ScholarshipDetailPage({
           </span>
         )}
         {elig === "unknown" && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700">
             <HelpCircle className="h-4 w-4" /> {fr ? "Haïti: À confirmer" : "Ayiti: Pou konfime"}
           </span>
         )}
@@ -306,12 +306,12 @@ export default async function ScholarshipDetailPage({
       {/* ── Shared sections ────────────────────────────────────────── */}
 
       {/* Deadline */}
-      <div className="rounded-lg border bg-orange-50/50 p-4">
-        <h3 className="font-bold text-orange-800">
+      <div className="rounded-lg border bg-brand-50/50 p-4">
+        <h3 className="font-bold text-brand-800">
           <CalendarDays className="mr-1 inline h-4 w-4" />
           {fr ? "Échéances" : "Dat limit"}
         </h3>
-        <p className="mt-1 text-sm text-orange-700">{dlLabel}</p>
+        <p className="mt-1 text-sm text-brand-700">{dlLabel}</p>
         {s.deadline?.dateISO && accuracy === "exact" && (
           <div className="mt-2">
             <DeadlineBadge dateISO={s.deadline.dateISO} windowDays={30} lang={lang} />
@@ -325,7 +325,7 @@ export default async function ScholarshipDetailPage({
             href={s.deadline.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-1 inline-block text-xs text-orange-500 hover:underline"
+            className="mt-1 inline-block text-xs text-brand-500 hover:underline"
           >
             {fr ? "Source de la date →" : "Sous dat la →"}
           </a>

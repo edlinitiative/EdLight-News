@@ -36,6 +36,43 @@ export async function generateMetadata({
   };
 }
 
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Headings that the AI sometimes embeds in the body / sections. We strip
+ *  them because the page already renders dedicated source components.        */
+const SOURCE_HEADING_RE = /^sources?( consultées| konsilte)?$/i;
+
+/** Remove trailing source-like sections from a Markdown body string. */
+function stripMarkdownSourceSections(md: string | undefined | null): string {
+  if (!md) return "";
+  // Split on ## headings – keep everything before the first source heading
+  // that is *not* followed by a non-source heading (i.e. strip trailing
+  // source sections only, so body content that merely mentions "source" in
+  // a mid-article heading is preserved).
+  const lines = md.split("\n");
+  let cutIndex = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const m = lines[i].match(/^##\s+(.+)/);
+    if (m) {
+      if (SOURCE_HEADING_RE.test(m[1].trim())) {
+        cutIndex = i; // keep searching upward for consecutive source sections
+      } else {
+        break; // hit a non-source heading, stop
+      }
+    }
+  }
+  if (cutIndex === -1) return md;
+  return lines.slice(0, cutIndex).join("\n").trimEnd();
+}
+
+/** Filter source-like sections out of structured ContentSection arrays. */
+function stripStructuredSourceSections(
+  sections: ContentSection[] | undefined,
+): ContentSection[] {
+  if (!sections) return [];
+  return sections.filter((s) => !SOURCE_HEADING_RE.test(s.heading.trim()));
+}
+
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 function SourceLinks({ item }: { item: Item | null }) {
@@ -317,11 +354,11 @@ function UtilityFactsFiche({
               <ul className="space-y-1">
                 {facts.deadlines.map((d, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
-                    <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0 text-orange-500" />
+                    <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-500" />
                     <span>
                       {d.label}
                       {d.dateISO ? (
-                        <span className="ml-1 font-semibold text-orange-600">{d.dateISO}</span>
+                        <span className="ml-1 font-semibold text-brand-600">{d.dateISO}</span>
                       ) : (
                         <span className="ml-1 italic text-gray-400">
                           {lang === "fr" ? "(à confirmer)" : "(pou konfime)"}
@@ -418,12 +455,12 @@ function WhatChangedNote({
 }) {
   if (!whatChanged) return null;
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-      <p className="text-sm font-medium text-amber-800">
+    <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
+      <p className="text-sm font-medium text-brand-800">
         <RefreshCw className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Dernière mise à jour :" : "Dènye mizajou :"}
       </p>
-      <p className="mt-1 text-sm text-amber-700">{whatChanged}</p>
+      <p className="mt-1 text-sm text-brand-700">{whatChanged}</p>
     </div>
   );
 }
@@ -689,10 +726,10 @@ export default async function ArticlePage({
 
       {/* Body: structured sections for synthesis/utility, markdown for regular */}
       {(isSynthesis || isUtility) && article.sections && article.sections.length > 0 ? (
-        <StructuredSections sections={article.sections} />
+        <StructuredSections sections={stripStructuredSourceSections(article.sections)} />
       ) : (
         <div className="prose prose-lg prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
-          <ReactMarkdown>{article.body}</ReactMarkdown>
+          <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
         </div>
       )}
 

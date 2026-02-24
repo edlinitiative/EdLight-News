@@ -75,11 +75,11 @@ function derivedCategoryInfo(
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
   scholarship: "from-brand-800 to-purple-700",
-  opportunity: "from-purple-700 to-pink-600",
+  opportunity: "from-purple-700 to-brand-600",
   news:        "from-teal-700 to-brand-800",
-  event:       "from-orange-700 to-red-700",
+  event:       "from-brand-700 to-indigo-700",
   resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-red-700 to-brand-800",
+  local_news:  "from-brand-700 to-brand-900",
 };
 const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
 
@@ -113,7 +113,7 @@ export function ArticleCard({
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
+      className="group flex flex-col overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover"
     >
       {/* Image / gradient thumbnail — compact uses smaller aspect ratio */}
       <div className={[
@@ -178,13 +178,13 @@ export function ArticleCard({
 
         {/* Deadline (opportunities only) */}
         {showDeadline && article.deadline && (
-          <p className="mb-1.5 text-xs font-semibold text-orange-600">
+          <p className="mb-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
             {lang === "fr" ? "Limite :" : "Dat limit :"}{" "}
             {formatDate(article.deadline, lang)}
           </p>
         )}
         {showDeadline && !article.deadline && article.missingDeadline && (
-          <p className="mb-1.5 text-xs font-semibold text-amber-500">
+          <p className="mb-1.5 text-xs font-semibold text-gray-500 dark:text-slate-400">
             {lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime"}
           </p>
         )}
@@ -192,7 +192,7 @@ export function ArticleCard({
         {/* Title */}
         <h2
           className={[
-            "font-semibold leading-snug transition-colors group-hover:text-brand-700",
+            "font-semibold leading-snug transition-colors group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400",
             compact ? "mb-1 text-sm" : "mb-2 text-base",
           ].join(" ")}
         >
@@ -201,13 +201,13 @@ export function ArticleCard({
 
         {/* Summary */}
         {!compact && (
-          <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500">
+          <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400">
             {article.summary || article.body?.slice(0, 150) || ""}
           </p>
         )}
 
         {/* Footer: source · date (or source count for synthesis) */}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
           {article.itemType === "synthesis" && article.sourceCount ? (
             <span>{article.sourceCount} {lang === "fr" ? "sources" : "sous"}</span>
           ) : article.sourceName ? (

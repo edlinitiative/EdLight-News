@@ -230,7 +230,7 @@ export const SUBCAT_LABELS: Record<OpportunitySubCat | "all", { fr: string; ht: 
 /** Subcategory → Tailwind color classes for badges. */
 export const SUBCAT_COLORS: Record<OpportunitySubCat, string> = {
   bourses:    "bg-purple-50 text-purple-700",
-  concours:   "bg-orange-50 text-orange-700",
+  concours:   "bg-indigo-50 text-indigo-700",
   stages:     "bg-cyan-50 text-cyan-700",
   programmes: "bg-indigo-50 text-indigo-700",
   ressources: "bg-green-50 text-green-700",

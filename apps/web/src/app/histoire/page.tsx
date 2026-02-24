@@ -53,9 +53,9 @@ const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> 
   economy:       { fr: "Économie",      ht: "Ekonomi",      color: "bg-yellow-100 text-yellow-800" },
   literature:    { fr: "Littérature",   ht: "Literati",     color: "bg-indigo-100 text-indigo-800" },
   art:           { fr: "Art",           ht: "La",           color: "bg-pink-100 text-pink-800" },
-  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-amber-100 text-amber-800" },
+  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-brand-100 text-brand-800" },
   sports:        { fr: "Sports",        ht: "Espò",         color: "bg-emerald-100 text-emerald-800" },
-  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-orange-100 text-orange-800" },
+  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-gray-200 text-gray-800" },
   diplomacy:     { fr: "Diplomatie",    ht: "Diplomasi",    color: "bg-teal-100 text-teal-800" },
   resistance:    { fr: "Résistance",    ht: "Rezistans",    color: "bg-rose-100 text-rose-800" },
   revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-100 text-red-700" },
@@ -141,10 +141,10 @@ export default async function HistoirePage({
                   key={h.id}
                   className="inline-flex items-center gap-2 rounded-full bg-white/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm"
                 >
-                  <Star className="h-4 w-4 text-amber-300" />
+                  <Star className="h-4 w-4 text-brand-300" />
                   {fr ? h.name_fr : h.name_ht}
                   {h.isNationalHoliday && (
-                    <span className="ml-1 text-amber-300">🇭🇹</span>
+                    <span className="ml-1 text-brand-300">🇭🇹</span>
                   )}
                 </div>
               ))}

@@ -34,9 +34,9 @@ function urgencyStyle(days: number): UrgencyStyle {
   if (days <= 10)
     return {
       emoji: "🟠",
-      textColor: "text-orange-600",
-      borderColor: "border-orange-200",
-      bgColor: "bg-orange-50",
+      textColor: "text-brand-600",
+      borderColor: "border-brand-200",
+      bgColor: "bg-brand-50",
     };
   return {
     emoji: "🟢",

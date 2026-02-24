@@ -62,6 +62,8 @@ import {
   TUITION_LABELS,
 } from "@/lib/datasets";
 import { getCalendarGeo } from "@/lib/calendarGeo";
+import { DashboardTabs } from "@/components/DashboardTabs";
+import { GeminiHeroImage } from "@/components/GeminiHeroImage";
 
 export const revalidate = 300; // ISR: regenerate every 5 minutes
 
@@ -129,12 +131,12 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-xl font-bold">
+      <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
         {icon}{title}
       </h2>
       <Link
         href={href}
-        className="text-sm font-medium text-brand-700 hover:underline"
+        className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
       >
         {cta}
       </Link>
@@ -284,67 +286,292 @@ export default async function AccueilPage({
       a.status === "published",
   ) ?? null;
 
+  // ── Dashboard tab panels (server-rendered, passed to client component) ───
+
+  const boursesPanel = (
+    <div className="space-y-5">
+      <GeminiHeroImage
+        prompt="Diverse students celebrating scholarship awards on a modern university campus"
+        className="h-44 w-full"
+      />
+      {boursesClosing.length > 0 ? (
+        <>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              {boursesClosing.length} {fr ? "bourses avec date limite imminente" : "bous ak dat limit ki pre"}
+            </p>
+            <Link href={lq("/bourses")} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              {fr ? "Toutes les bourses →" : "Tout bous yo →"}
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {boursesClosing.map((s) => {
+              const dl = s.deadline;
+              return (
+                <div key={s.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
+                  <h3 className="font-semibold text-gray-900 line-clamp-1 dark:text-slate-100">{s.name}</h3>
+                  {s.eligibilitySummary && (
+                    <p className="mt-1.5 text-sm text-gray-500 line-clamp-2 dark:text-slate-400">{s.eligibilitySummary}</p>
+                  )}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    {dl?.dateISO && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                        <Clock className="h-3 w-3" /> {new Date(dl.dateISO + "T00:00:00").toLocaleDateString(fr ? "fr-FR" : "fr-HT", { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    )}
+                    <span className="text-gray-500 dark:text-slate-400">
+                      {COUNTRY_LABELS[s.country]?.flag} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
+                    </span>
+                  </div>
+                  {s.howToApplyUrl && (
+                    <a href={s.howToApplyUrl} target="_blank" rel="noopener noreferrer"
+                      className="mt-3 inline-block text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+                      {fr ? "Postuler →" : "Aplike →"}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <div className="py-12 text-center text-gray-400 dark:text-slate-500">
+          <DollarSign className="mx-auto mb-3 h-8 w-8 opacity-30" />
+          <p>{fr ? "Aucune bourse avec date limite imminente." : "Pa gen bous ak dat limit ki pre."}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const calendrierPanel = (
+    <div className="space-y-5">
+      <GeminiHeroImage
+        prompt="Academic calendar planning workspace with laptop on organized desk at university"
+        className="h-44 w-full"
+      />
+      {(haitiEvents.length > 0 || intlScholarships.length > 0) ? (
+        <>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              {fr ? "Prochaines échéances" : "Pwochen dat limit"}
+            </p>
+            <Link href={lq("/calendrier")} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              {fr ? "Voir tout le calendrier →" : "Wè tout kalandriye a →"}
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {haitiEvents.map((ev) => {
+              const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
+              const evGeo = getCalendarGeo(ev);
+              return (
+                <div key={ev.id} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
+                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-600 text-white dark:bg-brand-500">
+                    {dateObj ? (
+                      <>
+                        <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
+                        <span className="text-[9px] uppercase leading-tight">
+                          {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}
+                        </span>
+                      </>
+                    ) : (
+                      <CalendarDays className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      {evGeo === "Haiti" ? (
+                        <span className="shrink-0 rounded-md bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">Haïti</span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          <Globe className="h-3 w-3" /> International
+                        </span>
+                      )}
+                      <p className="font-medium text-gray-900 line-clamp-1 dark:text-slate-100">{ev.title}</p>
+                    </div>
+                    {ev.institution && (
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{ev.institution}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {intlScholarships.map((s) => {
+              const dl = s.deadline;
+              const dateObj = dl?.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
+              const sGeo = getCalendarGeo(s);
+              return (
+                <div key={s.id} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
+                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-500 text-white dark:bg-brand-600">
+                    {dateObj ? (
+                      <>
+                        <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
+                        <span className="text-[9px] uppercase leading-tight">
+                          {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}
+                        </span>
+                      </>
+                    ) : (
+                      <Clock className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      {sGeo === "Haiti" ? (
+                        <span className="shrink-0 rounded-md bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">Haïti</span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                          <Globe className="h-3 w-3" /> International
+                        </span>
+                      )}
+                      <p className="font-medium text-gray-900 line-clamp-1 dark:text-slate-100">{s.name}</p>
+                    </div>
+                    {dl?.dateISO && (
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                        {fr ? "Date limite: " : "Dat limit: "}
+                        {dateObj?.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <div className="py-12 text-center text-gray-400 dark:text-slate-500">
+          <CalendarDays className="mx-auto mb-3 h-8 w-8 opacity-30" />
+          <p>{fr ? "Aucun événement à venir." : "Pa gen evènman ki ap vini."}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const parcoursPanel = pathways.length > 0 ? (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
+          {pathways.length} {fr ? "parcours disponibles" : "pakou disponib"}
+        </p>
+        <Link href={lq("/parcours")} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+          {fr ? "Tous les parcours →" : "Tout pakou yo →"}
+        </Link>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {pathways.map((pw) => (
+          <Link key={pw.id} href={lq("/parcours")}
+            className="group rounded-xl border border-gray-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
+            <div className="flex items-center gap-2">
+              <Compass className="h-5 w-5 shrink-0 text-brand-600 dark:text-brand-400" />
+              <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400">
+                {fr ? pw.title_fr : (pw.title_ht ?? pw.title_fr)}
+              </h3>
+            </div>
+            <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+              {pw.steps.length} {fr ? "étapes" : "etap"}
+              {pw.country ? ` · ${fr ? COUNTRY_LABELS[pw.country]?.fr : COUNTRY_LABELS[pw.country]?.ht}` : ""}
+            </p>
+          </Link>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div className="py-12 text-center text-gray-400 dark:text-slate-500">
+      <Compass className="mx-auto mb-3 h-8 w-8 opacity-30" />
+      <p>{fr ? "Aucun parcours disponible." : "Pa gen pakou disponib."}</p>
+    </div>
+  );
+
+  const histoirePanel = latestHistoryPost ? (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
+          {fr ? "Dernière publication" : "Dènye piblikasyon"}
+        </p>
+        <Link href={lq("/histoire")} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+          {fr ? "Voir tout →" : "Wè tout →"}
+        </Link>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-card dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{latestHistoryPost.title}</h3>
+        <p className="mt-2 text-sm text-gray-500 line-clamp-4 dark:text-slate-400">
+          {latestHistoryPost.summary || latestHistoryPost.body?.slice(0, 300) || ""}
+        </p>
+        <Link href={`/news/${latestHistoryPost.id}${langQ}`}
+          className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+          {fr ? "Lire l'article complet →" : "Li atik la an antye →"}
+        </Link>
+      </div>
+    </div>
+  ) : (
+    <div className="py-12 text-center text-gray-400 dark:text-slate-500">
+      <BookOpen className="mx-auto mb-3 h-8 w-8 opacity-30" />
+      <p>{fr ? "Aucune histoire publiée récemment." : "Pa gen istwa pibliye dènyèman."}</p>
+    </div>
+  );
+
+  const nouvellesPanel = succesArticles.length > 0 ? (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
+          {fr ? "Dernières nouvelles & inspirations" : "Dènye nouvèl & enspirasyon"}
+        </p>
+        <Link href={lq("/succes")} className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+          {fr ? "Voir tout →" : "Wè tout →"}
+        </Link>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {succesArticles.map((a) => (
+          <ArticleCard key={a.id} article={a} lang={lang} compact />
+        ))}
+      </div>
+    </div>
+  ) : (
+    <div className="py-12 text-center text-gray-400 dark:text-slate-500">
+      <Newspaper className="mx-auto mb-3 h-8 w-8 opacity-30" />
+      <p>{fr ? "Aucune nouvelle pour le moment." : "Pa gen nouvèl pou kounye a."}</p>
+    </div>
+  );
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-14">
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="space-y-3 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight">
+      <section className="space-y-5 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
           {fr
             ? "Ton tableau de bord étudiant"
             : "Tablo bò ou kòm elèv"}
         </h1>
-        <p className="mx-auto max-w-xl text-lg text-gray-600">
+        <p className="mx-auto max-w-xl text-lg text-gray-500 dark:text-slate-400">
           {fr
             ? "Calendrier, bourses, parcours et guides — tout ce dont tu as besoin pour réussir."
             : "Kalandriye, bous, pakou ak gid — tout sa ou bezwen pou reyisi."}
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href={lq("/bourses")}
-            className="inline-flex items-center rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700"
-          >
-            <DollarSign className="mr-1.5 inline h-4 w-4" />{fr ? "Bourses ouvertes" : "Bous ouvè"}
-          </Link>
-          <Link
-            href={lq("/calendrier")}
-            className="inline-flex items-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
-          >
-            <CalendarDays className="mr-1.5 inline h-4 w-4" />{fr ? "Calendrier" : "Kalandriye"}
-          </Link>
-          <Link
-            href={lq("/parcours")}
-            className="inline-flex items-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
-          >
-            <Compass className="mr-1.5 inline h-4 w-4" />{fr ? "Parcours" : "Pakou"}
-          </Link>
-          <Link
-            href={lq("/histoire")}
-            className="inline-flex items-center rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-amber-700"
-          >
-            <BookOpen className="mr-1.5 inline h-4 w-4" />{fr ? "Histoire" : "Istwa"}
-          </Link>
-          <Link
-            href={lq("/news")}
-            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-          >
-            <Newspaper className="mr-1.5 inline h-4 w-4" />{fr ? "Nouvelles" : "Nouvèl"}
-          </Link>
-        </div>
       </section>
+
+      {/* ── DASHBOARD TABS ──────────────────────────────────────────────── */}
+      <DashboardTabs
+        lang={lang}
+        panels={{
+          bourses: boursesPanel,
+          calendrier: calendrierPanel,
+          parcours: parcoursPanel,
+          histoire: histoirePanel,
+          nouvelles: nouvellesPanel,
+        }}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════
        *  URGENCY — À ne pas rater cette semaine
        * ═══════════════════════════════════════════════════════════════════ */}
       {topUrgent.length > 0 && (
-        <section className="space-y-4 rounded-xl border-2 border-red-200 bg-red-50/30 p-6">
+        <section className="premium-section space-y-4 border-red-200 bg-red-50/30 dark:border-red-800/40 dark:bg-red-950/20">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-red-800">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <h2 className="flex items-center gap-2 text-xl font-bold text-red-800 dark:text-red-300">
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
               {fr ? "À ne pas rater cette semaine" : "Sa pou pa rate semèn sa"}
             </h2>
             <Link
               href={lq("/closing-soon")}
-              className="text-sm font-medium text-red-700 hover:underline"
+              className="text-sm font-medium text-red-700 transition-colors hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
             >
               {fr ? "Voir tout →" : "Wè tout →"}
             </Link>
@@ -354,17 +581,17 @@ export default async function AccueilPage({
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex items-center gap-3 rounded-lg border border-red-100 bg-white p-3 transition hover:shadow-sm hover:border-red-300"
+                className="flex items-center gap-3 rounded-xl border border-red-100 bg-white p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md dark:border-red-900/40 dark:bg-slate-800/80 dark:hover:border-red-600/40"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-sm">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-sm dark:bg-brand-900/30">
                   {item.kind === "bourse" ? (
-                    <DollarSign className="h-4 w-4 text-amber-600" />
+                    <DollarSign className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                   ) : (
-                    <CalendarDays className="h-4 w-4 text-brand-600" />
+                    <CalendarDays className="h-4 w-4 text-brand-600 dark:text-brand-400" />
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 line-clamp-1">
+                  <p className="text-sm font-medium text-gray-900 line-clamp-1 dark:text-slate-100">
                     {item.title}
                   </p>
                 </div>
@@ -386,226 +613,45 @@ export default async function AccueilPage({
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  S1 — Calendrier: Prochaines échéances (above the fold)
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {(haitiEvents.length > 0 || intlScholarships.length > 0) && (
-        <section className="space-y-4 rounded-xl border border-brand-200 bg-brand-50/40 p-6 shadow-sm">
-          <SectionHeader
-            icon={<CalendarDays className="h-5 w-5 text-brand-600" />}
-            title={fr ? "Calendrier — Prochaines échéances" : "Kalandriye — Pwochen dat limit"}
-            href={lq("/calendrier")}
-            cta={fr ? "Voir tout le calendrier →" : "Wè tout kalandriye a →"}
-          />
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* Haiti events */}
-            {haitiEvents.map((ev) => {
-              const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
-              const evGeo = getCalendarGeo(ev);
-              return (
-                <div key={ev.id} className="flex items-start gap-3 rounded-lg border border-brand-100 bg-white p-4">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-600 text-white">
-                    {dateObj ? (
-                      <>
-                        <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
-                        <span className="text-[9px] uppercase leading-tight">
-                          {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}
-                        </span>
-                      </>
-                    ) : (
-                      <CalendarDays className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      {evGeo === "Haiti" ? (
-                        <span className="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">
-                          Haïti
-                        </span>
-                      ) : (
-                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                          <Globe className="h-3 w-3" /> International
-                        </span>
-                      )}
-                      <p className="font-medium text-gray-900 line-clamp-1">{ev.title}</p>
-                    </div>
-                    {ev.institution && (
-                      <p className="mt-0.5 text-xs text-gray-500">{ev.institution}</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* International scholarship deadlines */}
-            {intlScholarships.map((s) => {
-              const dl = s.deadline;
-              const dateObj = dl?.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
-              const sGeo = getCalendarGeo(s);
-              return (
-                <div key={s.id} className="flex items-start gap-3 rounded-lg border border-amber-100 bg-white p-4">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-amber-500 text-white">
-                    {dateObj ? (
-                      <>
-                        <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
-                        <span className="text-[9px] uppercase leading-tight">
-                          {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}
-                        </span>
-                      </>
-                    ) : (
-                      <Clock className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      {sGeo === "Haiti" ? (
-                        <span className="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">
-                          Haïti
-                        </span>
-                      ) : (
-                        <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
-                          <Globe className="h-3 w-3" /> International
-                        </span>
-                      )}
-                      <p className="font-medium text-gray-900 line-clamp-1">{s.name}</p>
-                    </div>
-                    {dl?.dateISO && (
-                      <p className="mt-0.5 text-xs text-gray-500">
-                        {fr ? "Date limite: " : "Dat limit: "}
-                        {dateObj?.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
-                          day: "numeric", month: "long", year: "numeric",
-                        })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
-       *  S2 — Bourses: Date limite bientôt
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {boursesClosing.length > 0 && (
-        <section className="space-y-4 rounded-xl border-2 border-amber-200 bg-amber-50/40 p-6">
-          <SectionHeader
-            icon={<DollarSign className="h-5 w-5 text-amber-600" />}
-            title={fr ? "Bourses — Date limite bientôt" : "Bous — Dat limit ki pre"}
-            href={lq("/bourses")}
-            cta={fr ? "Toutes les bourses →" : "Tout bous yo →"}
-          />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {boursesClosing.map((s) => {
-              const dl = s.deadline;
-              return (
-                <div key={s.id} className="rounded-lg border bg-white p-4 shadow-sm">
-                  <h3 className="font-semibold text-gray-900 line-clamp-1">{s.name}</h3>
-                  {s.eligibilitySummary && (
-                    <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-                      {s.eligibilitySummary}
-                    </p>
-                  )}
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                    {dl?.dateISO && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-800">
-                        <Clock className="h-3 w-3" /> {new Date(dl.dateISO + "T00:00:00").toLocaleDateString(
-                          fr ? "fr-FR" : "fr-HT",
-                          { day: "numeric", month: "short", year: "numeric" },
-                        )}
-                      </span>
-                    )}
-                    <span className="text-gray-500">
-                      {COUNTRY_LABELS[s.country]?.flag} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
-                    </span>
-                  </div>
-                  {s.howToApplyUrl && (
-                    <a href={s.howToApplyUrl} target="_blank" rel="noopener noreferrer"
-                      className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline">
-                      {fr ? "Postuler →" : "Aplike →"}
-                    </a>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
-       *  S3 — Parcours recommandés
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {pathways.length > 0 && (
-        <section className="space-y-4">
-          <SectionHeader
-            icon={<Compass className="h-5 w-5 text-brand-600" />}
-            title={fr ? "Parcours recommandés" : "Pakou rekòmande"}
-            href={lq("/parcours")}
-            cta={fr ? "Tous les parcours →" : "Tout pakou yo →"}
-          />
-          <div className="grid gap-4 sm:grid-cols-3">
-            {pathways.map((pw) => (
-              <Link
-                key={pw.id}
-                href={lq("/parcours")}
-                className="group rounded-lg border bg-white p-5 shadow-sm transition hover:shadow-md hover:border-brand-300"
-              >
-                <div className="flex items-center gap-2">
-                  <Compass className="h-5 w-5 shrink-0 text-brand-600" />
-                  <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-700">
-                    {fr ? pw.title_fr : (pw.title_ht ?? pw.title_fr)}
-                  </h3>
-                </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  {pw.steps.length} {fr ? "étapes" : "etap"}
-                  {pw.country ? ` · ${fr ? COUNTRY_LABELS[pw.country]?.fr : COUNTRY_LABELS[pw.country]?.ht}` : ""}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
        *  S4 — Étudier à l'étranger (universities)
        * ═══════════════════════════════════════════════════════════════════ */}
       {rotatedUnis.length > 0 && (
         <section className="space-y-4">
           <SectionHeader
-            icon={<GraduationCap className="h-5 w-5 text-brand-600" />}
+            icon={<GraduationCap className="h-5 w-5 text-brand-600 dark:text-brand-400" />}
             title={fr ? "Étudier à l'étranger" : "Etidye aletranje"}
             href={lq("/universites")}
             cta={fr ? "Toutes les universités →" : "Tout inivèsite yo →"}
           />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rotatedUnis.map((u) => (
-              <div key={u.id} className="rounded-lg border bg-white p-4 shadow-sm">
+              <div key={u.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
                 <div className="flex items-start justify-between">
-                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{u.name}</h3>
-                  <span className="ml-1 shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600">
+                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 dark:text-slate-100">{u.name}</h3>
+                  <span className="ml-1 shrink-0 rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-slate-700 dark:text-slate-300">
                     {COUNTRY_LABELS[u.country]?.flag}
                   </span>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {u.city && (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-slate-700 dark:text-slate-400">
                       {u.city}
                     </span>
                   )}
                   {u.haitianFriendly && (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-800">
-                      {fr ? "Accueil haïtien" : "Akèy ayisyen"}
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                      ✅ {fr ? "Accueil haïtien" : "Akèy ayisyen"}
                     </span>
                   )}
                   {u.tuitionBand && (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-slate-700 dark:text-slate-400">
                       {fr ? TUITION_LABELS[u.tuitionBand]?.fr : TUITION_LABELS[u.tuitionBand]?.ht}
                     </span>
                   )}
                 </div>
                 {u.admissionsUrl && (
                   <a href={u.admissionsUrl} target="_blank" rel="noopener noreferrer"
-                    className="mt-2 inline-block text-xs font-medium text-brand-600 hover:underline">
+                    className="mt-3 inline-block text-xs font-semibold text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
                     <School className="mr-1 inline h-3 w-3" />{fr ? "Voir le site →" : "Wè sit la →"}
                   </a>
                 )}
@@ -616,40 +662,12 @@ export default async function AccueilPage({
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  S5 — Histoire & Fèt du jour (latest HaitiHistory utility post only)
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {latestHistoryPost && (
-        <section className="space-y-4 rounded-xl border-2 border-amber-200 bg-amber-50/40 p-6">
-          <SectionHeader
-            icon={<BookOpen className="h-5 w-5 text-amber-600" />}
-            title={fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
-            href={lq("/histoire")}
-            cta={fr ? "Voir tout →" : "Wè tout →"}
-          />
-          <div className="rounded-lg border border-amber-100 bg-white p-5 shadow-sm">
-            <h3 className="font-semibold text-gray-900">
-              {latestHistoryPost.title}
-            </h3>
-            <p className="mt-2 text-sm text-gray-600 line-clamp-3">
-              {latestHistoryPost.summary || latestHistoryPost.body?.slice(0, 250) || ""}
-            </p>
-            <Link
-              href={`/news/${latestHistoryPost.id}${langQ}`}
-              className="mt-3 inline-block text-sm font-medium text-amber-700 hover:underline"
-            >
-              {fr ? "Lire →" : "Li →"}
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
        *  S_succes — Succès & Inspiration (strict gating)
        * ═══════════════════════════════════════════════════════════════════ */}
       {succesArticles.length > 0 ? (
-        <section className="space-y-4 rounded-xl border-2 border-emerald-200 bg-emerald-50/40 p-6">
+        <section className="premium-section space-y-4 border-emerald-200/60 dark:border-emerald-800/30">
           <SectionHeader
-            icon={<Award className="h-5 w-5 text-emerald-600" />}
+            icon={<Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
             title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
             href={lq("/succes")}
             cta={fr ? "Voir tout →" : "Wè tout →"}
@@ -661,14 +679,14 @@ export default async function AccueilPage({
           </div>
         </section>
       ) : (
-        <section className="space-y-4 rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50/20 p-6">
+        <section className="premium-section space-y-4 border-dashed border-gray-200 dark:border-slate-700">
           <SectionHeader
-            icon={<Award className="h-5 w-5 text-emerald-600" />}
+            icon={<Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
             title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
             href={lq("/succes")}
             cta={fr ? "Voir tout →" : "Wè tout →"}
           />
-          <div className="py-8 text-center text-gray-400">
+          <div className="py-8 text-center text-gray-400 dark:text-slate-500">
             <p className="text-base">
               {fr ? "Aucun profil publié récemment." : "Pa gen pwofil pibliye dènyèman."}
             </p>
@@ -679,9 +697,9 @@ export default async function AccueilPage({
       {/* ═══════════════════════════════════════════════════════════════════
        *  S6 — Fil: Actualité générale (news — below the fold)
        * ═══════════════════════════════════════════════════════════════════ */}
-      <div className="border-t border-gray-200 pt-10">
+      <div className="border-t border-gray-200 pt-10 dark:border-slate-800">
         <SectionHeader
-          icon={<Newspaper className="h-5 w-5 text-gray-500" />}
+          icon={<Newspaper className="h-5 w-5 text-gray-500 dark:text-slate-400" />}
           title={fr ? "Fil — Actualité générale" : "Fil — Nouvèl jeneral"}
           href={lq("/news")}
           cta={fr ? "Voir tout →" : "Wè tout →"}
@@ -699,7 +717,7 @@ export default async function AccueilPage({
             ))}
           </div>
         ) : (
-          <div className="mt-5 rounded-lg border-2 border-dashed border-gray-200 py-12 text-center text-gray-400">
+          <div className="mt-5 rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-400 dark:border-slate-700 dark:text-slate-500">
             <p className="text-base">
               {fr ? "Les actualités arrivent bientôt." : "Nouvèl yo ap vini byento."}
             </p>

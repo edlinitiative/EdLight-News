@@ -32,11 +32,11 @@ import type { DeadlineStatus } from "@/lib/opportunityDeadline";
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
   scholarship: "from-brand-800 to-purple-700",
-  opportunity: "from-purple-700 to-pink-600",
+  opportunity: "from-purple-700 to-brand-600",
   news:        "from-teal-700 to-brand-800",
-  event:       "from-orange-700 to-red-700",
+  event:       "from-brand-700 to-indigo-700",
   resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-red-700 to-brand-800",
+  local_news:  "from-brand-700 to-brand-900",
 };
 const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
 
@@ -78,7 +78,7 @@ export function OpportunityCard({
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md",
+        "group flex flex-col overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover",
         isExpired ? "opacity-80" : "",
       ].join(" ")}
     >
@@ -153,10 +153,10 @@ export function OpportunityCard({
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
               isExpired
-                ? "bg-red-50 text-red-600"
+                ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
                 : deadline.missing
-                  ? "bg-amber-50 text-amber-600"
-                  : "bg-orange-50 text-orange-600"
+                  ? "bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400"
+                  : "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
             }`}
           >
             <CalendarClock className="h-3 w-3" />
@@ -177,17 +177,17 @@ export function OpportunityCard({
         </div>
 
         {/* Title */}
-        <h2 className="mb-2 text-base font-semibold leading-snug group-hover:text-brand-700">
+        <h2 className="mb-2 text-base font-semibold leading-snug group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400">
           {article.title}
         </h2>
 
         {/* Summary */}
-        <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500">
+        <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400">
           {article.summary || article.body?.slice(0, 150) || ""}
         </p>
 
         {/* Footer */}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
           {article.sourceName && <span>{article.sourceName}</span>}
           {article.sourceName && article.publishedAt && <span>·</span>}
           {article.publishedAt && (

@@ -22,9 +22,9 @@ import {
 // ── Styling per tier ─────────────────────────────────────────────────────────
 
 const TIER_STYLES: Record<UrgencyTier, string> = {
-  critical: "bg-red-100 text-red-800 ring-1 ring-red-300",
-  soon:     "bg-orange-100 text-orange-800 ring-1 ring-orange-200",
-  upcoming: "bg-amber-50 text-amber-700",
+  critical: "bg-red-100 text-red-800 ring-1 ring-red-300 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-700",
+  soon:     "bg-brand-100 text-brand-800 ring-1 ring-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-700",
+  upcoming: "bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-300",
   none:     "",
 };
 

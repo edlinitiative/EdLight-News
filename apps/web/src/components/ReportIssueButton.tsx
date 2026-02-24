@@ -168,7 +168,7 @@ export function ReportIssueButton({
           className={`fixed bottom-4 right-4 z-50 rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition ${
             toast === "success"
               ? "bg-green-600 text-white"
-              : "bg-amber-500 text-white"
+              : "bg-brand-500 text-white"
           }`}
         >
           {toast === "success"

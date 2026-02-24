@@ -40,9 +40,9 @@ const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> 
   economy:       { fr: "Économie",      ht: "Ekonomi",      color: "bg-yellow-100 text-yellow-800" },
   literature:    { fr: "Littérature",   ht: "Literati",     color: "bg-indigo-100 text-indigo-800" },
   art:           { fr: "Art",           ht: "La",           color: "bg-pink-100 text-pink-800" },
-  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-amber-100 text-amber-800" },
+  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-brand-100 text-brand-800" },
   sports:        { fr: "Sports",        ht: "Espò",         color: "bg-emerald-100 text-emerald-800" },
-  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-orange-100 text-orange-800" },
+  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-gray-200 text-gray-800" },
   diplomacy:     { fr: "Diplomatie",    ht: "Diplomasi",    color: "bg-teal-100 text-teal-800" },
   resistance:    { fr: "Résistance",    ht: "Rezistans",    color: "bg-rose-100 text-rose-800" },
   revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-100 text-red-700" },
@@ -362,12 +362,12 @@ export function HistoireArchive({
                     {dayHolidays.map((h) => (
                       <div
                         key={h.id}
-                        className="mx-3 mt-3 flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 text-xs font-semibold text-amber-700"
+                        className="mx-3 mt-3 flex items-center gap-2 rounded-lg bg-gradient-to-r from-brand-50 to-blue-50 px-3 py-2 text-xs font-semibold text-brand-700"
                       >
-                        <Star className="h-3.5 w-3.5 text-amber-500" />
+                        <Star className="h-3.5 w-3.5 text-brand-500" />
                         {fr ? h.name_fr : h.name_ht}
                         {h.isNationalHoliday && (
-                          <span className="ml-auto text-amber-400">🇭🇹</span>
+                          <span className="ml-auto text-brand-400">🇭🇹</span>
                         )}
                       </div>
                     ))}
@@ -511,7 +511,7 @@ export function HistoireArchive({
               {/* Holidays this month */}
               {holidays.length > 0 && (
                 <div>
-                  <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-700">
+                  <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-700">
                     <Star className="h-4 w-4" />
                     {fr ? "Fêtes ce mois" : "Fèt mwa sa a"}
                   </h3>
@@ -521,9 +521,9 @@ export function HistoireArchive({
                       return (
                         <div
                           key={h.id}
-                          className="flex items-center gap-4 rounded-xl border border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4"
+                          className="flex items-center gap-4 rounded-xl border border-brand-100 bg-gradient-to-r from-brand-50 to-blue-50 px-5 py-4"
                         >
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white shadow-sm">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white shadow-sm">
                             {dd}
                           </div>
                           <div>
@@ -531,7 +531,7 @@ export function HistoireArchive({
                               {fr ? h.name_fr : h.name_ht}
                             </p>
                             {h.isNationalHoliday && (
-                              <span className="text-xs font-medium text-amber-600">
+                              <span className="text-xs font-medium text-brand-600">
                                 🇭🇹 {fr ? "Fête nationale" : "Fèt nasyonal"}
                               </span>
                             )}

@@ -21,7 +21,7 @@ function LanguageToggleInner() {
   return (
     <button
       onClick={handleToggle}
-      className="rounded-md border px-3 py-1 text-sm font-medium transition hover:bg-gray-100"
+      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold transition-all duration-200 hover:border-brand-300 hover:bg-brand-50 dark:border-slate-600 dark:text-slate-300 dark:hover:border-brand-500/50 dark:hover:bg-slate-700"
       aria-label="Toggle language"
     >
       {language === "fr" ? "KREYÒL" : "FRANÇAIS"}
@@ -33,7 +33,7 @@ export function LanguageToggle() {
   return (
     <Suspense
       fallback={
-        <span className="rounded-md border px-3 py-1 text-sm font-medium">
+        <span className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold dark:border-slate-600 dark:text-slate-300">
           …
         </span>
       }
