@@ -57,7 +57,7 @@ const FUNDING_LABELS: Record<string, { fr: string; ht: string; color: string }> 
   partial:       { fr: "Partiel",    ht: "Pasyèl",        color: "bg-yellow-100 text-yellow-800" },
   stipend:       { fr: "Partiel",    ht: "Pasyèl",        color: "bg-yellow-100 text-yellow-800" },
   "tuition-only":{ fr: "Scolarité",  ht: "Frè etid sèlman", color: "bg-purple-100 text-purple-800" },
-  unknown:       { fr: "Inconnu",    ht: "Enkonni",       color: "bg-gray-100 text-gray-800" },
+  unknown:       { fr: "Inconnu",    ht: "Enkonni",       color: "bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300" },
 };
 
 const LEVEL_LABELS: Record<AcademicLevel, { fr: string; ht: string }> = {
@@ -275,7 +275,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
         active
           ? "bg-brand-600 text-white shadow-sm"
-          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
       }`}
     >
       {label}
@@ -285,10 +285,10 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   return (
     <div className="space-y-6">
       {/* ── Filters ──────────────────────────────────────────────── */}
-      <div className="space-y-3 rounded-lg border bg-gray-50/50 p-4">
+      <div className="space-y-3 rounded-lg border bg-gray-50/50 p-4 dark:border-slate-700 dark:bg-slate-700/50">
         {/* Type filter */}
         <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
             {fr ? "Type" : "Tip"}
           </span>
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -305,7 +305,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
         {/* Funding filter */}
         <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
             {fr ? "Financement" : "Finansman"}
           </span>
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -322,7 +322,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
         {/* Level filter */}
         <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
             {fr ? "Niveau" : "Nivo"}
           </span>
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -347,7 +347,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
         {/* Country filter */}
         <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
             {fr ? "Pays" : "Peyi"}
           </span>
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -372,7 +372,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
         {/* Haitian eligibility filter */}
         <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
             {fr ? "Éligible Haïti" : "Elijib Ayiti"}
           </span>
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -390,16 +390,16 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
       {/* ── Sort controls ────────────────────────────────────────── */}
       <div className="flex items-center gap-2">
-        <ArrowUpDown className="h-4 w-4 text-gray-400" />
-        <span className="text-xs font-medium text-gray-400">{fr ? "Trier:" : "Triye:"}</span>
+        <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
+        <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{fr ? "Trier:" : "Triye:"}</span>
         {(["deadline", "latest", "relevance"] as SortMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => setFilter("sort", mode)}
             className={`rounded px-2 py-0.5 text-xs font-medium transition ${
               sortMode === mode
-                ? "bg-brand-50 text-brand-700"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-300"
+                : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
             }`}
           >
             {fr ? SORT_LABELS[mode].fr : SORT_LABELS[mode].ht}
@@ -408,7 +408,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       {/* ── Result count ─────────────────────────────────────────── */}
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-500 dark:text-slate-400">
         {filtered.length} {fr ? "résultat(s)" : "rezilta"}
       </p>
 
@@ -424,8 +424,8 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           return (
             <div
               key={s.id}
-              className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md ${
-                isDirectory ? "border-l-4 border-l-indigo-300" : ""
+              className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-700 ${
+                isDirectory ? "border-l-4 border-l-indigo-300 dark:border-l-indigo-600" : ""
               }`}
             >
               {/* Header */}
@@ -449,13 +449,13 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
                 {/* Eligibility badge */}
                 {elig === "yes" && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
                     <CheckCircle className="h-3 w-3" />
                     {fr ? "Haïti: Oui" : "Ayiti: Wi"}
                   </span>
                 )}
                 {elig === "unknown" && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/20 dark:text-brand-300">
                     <HelpCircle className="h-3 w-3" />
                     {fr ? "Haïti: À confirmer" : "Ayiti: Pou konfime"}
                   </span>
@@ -463,7 +463,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
                 {/* Directory badge */}
                 {isDirectory && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-300">
                     <FolderOpen className="h-3 w-3" />
                     {fr ? "Répertoire" : "Repètwa"}
                   </span>
@@ -472,14 +472,14 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Description */}
               {s.eligibilitySummary && (
-                <p className="mt-2 text-sm text-gray-600 line-clamp-3">
+                <p className="mt-2 text-sm text-gray-600 line-clamp-3 dark:text-slate-300">
                   {s.eligibilitySummary}
                 </p>
               )}
 
               {/* Levels */}
               {s.level.length > 0 && (
-                <p className="mt-2 text-xs text-gray-400">
+                <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
                   <BookOpen className="mr-0.5 inline h-3 w-3" />
                   {s.level.map((l) => {
                     const lbl = LEVEL_LABELS[l];
@@ -490,7 +490,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Deadline display */}
               {dlLabel && (
-                <p className="mt-1 text-xs font-medium text-brand-600">
+                <p className="mt-1 text-xs font-medium text-brand-600 dark:text-brand-400">
                   <CalendarDays className="mr-0.5 inline h-3 w-3" /> {dlLabel}
                 </p>
               )}
@@ -507,7 +507,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Haitian-friendly (legacy: eligibleCountries) */}
               {!s.haitianEligibility && s.eligibleCountries?.includes("HT") && (
-                <p className="mt-1 text-xs text-green-600">
+                <p className="mt-1 text-xs text-green-600 dark:text-green-400">
                   <CheckCircle className="mr-0.5 inline h-3 w-3" /> {fr ? "Ouvert aux Haïtiens" : "Ouvè pou Ayisyen"}
                 </p>
               )}
@@ -516,7 +516,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               {s.tags && s.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {s.tags.slice(0, 4).map((tag) => (
-                    <span key={tag} className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
+                    <span key={tag} className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600 dark:bg-slate-700 dark:text-slate-300">
                       {tag}
                     </span>
                   ))}
@@ -530,7 +530,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                     href={s.officialUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                    className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
                   >
                     <ExternalLink className="h-3 w-3" />
                     {fr ? "Consulter la source officielle" : "Wè sous ofisyèl la"}
@@ -542,7 +542,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.howToApplyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-brand-700 hover:underline"
+                        className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-400"
                       >
                         {fr ? "Postuler →" : "Aplike →"}
                       </a>
@@ -552,7 +552,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.officialUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-gray-500 hover:underline"
+                        className="text-xs font-medium text-gray-500 hover:underline dark:text-slate-400"
                       >
                         {fr ? "Site officiel →" : "Sit ofisyèl →"}
                       </a>
@@ -564,7 +564,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                     href={s.deadline.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs font-medium text-brand-500 hover:underline"
+                    className="text-xs font-medium text-brand-500 hover:underline dark:text-brand-400"
                   >
                     {fr ? "Source deadline →" : "Sous dat limit →"}
                   </a>
@@ -580,7 +580,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                       href={src.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-700 hover:underline"
+                      className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-700 hover:underline dark:bg-slate-700/50 dark:text-slate-500 dark:hover:text-brand-400"
                     >
                       <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                     </a>
@@ -603,7 +603,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 py-24 text-center text-gray-400">
+        <div className="rounded-lg border-2 border-dashed border-gray-200 py-24 text-center text-gray-400 dark:border-slate-700 dark:text-slate-500">
           <p className="text-lg font-medium">
             {fr
               ? scholarships.length === 0
