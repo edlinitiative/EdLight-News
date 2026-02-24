@@ -1,19 +1,15 @@
 import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
+import colors from "tailwindcss/colors";
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: "#eff6ff",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-        },
+        // Use Tailwind's built-in palette (no custom hex values)
+        // so the app can consistently reference `brand-*` tokens.
+        brand: colors.blue,
       },
     },
   },

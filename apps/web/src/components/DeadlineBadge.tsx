@@ -73,7 +73,7 @@ export function DeadlineBadge({
   if (variant === "compact") {
     return (
       <span
-        className={`inline-flex items-center gap-1 text-[11px] font-medium ${styles}`}
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${styles}`}
         title={dateISO ?? ""}
       >
         {icon}

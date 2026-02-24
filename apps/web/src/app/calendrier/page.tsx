@@ -150,7 +150,7 @@ export default async function CalendrierPage({
   const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
     exam: <FileText className="h-5 w-5 text-orange-600" />,
     admissions: <GraduationCap className="h-5 w-5 text-brand-600" />,
-    registration: <ClipboardList className="h-5 w-5 text-blue-600" />,
+    registration: <ClipboardList className="h-5 w-5 text-brand-600" />,
     results: <BarChart3 className="h-5 w-5 text-green-600" />,
     rentree: <School className="h-5 w-5 text-purple-600" />,
     closure: <Lock className="h-5 w-5 text-gray-500" />,

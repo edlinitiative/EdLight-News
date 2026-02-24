@@ -122,7 +122,7 @@ export default async function ScholarshipDetailPage({
       {/* Back link */}
       <Link
         href={`/bourses${lang !== "fr" ? `?lang=${lang}` : ""}`}
-        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+        className="inline-flex items-center gap-1 text-sm text-brand-700 hover:underline"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         {fr ? "Retour aux bourses" : "Retounen nan bous yo"}
@@ -283,7 +283,7 @@ export default async function ScholarshipDetailPage({
                 href={s.howToApplyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700"
               >
                 {fr ? "Postuler →" : "Aplike →"}
               </a>
@@ -354,7 +354,7 @@ export default async function ScholarshipDetailPage({
                 href={src.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded bg-gray-50 px-2 py-1 text-xs text-gray-500 hover:text-blue-600 hover:underline"
+                className="rounded bg-gray-50 px-2 py-1 text-xs text-gray-500 hover:text-brand-700 hover:underline"
               >
                 <Paperclip className="mr-0.5 inline h-3 w-3" /> {src.label}
               </a>

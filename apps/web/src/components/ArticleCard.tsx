@@ -73,12 +73,12 @@ function derivedCategoryInfo(
 
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
-  scholarship: "from-blue-800 to-purple-700",
+  scholarship: "from-brand-800 to-purple-700",
   opportunity: "from-purple-700 to-pink-600",
-  news:        "from-teal-700 to-blue-800",
+  news:        "from-teal-700 to-brand-800",
   event:       "from-orange-700 to-red-700",
   resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-red-700 to-blue-800",
+  local_news:  "from-red-700 to-brand-800",
 };
 const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
 
@@ -112,7 +112,7 @@ export function ArticleCard({
   return (
     <a
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col rounded-lg border bg-white transition hover:border-brand-300 hover:shadow-md overflow-hidden"
+      className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
     >
       {/* Image / gradient thumbnail — compact uses smaller aspect ratio */}
       <div className={[
@@ -191,7 +191,7 @@ export function ArticleCard({
         {/* Title */}
         <h2
           className={[
-            "font-semibold leading-snug group-hover:text-brand-700",
+            "font-semibold leading-snug transition-colors group-hover:text-brand-700",
             compact ? "mb-1 text-sm" : "mb-2 text-base",
           ].join(" ")}
         >

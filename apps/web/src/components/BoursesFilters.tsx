@@ -272,10 +272,10 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   const Chip = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
         active
-          ? "bg-blue-600 text-white shadow-sm"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          ? "bg-brand-600 text-white shadow-sm"
+          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
       }`}
     >
       {label}
@@ -398,7 +398,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
             onClick={() => setFilter("sort", mode)}
             className={`rounded px-2 py-0.5 text-xs font-medium transition ${
               sortMode === mode
-                ? "bg-blue-50 text-blue-700"
+                ? "bg-brand-50 text-brand-700"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -424,7 +424,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           return (
             <div
               key={s.id}
-              className={`rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md ${
+              className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md ${
                 isDirectory ? "border-l-4 border-l-indigo-300" : ""
               }`}
             >
@@ -542,7 +542,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.howToApplyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-blue-600 hover:underline"
+                        className="text-xs font-medium text-brand-700 hover:underline"
                       >
                         {fr ? "Postuler →" : "Aplike →"}
                       </a>
@@ -580,7 +580,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                       href={src.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-blue-600 hover:underline"
+                      className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-700 hover:underline"
                     >
                       <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                     </a>

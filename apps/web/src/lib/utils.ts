@@ -114,7 +114,7 @@ export const CATEGORY_LABELS: Record<FeedCategory, { fr: string; ht: string }> =
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  local_news:  "bg-blue-50 text-blue-700",
+  local_news:  "bg-brand-50 text-brand-700",
   scholarship: "bg-purple-50 text-purple-700",
   opportunity: "bg-orange-50 text-orange-700",
   event:       "bg-teal-50 text-teal-700",

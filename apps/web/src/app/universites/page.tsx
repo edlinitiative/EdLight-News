@@ -72,8 +72,8 @@ export default async function UniversitesPage({
           href={`/universites?lang=${lang}`}
           className={`rounded-full px-3 py-1 text-sm font-medium transition ${
             !filterCountry
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ? "bg-brand-600 text-white"
+              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
           }`}
         >
           {fr ? "Tous" : "Tout"}
@@ -86,8 +86,8 @@ export default async function UniversitesPage({
               href={`/universites?lang=${lang}&country=${c}`}
               className={`rounded-full px-3 py-1 text-sm font-medium transition ${
                 filterCountry === c
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-brand-600 text-white"
+                  : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
               {label?.flag} {fr ? label?.fr : label?.ht}
@@ -114,7 +114,7 @@ export default async function UniversitesPage({
                 return (
                   <div
                     key={uni.id}
-                    className="rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md"
+                    className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between">
                       <h3 className="font-semibold leading-tight">{uni.name}</h3>
@@ -157,7 +157,7 @@ export default async function UniversitesPage({
                         href={uni.admissionsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-blue-600 hover:underline"
+                        className="text-xs font-medium text-brand-700 hover:underline"
                       >
                         {fr ? "Admissions →" : "Admisyon →"}
                       </a>
@@ -181,7 +181,7 @@ export default async function UniversitesPage({
                             href={src.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-blue-600 hover:underline"
+                            className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-700 hover:underline"
                           >
                             <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                           </a>

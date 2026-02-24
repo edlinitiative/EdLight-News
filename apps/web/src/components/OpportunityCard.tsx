@@ -11,9 +11,8 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { GraduationCap, Globe, MapPin, CalendarClock, AlertCircle } from "lucide-react";
 import type { FeedItem } from "@/components/news-feed";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
-  categoryLabel,
-  CATEGORY_COLORS,
   formatDate,
 } from "@/lib/utils";
 import {
@@ -31,12 +30,12 @@ import type { DeadlineStatus } from "@/lib/opportunityDeadline";
 
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
-  scholarship: "from-blue-800 to-purple-700",
+  scholarship: "from-brand-800 to-purple-700",
   opportunity: "from-purple-700 to-pink-600",
-  news:        "from-teal-700 to-blue-800",
+  news:        "from-teal-700 to-brand-800",
   event:       "from-orange-700 to-red-700",
   resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-red-700 to-blue-800",
+  local_news:  "from-red-700 to-brand-800",
 };
 const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
 
@@ -78,18 +77,27 @@ export function OpportunityCard({
     <a
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex flex-col rounded-lg border bg-white transition hover:border-brand-300 hover:shadow-md overflow-hidden",
+        "group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md",
         isExpired ? "opacity-80" : "",
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
       <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
         {hasImage ? (
-          <img
+          <ImageWithFallback
             src={article.imageUrl!}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fallback={
+              <div
+                className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
+              >
+                <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                  {subCatLabel}
+                </span>
+              </div>
+            }
           />
         ) : (
           <div

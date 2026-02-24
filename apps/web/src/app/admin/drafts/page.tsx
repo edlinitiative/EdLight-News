@@ -28,7 +28,7 @@ const STATUS_CONFIG: Record<
   },
   submitted: {
     label: { fr: "Soumis", ht: "Soumèt" },
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-brand-100 text-brand-800",
     icon: Eye,
   },
   approved: {

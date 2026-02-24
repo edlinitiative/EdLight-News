@@ -143,7 +143,7 @@ export function ReportIssueButton({
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex items-center gap-1 text-xs text-gray-400 transition hover:text-red-500"
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 transition-colors hover:text-red-600"
       >
         <svg
           className="h-3.5 w-3.5"
@@ -212,7 +212,7 @@ export function ReportIssueButton({
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as FeedbackReason)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             >
               {REASON_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -235,7 +235,7 @@ export function ReportIssueButton({
                   ? "Décrivez brièvement l'erreur…"
                   : "Dekri erè a brèvman…"
               }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
             <p className="mt-1 text-right text-xs text-gray-400">
               {note.length}/500
@@ -246,7 +246,7 @@ export function ReportIssueButton({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
               >
                 {fr ? "Annuler" : "Anile"}
               </button>
@@ -254,7 +254,7 @@ export function ReportIssueButton({
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700 disabled:opacity-50"
               >
                 {submitting
                   ? fr

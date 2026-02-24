@@ -100,7 +100,7 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
             key={entry.country}
             type="button"
             onClick={() => navigate(entry.params)}
-            className="group flex flex-col items-start rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-300 hover:shadow-md"
+            className="group flex flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
           >
             <span className="text-2xl leading-none">{entry.flag}</span>
 
@@ -112,7 +112,7 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
               {fr ? entry.description.fr : entry.description.ht}
             </p>
 
-            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition group-hover:gap-2">
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 transition group-hover:gap-2">
               {fr ? entry.cta.fr : entry.cta.ht}
               <ArrowRight className="h-3.5 w-3.5" />
             </span>

@@ -58,7 +58,7 @@ export default async function ParcoursPage({
               className="overflow-hidden rounded-lg border bg-white shadow-sm"
             >
               {/* Pathway header */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+              <div className="bg-gradient-to-r from-brand-50 to-indigo-50 p-6">
                 <div className="flex items-center gap-3">
                   {cl && <span className="text-3xl">{cl.flag}</span>}
                   <div>
@@ -78,7 +78,7 @@ export default async function ParcoursPage({
                   {p.steps.map((step, idx) => (
                       <div key={idx} className="flex gap-4 p-4">
                         {/* Step number */}
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
                           {idx + 1}
                         </div>
                         <div className="min-w-0">
@@ -107,7 +107,7 @@ export default async function ParcoursPage({
                         href={src.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:underline"
+                        className="text-xs text-brand-700 hover:underline"
                       >
                         {src.label ?? src.url}
                       </a>

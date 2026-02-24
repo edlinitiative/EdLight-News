@@ -59,7 +59,7 @@ interface IntlItem {
 const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
   exam: <FileText className="h-5 w-5 text-orange-600" />,
   admissions: <GraduationCap className="h-5 w-5 text-brand-600" />,
-  registration: <ClipboardList className="h-5 w-5 text-blue-600" />,
+  registration: <ClipboardList className="h-5 w-5 text-brand-600" />,
   results: <BarChart3 className="h-5 w-5 text-green-600" />,
   rentree: <School className="h-5 w-5 text-purple-600" />,
   closure: <Lock className="h-5 w-5 text-gray-500" />,
@@ -120,15 +120,15 @@ export function CalendarFilterTabs({
       {/* Haiti events */}
       {filteredHaiti.length > 0 && (
         <section className="space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-blue-800">
-            <span className="rounded bg-blue-100 px-1.5 py-0.5 text-xs font-semibold text-blue-700">Haïti</span>
+          <h2 className="flex items-center gap-2 text-lg font-bold text-brand-800">
+            <span className="rounded bg-brand-100 px-1.5 py-0.5 text-xs font-semibold text-brand-700">Haïti</span>
             {fr ? "Événements Haïti" : "Evènman Ayiti"}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {filteredHaiti.map((e) => (
               <div
                 key={e.id}
-                className="rounded-lg border-l-4 border-blue-400 bg-blue-50/50 p-4"
+                className="rounded-lg border-l-4 border-brand-400 bg-brand-50/50 p-4"
               >
                 <div className="flex items-center gap-2">
                   <span className="flex h-5 w-5 shrink-0 items-center">
@@ -136,7 +136,7 @@ export function CalendarFilterTabs({
                   </span>
                   <h3 className="font-semibold">{e.title}</h3>
                 </div>
-                <p className="mt-1 text-sm text-blue-700">
+                <p className="mt-1 text-sm text-brand-700">
                   {e.dateISO
                     ? new Date(e.dateISO + "T00:00:00").toLocaleDateString(
                         fr ? "fr-FR" : "fr-HT",

@@ -30,7 +30,7 @@ export const metadata = {
 // ── Shared constants ─────────────────────────────────────────────────────────
 
 const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> = {
-  independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-blue-100 text-blue-800" },
+  independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-brand-100 text-brand-800" },
   culture:       { fr: "Culture",       ht: "Kilti",        color: "bg-purple-100 text-purple-800" },
   education:     { fr: "Éducation",     ht: "Edikasyon",    color: "bg-green-100 text-green-800" },
   politics:      { fr: "Politique",     ht: "Politik",      color: "bg-red-100 text-red-800" },
@@ -242,9 +242,9 @@ export default async function HistoirePage({
                       </p>
 
                       {entry.student_takeaway_fr && (
-                        <div className="mt-4 flex gap-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+                        <div className="mt-4 flex gap-3 rounded-lg border border-brand-100 bg-brand-50/60 p-4">
                           <span className="text-lg">💡</span>
-                          <div className="text-sm text-blue-800">
+                          <div className="text-sm text-brand-800">
                             <strong>
                               {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
                             </strong>{" "}

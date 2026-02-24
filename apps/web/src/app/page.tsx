@@ -289,7 +289,7 @@ export default async function AccueilPage({
           </Link>
           <Link
             href={lq("/calendrier")}
-            className="inline-flex items-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700"
+            className="inline-flex items-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700"
           >
             <CalendarDays className="mr-1.5 inline h-4 w-4" />{fr ? "Calendrier" : "Kalandriye"}
           </Link>
@@ -342,7 +342,7 @@ export default async function AccueilPage({
                   {item.kind === "bourse" ? (
                     <DollarSign className="h-4 w-4 text-amber-600" />
                   ) : (
-                    <CalendarDays className="h-4 w-4 text-blue-600" />
+                    <CalendarDays className="h-4 w-4 text-brand-600" />
                   )}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -371,9 +371,9 @@ export default async function AccueilPage({
        *  S1 — Calendrier: Prochaines échéances (above the fold)
        * ═══════════════════════════════════════════════════════════════════ */}
       {(haitiEvents.length > 0 || intlScholarships.length > 0) && (
-        <section className="space-y-4 rounded-xl border-2 border-blue-200 bg-blue-50/40 p-6">
+        <section className="space-y-4 rounded-xl border border-brand-200 bg-brand-50/40 p-6 shadow-sm">
           <SectionHeader
-            icon={<CalendarDays className="h-5 w-5 text-blue-600" />}
+            icon={<CalendarDays className="h-5 w-5 text-brand-600" />}
             title={fr ? "Calendrier — Prochaines échéances" : "Kalandriye — Pwochen dat limit"}
             href={lq("/calendrier")}
             cta={fr ? "Voir tout le calendrier →" : "Wè tout kalandriye a →"}
@@ -384,8 +384,8 @@ export default async function AccueilPage({
               const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
               const evGeo = getCalendarGeo(ev);
               return (
-                <div key={ev.id} className="flex items-start gap-3 rounded-lg border border-blue-100 bg-white p-4">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-600 text-white">
+                <div key={ev.id} className="flex items-start gap-3 rounded-lg border border-brand-100 bg-white p-4">
+                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-600 text-white">
                     {dateObj ? (
                       <>
                         <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
@@ -400,7 +400,7 @@ export default async function AccueilPage({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       {evGeo === "Haiti" ? (
-                        <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                        <span className="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">
                           Haïti
                         </span>
                       ) : (
@@ -440,7 +440,7 @@ export default async function AccueilPage({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       {sGeo === "Haiti" ? (
-                        <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
+                        <span className="shrink-0 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">
                           Haïti
                         </span>
                       ) : (

@@ -18,14 +18,14 @@ export default function Loading() {
 
       {/* Section skeleton — repeated twice */}
       {[1, 2].map((s) => (
-        <section key={s} className="space-y-4 rounded-xl border-2 border-gray-100 p-6">
+        <section key={s} className="space-y-4 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="h-6 w-56 rounded bg-gray-200" />
             <div className="h-4 w-24 rounded bg-gray-200" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((c) => (
-              <div key={c} className="rounded-lg border bg-white p-4">
+              <div key={c} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="h-32 w-full rounded bg-gray-100" />
                 <div className="mt-3 h-4 w-3/4 rounded bg-gray-200" />
                 <div className="mt-2 h-3 w-1/2 rounded bg-gray-200" />
