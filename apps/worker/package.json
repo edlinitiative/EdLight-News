@@ -29,7 +29,8 @@
     "backfill:success-tags-llm": "tsx src/scripts/backfillSuccessTagsLLM.ts",
     "almanac:expand": "tsx src/scripts/runAlmanacExpansionCli.ts",
     "almanac:verify": "tsx src/scripts/runVerifyAlmanacCli.ts",
-    "almanac:coverage": "tsx src/scripts/runCoverageStatsCli.ts"
+    "almanac:coverage": "tsx src/scripts/runCoverageStatsCli.ts",
+    "enrich:history-sources": "tsx src/scripts/enrichHistorySourcesCli.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

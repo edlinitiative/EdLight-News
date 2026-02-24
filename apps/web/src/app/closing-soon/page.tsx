@@ -21,6 +21,7 @@ import {
   daysUntil,
   getNextRelevantDate,
 } from "@/lib/deadlines";
+import { getCalendarGeo, type CalendarGeo } from "@/lib/calendarGeo";
 import { ClosingSoonTabs } from "./tabs";
 
 export const revalidate = 300;
@@ -38,6 +39,8 @@ export interface ClosingItem {
   title: string;
   dateISO: string;
   days: number;
+  /** Geo classification for correct tab labels */
+  geo?: CalendarGeo;
   /** Extra context: institution, country, etc. */
   subtitle?: string;
   /** Link to apply or view */
@@ -99,6 +102,7 @@ export default async function ClosingSoonPage({
       title: ev.title,
       dateISO: iso,
       days,
+      geo: getCalendarGeo(ev),
       subtitle: ev.institution ?? undefined,
       actionUrl: ev.officialUrl,
       actionLabel: { fr: "Voir →", ht: "Wè →" },

@@ -572,8 +572,15 @@ export function NewsFeed({
       {studentModeFiltered && (
         <p className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
           {lang === "fr"
-            ? "Le fil étudiant masque certaines actualités générales. Passez sur \u00ab\u202FTout\u202F\u00bb pour tout afficher."
-            : "Fil etidyan an kache kèk nouvèl jeneral. Chwazi \u00ab\u202FTout\u202F\u00bb pou wè tout."}
+            ? "Fil étudiant masque les faits divers et certaines actualités générales."
+            : "Fil etidyan an kache fe diver ak kèk nouvèl jeneral."}
+          {" "}
+          <button
+            onClick={() => handleModeChange("all")}
+            className="font-medium underline hover:text-amber-900"
+          >
+            {lang === "fr" ? "Voir tout" : "Wè tout"}
+          </button>
         </p>
       )}
 

@@ -47,6 +47,25 @@ describe("isAllowedInStudentFeed", () => {
     ).toBe(false);
   });
 
+  it("blocks kidnapping attempt with no education keyword", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Tentative d'enlèvement d'un commerçant à Port-au-Prince",
+        summary: "La victime a été libérée après le paiement d'une rançon.",
+        category: "local_news",
+      }),
+    ).toBe(false);
+  });
+
+  it("blocks elections headline with no education context", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Élections : la coalition au parlement s'effondre",
+        summary: "Le président convoque une session extraordinaire.",
+      }),
+    ).toBe(false);
+  });
+
   // ── Allowed cases ───────────────────────────────────────────────────────
 
   it("allows a scholarship deadline article", () => {
@@ -121,6 +140,33 @@ describe("isAllowedInStudentFeed", () => {
         summary: "Les étudiants peuvent s'inscrire dès maintenant.",
         category: "local_news",
         geoLabel: "HT",
+      }),
+    ).toBe(true);
+  });
+
+  it("allows MENFP education-impact notice despite insecurity context", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "MENFP annonce report des examens suite à insécurité",
+        summary: "Les examens officiels sont reportés jusqu'à nouvel ordre.",
+      }),
+    ).toBe(true);
+  });
+
+  it("allows crime-context article when university closure is explicit", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Gang : l'université fermée jusqu'à nouvel ordre",
+        summary: "Les cours sont suspendus à cause de l'insécurité.",
+      }),
+    ).toBe(true);
+  });
+
+  it("allows a simple bourse article", () => {
+    expect(
+      isAllowedInStudentFeed({
+        title: "Bourse d'études en France pour étudiants haïtiens",
+        summary: "Les candidatures sont ouvertes pour la rentrée 2026.",
       }),
     ).toBe(true);
   });

@@ -1,5 +1,5 @@
 /**
- * Deterministic "Fil étudiant" filter.
+ * Deterministic "Fil étudiant" filter — v2 (tightened crime/security rules).
  *
  * Decides whether a given article should appear in the student-first
  * feed based on keyword blocklists, allowlists, and hard category rules.
@@ -8,70 +8,144 @@
  *   - No LLM judgement — purely keyword / metadata based.
  *   - No Firestore schema changes — operates on fields already available
  *     on enriched FeedItems.
+ *   - Two-tier blocking:
+ *       HARD BLOCK  – crime/violence: must have education-impact exception.
+ *       SOFT BLOCK  – politics/disaster: education OR opportunity allowlist suffices.
  */
 
 // ── Keyword lists ───────────────────────────────────────────────────────────
 
 /**
- * Crime / violence / security keywords.
- * If these appear WITHOUT any allowlist hit the article is blocked.
+ * HARD crime / violence / security keywords.
+ * If any of these appear, the article is blocked UNLESS an education-impact
+ * exception keyword also appears (the generic opportunity allowlist is NOT
+ * enough on its own).
  */
-const BLOCKLIST_CRIME: readonly string[] = [
-  "attaque",
-  "fusillade",
+const HARD_CRIME: readonly string[] = [
   "kidnapping",
   "enlevement",
   "enlèvement",
-  "assassinat",
-  "meurtre",
-  "gang",
-  "arme",
-  "police",
-  "mort",
+  "ranson",
+  "rançon",
+  "otage",
+  "fusillade",
+  "tire",
+  "tiré",
+  "tuer",
   "tué",
-  "tue",
+  "meurtre",
+  "assassinat",
+  "gang",
+  "bandi",
+  "arme",
+  "armes",
+  "balle",
+  "police",
+  "attaque",
+  "massacre",
   "viol",
-  "incendie",
+  "incendie criminel",
+  // Carried from v1
+  "mort",
   "explosion",
 ];
 
 /**
- * Pure politics / power-struggle keywords.
- * Blocked unless education-related allowlist keywords also appear.
+ * Education-impact keywords — these can override HARD_CRIME because
+ * the article is explicitly about the effect on schools / exams / students.
+ *
+ * Generic location-only words (école, université, campus, ueh) are included
+ * but subject to a safety-valve: when they are the *only* matches and
+ * HARD_CRIME also fires, the article is still blocked (the entity is likely
+ * just a crime *location*, not the *subject*).
+ */
+const EDUCATION_IMPACT: readonly string[] = [
+  // Institutions & regulatory
+  "menfp",
+  "ministere de l'education",
+  "ministère de l'éducation",
+  // Exams & calendar
+  "examen",
+  "examens",
+  "bac",
+  "ns4",
+  "rentrée",
+  "rentree",
+  "calendrier scolaire",
+  // Operational disruption (compound phrases)
+  "cours suspendus",
+  "cours repris",
+  "fermeture des ecoles",
+  "fermeture des écoles",
+  "report des examens",
+  "reporté",
+  "reporte",
+  "postponed",
+  "classes",
+  "enseignants",
+  // Compound closure phrases for institutions
+  "universite fermee",
+  "université fermée",
+  "ecole fermee",
+  "école fermée",
+  "campus ferme",
+  "campus fermé",
+  // Generic education entities (kept; see safety-valve note above)
+  "ecole",
+  "école",
+  "universite",
+  "université",
+  "ueh",
+  "campus",
+];
+
+/**
+ * Standalone generic-location education words.
+ * When these are the ONLY education-impact matches alongside HARD_CRIME,
+ * we still block — they likely mark a crime *location*, not an education focus.
+ */
+const GENERIC_EDUCATION_LOCATIONS = new Set<string>([
+  "ecole",
+  "universite",
+  "campus",
+  "ueh",
+]);
+
+/**
+ * Politics keywords (soft block).
+ * Blocked unless education OR opportunity allowlist also matches.
  */
 const BLOCKLIST_POLITICS: readonly string[] = [
-  "élections",
   "elections",
-  "parti",
+  "élections",
+  "parlement",
   "coalition",
+  "parti",
+  "president",
   "président",
   "premier ministre",
-  "parlement",
-  "sanctions",
   "manifestation",
   "crise politique",
 ];
 
 /**
- * Disaster-only keywords.
- * Blocked unless the article also contains student-relevant guidance.
+ * Disaster keywords (soft block).
+ * Blocked unless education-impact OR opportunity allowlist also matches.
  */
 const BLOCKLIST_DISASTER: readonly string[] = [
+  "seisme",
   "séisme",
+  "ouragan",
   "cyclone",
   "inondation",
-  "ouragan",
   "catastrophe",
+  "disaster",
 ];
 
-/** Combined blocklist (all categories). */
-const BLOCKLIST: readonly string[] = [
-  ...BLOCKLIST_CRIME,
-  ...BLOCKLIST_POLITICS,
-  ...BLOCKLIST_DISASTER,
-];
-
-/** Education / opportunity keywords — presence overrides most blocklists. */
+/**
+ * Positive education / opportunity allowlist.
+ * Overrides SOFT blocks (politics, disaster) but NOT hard-crime on its own.
+ */
 const ALLOWLIST: readonly string[] = [
   "bourse",
   "scholarship",
@@ -92,10 +166,12 @@ const ALLOWLIST: readonly string[] = [
   "cv",
   "lettre de motivation",
   "carrière",
+  "carriere",
   "career",
   "emploi",
   "apprenticeship",
   "compétences",
+  "competences",
   "skills",
   "examen",
   "bac",
@@ -105,7 +181,7 @@ const ALLOWLIST: readonly string[] = [
 
 // ── Categories that are always allowed ──────────────────────────────────────
 
-const ALWAYS_ALLOW_CATEGORIES = new Set([
+const ALWAYS_ALLOW_CATEGORIES = new Set<string>([
   "bourses",
   "opportunités",
   "opportunites",
@@ -114,7 +190,7 @@ const ALWAYS_ALLOW_CATEGORIES = new Set([
   "universités",
   "universites",
   "calendrier",
-  // Also match the English-style categories used internally
+  // English-style categories used internally
   "scholarship",
   "opportunity",
   "resource",
@@ -124,6 +200,11 @@ const ALWAYS_ALLOW_CATEGORIES = new Set([
 ]);
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Escape special regex characters. */
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 /** Normalize text for keyword matching (lowercase, strip accents, collapse whitespace). */
 function normalize(text: string): string {
@@ -136,28 +217,33 @@ function normalize(text: string): string {
     .trim();
 }
 
-/** Count how many keywords from `list` appear in the normalized `text`. */
+/**
+ * Check if a keyword appears in the haystack with proper boundaries.
+ * Multi-word phrases use substring matching; single words use `\b` to avoid
+ * partial-word false positives (e.g. "arme" must not match inside "programme").
+ */
+function keywordMatch(haystack: string, normalizedKw: string): boolean {
+  if (normalizedKw.includes(" ")) {
+    return haystack.includes(normalizedKw);
+  }
+  return new RegExp(`\\b${escapeRegex(normalizedKw)}\\b`).test(haystack);
+}
+
+/** Count how many keywords from `list` appear in `text`. */
 function countHits(text: string, list: readonly string[]): number {
-  // We also normalize the keywords at match-time so accented keywords
-  // still match against the accent-stripped text.
   let hits = 0;
   for (const kw of list) {
-    if (text.includes(normalize(kw))) {
-      hits++;
-    }
+    if (keywordMatch(text, normalize(kw))) hits++;
   }
   return hits;
 }
 
-/** Return the set of allowlist keywords that matched. */
-function allowlistMatches(text: string): Set<string> {
+/** Return the set of normalized keywords from `list` that matched in `text`. */
+function getMatches(text: string, list: readonly string[]): Set<string> {
   const matched = new Set<string>();
-  for (const kw of ALLOWLIST) {
-    if (text.includes(normalize(kw))) {
-      // Store the *normalized* form so that "université" and "universite"
-      // collapse into one entry.
-      matched.add(normalize(kw));
-    }
+  for (const kw of list) {
+    const nk = normalize(kw);
+    if (keywordMatch(text, nk)) matched.add(nk);
   }
   return matched;
 }
@@ -176,17 +262,22 @@ export interface StudentFilterInput {
 /**
  * Returns `true` when the article should appear in the student feed.
  *
- * Decision logic (in order):
- * 1. Hard-allow categories (Bourses, Opportunités, …) → always pass.
- * 2. Build searchable text from title + summary + tags.
- * 3. Count allowlist and blocklist hits.
- * 4. If allowlist ≥ 1 → allow, UNLESS it is only a generic "université"
- *    mention AND crime keywords also hit (to avoid "université attaquée").
- * 5. If blocklist ≥ 1 and allowlist = 0 → block.
- * 6. Otherwise → allow (general news without blocklist words passes through).
+ * Decision logic (two-tier):
+ *
+ * 1. **Hard-allow categories** (Bourses, Opportunités, …) → always pass.
+ * 2. Build searchable text from title + summary + tags + publisher.
+ *    (geoLabel excluded — "Haiti" alone must not act as an allow signal.)
+ * 3. **HARD BLOCK — crime / violence:**
+ *    Block if any HARD_CRIME keyword hit UNLESS education-impact keywords
+ *    also appear (generic location words alone don't count — safety valve).
+ * 4. **SOFT BLOCK — politics:**
+ *    Block if politics keyword hit UNLESS education/opportunity allowlist hit.
+ * 5. **SOFT BLOCK — disaster:**
+ *    Block if disaster keyword hit UNLESS education-impact OR allowlist hit.
+ * 6. **Default** → allow (general news without blocklist words passes through).
  */
 export function isAllowedInStudentFeed(input: StudentFilterInput): boolean {
-  const { title, summary, category, tags, publisher, geoLabel } = input;
+  const { title, summary, category, tags, publisher } = input;
 
   // ── 1. Hard-allow categories ──────────────────────────────────────────
   const normCat = (category ?? "").toLowerCase().trim();
@@ -195,34 +286,69 @@ export function isAllowedInStudentFeed(input: StudentFilterInput): boolean {
   }
 
   // ── 2. Build searchable text ──────────────────────────────────────────
-  const parts = [title, summary ?? "", ...(tags ?? []), publisher ?? "", geoLabel ?? ""];
+  //    geoLabel deliberately excluded — "Haiti" tag alone must not allow.
+  const parts = [title, summary ?? "", ...(tags ?? []), publisher ?? ""];
   const haystack = normalize(parts.join(" "));
 
-  // ── 3. Count hits ─────────────────────────────────────────────────────
-  const alMatches = allowlistMatches(haystack);
-  const alHits = alMatches.size;
-  const blCrimeHits = countHits(haystack, BLOCKLIST_CRIME);
-  const blPoliticsHits = countHits(haystack, BLOCKLIST_POLITICS);
-  const blDisasterHits = countHits(haystack, BLOCKLIST_DISASTER);
-  const blTotal = blCrimeHits + blPoliticsHits + blDisasterHits;
+  // ── 3. Count / match ──────────────────────────────────────────────────
+  const crimeHits = countHits(haystack, HARD_CRIME);
+  const educationMatches = getMatches(haystack, EDUCATION_IMPACT);
+  const educationHits = educationMatches.size;
+  const politicsHits = countHits(haystack, BLOCKLIST_POLITICS);
+  const disasterHits = countHits(haystack, BLOCKLIST_DISASTER);
+  const allowlistHits = countHits(haystack, ALLOWLIST);
 
-  // ── 4. Allowlist override (with crime safety valve) ───────────────────
-  if (alHits >= 1) {
-    // Safety valve: if the ONLY allowlist match is a generic "université"
-    // mention AND there are crime keyword hits, still block.
-    const onlyGenericUni =
-      alHits === 1 && alMatches.has("universite");
-    if (onlyGenericUni && blCrimeHits >= 1) {
-      return false;
+  // Helper: education-impact is "real" (not just a generic location mention)
+  const hasRealEducationImpact = (): boolean => {
+    if (educationHits === 0) return false;
+    // If any matched keyword is NOT a generic-location word → real impact
+    for (const m of educationMatches) {
+      if (!GENERIC_EDUCATION_LOCATIONS.has(m)) return true;
     }
-    return true;
-  }
-
-  // ── 5. Blocklist blocks when no allowlist offset ──────────────────────
-  if (blTotal >= 1) {
+    // All matches are generic location words — not enough for crime override
     return false;
+  };
+
+  let blocked = false;
+  let reason = "";
+
+  // ── HARD BLOCK: crime / violence ─────────────────────────────────────
+  if (crimeHits >= 1) {
+    if (hasRealEducationImpact()) {
+      // Education-impact exception — article is about schools/exams despite
+      // a crime context.  Allow through.
+    } else {
+      blocked = true;
+      reason = `hard-crime (crimeHits=${crimeHits}, eduHits=${educationHits}, realImpact=false)`;
+    }
   }
 
-  // ── 6. Default: allow ─────────────────────────────────────────────────
-  return true;
+  // ── SOFT BLOCK: politics ─────────────────────────────────────────────
+  if (!blocked && politicsHits >= 1) {
+    if (allowlistHits >= 1 || educationHits >= 1) {
+      // Education or opportunity context present → allow
+    } else {
+      blocked = true;
+      reason = `politics (politicsHits=${politicsHits}, allowHits=${allowlistHits}, eduHits=${educationHits})`;
+    }
+  }
+
+  // ── SOFT BLOCK: disaster ─────────────────────────────────────────────
+  if (!blocked && disasterHits >= 1) {
+    if (educationHits >= 1 || allowlistHits >= 1) {
+      // Education-impact or opportunity context → allow
+    } else {
+      blocked = true;
+      reason = `disaster (disasterHits=${disasterHits}, eduHits=${educationHits}, allowHits=${allowlistHits})`;
+    }
+  }
+
+  // ── Dev logging ────────────────────────────────────────────────────────
+  if (blocked && process.env.NODE_ENV === "development") {
+    console.debug(
+      `[StudentFilter] BLOCKED: "${title.slice(0, 80)}" — ${reason}`,
+    );
+  }
+
+  return !blocked;
 }

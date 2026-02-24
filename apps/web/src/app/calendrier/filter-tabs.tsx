@@ -17,7 +17,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import type { ContentLanguage, CalendarEventType } from "@edlight-news/types";
-import type { CalendarGeoLabel } from "@/lib/geo";
+import type { CalendarGeo } from "@/lib/calendarGeo";
+import type { CalendarAudience } from "@/lib/calendarAudience";
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 
@@ -37,7 +38,8 @@ interface HaitiItem {
   sources?: { label: string; url: string }[] | null;
   verifiedAt?: unknown;
   updatedAt?: unknown;
-  geoLabel: CalendarGeoLabel;
+  geo: CalendarGeo;
+  audience: CalendarAudience;
 }
 
 interface IntlItem {
@@ -50,7 +52,8 @@ interface IntlItem {
   countryFlag?: string;
   eligibility?: string | null;
   howToApplyUrl?: string | null;
-  geoLabel: CalendarGeoLabel;
+  geo: CalendarGeo;
+  audience: CalendarAudience;
 }
 
 const EVENT_TYPE_ICON: Record<CalendarEventType, React.ReactNode> = {
@@ -75,18 +78,18 @@ export function CalendarFilterTabs({
   const fr = lang === "fr";
 
   // Geo-based filtering
-  const geoFilter = (label: CalendarGeoLabel): boolean =>
-    tab === "tous" || (tab === "haiti" ? label === "HT" : label === "International");
+  const geoFilter = (geo: CalendarGeo): boolean =>
+    tab === "tous" || (tab === "haiti" ? geo === "Haiti" : geo === "International");
 
-  const filteredHaiti = haitiItems.filter((i) => geoFilter(i.geoLabel));
-  const filteredIntl = intlItems.filter((i) => geoFilter(i.geoLabel));
+  const filteredHaiti = haitiItems.filter((i) => geoFilter(i.geo));
+  const filteredIntl = intlItems.filter((i) => geoFilter(i.geo));
 
   const haitiGeoCount =
-    haitiItems.filter((i) => i.geoLabel === "HT").length +
-    intlItems.filter((i) => i.geoLabel === "HT").length;
+    haitiItems.filter((i) => i.geo === "Haiti").length +
+    intlItems.filter((i) => i.geo === "Haiti").length;
   const intlGeoCount =
-    haitiItems.filter((i) => i.geoLabel === "International").length +
-    intlItems.filter((i) => i.geoLabel === "International").length;
+    haitiItems.filter((i) => i.geo === "International").length +
+    intlItems.filter((i) => i.geo === "International").length;
 
   const tabs: { key: FilterTab; label: string; count: number }[] = [
     { key: "tous", label: fr ? "Tous" : "Tout", count: haitiItems.length + intlItems.length },
@@ -193,6 +196,11 @@ export function CalendarFilterTabs({
                     updatedAt={e.updatedAt as any}
                     lang={lang}
                   />
+                  {e.audience === "HaitianStudents" && (
+                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                      {fr ? "Pour Haïti" : "Pou Ayiti"}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -237,6 +245,11 @@ export function CalendarFilterTabs({
                   )}
                   <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
                     <span>{s.countryFlag} {s.countryLabel}</span>
+                    {s.audience === "HaitianStudents" && (
+                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                        {fr ? "Pour Haïti" : "Pou Ayiti"}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1">
                     <DeadlineBadge

@@ -35,7 +35,8 @@ import {
 } from "@/lib/datasets";
 import { CalendarFilterTabs } from "./filter-tabs";
 import { MetaBadges } from "@/components/MetaBadges";
-import { getCalendarGeoLabel } from "@/lib/geo";
+import { getCalendarGeo, type CalendarGeo } from "@/lib/calendarGeo";
+import { getCalendarAudience, type CalendarAudience } from "@/lib/calendarAudience";
 
 export const revalidate = 300;
 
@@ -179,7 +180,8 @@ export default async function CalendrierPage({
     sources: e.sources,
     verifiedAt: tsToISO(e.verifiedAt),
     updatedAt: tsToISO(e.updatedAt),
-    geoLabel: getCalendarGeoLabel(e),
+    geo: getCalendarGeo(e) as CalendarGeo,
+    audience: getCalendarAudience(e) as CalendarAudience,
   }));
 
   const intlItems = scholarships90.map((s) => ({
@@ -192,7 +194,8 @@ export default async function CalendrierPage({
     countryFlag: COUNTRY_LABELS[s.country]?.flag,
     eligibility: s.eligibilitySummary,
     howToApplyUrl: s.howToApplyUrl,
-    geoLabel: getCalendarGeoLabel(s),
+    geo: getCalendarGeo(s) as CalendarGeo,
+    audience: getCalendarAudience(s) as CalendarAudience,
   }));
 
   // Get ALL deadlines from the parent item

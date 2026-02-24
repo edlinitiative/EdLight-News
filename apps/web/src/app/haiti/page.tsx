@@ -1,14 +1,17 @@
 /**
  * /haiti — Haiti student news feed.
  *
- * Server component: filters articles by geoTag=HT or category=local_news.
- * Client component (SectionFeed): handles sort toggle (Pertinence / Dernières).
+ * Server component: fetches candidate articles, then hard-filters through
+ * `getItemGeo` so **only** Haiti-relevant items reach the client.
+ *
+ * Client component (HaitiFeed): handles sort + optional "Étudiants" toggle.
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
-import { SectionFeed } from "@/components/SectionFeed";
+import { getItemGeo } from "@/lib/itemGeo";
+import { HaitiFeed } from "@/components/HaitiFeed";
 
 export const revalidate = 300;
 
@@ -27,11 +30,17 @@ export default async function HaitiPage({
     allArticles = [];
   }
 
-  const haitiPool = allArticles.filter(
+  // ── Candidate pool: same broad query as before ──────────────────────────
+  const candidatePool = allArticles.filter(
     (a) => a.geoTag === "HT" || a.category === "local_news",
   );
 
-  const articles = rankAndDeduplicate(haitiPool, {
+  // ── Hard geo filter: only truly Haiti-related items survive ─────────────
+  const haitiOnly = candidatePool.filter(
+    (a) => getItemGeo({ ...a, summary: a.summary ?? "" }) === "Haiti",
+  );
+
+  const articles = rankAndDeduplicate(haitiOnly, {
     audienceFitThreshold: 0.65,
     publisherCap: 4,
     topN: 40,
@@ -52,15 +61,7 @@ export default async function HaitiPage({
         </p>
       </div>
 
-      <SectionFeed
-        articles={articles}
-        lang={lang}
-        defaultSort="latest"
-        emptyMessage={{
-          fr: "Aucun article haïtien disponible pour le moment.",
-          ht: "Pa gen atik ayisyen disponib kounye a.",
-        }}
-      />
+      <HaitiFeed articles={articles} lang={lang} />
     </div>
   );
 }

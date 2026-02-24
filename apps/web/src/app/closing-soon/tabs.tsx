@@ -1,7 +1,7 @@
 /**
  * ClosingSoonTabs — client component for /closing-soon tab filtering.
  *
- * Tabs: Tout | Bourses (30j) | Calendrier Haïti (14j)
+ * Tabs: Tout | Bourses (30j) | Calendrier Haïti (14j) | International (14j)
  */
 
 "use client";
@@ -17,7 +17,7 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import type { ClosingItem } from "./page";
 
-type TabKey = "tout" | "bourses" | "calendrier";
+type TabKey = "tout" | "bourses" | "calendrier-haiti" | "calendrier-intl";
 
 export function ClosingSoonTabs({
   items,
@@ -30,18 +30,35 @@ export function ClosingSoonTabs({
   const fr = lang === "fr";
 
   const boursesCount = items.filter((i) => i.kind === "bourse").length;
-  const calCount = items.filter((i) => i.kind === "calendrier").length;
+  const calHaitiCount = items.filter(
+    (i) => i.kind === "calendrier" && i.geo === "Haiti",
+  ).length;
+  const calIntlCount = items.filter(
+    (i) => i.kind === "calendrier" && i.geo !== "Haiti",
+  ).length;
 
   const tabs: { key: TabKey; label: string; count: number }[] = [
     { key: "tout", label: fr ? "Tout" : "Tout", count: items.length },
     { key: "bourses", label: fr ? "Bourses (30j)" : "Bous (30j)", count: boursesCount },
-    { key: "calendrier", label: fr ? "Calendrier Haïti (14j)" : "Kalandriye Ayiti (14j)", count: calCount },
+    {
+      key: "calendrier-haiti",
+      label: fr ? "Calendrier Haïti (14j)" : "Kalandriye Ayiti (14j)",
+      count: calHaitiCount,
+    },
+    {
+      key: "calendrier-intl",
+      label: fr ? "International (14j)" : "Entènasyonal (14j)",
+      count: calIntlCount,
+    },
   ];
 
   const filtered = useMemo(() => {
     if (tab === "tout") return items;
     if (tab === "bourses") return items.filter((i) => i.kind === "bourse");
-    return items.filter((i) => i.kind === "calendrier");
+    if (tab === "calendrier-haiti")
+      return items.filter((i) => i.kind === "calendrier" && i.geo === "Haiti");
+    // calendrier-intl
+    return items.filter((i) => i.kind === "calendrier" && i.geo !== "Haiti");
   }, [items, tab]);
 
   return (
@@ -104,12 +121,16 @@ export function ClosingSoonTabs({
                     className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                       item.kind === "bourse"
                         ? "bg-amber-100 text-amber-700"
-                        : "bg-blue-100 text-blue-700"
+                        : item.geo === "Haiti"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-emerald-100 text-emerald-700"
                     }`}
                   >
                     {item.kind === "bourse"
                       ? (fr ? "Bourse" : "Bous")
-                      : (fr ? "Calendrier" : "Kalandriye")}
+                      : item.geo === "Haiti"
+                        ? (fr ? "Calendrier Haïti" : "Kalandriye Ayiti")
+                        : "International"}
                   </span>
                   <p className="font-medium text-gray-900 line-clamp-1">
                     {item.title}

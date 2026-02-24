@@ -60,7 +60,7 @@ import {
   COUNTRY_LABELS,
   TUITION_LABELS,
 } from "@/lib/datasets";
-import { getCalendarGeoLabel } from "@/lib/geo";
+import { getCalendarGeo } from "@/lib/calendarGeo";
 
 export const revalidate = 300; // ISR: regenerate every 5 minutes
 
@@ -382,7 +382,7 @@ export default async function AccueilPage({
             {/* Haiti events */}
             {haitiEvents.map((ev) => {
               const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
-              const evGeo = getCalendarGeoLabel(ev);
+              const evGeo = getCalendarGeo(ev);
               return (
                 <div key={ev.id} className="flex items-start gap-3 rounded-lg border border-blue-100 bg-white p-4">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-600 text-white">
@@ -399,7 +399,7 @@ export default async function AccueilPage({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      {evGeo === "HT" ? (
+                      {evGeo === "Haiti" ? (
                         <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
                           Haïti
                         </span>
@@ -422,7 +422,7 @@ export default async function AccueilPage({
             {intlScholarships.map((s) => {
               const dl = s.deadline;
               const dateObj = dl?.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
-              const sGeo = getCalendarGeoLabel(s);
+              const sGeo = getCalendarGeo(s);
               return (
                 <div key={s.id} className="flex items-start gap-3 rounded-lg border border-amber-100 bg-white p-4">
                   <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-amber-500 text-white">
@@ -439,7 +439,7 @@ export default async function AccueilPage({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      {sGeo === "HT" ? (
+                      {sGeo === "Haiti" ? (
                         <span className="shrink-0 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
                           Haïti
                         </span>
