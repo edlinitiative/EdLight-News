@@ -1,0 +1,92 @@
+[
+  {
+    "date": "01-01",
+    "year": 1804,
+    "title": "Déclaration d'indépendance d'Haïti",
+    "shortSummary": "Jean-Jacques Dessalines proclame l'indépendance d'Haïti aux Gonaïves, faisant d'Haïti la première république noire indépendante au monde.",
+    "source_url": "https://menfp.gouv.ht",
+    "source_name": "MENFP",
+    "source_type": "government"
+  },
+  {
+    "date": "05-18",
+    "year": 1803,
+    "title": "Création du drapeau haïtien",
+    "shortSummary": "Lors du Congrès de l'Arcahaie, Jean-Jacques Dessalines arrache la bande blanche du drapeau français tricolore pour créer le drapeau haïtien bleu et rouge.",
+    "source_url": "https://en.wikipedia.org/wiki/Flag_of_Haiti",
+    "source_name": "Wikipedia",
+    "source_type": "reference"
+  },
+  {
+    "date": "10-17",
+    "year": 1806,
+    "title": "Assassinat de Jean-Jacques Dessalines",
+    "shortSummary": "Le fondateur de la nation haïtienne est assassiné au Pont-Rouge, près de Port-au-Prince, dans une embuscade tendue par ses rivaux politiques.",
+    "source_url": "https://www.jstor.org/stable/example-dessalines",
+    "source_name": "JSTOR",
+    "source_type": "academic"
+  },
+  {
+    "date": "04-14",
+    "year": 1816,
+    "title": "Alexandre Pétion aide Simón Bolívar",
+    "shortSummary": "Le président Pétion fournit armes, munitions et troupes à Bolívar en échange de la promesse d'abolir l'esclavage dans les territoires libérés.",
+    "source_url": "https://unesco.org/haiti-bolivar",
+    "source_name": "UNESCO",
+    "source_type": "institutional"
+  },
+  {
+    "date": "08-14",
+    "year": 1791,
+    "title": "Cérémonie du Bois Caïman",
+    "shortSummary": "Cérémonie vodou dirigée par Dutty Boukman qui marque le début de la révolution haïtienne, la plus grande révolte d'esclaves réussie de l'histoire.",
+    "source_url": "https://lenouvelliste.com/bois-caiman",
+    "source_name": "Le Nouvelliste",
+    "source_type": "press"
+  },
+  {
+    "date": "02-07",
+    "year": 1986,
+    "title": "Départ de Jean-Claude Duvalier",
+    "shortSummary": "Jean-Claude 'Baby Doc' Duvalier quitte Haïti en exil après 15 ans de dictature, mettant fin à 29 ans de régime Duvalier (père et fils).",
+    "source_url": "https://lenouvelliste.com/duvalier-depart",
+    "source_name": "Le Nouvelliste",
+    "source_type": "press"
+  },
+  {
+    "date": "01-12",
+    "year": 2010,
+    "title": "Tremblement de terre de magnitude 7.0",
+    "shortSummary": "Un séisme dévastateur frappe Port-au-Prince et les environs, causant plus de 200 000 morts et des destructions massives dans la capitale.",
+    "source_url": "https://un.org/haiti-earthquake-2010",
+    "source_name": "Nations Unies",
+    "source_type": "institutional"
+  },
+  {
+    "date": "11-18",
+    "year": 1803,
+    "title": "Bataille de Vertières",
+    "shortSummary": "Victoire décisive des forces révolutionnaires haïtiennes sous François Capois contre l'armée napoléonienne, dernière grande bataille de la Révolution haïtienne.",
+    "source_url": "https://menfp.gouv.ht/vertieres",
+    "source_name": "MENFP",
+    "source_type": "government"
+  },
+  {
+    "date": "12-05",
+    "year": 1492,
+    "title": "Arrivée de Christophe Colomb sur l'île",
+    "shortSummary": "Christophe Colomb débarque sur l'île qu'il nomme Hispaniola, marquant le début de la colonisation européenne des Caraïbes.",
+    "source_url": "https://en.wikipedia.org/wiki/Hispaniola",
+    "source_name": "Wikipedia",
+    "source_type": "reference"
+  },
+  {
+    "date": "03-29",
+    "year": 1987,
+    "title": "Adoption de la Constitution de 1987",
+    "shortSummary": "Le peuple haïtien adopte par référendum une nouvelle constitution démocratique, établissant les bases de l'État de droit post-Duvalier.",
+    "source_url": "https://menfp.gouv.ht/constitution-1987",
+    "source_name": "MENFP",
+    "source_type": "government"
+  }
+]

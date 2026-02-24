@@ -4,5 +4,7 @@ sourceCitationSchema, utilitySeriesSchema, utilityTypeSchema, utilityAudienceSch
 // Dataset schemas
 datasetCountrySchema, academicLevelSchema, tuitionBandSchema, datasetCitationSchema, datasetDeadlineSchema, universitySchema, scholarshipFundingTypeSchema, scholarshipKindSchema, scholarshipHaitianEligibilitySchema, scholarshipDeadlineAccuracySchema, scholarshipSchema, calendarEventTypeSchema, calendarLevelSchema, haitiCalendarEventSchema, pathwayGoalKeySchema, pathwaySchema, datasetNameSchema, datasetJobSchema, contributorRoleSchema, contributorProfileSchema, draftStatusSchema, draftSchema, createUniversitySchema, createScholarshipSchema, createHaitiCalendarEventSchema, createPathwaySchema, createDatasetJobSchema, createContributorProfileSchema, createDraftSchema, 
 // History almanac schemas
-almanacConfidenceSchema, almanacCreatedBySchema, almanacTagSchema, haitiHistoryAlmanacEntrySchema, createHaitiHistoryAlmanacEntrySchema, haitiHolidaySchema, createHaitiHolidaySchema, historyPublishLogSchema, } from "./schemas.js";
+almanacConfidenceSchema, almanacCreatedBySchema, almanacTagSchema, haitiHistoryAlmanacEntrySchema, createHaitiHistoryAlmanacEntrySchema, haitiHolidaySchema, createHaitiHolidaySchema, historyPublishLogSchema, 
+// Raw almanac schemas
+almanacRawCategorySchema, almanacRawSourceTypeSchema, almanacRawVerificationStatusSchema, almanacRawSourceSchema, haitiHistoryAlmanacRawSchema, createHaitiHistoryAlmanacRawSchema, } from "./schemas.js";
 //# sourceMappingURL=index.js.map

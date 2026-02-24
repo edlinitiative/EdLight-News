@@ -3284,6 +3284,7 @@ export declare const contributorProfileSchema: z.ZodObject<{
         nanoseconds: number;
     }>;
 }, "strip", z.ZodTypeAny, {
+    verified: boolean;
     name: string;
     id: string;
     createdAt: {
@@ -3295,10 +3296,10 @@ export declare const contributorProfileSchema: z.ZodObject<{
         nanoseconds: number;
     };
     role: "admin" | "intern" | "editor";
-    verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
 }, {
+    verified: boolean;
     name: string;
     id: string;
     createdAt: {
@@ -3310,7 +3311,6 @@ export declare const contributorProfileSchema: z.ZodObject<{
         nanoseconds: number;
     };
     role: "admin" | "intern" | "editor";
-    verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
 }>;
@@ -3910,15 +3910,15 @@ export declare const createContributorProfileSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     }>;
 }, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
+    verified: boolean;
     name: string;
     role: "admin" | "intern" | "editor";
-    verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
 }, {
+    verified: boolean;
     name: string;
     role: "admin" | "intern" | "editor";
-    verified: boolean;
     email?: string | undefined;
     payoutRate?: number | undefined;
 }>;
@@ -4338,6 +4338,174 @@ export declare const historyPublishLogSchema: z.ZodObject<{
     validationWarnings?: string[] | undefined;
     validationErrors?: string[] | undefined;
 }>;
+export declare const almanacRawCategorySchema: z.ZodEnum<["political", "education", "culture", "international", "economy", "social", "science", "birth", "death"]>;
+export declare const almanacRawSourceTypeSchema: z.ZodEnum<["government", "academic", "institutional", "press", "reference"]>;
+export declare const almanacRawVerificationStatusSchema: z.ZodEnum<["unverified", "verified"]>;
+export declare const almanacRawSourceSchema: z.ZodObject<{
+    name: z.ZodString;
+    url: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    name: string;
+    url: string;
+}, {
+    name: string;
+    url: string;
+}>;
+export declare const haitiHistoryAlmanacRawSchema: z.ZodObject<{
+    id: z.ZodString;
+    monthDay: z.ZodString;
+    year: z.ZodNumber;
+    title: z.ZodString;
+    shortSummary: z.ZodString;
+    category: z.ZodEnum<["political", "education", "culture", "international", "economy", "social", "science", "birth", "death"]>;
+    sourcePrimary: z.ZodObject<{
+        name: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        url: string;
+    }, {
+        name: string;
+        url: string;
+    }>;
+    sourceSecondary: z.ZodOptional<z.ZodObject<{
+        name: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        url: string;
+    }, {
+        name: string;
+        url: string;
+    }>>;
+    sourceType: z.ZodEnum<["government", "academic", "institutional", "press", "reference"]>;
+    verificationStatus: z.ZodEnum<["unverified", "verified"]>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    title: string;
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    category: "international" | "culture" | "education" | "science" | "economy" | "political" | "social" | "birth" | "death";
+    monthDay: string;
+    year: number;
+    shortSummary: string;
+    sourcePrimary: {
+        name: string;
+        url: string;
+    };
+    sourceType: "government" | "academic" | "institutional" | "press" | "reference";
+    verificationStatus: "unverified" | "verified";
+    sourceSecondary?: {
+        name: string;
+        url: string;
+    } | undefined;
+}, {
+    title: string;
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    category: "international" | "culture" | "education" | "science" | "economy" | "political" | "social" | "birth" | "death";
+    monthDay: string;
+    year: number;
+    shortSummary: string;
+    sourcePrimary: {
+        name: string;
+        url: string;
+    };
+    sourceType: "government" | "academic" | "institutional" | "press" | "reference";
+    verificationStatus: "unverified" | "verified";
+    sourceSecondary?: {
+        name: string;
+        url: string;
+    } | undefined;
+}>;
+export declare const createHaitiHistoryAlmanacRawSchema: z.ZodObject<Omit<{
+    id: z.ZodString;
+    monthDay: z.ZodString;
+    year: z.ZodNumber;
+    title: z.ZodString;
+    shortSummary: z.ZodString;
+    category: z.ZodEnum<["political", "education", "culture", "international", "economy", "social", "science", "birth", "death"]>;
+    sourcePrimary: z.ZodObject<{
+        name: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        url: string;
+    }, {
+        name: string;
+        url: string;
+    }>;
+    sourceSecondary: z.ZodOptional<z.ZodObject<{
+        name: z.ZodString;
+        url: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        name: string;
+        url: string;
+    }, {
+        name: string;
+        url: string;
+    }>>;
+    sourceType: z.ZodEnum<["government", "academic", "institutional", "press", "reference"]>;
+    verificationStatus: z.ZodEnum<["unverified", "verified"]>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "id" | "createdAt">, "strip", z.ZodTypeAny, {
+    title: string;
+    category: "international" | "culture" | "education" | "science" | "economy" | "political" | "social" | "birth" | "death";
+    monthDay: string;
+    year: number;
+    shortSummary: string;
+    sourcePrimary: {
+        name: string;
+        url: string;
+    };
+    sourceType: "government" | "academic" | "institutional" | "press" | "reference";
+    verificationStatus: "unverified" | "verified";
+    sourceSecondary?: {
+        name: string;
+        url: string;
+    } | undefined;
+}, {
+    title: string;
+    category: "international" | "culture" | "education" | "science" | "economy" | "political" | "social" | "birth" | "death";
+    monthDay: string;
+    year: number;
+    shortSummary: string;
+    sourcePrimary: {
+        name: string;
+        url: string;
+    };
+    sourceType: "government" | "academic" | "institutional" | "press" | "reference";
+    verificationStatus: "unverified" | "verified";
+    sourceSecondary?: {
+        name: string;
+        url: string;
+    } | undefined;
+}>;
+export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;
 export type CreateScholarship = z.infer<typeof createScholarshipSchema>;
 export type CreateHaitiCalendarEvent = z.infer<typeof createHaitiCalendarEventSchema>;

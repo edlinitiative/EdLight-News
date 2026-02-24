@@ -363,6 +363,27 @@ export interface HistoryPublishLog {
     validationErrors?: string[];
     createdAt: Timestamp;
 }
+export type AlmanacRawCategory = "political" | "education" | "culture" | "international" | "economy" | "social" | "science" | "birth" | "death";
+export type AlmanacRawSourceType = "government" | "academic" | "institutional" | "press" | "reference";
+export type AlmanacRawVerificationStatus = "unverified" | "verified";
+export interface AlmanacRawSource {
+    name: string;
+    url: string;
+}
+export interface HaitiHistoryAlmanacRaw {
+    id: string;
+    /** MM-DD (e.g. "02-23") */
+    monthDay: string;
+    year: number;
+    title: string;
+    shortSummary: string;
+    category: AlmanacRawCategory;
+    sourcePrimary: AlmanacRawSource;
+    sourceSecondary?: AlmanacRawSource;
+    sourceType: AlmanacRawSourceType;
+    verificationStatus: AlmanacRawVerificationStatus;
+    createdAt: Timestamp;
+}
 export type DatasetCountry = "US" | "CA" | "FR" | "UK" | "DO" | "MX" | "CN" | "RU" | "HT" | "Global";
 export type AcademicLevel = "bachelor" | "master" | "phd" | "short_programs";
 export type TuitionBand = "low" | "medium" | "high" | "unknown";

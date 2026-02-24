@@ -712,6 +712,45 @@ export const historyPublishLogSchema = z.object({
   createdAt: timestampSchema,
 });
 
+// ── haiti_history_almanac_raw ───────────────────────────────────────────────
+
+export const almanacRawCategorySchema = z.enum([
+  "political", "education", "culture", "international",
+  "economy", "social", "science", "birth", "death",
+]);
+
+export const almanacRawSourceTypeSchema = z.enum([
+  "government", "academic", "institutional", "press", "reference",
+]);
+
+export const almanacRawVerificationStatusSchema = z.enum(["unverified", "verified"]);
+
+export const almanacRawSourceSchema = z.object({
+  name: z.string().min(1),
+  url: z.string().url(),
+});
+
+export const haitiHistoryAlmanacRawSchema = z.object({
+  id: z.string().min(1),
+  monthDay: z.string().regex(/^\d{2}-\d{2}$/, "Expected MM-DD"),
+  year: z.number().int(),
+  title: z.string().min(1),
+  shortSummary: z.string().min(1),
+  category: almanacRawCategorySchema,
+  sourcePrimary: almanacRawSourceSchema,
+  sourceSecondary: almanacRawSourceSchema.optional(),
+  sourceType: almanacRawSourceTypeSchema,
+  verificationStatus: almanacRawVerificationStatusSchema,
+  createdAt: timestampSchema,
+});
+
+export const createHaitiHistoryAlmanacRawSchema = haitiHistoryAlmanacRawSchema.omit({
+  id: true,
+  createdAt: true,
+});
+
+export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
+
 // ── Inferred create types for datasets ─────────────────────────────────────
 
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;

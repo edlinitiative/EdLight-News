@@ -14,14 +14,16 @@
 
 import {
   haitiHistoryAlmanacRepo,
+  haitiHistoryAlmanacRawRepo,
   haitiHolidaysRepo,
   historyPublishLogRepo,
   itemsRepo,
   contentVersionsRepo,
 } from "@edlight-news/firebase";
-import { formatContentVersion } from "@edlight-news/generator";
+import { callGemini, formatContentVersion } from "@edlight-news/generator";
 import type {
   HaitiHistoryAlmanacEntry,
+  HaitiHistoryAlmanacRaw,
   HaitiHoliday,
   ContentLanguage,
   QualityFlags,
@@ -31,6 +33,7 @@ import {
   validateHistorySources,
   attemptYearFallback,
 } from "../validation/historyValidation.js";
+import { isHighConfidenceSourceType } from "../historySources/historySourceRegistry.js";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -43,6 +46,15 @@ const PUBLISH_HOUR_MAX = 22;
 
 /** Maximum almanac entries to include in one daily post. */
 const MAX_ENTRIES_PER_POST = 3;
+
+/** Maximum raw verified events per day (multi-event format). */
+const MAX_RAW_EVENTS_PER_DAY = 5;
+
+/** LLM-rewrite: primary event word target. */
+const PRIMARY_WORD_TARGET = 500; // 400-600 words
+
+/** LLM-rewrite: secondary event word target. */
+const SECONDARY_WORD_TARGET = 135; // 120-150 words
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -178,6 +190,394 @@ function buildCreoleBody(
   return { title, summary, body, sections };
 }
 
+// ── LLM Narrative Rewrite (from verified raw entries) ───────────────────────
+
+/** Prompt for a single primary event — 400-600 word narrative with discussion. */
+function buildPrimaryEventPrompt(entry: HaitiHistoryAlmanacRaw, monthDay: string): string {
+  return `Tu es historien spécialisé en histoire d'Haïti et rédacteur pour EdLight News, une plateforme éducative pour les étudiants haïtiens.
+
+FAIT VÉRIFIÉ:
+- Date : ${monthDay} (année ${entry.year})
+- Titre : ${entry.title}
+- Résumé : ${entry.shortSummary}
+- Catégorie : ${entry.category}
+- Source : ${entry.sourcePrimary.name} (${entry.sourcePrimary.url})${entry.sourceSecondary ? `\n- Source secondaire : ${entry.sourceSecondary.name} (${entry.sourceSecondary.url})` : ""}
+
+CONSIGNES STRICTES :
+1. Rédige un article narratif de 400 à 600 mots en FRANÇAIS sur cet événement historique.
+2. NE JAMAIS inventer de faits. Utilise UNIQUEMENT les informations fournies ci-dessus.
+3. Structure :
+   a) Introduction contextuelle (1 paragraphe)
+   b) Développement historique (2-3 paragraphes)
+   c) Section "**Pourquoi cela compte**" — impact sur l'histoire haïtienne (1 paragraphe)
+   d) "**Questions pour la discussion**" — exactement 2 questions ouvertes pour les étudiants
+4. L'année DOIT être ${entry.year}. Ne mentionne AUCUNE autre année comme date de l'événement.
+5. Mentionne la source dans le texte.
+
+RÉPONDS UNIQUEMENT en JSON valide :
+{
+  "title_fr": "Titre captivant en français (max 120 caractères)",
+  "body_fr": "Corps complet en markdown (400-600 mots)",
+  "title_ht": "Tit an kreyòl ayisyen",
+  "body_ht": "Kò atik la an kreyòl (tradis fidèl du français)",
+  "year_mentioned": ${entry.year}
+}`;
+}
+
+/** Prompt for secondary events — 120-150 word summaries. */
+function buildSecondaryEventsPrompt(entries: HaitiHistoryAlmanacRaw[], monthDay: string): string {
+  const entriesBlock = entries
+    .map(
+      (e, i) =>
+        `${i + 1}. [${e.year}] ${e.title} — ${e.shortSummary} (Source: ${e.sourcePrimary.name})`,
+    )
+    .join("\n");
+
+  return `Tu es historien spécialisé en histoire d'Haïti et rédacteur pour EdLight News.
+
+FAITS VÉRIFIÉS pour le ${monthDay} :
+${entriesBlock}
+
+CONSIGNES :
+1. Pour CHAQUE fait ci-dessus, rédige un résumé narratif de 120 à 150 mots en FRANÇAIS.
+2. NE JAMAIS inventer de faits. Utilise UNIQUEMENT les informations fournies.
+3. Inclus l'année correcte de chaque événement.
+4. Donne aussi la version en KREYÒL AYISYEN.
+
+RÉPONDS en JSON valide :
+{
+  "events": [
+    {
+      "title_fr": "Titre court",
+      "summary_fr": "Résumé 120-150 mots",
+      "title_ht": "Tit an kreyòl",
+      "summary_ht": "Rezime 120-150 mo",
+      "year_mentioned": 1804
+    }
+  ]
+}`;
+}
+
+interface LLMPrimaryResult {
+  title_fr: string;
+  body_fr: string;
+  title_ht: string;
+  body_ht: string;
+  year_mentioned: number;
+}
+
+interface LLMSecondaryEvent {
+  title_fr: string;
+  summary_fr: string;
+  title_ht: string;
+  summary_ht: string;
+  year_mentioned: number;
+}
+
+interface LLMSecondaryResult {
+  events: LLMSecondaryEvent[];
+}
+
+/** Year consistency guard: reject if LLM output year ≠ input year. */
+function validateYearConsistency(expected: number, mentioned: number): boolean {
+  return expected === mentioned;
+}
+
+/**
+ * Select the primary event (most institutionally important):
+ *  Priority: government > academic > institutional > press > reference
+ *  Tie-breaker: oldest year first (more historically significant).
+ */
+function selectPrimaryEvent(entries: HaitiHistoryAlmanacRaw[]): HaitiHistoryAlmanacRaw {
+  const priorityOrder: Record<string, number> = {
+    government: 0,
+    academic: 1,
+    institutional: 2,
+    press: 3,
+    reference: 4,
+  };
+
+  const sorted = [...entries].sort((a, b) => {
+    const pa = priorityOrder[a.sourceType] ?? 5;
+    const pb = priorityOrder[b.sourceType] ?? 5;
+    if (pa !== pb) return pa - pb;
+    // Prefer high-confidence categories
+    if (isHighConfidenceSourceType(a.sourceType) && !isHighConfidenceSourceType(b.sourceType))
+      return -1;
+    if (!isHighConfidenceSourceType(a.sourceType) && isHighConfidenceSourceType(b.sourceType))
+      return 1;
+    // Older events first
+    return a.year - b.year;
+  });
+
+  return sorted[0]!;
+}
+
+/**
+ * Build multi-event content from verified raw entries using LLM rewrite.
+ * Returns null if LLM call fails or year-consistency check fails.
+ */
+async function buildRawVerifiedContent(
+  verifiedEntries: HaitiHistoryAlmanacRaw[],
+  holidays: HaitiHoliday[],
+  monthDay: string,
+): Promise<{
+  frContent: { title: string; summary: string; body: string; sections: { heading: string; content: string }[] };
+  htContent: { title: string; summary: string; body: string; sections: { heading: string; content: string }[] };
+  citations: { sourceName: string; sourceUrl: string }[];
+  usedEntryIds: string[];
+} | null> {
+  const [mm, dd] = monthDay.split("-");
+  const dateLabel = `${dd}/${mm}`;
+
+  // Select primary + secondaries
+  const primary = selectPrimaryEvent(verifiedEntries);
+  const secondaries = verifiedEntries
+    .filter((e) => e.id !== primary.id)
+    .slice(0, MAX_RAW_EVENTS_PER_DAY - 1);
+
+  // ── LLM rewrite for primary event ──────────────────────────────────────
+  let primaryResult: LLMPrimaryResult;
+  try {
+    const primaryPrompt = buildPrimaryEventPrompt(primary, monthDay);
+    const rawResponse = await callGemini(primaryPrompt);
+    primaryResult = JSON.parse(rawResponse) as LLMPrimaryResult;
+  } catch (err) {
+    console.error(
+      `[history-publisher] LLM rewrite failed for primary event "${primary.title}":`,
+      err instanceof Error ? err.message : err,
+    );
+    return null;
+  }
+
+  // Year consistency guard
+  if (!validateYearConsistency(primary.year, primaryResult.year_mentioned)) {
+    console.error(
+      `[history-publisher] Year mismatch in LLM output: expected=${primary.year}, got=${primaryResult.year_mentioned}`,
+    );
+    return null;
+  }
+
+  // ── LLM rewrite for secondary events ───────────────────────────────────
+  let secondaryResults: LLMSecondaryEvent[] = [];
+  if (secondaries.length > 0) {
+    try {
+      const secondaryPrompt = buildSecondaryEventsPrompt(secondaries, monthDay);
+      const rawResponse = await callGemini(secondaryPrompt);
+      const parsed = JSON.parse(rawResponse) as LLMSecondaryResult;
+      secondaryResults = parsed.events ?? [];
+    } catch (err) {
+      console.warn(
+        `[history-publisher] LLM rewrite failed for secondary events, continuing with primary only:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+
+    // Filter out year-inconsistent secondaries
+    secondaryResults = secondaryResults.filter((result, idx) => {
+      const expected = secondaries[idx]?.year;
+      if (expected && !validateYearConsistency(expected, result.year_mentioned)) {
+        console.warn(
+          `[history-publisher] Dropping secondary event (year mismatch): expected=${expected}, got=${result.year_mentioned}`,
+        );
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // ── Build French content ───────────────────────────────────────────────
+  const frSections: { heading: string; content: string }[] = [];
+  const htSections: { heading: string; content: string }[] = [];
+
+  // Holiday section
+  if (holidays.length > 0) {
+    const holidayFr = holidays
+      .map((h) => {
+        let text = `**${h.name_fr}**`;
+        if (h.description_fr) text += ` — ${h.description_fr}`;
+        if (h.isNationalHoliday) text += " 🇭🇹 *(Fête nationale)*";
+        return text;
+      })
+      .join("\n\n");
+    frSections.push({ heading: "🎉 Fèt du jour", content: holidayFr });
+
+    const holidayHt = holidays
+      .map((h) => {
+        let text = `**${h.name_ht}**`;
+        if (h.description_ht) text += ` — ${h.description_ht}`;
+        if (h.isNationalHoliday) text += " 🇭🇹 *(Fèt nasyonal)*";
+        return text;
+      })
+      .join("\n\n");
+    htSections.push({ heading: "🎉 Fèt jou a", content: holidayHt });
+  }
+
+  // Primary event (long-form)
+  frSections.push({
+    heading: `${primaryResult.title_fr} (${primary.year})`,
+    content: primaryResult.body_fr,
+  });
+  htSections.push({
+    heading: `${primaryResult.title_ht} (${primary.year})`,
+    content: primaryResult.body_ht,
+  });
+
+  // Secondary events section
+  if (secondaryResults.length > 0) {
+    const secFrContent = secondaryResults
+      .map((r) => `### ${r.title_fr}\n\n${r.summary_fr}`)
+      .join("\n\n");
+    frSections.push({
+      heading: "📜 Autres faits du jour",
+      content: secFrContent,
+    });
+
+    const secHtContent = secondaryResults
+      .map((r) => `### ${r.title_ht}\n\n${r.summary_ht}`)
+      .join("\n\n");
+    htSections.push({
+      heading: "📜 Lòt evènman nan jou sa a",
+      content: secHtContent,
+    });
+  }
+
+  // Build complete bodies
+  const frTitle = holidays.length > 0
+    ? `${dateLabel} — ${holidays[0]!.name_fr} & ${primaryResult.title_fr}`
+    : `${dateLabel} — ${primaryResult.title_fr}`;
+  const htTitle = holidays.length > 0
+    ? `${dateLabel} — ${holidays[0]!.name_ht} & ${primaryResult.title_ht}`
+    : `${dateLabel} — ${primaryResult.title_ht}`;
+
+  const frBody = frSections.map((s) => `## ${s.heading}\n\n${s.content}`).join("\n\n");
+  const htBody = htSections.map((s) => `## ${s.heading}\n\n${s.content}`).join("\n\n");
+
+  const frSummary = primaryResult.body_fr.slice(0, 200);
+  const htSummary = primaryResult.body_ht.slice(0, 200);
+
+  // Collect citations
+  const citations: { sourceName: string; sourceUrl: string }[] = [];
+  citations.push({ sourceName: primary.sourcePrimary.name, sourceUrl: primary.sourcePrimary.url });
+  if (primary.sourceSecondary) {
+    citations.push({ sourceName: primary.sourceSecondary.name, sourceUrl: primary.sourceSecondary.url });
+  }
+  for (const sec of secondaries) {
+    citations.push({ sourceName: sec.sourcePrimary.name, sourceUrl: sec.sourcePrimary.url });
+  }
+
+  const usedEntryIds = [primary.id, ...secondaries.map((s) => s.id)];
+
+  return {
+    frContent: { title: frTitle, summary: frSummary, body: frBody, sections: frSections },
+    htContent: { title: htTitle, summary: htSummary, body: htBody, sections: htSections },
+    citations,
+    usedEntryIds,
+  };
+}
+
+// ── Shared publish logic ────────────────────────────────────────────────────
+
+interface PublishContentInput {
+  dateISO: string;
+  monthDay: string;
+  frContent: { title: string; summary: string; body: string; sections: { heading: string; content: string }[] };
+  htContent: { title: string; summary: string; body: string; sections: { heading: string; content: string }[] };
+  citations: { sourceName: string; sourceUrl: string }[];
+  entryIds: string[];
+  holidayId?: string;
+  warnings?: string[];
+  source: "raw-verified-llm" | "template";
+}
+
+async function publishContent(
+  input: PublishContentInput,
+): Promise<{ published: boolean; skipped: boolean; reason: string; itemId?: string }> {
+  const { dateISO, monthDay, frContent, htContent, citations, entryIds, holidayId, warnings, source } = input;
+
+  const qualityFlags: QualityFlags = {
+    hasSourceUrl: true,
+    needsReview: false,
+    lowConfidence: false,
+    reasons: source === "raw-verified-llm" ? ["llm-rewrite-from-raw"] : [],
+  };
+
+  const canonicalUrl = `edlight://histoire/${dateISO}`;
+  const { item } = await itemsRepo.upsertItemByCanonicalUrl({
+    rawItemId: `history-daily-${dateISO}`,
+    sourceId: "haiti-history-almanac",
+    title: frContent.title,
+    summary: frContent.summary,
+    canonicalUrl,
+    category: "Haiti" as any,
+    deadline: null,
+    evergreen: true,
+    confidence: source === "raw-verified-llm" ? 0.97 : 0.95,
+    qualityFlags,
+    citations,
+    itemType: "utility" as const,
+    utilityMeta: {
+      series: "HaitiHistory",
+      utilityType: "history",
+      region: ["HT"],
+      citations: citations.map((c) => ({ label: c.sourceName, url: c.sourceUrl })),
+    },
+    audienceFitScore: 0.95,
+    geoTag: "HT" as const,
+    imageSource: "branded" as const,
+  });
+
+  // Create content versions
+  for (const lang of ["fr", "ht"] as ContentLanguage[]) {
+    const content = lang === "fr" ? frContent : htContent;
+    const fmtHist = formatContentVersion({
+      lang,
+      title: content.title,
+      summary: content.summary,
+      body: content.body,
+      sections: content.sections,
+      sourceCitations: citations.map((c) => ({
+        name: c.sourceName,
+        url: c.sourceUrl,
+      })),
+      series: "HaitiHistory",
+    });
+    await contentVersionsRepo.createContentVersion({
+      itemId: item.id,
+      channel: "web",
+      language: lang,
+      title: fmtHist.title,
+      summary: fmtHist.summary ?? content.summary,
+      body: fmtHist.body ?? content.body,
+      status: "published",
+      category: "Haiti" as any,
+      qualityFlags,
+      citations,
+      sections: fmtHist.sections ?? content.sections,
+      sourceCitations: fmtHist.sourceCitations ?? citations.map((c) => ({
+        name: c.sourceName,
+        url: c.sourceUrl,
+      })),
+    });
+  }
+
+  // Log success
+  await historyPublishLogRepo.upsert({
+    dateISO,
+    publishedItemId: item.id,
+    almanacEntryIds: entryIds,
+    holidayId,
+    status: "done",
+    validationWarnings: warnings && warnings.length > 0 ? warnings : undefined,
+  });
+
+  console.log(
+    `[history-publisher] Published daily history (${source}) for ${monthDay}: item=${item.id}, entries=${entryIds.length}`,
+  );
+
+  return { published: true, skipped: false, reason: `Published (${source})`, itemId: item.id };
+}
+
 // ── Main publisher ──────────────────────────────────────────────────────────
 
 export async function runHistoryDailyPublisher(): Promise<{
@@ -202,11 +602,78 @@ export async function runHistoryDailyPublisher(): Promise<{
     return { published: false, skipped: true, reason: "Already published today", itemId: existingLog.publishedItemId };
   }
 
-  // Fetch today's entries + holidays
-  const [entries, holidays] = await Promise.all([
+  // Fetch today's entries + holidays + verified raw entries
+  const [entries, holidays, verifiedRawEntries] = await Promise.all([
     haitiHistoryAlmanacRepo.listByMonthDay(monthDay),
     haitiHolidaysRepo.listByMonthDay(monthDay),
+    haitiHistoryAlmanacRawRepo.listVerifiedByMonthDay(monthDay),
   ]);
+
+  // ── NEW: Try LLM-rewrite from verified raw entries first ──────────────
+  if (verifiedRawEntries.length > 0) {
+    console.log(
+      `[history-publisher] Found ${verifiedRawEntries.length} verified raw entries for ${monthDay}, attempting LLM rewrite...`,
+    );
+    try {
+      const rawContent = await buildRawVerifiedContent(
+        verifiedRawEntries,
+        holidays,
+        monthDay,
+      );
+
+      if (rawContent) {
+        // Validation gate for LLM-generated content
+        const validationSources = rawContent.citations.map((c) => ({
+          name: c.sourceName,
+          url: c.sourceUrl,
+        }));
+        const contentValidation = validateHistoryContent({
+          title: rawContent.frContent.title,
+          sections: rawContent.frContent.sections,
+          sources: validationSources,
+        });
+        const sourceValidation = validateHistorySources({
+          sources: validationSources,
+          confidence: "high",
+        });
+
+        const rawErrors = [...contentValidation.errors, ...sourceValidation.errors];
+        const rawWarnings = [...contentValidation.warnings, ...sourceValidation.warnings];
+
+        if (rawErrors.length === 0) {
+          // Publish LLM-rewritten content
+          if (rawWarnings.length > 0) {
+            console.warn(
+              `[history-publisher] LLM rewrite warnings for ${monthDay}: ${rawWarnings.join("; ")}`,
+            );
+          }
+
+          return await publishContent({
+            dateISO,
+            monthDay,
+            frContent: rawContent.frContent,
+            htContent: rawContent.htContent,
+            citations: rawContent.citations,
+            entryIds: rawContent.usedEntryIds,
+            holidayId: holidays[0]?.id,
+            warnings: rawWarnings,
+            source: "raw-verified-llm",
+          });
+        } else {
+          console.warn(
+            `[history-publisher] LLM rewrite validation failed for ${monthDay}, falling back to template: ${rawErrors.join("; ")}`,
+          );
+        }
+      }
+    } catch (err) {
+      console.warn(
+        `[history-publisher] LLM rewrite error for ${monthDay}, falling back to template:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  // ── FALLBACK: Original template-based flow ─────────────────────────────
 
   if (entries.length === 0 && holidays.length === 0) {
     await historyPublishLogRepo.upsert({
@@ -323,88 +790,17 @@ export async function runHistoryDailyPublisher(): Promise<{
       frContent.title = effectiveTitle;
     }
 
-    const qualityFlags: QualityFlags = {
-      hasSourceUrl: true,
-      needsReview: false,
-      lowConfidence: false,
-      reasons: [],
-    };
-
-    // Create item
-    const canonicalUrl = `edlight://histoire/${dateISO}`;
-    const { item } = await itemsRepo.upsertItemByCanonicalUrl({
-      rawItemId: `history-daily-${dateISO}`,
-      sourceId: "haiti-history-almanac",
-      title: frContent.title,
-      summary: frContent.summary,
-      canonicalUrl,
-      category: "Haiti" as any,
-      deadline: null,
-      evergreen: true,
-      confidence: 0.95,
-      qualityFlags,
-      citations: allCitations,
-      itemType: "utility" as const,
-      utilityMeta: {
-        series: "HaitiHistory",
-        utilityType: "history",
-        region: ["HT"],
-        citations: allCitations.map((c) => ({ label: c.sourceName, url: c.sourceUrl })),
-      },
-      audienceFitScore: 0.95,
-      geoTag: "HT" as const,
-      imageSource: "branded" as const,
-    });
-
-    // Create content versions
-    for (const lang of ["fr", "ht"] as ContentLanguage[]) {
-      const content = lang === "fr" ? frContent : htContent;
-      const fmtHist = formatContentVersion({
-        lang,
-        title: content.title,
-        summary: content.summary,
-        body: content.body,
-        sections: content.sections,
-        sourceCitations: allCitations.map((c) => ({
-          name: c.sourceName,
-          url: c.sourceUrl,
-        })),
-        series: "HaitiHistory",
-      });
-      await contentVersionsRepo.createContentVersion({
-        itemId: item.id,
-        channel: "web",
-        language: lang,
-        title: fmtHist.title,
-        summary: fmtHist.summary ?? content.summary,
-        body: fmtHist.body ?? content.body,
-        status: "published",
-        category: "Haiti" as any,
-        qualityFlags,
-        citations: allCitations,
-        sections: fmtHist.sections ?? content.sections,
-        sourceCitations: fmtHist.sourceCitations ?? allCitations.map((c) => ({
-          name: c.sourceName,
-          url: c.sourceUrl,
-        })),
-      });
-    }
-
-    // Log success
-    await historyPublishLogRepo.upsert({
+    return await publishContent({
       dateISO,
-      publishedItemId: item.id,
-      almanacEntryIds: sortedEntries.map((e) => e.id),
+      monthDay,
+      frContent,
+      htContent,
+      citations: allCitations,
+      entryIds: sortedEntries.map((e) => e.id),
       holidayId: holidays[0]?.id,
-      status: "done",
-      validationWarnings: allWarnings.length > 0 ? allWarnings : undefined,
+      warnings: allWarnings,
+      source: "template",
     });
-
-    console.log(
-      `[history-publisher] Published daily history for ${monthDay}: item=${item.id}, entries=${sortedEntries.length}, holidays=${holidays.length}`,
-    );
-
-    return { published: true, skipped: false, reason: "Published", itemId: item.id };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error(`[history-publisher] Error publishing for ${monthDay}:`, errorMsg);

@@ -1,29 +1,33 @@
 /**
- * /histoire — Haiti History & Holidays of the Day
+ * /histoire — Aujourd'hui dans l'histoire d'Haïti
  *
- * Displays today's history entries + holiday for the current MM-DD,
- * plus a monthly archive browser.
+ * Today-first layout:
+ *   A) Hero: today's almanac entries + holidays (full long-form)
+ *   B) Cette semaine: next 7 days mini-cards
+ *   C) Explorer par date: collapsible month/tag archive (client-side, lazy)
  *
- * NOTE: Validation warnings (validationWarnings on HistoryPublishLog) are
- * internal-only and MUST NOT be surfaced in this page. They are logged in
- * the history_publish_log Firestore collection for editorial review only.
+ * NOTE: Validation warnings (on HistoryPublishLog) are internal-only
+ * and MUST NOT be surfaced here.
  */
 
-import Link from "next/link";
-import { BookOpen, Calendar, Star, ArrowLeft, Tag } from "lucide-react";
-import type { ContentLanguage, AlmanacTag } from "@edlight-news/types";
+import { Suspense } from "react";
+import { BookOpen, Calendar, Star } from "lucide-react";
+import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
 import { MetaBadges } from "@/components/MetaBadges";
+import { HistoireArchive } from "@/components/HistoireArchive";
 import {
   fetchAlmanacByMonthDay,
   fetchHolidaysByMonthDay,
-  fetchAlmanacByMonth,
-  fetchAllHolidays,
   getHaitiMonthDay,
 } from "@/lib/datasets";
 
 export const revalidate = 900;
 
-// ── Tag display ──────────────────────────────────────────────────────────────
+export const metadata = {
+  title: "Aujourd'hui dans l'histoire d'Haïti · EdLight News",
+};
+
+// ── Shared constants ─────────────────────────────────────────────────────────
 
 const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> = {
   independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-blue-100 text-blue-800" },
@@ -44,110 +48,151 @@ const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> 
 };
 
 const MONTH_NAMES_FR = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
 ];
 const MONTH_NAMES_HT = [
-  "Janvye", "Fevriye", "Mas", "Avril", "Me", "Jen",
-  "Jiyè", "Out", "Septanm", "Oktòb", "Novanm", "Desanm",
+  "janvye", "fevriye", "mas", "avril", "me", "jen",
+  "jiyè", "out", "septanm", "oktòb", "novanm", "desanm",
 ];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Format MM-DD → "23 février" */
+function formatMonthDay(
+  monthDay: string,
+  lang: ContentLanguage,
+): string {
+  const [mm, dd] = monthDay.split("-");
+  const monthIdx = parseInt(mm!, 10) - 1;
+  const name = lang === "fr" ? MONTH_NAMES_FR[monthIdx] : MONTH_NAMES_HT[monthIdx];
+  return `${parseInt(dd!, 10)} ${name ?? mm}`;
+}
+
+/** Get next N calendar days as MM-DD strings (Haiti timezone). */
+function getNextDays(todayMD: string, count: number): string[] {
+  const [mm, dd] = todayMD.split("-").map(Number) as [number, number];
+  // Use a reference year (2024 = leap year so Feb 29 works)
+  const base = new Date(2024, mm - 1, dd);
+  const days: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    days.push(`${m}-${day}`);
+  }
+  return days;
+}
+
+/** First sentence (rough): split on ". " and take the first chunk. */
+function firstSentence(text: string): string {
+  const idx = text.indexOf(". ");
+  if (idx > 0 && idx < 200) return text.slice(0, idx + 1);
+  if (text.length > 160) return text.slice(0, 160).trimEnd() + "…";
+  return text;
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HistoirePage({
   searchParams,
 }: {
-  searchParams: { lang?: string; month?: string };
+  searchParams: { lang?: string };
 }) {
   const lang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
   const fr = lang === "fr";
-  const langQ = lang === "ht" ? "?lang=ht" : "";
-  const lq = (path: string) => path + langQ;
 
   const todayMD = getHaitiMonthDay();
-  const selectedMonth = searchParams.month ?? todayMD.split("-")[0]!;
+  const todayMonth = todayMD.split("-")[0]!;
 
-  // Fetch data in parallel
-  let todayEntries: Awaited<ReturnType<typeof fetchAlmanacByMonthDay>>;
-  let todayHolidays: Awaited<ReturnType<typeof fetchHolidaysByMonthDay>>;
-  let monthEntries: Awaited<ReturnType<typeof fetchAlmanacByMonth>>;
-  let allHolidays: Awaited<ReturnType<typeof fetchAllHolidays>>;
+  // ── Fetch today's entries + holidays ────────────────────────────────────
+  let todayEntries: HaitiHistoryAlmanacEntry[];
+  let todayHolidays: HaitiHoliday[];
   try {
-    [todayEntries, todayHolidays, monthEntries, allHolidays] = await Promise.all([
+    [todayEntries, todayHolidays] = await Promise.all([
       fetchAlmanacByMonthDay(todayMD),
       fetchHolidaysByMonthDay(todayMD),
-      fetchAlmanacByMonth(selectedMonth),
-      fetchAllHolidays(),
     ]);
   } catch (err) {
-    console.error("[EdLight] /histoire fetch failed:", err);
+    console.error("[EdLight] /histoire today fetch failed:", err);
     todayEntries = [];
     todayHolidays = [];
-    monthEntries = [];
-    allHolidays = [];
   }
 
-  const [, todayDay] = todayMD.split("-");
-  const monthIndex = parseInt(selectedMonth, 10) - 1;
-  const monthName = fr ? MONTH_NAMES_FR[monthIndex] : MONTH_NAMES_HT[monthIndex];
+  // ── Fetch 7-day lookahead ──────────────────────────────────────────────
+  const weekDays = getNextDays(todayMD, 7);
+  type WeekEntry = { monthDay: string; entry: HaitiHistoryAlmanacEntry };
+  const weekEntries: WeekEntry[] = [];
 
-  // Holidays in the selected month
-  const monthHolidays = allHolidays.filter((h) => h.monthDay.startsWith(selectedMonth + "-"));
+  try {
+    const results = await Promise.all(
+      weekDays.map((md) => fetchAlmanacByMonthDay(md)),
+    );
+    for (let i = 0; i < weekDays.length; i++) {
+      const md = weekDays[i]!;
+      const dayEntries = results[i] ?? [];
+      // Take the highest-confidence entry per day (skip today — shown in hero)
+      if (md === todayMD) continue;
+      const best = [...dayEntries].sort((a, b) =>
+        a.confidence === "high" && b.confidence !== "high" ? -1 : 1,
+      )[0];
+      if (best) {
+        weekEntries.push({ monthDay: md, entry: best });
+      }
+    }
+  } catch (err) {
+    console.error("[EdLight] /histoire week fetch failed:", err);
+  }
 
   return (
-    <div className="space-y-10">
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <section className="text-center space-y-3">
-        <h1 className="text-3xl font-extrabold tracking-tight flex items-center justify-center gap-2">
-          <BookOpen className="h-8 w-8 text-brand-600" />
-          {fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
-        </h1>
-        <p className="text-gray-600 max-w-xl mx-auto">
-          {fr
-            ? "Découvrez chaque jour ce qui s'est passé dans l'histoire d'Haïti — événements, héros, et fêtes nationales."
-            : "Dekouvri chak jou sa ki te pase nan istwa Ayiti — evènman, ewo, ak fèt nasyonal."}
-        </p>
-      </section>
+    <div className="mx-auto max-w-3xl space-y-12">
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  SECTION A — Aujourd'hui (Hero)
+       * ═══════════════════════════════════════════════════════════════════ */}
+      <section className="space-y-5">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl flex items-center justify-center gap-2">
+            <BookOpen className="h-8 w-8 text-brand-600" />
+            {fr ? "Aujourd\u2019hui dans l\u2019histoire d\u2019Haïti" : "Jodi a nan istwa Ayiti"}
+          </h1>
+          <p className="text-lg text-gray-500">
+            {formatMonthDay(todayMD, lang)}
+          </p>
+        </div>
 
-      {/* ── Today's Card ────────────────────────────────────────────────── */}
-      {(todayEntries.length > 0 || todayHolidays.length > 0) && (
-        <section className="rounded-xl border-2 border-amber-200 bg-amber-50/40 p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-amber-600" />
-            <h2 className="text-xl font-bold">
-              {fr ? `Aujourd'hui — ${todayDay}/${selectedMonth}` : `Jodi a — ${todayDay}/${selectedMonth}`}
-            </h2>
-          </div>
-
-          {/* Holiday badges */}
-          {todayHolidays.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {todayHolidays.map((h) => (
-                <div
-                  key={h.id}
-                  className="rounded-lg border border-amber-200 bg-white px-4 py-3 shadow-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-amber-500" />
-                    <span className="font-bold text-gray-900">
-                      {fr ? h.name_fr : h.name_ht}
+        {/* Holiday badges */}
+        {todayHolidays.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {todayHolidays.map((h) => (
+              <div
+                key={h.id}
+                className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-amber-500" />
+                  <span className="font-bold text-gray-900">
+                    {fr ? h.name_fr : h.name_ht}
+                  </span>
+                  {h.isNationalHoliday && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                      🇭🇹 {fr ? "Fête nationale" : "Fèt nasyonal"}
                     </span>
-                    {h.isNationalHoliday && (
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                        🇭🇹 {fr ? "Fête nationale" : "Fèt nasyonal"}
-                      </span>
-                    )}
-                  </div>
-                  {(fr ? h.description_fr : h.description_ht) && (
-                    <p className="mt-1 text-sm text-gray-600">
-                      {fr ? h.description_fr : h.description_ht}
-                    </p>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
+                {(fr ? h.description_fr : h.description_ht) && (
+                  <p className="mt-1 text-sm text-gray-600">
+                    {fr ? h.description_fr : h.description_ht}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
-          {/* Today's history entries */}
-          <div className="space-y-4">
+        {/* Today's history entries — full long-form */}
+        {todayEntries.length > 0 ? (
+          <div className="space-y-6">
             {todayEntries
               .sort((a, b) => {
                 if (a.confidence === "high" && b.confidence !== "high") return -1;
@@ -155,21 +200,35 @@ export default async function HistoirePage({
                 return 0;
               })
               .map((entry) => (
-                <div key={entry.id} className="rounded-lg border border-amber-100 bg-white p-4 shadow-sm">
-                  <h3 className="font-bold text-gray-900">
+                <article
+                  key={entry.id}
+                  className="rounded-xl border-2 border-amber-200 bg-amber-50/40 p-6 shadow-sm space-y-4"
+                >
+                  <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
                     {entry.title_fr}
-                    {entry.year && <span className="ml-1 text-sm font-normal text-gray-500">({entry.year})</span>}
-                  </h3>
-                  <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                    {entry.year != null && (
+                      <span className="ml-2 text-base font-normal text-gray-500">
+                        ({entry.year})
+                      </span>
+                    )}
+                  </h2>
+
+                  <p className="text-base leading-relaxed text-gray-700">
                     {entry.summary_fr}
                   </p>
+
                   {entry.student_takeaway_fr && (
-                    <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-                      💡 <strong>{fr ? "Pour les étudiants" : "Pou etidyan yo"} :</strong>{" "}
+                    <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
+                      💡{" "}
+                      <strong>
+                        {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
+                      </strong>{" "}
                       {entry.student_takeaway_fr}
-                    </p>
+                    </div>
                   )}
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
+
+                  {/* Tags + confidence */}
+                  <div className="flex flex-wrap items-center gap-2">
                     {entry.tags?.map((tag) => {
                       const t = TAG_LABELS[tag];
                       return (
@@ -187,15 +246,16 @@ export default async function HistoirePage({
                       </span>
                     )}
                   </div>
-                  <div className="mt-1">
-                    <MetaBadges
-                      verifiedAt={entry.verifiedAt}
-                      updatedAt={entry.updatedAt}
-                      lang={lang}
-                    />
-                  </div>
+
+                  <MetaBadges
+                    verifiedAt={entry.verifiedAt}
+                    updatedAt={entry.updatedAt}
+                    lang={lang}
+                  />
+
+                  {/* Sources */}
                   {entry.sources.length > 0 && (
-                    <div className="mt-2 text-xs text-gray-500">
+                    <div className="text-xs text-gray-500">
                       📚{" "}
                       {entry.sources.map((s, i) => (
                         <span key={i}>
@@ -212,136 +272,89 @@ export default async function HistoirePage({
                       ))}
                     </div>
                   )}
-                </div>
+                </article>
               ))}
+          </div>
+        ) : todayHolidays.length === 0 ? (
+          /* Empty state — no fallback to random data */
+          <div className="rounded-lg border-2 border-dashed border-gray-200 py-10 text-center text-gray-400">
+            <BookOpen className="mx-auto mb-2 h-8 w-8" />
+            <p>
+              {fr
+                ? "Aucune entrée publiée aujourd\u2019hui."
+                : "Pa gen antre pibliye jodi a."}
+            </p>
+          </div>
+        ) : null}
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  SECTION B — Cette semaine dans l'histoire
+       * ═══════════════════════════════════════════════════════════════════ */}
+      {weekEntries.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="flex items-center gap-2 text-xl font-bold">
+            <Calendar className="h-5 w-5 text-gray-600" />
+            {fr ? "Cette semaine dans l\u2019histoire" : "Semèn sa a nan istwa"}
+          </h2>
+
+          {/* Horizontal scroll on mobile, grid on desktop */}
+          <div className="flex gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible">
+            {weekEntries.map(({ monthDay, entry }) => (
+              <div
+                key={entry.id}
+                className="min-w-[260px] shrink-0 rounded-lg border bg-white p-4 shadow-sm sm:min-w-0"
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-xs font-bold text-white">
+                    {parseInt(monthDay.split("-")[1]!, 10)}
+                  </span>
+                  <span className="text-sm font-medium text-gray-500">
+                    {formatMonthDay(monthDay, lang)}
+                  </span>
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {entry.title_fr}
+                  {entry.year != null && (
+                    <span className="ml-1 text-xs text-gray-400">
+                      ({entry.year})
+                    </span>
+                  )}
+                </h3>
+                <p className="mt-1 text-xs text-gray-600 line-clamp-2">
+                  {firstSentence(entry.summary_fr)}
+                </p>
+                {entry.tags && entry.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {entry.tags.slice(0, 2).map((tag) => {
+                      const t = TAG_LABELS[tag];
+                      return (
+                        <span
+                          key={tag}
+                          className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
+                        >
+                          {fr ? t?.fr : t?.ht}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* If no content today */}
-      {todayEntries.length === 0 && todayHolidays.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 py-10 text-center text-gray-400">
-          <BookOpen className="mx-auto h-8 w-8 mb-2" />
-          <p>{fr
-            ? `Pas encore de contenu pour le ${todayDay}/${selectedMonth}. Revenez bientôt !`
-            : `Pa gen konteni pou ${todayDay}/${selectedMonth} ankò. Retounen byento!`}
-          </p>
-        </div>
-      )}
-
-      {/* ── Month selector ──────────────────────────────────────────────── */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-gray-600" />
-          {fr ? "Parcourir par mois" : "Navige pa mwa"}
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {Array.from({ length: 12 }, (_, i) => {
-            const mm = String(i + 1).padStart(2, "0");
-            const isActive = mm === selectedMonth;
-            const name = fr ? MONTH_NAMES_FR[i] : MONTH_NAMES_HT[i];
-            return (
-              <Link
-                key={mm}
-                href={`/histoire?month=${mm}${lang === "ht" ? "&lang=ht" : ""}`}
-                className={[
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                  isActive
-                    ? "bg-brand-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-brand-100 hover:text-brand-700",
-                ].join(" ")}
-              >
-                {name}
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── Month archive ───────────────────────────────────────────────── */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold">
-          {monthName} — {fr ? "Événements historiques" : "Evènman istorik"}
-          <span className="ml-2 text-sm font-normal text-gray-500">
-            ({monthEntries.length} {fr ? "entrées" : "antre"})
-          </span>
-        </h2>
-
-        {/* Holidays this month */}
-        {monthHolidays.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-amber-700 flex items-center gap-1">
-              <Star className="h-4 w-4" />
-              {fr ? "Fêtes ce mois" : "Fèt mwa sa a"}
-            </h3>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {monthHolidays.map((h) => {
-                const [, dd] = h.monthDay.split("-");
-                return (
-                  <div key={h.id} className="flex items-center gap-3 rounded-lg border bg-amber-50/50 px-4 py-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500 text-white font-bold text-sm">
-                      {dd}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">
-                        {fr ? h.name_fr : h.name_ht}
-                      </p>
-                      {h.isNationalHoliday && (
-                        <span className="text-[10px] text-amber-600">🇭🇹 {fr ? "Fête nationale" : "Fèt nasyonal"}</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* History entries for the month */}
-        {monthEntries.length > 0 ? (
-          <div className="space-y-3">
-            {monthEntries
-              .sort((a, b) => a.monthDay.localeCompare(b.monthDay))
-              .map((entry) => {
-                const [, dd] = entry.monthDay.split("-");
-                return (
-                  <div key={entry.id} className="flex gap-4 rounded-lg border bg-white p-4 shadow-sm">
-                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-600 text-white">
-                      <span className="text-lg font-bold leading-tight">{dd}</span>
-                      <span className="text-[9px] uppercase">
-                        {(fr ? MONTH_NAMES_FR[monthIndex] : MONTH_NAMES_HT[monthIndex])?.slice(0, 3)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm">
-                        {entry.title_fr}
-                        {entry.year && <span className="ml-1 text-xs text-gray-400">({entry.year})</span>}
-                      </h3>
-                      <p className="mt-1 text-xs text-gray-600 line-clamp-2">{entry.summary_fr}</p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {entry.tags?.slice(0, 3).map((tag) => {
-                          const t = TAG_LABELS[tag];
-                          return (
-                            <span
-                              key={tag}
-                              className={`rounded-full px-1.5 py-0.5 text-[9px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700"}`}
-                            >
-                              {fr ? t?.fr : t?.ht}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        ) : (
-          <div className="rounded-lg border-2 border-dashed border-gray-200 py-8 text-center text-gray-400">
-            <p>{fr ? "Aucune entrée pour ce mois." : "Pa gen antre pou mwa sa a."}</p>
-          </div>
-        )}
-      </section>
+      {/* ═══════════════════════════════════════════════════════════════════
+       *  SECTION C — Explorer par date (collapsible archive)
+       * ═══════════════════════════════════════════════════════════════════ */}
+      <Suspense
+        fallback={
+          <div className="h-14 animate-pulse rounded-lg bg-gray-100" />
+        }
+      >
+        <HistoireArchive lang={lang} defaultMonth={todayMonth} />
+      </Suspense>
     </div>
   );
 }

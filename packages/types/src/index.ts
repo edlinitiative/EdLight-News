@@ -79,6 +79,12 @@ export type {
   HaitiHoliday,
   HistoryPublishStatus,
   HistoryPublishLog,
+  // Raw almanac types
+  AlmanacRawCategory,
+  AlmanacRawSourceType,
+  AlmanacRawVerificationStatus,
+  AlmanacRawSource,
+  HaitiHistoryAlmanacRaw,
 } from "./models.js";
 
 export {
@@ -162,6 +168,13 @@ export {
   haitiHolidaySchema,
   createHaitiHolidaySchema,
   historyPublishLogSchema,
+  // Raw almanac schemas
+  almanacRawCategorySchema,
+  almanacRawSourceTypeSchema,
+  almanacRawVerificationStatusSchema,
+  almanacRawSourceSchema,
+  haitiHistoryAlmanacRawSchema,
+  createHaitiHistoryAlmanacRawSchema,
 } from "./schemas.js";
 
 export type {
@@ -185,4 +198,5 @@ export type {
   // History create types
   CreateHaitiHistoryAlmanacEntry,
   CreateHaitiHoliday,
+  CreateHaitiHistoryAlmanacRaw,
 } from "./schemas.js";

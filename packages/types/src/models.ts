@@ -469,6 +469,48 @@ export interface HistoryPublishLog {
   createdAt: Timestamp;
 }
 
+// ── Firestore collection: haiti_history_almanac_raw ────────────────────────
+
+export type AlmanacRawCategory =
+  | "political"
+  | "education"
+  | "culture"
+  | "international"
+  | "economy"
+  | "social"
+  | "science"
+  | "birth"
+  | "death";
+
+export type AlmanacRawSourceType =
+  | "government"
+  | "academic"
+  | "institutional"
+  | "press"
+  | "reference";
+
+export type AlmanacRawVerificationStatus = "unverified" | "verified";
+
+export interface AlmanacRawSource {
+  name: string;
+  url: string;
+}
+
+export interface HaitiHistoryAlmanacRaw {
+  id: string;
+  /** MM-DD (e.g. "02-23") */
+  monthDay: string;
+  year: number;
+  title: string;
+  shortSummary: string;
+  category: AlmanacRawCategory;
+  sourcePrimary: AlmanacRawSource;
+  sourceSecondary?: AlmanacRawSource;
+  sourceType: AlmanacRawSourceType;
+  verificationStatus: AlmanacRawVerificationStatus;
+  createdAt: Timestamp;
+}
+
 // ── Shared enums for datasets ──────────────────────────────────────────────
 
 export type DatasetCountry =
