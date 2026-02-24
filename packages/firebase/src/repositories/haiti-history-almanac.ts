@@ -49,6 +49,40 @@ export async function listByMonth(month: string): Promise<HaitiHistoryAlmanacEnt
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as HaitiHistoryAlmanacEntry);
 }
 
+/** List entries for an arbitrary MM-DD range. Handles year-end wrap (e.g. 12-29 → 01-04). */
+export async function listByMonthDayRange(
+  start: string,
+  end: string,
+): Promise<HaitiHistoryAlmanacEntry[]> {
+  // Normal range: single query
+  if (start <= end) {
+    const snap = await collection()
+      .where("monthDay", ">=", start)
+      .where("monthDay", "<=", end)
+      .orderBy("monthDay")
+      .get();
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as HaitiHistoryAlmanacEntry);
+  }
+
+  // Year-end wrap: two queries and merge
+  const [snapA, snapB] = await Promise.all([
+    collection()
+      .where("monthDay", ">=", start)
+      .where("monthDay", "<=", "12-31")
+      .orderBy("monthDay")
+      .get(),
+    collection()
+      .where("monthDay", ">=", "01-01")
+      .where("monthDay", "<=", end)
+      .orderBy("monthDay")
+      .get(),
+  ]);
+  return [
+    ...snapA.docs.map((d) => ({ id: d.id, ...d.data() }) as HaitiHistoryAlmanacEntry),
+    ...snapB.docs.map((d) => ({ id: d.id, ...d.data() }) as HaitiHistoryAlmanacEntry),
+  ];
+}
+
 /** Upsert by monthDay + title_fr (idempotent seeding). */
 export async function upsertByTitle(
   data: CreateHaitiHistoryAlmanacEntry,

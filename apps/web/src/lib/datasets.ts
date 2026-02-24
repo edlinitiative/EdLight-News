@@ -173,6 +173,13 @@ export const fetchAlmanacByMonth = unstable_cache(
   { revalidate: 3600, tags: ["almanac"] },
 );
 
+export const fetchAlmanacByMonthDayRange = unstable_cache(
+  async (start: string, end: string): Promise<HaitiHistoryAlmanacEntry[]> =>
+    haitiHistoryAlmanacRepo.listByMonthDayRange(start, end),
+  ["almanac-range"],
+  { revalidate: 3600, tags: ["almanac"] },
+);
+
 export const fetchAllAlmanacEntries = unstable_cache(
   async (): Promise<HaitiHistoryAlmanacEntry[]> =>
     haitiHistoryAlmanacRepo.listAll(),

@@ -7,6 +7,8 @@ export declare function listAll(): Promise<HaitiHistoryAlmanacEntry[]>;
 export declare function listByMonthDay(monthDay: string): Promise<HaitiHistoryAlmanacEntry[]>;
 /** List entries for a specific month (MM). */
 export declare function listByMonth(month: string): Promise<HaitiHistoryAlmanacEntry[]>;
+/** List entries for an arbitrary MM-DD range. Handles year-end wrap (e.g. 12-29 → 01-04). */
+export declare function listByMonthDayRange(start: string, end: string): Promise<HaitiHistoryAlmanacEntry[]>;
 /** Upsert by monthDay + title_fr (idempotent seeding). */
 export declare function upsertByTitle(data: CreateHaitiHistoryAlmanacEntry): Promise<{
     entry: HaitiHistoryAlmanacEntry;
