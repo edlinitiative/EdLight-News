@@ -27,9 +27,13 @@ export async function upsert(data: {
   validationErrors?: string[];
 }): Promise<HistoryPublishLog> {
   const ref = collection().doc(data.dateISO);
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  );
+
   await ref.set(
     {
-      ...data,
+      ...cleanData,
       createdAt: FieldValue.serverTimestamp(),
     },
     { merge: true },
