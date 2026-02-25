@@ -64,8 +64,6 @@ import {
 import { getCalendarGeo } from "@/lib/calendarGeo";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import { GeminiHeroImage } from "@/components/GeminiHeroImage";
-import { generateHeroImage } from "@/lib/gemini-image";
 
 const DashboardTabs = dynamic(
   () => import("@/components/DashboardTabs").then((m) => m.DashboardTabs),
@@ -178,10 +176,6 @@ export default async function AccueilPage({
     }
   };
 
-  // ── Hero image prompts (pre-generated server-side during ISR) ─────────────
-  const BOURSES_PROMPT = "Happy diverse group of young students tossing graduation caps in the air outdoors with golden hour sunlight, bokeh background";
-  const CALENDAR_PROMPT = "A realistic close-up photo of a physical wall calendar with the word CALENDAR printed clearly at the top, pinned to a clean white wall, with a few dates circled in blue pen, soft natural lighting";
-
   const [
     allArticles,
     upcomingEvents,
@@ -189,8 +183,6 @@ export default async function AccueilPage({
     closingScholarships45,
     allPathways,
     allUniversities,
-    heroImageBourses,
-    heroImageCalendar,
   ] = await Promise.all([
     safeFetch(() => fetchEnrichedFeed(lang, 100), [], "enrichedFeed"),
     safeFetch(fetchUpcomingCalendarEvents, [], "upcomingEvents"),
@@ -198,8 +190,6 @@ export default async function AccueilPage({
     safeFetch(() => fetchScholarshipsClosingSoon(45), [], "scholarships45"),
     safeFetch(fetchAllPathways, [], "pathways"),
     safeFetch(fetchAllUniversities, [], "universities"),
-    safeFetch(() => generateHeroImage(BOURSES_PROMPT), null, "heroImageBourses"),
-    safeFetch(() => generateHeroImage(CALENDAR_PROMPT), null, "heroImageCalendar"),
   ]);
 
   // Pre-filter: drop off-mission articles
@@ -310,11 +300,16 @@ export default async function AccueilPage({
 
   const boursesPanel = (
     <div className="space-y-5">
-      <GeminiHeroImage
-        prompt={BOURSES_PROMPT}
-        preloadedSrc={heroImageBourses}
-        className="h-44 w-full"
-      />
+      <div className="relative overflow-hidden rounded-2xl h-44 w-full">
+        <img
+          src="/images/hero/bourses.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
       {boursesClosing.length > 0 ? (
         <>
           <div className="flex items-center justify-between">
@@ -366,11 +361,16 @@ export default async function AccueilPage({
 
   const calendrierPanel = (
     <div className="space-y-5">
-      <GeminiHeroImage
-        prompt={CALENDAR_PROMPT}
-        preloadedSrc={heroImageCalendar}
-        className="h-44 w-full"
-      />
+      <div className="relative overflow-hidden rounded-2xl h-44 w-full">
+        <img
+          src="/images/hero/calendrier.png"
+          alt=""
+          loading="eager"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
       {(haitiEvents.length > 0 || intlScholarships.length > 0) ? (
         <>
           <div className="flex items-center justify-between">
