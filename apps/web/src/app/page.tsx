@@ -98,38 +98,6 @@ export async function generateMetadata({
   };
 }
 
-// ── Cross-section dedup helper ────────────────────────────────────────────────
-
-function createSectionClaimer() {
-  const usedIds = new Set<string>();
-  const usedGroups = new Set<string>();
-
-  return {
-    claim(articles: FeedItem[]): FeedItem[] {
-      const fresh: FeedItem[] = [];
-      for (const a of articles) {
-        const cvId = a.id;
-        const group = a.dedupeGroupId;
-        if (usedIds.has(cvId)) continue;
-        if (group && usedGroups.has(group)) continue;
-        fresh.push(a);
-        usedIds.add(cvId);
-        if (a.itemId) usedIds.add(a.itemId);
-        if (group) usedGroups.add(group);
-      }
-      return fresh;
-    },
-
-    unclaimed(articles: FeedItem[]): FeedItem[] {
-      return articles.filter((a) => {
-        if (usedIds.has(a.id)) return false;
-        if (a.dedupeGroupId && usedGroups.has(a.dedupeGroupId)) return false;
-        return true;
-      });
-    },
-  };
-}
-
 // ── Section header ────────────────────────────────────────────────────────────
 
 function SectionHeader({
@@ -270,10 +238,6 @@ export default async function AccueilPage({
     safeFetch(fetchAllUniversities, [], "universities"),
   ]);
 
-  // Pre-filter: drop off-mission articles
-  const pool = allArticles.filter((a) => !a.offMission);
-  const claimer = createSectionClaimer();
-
   // ── S1 data: Combined calendar (Haiti events + International scholarship deadlines)
   const haitiEvents = upcomingEvents.slice(0, 3);
   const intlScholarships = closingScholarships45.slice(0, 3);
@@ -308,14 +272,6 @@ export default async function AccueilPage({
     publisherCap: 2,
     topN: 6,
   }).slice(0, 6);
-
-  // ── S5 data: News feed (top 8, deduped)
-  const newsRanked = rankAndDeduplicate(claimer.unclaimed(pool), {
-    audienceFitThreshold: 0.65,
-    publisherCap: 2,
-    topN: 8,
-  }).slice(0, 8);
-  const newsArticles = claimer.claim(newsRanked);
 
   // ── Urgency data: "À ne pas rater cette semaine" ─────────────────────────
   type UrgencyItem = {
@@ -888,59 +844,6 @@ export default async function AccueilPage({
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  URGENCY — À ne pas rater cette semaine (streamed below fold)
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {topUrgent.length > 0 && (
-        <section className="section-shell space-y-4 border-red-200/80 bg-red-50/30 dark:border-red-800/40 dark:bg-red-950/15">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-red-800 dark:text-red-300">
-              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              {fr ? "À ne pas rater cette semaine" : "Sa pou pa rate semèn sa"}
-            </h2>
-            <Link
-              href={lq("/closing-soon")}
-              className="text-sm font-medium text-red-700 transition-colors hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-            >
-              {fr ? "Voir tout →" : "Wè tout →"}
-            </Link>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {topUrgent.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="flex items-center gap-3 rounded-xl border border-red-100 bg-white p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md dark:border-red-900/40 dark:bg-slate-800/80 dark:hover:border-red-600/40"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-sm dark:bg-brand-900/30">
-                  {item.kind === "bourse" ? (
-                    <DollarSign className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                  ) : (
-                    <CalendarDays className="h-4 w-4 text-brand-600 dark:text-brand-400" />
-                  )}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 line-clamp-1 dark:text-slate-100">
-                    {item.title}
-                  </p>
-                </div>
-                <DeadlineBadge
-                  dateISO={item.dateISO}
-                  windowDays={item.kind === "bourse" ? 30 : 14}
-                  lang={lang}
-                  prefix={
-                    item.kind === "bourse"
-                      ? undefined
-                      : { fr: "Événement", ht: "Evènman" }
-                  }
-                  variant="compact"
-                />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
        *  S4 — Étudier à l'étranger (universities)
        * ═══════════════════════════════════════════════════════════════════ */}
       {rotatedUnis.length > 0 && (
@@ -989,68 +892,33 @@ export default async function AccueilPage({
         </section>
       )}
 
-      {/* ═══════════════════════════════════════════════════════════════════
-       *  S_succes — Succès & Inspiration (strict gating)
-       * ═══════════════════════════════════════════════════════════════════ */}
-      {succesArticles.length > 0 ? (
-        <section className="section-shell space-y-4 border-emerald-200/70 dark:border-emerald-800/30">
-          <SectionHeader
-            icon={<Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
-            title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
-            href={lq("/succes")}
-            cta={fr ? "Voir tout →" : "Wè tout →"}
-          />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {succesArticles.map((a) => (
-              <ArticleCard key={a.id} article={a} lang={lang} compact />
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section className="section-shell space-y-4 border-dashed border-gray-200 dark:border-slate-700">
-          <SectionHeader
-            icon={<Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
-            title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
-            href={lq("/succes")}
-            cta={fr ? "Voir tout →" : "Wè tout →"}
-          />
-          <div className="py-8 text-center text-gray-400 dark:text-slate-500">
-            <p className="text-base">
-              {fr ? "Aucun profil publié récemment." : "Pa gen pwofil pibliye dènyèman."}
-            </p>
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════
-       *  S6 — Fil: Actualité générale (news — below the fold)
-       * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="section-shell space-y-4 border-t-0">
+      <section className="section-shell space-y-4">
         <SectionHeader
-          icon={<Newspaper className="h-5 w-5 text-gray-500 dark:text-slate-400" />}
-          title={fr ? "Fil — Actualité générale" : "Fil — Nouvèl jeneral"}
+          icon={<ArrowRight className="h-5 w-5 text-brand-600 dark:text-brand-400" />}
+          title={fr ? "Continuer la navigation" : "Kontinye navigasyon"}
           href={lq("/news")}
-          cta={fr ? "Voir tout →" : "Wè tout →"}
+          cta={fr ? "Explorer le fil →" : "Eksplore fil la →"}
         />
-
-        {newsArticles.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {newsArticles.map((a) => (
-              <ArticleCard
-                key={a.id}
-                article={a}
-                lang={lang}
-                compact
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-400 dark:border-slate-700 dark:text-slate-500">
-            <p className="text-base">
-              {fr ? "Les actualités arrivent bientôt." : "Nouvèl yo ap vini byento."}
-            </p>
-          </div>
-        )}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { href: lq("/closing-soon"), label: fr ? "Dates limites" : "Dat limit", Icon: AlertTriangle },
+            { href: lq("/bourses"), label: fr ? "Bourses" : "Bous", Icon: DollarSign },
+            { href: lq("/histoire"), label: fr ? "Histoire" : "Istwa", Icon: BookOpen },
+            { href: lq("/news"), label: fr ? "Actualités" : "Nouvèl", Icon: Newspaper },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-500/40 dark:hover:text-brand-300"
+            >
+              <span className="inline-flex items-center gap-2">
+                <item.Icon className="h-4 w-4" />
+                {item.label}
+              </span>
+              <ArrowRight className="h-4 w-4 opacity-60" />
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );
