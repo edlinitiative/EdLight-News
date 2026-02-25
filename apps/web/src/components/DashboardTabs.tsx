@@ -43,6 +43,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
   const fr = lang === "fr";
   const [activeTab, setActiveTab] = useState<TabId>("bourses");
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [autoplayEnabled, setAutoplayEnabled] = useState(true);
 
   // Track which tabs have been visited — only mount those panels (perf: avoids 5 simultaneous API calls)
   const [mountedTabs, setMountedTabs] = useState<Set<TabId>>(new Set(["bourses"]));
@@ -66,6 +67,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
   // ── Pill indicator ───────────────────────────────────────────────────────
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
+  const activeDef = TAB_DEFS.find((t) => t.id === activeTab) ?? TAB_DEFS[0];
 
   const updatePill = useCallback(() => {
     const tab = tabRefs.current.get(activeTab);
@@ -162,10 +164,30 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
   // ── Auto-slide timer ─────────────────────────────────────────────────────
   const pausedUntil = useRef(0);
-  const AUTOPLAY_MS = 5000; // advance every 5 seconds
-  const PAUSE_AFTER_INTERACT_MS = 12000; // pause 12s after manual interaction
+  const AUTOPLAY_MS = 8000; // calmer rotation for dashboard reading
+  const PAUSE_AFTER_INTERACT_MS = 20000; // longer pause after interaction
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setAutoplayEnabled(!media.matches);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        pausedUntil.current = Date.now() + PAUSE_AFTER_INTERACT_MS;
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!autoplayEnabled) return;
     const id = setInterval(() => {
       if (Date.now() < pausedUntil.current) return;
       setActiveTab((prev) => {
@@ -175,7 +197,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
       });
     }, AUTOPLAY_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [autoplayEnabled]);
 
   // Pause auto-slide on user interaction
   const pauseAutoSlide = useCallback(() => {
@@ -201,13 +223,23 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
+          {fr ? "Vue active" : "Vi aktif"}
+        </p>
+        <div className="inline-flex items-center gap-2 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200">
+          <activeDef.Icon className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+          {fr ? activeDef.fr : activeDef.ht}
+        </div>
+      </div>
+
       {/* ── TAB STRIP ───────────────────────────────────────────────────── */}
       <div className="relative">
         {/* Left arrow */}
         {canScrollLeft && (
           <button
             onClick={() => scrollTabs("left")}
-            className="absolute -left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md transition-all hover:bg-white dark:bg-slate-700/90 dark:hover:bg-slate-700"
+            className="absolute -left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200/70 bg-white/90 shadow-md transition-all hover:bg-white dark:border-slate-700/70 dark:bg-slate-700/90 dark:hover:bg-slate-700"
             aria-label="Scroll tabs left"
           >
             <ChevronLeft className="h-4 w-4 text-gray-500 dark:text-slate-300" />
@@ -217,7 +249,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         {canScrollRight && (
           <button
             onClick={() => scrollTabs("right")}
-            className="absolute -right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md transition-all hover:bg-white dark:bg-slate-700/90 dark:hover:bg-slate-700"
+            className="absolute -right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200/70 bg-white/90 shadow-md transition-all hover:bg-white dark:border-slate-700/70 dark:bg-slate-700/90 dark:hover:bg-slate-700"
             aria-label="Scroll tabs right"
           >
             <ChevronRight className="h-4 w-4 text-gray-500 dark:text-slate-300" />
@@ -226,7 +258,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
         <div
           ref={scrollRef}
-          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl border border-gray-200/70 bg-gray-100/80 p-1.5 dark:border-slate-700/60 dark:bg-slate-800/80"
+          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl border border-gray-200/70 bg-gradient-to-b from-white/80 to-gray-100/80 p-1.5 dark:border-slate-700/60 dark:from-slate-800/70 dark:to-slate-800/90"
           style={{ cursor: "grab" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
@@ -279,16 +311,17 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={[
-          "relative transition-all duration-200 ease-out",
+          "relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/75 p-4 transition-all duration-200 ease-out dark:border-slate-700/60 dark:bg-slate-900/55 sm:p-5",
           isTransitioning
             ? "translate-y-1 opacity-0"
             : "translate-y-0 opacity-100",
         ].join(" ")}
       >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/70 to-transparent dark:from-slate-800/30" />
         {TAB_DEFS.map((tab) => (
           <div
             key={tab.id}
-            className={activeTab === tab.id ? "block" : "hidden"}
+            className={activeTab === tab.id ? "relative block" : "hidden"}
             role="tabpanel"
             aria-labelledby={`dashboard-tab-${tab.id}`}
             id={`dashboard-panel-${tab.id}`}
@@ -317,7 +350,9 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
       {/* ── Swipe hint (mobile) ─────────────────────────────────────────── */}
       <p className="text-center text-[11px] text-gray-400 dark:text-slate-500 sm:hidden">
-        {fr ? "← Glisser pour naviguer →" : "← Glise pou navige →"}
+        {autoplayEnabled
+          ? (fr ? "← Glisser pour naviguer • rotation auto →" : "← Glise pou navige • wotasyon oto →")
+          : (fr ? "← Glisser pour naviguer →" : "← Glise pou navige →")}
       </p>
     </div>
   );

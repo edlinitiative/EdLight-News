@@ -182,6 +182,56 @@ function MetricChip({
   );
 }
 
+function TabPanelBanner({
+  icon,
+  title,
+  subtitle,
+  accent = "brand",
+  meta,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  accent?: "brand" | "emerald" | "violet";
+  meta?: string[];
+}) {
+  const accentMap = {
+    brand:
+      "from-brand-100/90 to-cyan-50/80 text-brand-900 dark:from-brand-900/25 dark:to-cyan-900/10 dark:text-brand-100",
+    emerald:
+      "from-emerald-100/90 to-teal-50/80 text-emerald-900 dark:from-emerald-900/25 dark:to-teal-900/10 dark:text-emerald-100",
+    violet:
+      "from-violet-100/90 to-indigo-50/80 text-violet-900 dark:from-violet-900/25 dark:to-indigo-900/10 dark:text-violet-100",
+  } as const;
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border border-gray-200/70 bg-gradient-to-br p-4 sm:p-5 ${accentMap[accent]}`}>
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/40 blur-2xl dark:bg-white/5" />
+      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-brand-700 shadow-sm dark:bg-slate-900/40 dark:text-brand-300">
+            {icon}
+          </div>
+          <h3 className="mt-3 text-base font-bold tracking-tight">{title}</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">{subtitle}</p>
+        </div>
+        {!!meta?.length && (
+          <div className="flex flex-wrap gap-2 sm:justify-end">
+            {meta.map((m) => (
+              <span
+                key={m}
+                className="rounded-full border border-white/60 bg-white/70 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700/60 dark:bg-slate-900/50 dark:text-slate-200"
+              >
+                {m}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AccueilPage({
@@ -328,16 +378,20 @@ export default async function AccueilPage({
 
   const boursesPanel = (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-2xl h-44 w-full">
-        <img
-          src="/images/hero/bourses.png"
-          alt=""
-          loading="eager"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
-      </div>
+      <TabPanelBanner
+        icon={<DollarSign className="h-5 w-5" />}
+        title={fr ? "Bourses ouvertes à surveiller" : "Bous ouvè pou swiv"}
+        subtitle={
+          fr
+            ? "Priorité aux dates limites proches et opportunités directement actionnables."
+            : "Priyorite pou dat limit ki pre ak okazyon ou ka pran aksyon sou yo touswit."
+        }
+        accent="brand"
+        meta={[
+          `${boursesClosing.length} ${fr ? "imminentes" : "pre"}`,
+          `${closingScholarships45.length} ${fr ? "sur 45 jours" : "sou 45 jou"}`,
+        ]}
+      />
       {boursesClosing.length > 0 ? (
         <>
           <div className="flex items-center justify-between">
@@ -389,16 +443,20 @@ export default async function AccueilPage({
 
   const calendrierPanel = (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-2xl h-44 w-full">
-        <img
-          src="/images/hero/calendrier.png"
-          alt=""
-          loading="eager"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
-      </div>
+      <TabPanelBanner
+        icon={<CalendarDays className="h-5 w-5" />}
+        title={fr ? "Calendrier des échéances" : "Kalandriye dat limit yo"}
+        subtitle={
+          fr
+            ? "Vue mixte Haïti + international pour ne rien rater cette semaine et ce mois."
+            : "Vi melanje Ayiti + entènasyonal pou pa rate anyen semèn sa ak mwa sa."
+        }
+        accent="emerald"
+        meta={[
+          `${haitiEvents.length} ${fr ? "Haïti" : "Ayiti"}`,
+          `${intlScholarships.length} ${fr ? "international" : "entènasyonal"}`,
+        ]}
+      />
       {(haitiEvents.length > 0 || intlScholarships.length > 0) ? (
         <>
           <div className="flex items-center justify-between">
@@ -497,6 +555,20 @@ export default async function AccueilPage({
 
   const parcoursPanel = pathways.length > 0 ? (
     <div className="space-y-5">
+      <TabPanelBanner
+        icon={<Compass className="h-5 w-5" />}
+        title={fr ? "Parcours guidés" : "Pakou gide"}
+        subtitle={
+          fr
+            ? "Des étapes concrètes pour planifier tes études à l’étranger sans te perdre."
+            : "Etap konkrè pou planifye etid ou aletranje san w pa pèdi direksyon."
+        }
+        accent="violet"
+        meta={[
+          `${pathways.length} ${fr ? "parcours" : "pakou"}`,
+          `${pathways.reduce((sum, p) => sum + p.steps.length, 0)} ${fr ? "étapes" : "etap"}`,
+        ]}
+      />
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500 dark:text-slate-400">
           {pathways.length} {fr ? "parcours disponibles" : "pakou disponib"}
@@ -532,6 +604,20 @@ export default async function AccueilPage({
 
   const histoirePanel = latestHistoryPost ? (
     <div className="space-y-5">
+      <TabPanelBanner
+        icon={<BookOpen className="h-5 w-5" />}
+        title={fr ? "Histoire & mémoire" : "Istwa & memwa"}
+        subtitle={
+          fr
+            ? "Une lecture inspirante pour ancrer tes études dans le contexte haïtien."
+            : "Yon lekti enspiran pou mare etid ou ak kontèks ayisyen an."
+        }
+        accent="brand"
+        meta={[
+          fr ? "Dernière publication" : "Dènye piblikasyon",
+          latestHistoryPost.publishedAt ? (fr ? "Publié" : "Pibliye") : (fr ? "Archive" : "Achiv"),
+        ]}
+      />
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500 dark:text-slate-400">
           {fr ? "Dernière publication" : "Dènye piblikasyon"}
@@ -560,6 +646,20 @@ export default async function AccueilPage({
 
   const nouvellesPanel = succesArticles.length > 0 ? (
     <div className="space-y-5">
+      <TabPanelBanner
+        icon={<Newspaper className="h-5 w-5" />}
+        title={fr ? "Succès & inspirations" : "Siksè & enspirasyon"}
+        subtitle={
+          fr
+            ? "Des profils et nouvelles positives pour garder le cap et l’ambition."
+            : "Pwofil ak nouvèl pozitif pou kenbe direksyon ak anbisyon."
+        }
+        accent="emerald"
+        meta={[
+          `${succesArticles.length} ${fr ? "sélections" : "seleksyon"}`,
+          fr ? "Mise à jour continue" : "Mizajou kontinyèl",
+        ]}
+      />
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500 dark:text-slate-400">
           {fr ? "Dernières nouvelles & inspirations" : "Dènye nouvèl & enspirasyon"}
@@ -749,7 +849,7 @@ export default async function AccueilPage({
 
       {/* ── DASHBOARD TABS ──────────────────────────────────────────────── */}
       <section className="section-shell space-y-4">
-        <div className="relative z-10 flex items-center justify-between gap-3">
+        <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
               {fr ? "Actions prioritaires" : "Aksyon priyoritè"}
@@ -757,12 +857,23 @@ export default async function AccueilPage({
             <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
               {fr ? "Tableau de bord interactif" : "Tablo entèaktif"}
             </h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+              {fr
+                ? "Passe d’une vue à l’autre pour agir rapidement : bourses, calendrier, parcours, histoire et inspirations."
+                : "Chanje ant diferan vi yo pou aji vit: bous, kalandriye, pakou, istwa ak enspirasyon."}
+            </p>
           </div>
-          <span className="hidden rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-medium text-gray-500 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-400 sm:inline-flex">
-            {fr ? "Auto-rotation + swipe" : "Wotasyon + glise"}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex rounded-full border border-amber-200/80 bg-amber-50/80 px-3 py-1 text-xs font-semibold text-amber-800 dark:border-amber-800/30 dark:bg-amber-900/20 dark:text-amber-300">
+              {fr ? `${topUrgent.length} urgences` : `${topUrgent.length} ijans`}
+            </span>
+            <span className="inline-flex rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-medium text-gray-600 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-400">
+              {fr ? "Auto-rotation + swipe" : "Wotasyon + glise"}
+            </span>
+          </div>
         </div>
-        <div className="relative z-10">
+        <div className="relative z-10 rounded-2xl border border-gray-200/70 bg-white/65 p-4 shadow-inner shadow-gray-100/40 dark:border-slate-700/60 dark:bg-slate-900/45 dark:shadow-none sm:p-5">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-2xl bg-gradient-to-b from-white/70 to-transparent dark:from-slate-800/30" />
           <DashboardTabs
             lang={lang}
             panels={{
