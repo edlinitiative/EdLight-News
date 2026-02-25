@@ -57,6 +57,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   const [includeNoDeadline, setIncludeNoDeadline] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Pre-compute derived classification + deadline per article (once)
   const enriched = useMemo(
@@ -174,115 +175,135 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   }, [filtered, sort]);
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {/* Unified controls */}
-      <div className="section-shell p-3 sm:p-4">
-        <div className="relative z-10 space-y-3">
-          <div className="flex flex-wrap items-center gap-3">
+    <div className="grid gap-3 sm:gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+      {/* Sidebar controls */}
+      <aside className="section-shell p-3 sm:p-3.5 md:sticky md:top-20 lg:top-24">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((v) => !v)}
+          className="mb-2 w-full rounded-lg bg-gray-100 px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 md:hidden"
+          aria-expanded={filtersOpen}
+        >
+          {filtersOpen
+            ? (lang === "fr" ? "Masquer les filtres" : "Kache filtè")
+            : (lang === "fr" ? "Afficher les filtres" : "Montre filtè")}
+        </button>
+
+        <div className={["relative z-10 space-y-3.5", filtersOpen ? "block" : "hidden md:block"].join(" ")}>
+          <div className="space-y-1.5">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-              className="min-w-[190px] flex-1 rounded-lg border border-gray-200/80 bg-white/80 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-400"
+              className="w-full rounded-lg border border-gray-200/80 bg-white/80 px-2.5 py-1.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-400"
             />
-            <span className="text-[11px] text-gray-400 dark:text-slate-500 sm:text-xs">
+            <p className="text-[11px] text-gray-400 dark:text-slate-500 sm:text-xs">
               {sorted.length} {lang === "fr" ? "résultat(s)" : "rezilta"}
-            </span>
+            </p>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {(
-              ["all", "bourses", "programmes", "stages", "concours", "ressources"] as SubCatFilter[]
-            ).map((s) => {
-              const count = pillCounts[s] ?? 0;
-              // Hide pills with zero count (except "all")
-              if (s !== "all" && count === 0) return null;
-              return (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+              {lang === "fr" ? "Type" : "Tip"}
+            </p>
+            <div className="space-y-1">
+              {(
+                ["all", "bourses", "programmes", "stages", "concours", "ressources"] as SubCatFilter[]
+              ).map((s) => {
+                const count = pillCounts[s] ?? 0;
+                // Hide pills with zero count (except "all")
+                if (s !== "all" && count === 0) return null;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSubCat(s)}
+                    className={[
+                      "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm font-medium transition",
+                      subCat === s
+                        ? "bg-brand-600 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                    ].join(" ")}
+                  >
+                    <span>{SUBCAT_LABELS[s][lang]}</span>
+                    <span className="text-xs opacity-75">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+              {lang === "fr" ? "Trier" : "Triye"}
+            </p>
+            <div className="space-y-1">
+              {(["deadline", "relevance", "latest"] as SortMode[]).map((s) => (
                 <button
                   key={s}
-                  onClick={() => setSubCat(s)}
+                  onClick={() => setSort(s)}
                   className={[
-                    "rounded-full px-2.5 py-1 text-xs font-medium transition sm:px-3 sm:py-1.5 sm:text-sm",
-                    subCat === s
+                    "w-full rounded-lg px-2.5 py-1.5 text-left text-sm font-medium transition",
+                    sort === s
                       ? "bg-brand-600 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
                   ].join(" ")}
                 >
-                  {SUBCAT_LABELS[s][lang]}
-                  <span className="ml-1.5 text-xs opacity-70">({count})</span>
+                  {SORT_LABELS[s][lang]}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <span className="hidden text-sm text-gray-500 dark:text-slate-400 sm:inline">
-              {lang === "fr" ? "Trier :" : "Triye :"}
-            </span>
-            {(["deadline", "relevance", "latest"] as SortMode[]).map((s) => (
-              <button
-                key={s}
-                onClick={() => setSort(s)}
-                className={[
-                  "rounded-full px-2.5 py-1 text-xs font-medium transition sm:px-3 sm:text-sm",
-                  sort === s
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
-                ].join(" ")}
-              >
-                {SORT_LABELS[s][lang]}
-              </button>
-            ))}
-
-            {sort === "deadline" && (
-              <label className="ml-1 flex cursor-pointer items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 sm:gap-2 sm:text-sm">
-                <input
-                  type="checkbox"
-                  checked={includeNoDeadline}
-                  onChange={(e) => setIncludeNoDeadline(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
-                />
-                {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
-              </label>
-            )}
-
-            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 sm:gap-2 sm:text-sm">
+          {sort === "deadline" && (
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
               <input
                 type="checkbox"
-                checked={showExpired}
-                onChange={(e) => setShowExpired(e.target.checked)}
+                checked={includeNoDeadline}
+                onChange={(e) => setIncludeNoDeadline(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
               />
-              {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
+              {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
             </label>
-          </div>
+          )}
+
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+            <input
+              type="checkbox"
+              checked={showExpired}
+              onChange={(e) => setShowExpired(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
+            />
+            {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
+          </label>
         </div>
-      </div>
+      </aside>
 
       {/* Results */}
-      {sorted.length === 0 ? (
-        <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
-          <p className="relative z-10">
-            {lang === "fr"
-              ? "Aucune opportunité trouvée."
-              : "Pa gen okazyon jwenn."}
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
-          {sorted.map((entry) => (
-            <OpportunityCard
-              key={entry.article.id}
-              article={entry.article}
-              lang={lang}
-              derivedSubcategory={entry.subCat}
-              classification={entry.classification}
-              deadlineStatus={entry.deadlineStatus}
-            />
-          ))}
-        </div>
-      )}
+      <div className="space-y-3 sm:space-y-4">
+        {sorted.length === 0 ? (
+          <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
+            <p className="relative z-10">
+              {lang === "fr"
+                ? "Aucune opportunité trouvée."
+                : "Pa gen okazyon jwenn."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
+            {sorted.map((entry) => (
+              <OpportunityCard
+                key={entry.article.id}
+                article={entry.article}
+                lang={lang}
+                derivedSubcategory={entry.subCat}
+                classification={entry.classification}
+                deadlineStatus={entry.deadlineStatus}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

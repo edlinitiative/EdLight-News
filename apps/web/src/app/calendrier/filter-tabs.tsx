@@ -296,7 +296,7 @@ export function CalendarFilterTabs({
             ))}
           </div>
 
-          <div className="grid gap-3 xl:grid-cols-[1fr_1fr]">
+          <div className="grid gap-3 md:hidden">
             <div
               role="tablist"
               aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
@@ -357,7 +357,7 @@ export function CalendarFilterTabs({
       </section>
 
       {/* ── Two-column layout: timeline + mini grid ───────────────────────────── */}
-      <div className="flex items-start gap-8 xl:gap-10">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_18rem] md:items-start md:gap-8 xl:gap-10">
         {/* Main timeline */}
         <div className="min-w-0 flex-1 space-y-6">
           {buckets.urgent.length > 0 && (
@@ -401,9 +401,88 @@ export function CalendarFilterTabs({
           )}
         </div>
 
-        {/* Mini month grid — desktop only */}
-        <div className="hidden xl:block xl:w-56 xl:shrink-0">
+        {/* Sidebar filters + mini month grid — desktop only */}
+        <div className="hidden md:block md:w-72 md:shrink-0">
           <div className="sticky top-20 space-y-3">
+            <section className="section-shell p-3.5">
+              <div className="relative z-10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                    {fr ? "Filtres" : "Filtè"}
+                  </p>
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGeoTab("tous");
+                        setCatFilter("tous");
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      {fr ? "Reset" : "Reset"}
+                    </button>
+                  )}
+                </div>
+
+                <div
+                  role="tablist"
+                  aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
+                  className="rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
+                >
+                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                    {fr ? "Zone" : "Zòn"}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {geoTabs.map((t) => (
+                      <button
+                        key={`sidebar-${t.key}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={geoTab === t.key}
+                        onClick={() => setGeoTab(t.key)}
+                        className={[
+                          "rounded-full px-3 py-1.5 text-xs font-medium transition",
+                          geoTab === t.key
+                            ? "bg-brand-600 text-white shadow-sm"
+                            : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600",
+                        ].join(" ")}
+                      >
+                        {t.label} <span className="ml-1 opacity-70">({t.count})</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div
+                  role="group"
+                  aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
+                  className="rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
+                >
+                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                    {fr ? "Type d'échéance" : "Tip dat limit"}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {catPills.map((p) => (
+                      <button
+                        key={`sidebar-${p.key}`}
+                        type="button"
+                        onClick={() => setCatFilter(p.key)}
+                        className={[
+                          "rounded-full px-3 py-1 text-xs font-medium transition",
+                          catFilter === p.key
+                            ? "bg-gray-800 text-white dark:bg-slate-100 dark:text-slate-900"
+                            : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600",
+                        ].join(" ")}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <MiniMonthGrid items={filtered} lang={lang} />
             <div className="section-shell p-3">
               <div className="relative z-10 space-y-2">

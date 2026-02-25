@@ -40,7 +40,13 @@ async function main() {
         continue;
       }
 
-      await haitiHistoryAlmanacRepo.update(entry.id, { illustration });
+      const cleanIllustration = Object.fromEntries(
+        Object.entries(illustration).filter(([, v]) => v !== undefined && v !== null),
+      );
+
+      await haitiHistoryAlmanacRepo.update(entry.id, {
+        illustration: cleanIllustration as NonNullable<typeof entry.illustration>,
+      });
       updated++;
       console.log(`  ✅ Updated: ${entry.monthDay} — ${entry.title_fr}`);
     } catch (err) {

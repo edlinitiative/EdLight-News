@@ -122,7 +122,7 @@ export default async function BoursesPage({
   const langQ = lang === "ht" ? "?lang=ht" : "";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <section className="mx-auto max-w-6xl px-2 sm:px-0">
         <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/80 sm:p-8">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-100/70 blur-3xl dark:bg-brand-900/30" />
@@ -181,15 +181,24 @@ export default async function BoursesPage({
 
       {/* Closing soon banner */}
       {closingSoon.length > 0 && (
-        <section className="mx-auto max-w-6xl space-y-4 rounded-2xl border border-brand-200/80 bg-brand-50/40 px-4 py-5 dark:border-brand-800/40 dark:bg-brand-950/10 sm:px-5">
-          <h2 className="font-bold tracking-tight text-brand-800 dark:text-brand-300">
-            <Clock className="mr-1 inline h-4 w-4" />
-            {fr ? "Date limite bientôt !" : "Dat limit byento!"}
-          </h2>
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {closingSoon.slice(0, 5).map((s) => (
-              <li key={s.id} className="rounded-xl border border-white/80 bg-white/80 p-3 text-sm text-brand-700 dark:border-slate-700/50 dark:bg-slate-900/50 dark:text-brand-300">
-                <strong className="font-semibold">{s.name}</strong>
+        <section className="mx-auto max-w-6xl rounded-2xl border border-brand-200/80 bg-brand-50/40 px-4 py-5 dark:border-brand-800/40 dark:bg-brand-950/10 sm:px-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-bold tracking-tight text-brand-800 dark:text-brand-300">
+              <Clock className="mr-1 inline h-4 w-4" />
+              {fr ? "Date limite bientôt" : "Dat limit byento"}
+            </h2>
+            <Link
+              href={`/closing-soon${langQ}`}
+              className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-800/40 dark:bg-slate-900/70 dark:text-brand-300"
+            >
+              {fr ? "Voir tout" : "Wè tout"}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+            {closingSoon.slice(0, 4).map((s) => (
+              <li key={s.id} className="rounded-xl border border-white/80 bg-white/90 p-3 text-sm text-brand-700 dark:border-slate-700/50 dark:bg-slate-900/50 dark:text-brand-300">
+                <p className="line-clamp-2 font-semibold leading-snug">{s.name}</p>
                 {s.deadline?.dateISO && (
                   <p className="mt-1 text-xs text-brand-600 dark:text-brand-400">
                     {formatDateBanner(s.deadline.dateISO, lang)}
