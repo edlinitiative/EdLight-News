@@ -13,6 +13,8 @@ interface GeminiHeroImageProps {
   className?: string;
   /** When true, regenerate the image when the theme changes. Default false. */
   themeAware?: boolean;
+  /** Pre-fetched image data URL from server (skips client-side fetch entirely) */
+  preloadedSrc?: string | null;
 }
 
 export const GeminiHeroImage = memo(function GeminiHeroImage({
@@ -20,10 +22,11 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
   fallbackGradient = "from-brand-600 via-blue-700 to-indigo-800",
   className = "",
   themeAware = false,
+  preloadedSrc,
 }: GeminiHeroImageProps) {
   const { theme } = useTheme();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | null>(preloadedSrc ?? null);
+  const [loading, setLoading] = useState(!preloadedSrc);
   const [error, setError] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -31,6 +34,9 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
   const effectiveTheme = themeAware ? theme : "universal";
 
   useEffect(() => {
+    // Skip client fetch entirely if we have a preloaded image
+    if (preloadedSrc) return;
+
     // Cancel any in-flight request
     abortRef.current?.abort();
     const ctrl = new AbortController();
@@ -76,7 +82,7 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
       .finally(() => setLoading(false));
 
     return () => ctrl.abort();
-  }, [prompt, effectiveTheme]);
+  }, [prompt, effectiveTheme, preloadedSrc]);
 
   // ── Loading skeleton ───────────────────────────────────────────────────
   if (loading) {
