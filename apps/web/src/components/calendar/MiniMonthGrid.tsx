@@ -93,25 +93,25 @@ export function MiniMonthGrid({ items, lang }: Props) {
       aria-label={fr ? "Mini-calendrier" : "Mini-kalandriye"}
       className="sticky top-20 hidden w-52 shrink-0 self-start xl:block"
     >
-      <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+      <div className="rounded-2xl border border-gray-200/70 bg-white/80 p-3 shadow-card backdrop-blur-sm dark:border-slate-700/60 dark:bg-slate-900/65 dark:shadow-card-dark">
         {/* Navigation */}
         <div className="mb-2 flex items-center justify-between gap-1">
           <button
             type="button"
             onClick={prevMonth}
             aria-label={fr ? "Mois précédent" : "Mwa anvan"}
-            className="flex h-6 w-6 items-center justify-center rounded text-base text-gray-400 hover:bg-gray-100"
+            className="flex h-6 w-6 items-center justify-center rounded text-base text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
           >
             ‹
           </button>
-          <span className="truncate text-center text-xs font-semibold capitalize text-gray-700">
+          <span className="truncate text-center text-xs font-semibold capitalize text-gray-700 dark:text-slate-200">
             {monthLabel}
           </span>
           <button
             type="button"
             onClick={nextMonth}
             aria-label={fr ? "Mois suivant" : "Mwa pwochen"}
-            className="flex h-6 w-6 items-center justify-center rounded text-base text-gray-400 hover:bg-gray-100"
+            className="flex h-6 w-6 items-center justify-center rounded text-base text-gray-400 hover:bg-gray-100 dark:text-slate-500 dark:hover:bg-slate-800"
           >
             ›
           </button>
@@ -120,7 +120,7 @@ export function MiniMonthGrid({ items, lang }: Props) {
         {/* Day headers */}
         <div className="mb-0.5 grid grid-cols-7 text-center">
           {DAY_HEADERS.map((d, i) => (
-            <span key={i} className="text-[10px] font-medium text-gray-300">
+            <span key={i} className="text-[10px] font-medium text-gray-300 dark:text-slate-600">
               {d}
             </span>
           ))}
@@ -149,17 +149,17 @@ export function MiniMonthGrid({ items, lang }: Props) {
                 }
                 className={[
                   "relative flex h-7 w-7 items-center justify-center rounded-full text-xs transition",
-                  isToday ? "font-bold ring-1 ring-brand-400" : "",
+                  isToday ? "font-bold ring-1 ring-brand-400 dark:ring-brand-500" : "",
                   hasEvent
-                    ? "cursor-pointer font-semibold text-brand-700 hover:bg-brand-50"
-                    : "cursor-default text-gray-400",
+                    ? "cursor-pointer font-semibold text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-900/20"
+                    : "cursor-default text-gray-400 dark:text-slate-500",
                 ].join(" ")}
               >
                 {day}
                 {hasEvent && (
                   <span
                     aria-hidden
-                    className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-brand-500"
+                    className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-brand-500 dark:bg-brand-400"
                   />
                 )}
               </button>

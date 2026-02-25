@@ -78,30 +78,30 @@ function CollapsibleWeek({
   const fr = lang === "fr";
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-100">
+    <div className="overflow-hidden rounded-xl border border-gray-200/70 bg-white/70 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/50">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-gray-50"
+        className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/60"
         aria-expanded={open}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-700">
+          <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">
             {bucket.label}
           </span>
-          <span className="rounded-full bg-gray-100 px-1.5 py-px text-xs text-gray-500">
+          <span className="rounded-full bg-gray-100 px-1.5 py-px text-xs text-gray-500 dark:bg-slate-700 dark:text-slate-300">
             {bucket.items.length}
           </span>
         </div>
         {open ? (
-          <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-500" />
         ) : (
-          <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-500" />
         )}
       </button>
 
       {open && (
-        <div className="divide-y divide-gray-50 border-t border-gray-100">
+        <div className="divide-y divide-gray-50 border-t border-gray-100 dark:divide-slate-800 dark:border-slate-700">
           {(() => {
             const anchoredDays = new Set<string>();
             return bucket.items.map((item) => {
@@ -123,10 +123,10 @@ function CollapsibleWeek({
                 <div
                   key={item.id}
                   id={anchorId}
-                  className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50"
+                  className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/50"
                 >
                   {/* Day number */}
-                  <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300">
+                  <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300 dark:text-slate-600">
                     {date ? date.getDate() : "?"}
                   </span>
 
@@ -135,8 +135,8 @@ function CollapsibleWeek({
                     className={[
                       "shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium",
                       isHaiti
-                        ? "bg-brand-50 text-brand-600"
-                        : "bg-emerald-50 text-emerald-700",
+                        ? "bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-300"
+                        : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300",
                     ].join(" ")}
                   >
                     {isHaiti ? "HT" : "Intl"}
@@ -144,13 +144,13 @@ function CollapsibleWeek({
 
                   {/* Audience badge */}
                   {item.audience === "HaitianStudents" && !isHaiti && (
-                    <span className="shrink-0 rounded-full bg-violet-50 px-1.5 py-px text-[10px] font-medium text-violet-600">
+                    <span className="shrink-0 rounded-full bg-violet-50 px-1.5 py-px text-[10px] font-medium text-violet-600 dark:bg-violet-900/20 dark:text-violet-300">
                       {fr ? "Haiti" : "Ayiti"}
                     </span>
                   )}
 
                   {/* Title */}
-                  <span className="flex-1 truncate text-sm text-gray-700">
+                  <span className="flex-1 truncate text-sm text-gray-700 dark:text-slate-200">
                     {getItemTitle(item)}
                   </span>
                 </div>
@@ -210,10 +210,10 @@ export function MonthGrouped({ items, lang, yearMonth }: Props) {
       className="space-y-3"
     >
       <div className="flex items-center gap-2">
-        <h2 className="text-base font-bold text-gray-900">
+        <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
           {fr ? `Ce mois — ${monthLabel}` : `Mwa sa a — ${monthLabel}`}
         </h2>
-        <span className="rounded-full bg-gray-100 px-2 py-px text-xs text-gray-500">
+        <span className="rounded-full bg-gray-100 px-2 py-px text-xs text-gray-500 dark:bg-slate-700 dark:text-slate-300">
           {items.length}
         </span>
       </div>

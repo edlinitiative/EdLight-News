@@ -39,11 +39,11 @@ function urgencyStyle(days: number): UrgencyStyle {
       bgColor: "bg-brand-50",
     };
   return {
-    emoji: "🟢",
-    textColor: "text-green-600",
-    borderColor: "border-green-200",
-    bgColor: "bg-green-50",
-  };
+      emoji: "🟢",
+      textColor: "text-green-600",
+      borderColor: "border-green-200",
+      bgColor: "bg-green-50",
+    };
 }
 
 export function UrgentDeadlines({ items, lang }: Props) {
@@ -60,12 +60,12 @@ export function UrgentDeadlines({ items, lang }: Props) {
       {/* Header */}
       <div className="flex items-center gap-2">
         <span aria-hidden>🚨</span>
-        <h2 className="text-base font-bold text-gray-900">
+        <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
           {fr
             ? "Délais urgents — 14 prochains jours"
             : "Dat limit ijan — 14 jou k ap vini yo"}
         </h2>
-        <span className="rounded-full bg-red-100 px-2 py-px text-xs font-semibold text-red-700">
+        <span className="rounded-full bg-red-100 px-2 py-px text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-300">
           {items.length}
         </span>
       </div>
@@ -89,10 +89,10 @@ export function UrgentDeadlines({ items, lang }: Props) {
             <div
               key={item.id}
               className={[
-                "flex min-w-[220px] flex-col gap-2 rounded-lg border p-3 sm:min-w-0",
+                "flex min-w-[220px] flex-col gap-2 rounded-xl border p-3 shadow-sm sm:min-w-0",
                 style
-                  ? `${style.borderColor} ${style.bgColor}`
-                  : "border-gray-200 bg-gray-50",
+                  ? `${style.borderColor} ${style.bgColor} dark:border-slate-700 dark:bg-slate-900/60`
+                  : "border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-900/60",
               ].join(" ")}
             >
               {/* Countdown + geo row */}
@@ -122,14 +122,14 @@ export function UrgentDeadlines({ items, lang }: Props) {
                     className={[
                       "rounded-full px-1.5 py-px text-[10px] font-semibold",
                       isHaiti
-                        ? "bg-brand-100 text-brand-700"
-                        : "bg-emerald-100 text-emerald-700",
+                        ? "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
                     ].join(" ")}
                   >
                     {isHaiti ? (fr ? "Haïti" : "Ayiti") : "Intl"}
                   </span>
                   {isHaitianAudience && !isHaiti && (
-                    <span className="rounded-full bg-violet-100 px-1.5 py-px text-[10px] font-semibold text-violet-700">
+                    <span className="rounded-full bg-violet-100 px-1.5 py-px text-[10px] font-semibold text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
                       {fr ? "Pour Haïti" : "Pou Ayiti"}
                     </span>
                   )}
@@ -137,13 +137,13 @@ export function UrgentDeadlines({ items, lang }: Props) {
               </div>
 
               {/* Title */}
-              <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900">
+              <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-slate-100">
                 {title}
               </p>
 
               {/* Date + link */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-slate-400">
                   {date
                     ? date.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
                         day: "numeric",
@@ -156,7 +156,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 text-xs font-medium text-brand-600 hover:underline"
+                    className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold text-brand-700 hover:bg-white/60 dark:text-brand-300 dark:hover:bg-slate-800/60"
                   >
                     <ExternalLink className="h-3 w-3" />
                     {fr ? "Voir" : "Wè"}

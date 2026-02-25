@@ -144,7 +144,7 @@ export default async function CalendrierPage({
     haitiItems.length > 0 || intlItems.length > 0 || hasLegacy;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <section className="section-shell p-0">
         <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8">
           <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-35" />
@@ -188,7 +188,7 @@ export default async function CalendrierPage({
       </section>
 
       {/* Main timeline dashboard */}
-      <section className="section-shell">
+      <section className="section-shell p-5 sm:p-6">
         <div className="relative z-10">
           <CalendarFilterTabs
             haitiItems={haitiItems}
@@ -201,7 +201,7 @@ export default async function CalendrierPage({
       {/* Legacy article deadlines — collapsed by default to reduce noise */}
       {hasLegacy && (
         <details className="section-shell p-0">
-          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50/70 dark:hover:bg-slate-800/60">
+          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3.5 transition-colors hover:bg-gray-50/70 dark:hover:bg-slate-800/60">
             <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
               {fr
                 ? "📄 Sources additionnelles (articles)"
@@ -211,7 +211,7 @@ export default async function CalendrierPage({
               ▸
             </span>
           </summary>
-          <div className="relative z-10 space-y-2 px-5 pb-4 pt-2">
+          <div className="relative z-10 space-y-2.5 px-5 pb-5 pt-2.5">
             {upcomingLegacy.map((dl, idx) => (
               <LegacyDeadlineRow
                 key={`${dl.dateISO}-${idx}`}

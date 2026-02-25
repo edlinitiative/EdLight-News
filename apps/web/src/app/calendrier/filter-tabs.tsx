@@ -72,13 +72,13 @@ function ArchiveMonthBlock({
         })();
 
   return (
-    <details className="overflow-hidden rounded-lg border border-gray-100 dark:border-slate-700">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700">
+    <details className="overflow-hidden rounded-xl border border-gray-200/70 bg-white/70 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/50">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/60">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium capitalize text-gray-600 dark:text-slate-300">
+          <span className="text-sm font-medium capitalize text-gray-600 dark:text-slate-200">
             {label}
           </span>
-          <span className="rounded-full bg-gray-100 dark:bg-slate-700 px-1.5 py-px text-xs text-gray-400 dark:text-slate-500">
+          <span className="rounded-full bg-gray-100 dark:bg-slate-700 px-1.5 py-px text-xs text-gray-400 dark:text-slate-300">
             {items.length}
           </span>
         </div>
@@ -87,7 +87,7 @@ function ArchiveMonthBlock({
         </span>
       </summary>
 
-      <div className="divide-y divide-gray-50 dark:divide-slate-700 border-t border-gray-100 dark:border-slate-700">
+      <div className="divide-y divide-gray-50 dark:divide-slate-800 border-t border-gray-100 dark:border-slate-700">
         {items.map((item) => {
           const dateISO = getItemDateISO(item);
           const date = dateISO ? parseISODateSafe(dateISO) : null;
@@ -96,7 +96,7 @@ function ArchiveMonthBlock({
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700"
+              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/50"
             >
               <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300 dark:text-slate-600">
                 {date ? date.getDate() : "?"}
@@ -105,13 +105,13 @@ function ArchiveMonthBlock({
                 className={[
                   "shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium",
                   isHaiti
-                    ? "bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400"
+                    ? "bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-300"
                     : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300",
                 ].join(" ")}
               >
                 {isHaiti ? "HT" : "Intl"}
               </span>
-              <span className="flex-1 truncate text-sm text-gray-600 dark:text-slate-300">
+              <span className="flex-1 truncate text-sm text-gray-600 dark:text-slate-200">
                 {getItemTitle(item)}
               </span>
             </div>
@@ -207,12 +207,12 @@ export function CalendarFilterTabs({
     buckets.archive.length === 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* ── Geo tabs ─────────────────────────────────────────────────────────── */}
       <div
         role="tablist"
         aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
-        className="flex flex-wrap gap-2 rounded-2xl border border-gray-200/70 bg-white/70 p-2 dark:border-slate-700/60 dark:bg-slate-900/60"
+        className="flex flex-wrap gap-2 rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
       >
         {geoTabs.map((t) => (
           <button
@@ -238,7 +238,7 @@ export function CalendarFilterTabs({
       <div
         role="group"
         aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
-        className="flex flex-wrap gap-1.5 rounded-2xl border border-gray-200/70 bg-white/70 p-2 dark:border-slate-700/60 dark:bg-slate-900/60"
+        className="flex flex-wrap gap-1.5 rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
       >
         {catPills.map((p) => (
           <button
@@ -258,16 +258,16 @@ export function CalendarFilterTabs({
       </div>
 
       {/* ── Two-column layout: timeline + mini grid ───────────────────────────── */}
-      <div className="flex items-start gap-8">
+      <div className="flex items-start gap-8 xl:gap-10">
         {/* Main timeline */}
-        <div className="min-w-0 flex-1 space-y-10">
+        <div className="min-w-0 flex-1 space-y-12">
           <UrgentDeadlines items={buckets.urgent} lang={lang} />
           <ThisWeek items={buckets.thisWeek} lang={lang} />
           <MonthGrouped items={buckets.thisMonth} lang={lang} />
           <ArchiveSection items={buckets.archive} lang={lang} />
 
           {noResults && (
-            <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 py-12 text-center text-gray-400 dark:text-slate-500">
+            <div className="section-shell border-2 border-dashed py-12 text-center text-gray-400 dark:text-slate-500">
               <CalendarDays className="mx-auto mb-2 h-8 w-8" />
               <p className="text-sm">
                 {fr

@@ -92,20 +92,20 @@ export function ThisWeek({ items, lang }: Props) {
     >
       {/* Header */}
       <div className="flex items-center gap-2">
-        <h2 className="text-base font-bold text-gray-900">
+        <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
           {fr ? "Cette semaine" : "Semèn sa a"}
         </h2>
-        <span className="rounded-full bg-brand-100 px-2 py-px text-xs font-semibold text-brand-700">
+        <span className="rounded-full bg-brand-100 px-2 py-px text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
           {items.length}
         </span>
       </div>
 
       {/* Vertical timeline */}
-      <div className="relative pl-14">
+      <div className="relative rounded-2xl border border-gray-200/70 bg-white/70 p-4 pl-14 dark:border-slate-700/60 dark:bg-slate-900/50">
         {/* Connecting line */}
         <div
           aria-hidden
-          className="absolute left-5 top-0 h-full w-px bg-gray-200"
+          className="absolute left-5 top-4 h-[calc(100%-2rem)] w-px bg-gray-200 dark:bg-slate-700"
         />
 
         <div className="space-y-2">
@@ -127,7 +127,7 @@ export function ThisWeek({ items, lang }: Props) {
                 {/* Date bubble */}
                 <div
                   aria-hidden
-                  className="absolute -left-14 top-1 flex h-11 w-11 flex-col items-center justify-center rounded-full bg-brand-600 text-white shadow-sm"
+                  className="absolute -left-14 top-1 flex h-11 w-11 flex-col items-center justify-center rounded-full bg-brand-600 text-white shadow-sm ring-4 ring-white dark:bg-brand-500 dark:ring-slate-900"
                 >
                   <span className="text-[9px] uppercase leading-none">
                     {dayStr}
@@ -159,30 +159,30 @@ export function ThisWeek({ items, lang }: Props) {
                     return (
                       <div
                         key={item.id}
-                        className="rounded-md border border-gray-100 bg-white px-3 py-2 transition-colors hover:border-gray-200 hover:bg-gray-50"
+                        className="rounded-xl border border-gray-200/80 bg-white/85 px-3 py-2 shadow-sm transition-colors hover:border-brand-200 hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/65 dark:hover:border-brand-500/30"
                       >
                         <div className="flex items-start gap-2">
                           <span className="mt-0.5 flex shrink-0">{icon}</span>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-gray-900">
+                            <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">
                               {title}
                             </p>
                             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-gray-400 dark:text-slate-500">
                                 {itemCategoryLabel(item, fr)}
                               </span>
                               <span
                                 className={[
                                   "rounded-full px-1.5 py-px text-[10px] font-medium",
                                   isHaiti
-                                    ? "bg-brand-50 text-brand-600"
-                                    : "bg-emerald-50 text-emerald-700",
+                                    ? "bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-300"
+                                    : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300",
                                 ].join(" ")}
                               >
                                 {isHaiti ? (fr ? "Haïti" : "Ayiti") : "Intl"}
                               </span>
                               {isHaitianAudience && !isHaiti && (
-                                <span className="rounded-full bg-violet-50 px-1.5 py-px text-[10px] font-medium text-violet-600">
+                                <span className="rounded-full bg-violet-50 px-1.5 py-px text-[10px] font-medium text-violet-600 dark:bg-violet-900/20 dark:text-violet-300">
                                   {fr ? "Pour Haïti" : "Pou Ayiti"}
                                 </span>
                               )}
