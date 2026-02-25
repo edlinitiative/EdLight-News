@@ -111,169 +111,205 @@ export default async function HistoirePage({
   }
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-14 pb-12">
       {/* ═══════════════════════════════════════════════════════════════════
-       *  HERO BANNER — immersive gradient with today's date
+       *  HERO — calmer editorial layout
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="relative -mx-4 -mt-8 mb-10 overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 px-4 pb-10 pt-12 text-white sm:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-grid-soft opacity-10" />
-        <div className="mx-auto max-w-5xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
-            <Sparkles className="h-4 w-4" />
-            {fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
-            {fr ? "Aujourd\u2019hui — " : "Jodi a — "}
-            <span className="text-white/90">
-              {formatMonthDay(todayMD, lang)}
-            </span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-white/80 sm:text-lg">
-            {fr
-              ? "Découvrez chaque jour ce qui s\u2019est passé dans l\u2019histoire d\u2019Haïti — événements, héros, et fêtes nationales."
-              : "Dekouvri chak jou sa k te pase nan istwa Ayiti — evènman, ewo, ak fèt nasyonal."}
-          </p>
+      <section className="mx-auto max-w-6xl px-2 sm:px-0">
+        <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white/95 shadow-sm dark:border-slate-700 dark:bg-slate-900/80">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-brand-100/80 blur-2xl dark:bg-brand-900/30" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-100/70 blur-2xl dark:bg-indigo-900/30" />
 
-          {/* Holiday badges — inside the hero for visual impact */}
-          {todayHolidays.length > 0 && (
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              {todayHolidays.map((h) => (
-                <div
-                  key={h.id}
-                  className="inline-flex items-center gap-2 rounded-full bg-white/20 px-5 py-2 text-sm font-semibold backdrop-blur-sm"
-                >
-                  <Star className="h-4 w-4 text-brand-300" />
-                  {fr ? h.name_fr : h.name_ht}
-                  {h.isNationalHoliday && (
-                    <span className="ml-1 text-xs font-semibold uppercase tracking-wide text-brand-200">
-                      {fr ? "National" : "Nasyonal"}
-                    </span>
-                  )}
+          <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.3fr,0.9fr] lg:p-10">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700 dark:border-brand-700/40 dark:bg-brand-900/20 dark:text-brand-300">
+                <Sparkles className="h-4 w-4" />
+                {fr ? "Aujourd’hui dans l’histoire" : "Jodi a nan istwa"}
+              </div>
+
+              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+                {fr ? "Chronique du " : "Kwonik pou "}
+                <span className="text-brand-700 dark:text-brand-300">
+                  {formatMonthDay(todayMD, lang)}
+                </span>
+              </h1>
+
+              <p className="mt-4 max-w-3xl text-base leading-relaxed text-gray-600 dark:text-slate-300 sm:text-lg">
+                {fr
+                  ? "Une lecture claire des faits marquants d’Haïti : événements, personnalités et fêtes du jour."
+                  : "Yon lekti klè sou moman enpòtan nan istwa Ayiti: evènman, pèsonalite ak fèt jounen an."}
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                    {fr ? "Événements" : "Evènman"}
+                  </p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    {todayEntries.length}
+                  </p>
                 </div>
-              ))}
+                <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                    {fr ? "Fêtes" : "Fèt"}
+                  </p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    {todayHolidays.length}
+                  </p>
+                </div>
+              </div>
             </div>
-          )}
+
+            <div className="rounded-2xl border border-gray-200 bg-white/85 p-5 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/90 sm:p-6">
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                <Star className="h-4 w-4 text-brand-500" />
+                {fr ? "Fêtes du jour" : "Fèt jounen an"}
+              </h2>
+
+              {todayHolidays.length > 0 ? (
+                <div className="space-y-2.5">
+                  {todayHolidays.map((h) => (
+                    <div
+                      key={h.id}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-sm text-brand-900 dark:border-brand-800/50 dark:bg-brand-900/20 dark:text-brand-200"
+                    >
+                      <span className="font-medium">
+                        {fr ? h.name_fr : h.name_ht}
+                      </span>
+                      {h.isNationalHoliday && (
+                        <span className="rounded-md bg-brand-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                          {fr ? "National" : "Nasyonal"}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-xl border border-dashed border-gray-200 px-3 py-4 text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                  {fr ? "Aucune fête enregistrée aujourd’hui." : "Pa gen fèt ki anrejistre jodi a."}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
-       *  SECTION A — Today's entries — timeline style
+       *  SECTION A — Today's entries
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-5xl px-2 sm:px-0">
+      <section className="mx-auto max-w-6xl px-2 sm:px-0">
+        <div className="mb-5 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
+              {fr ? "Les faits du jour" : "Reyalite jounen an"}
+            </h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
+              {fr
+                ? "Un format plus lisible pour parcourir l’actualité historique du jour."
+                : "Yon prezantasyon pi klè pou li istwa jounen an."}
+            </p>
+          </div>
+        </div>
+
         {todayEntries.length > 0 ? (
-          <div className="relative">
-            {/* Timeline connector line */}
-            {todayEntries.length > 1 && (
-              <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-300 via-brand-200 to-transparent sm:left-6" />
-            )}
-
-            <div className="space-y-10">
-              {todayEntries
-                .sort((a, b) => {
-                  if (a.confidence === "high" && b.confidence !== "high") return -1;
-                  if (a.confidence !== "high" && b.confidence === "high") return 1;
-                  return 0;
-                })
-                .map((entry, idx) => (
-                  <article
-                    key={entry.id}
-                    className="relative flex gap-4 sm:gap-6"
-                  >
-                    {/* Timeline dot */}
-                    <div className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-lg ring-4 ring-white dark:ring-slate-900 sm:h-12 sm:w-12">
-                      {entry.year != null
-                        ? String(entry.year).slice(-2)
-                        : String(idx + 1)}
-                    </div>
-
-                    {/* Card */}
-                    <div className="premium-card min-w-0 flex-1 p-6 sm:p-7">
-                      <div className="mb-1 flex flex-wrap items-center gap-2">
-                        {entry.year != null && (
-                          <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                            {entry.year}
-                          </span>
-                        )}
-                        {entry.confidence === "high" && (
-                          <span className="rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
-                            ✓ {fr ? "Vérifié" : "Verifye"}
-                          </span>
-                        )}
-                      </div>
-
-                      <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
-                        {entry.title_fr}
-                      </h2>
-
-                      <p className="mt-3 text-sm leading-7 text-gray-600 dark:text-slate-300 sm:text-base">
-                        {entry.summary_fr}
-                      </p>
-
-                      {entry.student_takeaway_fr && (
-                        <div className="mt-4 flex gap-3 rounded-lg border border-brand-100 bg-brand-50/60 dark:border-brand-800/40 dark:bg-brand-900/20 p-4">
-                          <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand-700 dark:text-brand-300" />
-                          <div className="text-sm text-brand-800 dark:text-brand-300">
-                            <strong>
-                              {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
-                            </strong>{" "}
-                            {entry.student_takeaway_fr}
-                          </div>
-                        </div>
+          <div className="space-y-4 sm:space-y-5">
+            {todayEntries
+              .sort((a, b) => {
+                if (a.confidence === "high" && b.confidence !== "high") return -1;
+                if (a.confidence !== "high" && b.confidence === "high") return 1;
+                return 0;
+              })
+              .map((entry, idx) => (
+                <article
+                  key={entry.id}
+                  className="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800 sm:p-6"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {entry.year != null && (
+                        <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                          {entry.year}
+                        </span>
                       )}
+                      {entry.confidence === "high" && (
+                        <span className="rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                          {fr ? "Vérifié" : "Verifye"}
+                        </span>
+                      )}
+                    </div>
 
-                      {/* Tags */}
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
-                        {entry.tags?.map((tag) => {
-                          const t = TAG_LABELS[tag];
-                          return (
-                            <span
-                              key={tag}
-                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300"}`}
-                            >
-                              {fr ? t?.fr : t?.ht}
-                            </span>
-                          );
-                        })}
-                      </div>
+                    <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-600 dark:border-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                      {entry.year != null ? String(entry.year).slice(-2) : String(idx + 1)}
+                    </span>
+                  </div>
 
-                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-slate-700/80">
-                        <MetaBadges
-                          verifiedAt={entry.verifiedAt}
-                          updatedAt={entry.updatedAt}
-                          lang={lang}
-                        />
+                  <h3 className="mt-3 text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
+                    {entry.title_fr}
+                  </h3>
 
-                        {/* Sources */}
-                        {entry.sources.length > 0 && (
-                          <div className="text-xs text-gray-400 dark:text-slate-500">
-                            {fr ? "Sources : " : "Sous : "}
-                            {entry.sources.map((s, i) => (
-                              <span key={i}>
-                                {i > 0 && " · "}
-                                <a
-                                  href={s.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-brand-600 dark:text-brand-400 hover:underline"
-                                >
-                                  {s.label}
-                                </a>
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                  <p className="mt-3 text-sm leading-7 text-gray-600 dark:text-slate-300 sm:text-base">
+                    {entry.summary_fr}
+                  </p>
+
+                  {entry.student_takeaway_fr && (
+                    <div className="mt-4 flex gap-3 rounded-xl border border-brand-100 bg-brand-50/60 p-4 dark:border-brand-800/40 dark:bg-brand-900/20">
+                      <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand-700 dark:text-brand-300" />
+                      <div className="text-sm text-brand-800 dark:text-brand-300">
+                        <strong>{fr ? "Pour les étudiants" : "Pou etidyan yo"}:</strong>{" "}
+                        {entry.student_takeaway_fr}
                       </div>
                     </div>
-                  </article>
-                ))}
-            </div>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {entry.tags?.map((tag) => {
+                      const t = TAG_LABELS[tag];
+                      return (
+                        <span
+                          key={tag}
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t?.color ?? "bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300"}`}
+                        >
+                          {fr ? t?.fr : t?.ht}
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-slate-700/80">
+                    <MetaBadges
+                      verifiedAt={entry.verifiedAt}
+                      updatedAt={entry.updatedAt}
+                      lang={lang}
+                    />
+
+                    {entry.sources.length > 0 && (
+                      <div className="text-xs text-gray-500 dark:text-slate-400">
+                        {fr ? "Sources : " : "Sous : "}
+                        {entry.sources.map((s, i) => (
+                          <span key={i}>
+                            {i > 0 && " · "}
+                            <a
+                              href={s.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-brand-600 hover:underline dark:text-brand-400"
+                            >
+                              {s.label}
+                            </a>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </article>
+              ))}
           </div>
         ) : todayHolidays.length === 0 ? (
-          <div className="section-shell border-2 border-dashed py-12 text-center text-gray-400 dark:text-slate-500">
+          <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white py-12 text-center text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
             <BookOpen className="mx-auto mb-3 h-10 w-10" />
             <p className="text-sm">
               {fr
-                ? "Aucune entrée publiée aujourd\u2019hui."
+                ? "Aucune entrée publiée aujourd’hui."
                 : "Pa gen antre pibliye jodi a."}
             </p>
           </div>
@@ -283,16 +319,14 @@ export default async function HistoirePage({
       {/* ═══════════════════════════════════════════════════════════════════
        *  SECTION B — Explorer l'histoire (weekly/monthly archive)
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto mt-14 max-w-6xl">
-        <div className="section-shell">
+      <section className="mx-auto max-w-6xl px-2 sm:px-0">
         <Suspense
           fallback={
-            <div className="h-48 animate-pulse rounded-xl bg-gray-100 dark:bg-slate-800" />
+            <div className="h-48 animate-pulse rounded-2xl border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-800" />
           }
         >
           <HistoireArchive lang={lang} defaultMonth={todayMonth} />
         </Suspense>
-        </div>
       </section>
     </div>
   );

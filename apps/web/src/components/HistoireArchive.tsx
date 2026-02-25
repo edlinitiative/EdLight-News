@@ -204,7 +204,7 @@ export function HistoireArchive({
   // ── Render ──
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-7 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 sm:p-7">
       {/* ── Section heading ── */}
       <div className="text-center">
         <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
@@ -218,9 +218,10 @@ export function HistoireArchive({
         </p>
       </div>
 
-      {/* ── View mode toggle ── */}
-      <div className="flex justify-center">
-        <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-slate-700 dark:bg-slate-800">
+      <div className="space-y-5 rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/60 sm:p-5">
+        {/* ── View mode toggle ── */}
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <button
             onClick={() => setViewMode("week")}
             className={
@@ -244,40 +245,41 @@ export function HistoireArchive({
             {fr ? "Mois" : "Mwa"}
           </button>
         </div>
-      </div>
+        </div>
 
-      {/* ── Tag filter pills (both views) ── */}
-      <div className="flex flex-wrap items-center justify-center gap-2.5">
-        <button
-          onClick={() => setTag("")}
-          className={
-            "rounded-full px-4 py-1.5 text-xs font-semibold transition " +
-            (tag === ""
-              ? "bg-brand-700 text-white shadow-sm"
-              : "border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700")
-          }
-        >
-          {fr ? "Tous" : "Tout"}
-        </button>
-        {FILTER_TAGS.map((t) => {
-          const tl = TAG_LABELS[t];
-          const isActive = tag === t;
-          return (
-            <button
-              key={t}
-              onClick={() => setTag(isActive ? "" : t)}
-              className={
-                "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold transition " +
-                (isActive
-                  ? "bg-brand-700 text-white shadow-sm"
-                  : `border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 ${tl.color}`)
-              }
-            >
-              <Tag className="h-3 w-3" />
-              {fr ? tl.fr : tl.ht}
-            </button>
-          );
-        })}
+        {/* ── Tag filter pills (both views) ── */}
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
+          <button
+            onClick={() => setTag("")}
+            className={
+              "rounded-full px-4 py-1.5 text-xs font-semibold transition " +
+              (tag === ""
+                ? "bg-brand-700 text-white shadow-sm"
+                : "border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700")
+            }
+          >
+            {fr ? "Tous" : "Tout"}
+          </button>
+          {FILTER_TAGS.map((t) => {
+            const tl = TAG_LABELS[t];
+            const isActive = tag === t;
+            return (
+              <button
+                key={t}
+                onClick={() => setTag(isActive ? "" : t)}
+                className={
+                  "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold transition " +
+                  (isActive
+                    ? "bg-brand-700 text-white shadow-sm"
+                    : `border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 ${tl.color}`)
+                }
+              >
+                <Tag className="h-3 w-3" />
+                {fr ? tl.fr : tl.ht}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════
@@ -286,16 +288,16 @@ export function HistoireArchive({
       {viewMode === "week" && (
         <>
           {/* Week navigation */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 rounded-xl border border-gray-200 bg-white px-3 py-2.5 dark:border-slate-700 dark:bg-slate-800">
             <button
               onClick={() => setWeekOffset((o) => o - 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 shadow-sm transition hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-brand-600"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 shadow-sm transition hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-brand-600"
               aria-label={fr ? "Semaine précédente" : "Semèn anvan"}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <div className="text-center">
-              <span className="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+              <span className="text-base font-semibold tracking-tight text-gray-900 dark:text-white sm:text-lg">
                 {weekLabel || "\u00a0"}
               </span>
               {weekOffset !== 0 && (
@@ -309,7 +311,7 @@ export function HistoireArchive({
             </div>
             <button
               onClick={() => setWeekOffset((o) => o + 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 shadow-sm transition hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-brand-600"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-500 dark:text-slate-400 shadow-sm transition hover:bg-gray-50 dark:hover:bg-slate-700 hover:text-brand-600"
               aria-label={fr ? "Semaine suivante" : "Semèn kap vini"}
             >
               <ChevronRight className="h-4 w-4" />
@@ -348,7 +350,7 @@ export function HistoireArchive({
                 return (
                   <div
                     key={md}
-                    className="flex min-h-[17rem] flex-col rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="flex min-h-[17rem] flex-col rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     {/* Day header */}
                     <div className="flex items-center gap-3 border-b border-gray-100 dark:border-slate-700 px-4 py-3.5">
@@ -437,7 +439,7 @@ export function HistoireArchive({
                                 {secondaryFacts.map((entry) => (
                                   <div
                                     key={entry.id}
-                                    className="rounded-lg border border-gray-100 bg-white px-2.5 py-2 dark:border-slate-700 dark:bg-slate-800/70"
+                                    className="rounded-lg border border-gray-100 bg-white px-2.5 py-2 dark:border-slate-700 dark:bg-slate-900/70"
                                   >
                                     <div className="flex items-start gap-1.5">
                                       {entry.year != null && (
@@ -485,7 +487,7 @@ export function HistoireArchive({
       {viewMode === "month" && (
         <>
           {/* Month grid */}
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-12">
+          <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6 lg:grid-cols-12">
             {Array.from({ length: 12 }, (_, i) => {
               const mm = String(i + 1).padStart(2, "0");
               const shortName = fr ? MONTH_SHORT_FR[i] : MONTH_SHORT_HT[i];
@@ -498,7 +500,7 @@ export function HistoireArchive({
                     "flex flex-col items-center rounded-xl px-2 py-3 text-center transition " +
                     (isActive
                       ? "bg-brand-600 text-white shadow-md ring-2 ring-brand-300"
-                      : "border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:border-brand-300 hover:bg-brand-50")
+                      : "border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-slate-300 hover:border-brand-300 hover:bg-brand-50")
                   }
                 >
                   <span className="text-lg font-bold leading-tight">
