@@ -230,7 +230,7 @@ export function HistoireArchive({
                 : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200")
             }
           >
-            📅 {fr ? "Semaine" : "Semèn"}
+            {fr ? "Semaine" : "Semèn"}
           </button>
           <button
             onClick={() => setViewMode("month")}
@@ -241,7 +241,7 @@ export function HistoireArchive({
                 : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200")
             }
           >
-            🗓️ {fr ? "Mois" : "Mwa"}
+            {fr ? "Mois" : "Mwa"}
           </button>
         </div>
       </div>
@@ -374,7 +374,9 @@ export function HistoireArchive({
                         <Star className="h-3.5 w-3.5 text-brand-500" />
                         {fr ? h.name_fr : h.name_ht}
                         {h.isNationalHoliday && (
-                          <span className="ml-auto text-brand-400">🇭🇹</span>
+                          <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide text-brand-400">
+                            {fr ? "National" : "Nasyonal"}
+                          </span>
                         )}
                       </div>
                     ))}
@@ -405,7 +407,7 @@ export function HistoireArchive({
                             </p>
                             {mainFact.student_takeaway_fr && (
                               <p className="mt-2.5 text-[11px] leading-relaxed text-brand-700 dark:text-brand-300">
-                                💡 {mainFact.student_takeaway_fr}
+                                {mainFact.student_takeaway_fr}
                               </p>
                             )}
                             {mainFact.tags && mainFact.tags.length > 0 && (
@@ -549,7 +551,7 @@ export function HistoireArchive({
                             </p>
                             {h.isNationalHoliday && (
                               <span className="text-xs font-medium text-brand-600">
-                                🇭🇹 {fr ? "Fête nationale" : "Fèt nasyonal"}
+                                {fr ? "Fête nationale" : "Fèt nasyonal"}
                               </span>
                             )}
                           </div>

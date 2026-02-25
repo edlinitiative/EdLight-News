@@ -145,7 +145,9 @@ export default async function HistoirePage({
                   <Star className="h-4 w-4 text-brand-300" />
                   {fr ? h.name_fr : h.name_ht}
                   {h.isNationalHoliday && (
-                    <span className="ml-1 text-brand-300">🇭🇹</span>
+                    <span className="ml-1 text-xs font-semibold uppercase tracking-wide text-brand-200">
+                      {fr ? "National" : "Nasyonal"}
+                    </span>
                   )}
                 </div>
               ))}
@@ -209,7 +211,7 @@ export default async function HistoirePage({
 
                       {entry.student_takeaway_fr && (
                         <div className="mt-4 flex gap-3 rounded-lg border border-brand-100 bg-brand-50/60 dark:border-brand-800/40 dark:bg-brand-900/20 p-4">
-                          <span className="text-lg">💡</span>
+                          <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand-700 dark:text-brand-300" />
                           <div className="text-sm text-brand-800 dark:text-brand-300">
                             <strong>
                               {fr ? "Pour les étudiants" : "Pou etidyan yo"} :
@@ -244,7 +246,7 @@ export default async function HistoirePage({
                         {/* Sources */}
                         {entry.sources.length > 0 && (
                           <div className="text-xs text-gray-400 dark:text-slate-500">
-                            📚{" "}
+                            {fr ? "Sources : " : "Sous : "}
                             {entry.sources.map((s, i) => (
                               <span key={i}>
                                 {i > 0 && " · "}
