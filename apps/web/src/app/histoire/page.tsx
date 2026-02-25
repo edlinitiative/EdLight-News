@@ -18,6 +18,7 @@ import { MetaBadges } from "@/components/MetaBadges";
 import { HistoireArchive } from "@/components/HistoireArchive";
 import {
   fetchAlmanacByMonthDay,
+  fetchAllHolidays,
   fetchHolidaysByMonthDay,
   getHaitiMonthDay,
 } from "@/lib/datasets";
@@ -83,6 +84,29 @@ function formatMonthDay(
   return `${parseInt(dd!, 10)} ${name ?? mm}`;
 }
 
+function monthDayToOrdinal(monthDay: string): number {
+  const [mm, dd] = monthDay.split("-");
+  const date = new Date(Date.UTC(2024, parseInt(mm!, 10) - 1, parseInt(dd!, 10)));
+  const start = new Date(Date.UTC(2024, 0, 1));
+  return Math.floor((date.getTime() - start.getTime()) / 86400000);
+}
+
+function getUpcomingHolidays(
+  allHolidays: HaitiHoliday[],
+  todayMonthDay: string,
+  limit: number,
+): HaitiHoliday[] {
+  const todayOrdinal = monthDayToOrdinal(todayMonthDay);
+  return [...allHolidays]
+    .sort((a, b) => {
+      const aDelta = (monthDayToOrdinal(a.monthDay) - todayOrdinal + 366) % 366;
+      const bDelta = (monthDayToOrdinal(b.monthDay) - todayOrdinal + 366) % 366;
+      if (aDelta !== bDelta) return aDelta - bDelta;
+      return Number(b.isNationalHoliday) - Number(a.isNationalHoliday);
+    })
+    .slice(0, limit);
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HistoirePage({
@@ -99,16 +123,24 @@ export default async function HistoirePage({
   // ── Fetch today's entries + holidays ────────────────────────────────────
   let todayEntries: HaitiHistoryAlmanacEntry[];
   let todayHolidays: HaitiHoliday[];
+  let allHolidays: HaitiHoliday[];
   try {
-    [todayEntries, todayHolidays] = await Promise.all([
+    [todayEntries, todayHolidays, allHolidays] = await Promise.all([
       fetchAlmanacByMonthDay(todayMD),
       fetchHolidaysByMonthDay(todayMD),
+      fetchAllHolidays(),
     ]);
   } catch (err) {
     console.error("[EdLight] /histoire today fetch failed:", err);
     todayEntries = [];
     todayHolidays = [];
+    allHolidays = [];
   }
+
+  const fallbackHolidays = todayHolidays.length === 0
+    ? getUpcomingHolidays(allHolidays, todayMD, 3)
+    : [];
+  const heroHolidays = todayHolidays.length > 0 ? todayHolidays : fallbackHolidays;
 
   return (
     <div className="space-y-14 pb-12">
@@ -151,10 +183,12 @@ export default async function HistoirePage({
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm dark:border-slate-700 dark:bg-slate-800">
                   <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                    {fr ? "Fêtes" : "Fèt"}
+                    {todayHolidays.length > 0
+                      ? (fr ? "Fêtes du jour" : "Fèt jodi a")
+                      : (fr ? "Prochaines fêtes" : "Pwochen fèt")}
                   </p>
                   <p className="text-xl font-bold text-gray-900 dark:text-white">
-                    {todayHolidays.length}
+                    {heroHolidays.length}
                   </p>
                 </div>
               </div>
@@ -163,24 +197,35 @@ export default async function HistoirePage({
             <div className="rounded-2xl border border-gray-200 bg-white/85 p-5 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-800/90 sm:p-6">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                 <Star className="h-4 w-4 text-brand-500" />
-                {fr ? "Fêtes du jour" : "Fèt jounen an"}
+                {todayHolidays.length > 0
+                  ? (fr ? "Fêtes du jour" : "Fèt jounen an")
+                  : (fr ? "Prochaines fêtes" : "Pwochen fèt")}
               </h2>
 
-              {todayHolidays.length > 0 ? (
+              {heroHolidays.length > 0 ? (
                 <div className="space-y-2.5">
-                  {todayHolidays.map((h) => (
+                  {heroHolidays.map((h) => (
                     <div
                       key={h.id}
                       className="flex items-center justify-between gap-2 rounded-xl border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-sm text-brand-900 dark:border-brand-800/50 dark:bg-brand-900/20 dark:text-brand-200"
                     >
-                      <span className="font-medium">
-                        {fr ? h.name_fr : h.name_ht}
-                      </span>
-                      {h.isNationalHoliday && (
-                        <span className="rounded-md bg-brand-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
-                          {fr ? "National" : "Nasyonal"}
+                      <div className="min-w-0">
+                        <span className="font-medium">
+                          {fr ? h.name_fr : h.name_ht}
                         </span>
-                      )}
+                        {todayHolidays.length === 0 && (
+                          <p className="text-[11px] text-brand-700/80 dark:text-brand-300/80">
+                            {formatMonthDay(h.monthDay, lang)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {h.isNationalHoliday && (
+                          <span className="rounded-md bg-brand-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                            {fr ? "National" : "Nasyonal"}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
