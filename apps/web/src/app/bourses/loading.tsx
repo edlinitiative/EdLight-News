@@ -2,13 +2,13 @@
 export default function Loading() {
   return (
     <div className="animate-pulse space-y-6">
-      <section className="section-shell p-6">
+      <section className="rounded-3xl border border-gray-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900/70">
         <div className="space-y-3">
           <div className="h-8 w-56 rounded bg-gray-200 dark:bg-slate-700" />
           <div className="h-4 w-96 max-w-full rounded bg-gray-200 dark:bg-slate-700" />
         </div>
       </section>
-      <section className="section-shell p-4">
+      <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900/70">
         <div className="flex gap-2">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-8 w-20 rounded-full bg-gray-200 dark:bg-slate-700" />

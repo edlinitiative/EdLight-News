@@ -67,17 +67,17 @@ const LEVEL_LABELS: Record<AcademicLevel, { fr: string; ht: string }> = {
   short_programs: { fr: "Courts programmes", ht: "Pwogram kout" },
 };
 
-const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string; flag: string }> = {
-  US: { fr: "États-Unis", ht: "Etazini", flag: "🇺🇸" },
-  CA: { fr: "Canada",     ht: "Kanada",  flag: "🇨🇦" },
-  FR: { fr: "France",     ht: "Frans",   flag: "🇫🇷" },
-  UK: { fr: "Royaume-Uni",ht: "Wayòm Ini", flag: "🇬🇧" },
-  DO: { fr: "Rép. Dominicaine", ht: "Rep. Dominikèn", flag: "🇩🇴" },
-  MX: { fr: "Mexique",    ht: "Meksik",  flag: "🇲🇽" },
-  CN: { fr: "Chine",      ht: "Lachin",  flag: "🇨🇳" },
-  RU: { fr: "Russie",     ht: "Larisi",  flag: "🇷🇺" },
-  HT: { fr: "Haïti",      ht: "Ayiti",   flag: "🇭🇹" },
-  Global: { fr: "International", ht: "Entènasyonal", flag: "🌐" },
+const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string; code: string }> = {
+  US: { fr: "États-Unis", ht: "Etazini", code: "US" },
+  CA: { fr: "Canada",     ht: "Kanada",  code: "CA" },
+  FR: { fr: "France",     ht: "Frans",   code: "FR" },
+  UK: { fr: "Royaume-Uni",ht: "Wayòm Ini", code: "UK" },
+  DO: { fr: "Rép. Dominicaine", ht: "Rep. Dominikèn", code: "DO" },
+  MX: { fr: "Mexique",    ht: "Meksik",  code: "MX" },
+  CN: { fr: "Chine",      ht: "Lachin",  code: "CN" },
+  RU: { fr: "Russie",     ht: "Larisi",  code: "RU" },
+  HT: { fr: "Haïti",      ht: "Ayiti",   code: "HT" },
+  Global: { fr: "International", ht: "Entènasyonal", code: "GL" },
 };
 
 const FUNDING_FILTER_CHIPS: { key: string; fr: string; ht: string }[] = [
@@ -272,10 +272,10 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   const Chip = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+      className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
         active
           ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-100 dark:ring-brand-500/20"
-          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
       }`}
     >
       {label}
@@ -283,9 +283,9 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── Filters ──────────────────────────────────────────────── */}
-      <div className="section-shell space-y-4 p-4">
+      <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 sm:p-5">
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
@@ -303,7 +303,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               if (lang !== "fr") params.set("lang", lang);
               router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
             }}
-            className="rounded-full border border-gray-200/80 bg-white/80 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
+            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
           >
             {fr ? "Réinitialiser" : "Reyinisyalize"}
           </button>
@@ -387,7 +387,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                   key={c}
                   active={countryFilter === c}
                   onClick={() => setFilter("country", c)}
-                  label={cl ? `${cl.flag} ${fr ? cl.fr : cl.ht}` : c}
+                  label={cl ? `${cl.code} · ${fr ? cl.fr : cl.ht}` : c}
                 />
               );
             })}
@@ -414,7 +414,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       {/* ── Sort controls ────────────────────────────────────────── */}
-      <div className="section-shell p-4">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
         <div className="relative z-10 flex flex-wrap items-center gap-2">
         <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
         <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{fr ? "Trier:" : "Triye:"}</span>
@@ -435,7 +435,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       {/* ── Result count ─────────────────────────────────────────── */}
-      <div className="section-shell p-4">
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
         <div className="relative z-10 flex items-center justify-between gap-3">
           <p className="text-sm text-gray-600 dark:text-slate-300">
             <span className="font-semibold text-gray-900 dark:text-white">{filtered.length}</span>{" "}
@@ -459,7 +459,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           return (
             <div
               key={s.id}
-              className={`premium-card p-5 ${
+              className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900 ${
                 isDirectory ? "border-l-4 border-l-indigo-300 dark:border-l-indigo-600" : ""
               }`}
             >
@@ -467,8 +467,11 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               <div className="flex items-start justify-between">
                 <h3 className="font-semibold leading-tight text-gray-900 dark:text-white">{s.name}</h3>
                 {cl && (
-                  <span className="ml-2 shrink-0 text-lg" title={fr ? cl.fr : cl.ht}>
-                    {cl.flag}
+                  <span
+                    className="ml-2 inline-flex shrink-0 items-center rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    title={fr ? cl.fr : cl.ht}
+                  >
+                    {cl.code}
                   </span>
                 )}
               </div>
@@ -565,7 +568,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                     href={s.officialUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
+                    className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800/40 dark:bg-indigo-900/20 dark:text-indigo-300 dark:hover:bg-indigo-900/30"
                   >
                     <ExternalLink className="h-3 w-3" />
                     {fr ? "Consulter la source officielle" : "Wè sous ofisyèl la"}
@@ -577,9 +580,9 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.howToApplyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-400"
+                        className="inline-flex items-center rounded-md border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-800/40 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-900/30"
                       >
-                        {fr ? "Postuler →" : "Aplike →"}
+                        {fr ? "Postuler" : "Aplike"}
                       </a>
                     )}
                     {s.officialUrl && (
@@ -587,9 +590,9 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.officialUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-gray-500 hover:underline dark:text-slate-400"
+                        className="inline-flex items-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
                       >
-                        {fr ? "Site officiel →" : "Sit ofisyèl →"}
+                        {fr ? "Site officiel" : "Sit ofisyèl"}
                       </a>
                     )}
                   </>
@@ -599,9 +602,9 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                     href={s.deadline.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs font-medium text-brand-500 hover:underline dark:text-brand-400"
+                    className="inline-flex items-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-brand-400 dark:hover:bg-slate-800"
                   >
-                    {fr ? "Source deadline →" : "Sous dat limit →"}
+                    {fr ? "Source deadline" : "Sous dat limit"}
                   </a>
                 )}
               </div>
@@ -638,7 +641,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="section-shell border-2 border-dashed py-24 text-center text-gray-400 dark:text-slate-500">
+        <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white py-20 text-center text-gray-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-500">
           <p className="text-lg font-medium">
             {fr
               ? scholarships.length === 0

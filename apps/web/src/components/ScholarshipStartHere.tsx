@@ -13,7 +13,7 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { ArrowRight } from "lucide-react";
 
 interface EntryCard {
-  flag: string;
+  code: string;
   country: string;
   /** Query params to push when clicked */
   params: Record<string, string>;
@@ -24,7 +24,7 @@ interface EntryCard {
 
 const ENTRIES: EntryCard[] = [
   {
-    flag: "🇨🇦",
+    code: "CA",
     country: "Canada",
     params: { country: "CA" },
     label: {
@@ -38,7 +38,7 @@ const ENTRIES: EntryCard[] = [
     cta: { fr: "Explorer le Canada", ht: "Eksplore Kanada" },
   },
   {
-    flag: "🇫🇷",
+    code: "FR",
     country: "France",
     params: { country: "FR" },
     label: {
@@ -52,7 +52,7 @@ const ENTRIES: EntryCard[] = [
     cta: { fr: "Explorer la France", ht: "Eksplore Lafrans" },
   },
   {
-    flag: "🇬🇧",
+    code: "UK",
     country: "Royaume-Uni",
     params: { country: "UK" },
     label: {
@@ -82,12 +82,12 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
   }
 
   return (
-    <section className="section-shell space-y-4">
+    <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 sm:p-6">
       <div className="relative z-10">
-        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
           {fr ? "Par où commencer ?" : "Ki kote pou kòmanse ?"}
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
           {fr
             ? "Trois portes d'entrée pour financer vos études."
             : "Twa pòt antre pou finanse etid ou yo."}
@@ -100,10 +100,10 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
             key={entry.country}
             type="button"
             onClick={() => navigate(entry.params)}
-            className="premium-card group flex flex-col items-start p-5 text-left"
+            className="group flex flex-col items-start rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-2xl leading-none dark:bg-brand-900/20">
-              {entry.flag}
+            <span className="inline-flex items-center rounded-md border border-brand-200 bg-brand-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-700 dark:border-brand-800/50 dark:bg-brand-900/20 dark:text-brand-300">
+              {entry.code}
             </span>
 
             <h3 className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">

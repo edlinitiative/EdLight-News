@@ -122,50 +122,57 @@ export default async function BoursesPage({
   const langQ = lang === "ht" ? "?lang=ht" : "";
 
   return (
-    <div className="space-y-8">
-      <section className="section-shell p-0">
-        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-40" />
-          <div className="pointer-events-none absolute -top-10 right-0 h-44 w-44 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/20" />
-          <div className="relative grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
+    <div className="space-y-10">
+      <section className="mx-auto max-w-6xl px-2 sm:px-0">
+        <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/80 sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-100/70 blur-3xl dark:bg-brand-900/30" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-indigo-100/70 blur-3xl dark:bg-indigo-900/20" />
+
+          <div className="relative grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-700/40 dark:bg-brand-900/20 dark:text-brand-300">
                 <Sparkles className="h-3.5 w-3.5" />
-                {fr ? "Base de bourses premium" : "Baz bous premium"}
+                {fr ? "Répertoire guidé" : "Repètwa gide"}
               </div>
+
               <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-                <GraduationCap className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
+                <GraduationCap className="mr-2 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
                 {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
               </h1>
-              <p className="text-gray-600 dark:text-slate-300">
+
+              <p className="max-w-3xl text-gray-600 dark:text-slate-300">
                 {fr
-                  ? `${allScholarships.length} bourses ouvertes aux étudiants haïtiens, avec filtres par pays, niveau, financement et urgence.`
-                  : `${allScholarships.length} bous ki ouvè pou etidyan ayisyen yo, ak filtè pa peyi, nivo, finansman ak ijans.`}
+                  ? "Un espace unique pour comparer les bourses ouvertes aux étudiants haïtiens, filtrer vite, et partager une recherche précise."
+                  : "Yon sèl espas pou konpare bous ki ouvè pou etidyan ayisyen, filtre rapid, epi pataje rechèch la fasil."}
               </p>
-            </div>
-            <aside className="premium-glass p-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Résultats" : "Rezilta"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{allScholarships.length}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Urgentes (60j)" : "Ijan (60j)"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{closingSoon.length}</p>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-medium text-gray-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300">
+
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                   <Filter className="h-3.5 w-3.5" />
                   {fr ? "Filtres URL partageables" : "Filtè URL patajab"}
                 </span>
                 <Link
                   href={`/closing-soon${langQ}`}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200"
+                  className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 transition hover:bg-brand-100 dark:border-brand-800/50 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-900/30"
                 >
                   {fr ? "Voir les dates limites" : "Wè dat limit yo"}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
+              </div>
+            </div>
+
+            <aside className="grid grid-cols-2 gap-3 self-start rounded-2xl border border-gray-200 bg-gray-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+              <div className="rounded-xl border border-gray-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/70">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  {fr ? "Résultats" : "Rezilta"}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{allScholarships.length}</p>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/70">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                  {fr ? "Urgentes (60j)" : "Ijan (60j)"}
+                </p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{closingSoon.length}</p>
               </div>
             </aside>
           </div>
@@ -174,17 +181,19 @@ export default async function BoursesPage({
 
       {/* Closing soon banner */}
       {closingSoon.length > 0 && (
-        <section className="section-shell space-y-3 border-brand-200/80 bg-brand-50/40 dark:border-brand-800/40 dark:bg-brand-950/10">
-          <h2 className="font-bold text-brand-800 dark:text-brand-300">
-            <Clock className="mr-1 inline h-4 w-4" />{" "}
+        <section className="mx-auto max-w-6xl space-y-4 rounded-2xl border border-brand-200/80 bg-brand-50/40 px-4 py-5 dark:border-brand-800/40 dark:bg-brand-950/10 sm:px-5">
+          <h2 className="font-bold tracking-tight text-brand-800 dark:text-brand-300">
+            <Clock className="mr-1 inline h-4 w-4" />
             {fr ? "Date limite bientôt !" : "Dat limit byento!"}
           </h2>
-          <ul className="space-y-2">
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {closingSoon.slice(0, 5).map((s) => (
-              <li key={s.id} className="rounded-xl border border-white/80 bg-white/80 p-2.5 text-sm text-brand-700 dark:border-slate-700/50 dark:bg-slate-900/50 dark:text-brand-300">
+              <li key={s.id} className="rounded-xl border border-white/80 bg-white/80 p-3 text-sm text-brand-700 dark:border-slate-700/50 dark:bg-slate-900/50 dark:text-brand-300">
                 <strong className="font-semibold">{s.name}</strong>
                 {s.deadline?.dateISO && (
-                  <span> — {formatDateBanner(s.deadline.dateISO, lang)}</span>
+                  <p className="mt-1 text-xs text-brand-600 dark:text-brand-400">
+                    {formatDateBanner(s.deadline.dateISO, lang)}
+                  </p>
                 )}
               </li>
             ))}
@@ -194,7 +203,7 @@ export default async function BoursesPage({
 
       {/* Start-Here orientation block (hidden when filters active) */}
       {!hasActiveFilters && (
-        <>
+        <section className="mx-auto max-w-6xl space-y-5 px-2 sm:px-0">
           <ScholarshipStartHere lang={lang} />
           <div className="flex items-center gap-4 py-2">
             <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
@@ -203,13 +212,15 @@ export default async function BoursesPage({
             </span>
             <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
           </div>
-        </>
+        </section>
       )}
 
       {/* Client-side filters + cards */}
-      <Suspense fallback={null}>
-        <BoursesFilters scholarships={serialized} lang={lang} />
-      </Suspense>
+      <section className="mx-auto max-w-6xl px-2 pb-4 sm:px-0">
+        <Suspense fallback={null}>
+          <BoursesFilters scholarships={serialized} lang={lang} />
+        </Suspense>
+      </section>
     </div>
   );
 }
