@@ -176,18 +176,21 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   return (
     <div className="space-y-6">
       {/* Search input */}
-      <div>
+      <div className="section-shell p-4">
+        <div className="relative z-10">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-          className="w-full rounded-lg border border-gray-200 px-4 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-400"
+          className="w-full rounded-lg border border-gray-200/80 bg-white/80 px-4 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-400"
         />
+        </div>
       </div>
 
       {/* Subcategory pills */}
-      <div className="flex flex-wrap gap-2">
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex flex-wrap gap-2">
         {(
           ["all", "bourses", "programmes", "stages", "concours", "ressources"] as SubCatFilter[]
         ).map((s) => {
@@ -210,10 +213,12 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Sort controls row */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="section-shell p-4">
+      <div className="relative z-10 flex flex-wrap items-center gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-gray-500 dark:text-slate-400">
             {lang === "fr" ? "Trier :" : "Triye :"}
@@ -225,7 +230,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
               className={[
                 "rounded-full px-3 py-1 text-sm font-medium transition",
                 sort === s
-                  ? "bg-brand-600 text-white"
+                  ? "bg-brand-600 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
               ].join(" ")}
             >
@@ -255,15 +260,21 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
           />
           {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
         </label>
+        <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">
+          {sorted.length} {lang === "fr" ? "résultat(s)" : "rezilta"}
+        </span>
+      </div>
       </div>
 
       {/* Results */}
       {sorted.length === 0 ? (
-        <p className="py-20 text-center text-gray-400 dark:text-slate-500">
-          {lang === "fr"
-            ? "Aucune opportunité trouvée."
-            : "Pa gen okazyon jwenn."}
-        </p>
+        <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
+          <p className="relative z-10">
+            {lang === "fr"
+              ? "Aucune opportunité trouvée."
+              : "Pa gen okazyon jwenn."}
+          </p>
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((entry) => (

@@ -36,42 +36,49 @@ export function SectionFeed({
 
   if (sorted.length === 0) {
     return (
-      <p className="py-20 text-center text-gray-400 dark:text-slate-500">
-        {emptyMessage?.[lang] ??
-          (lang === "fr"
-            ? "Aucun article disponible pour le moment."
-            : "Pa gen atik disponib kounye a.")}
-      </p>
+      <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
+        <p className="relative z-10">
+          {emptyMessage?.[lang] ??
+            (lang === "fr"
+              ? "Aucun article disponible pour le moment."
+              : "Pa gen atik disponib kounye a.")}
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Sort toggle */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-gray-500 dark:text-slate-400">
-          {lang === "fr" ? "Trier par :" : "Triye pa :"}
-        </span>
-        {(["relevance", "latest"] as SortMode[]).map((opt) => (
-          <button
-            key={opt}
-            onClick={() => setSort(opt)}
-            className={[
-              "rounded-full px-3 py-1 text-sm font-medium transition",
-              sort === opt
-                ? "bg-brand-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
-            ].join(" ")}
-          >
-            {opt === "relevance"
-              ? lang === "fr"
-                ? "Pertinence"
-                : "Pètinans"
-              : lang === "fr"
-                ? "Dernières"
-                : "Dènye"}
-          </button>
-        ))}
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex flex-wrap items-center gap-2">
+          <span className="text-sm text-gray-500 dark:text-slate-400">
+            {lang === "fr" ? "Trier par :" : "Triye pa :"}
+          </span>
+          {(["relevance", "latest"] as SortMode[]).map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setSort(opt)}
+              className={[
+                "rounded-full px-3 py-1 text-sm font-medium transition",
+                sort === opt
+                  ? "bg-brand-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+              ].join(" ")}
+            >
+              {opt === "relevance"
+                ? lang === "fr"
+                  ? "Pertinence"
+                  : "Pètinans"
+                : lang === "fr"
+                  ? "Dernières"
+                  : "Dènye"}
+            </button>
+          ))}
+          <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">
+            {sorted.length} {lang === "fr" ? "articles" : "atik"}
+          </span>
+        </div>
       </div>
 
       {/* Grid */}

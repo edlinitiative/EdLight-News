@@ -38,18 +38,21 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
 
   if (sorted.length === 0) {
     return (
-      <p className="py-20 text-center text-gray-400 dark:text-slate-500">
-        {fr
-          ? "Pas d\u2019articles locaux récents. Consultez le Fil."
-          : "Pa gen atik lokal resan. Gade Fil la."}
-      </p>
+      <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
+        <p className="relative z-10">
+          {fr
+            ? "Pas d\u2019articles locaux récents. Consultez le Fil."
+            : "Pa gen atik lokal resan. Gade Fil la."}
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Controls row */}
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex flex-wrap items-center gap-4">
         {/* Geo toggle */}
         <div className="flex flex-wrap items-center gap-2">
           {(
@@ -68,7 +71,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
               className={[
                 "rounded-full px-3 py-1 text-sm font-medium transition",
                 filter === opt.key
-                  ? "bg-brand-600 text-white"
+                  ? "bg-brand-600 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
               ].join(" ")}
             >
@@ -89,7 +92,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
               className={[
                 "rounded-full px-3 py-1 text-sm font-medium transition",
                 sort === opt
-                  ? "bg-brand-600 text-white"
+                  ? "bg-brand-600 text-white shadow-sm"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
               ].join(" ")}
             >
@@ -103,6 +106,10 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
             </button>
           ))}
         </div>
+        <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">
+          {sorted.length} {fr ? "article(s)" : "atik"}
+        </span>
+      </div>
       </div>
 
       {/* Grid */}

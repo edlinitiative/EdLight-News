@@ -41,6 +41,10 @@ import {
   DollarSign,
   BookOpen,
   AlertTriangle,
+  ArrowRight,
+  Sparkles,
+  TrendingUp,
+  MapPin,
 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
@@ -140,16 +144,40 @@ function SectionHeader({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">
         {icon}{title}
       </h2>
       <Link
         href={href}
-        className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+        className="inline-flex items-center gap-1 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
       >
         {cta}
       </Link>
+    </div>
+  );
+}
+
+function MetricChip({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "warning";
+}) {
+  const toneClasses =
+    tone === "success"
+      ? "border-emerald-200/80 bg-emerald-50/80 text-emerald-800 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-300"
+      : tone === "warning"
+        ? "border-amber-200/80 bg-amber-50/80 text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300"
+        : "border-gray-200/80 bg-white/80 text-gray-800 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200";
+
+  return (
+    <div className={`rounded-xl border px-3 py-2 ${toneClasses}`}>
+      <p className="text-[11px] font-medium uppercase tracking-wide opacity-80">{label}</p>
+      <p className="mt-0.5 text-base font-bold tracking-tight">{value}</p>
     </div>
   );
 }
@@ -553,39 +581,206 @@ export default async function AccueilPage({
     </div>
   );
 
+  const heroMetrics: Array<{
+    label: string;
+    value: string;
+    tone: "default" | "success" | "warning";
+  }> = [
+    {
+      label: fr ? "Échéances urgentes" : "Dat limit ijan",
+      value: String(topUrgent.length),
+      tone: topUrgent.length > 0 ? "warning" : "default",
+    },
+    {
+      label: fr ? "Bourses (30 jours)" : "Bous (30 jou)",
+      value: String(boursesClosing.length),
+      tone: "success",
+    },
+    {
+      label: fr ? "Universités" : "Inivèsite",
+      value: String(rotatedUnis.length),
+      tone: "default",
+    },
+    {
+      label: fr ? "Parcours" : "Pakou",
+      value: String(pathways.length),
+      tone: "default",
+    },
+  ];
+
+  const quickLinks = [
+    {
+      href: lq("/closing-soon"),
+      label: fr ? "Dates limites" : "Dat limit",
+      icon: AlertTriangle,
+    },
+    {
+      href: lq("/bourses"),
+      label: fr ? "Bourses" : "Bous",
+      icon: DollarSign,
+    },
+    {
+      href: lq("/calendrier"),
+      label: fr ? "Calendrier" : "Kalandriye",
+      icon: CalendarDays,
+    },
+    {
+      href: lq("/parcours"),
+      label: fr ? "Parcours" : "Pakou",
+      icon: Compass,
+    },
+  ];
+
   return (
-    <div className="space-y-14">
+    <div className="space-y-12">
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="space-y-5 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-          {fr
-            ? "Ton tableau de bord étudiant"
-            : "Tablo bò ou kòm elèv"}
-        </h1>
-        <p className="mx-auto max-w-xl text-lg text-gray-500 dark:text-slate-400">
-          {fr
-            ? "Calendrier, bourses, parcours et guides — tout ce dont tu as besoin pour réussir."
-            : "Kalandriye, bous, pakou ak gid — tout sa ou bezwen pou reyisi."}
-        </p>
+      <section className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-white p-6 shadow-card dark:border-slate-700/60 dark:bg-slate-900/70 dark:shadow-card-dark sm:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-60" />
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/20" />
+        <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-500/10" />
+
+        <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+          <div className="space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              {fr ? "Dashboard étudiant premium" : "Dashboard elèv premium"}
+            </div>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+                {fr ? "Ton tableau de bord étudiant" : "Tablo bò ou kòm elèv"}
+              </h1>
+              <p className="max-w-2xl text-base text-gray-600 dark:text-slate-300 sm:text-lg">
+                {fr
+                  ? "Calendrier, bourses, parcours et guides dans une interface plus claire, rapide et orientée action."
+                  : "Kalandriye, bous, pakou ak gid nan yon koòdone ki pi klè, rapid, epi ki pouse w aji."}
+              </p>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {heroMetrics.map((metric) => (
+                <MetricChip
+                  key={metric.label}
+                  label={metric.label}
+                  value={metric.value}
+                  tone={metric.tone}
+                />
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {quickLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:text-brand-700 hover:shadow-md dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
+                >
+                  <link.icon className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <aside className="premium-glass relative overflow-hidden p-5">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-brand-100/70 to-transparent dark:from-brand-500/10" />
+            <div className="relative space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-slate-100">
+                  <TrendingUp className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                  {fr ? "Vue rapide" : "Gade rapid"}
+                </p>
+                <Link
+                  href={lq("/closing-soon")}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                >
+                  {fr ? "Priorités" : "Priyorite"}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+
+              <div className="space-y-2">
+                {topUrgent.slice(0, 3).map((item) => (
+                  <Link
+                    key={`hero-${item.id}`}
+                    href={item.href}
+                    className="flex items-center gap-3 rounded-xl border border-gray-200/80 bg-white/80 p-3 transition-colors hover:border-brand-200 hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/60 dark:hover:border-brand-500/30"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                      {item.kind === "bourse" ? <DollarSign className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400">
+                        {item.days === 0
+                          ? (fr ? "Aujourd'hui" : "Jodi a")
+                          : fr
+                            ? `Dans ${item.days} jours`
+                            : `Nan ${item.days} jou`}
+                      </p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-400 dark:text-slate-500" />
+                  </Link>
+                ))}
+
+                {topUrgent.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-gray-200/90 bg-white/60 p-4 text-sm text-gray-500 dark:border-slate-700/70 dark:bg-slate-900/50 dark:text-slate-400">
+                    {fr ? "Aucune échéance urgente détectée pour le moment." : "Pa gen dat limit ijan pou kounye a."}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-gray-200/80 bg-white/70 p-3 text-xs text-gray-600 dark:border-slate-700/70 dark:bg-slate-900/50 dark:text-slate-300">
+                <p className="inline-flex items-center gap-1 font-semibold text-gray-800 dark:text-slate-100">
+                  <MapPin className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  {fr ? "Couverture Haïti + international" : "Kouvèti Ayiti + entènasyonal"}
+                </p>
+                <p className="mt-1">
+                  {fr
+                    ? "Les sections sont triées pour mettre les actions utiles avant le fil d’actualité."
+                    : "Seksyon yo òdone pou mete aksyon itil yo anvan fil nouvèl la."}
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
       </section>
 
       {/* ── DASHBOARD TABS ──────────────────────────────────────────────── */}
-      <DashboardTabs
-        lang={lang}
-        panels={{
-          bourses: boursesPanel,
-          calendrier: calendrierPanel,
-          parcours: parcoursPanel,
-          histoire: histoirePanel,
-          nouvelles: nouvellesPanel,
-        }}
-      />
+      <section className="section-shell space-y-4">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
+              {fr ? "Actions prioritaires" : "Aksyon priyoritè"}
+            </p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              {fr ? "Tableau de bord interactif" : "Tablo entèaktif"}
+            </h2>
+          </div>
+          <span className="hidden rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-medium text-gray-500 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-400 sm:inline-flex">
+            {fr ? "Auto-rotation + swipe" : "Wotasyon + glise"}
+          </span>
+        </div>
+        <div className="relative z-10">
+          <DashboardTabs
+            lang={lang}
+            panels={{
+              bourses: boursesPanel,
+              calendrier: calendrierPanel,
+              parcours: parcoursPanel,
+              histoire: histoirePanel,
+              nouvelles: nouvellesPanel,
+            }}
+          />
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════════
        *  URGENCY — À ne pas rater cette semaine (streamed below fold)
        * ═══════════════════════════════════════════════════════════════════ */}
       {topUrgent.length > 0 && (
-        <section className="premium-section space-y-4 border-red-200 bg-red-50/30 dark:border-red-800/40 dark:bg-red-950/20">
+        <section className="section-shell space-y-4 border-red-200/80 bg-red-50/30 dark:border-red-800/40 dark:bg-red-950/15">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-xl font-bold text-red-800 dark:text-red-300">
               <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -638,7 +833,7 @@ export default async function AccueilPage({
        *  S4 — Étudier à l'étranger (universities)
        * ═══════════════════════════════════════════════════════════════════ */}
       {rotatedUnis.length > 0 && (
-        <section className="space-y-4">
+        <section className="section-shell space-y-4">
           <SectionHeader
             icon={<GraduationCap className="h-5 w-5 text-brand-600 dark:text-brand-400" />}
             title={fr ? "Étudier à l'étranger" : "Etidye aletranje"}
@@ -687,7 +882,7 @@ export default async function AccueilPage({
        *  S_succes — Succès & Inspiration (strict gating)
        * ═══════════════════════════════════════════════════════════════════ */}
       {succesArticles.length > 0 ? (
-        <section className="premium-section space-y-4 border-emerald-200/60 dark:border-emerald-800/30">
+        <section className="section-shell space-y-4 border-emerald-200/70 dark:border-emerald-800/30">
           <SectionHeader
             icon={<Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
             title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
@@ -701,7 +896,7 @@ export default async function AccueilPage({
           </div>
         </section>
       ) : (
-        <section className="premium-section space-y-4 border-dashed border-gray-200 dark:border-slate-700">
+        <section className="section-shell space-y-4 border-dashed border-gray-200 dark:border-slate-700">
           <SectionHeader
             icon={<Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
             title={fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
@@ -719,7 +914,7 @@ export default async function AccueilPage({
       {/* ═══════════════════════════════════════════════════════════════════
        *  S6 — Fil: Actualité générale (news — below the fold)
        * ═══════════════════════════════════════════════════════════════════ */}
-      <div className="border-t border-gray-200 pt-10 dark:border-slate-800">
+      <section className="section-shell space-y-4 border-t-0">
         <SectionHeader
           icon={<Newspaper className="h-5 w-5 text-gray-500 dark:text-slate-400" />}
           title={fr ? "Fil — Actualité générale" : "Fil — Nouvèl jeneral"}
@@ -728,7 +923,7 @@ export default async function AccueilPage({
         />
 
         {newsArticles.length > 0 ? (
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {newsArticles.map((a) => (
               <ArticleCard
                 key={a.id}
@@ -739,13 +934,13 @@ export default async function AccueilPage({
             ))}
           </div>
         ) : (
-          <div className="mt-5 rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-400 dark:border-slate-700 dark:text-slate-500">
+          <div className="rounded-xl border-2 border-dashed border-gray-200 py-12 text-center text-gray-400 dark:border-slate-700 dark:text-slate-500">
             <p className="text-base">
               {fr ? "Les actualités arrivent bientôt." : "Nouvèl yo ap vini byento."}
             </p>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

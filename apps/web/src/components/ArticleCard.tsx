@@ -113,7 +113,7 @@ export function ArticleCard({
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover"
+      className="premium-card group flex flex-col overflow-hidden"
     >
       {/* Image / gradient thumbnail — compact uses smaller aspect ratio */}
       <div className={[
@@ -147,7 +147,8 @@ export function ArticleCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className="relative flex flex-1 flex-col p-5">
+        <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent dark:via-slate-700/60" />
         {/* Badges row */}
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           {catInfo && (

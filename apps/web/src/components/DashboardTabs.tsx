@@ -109,6 +109,22 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
   const scrollTabs = (dir: "left" | "right") =>
     scrollRef.current?.scrollBy({ left: dir === "left" ? -160 : 160, behavior: "smooth" });
 
+  const onKeyDownTab = (e: React.KeyboardEvent<HTMLButtonElement>, currentId: TabId) => {
+    const ids = TAB_DEFS.map((t) => t.id);
+    const idx = ids.indexOf(currentId);
+    if (idx < 0) return;
+    let nextIdx = idx;
+    if (e.key === "ArrowRight") nextIdx = (idx + 1) % ids.length;
+    else if (e.key === "ArrowLeft") nextIdx = (idx - 1 + ids.length) % ids.length;
+    else if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = ids.length - 1;
+    else return;
+    e.preventDefault();
+    pauseAutoSlide();
+    switchTab(ids[nextIdx]);
+    tabRefs.current.get(ids[nextIdx])?.focus();
+  };
+
   // ── Desktop drag-to-scroll on tab bar ────────────────────────────────────
   const onMouseDown = (e: React.MouseEvent) => {
     const el = scrollRef.current;
@@ -210,12 +226,16 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
         <div
           ref={scrollRef}
-          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl bg-gray-100/80 p-1.5 dark:bg-slate-800/80"
+          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl border border-gray-200/70 bg-gray-100/80 p-1.5 dark:border-slate-700/60 dark:bg-slate-800/80"
           style={{ cursor: "grab" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
+          onMouseEnter={pauseAutoSlide}
+          onFocusCapture={pauseAutoSlide}
+          role="tablist"
+          aria-label={fr ? "Sections du tableau de bord" : "Seksyon tablo a"}
         >
           {/* Animated pill indicator */}
           <span
@@ -233,6 +253,12 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
                   if (el) tabRefs.current.set(tab.id, el);
                 }}
                 onClick={() => { pauseAutoSlide(); switchTab(tab.id); }}
+                onKeyDown={(e) => onKeyDownTab(e, tab.id)}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`dashboard-panel-${tab.id}`}
+                id={`dashboard-tab-${tab.id}`}
+                tabIndex={isActive ? 0 : -1}
                 className={[
                   "relative z-10 flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 select-none",
                   isActive
@@ -253,7 +279,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={[
-          "transition-all duration-200 ease-out",
+          "relative transition-all duration-200 ease-out",
           isTransitioning
             ? "translate-y-1 opacity-0"
             : "translate-y-0 opacity-100",
@@ -264,10 +290,28 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
             key={tab.id}
             className={activeTab === tab.id ? "block" : "hidden"}
             role="tabpanel"
-            aria-label={fr ? tab.fr : tab.ht}
+            aria-labelledby={`dashboard-tab-${tab.id}`}
+            id={`dashboard-panel-${tab.id}`}
           >
             {mountedTabs.has(tab.id) ? panels[tab.id] : null}
           </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-center gap-1.5">
+        {TAB_DEFS.map((tab) => (
+          <button
+            key={`${tab.id}-dot`}
+            type="button"
+            onClick={() => { pauseAutoSlide(); switchTab(tab.id); }}
+            aria-label={fr ? `Aller à ${tab.fr}` : `Ale nan ${tab.ht}`}
+            className={[
+              "h-1.5 rounded-full transition-all",
+              activeTab === tab.id
+                ? "w-6 bg-brand-500 dark:bg-brand-400"
+                : "w-1.5 bg-gray-300 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500",
+            ].join(" ")}
+          />
         ))}
       </div>
 

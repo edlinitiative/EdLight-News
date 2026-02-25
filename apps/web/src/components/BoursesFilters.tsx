@@ -272,9 +272,9 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   const Chip = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+      className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
         active
-          ? "bg-brand-600 text-white shadow-sm"
+          ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-100 dark:ring-brand-500/20"
           : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
       }`}
     >
@@ -285,7 +285,31 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   return (
     <div className="space-y-6">
       {/* ── Filters ──────────────────────────────────────────────── */}
-      <div className="space-y-3 rounded-lg border bg-gray-50/50 p-4 dark:border-slate-700 dark:bg-slate-700/50">
+      <div className="section-shell space-y-4 p-4">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
+              {fr ? "Filtres intelligents" : "Filtè entèlijan"}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-slate-300">
+              {fr ? "Les filtres mettent à jour l’URL pour partager une recherche précise." : "Filtè yo mete URL la ajou pou pataje rechèch la."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString());
+              FILTER_PARAM_KEYS.forEach((k) => params.delete(k));
+              if (lang !== "fr") params.set("lang", lang);
+              router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+            }}
+            className="rounded-full border border-gray-200/80 bg-white/80 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
+          >
+            {fr ? "Réinitialiser" : "Reyinisyalize"}
+          </button>
+        </div>
+
+        <div className="relative z-10 space-y-3">
         {/* Type filter */}
         <div>
           <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
@@ -386,31 +410,42 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
             ))}
           </div>
         </div>
+        </div>
       </div>
 
       {/* ── Sort controls ────────────────────────────────────────── */}
-      <div className="flex items-center gap-2">
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex flex-wrap items-center gap-2">
         <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
         <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{fr ? "Trier:" : "Triye:"}</span>
         {(["deadline", "latest", "relevance"] as SortMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => setFilter("sort", mode)}
-            className={`rounded px-2 py-0.5 text-xs font-medium transition ${
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
               sortMode === mode
-                ? "bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-300"
+                ? "bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-900/20 dark:text-brand-300 dark:ring-brand-500/20"
                 : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
             }`}
           >
             {fr ? SORT_LABELS[mode].fr : SORT_LABELS[mode].ht}
           </button>
         ))}
+        </div>
       </div>
 
       {/* ── Result count ─────────────────────────────────────────── */}
-      <p className="text-sm text-gray-500 dark:text-slate-400">
-        {filtered.length} {fr ? "résultat(s)" : "rezilta"}
-      </p>
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <p className="text-sm text-gray-600 dark:text-slate-300">
+            <span className="font-semibold text-gray-900 dark:text-white">{filtered.length}</span>{" "}
+            {fr ? "résultat(s)" : "rezilta"}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">
+            {fr ? `${scholarships.length} au total` : `${scholarships.length} an total`}
+          </p>
+        </div>
+      </div>
 
       {/* ── Scholarship cards ────────────────────────────────────── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -424,13 +459,13 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           return (
             <div
               key={s.id}
-              className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-700 ${
+              className={`premium-card p-5 ${
                 isDirectory ? "border-l-4 border-l-indigo-300 dark:border-l-indigo-600" : ""
               }`}
             >
               {/* Header */}
               <div className="flex items-start justify-between">
-                <h3 className="font-semibold leading-tight">{s.name}</h3>
+                <h3 className="font-semibold leading-tight text-gray-900 dark:text-white">{s.name}</h3>
                 {cl && (
                   <span className="ml-2 shrink-0 text-lg" title={fr ? cl.fr : cl.ht}>
                     {cl.flag}
@@ -516,7 +551,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               {s.tags && s.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {s.tags.slice(0, 4).map((tag) => (
-                    <span key={tag} className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+                    <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-700 dark:text-slate-300">
                       {tag}
                     </span>
                   ))}
@@ -589,7 +624,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               )}
 
               {/* Trust badges */}
-              <div className="mt-2 flex items-center justify-between">
+              <div className="mt-2 flex items-center justify-between gap-2">
                 <MetaBadges
                   verifiedAt={s.verifiedAtISO ?? null}
                   updatedAt={s.updatedAtISO ?? null}
@@ -603,7 +638,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 py-24 text-center text-gray-400 dark:border-slate-700 dark:text-slate-500">
+        <div className="section-shell border-2 border-dashed py-24 text-center text-gray-400 dark:text-slate-500">
           <p className="text-lg font-medium">
             {fr
               ? scholarships.length === 0

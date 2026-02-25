@@ -91,15 +91,20 @@ function NavBarInner() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/90">
+    <header className="sticky top-0 z-50 border-b border-gray-200/70 bg-white/85 backdrop-blur-2xl dark:border-slate-700/50 dark:bg-slate-950/80">
       <div className="mx-auto max-w-6xl px-4">
         {/* Top row ── logo + controls */}
         <div className="flex items-center justify-between py-3">
           <Link
             href={"/" + langSuffix}
-            className="text-xl font-extrabold tracking-tight text-brand-600 dark:text-brand-400"
+            className="group inline-flex items-center gap-2 rounded-full border border-gray-200/80 bg-white/70 px-3 py-1.5 text-xl font-extrabold tracking-tight text-brand-600 shadow-sm transition-all hover:border-brand-200 hover:shadow-md dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-brand-400 dark:hover:border-brand-500/30"
           >
-            EdLight<span className="font-light text-gray-400 dark:text-slate-500"> News</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white shadow-sm dark:bg-brand-500">
+              E
+            </span>
+            <span>
+              EdLight<span className="font-light text-gray-400 transition-colors group-hover:text-gray-500 dark:text-slate-500 dark:group-hover:text-slate-400"> News</span>
+            </span>
           </Link>
           <div className="flex items-center gap-3">
             <Link
@@ -114,7 +119,7 @@ function NavBarInner() {
         </div>
 
         {/* Tab row ── premium sliding tab bar */}
-        <div className="relative">
+        <div className="relative rounded-2xl border border-gray-200/70 bg-white/60 px-1 dark:border-slate-700/60 dark:bg-slate-900/60">
           {/* Left fade + arrow */}
           {canScrollLeft && (
             <>
@@ -160,7 +165,7 @@ function NavBarInner() {
                   }}
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "shrink-0 whitespace-nowrap px-4 py-3 font-medium transition-all duration-200",
+                    "relative shrink-0 whitespace-nowrap px-4 py-3 font-medium transition-all duration-200",
                     active
                       ? "text-brand-600 dark:text-brand-400"
                       : "text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200",

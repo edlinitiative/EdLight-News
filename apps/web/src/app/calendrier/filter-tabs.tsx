@@ -212,7 +212,7 @@ export function CalendarFilterTabs({
       <div
         role="tablist"
         aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
-        className="flex flex-wrap gap-2"
+        className="flex flex-wrap gap-2 rounded-2xl border border-gray-200/70 bg-white/70 p-2 dark:border-slate-700/60 dark:bg-slate-900/60"
       >
         {geoTabs.map((t) => (
           <button
@@ -224,7 +224,7 @@ export function CalendarFilterTabs({
             className={[
               "rounded-full px-4 py-1.5 text-sm font-medium transition",
               geoTab === t.key
-                ? "bg-brand-600 text-white"
+                ? "bg-brand-600 text-white shadow-sm"
                 : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600",
             ].join(" ")}
           >
@@ -238,7 +238,7 @@ export function CalendarFilterTabs({
       <div
         role="group"
         aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
-        className="flex flex-wrap gap-1.5"
+        className="flex flex-wrap gap-1.5 rounded-2xl border border-gray-200/70 bg-white/70 p-2 dark:border-slate-700/60 dark:bg-slate-900/60"
       >
         {catPills.map((p) => (
           <button

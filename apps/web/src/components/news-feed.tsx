@@ -456,19 +456,22 @@ export function NewsFeed({
   return (
     <section className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
           {lang === "fr" ? "Fil — Actualités" : "Fil — Nouvèl"}
         </h1>
-        <span className="text-sm text-gray-400">
+        <span className="text-sm text-gray-400 dark:text-slate-500">
           {sorted.length} {lang === "fr" ? "articles" : "atik"}
         </span>
+        </div>
       </div>
 
       {/* Mode toggle + Search + Sort bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="section-shell p-4">
+      <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Segmented control: Fil étudiant / Tout */}
-        <div className="inline-flex rounded-lg border bg-gray-50 p-0.5">
+        <div className="inline-flex rounded-lg border border-gray-200/80 bg-gray-50 p-0.5 dark:border-slate-700 dark:bg-slate-800">
           {(["student", "all"] as const).map((mode) => {
             const isActive = mode === feedMode;
             const label =
@@ -486,8 +489,8 @@ export function NewsFeed({
                 className={
                   "rounded-md px-3 py-1.5 text-sm font-medium transition " +
                   (isActive
-                    ? "bg-white text-brand-700 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700")
+                    ? "bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-brand-300"
+                    : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200")
                 }
               >
                 {label}
@@ -502,10 +505,10 @@ export function NewsFeed({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-            className="w-full rounded-lg border px-4 py-2 pl-9 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+            className="w-full rounded-lg border border-gray-200/80 bg-white/80 px-4 py-2 pl-9 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
           />
           <svg
-            className="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+            className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-slate-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -521,7 +524,7 @@ export function NewsFeed({
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortOption)}
-          className="rounded-lg border px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+          className="rounded-lg border border-gray-200/80 bg-white/80 px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
         >
           {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
             <option key={opt} value={opt}>
@@ -530,10 +533,11 @@ export function NewsFeed({
           ))}
         </select>
       </div>
+      </div>
 
       {/* Legacy toggle — only shown when not server-pre-ranked */}
       {!preRanked && legacyCount > 0 && (
-        <label className="flex items-center gap-2 text-sm text-gray-500">
+        <label className="section-shell flex items-center gap-2 p-4 text-sm text-gray-500 dark:text-slate-400">
           <input
             type="checkbox"
             checked={showLegacy}
@@ -547,7 +551,8 @@ export function NewsFeed({
       )}
 
       {/* Category filter pills — always visible, counts reflect current mode */}
-      <div className="flex flex-wrap gap-2">
+      <div className="section-shell p-4">
+        <div className="relative z-10 flex flex-wrap gap-2">
         {FIXED_NEWS_PILLS.map((cat) => {
           const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
           const count = pillCounts[cat] ?? 0;
@@ -559,8 +564,8 @@ export function NewsFeed({
               className={
                 "rounded-full px-3 py-1 text-sm font-medium transition " +
                 (isActive
-                  ? "bg-brand-700 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200")
+                  ? "bg-brand-700 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600")
               }
             >
               {label}
@@ -568,11 +573,12 @@ export function NewsFeed({
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Student-mode info note */}
       {studentModeFiltered && (
-        <p className="rounded-lg bg-brand-50 px-4 py-2 text-sm text-brand-800">
+        <p className="section-shell border-brand-200/70 bg-brand-50/50 px-4 py-3 text-sm text-brand-800 dark:border-brand-800/30 dark:bg-brand-950/10 dark:text-brand-300">
           {lang === "fr"
             ? "Fil étudiant masque les faits divers et certaines actualités générales."
             : "Fil etidyan an kache fe diver ak kèk nouvèl jeneral."}
@@ -588,7 +594,7 @@ export function NewsFeed({
 
       {/* Empty state */}
       {sorted.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed p-8 text-center text-gray-500">
+        <div className="section-shell border-2 border-dashed p-8 text-center text-gray-500 dark:text-slate-400">
           <p className="text-lg">
             {search
               ? lang === "fr"
@@ -607,7 +613,7 @@ export function NewsFeed({
           <Link
             key={article.id}
             href={`/news/${article.id}?lang=${lang}`}
-            className="group block rounded-lg border p-5 transition hover:border-brand-300 hover:shadow-md"
+            className="premium-card group block p-5"
           >
             <div className="mb-2 flex items-center gap-2">
               <CategoryBadge article={article} lang={lang} />
@@ -634,10 +640,10 @@ export function NewsFeed({
                 </span>
               )}
             </div>
-            <h2 className="mb-2 text-lg font-semibold group-hover:text-brand-700">
+            <h2 className="mb-2 text-lg font-semibold text-gray-900 transition-colors group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300">
               {article.title}
             </h2>
-            <p className="line-clamp-3 text-sm text-gray-600">
+            <p className="line-clamp-3 text-sm text-gray-600 dark:text-slate-300">
               {article.summary || article.body?.slice(0, 200) || ""}
             </p>
             <TrustSignals item={article} lang={lang} mounted={mounted} />

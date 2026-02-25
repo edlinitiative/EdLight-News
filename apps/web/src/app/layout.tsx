@@ -27,12 +27,13 @@ export default function RootLayout({
         <ThemeProvider>
           <LanguageProvider>
             <NavBar />
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+            <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:py-10">
               {children}
             </main>
-            <footer className="mt-20 border-t border-gray-200 bg-white py-8 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
-              <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 sm:flex-row sm:justify-between">
-                <span className="font-semibold text-brand-600 dark:text-brand-400">
+            <footer className="mt-16 border-t border-gray-200/70 bg-white/80 py-8 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
+              <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 sm:flex-row sm:justify-between">
+                <span className="inline-flex items-center gap-2 font-semibold text-brand-600 dark:text-brand-400">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white dark:bg-brand-500">E</span>
                   EdLight News
                 </span>
                 <span className="text-xs text-gray-400 dark:text-slate-500">

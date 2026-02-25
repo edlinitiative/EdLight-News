@@ -7,7 +7,7 @@
  */
 
 import Link from "next/link";
-import { CalendarDays, ExternalLink } from "lucide-react";
+import { CalendarDays, ExternalLink, Sparkles, Clock3, Globe2 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
   fetchCalendarData,
@@ -145,32 +145,63 @@ export default async function CalendrierPage({
 
   return (
     <div className="space-y-8">
-      {/* Page header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-7 w-7 text-brand-600" />
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-slate-100">
-            {fr ? "Calendrier" : "Kalandriye"}
-          </h1>
+      <section className="section-shell p-0">
+        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8">
+          <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-35" />
+          <div className="pointer-events-none absolute -right-10 top-0 h-44 w-44 rounded-full bg-brand-200/35 blur-3xl dark:bg-brand-500/15" />
+          <div className="relative grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                {fr ? "Calendrier premium" : "Kalandriye premium"}
+              </div>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-7 w-7 text-brand-600 dark:text-brand-400" />
+                <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-slate-100 sm:text-4xl">
+                  {fr ? "Calendrier" : "Kalandriye"}
+                </h1>
+              </div>
+              <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+                {fr
+                  ? "Examens haïtiens, inscriptions et dates limites de bourses internationales dans un tableau filtrable."
+                  : "Egzamen ayisyen, enskripsyon ak dat limit bous entènasyonal nan yon tablo ki ka filtre."}
+              </p>
+            </div>
+            <aside className="premium-glass p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Haïti" : "Ayiti"}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{haitiItems.length}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "International" : "Entènasyonal"}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{intlItems.length}</p>
+                </div>
+              </div>
+              <div className="mt-3 space-y-1 text-xs text-gray-600 dark:text-slate-300">
+                <p className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />{fr ? "Vue urgences + semaine + mois" : "View ijans + semèn + mwa"}</p>
+                <p className="inline-flex items-center gap-1"><Globe2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />{fr ? "Filtres géo et catégorie" : "Filtè jewo ak kategori"}</p>
+              </div>
+            </aside>
+          </div>
         </div>
-        <p className="max-w-2xl text-gray-500 dark:text-slate-400">
-          {fr
-            ? "Examens haïtiens, inscriptions et dates limites de bourses internationales."
-            : "Egzamen ayisyen, enskripsyon ak dat limit bous entènasyonal."}
-        </p>
-      </div>
+      </section>
 
       {/* Main timeline dashboard */}
-      <CalendarFilterTabs
-        haitiItems={haitiItems}
-        intlItems={intlItems}
-        lang={lang}
-      />
+      <section className="section-shell">
+        <div className="relative z-10">
+          <CalendarFilterTabs
+            haitiItems={haitiItems}
+            intlItems={intlItems}
+            lang={lang}
+          />
+        </div>
+      </section>
 
       {/* Legacy article deadlines — collapsed by default to reduce noise */}
       {hasLegacy && (
-        <details className="rounded-lg border border-gray-200 dark:border-slate-700">
-          <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-slate-700">
+        <details className="section-shell p-0">
+          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3 transition-colors hover:bg-gray-50/70 dark:hover:bg-slate-800/60">
             <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
               {fr
                 ? "📄 Sources additionnelles (articles)"
@@ -180,7 +211,7 @@ export default async function CalendrierPage({
               ▸
             </span>
           </summary>
-          <div className="space-y-2 px-5 pb-4 pt-2">
+          <div className="relative z-10 space-y-2 px-5 pb-4 pt-2">
             {upcomingLegacy.map((dl, idx) => (
               <LegacyDeadlineRow
                 key={`${dl.dateISO}-${idx}`}
@@ -199,7 +230,7 @@ export default async function CalendrierPage({
 
       {/* Empty state */}
       {!hasAnyData && (
-        <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-700 py-16 text-center text-gray-400 dark:text-slate-500">
+        <div className="section-shell border-2 border-dashed py-16 text-center text-gray-400 dark:text-slate-500">
           <CalendarDays className="mx-auto mb-3 h-10 w-10" />
           <p>
             {fr
@@ -213,7 +244,7 @@ export default async function CalendrierPage({
       <div className="pt-2">
         <Link
           href={lang === "ht" ? "/?lang=ht" : "/"}
-          className="text-sm text-brand-600 hover:underline"
+          className="inline-flex items-center rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
         >
           {fr ? "← Retour à l'accueil" : "← Retounen lakay"}
         </Link>

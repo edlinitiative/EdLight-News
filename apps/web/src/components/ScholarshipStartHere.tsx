@@ -82,8 +82,8 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <div>
+    <section className="section-shell space-y-4">
+      <div className="relative z-10">
         <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
           {fr ? "Par où commencer ?" : "Ki kote pou kòmanse ?"}
         </h2>
@@ -94,15 +94,17 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="relative z-10 grid gap-4 sm:grid-cols-3">
         {ENTRIES.map((entry) => (
           <button
             key={entry.country}
             type="button"
             onClick={() => navigate(entry.params)}
-            className="group flex flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
+            className="premium-card group flex flex-col items-start p-5 text-left"
           >
-            <span className="text-2xl leading-none">{entry.flag}</span>
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-2xl leading-none dark:bg-brand-900/20">
+              {entry.flag}
+            </span>
 
             <h3 className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
               {fr ? entry.label.fr : entry.label.ht}

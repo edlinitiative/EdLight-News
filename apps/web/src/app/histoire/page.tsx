@@ -10,7 +10,7 @@
  */
 
 import { Suspense } from "react";
-import { BookOpen, Star } from "lucide-react";
+import { BookOpen, Star, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -115,10 +115,11 @@ export default async function HistoirePage({
       {/* ═══════════════════════════════════════════════════════════════════
        *  HERO BANNER — immersive gradient with today's date
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="-mx-4 -mt-8 mb-10 bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 px-4 pb-10 pt-12 text-white sm:px-8">
+      <section className="relative -mx-4 -mt-8 mb-10 overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 px-4 pb-10 pt-12 text-white sm:px-8">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-grid-soft opacity-10" />
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
-            <BookOpen className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" />
             {fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
@@ -184,7 +185,7 @@ export default async function HistoirePage({
                     </div>
 
                     {/* Card */}
-                    <div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800 p-5 shadow-sm transition hover:shadow-md sm:p-6">
+                    <div className="premium-card min-w-0 flex-1 p-5 sm:p-6">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         {entry.year != null && (
                           <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
@@ -266,7 +267,7 @@ export default async function HistoirePage({
             </div>
           </div>
         ) : todayHolidays.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700 py-12 text-center text-gray-400 dark:text-slate-500">
+          <div className="section-shell border-2 border-dashed py-12 text-center text-gray-400 dark:text-slate-500">
             <BookOpen className="mx-auto mb-3 h-10 w-10" />
             <p className="text-sm">
               {fr
@@ -281,6 +282,7 @@ export default async function HistoirePage({
        *  SECTION B — Explorer l'histoire (weekly/monthly archive)
        * ═══════════════════════════════════════════════════════════════════ */}
       <section className="mx-auto mt-14 max-w-4xl">
+        <div className="section-shell">
         <Suspense
           fallback={
             <div className="h-48 animate-pulse rounded-xl bg-gray-100 dark:bg-slate-800" />
@@ -288,6 +290,7 @@ export default async function HistoirePage({
         >
           <HistoireArchive lang={lang} defaultMonth={todayMonth} />
         </Suspense>
+        </div>
       </section>
     </div>
   );
