@@ -119,10 +119,10 @@ export function OpportunityCard({
         )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-5">
+      <div className="relative flex flex-1 flex-col p-3.5 sm:p-4">
         <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent dark:via-slate-700/60" />
         {/* Category badge — uses derived subcategory */}
-        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${subCatColor}`}
           >
@@ -136,7 +136,7 @@ export function OpportunityCard({
         </div>
 
         {/* Chips row: Level · Region · Deadline */}
-        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           {level && (
             <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600">
               <GraduationCap className="h-3 w-3" />
@@ -178,12 +178,12 @@ export function OpportunityCard({
         </div>
 
         {/* Title */}
-        <h2 className="mb-2 text-base font-semibold leading-snug group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400">
+        <h2 className="mb-1 text-[15px] font-semibold leading-snug group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400 sm:text-base">
           {article.title}
         </h2>
 
         {/* Summary */}
-        <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400">
+        <p className="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-slate-400">
           {article.summary || article.body?.slice(0, 150) || ""}
         </p>
 

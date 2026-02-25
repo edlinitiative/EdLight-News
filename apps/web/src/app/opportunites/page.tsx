@@ -8,7 +8,7 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
-import { Sparkles, Briefcase, Clock3 } from "lucide-react";
+import { Sparkles, Briefcase, Clock3, Search } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
@@ -80,39 +80,41 @@ export default async function OpportunitesPage({
   const fr = lang === "fr";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-5">
       <section className="section-shell p-0">
-        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8">
+        <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6">
           <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-35" />
           <div className="pointer-events-none absolute -right-10 top-0 h-44 w-44 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/15" />
-          <div className="relative grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="space-y-3">
+          <div className="relative space-y-4">
+            <div className="space-y-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
                 <Sparkles className="h-3.5 w-3.5" />
                 {fr ? "Opportunités premium" : "Okazyon premium"}
               </div>
-              <h1 className="text-3xl font-extrabold tracking-tight dark:text-white sm:text-4xl">
+              <h1 className="text-2xl font-extrabold tracking-tight dark:text-white sm:text-4xl">
                 <Briefcase className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
                 {fr ? "Opportunités" : "Okazyon"}
               </h1>
-              <p className="text-gray-600 dark:text-slate-300">
+              <p className="text-sm text-gray-600 dark:text-slate-300 sm:text-base">
                 {fr
                   ? "Bourses, concours, stages et programmes pour étudiants haïtiens avec filtres par type, deadline et pertinence."
                   : "Bous, konkou, estaj ak pwogram pou elèv ayisyen ak filtè pa tip, dat limit ak pètinans."}
               </p>
             </div>
-            <aside className="premium-glass p-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Résultats" : "Rezilta"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{articles.length}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Tri" : "Tri"}</p>
-                  <p className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 dark:text-white"><Clock3 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />{fr ? "Deadline / Pertinence" : "Dat limit / Pètinans"}</p>
-                </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="premium-glass p-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Résultats" : "Rezilta"}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{articles.length}</p>
               </div>
-            </aside>
+              <div className="premium-glass p-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Tri" : "Tri"}</p>
+                <p className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 dark:text-white"><Clock3 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />{fr ? "Deadline / Pertinence" : "Dat limit / Pètinans"}</p>
+              </div>
+              <div className="premium-glass p-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Recherche" : "Rechèch"}</p>
+                <p className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 dark:text-white"><Search className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />{fr ? "Titre & résumé" : "Tit & rezime"}</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

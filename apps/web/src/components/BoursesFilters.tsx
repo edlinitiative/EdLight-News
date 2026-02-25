@@ -10,10 +10,10 @@
  * (e.g. the StartHere block) can pre-set filters.
  */
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { ContentLanguage, DatasetCountry, AcademicLevel, ScholarshipFundingType, ScholarshipKind, ScholarshipHaitianEligibility, ScholarshipDeadlineAccuracy } from "@edlight-news/types";
-import { GraduationCap, CalendarDays, BookOpen, CheckCircle, Paperclip, AlertTriangle, Clock, HelpCircle, FolderOpen, ExternalLink, ArrowUpDown } from "lucide-react";
+import { CalendarDays, BookOpen, CheckCircle, Paperclip, HelpCircle, FolderOpen, ExternalLink, ArrowUpDown, SlidersHorizontal, X } from "lucide-react";
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
@@ -177,6 +177,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // ── Read filter state from URL ──────────────────────────────────────────
   const fundingFilter = searchParams.get("funding") ?? "all";
@@ -204,6 +205,13 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
     },
     [searchParams, pathname, router, lang],
   );
+
+  const clearFilters = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    FILTER_PARAM_KEYS.forEach((k) => params.delete(k));
+    if (lang !== "fr") params.set("lang", lang);
+    router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+  }, [lang, pathname, router, searchParams]);
 
   // Compute available countries
   const availableCountries = useMemo(() => {
@@ -268,6 +276,17 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
     return items;
   }, [scholarships, fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, sortMode]);
 
+  const activeFilterCount = useMemo(() => {
+    return [
+      fundingFilter !== "all",
+      levelFilter !== "all",
+      countryFilter !== "all",
+      eligibilityFilter !== "all",
+      typeFilter !== "all",
+      sortMode !== "deadline",
+    ].filter(Boolean).length;
+  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, sortMode]);
+
   // Chip component
   const Chip = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
@@ -282,173 +301,192 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
     </button>
   );
 
+  const FilterGroups = ({ compact = false }: { compact?: boolean }) => (
+    <div className={compact ? "space-y-3" : "space-y-4"}>
+      <div>
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+          {fr ? "Type" : "Tip"}
+        </span>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {TYPE_FILTER_CHIPS.map((c) => (
+            <Chip
+              key={c.key}
+              active={typeFilter === c.key}
+              onClick={() => setFilter("type", c.key)}
+              label={fr ? c.fr : c.ht}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+          {fr ? "Financement" : "Finansman"}
+        </span>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {FUNDING_FILTER_CHIPS.map((c) => (
+            <Chip
+              key={c.key}
+              active={fundingFilter === c.key}
+              onClick={() => setFilter("funding", c.key)}
+              label={fr ? c.fr : c.ht}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+          {fr ? "Niveau" : "Nivo"}
+        </span>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          <Chip
+            active={levelFilter === "all"}
+            onClick={() => setFilter("level", "all")}
+            label={fr ? "Tous" : "Tout"}
+          />
+          {availableLevels.map((l) => {
+            const lbl = LEVEL_LABELS[l as AcademicLevel];
+            return (
+              <Chip
+                key={l}
+                active={levelFilter === l}
+                onClick={() => setFilter("level", l)}
+                label={lbl ? (fr ? lbl.fr : lbl.ht) : l}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+          {fr ? "Pays" : "Peyi"}
+        </span>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          <Chip
+            active={countryFilter === "all"}
+            onClick={() => setFilter("country", "all")}
+            label={fr ? "Tous" : "Tout"}
+          />
+          {availableCountries.map((c) => {
+            const cl = COUNTRY_LABELS[c as DatasetCountry];
+            return (
+              <Chip
+                key={c}
+                active={countryFilter === c}
+                onClick={() => setFilter("country", c)}
+                label={cl ? `${cl.code} · ${fr ? cl.fr : cl.ht}` : c}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+          {fr ? "Éligible Haïti" : "Elijib Ayiti"}
+        </span>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {ELIGIBILITY_FILTER_CHIPS.map((c) => (
+            <Chip
+              key={c.key}
+              active={eligibilityFilter === c.key}
+              onClick={() => setFilter("eligibility", c.key)}
+              label={fr ? c.fr : c.ht}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-5">
-      {/* ── Filters ──────────────────────────────────────────────── */}
-      <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 sm:p-5">
-        <div className="relative z-10 flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-4">
+      <div className="sticky top-16 z-20 rounded-2xl border border-gray-200/80 bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
-              {fr ? "Filtres intelligents" : "Filtè entèlijan"}
+              {fr ? "Bourses" : "Bous"}
             </p>
-            <p className="text-sm text-gray-600 dark:text-slate-300">
-              {fr ? "Les filtres mettent à jour l’URL pour partager une recherche précise." : "Filtè yo mete URL la ajou pou pataje rechèch la."}
+            <p className="text-sm text-gray-700 dark:text-slate-200">
+              <span className="font-semibold text-gray-900 dark:text-white">{filtered.length}</span>{" "}
+              {fr ? "résultat(s)" : "rezilta"}
+              <span className="ml-2 text-xs text-gray-400 dark:text-slate-500">
+                {fr ? `${scholarships.length} au total` : `${scholarships.length} an total`}
+              </span>
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              const params = new URLSearchParams(searchParams.toString());
-              FILTER_PARAM_KEYS.forEach((k) => params.delete(k));
-              if (lang !== "fr") params.set("lang", lang);
-              router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
-            }}
-            className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
-          >
-            {fr ? "Réinitialiser" : "Reyinisyalize"}
-          </button>
-        </div>
 
-        <div className="relative z-10 space-y-3">
-        {/* Type filter */}
-        <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-            {fr ? "Type" : "Tip"}
-          </span>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {TYPE_FILTER_CHIPS.map((c) => (
-              <Chip
-                key={c.key}
-                active={typeFilter === c.key}
-                onClick={() => setFilter("type", c.key)}
-                label={fr ? c.fr : c.ht}
-              />
-            ))}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileFiltersOpen(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 lg:hidden"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              {fr ? "Filtres" : "Filtè"}
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] text-white">{activeFilterCount}</span>
+              )}
+            </button>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+              >
+                {fr ? "Réinitialiser" : "Reyinisyalize"}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Funding filter */}
-        <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-            {fr ? "Financement" : "Finansman"}
-          </span>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {FUNDING_FILTER_CHIPS.map((c) => (
-              <Chip
-                key={c.key}
-                active={fundingFilter === c.key}
-                onClick={() => setFilter("funding", c.key)}
-                label={fr ? c.fr : c.ht}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Level filter */}
-        <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-            {fr ? "Niveau" : "Nivo"}
-          </span>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            <Chip
-              active={levelFilter === "all"}
-              onClick={() => setFilter("level", "all")}
-              label={fr ? "Tous" : "Tout"}
-            />
-            {availableLevels.map((l) => {
-              const lbl = LEVEL_LABELS[l as AcademicLevel];
-              return (
-                <Chip
-                  key={l}
-                  active={levelFilter === l}
-                  onClick={() => setFilter("level", l)}
-                  label={lbl ? (fr ? lbl.fr : lbl.ht) : l}
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Country filter */}
-        <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-            {fr ? "Pays" : "Peyi"}
-          </span>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            <Chip
-              active={countryFilter === "all"}
-              onClick={() => setFilter("country", "all")}
-              label={fr ? "Tous" : "Tout"}
-            />
-            {availableCountries.map((c) => {
-              const cl = COUNTRY_LABELS[c as DatasetCountry];
-              return (
-                <Chip
-                  key={c}
-                  active={countryFilter === c}
-                  onClick={() => setFilter("country", c)}
-                  label={cl ? `${cl.code} · ${fr ? cl.fr : cl.ht}` : c}
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Haitian eligibility filter */}
-        <div>
-          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-            {fr ? "Éligible Haïti" : "Elijib Ayiti"}
-          </span>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {ELIGIBILITY_FILTER_CHIPS.map((c) => (
-              <Chip
-                key={c.key}
-                active={eligibilityFilter === c.key}
-                onClick={() => setFilter("eligibility", c.key)}
-                label={fr ? c.fr : c.ht}
-              />
-            ))}
-          </div>
-        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
+          <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{fr ? "Trier:" : "Triye:"}</span>
+          {(["deadline", "latest", "relevance"] as SortMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setFilter("sort", mode)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                sortMode === mode
+                  ? "bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-900/20 dark:text-brand-300 dark:ring-brand-500/20"
+                  : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+              }`}
+            >
+              {fr ? SORT_LABELS[mode].fr : SORT_LABELS[mode].ht}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ── Sort controls ────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
-        <div className="relative z-10 flex flex-wrap items-center gap-2">
-        <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
-        <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{fr ? "Trier:" : "Triye:"}</span>
-        {(["deadline", "latest", "relevance"] as SortMode[]).map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setFilter("sort", mode)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-              sortMode === mode
-                ? "bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-900/20 dark:text-brand-300 dark:ring-brand-500/20"
-                : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
-            }`}
-          >
-            {fr ? SORT_LABELS[mode].fr : SORT_LABELS[mode].ht}
-          </button>
-        ))}
-        </div>
-      </div>
+      <div className="grid gap-4 lg:grid-cols-[300px,minmax(0,1fr)]">
+        <aside className="hidden lg:block">
+          <div className="sticky top-36 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="mb-3 flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
+                  {fr ? "Filtres intelligents" : "Filtè entèlijan"}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  {fr ? "URL partageable" : "URL patajab"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+              >
+                {fr ? "Reset" : "Reset"}
+              </button>
+            </div>
+            <FilterGroups />
+          </div>
+        </aside>
 
-      {/* ── Result count ─────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
-        <div className="relative z-10 flex items-center justify-between gap-3">
-          <p className="text-sm text-gray-600 dark:text-slate-300">
-            <span className="font-semibold text-gray-900 dark:text-white">{filtered.length}</span>{" "}
-            {fr ? "résultat(s)" : "rezilta"}
-          </p>
-          <p className="text-xs text-gray-400 dark:text-slate-500">
-            {fr ? `${scholarships.length} au total` : `${scholarships.length} an total`}
-          </p>
-        </div>
-      </div>
-
-      {/* ── Scholarship cards ────────────────────────────────────── */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map((s) => {
           const funding = FUNDING_LABELS[s.fundingType];
           const cl = COUNTRY_LABELS[s.country];
@@ -459,7 +497,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           return (
             <div
               key={s.id}
-              className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900 ${
+              className={`rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-900 ${
                 isDirectory ? "border-l-4 border-l-indigo-300 dark:border-l-indigo-600" : ""
               }`}
             >
@@ -562,7 +600,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               )}
 
               {/* Action links */}
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
                 {isDirectory ? (
                   <a
                     href={s.officialUrl}
@@ -638,19 +676,71 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
             </div>
           );
         })}
+          </div>
+
+          {filtered.length === 0 && (
+            <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white py-14 text-center text-gray-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-500">
+              <p className="text-base font-medium">
+                {fr
+                  ? scholarships.length === 0
+                    ? "Base de données en construction…"
+                    : "Aucun résultat pour ces filtres."
+                  : scholarships.length === 0
+                    ? "Baz done an konstriksyon…"
+                    : "Pa gen rezilta pou filtr sa yo."}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {filtered.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white py-20 text-center text-gray-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-500">
-          <p className="text-lg font-medium">
-            {fr
-              ? scholarships.length === 0
-                ? "Base de données en construction…"
-                : "Aucun résultat pour ces filtres."
-              : scholarships.length === 0
-                ? "Baz done an konstriksyon…"
-                : "Pa gen rezilta pou filtr sa yo."}
-          </p>
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            aria-label={fr ? "Fermer" : "Fèmen"}
+            className="absolute inset-0 bg-black/45"
+            onClick={() => setMobileFiltersOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border border-gray-200 bg-white p-4 pb-20 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                {fr ? "Filtres" : "Filtè"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="rounded-full border border-gray-200 p-1.5 text-gray-500 dark:border-slate-700 dark:text-slate-300"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                {fr ? "Recherche partageable via URL" : "Rechèch patajab via URL"}
+              </p>
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+              >
+                {fr ? "Réinitialiser" : "Reyinisyalize"}
+              </button>
+            </div>
+
+            <FilterGroups compact />
+
+            <div className="sticky bottom-0 mt-4 border-t border-gray-200 bg-white pt-3 dark:border-slate-700 dark:bg-slate-900">
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white"
+              >
+                {fr ? "Voir les résultats" : "Wè rezilta yo"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

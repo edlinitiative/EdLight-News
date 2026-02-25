@@ -174,96 +174,90 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   }, [filtered, sort]);
 
   return (
-    <div className="space-y-6">
-      {/* Search input */}
-      <div className="section-shell p-4">
-        <div className="relative z-10">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-          className="w-full rounded-lg border border-gray-200/80 bg-white/80 px-4 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-400"
-        />
-        </div>
-      </div>
-
-      {/* Subcategory pills */}
-      <div className="section-shell p-4">
-        <div className="relative z-10 flex flex-wrap gap-2">
-        {(
-          ["all", "bourses", "programmes", "stages", "concours", "ressources"] as SubCatFilter[]
-        ).map((s) => {
-          const count = pillCounts[s] ?? 0;
-          // Hide pills with zero count (except "all")
-          if (s !== "all" && count === 0) return null;
-          return (
-            <button
-              key={s}
-              onClick={() => setSubCat(s)}
-              className={[
-                "rounded-full px-3.5 py-1.5 text-sm font-medium transition",
-                subCat === s
-                  ? "bg-brand-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
-              ].join(" ")}
-            >
-              {SUBCAT_LABELS[s][lang]}
-              <span className="ml-1.5 text-xs opacity-70">({count})</span>
-            </button>
-          );
-        })}
-        </div>
-      </div>
-
-      {/* Sort controls row */}
-      <div className="section-shell p-4">
-      <div className="relative z-10 flex flex-wrap items-center gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-slate-400">
-            {lang === "fr" ? "Trier :" : "Triye :"}
-          </span>
-          {(["deadline", "relevance", "latest"] as SortMode[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={[
-                "rounded-full px-3 py-1 text-sm font-medium transition",
-                sort === s
-                  ? "bg-brand-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
-              ].join(" ")}
-            >
-              {SORT_LABELS[s][lang]}
-            </button>
-          ))}
-        </div>
-
-        {sort === "deadline" && (
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+    <div className="space-y-3 sm:space-y-4">
+      {/* Unified controls */}
+      <div className="section-shell p-3 sm:p-4">
+        <div className="relative z-10 space-y-3">
+          <div className="flex flex-wrap items-center gap-3">
             <input
-              type="checkbox"
-              checked={includeNoDeadline}
-              onChange={(e) => setIncludeNoDeadline(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
+              className="min-w-[190px] flex-1 rounded-lg border border-gray-200/80 bg-white/80 px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-400"
             />
-            {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
-          </label>
-        )}
+            <span className="text-[11px] text-gray-400 dark:text-slate-500 sm:text-xs">
+              {sorted.length} {lang === "fr" ? "résultat(s)" : "rezilta"}
+            </span>
+          </div>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-          <input
-            type="checkbox"
-            checked={showExpired}
-            onChange={(e) => setShowExpired(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
-          />
-          {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
-        </label>
-        <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">
-          {sorted.length} {lang === "fr" ? "résultat(s)" : "rezilta"}
-        </span>
-      </div>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {(
+              ["all", "bourses", "programmes", "stages", "concours", "ressources"] as SubCatFilter[]
+            ).map((s) => {
+              const count = pillCounts[s] ?? 0;
+              // Hide pills with zero count (except "all")
+              if (s !== "all" && count === 0) return null;
+              return (
+                <button
+                  key={s}
+                  onClick={() => setSubCat(s)}
+                  className={[
+                    "rounded-full px-2.5 py-1 text-xs font-medium transition sm:px-3 sm:py-1.5 sm:text-sm",
+                    subCat === s
+                      ? "bg-brand-600 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                  ].join(" ")}
+                >
+                  {SUBCAT_LABELS[s][lang]}
+                  <span className="ml-1.5 text-xs opacity-70">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <span className="hidden text-sm text-gray-500 dark:text-slate-400 sm:inline">
+              {lang === "fr" ? "Trier :" : "Triye :"}
+            </span>
+            {(["deadline", "relevance", "latest"] as SortMode[]).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSort(s)}
+                className={[
+                  "rounded-full px-2.5 py-1 text-xs font-medium transition sm:px-3 sm:text-sm",
+                  sort === s
+                    ? "bg-brand-600 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                ].join(" ")}
+              >
+                {SORT_LABELS[s][lang]}
+              </button>
+            ))}
+
+            {sort === "deadline" && (
+              <label className="ml-1 flex cursor-pointer items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 sm:gap-2 sm:text-sm">
+                <input
+                  type="checkbox"
+                  checked={includeNoDeadline}
+                  onChange={(e) => setIncludeNoDeadline(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
+                />
+                {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
+              </label>
+            )}
+
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 sm:gap-2 sm:text-sm">
+              <input
+                type="checkbox"
+                checked={showExpired}
+                onChange={(e) => setShowExpired(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
+              />
+              {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
+            </label>
+          </div>
+        </div>
       </div>
 
       {/* Results */}
@@ -276,7 +270,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
           {sorted.map((entry) => (
             <OpportunityCard
               key={entry.article.id}

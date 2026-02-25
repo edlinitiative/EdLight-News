@@ -122,7 +122,7 @@ export default async function BoursesPage({
   const langQ = lang === "ht" ? "?lang=ht" : "";
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <section className="mx-auto max-w-6xl px-2 sm:px-0">
         <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/80 sm:p-8">
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-100/70 blur-3xl dark:bg-brand-900/30" />
@@ -203,9 +203,9 @@ export default async function BoursesPage({
 
       {/* Start-Here orientation block (hidden when filters active) */}
       {!hasActiveFilters && (
-        <section className="mx-auto max-w-6xl space-y-5 px-2 sm:px-0">
+        <section className="mx-auto max-w-6xl space-y-4 px-2 sm:px-0">
           <ScholarshipStartHere lang={lang} />
-          <div className="flex items-center gap-4 py-2">
+          <div className="flex items-center gap-4 py-1">
             <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
             <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500">
               {fr ? "Ou explorez toutes les bourses" : "Oswa eksplore tout bous yo"}

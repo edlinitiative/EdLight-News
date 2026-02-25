@@ -14,8 +14,9 @@ export async function getByDate(dateISO) {
 /** Create or update the log entry for today. */
 export async function upsert(data) {
     const ref = collection().doc(data.dateISO);
+    const cleanData = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
     await ref.set({
-        ...data,
+        ...cleanData,
         createdAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     const snap = await ref.get();

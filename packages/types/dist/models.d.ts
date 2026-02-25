@@ -328,6 +328,17 @@ export interface HaitiHistoryAlmanacEntry {
     /** 1-sentence student takeaway */
     student_takeaway_fr: string;
     tags?: AlmanacTag[];
+    /** Optional historical illustration (stored server-side). */
+    illustration?: {
+        imageUrl: string;
+        pageUrl: string;
+        pageTitle?: string;
+        provider?: "wikimedia_commons" | "manual";
+        author?: string;
+        license?: string;
+        /** 0-1 confidence that the illustration matches the fact. */
+        confidence?: number;
+    };
     sources: DatasetCitation[];
     confidence: AlmanacConfidence;
     createdBy: AlmanacCreatedBy;

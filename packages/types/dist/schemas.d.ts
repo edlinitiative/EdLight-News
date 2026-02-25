@@ -4003,6 +4003,31 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
     summary_fr: z.ZodString;
     student_takeaway_fr: z.ZodString;
     tags: z.ZodOptional<z.ZodArray<z.ZodEnum<["independence", "culture", "education", "politics", "science", "military", "economy", "literature", "art", "religion", "sports", "disaster", "diplomacy", "resistance", "revolution"]>, "many">>;
+    illustration: z.ZodOptional<z.ZodObject<{
+        imageUrl: z.ZodString;
+        pageUrl: z.ZodString;
+        pageTitle: z.ZodOptional<z.ZodString>;
+        provider: z.ZodOptional<z.ZodEnum<["wikimedia_commons", "manual"]>>;
+        author: z.ZodOptional<z.ZodString>;
+        license: z.ZodOptional<z.ZodString>;
+        confidence: z.ZodOptional<z.ZodNumber>;
+    }, "strip", z.ZodTypeAny, {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    }, {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    }>>;
     sources: z.ZodArray<z.ZodObject<{
         label: z.ZodString;
         url: z.ZodString;
@@ -4057,6 +4082,15 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
     createdBy: "seed" | "admin" | "intern" | "import";
     tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
     year?: number | null | undefined;
+    illustration?: {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    } | undefined;
 }, {
     id: string;
     updatedAt: {
@@ -4079,6 +4113,15 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
     createdBy: "seed" | "admin" | "intern" | "import";
     tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
     year?: number | null | undefined;
+    illustration?: {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    } | undefined;
 }>;
 export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
     id: z.ZodString;
@@ -4088,6 +4131,31 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
     summary_fr: z.ZodString;
     student_takeaway_fr: z.ZodString;
     tags: z.ZodOptional<z.ZodArray<z.ZodEnum<["independence", "culture", "education", "politics", "science", "military", "economy", "literature", "art", "religion", "sports", "disaster", "diplomacy", "resistance", "revolution"]>, "many">>;
+    illustration: z.ZodOptional<z.ZodObject<{
+        imageUrl: z.ZodString;
+        pageUrl: z.ZodString;
+        pageTitle: z.ZodOptional<z.ZodString>;
+        provider: z.ZodOptional<z.ZodEnum<["wikimedia_commons", "manual"]>>;
+        author: z.ZodOptional<z.ZodString>;
+        license: z.ZodOptional<z.ZodString>;
+        confidence: z.ZodOptional<z.ZodNumber>;
+    }, "strip", z.ZodTypeAny, {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    }, {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    }>>;
     sources: z.ZodArray<z.ZodObject<{
         label: z.ZodString;
         url: z.ZodString;
@@ -4133,6 +4201,15 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
     createdBy: "seed" | "admin" | "intern" | "import";
     tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
     year?: number | null | undefined;
+    illustration?: {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    } | undefined;
 }, {
     confidence: "high" | "medium";
     sources: {
@@ -4146,6 +4223,15 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
     createdBy: "seed" | "admin" | "intern" | "import";
     tags?: ("independence" | "culture" | "education" | "politics" | "science" | "military" | "economy" | "literature" | "art" | "religion" | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution")[] | undefined;
     year?: number | null | undefined;
+    illustration?: {
+        imageUrl: string;
+        pageUrl: string;
+        license?: string | undefined;
+        confidence?: number | undefined;
+        pageTitle?: string | undefined;
+        provider?: "wikimedia_commons" | "manual" | undefined;
+        author?: string | undefined;
+    } | undefined;
 }>;
 export type CreateHaitiHistoryAlmanacEntry = z.infer<typeof createHaitiHistoryAlmanacEntrySchema>;
 export declare const haitiHolidaySchema: z.ZodObject<{
