@@ -336,7 +336,7 @@ export default async function AccueilPage({
     <div className="space-y-5">
       <TabPanelBanner
         icon={<DollarSign className="h-5 w-5" />}
-        title={fr ? "Bourses ouvertes à surveiller" : "Bous ouvè pou swiv"}
+        title={fr ? "Bourses à surveiller" : "Bous pou swiv"}
         subtitle={
           fr
             ? "Priorité aux dates limites proches et opportunités directement actionnables."
@@ -804,32 +804,31 @@ export default async function AccueilPage({
       </section>
 
       {/* ── DASHBOARD TABS ──────────────────────────────────────────────── */}
-      <section className="section-shell space-y-4">
-        <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+      <section className="section-shell space-y-6">
+        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-1">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
               {fr ? "Actions prioritaires" : "Aksyon priyoritè"}
             </p>
-            <h2 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-              {fr ? "Tableau de bord interactif" : "Tablo entèaktif"}
+            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
+              {fr ? "Agir rapidement" : "Aji rapid"}
             </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            <p className="text-sm text-gray-500 dark:text-slate-400 sm:text-base">
               {fr
-                ? "Passe d’une vue à l’autre pour agir rapidement : bourses, calendrier, parcours, histoire et inspirations."
-                : "Chanje ant diferan vi yo pou aji vit: bous, kalandriye, pakou, istwa ak enspirasyon."}
+                ? "Un seul espace pour tes bourses, échéances, parcours, histoire et nouvelles utiles."
+                : "Yon sèl espas pou bous, dat limit, pakou, istwa ak nouvèl itil ou yo."}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex rounded-full border border-amber-200/80 bg-amber-50/80 px-3 py-1 text-xs font-semibold text-amber-800 dark:border-amber-800/30 dark:bg-amber-900/20 dark:text-amber-300">
-              {fr ? `${topUrgent.length} urgences` : `${topUrgent.length} ijans`}
-            </span>
-            <span className="inline-flex rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-medium text-gray-600 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-400">
-              {fr ? "Auto-rotation + swipe" : "Wotasyon + glise"}
-            </span>
+          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-amber-100/80 px-3.5 py-1.5 text-xs font-semibold text-amber-900 dark:bg-amber-900/25 dark:text-amber-300">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {fr ? `${topUrgent.length} urgences cette semaine` : `${topUrgent.length} ijans semèn sa`}
           </div>
         </div>
-        <div className="relative z-10 rounded-2xl border border-gray-200/70 bg-white/65 p-4 shadow-inner shadow-gray-100/40 dark:border-slate-700/60 dark:bg-slate-900/45 dark:shadow-none sm:p-5">
+        <div className="relative z-10 rounded-3xl bg-gradient-to-b from-white to-gray-50/80 p-4 ring-1 ring-gray-200/70 dark:from-slate-900/80 dark:to-slate-900/50 dark:ring-slate-700/60 sm:p-6">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-2xl bg-gradient-to-b from-white/70 to-transparent dark:from-slate-800/30" />
+          <p className="relative mb-4 text-xs font-medium text-gray-500 dark:text-slate-400">
+            {fr ? "Choisis un onglet pour afficher uniquement l’information utile maintenant." : "Chwazi yon onglet pou wè sèlman enfòmasyon ki itil pou ou kounye a."}
+          </p>
           <DashboardTabs
             lang={lang}
             panels={{

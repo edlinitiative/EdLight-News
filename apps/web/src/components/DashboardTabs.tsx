@@ -21,7 +21,7 @@ import {
 // ── Tab definitions ──────────────────────────────────────────────────────────
 
 const TAB_DEFS = [
-  { id: "bourses", fr: "Bourses ouvertes", ht: "Bous ouvè", Icon: DollarSign },
+  { id: "bourses", fr: "Bourses", ht: "Bous", Icon: DollarSign },
   { id: "calendrier", fr: "Calendrier", ht: "Kalandriye", Icon: CalendarDays },
   { id: "parcours", fr: "Parcours", ht: "Pakou", Icon: Compass },
   { id: "histoire", fr: "Histoire", ht: "Istwa", Icon: BookOpen },
@@ -43,7 +43,6 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
   const fr = lang === "fr";
   const [activeTab, setActiveTab] = useState<TabId>("bourses");
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [autoplayEnabled, setAutoplayEnabled] = useState(true);
 
   // Track which tabs have been visited — only mount those panels (perf: avoids 5 simultaneous API calls)
   const [mountedTabs, setMountedTabs] = useState<Set<TabId>>(new Set(["bourses"]));
@@ -67,7 +66,6 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
   // ── Pill indicator ───────────────────────────────────────────────────────
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
-  const activeDef = TAB_DEFS.find((t) => t.id === activeTab) ?? TAB_DEFS[0];
 
   const updatePill = useCallback(() => {
     const tab = tabRefs.current.get(activeTab);
@@ -122,7 +120,6 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
     else if (e.key === "End") nextIdx = ids.length - 1;
     else return;
     e.preventDefault();
-    pauseAutoSlide();
     switchTab(ids[nextIdx]);
     tabRefs.current.get(ids[nextIdx])?.focus();
   };
@@ -162,48 +159,6 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
     [activeTab],
   );
 
-  // ── Auto-slide timer ─────────────────────────────────────────────────────
-  const pausedUntil = useRef(0);
-  const AUTOPLAY_MS = 8000; // calmer rotation for dashboard reading
-  const PAUSE_AFTER_INTERACT_MS = 20000; // longer pause after interaction
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setAutoplayEnabled(!media.matches);
-    update();
-    media.addEventListener?.("change", update);
-    return () => media.removeEventListener?.("change", update);
-  }, []);
-
-  useEffect(() => {
-    const onVisibility = () => {
-      if (document.hidden) {
-        pausedUntil.current = Date.now() + PAUSE_AFTER_INTERACT_MS;
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, []);
-
-  useEffect(() => {
-    if (!autoplayEnabled) return;
-    const id = setInterval(() => {
-      if (Date.now() < pausedUntil.current) return;
-      setActiveTab((prev) => {
-        const ids = TAB_DEFS.map((t) => t.id);
-        const idx = ids.indexOf(prev);
-        return ids[(idx + 1) % ids.length];
-      });
-    }, AUTOPLAY_MS);
-    return () => clearInterval(id);
-  }, [autoplayEnabled]);
-
-  // Pause auto-slide on user interaction
-  const pauseAutoSlide = useCallback(() => {
-    pausedUntil.current = Date.now() + PAUSE_AFTER_INTERACT_MS;
-  }, []);
-
   // ── Swipe on content area ────────────────────────────────────────────────
   const handleTouchStart = (e: RTE) => {
     touchStartX.current = e.touches[0].clientX;
@@ -216,22 +171,12 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
     if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)) return;
     const ids = TAB_DEFS.map((t) => t.id);
     const idx = ids.indexOf(activeTab);
-    pauseAutoSlide();
     if (dx > 0 && idx < ids.length - 1) switchTab(ids[idx + 1]);
     else if (dx < 0 && idx > 0) switchTab(ids[idx - 1]);
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
-          {fr ? "Vue active" : "Vi aktif"}
-        </p>
-        <div className="inline-flex items-center gap-2 rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200">
-          <activeDef.Icon className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-          {fr ? activeDef.fr : activeDef.ht}
-        </div>
-      </div>
+    <div className="space-y-4">
 
       {/* ── TAB STRIP ───────────────────────────────────────────────────── */}
       <div className="relative">
@@ -239,39 +184,37 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         {canScrollLeft && (
           <button
             onClick={() => scrollTabs("left")}
-            className="absolute -left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200/70 bg-white/90 shadow-md transition-all hover:bg-white dark:border-slate-700/70 dark:bg-slate-700/90 dark:hover:bg-slate-700"
+            className="absolute -left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
             aria-label="Scroll tabs left"
           >
-            <ChevronLeft className="h-4 w-4 text-gray-500 dark:text-slate-300" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
         )}
         {/* Right arrow */}
         {canScrollRight && (
           <button
             onClick={() => scrollTabs("right")}
-            className="absolute -right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200/70 bg-white/90 shadow-md transition-all hover:bg-white dark:border-slate-700/70 dark:bg-slate-700/90 dark:hover:bg-slate-700"
+            className="absolute -right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
             aria-label="Scroll tabs right"
           >
-            <ChevronRight className="h-4 w-4 text-gray-500 dark:text-slate-300" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         )}
 
         <div
           ref={scrollRef}
-          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl border border-gray-200/70 bg-gradient-to-b from-white/80 to-gray-100/80 p-1.5 dark:border-slate-700/60 dark:from-slate-800/70 dark:to-slate-800/90"
+          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl bg-gray-100/70 p-1.5 dark:bg-slate-900/55"
           style={{ cursor: "grab" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseLeave={onMouseUp}
-          onMouseEnter={pauseAutoSlide}
-          onFocusCapture={pauseAutoSlide}
           role="tablist"
           aria-label={fr ? "Sections du tableau de bord" : "Seksyon tablo a"}
         >
           {/* Animated pill indicator */}
           <span
-            className="absolute top-1.5 z-0 h-[calc(100%-12px)] rounded-xl bg-white shadow-lg ring-1 ring-black/[0.04] transition-all duration-300 ease-out dark:bg-slate-700 dark:ring-white/[0.06]"
+            className="absolute top-1.5 z-0 h-[calc(100%-12px)] rounded-xl bg-white shadow-sm transition-all duration-300 ease-out dark:bg-slate-700"
             style={{ left: pillStyle.left, width: pillStyle.width }}
           />
 
@@ -284,7 +227,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
                 ref={(el) => {
                   if (el) tabRefs.current.set(tab.id, el);
                 }}
-                onClick={() => { pauseAutoSlide(); switchTab(tab.id); }}
+                onClick={() => switchTab(tab.id)}
                 onKeyDown={(e) => onKeyDownTab(e, tab.id)}
                 role="tab"
                 aria-selected={isActive}
@@ -294,7 +237,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
                 className={[
                   "relative z-10 flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 select-none",
                   isActive
-                    ? "text-brand-600 dark:text-brand-400"
+                    ? "text-brand-700 dark:text-brand-300"
                     : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200",
                 ].join(" ")}
               >
@@ -311,7 +254,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={[
-          "relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/75 p-4 transition-all duration-200 ease-out dark:border-slate-700/60 dark:bg-slate-900/55 sm:p-5",
+          "relative overflow-hidden rounded-2xl bg-white/95 p-4 transition-all duration-200 ease-out ring-1 ring-gray-200/70 dark:bg-slate-900/50 dark:ring-slate-700/60 sm:p-6",
           isTransitioning
             ? "translate-y-1 opacity-0"
             : "translate-y-0 opacity-100",
@@ -336,7 +279,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
           <button
             key={`${tab.id}-dot`}
             type="button"
-            onClick={() => { pauseAutoSlide(); switchTab(tab.id); }}
+            onClick={() => switchTab(tab.id)}
             aria-label={fr ? `Aller à ${tab.fr}` : `Ale nan ${tab.ht}`}
             className={[
               "h-1.5 rounded-full transition-all",
@@ -347,13 +290,6 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
           />
         ))}
       </div>
-
-      {/* ── Swipe hint (mobile) ─────────────────────────────────────────── */}
-      <p className="text-center text-[11px] text-gray-400 dark:text-slate-500 sm:hidden">
-        {autoplayEnabled
-          ? (fr ? "← Glisser pour naviguer • rotation auto →" : "← Glise pou navige • wotasyon oto →")
-          : (fr ? "← Glisser pour naviguer →" : "← Glise pou navige →")}
-      </p>
     </div>
   );
 }
