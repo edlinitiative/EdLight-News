@@ -207,11 +207,11 @@ export function HistoireArchive({
     <section className="space-y-8">
       {/* ── Section heading ── */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
           <Calendar className="mr-2 inline h-6 w-6 text-brand-600" />
           {fr ? "Explorer l\u2019histoire" : "Eksplore istwa"}
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+        <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-slate-400">
           {fr
             ? "Parcourez les événements historiques par semaine ou par mois."
             : "Navige nan evènman istorik pa semèn oswa pa mwa."}
@@ -220,14 +220,14 @@ export function HistoireArchive({
 
       {/* ── View mode toggle ── */}
       <div className="flex justify-center">
-        <div className="inline-flex rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 p-1">
+        <div className="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-slate-700 dark:bg-slate-800">
           <button
             onClick={() => setViewMode("week")}
             className={
-              "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition " +
+              "inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium transition " +
               (viewMode === "week"
-                ? "bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-400 shadow-sm"
-                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200")
+                ? "bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-400"
+                : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200")
             }
           >
             📅 {fr ? "Semaine" : "Semèn"}
@@ -235,10 +235,10 @@ export function HistoireArchive({
           <button
             onClick={() => setViewMode("month")}
             className={
-              "inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition " +
+              "inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium transition " +
               (viewMode === "month"
-                ? "bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-400 shadow-sm"
-                : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200")
+                ? "bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-400"
+                : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200")
             }
           >
             🗓️ {fr ? "Mois" : "Mwa"}
@@ -247,11 +247,11 @@ export function HistoireArchive({
       </div>
 
       {/* ── Tag filter pills (both views) ── */}
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-2.5">
         <button
           onClick={() => setTag("")}
           className={
-            "rounded-full px-4 py-1.5 text-xs font-medium transition " +
+            "rounded-full px-4 py-1.5 text-xs font-semibold transition " +
             (tag === ""
               ? "bg-brand-700 text-white shadow-sm"
               : "border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700")
@@ -267,7 +267,7 @@ export function HistoireArchive({
               key={t}
               onClick={() => setTag(isActive ? "" : t)}
               className={
-                "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-medium transition " +
+                "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold transition " +
                 (isActive
                   ? "bg-brand-700 text-white shadow-sm"
                   : `border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 ${tl.color}`)
@@ -328,7 +328,14 @@ export function HistoireArchive({
 
           {/* Day cards */}
           {!loading && fetched && (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-7">
+            <>
+              <div className="text-center text-xs text-gray-500 dark:text-slate-400">
+                {fr
+                  ? "Vue hebdomadaire optimisée pour la lecture : cartes plus larges et plus lisibles."
+                  : "Vizyalizasyon semèn nan optimize pou lekti: kat yo pi laj, pi fasil pou li."}
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {weekDays.map((md, i) => {
                 const dl = weekDayLabels[i];
                 const dayEntries = sortEntries(
@@ -341,19 +348,19 @@ export function HistoireArchive({
                 return (
                   <div
                     key={md}
-                    className="flex flex-col rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm transition hover:shadow-md"
+                    className="flex min-h-[17rem] flex-col rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     {/* Day header */}
-                    <div className="flex items-center gap-2 border-b border-gray-100 dark:border-slate-700 px-4 py-3">
-                      <div className="flex h-10 w-10 flex-col items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400">
+                    <div className="flex items-center gap-3 border-b border-gray-100 dark:border-slate-700 px-4 py-3.5">
+                      <div className="flex h-11 w-11 flex-col items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400">
                         <span className="text-base font-bold leading-tight">
                           {dl?.dayNumber}
                         </span>
-                        <span className="text-[8px] font-semibold uppercase text-brand-400">
+                        <span className="text-[9px] font-semibold uppercase text-brand-400">
                           {dl?.monthShort}
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">
+                      <span className="text-sm font-semibold tracking-tight text-gray-700 dark:text-slate-200">
                         {dl?.dayName}
                       </span>
                     </div>
@@ -373,11 +380,11 @@ export function HistoireArchive({
                     ))}
 
                     {/* Facts */}
-                    <div className="flex flex-1 flex-col gap-3 p-3">
+                    <div className="flex flex-1 flex-col gap-3 p-4">
                       {mainFact ? (
                         <>
                           {/* Main fact */}
-                          <div className="rounded-lg border border-brand-100 dark:border-brand-800 bg-brand-50/40 dark:bg-brand-900/20 p-3">
+                          <div className="rounded-xl border border-brand-100 dark:border-brand-800 bg-brand-50/40 dark:bg-brand-900/20 p-3.5">
                             <div className="mb-1 flex flex-wrap items-center gap-1.5">
                               {mainFact.year != null && (
                                 <span className="rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">
@@ -393,11 +400,11 @@ export function HistoireArchive({
                             <h4 className="text-sm font-bold leading-snug text-gray-900 dark:text-white">
                               {mainFact.title_fr}
                             </h4>
-                            <p className="mt-1 text-xs leading-relaxed text-gray-600 dark:text-slate-300 line-clamp-3">
+                            <p className="mt-1.5 text-xs leading-relaxed text-gray-600 dark:text-slate-300 line-clamp-4">
                               {mainFact.summary_fr}
                             </p>
                             {mainFact.student_takeaway_fr && (
-                              <p className="mt-2 text-[11px] leading-relaxed text-brand-700">
+                              <p className="mt-2.5 text-[11px] leading-relaxed text-brand-700 dark:text-brand-300">
                                 💡 {mainFact.student_takeaway_fr}
                               </p>
                             )}
@@ -419,26 +426,35 @@ export function HistoireArchive({
                           </div>
 
                           {/* Secondary facts */}
-                          {secondaryFacts.map((entry) => (
-                            <div
-                              key={entry.id}
-                              className="rounded-lg border border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-700/50 px-3 py-2"
-                            >
-                              <div className="flex items-start gap-1.5">
-                                {entry.year != null && (
-                                  <span className="shrink-0 rounded bg-gray-200 dark:bg-slate-600 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:text-slate-300">
-                                    {entry.year}
-                                  </span>
-                                )}
-                                <h5 className="text-xs font-semibold leading-snug text-gray-800 dark:text-slate-200">
-                                  {entry.title_fr}
-                                </h5>
-                              </div>
-                              <p className="mt-1 text-[11px] leading-relaxed text-gray-500 dark:text-slate-400 line-clamp-1">
-                                {entry.summary_fr}
+                          {secondaryFacts.length > 0 && (
+                            <div className="rounded-xl border border-gray-100 bg-gray-50/70 p-3 dark:border-slate-700 dark:bg-slate-700/40">
+                              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                {fr ? "Autres faits" : "Lòt reyalite"}
                               </p>
+                              <div className="space-y-2">
+                                {secondaryFacts.map((entry) => (
+                                  <div
+                                    key={entry.id}
+                                    className="rounded-lg border border-gray-100 bg-white px-2.5 py-2 dark:border-slate-700 dark:bg-slate-800/70"
+                                  >
+                                    <div className="flex items-start gap-1.5">
+                                      {entry.year != null && (
+                                        <span className="shrink-0 rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-600 dark:text-slate-300">
+                                          {entry.year}
+                                        </span>
+                                      )}
+                                      <h5 className="text-xs font-semibold leading-snug text-gray-800 dark:text-slate-200">
+                                        {entry.title_fr}
+                                      </h5>
+                                    </div>
+                                    <p className="mt-1 text-[11px] leading-relaxed text-gray-500 dark:text-slate-400 line-clamp-2">
+                                      {entry.summary_fr}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          ))}
+                          )}
                         </>
                       ) : (
                         /* Empty day placeholder */
@@ -455,7 +471,8 @@ export function HistoireArchive({
                   </div>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
         </>
       )}
@@ -583,9 +600,9 @@ export function HistoireArchive({
                               </div>
 
                               {/* Entry card */}
-                              <div className="min-w-0 flex-1 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm transition hover:shadow-md sm:p-5">
+                              <div className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800 sm:p-5">
                                 <div className="flex flex-wrap items-start justify-between gap-2">
-                                  <h4 className="text-sm font-bold text-gray-900 dark:text-white sm:text-base">
+                                  <h4 className="text-sm font-bold leading-snug text-gray-900 dark:text-white sm:text-base">
                                     {entry.title_fr}
                                     {entry.year != null && (
                                       <span className="ml-1.5 rounded bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 text-xs font-medium text-gray-500 dark:text-slate-400">
@@ -594,7 +611,7 @@ export function HistoireArchive({
                                     )}
                                   </h4>
                                 </div>
-                                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-600 dark:text-slate-300">
+                                <p className="mt-2.5 line-clamp-3 text-sm leading-6 text-gray-600 dark:text-slate-300">
                                   {entry.summary_fr}
                                 </p>
                                 {entry.tags &&

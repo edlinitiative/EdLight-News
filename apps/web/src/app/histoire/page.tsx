@@ -117,7 +117,7 @@ export default async function HistoirePage({
        * ═══════════════════════════════════════════════════════════════════ */}
       <section className="relative -mx-4 -mt-8 mb-10 overflow-hidden bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 px-4 pb-10 pt-12 text-white sm:px-8">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-grid-soft opacity-10" />
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto max-w-5xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
             <Sparkles className="h-4 w-4" />
             {fr ? "Histoire & Fèt du jour" : "Istwa & Fèt jou a"}
@@ -128,7 +128,7 @@ export default async function HistoirePage({
               {formatMonthDay(todayMD, lang)}
             </span>
           </h1>
-          <p className="mt-3 text-base text-white/70 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-white/80 sm:text-lg">
             {fr
               ? "Découvrez chaque jour ce qui s\u2019est passé dans l\u2019histoire d\u2019Haïti — événements, héros, et fêtes nationales."
               : "Dekouvri chak jou sa k te pase nan istwa Ayiti — evènman, ewo, ak fèt nasyonal."}
@@ -157,7 +157,7 @@ export default async function HistoirePage({
       {/* ═══════════════════════════════════════════════════════════════════
        *  SECTION A — Today's entries — timeline style
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto max-w-4xl px-2 sm:px-0">
+      <section className="mx-auto max-w-5xl px-2 sm:px-0">
         {todayEntries.length > 0 ? (
           <div className="relative">
             {/* Timeline connector line */}
@@ -165,7 +165,7 @@ export default async function HistoirePage({
               <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-brand-300 via-brand-200 to-transparent sm:left-6" />
             )}
 
-            <div className="space-y-8">
+            <div className="space-y-10">
               {todayEntries
                 .sort((a, b) => {
                   if (a.confidence === "high" && b.confidence !== "high") return -1;
@@ -185,7 +185,7 @@ export default async function HistoirePage({
                     </div>
 
                     {/* Card */}
-                    <div className="premium-card min-w-0 flex-1 p-5 sm:p-6">
+                    <div className="premium-card min-w-0 flex-1 p-6 sm:p-7">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         {entry.year != null && (
                           <span className="rounded-md bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
@@ -199,11 +199,11 @@ export default async function HistoirePage({
                         )}
                       </div>
 
-                      <h2 className="text-lg font-bold text-gray-900 dark:text-white sm:text-xl">
+                      <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
                         {entry.title_fr}
                       </h2>
 
-                      <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-slate-300 sm:text-base">
+                      <p className="mt-3 text-sm leading-7 text-gray-600 dark:text-slate-300 sm:text-base">
                         {entry.summary_fr}
                       </p>
 
@@ -234,7 +234,7 @@ export default async function HistoirePage({
                         })}
                       </div>
 
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4 dark:border-slate-700/80">
                         <MetaBadges
                           verifiedAt={entry.verifiedAt}
                           updatedAt={entry.updatedAt}
@@ -281,7 +281,7 @@ export default async function HistoirePage({
       {/* ═══════════════════════════════════════════════════════════════════
        *  SECTION B — Explorer l'histoire (weekly/monthly archive)
        * ═══════════════════════════════════════════════════════════════════ */}
-      <section className="mx-auto mt-14 max-w-4xl">
+      <section className="mx-auto mt-14 max-w-6xl">
         <div className="section-shell">
         <Suspense
           fallback={
