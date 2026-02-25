@@ -357,7 +357,7 @@ export function CalendarFilterTabs({
       </section>
 
       {/* ── Two-column layout: timeline + mini grid ───────────────────────────── */}
-      <div className="md:grid md:grid-cols-[minmax(0,1fr)_18rem] md:items-start md:gap-8 xl:gap-10">
+      <div className="md:grid md:grid-cols-[minmax(0,1fr)_16rem] lg:grid-cols-[minmax(0,1fr)_18rem] md:items-start md:gap-8 xl:gap-10">
         {/* Main timeline */}
         <div className="min-w-0 flex-1 space-y-6">
           {buckets.urgent.length > 0 && (
@@ -402,7 +402,7 @@ export function CalendarFilterTabs({
         </div>
 
         {/* Sidebar filters + mini month grid — desktop only */}
-        <div className="hidden md:block md:w-72 md:shrink-0">
+        <div className="hidden md:block md:w-64 lg:w-72 md:shrink-0">
           <div className="sticky top-20 space-y-3">
             <section className="section-shell p-3.5">
               <div className="relative z-10 space-y-3">
