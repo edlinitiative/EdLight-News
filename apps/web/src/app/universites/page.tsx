@@ -105,9 +105,9 @@ export default async function UniversitesPage({
       </section>
 
       <section className="section-shell">
-        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start xl:grid-cols-1 xl:pl-80">
+        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start xl:grid-cols-[300px_minmax(0,1fr)]">
           {/* Sidebar filters */}
-          <aside className="premium-glass p-4 lg:sticky lg:top-24 xl:fixed xl:left-0 xl:top-28 xl:z-30 xl:max-h-[calc(100vh-8rem)] xl:w-72 xl:overflow-y-auto">
+          <aside className="premium-glass p-4 lg:sticky lg:top-24 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
             <h2 className="text-sm font-semibold tracking-wide text-gray-800 dark:text-slate-100">
               {fr ? "Filtres" : "Filtè"}
             </h2>
@@ -180,7 +180,7 @@ export default async function UniversitesPage({
           </aside>
 
           {/* University cards by country */}
-          <div className="space-y-8 xl:pl-3">
+          <div className="space-y-8">
             {countries.map((countryKey) => {
               const unis = grouped[countryKey] ?? [];
               const cl = COUNTRY_LABELS[countryKey];
