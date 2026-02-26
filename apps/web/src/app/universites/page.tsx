@@ -107,7 +107,7 @@ export default async function UniversitesPage({
       <section className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start">
           {/* Sidebar filters */}
-          <aside className="premium-glass p-4 lg:sticky lg:top-24">
+          <aside className="premium-glass p-4 lg:sticky lg:top-24 xl:fixed xl:left-4 xl:top-28 xl:z-30 xl:max-h-[calc(100vh-8rem)] xl:w-72 xl:overflow-y-auto">
             <h2 className="text-sm font-semibold tracking-wide text-gray-800 dark:text-slate-100">
               {fr ? "Filtres" : "Filtè"}
             </h2>

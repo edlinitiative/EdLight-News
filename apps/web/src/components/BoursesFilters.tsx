@@ -452,7 +452,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
       <div className="grid gap-5 md:grid-cols-[260px,minmax(0,1fr)] xl:grid-cols-[300px,minmax(0,1fr)]">
         <aside>
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 md:sticky md:top-36">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 md:sticky md:top-36 xl:fixed xl:left-4 xl:top-28 xl:z-30 xl:max-h-[calc(100vh-8rem)] xl:w-72 xl:overflow-y-auto">
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
