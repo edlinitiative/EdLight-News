@@ -7,6 +7,7 @@
  */
 
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CalendarDays, ExternalLink, Sparkles, Clock3, Globe2 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
@@ -23,18 +24,33 @@ import { CalendarFilterTabs } from "./filter-tabs";
 import { getCalendarGeo, type CalendarGeo } from "@/lib/calendarGeo";
 import { getCalendarAudience, type CalendarAudience } from "@/lib/calendarAudience";
 import type { HaitiCalendarItem, IntlCalendarItem } from "@/components/calendar/types";
+import { tsToISONull } from "@/lib/dates";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}): Promise<Metadata> {
+  const lang = getLangFromSearchParams(searchParams);
+  const fr = lang === "fr";
+  const title = fr ? "Calendrier · EdLight News" : "Kalandriye · EdLight News";
+  const description = fr
+    ? "Dates limites, événements et calendrier académique pour étudiants haïtiens."
+    : "Dat limit, evènman ak kalandriye akademik pou elèv ayisyen.";
+  return {
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/calendrier", lang }),
+  };
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Convert a Firestore Timestamp (any shape) to an ISO string safe for the client. */
-function tsToISO(v: unknown): string | null {
-  if (!v || typeof v !== "object") return null;
-  const t = v as { seconds?: number; _seconds?: number; toDate?: () => Date };
-  const secs = t.seconds ?? t._seconds;
-  return secs ? new Date(secs * 1000).toISOString() : null;
-}
+// tsToISO imported from shared @/lib/dates
+const tsToISO = tsToISONull;
 
 // ─── Legacy deadline row ──────────────────────────────────────────────────────
 

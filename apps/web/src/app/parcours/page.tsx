@@ -11,6 +11,7 @@ import { MapPin, Sparkles, Compass, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 900;
 
@@ -21,11 +22,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Parcours · EdLight News" : "Pakou · EdLight News";
+  const description = fr
+    ? "Guides étape par étape pour étudier à l'étranger depuis Haïti."
+    : "Gid etap pa etap pou etidye aletranje depi Ayiti.";
   return {
-    title: fr ? "Parcours · EdLight News" : "Pakou · EdLight News",
-    description: fr
-      ? "Guides étape par étape pour étudier à l'étranger depuis Haïti."
-      : "Gid etap pa etap pou etidye aletranje depi Ayiti.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/parcours", lang }),
   };
 }
 

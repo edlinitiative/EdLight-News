@@ -13,6 +13,7 @@ import { BookOpen, Sparkles, Library } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -23,11 +24,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Ressources · EdLight News" : "Resous · EdLight News";
+  const description = fr
+    ? "Guides, carrière, étudier à l'étranger, histoire — tout pour les étudiants haïtiens."
+    : "Gid, karyè, etidye aletranje, istwa — tout pou elèv ayisyen.";
   return {
-    title: fr ? "Ressources · EdLight News" : "Resous · EdLight News",
-    description: fr
-      ? "Guides, carrière, étudier à l'étranger, histoire — tout pour les étudiants haïtiens."
-      : "Gid, karyè, etidye aletranje, istwa — tout pou elèv ayisyen.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/ressources", lang }),
   };
 }
 

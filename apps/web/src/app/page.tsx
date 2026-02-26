@@ -68,6 +68,7 @@ import {
 import { getCalendarGeo } from "@/lib/calendarGeo";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { buildOgMetadata } from "@/lib/og";
 
 const DashboardTabs = dynamic(
   () => import("@/components/DashboardTabs").then((m) => m.DashboardTabs),
@@ -88,13 +89,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr
+    ? "EdLight News — Actualités éducatives pour étudiants haïtiens"
+    : "EdLight News — Nouvèl edikasyon pou elèv ayisyen yo";
+  const description = fr
+    ? "Bourses, calendrier, ressources et actualités pour les étudiants haïtiens."
+    : "Bous, kalandriye, resous ak nouvèl pou elèv ayisyen yo.";
   return {
-    title: fr
-      ? "EdLight News — Actualités éducatives pour étudiants haïtiens"
-      : "EdLight News — Nouvèl edikasyon pou elèv ayisyen yo",
-    description: fr
-      ? "Bourses, calendrier, ressources et actualités pour les étudiants haïtiens."
-      : "Bous, kalandriye, resous ak nouvèl pou elèv ayisyen yo.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/", lang }),
   };
 }
 

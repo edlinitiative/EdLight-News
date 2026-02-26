@@ -6,6 +6,7 @@ import { fetchEnrichedArticles } from "@/lib/feed";
 import { rankFeed } from "@/lib/ranking";
 import { getLangFromSearchParams } from "@/lib/content";
 import { Suspense } from "react";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -16,11 +17,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Fil — Actualités · EdLight News" : "Fil — Nouvèl · EdLight News";
+  const description = fr
+    ? "Toute l'actualité éducative pour les étudiants haïtiens."
+    : "Tout nouvèl edikasyon pou elèv ayisyen yo.";
   return {
-    title: fr ? "Fil — Actualités · EdLight News" : "Fil — Nouvèl · EdLight News",
-    description: fr
-      ? "Toute l'actualité éducative pour les étudiants haïtiens."
-      : "Tout nouvèl edikasyon pou elèv ayisyen yo.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/news", lang }),
   };
 }
 

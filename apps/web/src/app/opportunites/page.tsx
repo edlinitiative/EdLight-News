@@ -13,6 +13,7 @@ import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -23,11 +24,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Opportunités · EdLight News" : "Okazyon · EdLight News";
+  const description = fr
+    ? "Bourses, concours, stages et programmes pour étudiants haïtiens."
+    : "Bous, konkou, estaj ak pwogram pou elèv ayisyen.";
   return {
-    title: fr ? "Opportunités · EdLight News" : "Okazyon · EdLight News",
-    description: fr
-      ? "Bourses, concours, stages et programmes pour étudiants haïtiens."
-      : "Bous, konkou, estaj ak pwogram pou elèv ayisyen.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/opportunites", lang }),
   };
 }
 

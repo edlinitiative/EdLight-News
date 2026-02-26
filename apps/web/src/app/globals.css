@@ -54,14 +54,13 @@
     @apply ring-brand-400 ring-offset-slate-900;
   }
 
-  /* Smooth transitions for all theme-dependent elements */
-  * {
+  /* Smooth theme transitions — scoped to interactive & themed elements.
+     Avoids blanket * selector which causes unnecessary repaints. */
+  a, button, input, select, textarea, summary,
+  [role="button"], [tabindex]:not([tabindex="-1"]),
+  .premium-card, .section-shell, .premium-glass,
+  nav, header, footer, aside {
     @apply transition-colors duration-150;
-  }
-
-  /* Override transition for elements that shouldn't animate color */
-  img, video, canvas, svg {
-    transition: none !important;
   }
 }
 

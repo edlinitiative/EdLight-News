@@ -28,6 +28,8 @@ import { fetchScholarship, COUNTRY_LABELS } from "@/lib/datasets";
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
+import { MONTH_NAMES_FR as SHARED_MONTH_NAMES_FR, formatDateLocalized } from "@/lib/dates";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -37,8 +39,14 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   const scholarship = await fetchScholarship(params.id);
+  const title = scholarship ? `${scholarship.name} | Bourses | EdLight News` : "Bourse introuvable";
   return {
-    title: scholarship ? `${scholarship.name} | Bourses | EdLight News` : "Bourse introuvable",
+    title,
+    ...buildOgMetadata({
+      title,
+      description: scholarship?.eligibilitySummary ?? "",
+      path: `/bourses/${params.id}`,
+    }),
   };
 }
 
@@ -57,22 +65,12 @@ const LEVEL_LABELS: Record<string, { fr: string; ht: string }> = {
   short_programs: { fr: "Courts programmes", ht: "Pwogram kout" },
 };
 
-const MONTH_NAMES_FR = [
-  "", "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-];
+// Month names from shared utility
+const MONTH_NAMES_FR = [...SHARED_MONTH_NAMES_FR];
 
-function formatDate(iso: string, lang: ContentLanguage): string {
-  try {
-    return new Date(iso).toLocaleDateString(lang === "fr" ? "fr-FR" : "fr-HT", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return iso;
-  }
-}
+// formatDate delegated to shared utility
+const formatDate = (iso: string, lang: ContentLanguage) =>
+  formatDateLocalized(iso, lang);
 
 export default async function ScholarshipDetailPage({
   params,

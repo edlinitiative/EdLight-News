@@ -21,6 +21,8 @@ import {
 import { BoursesFilters, type SerializedScholarship } from "@/components/BoursesFilters";
 import { ScholarshipStartHere } from "@/components/ScholarshipStartHere";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
+import { tsToISO as sharedTsToISO, formatDateLocalized } from "@/lib/dates";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -31,23 +33,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Bourses & Opportunités · EdLight News" : "Bous & Opòtinite · EdLight News";
+  const description = fr
+    ? "Base de données de bourses et opportunités pour étudiants haïtiens."
+    : "Baz done bous ak opòtinite pou elèv ayisyen yo.";
   return {
-    title: fr ? "Bourses & Opportunités · EdLight News" : "Bous & Opòtinite · EdLight News",
-    description: fr
-      ? "Base de données de bourses et opportunités pour étudiants haïtiens."
-      : "Baz done bous ak opòtinite pou elèv ayisyen yo.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/bourses", lang }),
   };
 }
 
-// ── Timestamp → ISO string helper ──────────────────────────────────────────
-
-function tsToISO(v: unknown): string | undefined {
-  if (!v || typeof v !== "object") return undefined;
-  const t = v as { seconds?: number; _seconds?: number };
-  const secs = t.seconds ?? t._seconds;
-  if (typeof secs !== "number") return undefined;
-  return new Date(secs * 1000).toISOString();
-}
+// tsToISO imported from @/lib/dates
+const tsToISO = sharedTsToISO;
 
 function serializeScholarship(s: Scholarship): SerializedScholarship {
   return {
@@ -80,17 +78,9 @@ function serializeScholarship(s: Scholarship): SerializedScholarship {
   };
 }
 
-function formatDateBanner(iso: string, lang: ContentLanguage): string {
-  try {
-    return new Date(iso).toLocaleDateString(lang === "fr" ? "fr-FR" : "fr-HT", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return iso;
-  }
-}
+// formatDateBanner delegated to shared utility
+const formatDateBanner = (iso: string, lang: ContentLanguage) =>
+  formatDateLocalized(iso, lang);
 
 export default async function BoursesPage({
   searchParams,

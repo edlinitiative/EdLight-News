@@ -16,6 +16,7 @@ import {
 } from "@/lib/datasets";
 import { MetaBadges } from "@/components/MetaBadges";
 import Link from "next/link";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 900;
 
@@ -26,11 +27,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Universités · EdLight News" : "Inivèsite · EdLight News";
+  const description = fr
+    ? "Base de données d'universités pour étudiants haïtiens."
+    : "Baz done inivèsite pou elèv ayisyen yo.";
   return {
-    title: fr ? "Universités · EdLight News" : "Inivèsite · EdLight News",
-    description: fr
-      ? "Base de données d'universités pour étudiants haïtiens."
-      : "Baz done inivèsite pou elèv ayisyen yo.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/universites", lang }),
   };
 }
 

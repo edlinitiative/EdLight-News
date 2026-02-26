@@ -14,6 +14,7 @@ import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { getItemGeo } from "@/lib/itemGeo";
 import { HaitiFeed } from "@/components/HaitiFeed";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -24,11 +25,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Haïti · EdLight News" : "Ayiti · EdLight News";
+  const description = fr
+    ? "Nouvelles locales et actualités éducatives directement d'Haïti."
+    : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti.";
   return {
-    title: fr ? "Haïti · EdLight News" : "Ayiti · EdLight News",
-    description: fr
-      ? "Nouvelles locales et actualités éducatives directement d'Haïti."
-      : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/haiti", lang }),
   };
 }
 

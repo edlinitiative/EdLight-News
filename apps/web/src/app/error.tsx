@@ -29,6 +29,9 @@ export default function GlobalError({
         Nous n&apos;avons pas pu charger cette page. Veuillez réessayer dans
         quelques instants.
       </p>
+      <p className="text-sm text-gray-500 dark:text-slate-400">
+        Nou pa t kapab chaje paj sa a. Tanpri eseye ankò nan kèk moman.
+      </p>
       {error.digest && (
         <p className="text-xs text-gray-400">Réf\u00a0: {error.digest}</p>
       )}
@@ -36,7 +39,7 @@ export default function GlobalError({
         onClick={reset}
         className="rounded-xl bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md dark:bg-brand-500 dark:hover:bg-brand-600"
       >
-        Réessayer
+        Réessayer / Eseye ankò
       </button>
     </div>
   );

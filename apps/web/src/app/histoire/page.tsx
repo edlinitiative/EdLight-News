@@ -17,12 +17,14 @@ import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHolida
 import { getLangFromSearchParams } from "@/lib/content";
 import { MetaBadges } from "@/components/MetaBadges";
 import { HistoireArchive } from "@/components/HistoireArchive";
+import { buildOgMetadata } from "@/lib/og";
 import {
   fetchAlmanacByMonthDay,
   fetchAllHolidays,
   fetchHolidaysByMonthDay,
   getHaitiMonthDay,
 } from "@/lib/datasets";
+import { MONTH_NAMES_FR_0, MONTH_NAMES_HT_0 } from "@/lib/dates";
 
 export const revalidate = 900;
 
@@ -33,13 +35,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr
+    ? "Aujourd'hui dans l'histoire d'Haïti · EdLight News"
+    : "Jodi a nan istwa Ayiti · EdLight News";
+  const description = fr
+    ? "Éphéméride haïtienne : événements historiques, fêtes et personnalités du jour."
+    : "Efemerid ayisyen : evènman istorik, fèt ak pèsonalite jou a.";
   return {
-    title: fr
-      ? "Aujourd'hui dans l'histoire d'Haïti · EdLight News"
-      : "Jodi a nan istwa Ayiti · EdLight News",
-    description: fr
-      ? "Éphéméride haïtienne : événements historiques, fêtes et personnalités du jour."
-      : "Efemerid ayisyen : evènman istorik, fèt ak pèsonalite jou a.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/histoire", lang }),
   };
 }
 
@@ -63,14 +68,9 @@ const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> 
   revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
 };
 
-const MONTH_NAMES_FR = [
-  "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-];
-const MONTH_NAMES_HT = [
-  "janvye", "fevriye", "mas", "avril", "me", "jen",
-  "jiyè", "out", "septanm", "oktòb", "novanm", "desanm",
-];
+// Month names from shared utility (0-indexed for use with Date.getMonth())
+const MONTH_NAMES_FR = [...MONTH_NAMES_FR_0];
+const MONTH_NAMES_HT = [...MONTH_NAMES_HT_0];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

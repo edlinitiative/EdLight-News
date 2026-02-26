@@ -12,6 +12,7 @@ import { Sparkles, Award, Heart } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
+import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
 
@@ -22,11 +23,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
+  const title = fr ? "Succès & Inspiration · EdLight News" : "Siksè & Enspirasyon · EdLight News";
+  const description = fr
+    ? "Des histoires de réussite qui inspirent la communauté haïtienne."
+    : "Istwa siksè ki enspire kominote ayisyèn nan.";
   return {
-    title: fr ? "Succès & Inspiration · EdLight News" : "Siksè & Enspirasyon · EdLight News",
-    description: fr
-      ? "Des histoires de réussite qui inspirent la communauté haïtienne."
-      : "Istwa siksè ki enspire kominote ayisyèn nan.",
+    title,
+    description,
+    ...buildOgMetadata({ title, description, path: "/succes", lang }),
   };
 }
 

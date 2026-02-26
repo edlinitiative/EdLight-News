@@ -16,8 +16,14 @@ import { MetaBadges } from "@/components/MetaBadges";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
 import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
+import { buildOgMetadata } from "@/lib/og";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const articles = await contentVersionsRepo.listPublishedForWeb("fr", 100);
+  return articles.map((a: { id: string }) => ({ id: a.id }));
+}
 
 async function getArticle(id: string): Promise<ContentVersion | null> {
   return contentVersionsRepo.getContentVersion(id);
@@ -30,9 +36,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const article = await getArticle(params.id);
   if (!article) return { title: "Not found" };
+  const title = `${article.title} — EdLight News`;
+  const description = article.summary || article.body?.slice(0, 160) || "";
   return {
-    title: `${article.title} — EdLight News`,
-    description: article.summary || article.body?.slice(0, 160) || "",
+    title,
+    description,
+    ...buildOgMetadata({
+      title,
+      description,
+      path: `/news/${params.id}`,
+      type: "article",
+    }),
   };
 }
 
