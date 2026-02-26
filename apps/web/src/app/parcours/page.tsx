@@ -7,7 +7,7 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
-import { MapPin, Sparkles, Compass, ArrowRight } from "lucide-react";
+import { MapPin, Compass, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
@@ -51,51 +51,16 @@ export default async function ParcoursPage({
 
   return (
     <div className="space-y-8">
-      <section className="section-shell p-0">
-        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-40" />
-          <div className="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/15" />
-          <div className="relative grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
-                <Sparkles className="h-3.5 w-3.5" />
-                {fr ? "Guides premium" : "Gid premium"}
-              </div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-                <MapPin className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
-                {fr ? "Parcours" : "Pakou"}
-              </h1>
-              <p className="max-w-2xl text-gray-600 dark:text-slate-300">
-                {fr
-                  ? "Guides étape par étape pour étudier à l'étranger depuis Haïti, avec sources officielles et séquences claires."
-                  : "Gid etap pa etap pou etidye aletranje depi Ayiti, ak sous ofisyèl ak etap ki byen klè."}
-              </p>
-            </div>
-            <div className="premium-glass p-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Parcours" : "Pakou"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{pathways.length}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Étapes totales" : "Etap total"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">
-                    {pathways.reduce((sum, p) => sum + p.steps.length, 0)}
-                  </p>
-                </div>
-              </div>
-              <Link
-                href={`/universites${lang === "ht" ? "?lang=ht" : ""}`}
-                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200"
-              >
-                <Compass className="h-4 w-4" />
-                {fr ? "Voir les universités associées" : "Wè inivèsite yo"}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <header className="space-y-2">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          {fr ? "Parcours" : "Pakou"}
+        </h1>
+        <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+          {fr
+            ? "Guides étape par étape pour étudier à l'étranger depuis Haïti."
+            : "Gid etap pa etap pou etidye aletranje depi Ayiti."}
+        </p>
+      </header>
 
       {/* Pathway cards */}
       <div className="space-y-6">

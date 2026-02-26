@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center gap-6 px-4 text-center">
       <SearchX className="h-14 w-14 text-brand-400 dark:text-brand-500" />
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+      <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
         404
       </h1>
       <p className="text-lg text-gray-600 dark:text-slate-300">

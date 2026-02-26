@@ -129,7 +129,7 @@ export default async function ScholarshipDetailPage({
       {/* Title + Country */}
       <div className="flex items-start gap-3">
         <div className="flex-1">
-          <h1 className="text-2xl font-extrabold tracking-tight">
+          <h1 className="font-serif text-2xl font-bold tracking-tight">
             {isDirectory && <FolderOpen className="mr-1.5 inline h-6 w-6 text-indigo-500" />}
             {!isDirectory && <GraduationCap className="mr-1.5 inline h-6 w-6 text-brand-600" />}
             {s.name}

@@ -1,14 +1,30 @@
 import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
-import colors from "tailwindcss/colors";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+        serif: ["var(--font-serif)", ...defaultTheme.fontFamily.serif],
+      },
       colors: {
-        brand: colors.blue,
+        brand: {
+          50:  "#eef5ff",
+          100: "#d9e8ff",
+          200: "#bbdaff",
+          300: "#8dc3ff",
+          400: "#58a1ff",
+          500: "#3381fc",
+          600: "#1a5ff1",
+          700: "#1549de",
+          800: "#173db4",
+          900: "#19378d",
+          950: "#142356",
+        },
         surface: {
           DEFAULT: "var(--surface)",
           raised: "var(--surface-raised)",

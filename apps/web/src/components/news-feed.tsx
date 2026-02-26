@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
   formatDate,
   formatRelativeDate,
@@ -609,12 +610,31 @@ export function NewsFeed({
 
       {/* Article grid */}
       <div className="grid gap-6 sm:grid-cols-2">
-        {sorted.map((article) => (
+        {sorted.map((article, i) => (
           <Link
             key={article.id}
             href={`/news/${article.id}?lang=${lang}`}
-            className="premium-card group block p-5"
+            className={[
+              "content-card group flex overflow-hidden",
+              i === 0 ? "sm:col-span-2 sm:flex-row" : "flex-col",
+            ].join(" ")}
           >
+            {/* Image thumbnail */}
+            {article.imageUrl && (
+              <div className={[
+                "relative shrink-0 overflow-hidden bg-gray-100",
+                i === 0 ? "aspect-[3/2] sm:w-2/5" : "aspect-video w-full",
+              ].join(" ")}>
+                <ImageWithFallback
+                  src={article.imageUrl}
+                  alt=""
+                  fill
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+            )}
+            <div className="flex flex-1 flex-col p-5">
             <div className="mb-2 flex items-center gap-2">
               <CategoryBadge article={article} lang={lang} />
               {article.itemType === "synthesis" && (
@@ -640,13 +660,17 @@ export function NewsFeed({
                 </span>
               )}
             </div>
-            <h2 className="mb-2 text-lg font-semibold text-gray-900 transition-colors group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300">
+            <h2 className={[
+              "mb-2 font-semibold text-gray-900 transition-colors group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300",
+              i === 0 ? "font-serif text-xl" : "text-lg",
+            ].join(" ")}>
               {article.title}
             </h2>
             <p className="line-clamp-3 text-sm text-gray-600 dark:text-slate-300">
               {article.summary || article.body?.slice(0, 200) || ""}
             </p>
             <TrustSignals item={article} lang={lang} mounted={mounted} />
+            </div>
           </Link>
         ))}
       </div>

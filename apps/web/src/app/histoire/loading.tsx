@@ -23,7 +23,7 @@ export default function Loading() {
         <div className="h-6 w-40 rounded bg-gray-200 dark:bg-slate-700" />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="premium-card space-y-2 p-4">
+            <div key={i} className="content-card space-y-2 p-4">
               <div className="h-4 w-16 rounded bg-gray-200 dark:bg-slate-700" />
               <div className="h-3 w-full rounded bg-gray-100 dark:bg-slate-700" />
               <div className="h-3 w-2/3 rounded bg-gray-100 dark:bg-slate-700" />

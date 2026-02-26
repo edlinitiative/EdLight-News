@@ -17,7 +17,7 @@ export default function Loading() {
       </section>
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="premium-card flex items-start gap-4 p-4">
+          <div key={i} className="content-card flex items-start gap-4 p-4">
             <div className="h-14 w-14 shrink-0 rounded-lg bg-gray-200 dark:bg-slate-700" />
             <div className="flex-1 space-y-2">
               <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-slate-700" />

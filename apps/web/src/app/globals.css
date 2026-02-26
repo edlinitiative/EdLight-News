@@ -58,24 +58,30 @@
      Avoids blanket * selector which causes unnecessary repaints. */
   a, button, input, select, textarea, summary,
   [role="button"], [tabindex]:not([tabindex="-1"]),
-  .premium-card, .section-shell, .premium-glass,
-  nav, header, footer, aside {
+  .content-card, .section-shell, .glass-panel,
+  nav, header, footer, aside,
+  h1, h2, h3, p, span, li, div {
     @apply transition-colors duration-150;
+  }
+
+  /* Opt-out for media elements */
+  img, svg, video, canvas, picture {
+    transition: none !important;
   }
 }
 
 @layer components {
   /* ── Premium card base ────────────────────────────────────── */
-  .premium-card {
+  .content-card {
     @apply rounded-[14px] border border-gray-200/90 bg-white shadow-card transition-all duration-200;
   }
-  .premium-card:hover {
+  .content-card:hover {
     @apply -translate-y-0.5 border-brand-200 shadow-card-hover;
   }
-  .dark .premium-card {
+  .dark .content-card {
     @apply border-slate-700/60 bg-slate-800/85 shadow-card-dark;
   }
-  .dark .premium-card:hover {
+  .dark .content-card:hover {
     @apply border-brand-500/30 shadow-card-dark-hover;
   }
 
@@ -87,32 +93,18 @@
     @apply border-slate-700/50 bg-slate-800/70 shadow-card-dark;
   }
 
-  .premium-glass {
-    @apply rounded-2xl border border-white/70 bg-white/80 shadow-card backdrop-blur-xl;
+  .glass-panel {
+    @apply rounded-2xl border border-gray-200/70 bg-white/90 shadow-sm backdrop-blur-sm;
   }
-  .dark .premium-glass {
+  .dark .glass-panel {
     @apply border-slate-700/70 bg-slate-900/70 shadow-card-dark;
   }
 
   .section-shell {
-    @apply relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/80 p-6 shadow-card backdrop-blur-sm;
-  }
-  .section-shell::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at top right, rgb(59 130 246 / 0.08), transparent 45%),
-      radial-gradient(circle at bottom left, rgb(14 165 233 / 0.05), transparent 45%);
+    @apply relative overflow-hidden rounded-2xl border border-gray-200/70 bg-white/80 p-6 shadow-sm backdrop-blur-sm;
   }
   .dark .section-shell {
     @apply border-slate-700/60 bg-slate-900/55 shadow-card-dark;
-  }
-  .dark .section-shell::before {
-    background:
-      radial-gradient(circle at top right, rgb(96 165 250 / 0.12), transparent 45%),
-      radial-gradient(circle at bottom left, rgb(45 212 191 / 0.08), transparent 45%);
   }
 
   /* ── Tab bar scrollbar ────────────────────────────────────── */

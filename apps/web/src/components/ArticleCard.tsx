@@ -90,6 +90,8 @@ export interface ArticleCardProps {
   showDeadline?: boolean;
   /** Compact layout: no summary text, smaller heading. */
   compact?: boolean;
+  /** Visual variant for content hierarchy. */
+  variant?: "default" | "featured" | "compact";
 }
 
 export function ArticleCard({
@@ -97,6 +99,7 @@ export function ArticleCard({
   lang,
   showDeadline = false,
   compact = false,
+  variant = "default",
 }: ArticleCardProps) {
   const catInfo = derivedCategoryInfo(article, lang);
 
@@ -110,15 +113,23 @@ export function ArticleCard({
   const fallbackGradient =
     FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
 
+  // Normalize compact prop into variant
+  const v = compact ? "compact" : variant;
+  const isFeatured = v === "featured";
+  const isCompact = v === "compact";
+
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
-      className="premium-card group flex flex-col overflow-hidden"
+      className={[
+        "group flex overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/60 dark:bg-slate-900/70",
+        isFeatured ? "sm:flex-row sm:col-span-full" : "flex-col",
+      ].join(" ")}
     >
-      {/* Image / gradient thumbnail — compact uses smaller aspect ratio */}
+      {/* Image / gradient thumbnail */}
       <div className={[
-        "relative w-full overflow-hidden bg-gray-100",
-        compact ? "aspect-[2/1]" : "aspect-video",
+        "relative shrink-0 overflow-hidden bg-gray-100",
+        isFeatured ? "aspect-[3/2] sm:w-2/5" : isCompact ? "aspect-[2/1] w-full" : "aspect-video w-full",
       ].join(" ")}>
         {hasImage ? (
           <ImageWithFallback
@@ -193,16 +204,23 @@ export function ArticleCard({
         {/* Title */}
         <h2
           className={[
-            "font-semibold leading-snug transition-colors group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400",
-            compact ? "mb-1 text-sm" : "mb-2 text-base",
+            "leading-snug transition-colors group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400",
+            isFeatured
+              ? "mb-2 font-serif text-lg font-bold sm:text-xl"
+              : isCompact
+                ? "mb-1 text-sm font-semibold"
+                : "mb-2 text-base font-semibold",
           ].join(" ")}
         >
           {article.title}
         </h2>
 
         {/* Summary */}
-        {!compact && (
-          <p className="mb-3 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400">
+        {!isCompact && (
+          <p className={[
+            "mb-3 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400",
+            isFeatured ? "sm:line-clamp-3" : "",
+          ].join(" ")}>
             {article.summary || article.body?.slice(0, 150) || ""}
           </p>
         )}

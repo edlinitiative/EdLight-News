@@ -1,25 +1,35 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface ImageWithFallbackProps {
   src: string;
   alt?: string;
   className?: string;
   loading?: "lazy" | "eager";
+  /** Width hint for next/image (ignored for fill mode) */
+  width?: number;
+  /** Height hint for next/image (ignored for fill mode) */
+  height?: number;
+  /** Use fill mode instead of explicit width/height */
+  fill?: boolean;
   /** Content to render when the image fails to load */
   fallback?: React.ReactNode;
 }
 
 /**
- * Thin wrapper around <img> that hides the element (or shows a fallback)
+ * Wrapper around next/image that hides the element (or shows a fallback)
  * when the resource fails to load (404, wrong content-type, etc.).
  */
 export function ImageWithFallback({
   src,
   alt = "",
   className,
-  loading,
+  loading = "lazy",
+  width,
+  height,
+  fill,
   fallback,
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(false);
@@ -28,13 +38,21 @@ export function ImageWithFallback({
     return fallback ? <>{fallback}</> : null;
   }
 
+  // External URLs need unoptimized flag unless configured in next.config.js
+  const isExternal = src.startsWith("http");
+
   return (
-    <img
+    <Image
       src={src}
       alt={alt}
       className={className}
       loading={loading}
       onError={() => setFailed(true)}
+      {...(fill
+        ? { fill: true, sizes: "(max-width: 768px) 100vw, 50vw" }
+        : { width: width ?? 400, height: height ?? 300 }
+      )}
+      unoptimized={isExternal}
     />
   );
 }

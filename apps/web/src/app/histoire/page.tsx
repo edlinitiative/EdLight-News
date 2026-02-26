@@ -11,7 +11,7 @@
 
 import { Suspense } from "react";
 import Image from "next/image";
-import { BookOpen, Star, Sparkles } from "lucide-react";
+import { BookOpen, Star } from "lucide-react";
 import type { Metadata } from "next";
 import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -160,17 +160,14 @@ export default async function HistoirePage({
        * ═══════════════════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-6xl px-2 sm:px-0">
         <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white/95 shadow-sm dark:border-slate-700 dark:bg-slate-900/80">
-          <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-brand-100/80 blur-2xl dark:bg-brand-900/30" />
-          <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-100/70 blur-2xl dark:bg-indigo-900/30" />
 
           <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.3fr,0.9fr] lg:p-10">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700 dark:border-brand-700/40 dark:bg-brand-900/20 dark:text-brand-300">
-                <Sparkles className="h-4 w-4" />
-                {fr ? "Aujourd’hui dans l’histoire" : "Jodi a nan istwa"}
-              </div>
+              <p className="text-sm font-medium text-brand-700 dark:text-brand-300">
+                {fr ? "Aujourd'hui dans l'histoire" : "Jodi a nan istwa"}
+              </p>
 
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
                 {fr ? "Chronique du " : "Kwonik pou "}
                 <span className="text-brand-700 dark:text-brand-300">
                   {formatMonthDay(todayMD, lang)}

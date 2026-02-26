@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, memo } from "react";
 import { useTheme } from "@/lib/theme-context";
-import { Sparkles } from "lucide-react";
 
 interface GeminiHeroImageProps {
   /** The subject prompt (e.g. "scholarship awards ceremony") */
@@ -94,15 +93,7 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
         <div className="absolute inset-0 animate-pulse bg-white/10" />
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]" />
         <div className="flex h-full items-center justify-center">
-          <div className="flex flex-col items-center gap-2.5">
-            <div className="relative flex h-10 w-10 items-center justify-center">
-              <div className="absolute inset-0 animate-ping rounded-full bg-white/20" />
-              <Sparkles className="h-5 w-5 text-white/80" />
-            </div>
-            <span className="text-xs font-medium text-white/60 tracking-wide">
-              AI generating image…
-            </span>
-          </div>
+          <div className="h-8 w-8 rounded-full border-2 border-white/30 border-t-white/80 animate-spin" />
         </div>
       </div>
     );

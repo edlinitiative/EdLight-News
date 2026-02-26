@@ -78,7 +78,7 @@ export function OpportunityCard({
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "premium-card group flex flex-col overflow-hidden",
+        "content-card group flex flex-col overflow-hidden",
         isExpired ? "opacity-80" : "",
       ].join(" ")}
     >

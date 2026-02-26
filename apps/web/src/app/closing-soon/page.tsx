@@ -8,7 +8,7 @@
  */
 
 import Link from "next/link";
-import { Clock, Sparkles } from "lucide-react";
+import { Clock } from "lucide-react";
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -133,9 +133,9 @@ export default async function ClosingSoonPage({
       <section className="section-shell p-0">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/30 dark:via-slate-900 dark:to-orange-950/20 p-8 md:p-12">
           <div className="absolute top-4 right-4 text-red-200 dark:text-red-800">
-            <Sparkles className="h-16 w-16 opacity-30" />
+            <Clock className="h-16 w-16 opacity-20" />
           </div>
-          <h1 className="flex items-center gap-2 text-3xl font-extrabold tracking-tight dark:text-white">
+          <h1 className="flex items-center gap-2 font-serif text-3xl font-bold tracking-tight dark:text-white">
             <Clock className="h-7 w-7 text-red-600" />
             {fr ? "Échéances à venir" : "Dat limit k ap vini"}
           </h1>

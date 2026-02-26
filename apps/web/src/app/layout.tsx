@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
+import { Source_Serif_4, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { NavBar } from "@/components/NavBar";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
+
+const serif = Source_Serif_4({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const sans = Source_Sans_3({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "EdLight News",
@@ -19,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning className={`${serif.variable} ${sans.variable}`}>
       <head>
         <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
         <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossOrigin="anonymous" />
@@ -42,9 +55,9 @@ export default function RootLayout({
             </main>
             <footer className="mt-16 border-t border-gray-200/70 bg-white/80 py-8 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
               <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 sm:flex-row sm:justify-between">
-                <span className="inline-flex items-center gap-2 font-semibold text-brand-600 dark:text-brand-400">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white dark:bg-brand-500">E</span>
-                  EdLight News
+                <span className="inline-flex items-center gap-1.5 text-lg tracking-tight text-brand-700 dark:text-brand-300">
+                  <span className="font-serif font-bold">Ed</span><span className="font-light text-gray-400 dark:text-slate-500">Light</span>
+                  <span className="text-sm font-medium text-gray-400 dark:text-slate-500">News</span>
                 </span>
                 <span className="text-xs text-gray-400 dark:text-slate-500">
                   © {new Date().getFullYear()} EdLight Initiative

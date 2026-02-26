@@ -10,7 +10,7 @@ export default function Loading() {
       </section>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="premium-card overflow-hidden">
+          <div key={i} className="content-card overflow-hidden">
             <div className="aspect-video bg-gray-100 dark:bg-slate-700" />
             <div className="space-y-2 p-4">
               <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-slate-700" />

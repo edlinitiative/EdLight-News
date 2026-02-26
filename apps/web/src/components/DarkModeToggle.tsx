@@ -2,6 +2,7 @@
 
 import { useTheme } from "@/lib/theme-context";
 import { Moon, Sun } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function DarkModeToggle() {
   const { theme, toggle } = useTheme();
@@ -11,7 +12,7 @@ export function DarkModeToggle() {
     <button
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="group relative flex h-8 w-[52px] items-center rounded-full border border-gray-200 bg-gray-100 p-0.5 transition-all duration-300 hover:border-brand-300 hover:shadow-glow dark:border-slate-600 dark:bg-slate-700 dark:hover:border-brand-500/50"
+      className="group relative flex h-8 w-[52px] items-center rounded-full border border-gray-200 bg-gray-100 p-0.5 transition-colors hover:border-brand-300 hover:shadow-glow dark:border-slate-600 dark:bg-slate-700 dark:hover:border-brand-500/50"
     >
       {/* Track highlight */}
       <span
@@ -21,21 +22,24 @@ export function DarkModeToggle() {
         ].join(" ")}
       />
 
-      {/* Sliding knob */}
-      <span
+      {/* Sliding knob with spring physics */}
+      <motion.span
+        layout
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
         className={[
-          "relative z-10 flex h-6 w-6 items-center justify-center rounded-full shadow-md transition-all duration-300",
+          "relative z-10 flex h-6 w-6 items-center justify-center rounded-full shadow-md",
           isDark
-            ? "translate-x-[22px] bg-slate-900 ring-1 ring-brand-500/30"
-            : "translate-x-0 bg-white ring-1 ring-gray-200",
+            ? "bg-slate-900 ring-1 ring-brand-500/30"
+            : "bg-white ring-1 ring-gray-200",
         ].join(" ")}
+        style={{ x: isDark ? 22 : 0 }}
       >
         {isDark ? (
-          <Moon className="h-3.5 w-3.5 text-brand-400 transition-transform duration-300" />
+          <Moon className="h-3.5 w-3.5 text-brand-400" />
         ) : (
-          <Sun className="h-3.5 w-3.5 text-gray-500 transition-transform duration-300" />
+          <Sun className="h-3.5 w-3.5 text-gray-500" />
         )}
-      </span>
+      </motion.span>
     </button>
   );
 }

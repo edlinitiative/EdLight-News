@@ -42,7 +42,6 @@ import {
   BookOpen,
   AlertTriangle,
   ArrowRight,
-  Sparkles,
   TrendingUp,
   MapPin,
 } from "lucide-react";
@@ -117,7 +116,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h2 className="flex items-center gap-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+      <h2 className="flex items-center gap-2 font-serif text-xl font-bold tracking-tight text-gray-900 dark:text-white">
         {icon}{title}
       </h2>
       <Link
@@ -695,18 +694,12 @@ export default async function AccueilPage({
     <div className="space-y-12">
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-white p-6 shadow-card dark:border-slate-700/60 dark:bg-slate-900/70 dark:shadow-card-dark sm:p-8">
-        <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-60" />
-        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-500/20" />
-        <div className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-500/10" />
 
         <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
           <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
-              <Sparkles className="h-3.5 w-3.5" />
-              {fr ? "Dashboard étudiant premium" : "Dashboard elèv premium"}
-            </div>
+
             <div className="space-y-3">
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
                 {fr ? "Ton tableau de bord étudiant" : "Tablo bò ou kòm elèv"}
               </h1>
               <p className="max-w-2xl text-base text-gray-600 dark:text-slate-300 sm:text-lg">
@@ -741,8 +734,7 @@ export default async function AccueilPage({
             </div>
           </div>
 
-          <aside className="premium-glass relative overflow-hidden p-5">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-brand-100/70 to-transparent dark:from-brand-500/10" />
+          <aside className="glass-panel relative overflow-hidden p-5">
             <div className="relative space-y-4">
               <div className="flex items-center justify-between">
                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-slate-100">
@@ -814,7 +806,7 @@ export default async function AccueilPage({
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
               {fr ? "Actions prioritaires" : "Aksyon priyoritè"}
             </p>
-            <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
+            <h2 className="font-serif text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
               {fr ? "Agir rapidement" : "Aji rapid"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 sm:text-base">

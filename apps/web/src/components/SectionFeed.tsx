@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { ArticleCard } from "@/components/ArticleCard";
+import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 
 type SortMode = "relevance" | "latest";
 
@@ -81,12 +82,18 @@ export function SectionFeed({
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {sorted.map((article) => (
-          <ArticleCard key={article.id} article={article} lang={lang} />
+      {/* Grid — first item is featured (full width) */}
+      <StaggerGrid className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {sorted.map((article, i) => (
+          <StaggerItem key={article.id}>
+            <ArticleCard
+              article={article}
+              lang={lang}
+              variant={i === 0 ? "featured" : "default"}
+            />
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerGrid>
     </div>
   );
 }

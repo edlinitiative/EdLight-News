@@ -20,7 +20,7 @@
  */
 
 import { useState } from "react";
-import { CalendarDays, RotateCcw, Sparkles } from "lucide-react";
+import { CalendarDays, RotateCcw } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type {
   CalendarItem,
@@ -250,7 +250,7 @@ export function CalendarFilterTabs({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
-                <Sparkles className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+                <CalendarDays className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
                 {fr ? "Navigation calendrier" : "Navigasyon kalandriye"}
               </p>
               <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">

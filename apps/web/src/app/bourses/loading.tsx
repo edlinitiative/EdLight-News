@@ -17,7 +17,7 @@ export default function Loading() {
       </section>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="premium-card p-4">
+          <div key={i} className="content-card p-4">
             <div className="h-5 w-3/4 rounded bg-gray-200 dark:bg-slate-700" />
             <div className="mt-2 h-3 w-full rounded bg-gray-100 dark:bg-slate-700" />
             <div className="mt-1 h-3 w-1/2 rounded bg-gray-100 dark:bg-slate-700" />

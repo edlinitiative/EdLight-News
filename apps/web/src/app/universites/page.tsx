@@ -7,7 +7,7 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage, DatasetCountry } from "@edlight-news/types";
-import { School, DollarSign, Languages, Paperclip, CheckCircle, Sparkles, Globe2 } from "lucide-react";
+import { School, DollarSign, Languages, Paperclip, CheckCircle, Globe2 } from "lucide-react";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchUniversitiesGrouped,
@@ -69,49 +69,22 @@ export default async function UniversitesPage({
 
   return (
     <div className="space-y-8">
-      <section className="section-shell p-0">
-        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-grid-soft opacity-35" />
-          <div className="pointer-events-none absolute -right-10 top-2 h-44 w-44 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-500/15" />
-          <div className="relative grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300">
-                <Sparkles className="h-3.5 w-3.5" />
-                {fr ? "Annuaire premium" : "Anyè premium"}
-              </div>
-              <h1 className="text-3xl font-extrabold tracking-tight dark:text-white sm:text-4xl">
-                <School className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" /> {fr ? "Universités" : "Inivèsite"}
-              </h1>
-              <p className="text-gray-600 dark:text-slate-300">
-                {fr
-                  ? `${totalCount} universités dans ${countryCount} pays — filtrées pour les étudiants haïtiens.`
-                  : `${totalCount} inivèsite nan ${countryCount} peyi — filtre pou etidyan ayisyen yo.`}
-              </p>
-            </div>
-            <aside className="premium-glass p-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Universités" : "Inivèsite"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{totalCount}</p>
-                </div>
-                <div className="rounded-xl border border-gray-200/80 bg-white/80 p-3 dark:border-slate-700/70 dark:bg-slate-900/60">
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-slate-400">{fr ? "Pays" : "Peyi"}</p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white">{countryCount}</p>
-                </div>
-              </div>
-              <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-gray-600 dark:text-slate-300">
-                <Globe2 className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
-                {fr ? "Filtres par pays, liens d’admission et bourses" : "Filtè pa peyi, lyen admisyon ak bous"}
-              </p>
-            </aside>
-          </div>
-        </div>
-      </section>
+      <header className="space-y-2">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          <School className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
+          {fr ? "Universités" : "Inivèsite"}
+        </h1>
+        <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+          {fr
+            ? `${totalCount} universités dans ${countryCount} pays — filtrées pour les étudiants haïtiens.`
+            : `${totalCount} inivèsite nan ${countryCount} peyi — filtre pou etidyan ayisyen yo.`}
+        </p>
+      </header>
 
       <section className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start xl:grid-cols-[300px_minmax(0,1fr)]">
           {/* Sidebar filters */}
-          <aside className="premium-glass p-4 lg:sticky lg:top-24 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
+          <aside className="glass-panel p-4 lg:sticky lg:top-24 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
             <h2 className="text-sm font-semibold tracking-wide text-gray-800 dark:text-slate-100">
               {fr ? "Filtres" : "Filtè"}
             </h2>
@@ -202,7 +175,7 @@ export default async function UniversitesPage({
                       return (
                         <div
                           key={uni.id}
-                          className="premium-card p-5"
+                          className="content-card p-5"
                         >
                           <div className="flex items-start justify-between">
                             <h3 className="font-semibold leading-tight dark:text-white">{uni.name}</h3>
