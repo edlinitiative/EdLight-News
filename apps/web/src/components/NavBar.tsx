@@ -129,7 +129,7 @@ function NavBarInner() {
               <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-10 bg-gradient-to-r from-white dark:from-slate-900" />
               <button
                 onClick={() => scroll("left")}
-                className="absolute bottom-0 left-0 top-0 z-20 flex w-8 items-center justify-center text-gray-400 transition-colors hover:text-brand-600 dark:text-slate-500 dark:hover:text-brand-400"
+                className="absolute bottom-0 left-0 top-0 z-20 flex w-11 items-center justify-center text-gray-400 transition-colors hover:text-brand-600 dark:text-slate-500 dark:hover:text-brand-400"
                 aria-label="Scroll tabs left"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -143,7 +143,7 @@ function NavBarInner() {
               <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-10 bg-gradient-to-l from-white dark:from-slate-900" />
               <button
                 onClick={() => scroll("right")}
-                className="absolute bottom-0 right-0 top-0 z-20 flex w-8 items-center justify-center text-gray-400 transition-colors hover:text-brand-600 dark:text-slate-500 dark:hover:text-brand-400"
+                className="absolute bottom-0 right-0 top-0 z-20 flex w-11 items-center justify-center text-gray-400 transition-colors hover:text-brand-600 dark:text-slate-500 dark:hover:text-brand-400"
                 aria-label="Scroll tabs right"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -187,6 +187,8 @@ function NavBarInner() {
             <div ref={moreRef} className="relative shrink-0">
               <button
                 onClick={() => setMoreOpen((v) => !v)}
+                aria-haspopup="true"
+                aria-expanded={moreOpen}
                 className={[
                   "flex items-center gap-1 whitespace-nowrap px-4 py-3 font-medium transition-colors duration-200",
                   activeMoreItem
@@ -218,6 +220,7 @@ function NavBarInner() {
                     exit={{ opacity: 0, y: -4, scale: 0.97 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
                     className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-gray-200/80 bg-white p-1 shadow-lg dark:border-slate-700/60 dark:bg-slate-900"
+                    role="menu"
                   >
                     {MORE_ITEMS.map((item) => {
                       const active = isActive(item.href);
@@ -226,6 +229,7 @@ function NavBarInner() {
                         <Link
                           key={item.href}
                           href={item.href + langSuffix}
+                          role="menuitem"
                           className={[
                             "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                             active

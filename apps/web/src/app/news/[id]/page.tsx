@@ -260,7 +260,7 @@ function StructuredSections({
       {sections.map((section, i) => (
         <section key={i}>
           <h2 className="mb-2 text-xl font-bold dark:text-white">{section.heading}</h2>
-          <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
+          <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-brand-700 dark:prose-a:text-brand-400 prose-a:no-underline hover:prose-a:underline max-w-none">
             <ReactMarkdown>{section.content}</ReactMarkdown>
           </div>
         </section>
@@ -742,7 +742,7 @@ export default async function ArticlePage({
       {(isSynthesis || isUtility) && article.sections && article.sections.length > 0 ? (
         <StructuredSections sections={stripStructuredSourceSections(article.sections)} />
       ) : (
-        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-brand-700 prose-a:no-underline hover:prose-a:underline max-w-none">
+        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-brand-700 dark:prose-a:text-brand-400 prose-a:no-underline hover:prose-a:underline max-w-none">
           <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
         </div>
       )}

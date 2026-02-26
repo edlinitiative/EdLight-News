@@ -22,7 +22,7 @@ function LanguageToggleInner() {
     <button
       onClick={handleToggle}
       className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold transition-all duration-200 hover:border-brand-300 hover:bg-brand-50 dark:border-slate-600 dark:text-slate-300 dark:hover:border-brand-500/50 dark:hover:bg-slate-700"
-      aria-label="Toggle language"
+      aria-label="Changer de langue / Chanje lang"
     >
       {language === "fr" ? "KREYÒL" : "FRANÇAIS"}
     </button>

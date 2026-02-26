@@ -84,9 +84,10 @@ export default async function OpportunitesPage({
   const fr = lang === "fr";
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="font-serif text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          <Briefcase className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
           {fr ? "Opportunités" : "Okazyon"}
         </h1>
         <p className="max-w-2xl text-sm text-gray-600 dark:text-slate-300 sm:text-base">

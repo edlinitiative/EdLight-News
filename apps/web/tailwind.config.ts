@@ -42,6 +42,10 @@ const config: Config = {
         glow: "0 0 20px rgb(59 130 246 / 0.15)",
       },
       keyframes: {
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
         "slide-underline": {
           "0%": { transform: "scaleX(0)" },
           "100%": { transform: "scaleX(1)" },
@@ -52,6 +56,7 @@ const config: Config = {
         },
       },
       animation: {
+        shimmer: "shimmer 2s linear infinite",
         "slide-underline": "slide-underline 0.25s ease-out forwards",
         "fade-in": "fade-in 0.3s ease-out forwards",
       },

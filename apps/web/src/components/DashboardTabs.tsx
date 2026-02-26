@@ -184,7 +184,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         {canScrollLeft && (
           <button
             onClick={() => scrollTabs("left")}
-            className="absolute -left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
+            className="absolute -left-1 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
             aria-label="Scroll tabs left"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -194,7 +194,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         {canScrollRight && (
           <button
             onClick={() => scrollTabs("right")}
-            className="absolute -right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
+            className="absolute -right-1 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
             aria-label="Scroll tabs right"
           >
             <ChevronRight className="h-4 w-4" />
@@ -274,20 +274,24 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         ))}
       </div>
 
-      <div className="flex items-center justify-center gap-1.5">
+      <div className="flex items-center justify-center gap-0.5">
         {TAB_DEFS.map((tab) => (
           <button
             key={`${tab.id}-dot`}
             type="button"
             onClick={() => switchTab(tab.id)}
             aria-label={fr ? `Aller à ${tab.fr}` : `Ale nan ${tab.ht}`}
-            className={[
-              "h-1.5 rounded-full transition-all",
-              activeTab === tab.id
-                ? "w-6 bg-brand-500 dark:bg-brand-400"
-                : "w-1.5 bg-gray-300 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500",
-            ].join(" ")}
-          />
+            className="flex h-11 w-11 items-center justify-center"
+          >
+            <span
+              className={[
+                "h-1.5 rounded-full transition-all",
+                activeTab === tab.id
+                  ? "w-6 bg-brand-500 dark:bg-brand-400"
+                  : "w-1.5 bg-gray-300 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500",
+              ].join(" ")}
+            />
+          </button>
         ))}
       </div>
     </div>

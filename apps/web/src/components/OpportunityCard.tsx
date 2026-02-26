@@ -138,12 +138,12 @@ export function OpportunityCard({
         {/* Chips row: Level · Region · Deadline */}
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           {level && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600">
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">
               <GraduationCap className="h-3 w-3" />
               {levelLabel(level, lang)}
             </span>
           )}
-          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-600">
+          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-600 dark:bg-sky-900/30 dark:text-sky-300">
             {region === "haiti" ? (
               <MapPin className="h-3 w-3" />
             ) : (

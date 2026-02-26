@@ -11,7 +11,7 @@ export function DarkModeToggle() {
   return (
     <button
       onClick={toggle}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={isDark ? "Mode clair" : "Mode sombre"}
       className="group relative flex h-8 w-[52px] items-center rounded-full border border-gray-200 bg-gray-100 p-0.5 transition-colors hover:border-brand-300 hover:shadow-glow dark:border-slate-600 dark:bg-slate-700 dark:hover:border-brand-500/50"
     >
       {/* Track highlight */}

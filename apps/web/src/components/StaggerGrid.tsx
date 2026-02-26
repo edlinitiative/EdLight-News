@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, MotionConfig, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
 
 const container: Variants = {
@@ -28,15 +28,17 @@ interface StaggerGridProps {
  */
 export function StaggerGrid({ children, className }: StaggerGridProps) {
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-40px" }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <MotionConfig reducedMotion="user">
+      <motion.div
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-40px" }}
+        className={className}
+      >
+        {children}
+      </motion.div>
+    </MotionConfig>
   );
 }
 

@@ -170,18 +170,18 @@ export function ArticleCard({
             </span>
           )}
           {article.itemType === "synthesis" && (
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
               {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
               {lang === "fr" ? "sources" : "sous"}
             </span>
           )}
           {article.itemType === "utility" && (
-            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
               <ClipboardList className="mr-1 inline-block h-3 w-3" />{lang === "fr" ? "Guide étudiant" : "Gid etidyan"}
             </span>
           )}
           {hasUpdates && article.itemType !== "synthesis" && (
-            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
               +{updateCount}&nbsp;
               {lang === "fr" ? "mises à jour" : "mizajou"}
             </span>

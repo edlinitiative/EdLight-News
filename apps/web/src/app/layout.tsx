@@ -53,15 +53,42 @@ export default function RootLayout({
             <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:py-10">
               {children}
             </main>
-            <footer className="mt-16 border-t border-gray-200/70 bg-white/80 py-8 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
-              <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 sm:flex-row sm:justify-between">
-                <span className="inline-flex items-center gap-1.5 text-lg tracking-tight text-brand-700 dark:text-brand-300">
-                  <span className="font-serif font-bold">Ed</span><span className="font-light text-gray-400 dark:text-slate-500">Light</span>
-                  <span className="text-sm font-medium text-gray-400 dark:text-slate-500">News</span>
-                </span>
-                <span className="text-xs text-gray-400 dark:text-slate-500">
-                  © {new Date().getFullYear()} EdLight Initiative
-                </span>
+            <footer className="mt-16 border-t border-gray-200/70 bg-white/80 py-10 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
+              <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-3">
+                {/* Brand column */}
+                <div className="space-y-3">
+                  <span className="inline-flex items-center gap-1.5 text-lg tracking-tight text-brand-700 dark:text-brand-300">
+                    <span className="font-serif font-bold">Ed</span>
+                    <span className="font-light text-gray-400 dark:text-slate-500">Light</span>
+                    <span className="text-sm font-medium text-gray-400 dark:text-slate-500">News</span>
+                  </span>
+                  <p className="max-w-xs text-xs leading-relaxed text-gray-400 dark:text-slate-500">
+                    Conçu pour les étudiants haïtiens — Nouvelles, bourses et ressources vérifiées.
+                  </p>
+                </div>
+
+                {/* Navigation column */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Navigation</h3>
+                  <nav className="flex flex-col gap-1.5 text-xs">
+                    <a href="/news" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Fil d&apos;actualités</a>
+                    <a href="/haiti" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Haïti</a>
+                    <a href="/opportunites" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Opportunités</a>
+                    <a href="/bourses" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Bourses</a>
+                    <a href="/ressources" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Ressources</a>
+                  </nav>
+                </div>
+
+                {/* About column */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">À propos</h3>
+                  <p className="text-xs leading-relaxed text-gray-400 dark:text-slate-500">
+                    EdLight News synthétise des sources publiques pour informer les étudiants. Les informations ne constituent pas un conseil officiel.
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500">
+                    © {new Date().getFullYear()} EdLight Initiative
+                  </p>
+                </div>
               </div>
             </footer>
           </LanguageProvider>
