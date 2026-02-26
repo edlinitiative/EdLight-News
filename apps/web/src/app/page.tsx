@@ -74,7 +74,7 @@ const DashboardTabs = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-slate-800" />
+      <div className="h-64 animate-pulse rounded-xl bg-gray-100 dark:bg-slate-800" />
     ),
   },
 );
@@ -121,7 +121,7 @@ function SectionHeader({
       </h2>
       <Link
         href={href}
-        className="inline-flex items-center gap-1 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
+        className="inline-flex items-center gap-1 rounded-lg border border-brand-100 bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
       >
         {cta}
       </Link>
@@ -146,9 +146,9 @@ function MetricChip({
         : "border-gray-200/80 bg-white/80 text-gray-800 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200";
 
   return (
-    <div className={`rounded-xl border px-3 py-2 ${toneClasses}`}>
-      <p className="text-[11px] font-medium uppercase tracking-wide opacity-80">{label}</p>
-      <p className="mt-0.5 text-base font-bold tracking-tight">{value}</p>
+    <div className={`rounded-lg border px-2.5 py-1.5 ${toneClasses}`}>
+      <p className="text-[10px] font-medium uppercase tracking-wide opacity-80">{label}</p>
+      <p className="mt-0.5 text-sm font-bold tracking-tight">{value}</p>
     </div>
   );
 }
@@ -176,15 +176,14 @@ function TabPanelBanner({
   } as const;
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-gray-200/70 bg-gradient-to-br p-4 sm:p-5 ${accentMap[accent]}`}>
-      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-white/40 blur-2xl dark:bg-white/5" />
-      <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className={`relative overflow-hidden rounded-xl border border-gray-200/70 bg-gradient-to-br p-3 sm:p-4 ${accentMap[accent]}`}>
+      <div className="relative flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/80 text-brand-700 shadow-sm dark:bg-slate-900/40 dark:text-brand-300">
+          <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-brand-700 shadow-sm dark:bg-slate-900/40 dark:text-brand-300">
             {icon}
           </div>
-          <h3 className="mt-3 text-base font-bold tracking-tight">{title}</h3>
-          <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">{subtitle}</p>
+          <h3 className="mt-2 text-sm font-bold tracking-tight">{title}</h3>
+          <p className="mt-0.5 text-xs text-gray-600 dark:text-slate-300">{subtitle}</p>
         </div>
         {!!meta?.length && (
           <div className="flex flex-wrap gap-2 sm:justify-end">
@@ -336,7 +335,7 @@ export default async function AccueilPage({
   // ── Dashboard tab panels (server-rendered, passed to client component) ───
 
   const boursesPanel = (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <TabPanelBanner
         icon={<DollarSign className="h-5 w-5" />}
         title={fr ? "Bourses à surveiller" : "Bous pou swiv"}
@@ -361,11 +360,11 @@ export default async function AccueilPage({
               {fr ? "Toutes les bourses →" : "Tout bous yo →"}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {boursesClosing.map((s) => {
               const dl = s.deadline;
               return (
-                <div key={s.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
+                <div key={s.id} className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
                   <h3 className="font-semibold text-gray-900 line-clamp-1 dark:text-slate-100">{s.name}</h3>
                   {s.eligibilitySummary && (
                     <p className="mt-1.5 text-sm text-gray-500 line-clamp-2 dark:text-slate-400">{s.eligibilitySummary}</p>
@@ -401,7 +400,7 @@ export default async function AccueilPage({
   );
 
   const calendrierPanel = (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <TabPanelBanner
         icon={<CalendarDays className="h-5 w-5" />}
         title={fr ? "Calendrier des échéances" : "Kalandriye dat limit yo"}
@@ -426,16 +425,16 @@ export default async function AccueilPage({
               {fr ? "Voir tout le calendrier →" : "Wè tout kalandriye a →"}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {haitiEvents.map((ev) => {
               const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
               const evGeo = getCalendarGeo(ev);
               return (
-                <div key={ev.id} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-600 text-white dark:bg-brand-500">
+                <div key={ev.id} className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
+                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-600 text-white dark:bg-brand-500">
                     {dateObj ? (
                       <>
-                        <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
+                        <span className="text-xs font-bold leading-tight">{dateObj.getDate()}</span>
                         <span className="text-[9px] uppercase leading-tight">
                           {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}
                         </span>
@@ -467,11 +466,11 @@ export default async function AccueilPage({
               const dateObj = dl?.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
               const sGeo = getCalendarGeo(s);
               return (
-                <div key={s.id} className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-500 text-white dark:bg-brand-600">
+                <div key={s.id} className="flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800/80">
+                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-brand-500 text-white dark:bg-brand-600">
                     {dateObj ? (
                       <>
-                        <span className="text-sm font-bold leading-tight">{dateObj.getDate()}</span>
+                        <span className="text-xs font-bold leading-tight">{dateObj.getDate()}</span>
                         <span className="text-[9px] uppercase leading-tight">
                           {dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}
                         </span>
@@ -513,7 +512,7 @@ export default async function AccueilPage({
   );
 
   const parcoursPanel = pathways.length > 0 ? (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <TabPanelBanner
         icon={<Compass className="h-5 w-5" />}
         title={fr ? "Parcours guidés" : "Pakou gide"}
@@ -536,10 +535,10 @@ export default async function AccueilPage({
           {fr ? "Tous les parcours →" : "Tout pakou yo →"}
         </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         {pathways.map((pw) => (
           <Link key={pw.id} href={lq("/parcours")}
-            className="group rounded-xl border border-gray-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
+            className="group rounded-lg border border-gray-200 bg-white p-3.5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
             <div className="flex items-center gap-2">
               <Compass className="h-5 w-5 shrink-0 text-brand-600 dark:text-brand-400" />
               <h3 className="font-semibold text-gray-900 text-sm group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400">
@@ -562,7 +561,7 @@ export default async function AccueilPage({
   );
 
   const histoirePanel = latestHistoryPost ? (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <TabPanelBanner
         icon={<BookOpen className="h-5 w-5" />}
         title={fr ? "Histoire & mémoire" : "Istwa & memwa"}
@@ -585,7 +584,7 @@ export default async function AccueilPage({
           {fr ? "Voir tout →" : "Wè tout →"}
         </Link>
       </div>
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-card dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-card dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{latestHistoryPost.title}</h3>
         <p className="mt-2 text-sm text-gray-500 line-clamp-4 dark:text-slate-400">
           {latestHistoryPost.summary || latestHistoryPost.body?.slice(0, 300) || ""}
@@ -604,7 +603,7 @@ export default async function AccueilPage({
   );
 
   const nouvellesPanel = succesArticles.length > 0 ? (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <TabPanelBanner
         icon={<Newspaper className="h-5 w-5" />}
         title={fr ? "Succès & inspirations" : "Siksè & enspirasyon"}
@@ -627,7 +626,7 @@ export default async function AccueilPage({
           {fr ? "Voir tout →" : "Wè tout →"}
         </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {succesArticles.map((a) => (
           <ArticleCard key={a.id} article={a} lang={lang} compact />
         ))}
@@ -691,18 +690,18 @@ export default async function AccueilPage({
   ];
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-white p-6 shadow-card dark:border-slate-700/60 dark:bg-slate-900/70 dark:shadow-card-dark sm:p-8">
+      <section className="relative overflow-hidden rounded-xl border border-gray-200/80 bg-white p-5 shadow-card dark:border-slate-700/60 dark:bg-slate-900/70 dark:shadow-card-dark sm:p-6">
 
-        <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-          <div className="space-y-5">
+        <div className="relative grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+          <div className="space-y-4">
 
-            <div className="space-y-3">
-              <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+            <div className="space-y-1.5">
+              <h1 className="font-serif text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                 {fr ? "Ton tableau de bord étudiant" : "Tablo bò ou kòm elèv"}
               </h1>
-              <p className="max-w-2xl text-base text-gray-600 dark:text-slate-300 sm:text-lg">
+              <p className="max-w-2xl text-sm text-gray-600 dark:text-slate-300 sm:text-base">
                 {fr
                   ? "Calendrier, bourses, parcours et guides dans une interface plus claire, rapide et orientée action."
                   : "Kalandriye, bous, pakou ak gid nan yon koòdone ki pi klè, rapid, epi ki pouse w aji."}
@@ -725,7 +724,7 @@ export default async function AccueilPage({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:text-brand-700 hover:shadow-md dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200/80 bg-white/90 px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:text-brand-700 hover:shadow-md dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-brand-500/30 dark:hover:text-brand-300"
                 >
                   <link.icon className="h-4 w-4" />
                   {link.label}
@@ -734,8 +733,8 @@ export default async function AccueilPage({
             </div>
           </div>
 
-          <aside className="glass-panel relative overflow-hidden p-5">
-            <div className="relative space-y-4">
+          <aside className="glass-panel relative overflow-hidden p-4">
+            <div className="relative space-y-3">
               <div className="flex items-center justify-between">
                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-gray-800 dark:text-slate-100">
                   <TrendingUp className="h-4 w-4 text-brand-600 dark:text-brand-400" />
@@ -755,9 +754,9 @@ export default async function AccueilPage({
                   <Link
                     key={`hero-${item.id}`}
                     href={item.href}
-                    className="flex items-center gap-3 rounded-xl border border-gray-200/80 bg-white/80 p-3 transition-colors hover:border-brand-200 hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/60 dark:hover:border-brand-500/30"
+                    className="flex items-center gap-2.5 rounded-lg border border-gray-200/80 bg-white/80 p-2.5 transition-colors hover:border-brand-200 hover:bg-white dark:border-slate-700/70 dark:bg-slate-900/60 dark:hover:border-brand-500/30"
                   >
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
                       {item.kind === "bourse" ? <DollarSign className="h-4 w-4" /> : <CalendarDays className="h-4 w-4" />}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -783,7 +782,7 @@ export default async function AccueilPage({
                 )}
               </div>
 
-              <div className="rounded-xl border border-gray-200/80 bg-white/70 p-3 text-xs text-gray-600 dark:border-slate-700/70 dark:bg-slate-900/50 dark:text-slate-300">
+              <div className="rounded-lg border border-gray-200/80 bg-white/70 p-2.5 text-xs text-gray-600 dark:border-slate-700/70 dark:bg-slate-900/50 dark:text-slate-300">
                 <p className="inline-flex items-center gap-1 font-semibold text-gray-800 dark:text-slate-100">
                   <MapPin className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   {fr ? "Couverture Haïti + international" : "Kouvèti Ayiti + entènasyonal"}
@@ -800,13 +799,13 @@ export default async function AccueilPage({
       </section>
 
       {/* ── DASHBOARD TABS ──────────────────────────────────────────────── */}
-      <section className="section-shell space-y-6">
-        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <section className="section-shell space-y-4">
+        <div className="relative z-10 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
               {fr ? "Actions prioritaires" : "Aksyon priyoritè"}
             </p>
-            <h2 className="font-serif text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
+            <h2 className="font-serif text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
               {fr ? "Agir rapidement" : "Aji rapid"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-slate-400 sm:text-base">
@@ -820,9 +819,8 @@ export default async function AccueilPage({
             {fr ? `${topUrgent.length} urgences cette semaine` : `${topUrgent.length} ijans semèn sa`}
           </div>
         </div>
-        <div className="relative z-10 rounded-3xl bg-gradient-to-b from-white to-gray-50/80 p-4 ring-1 ring-gray-200/70 dark:from-slate-900/80 dark:to-slate-900/50 dark:ring-slate-700/60 sm:p-6">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-2xl bg-gradient-to-b from-white/70 to-transparent dark:from-slate-800/30" />
-          <p className="relative mb-4 text-xs font-medium text-gray-500 dark:text-slate-400">
+        <div className="relative z-10 rounded-xl bg-gradient-to-b from-white to-gray-50/80 p-3 ring-1 ring-gray-200/70 dark:from-slate-900/80 dark:to-slate-900/50 dark:ring-slate-700/60 sm:p-4">
+          <p className="relative mb-3 text-xs font-medium text-gray-500 dark:text-slate-400">
             {fr ? "Choisis un onglet pour afficher uniquement l’information utile maintenant." : "Chwazi yon onglet pou wè sèlman enfòmasyon ki itil pou ou kounye a."}
           </p>
           <DashboardTabs
@@ -849,9 +847,9 @@ export default async function AccueilPage({
             href={lq("/universites")}
             cta={fr ? "Toutes les universités →" : "Tout inivèsite yo →"}
           />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {rotatedUnis.map((u) => (
-              <div key={u.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
+              <div key={u.id} className="rounded-lg border border-gray-200 bg-white p-3.5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-card-hover dark:border-slate-700 dark:bg-slate-800/80 dark:shadow-card-dark dark:hover:border-brand-600/40 dark:hover:shadow-card-dark-hover">
                 <div className="flex items-start justify-between">
                   <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 dark:text-slate-100">{u.name}</h3>
                   <span className="ml-1 shrink-0 rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-slate-700 dark:text-slate-300">
@@ -904,7 +902,7 @@ export default async function AccueilPage({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-500/40 dark:hover:text-brand-300"
+              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-brand-500/40 dark:hover:text-brand-300"
             >
               <span className="inline-flex items-center gap-2">
                 <item.Icon className="h-4 w-4" />

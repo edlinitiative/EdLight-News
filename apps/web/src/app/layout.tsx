@@ -50,10 +50,10 @@ export default function RootLayout({
               Aller au contenu principal
             </a>
             <NavBar />
-            <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:py-10">
+            <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:py-6">
               {children}
             </main>
-            <footer className="mt-16 border-t border-gray-200/70 bg-white/80 py-10 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
+            <footer className="mt-10 border-t border-gray-200/70 bg-white/80 py-10 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
               <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-3">
                 {/* Brand column */}
                 <div className="space-y-3">

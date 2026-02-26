@@ -122,14 +122,14 @@ export function ArticleCard({
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/60 dark:bg-slate-900/70",
+        "group flex overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/60 dark:bg-slate-900/70",
         isFeatured ? "sm:flex-row sm:col-span-full" : "flex-col",
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
       <div className={[
         "relative shrink-0 overflow-hidden bg-gray-100",
-        isFeatured ? "aspect-[3/2] sm:w-2/5" : isCompact ? "aspect-[2/1] w-full" : "aspect-video w-full",
+        isFeatured ? "aspect-[3/2] sm:w-2/5" : isCompact ? "aspect-[3/1] w-full" : "aspect-[5/2] w-full",
       ].join(" ")}>
         {hasImage ? (
           <ImageWithFallback
@@ -158,8 +158,7 @@ export function ArticleCard({
         )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-5">
-        <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent dark:via-slate-700/60" />
+      <div className="relative flex flex-1 flex-col p-3.5">
         {/* Badges row */}
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           {catInfo && (
@@ -206,10 +205,10 @@ export function ArticleCard({
           className={[
             "leading-snug transition-colors group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400",
             isFeatured
-              ? "mb-2 font-serif text-lg font-bold sm:text-xl"
+              ? "mb-1.5 font-serif text-lg font-bold sm:text-xl"
               : isCompact
-                ? "mb-1 text-sm font-semibold"
-                : "mb-2 text-base font-semibold",
+                ? "mb-0.5 text-sm font-semibold"
+                : "mb-1 text-[15px] font-semibold",
           ].join(" ")}
         >
           {article.title}
@@ -218,7 +217,7 @@ export function ArticleCard({
         {/* Summary */}
         {!isCompact && (
           <p className={[
-            "mb-3 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400",
+            "mb-2 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400",
             isFeatured ? "sm:line-clamp-3" : "",
           ].join(" ")}>
             {article.summary || article.body?.slice(0, 150) || ""}

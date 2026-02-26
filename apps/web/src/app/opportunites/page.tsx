@@ -84,7 +84,7 @@ export default async function OpportunitesPage({
   const fr = lang === "fr";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <header className="space-y-2">
         <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
           <Briefcase className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />

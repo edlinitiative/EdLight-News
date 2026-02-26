@@ -83,7 +83,7 @@ export function OpportunityCard({
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
-      <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-[5/2] w-full overflow-hidden bg-gray-100">
         {hasImage ? (
           <ImageWithFallback
             src={article.imageUrl!}
@@ -119,8 +119,7 @@ export function OpportunityCard({
         )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-3.5 sm:p-4">
-        <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-gray-100 to-transparent dark:via-slate-700/60" />
+      <div className="relative flex flex-1 flex-col p-3">
         {/* Category badge — uses derived subcategory */}
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <span

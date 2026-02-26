@@ -203,7 +203,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
         <div
           ref={scrollRef}
-          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-2xl bg-gray-100/70 p-1.5 dark:bg-slate-900/55"
+          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-xl bg-gray-100/70 p-1.5 dark:bg-slate-900/55"
           style={{ cursor: "grab" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
@@ -214,7 +214,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         >
           {/* Animated pill indicator */}
           <span
-            className="absolute top-1.5 z-0 h-[calc(100%-12px)] rounded-xl bg-white shadow-sm transition-all duration-300 ease-out dark:bg-slate-700"
+            className="absolute top-1.5 z-0 h-[calc(100%-12px)] rounded-lg bg-white shadow-sm transition-all duration-300 ease-out dark:bg-slate-700"
             style={{ left: pillStyle.left, width: pillStyle.width }}
           />
 
@@ -235,7 +235,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
                 id={`dashboard-tab-${tab.id}`}
                 tabIndex={isActive ? 0 : -1}
                 className={[
-                  "relative z-10 flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 select-none",
+                  "relative z-10 flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 select-none",
                   isActive
                     ? "text-brand-700 dark:text-brand-300"
                     : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200",
@@ -254,13 +254,12 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={[
-          "relative overflow-hidden rounded-2xl bg-white/95 p-4 transition-all duration-200 ease-out ring-1 ring-gray-200/70 dark:bg-slate-900/50 dark:ring-slate-700/60 sm:p-6",
+          "relative overflow-hidden rounded-xl bg-white/95 p-3 transition-all duration-200 ease-out ring-1 ring-gray-200/70 dark:bg-slate-900/50 dark:ring-slate-700/60 sm:p-4",
           isTransitioning
             ? "translate-y-1 opacity-0"
             : "translate-y-0 opacity-100",
         ].join(" ")}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/70 to-transparent dark:from-slate-800/30" />
         {TAB_DEFS.map((tab) => (
           <div
             key={tab.id}

@@ -2,7 +2,7 @@
 export default function Loading() {
   return (
     <div className="animate-pulse space-y-8">
-      <section className="rounded-2xl bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 p-8">
+      <section className="rounded-xl bg-gradient-to-br from-brand-700 via-brand-600 to-indigo-600 p-8">
         <div className="space-y-3">
           <div className="h-6 w-48 rounded-full bg-white/20" />
           <div className="h-10 w-72 rounded bg-white/20" />

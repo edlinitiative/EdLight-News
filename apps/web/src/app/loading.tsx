@@ -6,7 +6,7 @@ export default function Loading() {
   return (
     <div className="animate-pulse space-y-8">
       <section>
-        <div className="rounded-2xl border border-gray-200/70 bg-white/90 p-6 dark:border-slate-700/60 dark:bg-slate-900/60 sm:p-8">
+        <div className="rounded-xl border border-gray-200/70 bg-white/90 p-5 dark:border-slate-700/60 dark:bg-slate-900/60 sm:p-6">
           <div className="space-y-4">
             <div className="h-6 w-44 rounded-full bg-gray-200 dark:bg-slate-700" />
             <div className="h-10 w-80 max-w-full rounded-xl bg-gray-200 dark:bg-slate-700" />

@@ -122,7 +122,7 @@ function NavBarInner() {
         </div>
 
         {/* Tab row */}
-        <div className="relative rounded-2xl border border-gray-200/70 bg-white/60 px-1 dark:border-slate-700/60 dark:bg-slate-900/60">
+        <div className="relative rounded-xl border border-gray-200/70 bg-white/60 px-1 dark:border-slate-700/60 dark:bg-slate-900/60">
           {/* Left fade + arrow */}
           {canScrollLeft && (
             <>
@@ -219,7 +219,7 @@ function NavBarInner() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -4, scale: 0.97 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-xl border border-gray-200/80 bg-white p-1 shadow-lg dark:border-slate-700/60 dark:bg-slate-900"
+                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-gray-200/80 bg-white p-1 shadow-lg dark:border-slate-700/60 dark:bg-slate-900"
                     role="menu"
                   >
                     {MORE_ITEMS.map((item) => {

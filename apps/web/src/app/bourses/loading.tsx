@@ -8,7 +8,7 @@ export default function Loading() {
           <div className="h-4 w-96 max-w-full rounded bg-gray-200 dark:bg-slate-700" />
         </div>
       </section>
-      <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900/70">
+      <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900/70">
         <div className="flex gap-2">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-8 w-20 rounded-full bg-gray-200 dark:bg-slate-700" />
