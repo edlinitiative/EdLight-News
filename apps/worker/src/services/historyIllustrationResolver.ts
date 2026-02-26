@@ -494,6 +494,51 @@ async function resolveViaOverrideHints(title: string): Promise<ResolvedHistoryIl
   return null;
 }
 
+async function resolveThematicFallback(title: string): Promise<ResolvedHistoryIllustration | null> {
+  const t = foldAccents(title).toLowerCase();
+
+  const themedQueries: Array<{ q: string; lang: "fr" | "en"; confidence: number }> = [];
+
+  if (/bataille|insurrection|revolte|soul[eè]vement|guerre|siege|assaut/.test(t)) {
+    themedQueries.push(
+      { q: "Révolution haïtienne", lang: "fr", confidence: 0.56 },
+      { q: "Haitian Revolution", lang: "en", confidence: 0.56 },
+    );
+  }
+
+  if (/president|investiture|coup d etat|gouvernement|election|constitution/.test(t)) {
+    themedQueries.push(
+      { q: "Histoire d'Haïti", lang: "fr", confidence: 0.5 },
+      { q: "Politics of Haiti", lang: "en", confidence: 0.5 },
+    );
+  }
+
+  if (/port-au-prince|cap-francais|cap-haitien/.test(t)) {
+    themedQueries.push(
+      { q: "Port-au-Prince", lang: "fr", confidence: 0.54 },
+      { q: "Cap-Haïtien", lang: "fr", confidence: 0.54 },
+    );
+  }
+
+  // Last-resort broad context imagery for coverage.
+  themedQueries.push(
+    { q: "Histoire d'Haïti", lang: "fr", confidence: 0.45 },
+    { q: "History of Haiti", lang: "en", confidence: 0.45 },
+  );
+
+  for (const candidate of themedQueries) {
+    const image = await searchWikipediaPageImage(candidate.q, candidate.lang);
+    if (image) {
+      return {
+        ...image,
+        confidence: Math.max(candidate.confidence, image.confidence),
+      };
+    }
+  }
+
+  return null;
+}
+
 export async function resolveHistoryIllustration(
   titleFr: string,
   year?: number | null,
@@ -560,6 +605,10 @@ export async function resolveHistoryIllustration(
     const enResult = await searchWikipediaPageImage(q, "en");
     if (enResult) return enResult;
   }
+
+  // Pass 4: thematic fallback for broader event coverage.
+  const fallback = await resolveThematicFallback(base);
+  if (fallback) return fallback;
 
   return null;
 }

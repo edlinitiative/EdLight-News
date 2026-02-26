@@ -108,6 +108,16 @@ function getUpcomingHolidays(
     .slice(0, limit);
 }
 
+const HISTORY_ILLUSTRATION_MIN_CONFIDENCE = 0.55;
+
+function shouldShowIllustration(entry: HaitiHistoryAlmanacEntry): boolean {
+  if (!entry.illustration?.imageUrl) return false;
+  const confidence = entry.illustration.confidence;
+  // Backward compatibility: if confidence is missing, allow display.
+  if (typeof confidence !== "number") return true;
+  return confidence >= HISTORY_ILLUSTRATION_MIN_CONFIDENCE;
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HistoirePage({
@@ -266,15 +276,21 @@ export default async function HistoirePage({
                 return 0;
               })
               .map((entry, idx) => (
+                (() => {
+                  const displayIllustration = shouldShowIllustration(entry)
+                    ? entry.illustration
+                    : null;
+
+                  return (
                 <article
                   key={entry.id}
                   className="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-slate-700 dark:bg-slate-800 sm:p-6"
                 >
-                  {entry.illustration?.imageUrl && (
+                  {displayIllustration && (
                     <div className="mb-4 overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-700/40">
                       <div className="relative aspect-[16/9]">
                         <Image
-                          src={entry.illustration.imageUrl}
+                          src={displayIllustration.imageUrl}
                           alt={entry.title_fr}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 900px"
@@ -286,7 +302,7 @@ export default async function HistoirePage({
                           {fr ? "Illustration historique" : "Ilistrasyon istorik"}
                         </span>
                         <a
-                          href={entry.illustration.pageUrl}
+                          href={displayIllustration.pageUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="font-medium text-brand-600 hover:underline dark:text-brand-400"
@@ -375,6 +391,8 @@ export default async function HistoirePage({
                     )}
                   </div>
                 </article>
+                  );
+                })()
               ))}
           </div>
         ) : todayHolidays.length === 0 ? (
