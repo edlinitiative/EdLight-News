@@ -95,8 +95,15 @@ async function processItemImage(
   // avoid falling back to screenshot again at the end.
   const isReprocess = !!item.imageSource;
 
+  // Snackable utility items (daily_fact, history) → publisher og:image and
+  // screenshots are semantically unrelated to the fact topic.  Skip straight
+  // to branded card for these.
+  const BRANDED_ONLY_TYPES = new Set(["daily_fact", "history"]);
+  const skipPublisherAndScreenshot =
+    BRANDED_ONLY_TYPES.has(item.utilityMeta?.utilityType ?? "");
+
   // ── Strategy 1: Publisher image (fetch HTML → extract og:image etc.) ─
-  if (sourceUrl) {
+  if (sourceUrl && !skipPublisherAndScreenshot) {
     try {
       const html = await fetchHtml(sourceUrl);
       const candidates = extractCandidateImages(html, sourceUrl);
@@ -225,7 +232,9 @@ async function processItemImage(
   // ── Strategy 4: Screenshot fallback ─────────────────────────────────
   // Skip if this item is being re-processed (already had a screenshot) to
   // avoid an infinite reprocessing loop.
-  if (sourceUrl && !isReprocess) {
+  // Also skip for snackable utility items — screenshots of source pages are
+  // not relevant to the fact topic.
+  if (sourceUrl && !isReprocess && !skipPublisherAndScreenshot) {
     const screenshotResult = await screenshotArticleImage(sourceUrl);
     if (screenshotResult) {
       const storagePath = `images/items/${item.id}_screenshot.png`;
