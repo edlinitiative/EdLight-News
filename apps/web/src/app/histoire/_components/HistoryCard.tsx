@@ -1,25 +1,20 @@
 "use client";
 
 /**
- * HistoryCard — single almanac entry card.
+ * HistoryCard — compact card for secondary almanac entries.
  *
- * Layout:
- *   • Title + summary (line-clamped)
- *   • "Pourquoi c'est important" callout (if takeaway exists)
- *   • Tags as small chips
- *   • Collapsible "Sources & vérification" accordion (default collapsed)
- *
- * When an entry has no illustration, falls back to a Wikipedia image search
- * (French Wikipedia) using the entry title as query. The thumbnail is fetched
- * client-side and cached in memory for the session.
+ * Designed to be visually lighter than the HeroFact.
+ * - Smaller image (h-32)
+ * - Line-clamped summary (2 lines)
+ * - No sources accordion (keeps the grid scannable)
+ * - Wiki image fallback preserved
  */
 
 import Image from "next/image";
-import { Lightbulb, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import { TAG_LABELS, formatMonthDay } from "./shared";
 import type { SerializableAlmanacEntry } from "./shared";
-import { SourcesAccordion } from "./SourcesAccordion";
 import { useWikiImage } from "./useWikiImage";
 
 const ILLUSTRATION_MIN_CONFIDENCE = 0.55;
@@ -50,16 +45,16 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
   const isWikiImage = !hasOwnIllustration && !!wikiThumb;
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800">
-      {/* Image (own illustration or Wikipedia fallback) */}
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800">
+      {/* Image — compact */}
       {imageUrl && (
-        <div className="relative h-36 w-full overflow-hidden sm:h-44">
+        <div className="relative h-32 w-full overflow-hidden">
           {isWikiImage ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={imageUrl}
               alt={entry.title_fr}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition group-hover:scale-[1.03]"
               loading="lazy"
             />
           ) : (
@@ -68,38 +63,38 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
               alt={entry.title_fr}
               fill
               sizes="(max-width: 640px) 100vw, 50vw"
-              className="object-cover"
+              className="object-cover transition group-hover:scale-[1.03]"
             />
           )}
           {isWikiImage && (
-            <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[9px] font-medium text-white/80 backdrop-blur-sm">
-              <Globe className="h-2.5 w-2.5" />
+            <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-full bg-black/50 px-1.5 py-0.5 text-[8px] font-medium text-white/80 backdrop-blur-sm">
+              <Globe className="h-2 w-2" />
               Wikipedia
             </span>
           )}
         </div>
       )}
 
-      {/* Body */}
-      <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
-        {/* Year + date (range mode) + tags row */}
+      {/* Body — tight */}
+      <div className="flex flex-1 flex-col gap-2 p-3.5">
+        {/* Year + date + tags */}
         <div className="flex flex-wrap items-center gap-1.5">
           {entry.year != null && (
-            <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-bold tabular-nums text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+            <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
               {entry.year}
             </span>
           )}
           {showDate && (
-            <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-300">
+            <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-medium text-stone-500 dark:bg-stone-700 dark:text-stone-300">
               {formatMonthDay(entry.monthDay, lang)}
             </span>
           )}
-          {entry.tags?.slice(0, 3).map((tag) => {
+          {entry.tags?.slice(0, 2).map((tag) => {
             const t = TAG_LABELS[tag];
             return (
               <span
                 key={tag}
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${t?.color ?? "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300"}`}
+                className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold ${t?.color ?? "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300"}`}
               >
                 {fr ? t?.fr : t?.ht}
               </span>
@@ -108,31 +103,22 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
         </div>
 
         {/* Title */}
-        <h3 className="text-sm font-bold leading-snug text-stone-900 dark:text-white sm:text-base">
+        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-stone-900 dark:text-white">
           {entry.title_fr}
         </h3>
 
-        {/* Summary — line-clamped */}
-        <p className="line-clamp-3 text-sm leading-relaxed text-stone-500 dark:text-stone-400">
+        {/* Summary — 2-line clamp */}
+        <p className="line-clamp-2 text-[13px] leading-relaxed text-stone-500 dark:text-stone-400">
           {entry.summary_fr}
         </p>
 
-        {/* "Pourquoi c'est important" callout */}
+        {/* Takeaway — ultra-compact */}
         {entry.student_takeaway_fr && (
-          <div className="flex gap-2 rounded-xl bg-amber-50/80 px-3 py-2.5 dark:bg-amber-900/10">
-            <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="text-xs leading-relaxed text-amber-900 dark:text-amber-200">
-              <strong className="font-semibold">
-                {fr ? "Pourquoi c\u2019est important" : "Poukisa sa enp\u00f2tan"}
-              </strong>{" "}
-              — {entry.student_takeaway_fr}
-            </p>
-          </div>
+          <p className="line-clamp-1 text-[11px] italic text-amber-700 dark:text-amber-400">
+            💡 {entry.student_takeaway_fr}
+          </p>
         )}
       </div>
-
-      {/* Sources accordion — collapsed by default */}
-      <SourcesAccordion entry={entry} lang={lang} />
     </article>
   );
 }

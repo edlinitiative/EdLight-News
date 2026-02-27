@@ -172,3 +172,47 @@ export function isRangeValid(start: string, end: string): boolean {
   const diff = Math.round((eDate.getTime() - sDate.getTime()) / 86_400_000);
   return diff >= 1 && diff <= 31;
 }
+
+// ── Hero selection ──────────────────────────────────────────────────────────
+
+const ILLUSTRATION_MIN_CONFIDENCE = 0.55;
+
+/**
+ * Pick the single best entry to feature as the "hero" card.
+ *
+ * Scoring:
+ *   +30  has own illustration (confidence ≥ 0.55)
+ *   +20  overall confidence === "high"
+ *   +10  has student_takeaway
+ *   + 5  title length > 20 chars (signals richer content)
+ *   + year/100  recency tiebreaker
+ *
+ * Returns the top-scored entry, or the first entry if the list is non-empty.
+ */
+export function pickHeroEntry(
+  entries: SerializableAlmanacEntry[],
+): SerializableAlmanacEntry | null {
+  if (entries.length === 0) return null;
+
+  let best = entries[0]!;
+  let bestScore = -Infinity;
+
+  for (const e of entries) {
+    let score = 0;
+    const hasIllustration =
+      !!e.illustration?.imageUrl &&
+      (typeof e.illustration.confidence !== "number" ||
+        e.illustration.confidence >= ILLUSTRATION_MIN_CONFIDENCE);
+    if (hasIllustration) score += 30;
+    if (e.confidence === "high") score += 20;
+    if (e.student_takeaway_fr) score += 10;
+    if (e.title_fr.length > 20) score += 5;
+    score += (e.year ?? 0) / 100;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = e;
+    }
+  }
+  return best;
+}
