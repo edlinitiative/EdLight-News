@@ -1,7 +1,8 @@
 export { HistoireClient } from "./HistoireClient";
-export { HistoryHero } from "./HistoryHero";
 export { WeekStrip } from "./WeekStrip";
-export { ExplorePanel } from "./ExplorePanel";
+export { HistoryTabs } from "./HistoryTabs";
 export { HistoryList } from "./HistoryList";
 export { HistoryCard } from "./HistoryCard";
+export { SourcesAccordion } from "./SourcesAccordion";
+export { ExplorePanel } from "./ExplorePanel";
 export { EmptyState } from "./EmptyState";

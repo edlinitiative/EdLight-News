@@ -1,36 +1,34 @@
 "use client";
 
 /**
- * WeekStrip — clean 7-day calendar strip centred on today.
+ * WeekStrip — sticky 7-day calendar strip below the site header.
  *
- * Design: minimal two-line pills (day abbreviation + number),
- * small dots below to indicate entry count. Feels like a
- * native calendar week selector.
+ * Primary navigation control for the /histoire page.
+ * Sticky (top-14 = below 56px navbar), horizontal-scroll on mobile,
+ * grid-cols-7 on desktop. Minimal 2-line pills: day abbrev + number.
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { getDayLabel, MONTH_NAMES_FR, MONTH_NAMES_HT } from "./shared";
 
 interface WeekStripProps {
-  days: string[];          // array of MM-DD
-  selectedDate: string;    // MM-DD
-  todayDate: string;       // MM-DD
+  days: string[];
+  selectedDate: string;
+  todayDate: string;
   onSelect: (monthDay: string) => void;
   lang: ContentLanguage;
   entryCounts?: Record<string, number>;
 }
 
-/** Build a human-readable date-range label, e.g. "24 fév. – 2 mars" */
+/** "24 fév. – 2 mars" */
 function rangeLabel(days: string[], lang: ContentLanguage): string {
   const first = days[0]!;
   const last = days[days.length - 1]!;
   const mNames = lang === "fr" ? MONTH_NAMES_FR : MONTH_NAMES_HT;
-
   const [m1, d1] = first.split("-");
   const [m2, d2] = last.split("-");
   const month1 = mNames[parseInt(m1!, 10) - 1]?.slice(0, 3) ?? m1;
   const month2 = mNames[parseInt(m2!, 10) - 1]?.slice(0, 3) ?? m2;
-
   if (m1 === m2) return `${parseInt(d1!, 10)} – ${parseInt(d2!, 10)} ${month2}.`;
   return `${parseInt(d1!, 10)} ${month1}. – ${parseInt(d2!, 10)} ${month2}.`;
 }
@@ -46,10 +44,10 @@ export function WeekStrip({
   const fr = lang === "fr";
 
   return (
-    <section className="space-y-3">
+    <div className="sticky top-14 z-40 -mx-4 border-b border-stone-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-stone-700 dark:bg-stone-950/95 sm:-mx-6 sm:px-6">
       {/* Header: range + today reset */}
-      <div className="flex items-baseline justify-between px-1">
-        <p className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+      <div className="mb-2 flex items-baseline justify-between">
+        <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
           {rangeLabel(days, lang)}
         </p>
         {selectedDate !== todayDate && (
@@ -62,8 +60,8 @@ export function WeekStrip({
         )}
       </div>
 
-      {/* Pills */}
-      <div className="grid grid-cols-7 gap-1">
+      {/* Day pills — scrollable on mobile, grid on desktop */}
+      <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5 scrollbar-none sm:grid sm:grid-cols-7 sm:gap-1 sm:overflow-visible">
         {days.map((md) => {
           const label = getDayLabel(md, lang);
           const isSelected = md === selectedDate;
@@ -75,7 +73,7 @@ export function WeekStrip({
               key={md}
               onClick={() => onSelect(md)}
               className={
-                "flex flex-col items-center gap-0.5 rounded-xl py-2 transition-colors " +
+                "flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-4 py-2 transition-colors sm:px-0 " +
                 (isSelected
                   ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500"
                   : isToday
@@ -83,7 +81,6 @@ export function WeekStrip({
                     : "text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-700/50")
               }
             >
-              {/* Day abbreviation — 3 letters, no dot */}
               <span
                 className={
                   "text-[11px] font-medium uppercase " +
@@ -96,13 +93,8 @@ export function WeekStrip({
               >
                 {label.dayName.replace(".", "")}
               </span>
-
-              {/* Day number */}
-              <span className="text-lg font-bold leading-none">
-                {label.dayNumber}
-              </span>
-
-              {/* Entry-count dots (max 3 visible) */}
+              <span className="text-lg font-bold leading-none">{label.dayNumber}</span>
+              {/* Entry dots (max 3) */}
               <span className="mt-0.5 flex h-1.5 items-center gap-[3px]">
                 {count > 0 &&
                   Array.from({ length: Math.min(count, 3) }).map((_, i) => (
@@ -110,9 +102,7 @@ export function WeekStrip({
                       key={i}
                       className={
                         "inline-block h-1 w-1 rounded-full " +
-                        (isSelected
-                          ? "bg-white/70"
-                          : "bg-blue-500 dark:bg-blue-400")
+                        (isSelected ? "bg-white/70" : "bg-blue-500 dark:bg-blue-400")
                       }
                     />
                   ))}
@@ -121,6 +111,6 @@ export function WeekStrip({
           );
         })}
       </div>
-    </section>
+    </div>
   );
 }

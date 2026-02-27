@@ -11,12 +11,12 @@ export type BadgeVariant =
   | "expired"   // red
   | "today"     // red
   | "urgent"    // amber  (1-7 days)
-  | "soon"      // blue   (8-45 days, badge shows J-X)
+  | "soon"      // blue   (8-45 days)
   | "upcoming"  // stone  (>45 days)
   | "unknown";  // stone  (no date)
 
 export interface DeadlineDisplayStatus {
-  /** Short badge text: "Expiré", "Aujourd'hui", "Urgent", "J-12", "À venir", "À confirmer" */
+  /** Short badge text: "Expiré", "Aujourd'hui", "Urgent", "Bientôt", "À venir", "À confirmer" */
   badgeLabel: string;
   /** Colour variant for styling */
   badgeVariant: BadgeVariant;
@@ -176,7 +176,7 @@ export function getDeadlineStatus(
   // ── 8-45 days ──
   if (days <= 45) {
     return {
-      badgeLabel: `J-${days}`,
+      badgeLabel: fr ? "Bientôt" : "Byento",
       badgeVariant: "soon",
       humanLine: fr
         ? `Clôture dans ${days} jours`
