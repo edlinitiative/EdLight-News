@@ -16,6 +16,8 @@ import type { ContentLanguage } from "@edlight-news/types";
 export type TauxBRH = {
   date?: string;
   usdReference?: number | string;
+  /** Daily variation of the reference rate, e.g. "-0.06%" */
+  dailyVariation?: string;
   bankBuy?: number | string;
   bankSell?: number | string;
   informalBuy?: number | string;
@@ -98,6 +100,25 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
               <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
                 {t.htgPer}
               </span>
+              {data!.dailyVariation && (() => {
+                const raw = data!.dailyVariation.replace(",", ".").replace("%", "").trim();
+                const num = parseFloat(raw);
+                if (!Number.isFinite(num) || num === 0) return null;
+                // Positive = gourde weakening (bad for students buying USD) → red ↑
+                // Negative = gourde strengthening (good) → green ↓
+                const up = num > 0;
+                return (
+                  <span
+                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-semibold tabular-nums ${
+                      up
+                        ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
+                        : "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
+                    }`}
+                  >
+                    {up ? "↑" : "↓"} {data!.dailyVariation}
+                  </span>
+                );
+              })()}
             </div>
 
             {/* Divider */}

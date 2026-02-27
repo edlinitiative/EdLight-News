@@ -69,6 +69,12 @@ function parseBRHPage(html: string): TauxBRH | null {
   );
   const usdReference = parseRate(refMatch?.[1]);
 
+  // ── Reference rate: daily variation ─────────────────────────────────
+  const refVarMatch = text.match(
+    /TAUX\s+DE\s+R[EÉ]F[EÉ]RENCE\s+[\d.,]+.*?Variation\s*\/\s*Jour\s+pr[eé]c[eé]dent\s+(-?[\d.,]+%)/i,
+  );
+  const dailyVariation = refVarMatch?.[1]?.trim() ?? undefined;
+
   // ── Bank market (achat / vente) ────────────────────────────────────────
   const bankMatch = text.match(
     /MARCH[EÉ]\s+BANCAIRE\s+([\d.,]+)\s+([\d.,]+)/i,
@@ -89,6 +95,7 @@ function parseBRHPage(html: string): TauxBRH | null {
   return {
     date,
     usdReference,
+    dailyVariation,
     bankBuy,
     bankSell,
     informalBuy,
