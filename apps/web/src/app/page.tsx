@@ -46,6 +46,7 @@ import {
 import { getCalendarGeo } from "@/lib/calendarGeo";
 import { CountryFlag } from "@/components/CountryFlag";
 import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
+import { fetchTauxBRH } from "@/lib/brh";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
@@ -140,6 +141,7 @@ export default async function AccueilPage({
     closingScholarships45,
     allPathways,
     allUniversities,
+    taux,
   ] = await Promise.all([
     safeFetch(() => fetchEnrichedFeed(lang, 100), [], "enrichedFeed"),
     safeFetch(fetchUpcomingCalendarEvents, [], "upcomingEvents"),
@@ -147,6 +149,7 @@ export default async function AccueilPage({
     safeFetch(() => fetchScholarshipsClosingSoon(45), [], "scholarships45"),
     safeFetch(fetchAllPathways, [], "pathways"),
     safeFetch(fetchAllUniversities, [], "universities"),
+    safeFetch(fetchTauxBRH, null, "tauxBRH"),
   ]);
 
   // Suppress "taux du jour" articles (the widget handles exchange rates)
@@ -450,7 +453,7 @@ export default async function AccueilPage({
         </div>
       )}
       {/* ── TAUX BRH DU JOUR WIDGET ─────────────────────────────────── */}
-      <TauxDuJourWidget lang={lang} />
+      <TauxDuJourWidget lang={lang} data={taux} />
       {/* ── LEAD STORY + SIDEBAR (Newspaper Layout) ────────────────────── */}
       <section>
         <div className="mb-4 section-rule" />

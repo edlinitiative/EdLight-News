@@ -3,6 +3,7 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { Newspaper } from "lucide-react";
 import { NewsFeed } from "@/components/news-feed";
 import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
+import { fetchTauxBRH } from "@/lib/brh";
 import { fetchEnrichedArticles } from "@/lib/feed";
 import { rankFeed } from "@/lib/ranking";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -36,14 +37,15 @@ export default async function NewsPage({
 }) {
   const language: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
 
-  // Fetch enriched articles (content_versions + parent item metadata)
-  let enriched: Awaited<ReturnType<typeof fetchEnrichedArticles>>;
-  try {
-    enriched = await fetchEnrichedArticles(language, 200);
-  } catch (err) {
-    console.error("[EdLight] /news fetch failed:", err);
-    enriched = [];
-  }
+  // Fetch BRH rates + enriched articles in parallel
+  const [taux, enrichedRaw] = await Promise.all([
+    fetchTauxBRH().catch(() => null),
+    fetchEnrichedArticles(language, 200).catch((err) => {
+      console.error("[EdLight] /news fetch failed:", err);
+      return [] as Awaited<ReturnType<typeof fetchEnrichedArticles>>;
+    }),
+  ]);
+  const enriched = enrichedRaw;
 
   // Server-side ranking:
   //   - drop offMission items
@@ -62,7 +64,7 @@ export default async function NewsPage({
   return (
     <div className="space-y-6">
       {/* Daily exchange-rate widget (UI-only feature) */}
-      <TauxDuJourWidget lang={language} />
+      <TauxDuJourWidget lang={language} data={taux} />
 
       <header>
         <div className="section-rule" />
