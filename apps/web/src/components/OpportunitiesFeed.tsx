@@ -181,7 +181,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
         <button
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
-          className="mb-2 w-full rounded-lg bg-gray-100 px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 md:hidden"
+          className="mb-2 w-full rounded-lg bg-stone-100 px-3 py-2 text-left text-sm font-medium text-stone-700 transition hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600 md:hidden"
           aria-expanded={filtersOpen}
         >
           {filtersOpen
@@ -196,15 +196,15 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-              className="w-full rounded-lg border border-gray-200/80 bg-white/80 px-2.5 py-1.5 text-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-400"
+              className="w-full rounded-lg border border-stone-200/80 bg-white/80 px-2.5 py-1.5 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-white dark:placeholder-stone-500"
             />
-            <p className="text-[11px] text-gray-400 dark:text-slate-500 sm:text-xs">
+            <p className="text-[11px] text-stone-400 dark:text-stone-500 sm:text-xs">
               {sorted.length} {lang === "fr" ? "résultat(s)" : "rezilta"}
             </p>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
               {lang === "fr" ? "Type" : "Tip"}
             </p>
             <div className="space-y-1">
@@ -221,8 +221,8 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
                     className={[
                       "flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-sm font-medium transition",
                       subCat === s
-                        ? "bg-brand-600 text-white shadow-sm"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                        ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                        : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
                     ].join(" ")}
                   >
                     <span>{SUBCAT_LABELS[s][lang]}</span>
@@ -234,7 +234,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
           </div>
 
           <div className="space-y-1.5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
               {lang === "fr" ? "Trier" : "Triye"}
             </p>
             <div className="space-y-1">
@@ -245,8 +245,8 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
                   className={[
                     "w-full rounded-lg px-2.5 py-1.5 text-left text-sm font-medium transition",
                     sort === s
-                      ? "bg-brand-600 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                      ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                      : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
                   ].join(" ")}
                 >
                   {SORT_LABELS[s][lang]}
@@ -256,23 +256,23 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
           </div>
 
           {sort === "deadline" && (
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-stone-600 dark:text-stone-300">
               <input
                 type="checkbox"
                 checked={includeNoDeadline}
                 onChange={(e) => setIncludeNoDeadline(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
+                className="h-4 w-4 rounded border-stone-300 dark:border-stone-600"
               />
               {lang === "fr" ? "Inclure sans deadline" : "Enkli san dat limit"}
             </label>
           )}
 
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-stone-600 dark:text-stone-300">
             <input
               type="checkbox"
               checked={showExpired}
               onChange={(e) => setShowExpired(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 dark:border-slate-600"
+              className="h-4 w-4 rounded border-stone-300 dark:border-stone-600"
             />
             {lang === "fr" ? "Afficher expirés" : "Montre ki ekspire"}
           </label>
@@ -282,7 +282,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       {/* Results */}
       <div className="space-y-3 sm:space-y-4">
         {sorted.length === 0 ? (
-          <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
+          <div className="section-shell border-2 border-dashed py-20 text-center text-stone-400 dark:text-stone-500">
             <p className="relative z-10">
               {lang === "fr"
                 ? "Aucune opportunité trouvée."

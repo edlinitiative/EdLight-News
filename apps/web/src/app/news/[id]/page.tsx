@@ -102,20 +102,20 @@ function SourceLinks({ item }: { item: Item | null }) {
         href={originalUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-3 py-1.5 font-medium text-brand-700 hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-800"
+        className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-3 py-1.5 font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-800"
       >
         <span>Source officielle</span>
-        <span className="text-xs text-gray-400 dark:text-slate-500">({extractDomain(originalUrl)})</span>
+        <span className="text-xs text-stone-400 dark:text-stone-500">({extractDomain(originalUrl)})</span>
       </a>
       {aggregatorUrl && aggregatorUrl !== originalUrl && (
         <a
           href={aggregatorUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md bg-gray-50 px-3 py-1.5 text-gray-600 hover:bg-gray-100 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          className="inline-flex items-center gap-1 rounded-md bg-stone-50 px-3 py-1.5 text-stone-600 hover:bg-stone-100 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
         >
           <span>Via agrégateur</span>
-          <span className="text-xs text-gray-400 dark:text-slate-500">({extractDomain(aggregatorUrl)})</span>
+          <span className="text-xs text-stone-400 dark:text-stone-500">({extractDomain(aggregatorUrl)})</span>
         </a>
       )}
     </div>
@@ -140,7 +140,7 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
 
   rows.push({
     label: labels.deadline,
-    value: opp.deadline ? formatDate(opp.deadline, lang) : <span className="text-gray-400 dark:text-slate-500 italic">{unknown}</span>,
+    value: opp.deadline ? formatDate(opp.deadline, lang) : <span className="text-stone-400 dark:text-stone-500 italic">{unknown}</span>,
   });
 
   if (opp.eligibility?.length) {
@@ -166,7 +166,7 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
     rows.push({
       label: labels.officialLink,
       value: (
-        <a href={opp.officialLink} target="_blank" rel="noopener noreferrer" className="text-brand-700 hover:underline dark:text-brand-400">
+        <a href={opp.officialLink} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:underline dark:text-blue-400">
           {extractDomain(opp.officialLink)}
         </a>
       ),
@@ -176,7 +176,7 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
   if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-lg border bg-purple-50/50 p-5 dark:border-slate-700 dark:bg-purple-900/20">
+    <div className="rounded-lg border bg-purple-50/50 p-5 dark:border-stone-700 dark:bg-purple-900/20">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Fiche Bourse" : "Fich Bous"}
@@ -184,7 +184,7 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
       <dl className="space-y-2">
         {rows.map(({ label, value }, i) => (
           <div key={i} className="grid grid-cols-[140px_1fr] gap-2 text-sm">
-            <dt className="font-medium text-gray-600 dark:text-slate-400">{label}</dt>
+            <dt className="font-medium text-stone-600 dark:text-stone-400">{label}</dt>
             <dd>{value}</dd>
           </div>
         ))}
@@ -206,7 +206,7 @@ function RelatedUpdates({
   if (others.length === 0) return null;
 
   return (
-    <section className="rounded-lg border p-4 dark:border-slate-700">
+    <section className="rounded-lg border p-4 dark:border-stone-700">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         {lang === "fr" ? "Mises à jour liées" : "Mizajou ki gen rapò"}
       </h2>
@@ -215,7 +215,7 @@ function RelatedUpdates({
           <li key={a.id}>
             <Link
               href={`/news/${a.id}?lang=${lang}`}
-              className="text-sm text-brand-700 hover:underline dark:text-brand-400"
+              className="text-sm text-blue-700 hover:underline dark:text-blue-400"
             >
               {a.title}
             </Link>
@@ -260,7 +260,7 @@ function StructuredSections({
       {sections.map((section, i) => (
         <section key={i}>
           <h2 className="mb-2 text-xl font-bold dark:text-white">{section.heading}</h2>
-          <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-brand-700 dark:prose-a:text-brand-400 prose-a:no-underline hover:prose-a:underline max-w-none">
+          <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none">
             <ReactMarkdown>{section.content}</ReactMarkdown>
           </div>
         </section>
@@ -280,7 +280,7 @@ function SynthesisSourcesList({
   if (!sourceList || sourceList.length === 0) return null;
 
   return (
-    <section className="rounded-lg border bg-gray-50/50 p-5 dark:border-slate-700 dark:bg-slate-800/50">
+    <section className="rounded-lg border bg-stone-50/50 p-5 dark:border-stone-700 dark:bg-stone-800/50">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         <Newspaper className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr"
@@ -290,13 +290,13 @@ function SynthesisSourcesList({
       <ul className="space-y-2">
         {sourceList.map((src, i) => (
           <li key={i} className="flex items-start gap-2 text-sm">
-            <span className="mt-0.5 flex-shrink-0 text-gray-400 dark:text-slate-500">•</span>
+            <span className="mt-0.5 flex-shrink-0 text-stone-400 dark:text-stone-500">•</span>
             <div>
               <span className="font-medium">{src.sourceName}</span>
-              <span className="text-gray-400 dark:text-slate-500"> — </span>
-              <span className="text-gray-600 dark:text-slate-300">{src.title}</span>
+              <span className="text-stone-400 dark:text-stone-500"> — </span>
+              <span className="text-stone-600 dark:text-stone-300">{src.title}</span>
               {src.publishedAt && (
-                <span className="ml-1 text-xs text-gray-400 dark:text-slate-500">
+                <span className="ml-1 text-xs text-stone-400 dark:text-stone-500">
                   ({formatDate(src.publishedAt, lang)})
                 </span>
               )}
@@ -353,7 +353,7 @@ function UtilityFactsFiche({
   if (!hasContent) return null;
 
   return (
-    <div className="rounded-lg border bg-violet-50/50 p-5 dark:border-slate-700 dark:bg-violet-900/20">
+    <div className="rounded-lg border bg-violet-50/50 p-5 dark:border-stone-700 dark:bg-violet-900/20">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Informations clés" : "Enfòmasyon kle"}
@@ -361,20 +361,20 @@ function UtilityFactsFiche({
       <dl className="space-y-3">
         {facts.deadlines && facts.deadlines.length > 0 && (
           <div>
-            <dt className="font-medium text-gray-600 dark:text-slate-400 text-sm">
+            <dt className="font-medium text-stone-600 dark:text-stone-400 text-sm">
               {lang === "fr" ? "Dates limites" : "Dat limit yo"}
             </dt>
             <dd className="mt-1">
               <ul className="space-y-1">
                 {facts.deadlines.map((d, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm">
-                    <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-500 dark:text-brand-400" />
+                    <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-500 dark:text-blue-400" />
                     <span>
                       {d.label}
                       {d.dateISO ? (
-                        <span className="ml-1 font-semibold text-brand-600 dark:text-brand-400">{d.dateISO}</span>
+                        <span className="ml-1 font-semibold text-blue-600 dark:text-blue-400">{d.dateISO}</span>
                       ) : (
-                        <span className="ml-1 italic text-gray-400 dark:text-slate-500">
+                        <span className="ml-1 italic text-stone-400 dark:text-stone-500">
                           {lang === "fr" ? "(à confirmer)" : "(pou konfime)"}
                         </span>
                       )}
@@ -387,7 +387,7 @@ function UtilityFactsFiche({
         )}
         {facts.eligibility && facts.eligibility.length > 0 && (
           <div>
-            <dt className="font-medium text-gray-600 dark:text-slate-400 text-sm">
+            <dt className="font-medium text-stone-600 dark:text-stone-400 text-sm">
               {lang === "fr" ? "Éligibilité" : "Elijibilite"}
             </dt>
             <dd className="mt-1">
@@ -399,7 +399,7 @@ function UtilityFactsFiche({
         )}
         {facts.requirements && facts.requirements.length > 0 && (
           <div>
-            <dt className="font-medium text-gray-600 dark:text-slate-400 text-sm">
+            <dt className="font-medium text-stone-600 dark:text-stone-400 text-sm">
               {lang === "fr" ? "Exigences" : "Egzijans yo"}
             </dt>
             <dd className="mt-1">
@@ -411,7 +411,7 @@ function UtilityFactsFiche({
         )}
         {facts.steps && facts.steps.length > 0 && (
           <div>
-            <dt className="font-medium text-gray-600 dark:text-slate-400 text-sm">
+            <dt className="font-medium text-stone-600 dark:text-stone-400 text-sm">
               {lang === "fr" ? "Étapes" : "Etap yo"}
             </dt>
             <dd className="mt-1">
@@ -436,7 +436,7 @@ function UtilitySourceCitations({
   const cites = (article as any).sourceCitations as { name: string; url: string }[] | undefined;
   if (!cites || cites.length === 0) return null;
   return (
-    <section className="rounded-lg border bg-gray-50/50 p-5 dark:border-slate-700 dark:bg-slate-800/50">
+    <section className="rounded-lg border bg-stone-50/50 p-5 dark:border-stone-700 dark:bg-stone-800/50">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         <Paperclip className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Sources consultées" : "Sous konsilte"}
@@ -444,12 +444,12 @@ function UtilitySourceCitations({
       <ul className="space-y-2">
         {cites.map((c, i) => (
           <li key={i} className="flex items-start gap-2 text-sm">
-            <span className="mt-0.5 flex-shrink-0 text-gray-400 dark:text-slate-500">•</span>
+            <span className="mt-0.5 flex-shrink-0 text-stone-400 dark:text-stone-500">•</span>
             <a
               href={c.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand-700 hover:underline dark:text-brand-400"
+              className="text-blue-700 hover:underline dark:text-blue-400"
             >
               {c.name}
             </a>
@@ -469,12 +469,12 @@ function WhatChangedNote({
 }) {
   if (!whatChanged) return null;
   return (
-    <div className="rounded-lg border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
-      <p className="text-sm font-medium text-brand-800 dark:text-brand-300">
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+      <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
         <RefreshCw className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Dernière mise à jour :" : "Dènye mizajou :"}
       </p>
-      <p className="mt-1 text-sm text-brand-700 dark:text-brand-300">{whatChanged}</p>
+      <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">{whatChanged}</p>
     </div>
   );
 }
@@ -616,7 +616,7 @@ export default async function ArticlePage({
     : rawCat;
   const catColor = derivedSubCat
     ? SUBCAT_COLORS[derivedSubCat]
-    : (CATEGORY_COLORS[fallbackCat] ?? "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300");
+    : (CATEGORY_COLORS[fallbackCat] ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300");
   const catLabel = derivedSubCat
     ? SUBCAT_LABELS[derivedSubCat][currentLang]
     : categoryLabel(fallbackCat, currentLang);
@@ -639,7 +639,7 @@ export default async function ArticlePage({
     <article className="mx-auto max-w-3xl space-y-6">
       {/* Hero image — best image from dedup group (mirrors card logic) */}
       {heroImageUrl && (
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-slate-800">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800">
           <ImageWithFallback
             src={heroImageUrl}
             alt=""
@@ -683,14 +683,14 @@ export default async function ArticlePage({
             <MapPin className="mr-0.5 inline-block h-3 w-3" />{currentLang === "fr" ? "Haïti" : "Ayiti"}
           </span>
         )}
-        <span className="text-xs text-gray-400 uppercase dark:text-slate-500">
+        <span className="text-xs text-stone-400 uppercase dark:text-stone-500">
           {article.language === "fr" ? "Français" : "Kreyòl Ayisyen"}
         </span>
       </div>
 
       {/* Published date */}
       {(pubDate || createdDate) && (
-        <p className="text-sm text-gray-500 dark:text-slate-400">
+        <p className="text-sm text-stone-500 dark:text-stone-400">
           {currentLang === "fr" ? "Publié le" : "Pibliye"} {pubDate || createdDate}
           {isSynthesis && lastUpdateDate && (
             <span className="ml-2 text-emerald-600">
@@ -719,7 +719,7 @@ export default async function ArticlePage({
 
       {/* Summary */}
       {article.summary && (
-        <p className="text-lg text-gray-600 leading-relaxed dark:text-slate-300">
+        <p className="text-lg text-stone-600 leading-relaxed dark:text-stone-300">
           {article.summary}
         </p>
       )}
@@ -742,7 +742,7 @@ export default async function ArticlePage({
       {(isSynthesis || isUtility) && article.sections && article.sections.length > 0 ? (
         <StructuredSections sections={stripStructuredSourceSections(article.sections)} />
       ) : (
-        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-brand-700 dark:prose-a:text-brand-400 prose-a:no-underline hover:prose-a:underline max-w-none">
+        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none">
           <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
         </div>
       )}
@@ -759,15 +759,15 @@ export default async function ArticlePage({
 
       {/* Switch language link */}
       {siblingVersion && (
-        <div className="rounded-lg border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
-          <p className="text-sm text-gray-600 dark:text-slate-300">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+          <p className="text-sm text-stone-600 dark:text-stone-300">
             {article.language === "fr"
               ? "Lire cet article en Kreyòl Ayisyen:"
               : "Li atik sa a an Fransè:"}
           </p>
           <Link
             href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-            className="mt-1 inline-block font-medium text-brand-700 hover:underline dark:text-brand-400"
+            className="mt-1 inline-block font-medium text-blue-700 hover:underline dark:text-blue-400"
           >
             {siblingVersion.title} →
           </Link>
@@ -785,7 +785,7 @@ export default async function ArticlePage({
 
       {/* Legacy citations (for older items without source object) */}
       {!item?.source && (article.citations?.length ?? 0) > 0 && (
-        <section className="border-t pt-4 dark:border-slate-700">
+        <section className="border-t pt-4 dark:border-stone-700">
           <h2 className="text-base font-semibold dark:text-white">Sources</h2>
           <ul className="mt-2 space-y-1">
             {(article.citations ?? []).map((c, i) => (
@@ -794,7 +794,7 @@ export default async function ArticlePage({
                   href={c.sourceUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-600 hover:underline dark:text-brand-400"
+                  className="text-blue-600 hover:underline dark:text-blue-400"
                 >
                   {c.sourceName}
                 </a>
@@ -806,7 +806,7 @@ export default async function ArticlePage({
 
       {/* Subtle quality info for weak source / missing deadline */}
       {(item?.qualityFlags?.weakSource || item?.qualityFlags?.missingDeadline) && (
-        <p className="text-xs text-gray-400 dark:text-slate-500 italic">
+        <p className="text-xs text-stone-400 dark:text-stone-500 italic">
           {item.qualityFlags.weakSource &&
             (currentLang === "fr"
               ? "Source relayée via un agrégateur"
@@ -820,7 +820,7 @@ export default async function ArticlePage({
       )}
 
       {/* Report issue button */}
-      <div className="border-t pt-4 dark:border-slate-700">
+      <div className="border-t pt-4 dark:border-stone-700">
         <ReportIssueButton
           itemId={article.itemId || article.id}
           lang={currentLang}
@@ -831,7 +831,7 @@ export default async function ArticlePage({
       <div className="pt-4">
         <Link
           href={`/news?lang=${currentLang}`}
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+          className="text-sm text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
         >
           ← {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
         </Link>

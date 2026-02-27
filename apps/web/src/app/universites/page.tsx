@@ -70,11 +70,11 @@ export default async function UniversitesPage({
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-          <School className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
+          <School className="mr-1.5 inline h-7 w-7 text-blue-600 dark:text-blue-400" />
           {fr ? "Universités" : "Inivèsite"}
         </h1>
-        <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+        <p className="max-w-2xl text-stone-600 dark:text-stone-300">
           {fr
             ? `${totalCount} universités dans ${countryCount} pays — filtrées pour les étudiants haïtiens.`
             : `${totalCount} inivèsite nan ${countryCount} peyi — filtre pou etidyan ayisyen yo.`}
@@ -85,24 +85,24 @@ export default async function UniversitesPage({
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start xl:grid-cols-[300px_minmax(0,1fr)]">
           {/* Sidebar filters */}
           <aside className="glass-panel p-4 lg:sticky lg:top-24 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
-            <h2 className="text-sm font-semibold tracking-wide text-gray-800 dark:text-slate-100">
+            <h2 className="text-sm font-semibold tracking-wide text-stone-800 dark:text-stone-100">
               {fr ? "Filtres" : "Filtè"}
             </h2>
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
               {fr ? "Filtrer par pays" : "Filtre pa peyi"}
             </p>
 
             <details className="mt-3 lg:hidden">
-              <summary className="cursor-pointer select-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+              <summary className="cursor-pointer select-none rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700">
                 {fr ? "Ouvrir les filtres" : "Louvri filtè yo"}
               </summary>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link
                   href={`/universites?lang=${lang}`}
-                  className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                     !filterCountry
-                      ? "bg-brand-600 text-white shadow-sm"
-                      : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                      ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                      : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
                   }`}
                 >
                   {fr ? "Tous" : "Tout"}
@@ -113,10 +113,10 @@ export default async function UniversitesPage({
                     <Link
                       key={`mobile-${c}`}
                       href={`/universites?lang=${lang}&country=${c}`}
-                      className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                         filterCountry === c
-                          ? "bg-brand-600 text-white shadow-sm"
-                          : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                          ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                          : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
                       }`}
                     >
                       {label?.flag} {fr ? label?.fr : label?.ht}
@@ -129,10 +129,10 @@ export default async function UniversitesPage({
             <div className="mt-3 hidden lg:flex lg:flex-col lg:items-stretch lg:gap-2">
               <Link
                 href={`/universites?lang=${lang}`}
-                className={`rounded-full px-3 py-1 text-sm font-medium transition lg:rounded-xl lg:px-3 lg:py-2 ${
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition lg:rounded-xl lg:px-3 lg:py-2 ${
                   !filterCountry
-                    ? "bg-brand-600 text-white shadow-sm"
-                    : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                    : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
                 }`}
               >
                 {fr ? "Tous" : "Tout"}
@@ -143,10 +143,10 @@ export default async function UniversitesPage({
                   <Link
                     key={c}
                     href={`/universites?lang=${lang}&country=${c}`}
-                    className={`rounded-full px-3 py-1 text-sm font-medium transition lg:rounded-xl lg:px-3 lg:py-2 ${
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition lg:rounded-xl lg:px-3 lg:py-2 ${
                       filterCountry === c
-                        ? "bg-brand-600 text-white shadow-sm"
-                        : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                        ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                        : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
                     }`}
                   >
                     {label?.flag} {fr ? label?.fr : label?.ht}
@@ -165,7 +165,7 @@ export default async function UniversitesPage({
                 <section key={countryKey} className="space-y-4">
                   <h2 className="relative z-10 text-xl font-bold tracking-tight dark:text-white">
                     {cl?.flag} {fr ? cl?.fr : cl?.ht}{" "}
-                    <span className="text-sm font-normal text-gray-400 dark:text-slate-500">
+                    <span className="text-sm font-normal text-stone-400 dark:text-stone-500">
                       ({unis.length})
                     </span>
                   </h2>
@@ -189,22 +189,22 @@ export default async function UniversitesPage({
                             )}
                           </div>
                           {uni.city && (
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{uni.city}</p>
+                            <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{uni.city}</p>
                           )}
                           {tuition && (
-                            <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                            <p className="mt-1 text-xs text-stone-400 dark:text-stone-500">
                               <DollarSign className="mr-0.5 inline h-3 w-3" />{fr ? tuition.fr : tuition.ht}
                             </p>
                           )}
                           {uni.languages && uni.languages.length > 0 && (
-                            <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                            <p className="mt-1 text-xs text-stone-400 dark:text-stone-500">
                               <Languages className="mr-0.5 inline h-3 w-3" />{uni.languages.join(", ")}
                             </p>
                           )}
                           {uni.tags && uni.tags.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1">
                               {uni.tags.slice(0, 4).map((tag) => (
-                                <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+                                <span key={tag} className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600 dark:bg-stone-700 dark:text-stone-300">
                                   {tag}
                                 </span>
                               ))}
@@ -215,7 +215,7 @@ export default async function UniversitesPage({
                               href={uni.admissionsUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs font-medium text-brand-700 dark:text-brand-400 hover:underline"
+                              className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline"
                             >
                               {fr ? "Admissions →" : "Admisyon →"}
                             </a>
@@ -239,7 +239,7 @@ export default async function UniversitesPage({
                                   href={src.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="rounded bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-brand-700 hover:underline dark:bg-slate-800/50 dark:text-slate-500 dark:hover:text-brand-400"
+                                  className="rounded bg-stone-50 px-1.5 py-0.5 text-[10px] text-stone-400 hover:text-blue-700 hover:underline dark:bg-stone-800/50 dark:text-stone-500 dark:hover:text-blue-400"
                                 >
                                   <Paperclip className="mr-0.5 inline h-3 w-3" />{src.label}
                                 </a>
@@ -266,7 +266,7 @@ export default async function UniversitesPage({
       </section>
 
       {totalCount === 0 && (
-        <div className="section-shell border-2 border-dashed py-24 text-center text-gray-400 dark:text-slate-500">
+        <div className="section-shell border-2 border-dashed py-24 text-center text-stone-400 dark:text-stone-500">
           <p className="text-lg font-medium">
             {fr ? "Base de données en construction…" : "Baz done an konstriksyon…"}
           </p>

@@ -1,95 +1,70 @@
-/**
- * DeadlineBadge — subtle urgency pill for time-sensitive items.
- *
- * Renders "Clôture dans X jours" / "Fèmen nan X jou" with colour
- * intensity that increases as the deadline approaches.
- *
- * Returns null when:
- *  - dateISO is missing / invalid
- *  - deadline is in the past
- *  - deadline exceeds windowDays
- */
+import type { ContentLanguage } from "@edlight-news/types";
+import { Clock } from "lucide-react";
+import { parseISODateSafe, daysUntil } from "@/lib/deadlines";
 
-import { Clock, AlertTriangle } from "lucide-react";
-import {
-  parseISODateSafe,
-  daysUntil,
-  formatDaysLabel,
-  urgencyTier,
-  type UrgencyTier,
-} from "@/lib/deadlines";
-
-// ── Styling per tier ─────────────────────────────────────────────────────────
-
-const TIER_STYLES: Record<UrgencyTier, string> = {
-  critical: "bg-red-100 text-red-800 ring-1 ring-red-300 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-700",
-  soon:     "bg-brand-100 text-brand-800 ring-1 ring-brand-200 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-700",
-  upcoming: "bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-300",
-  none:     "",
-};
-
-const TIER_ICON: Record<UrgencyTier, React.ReactNode> = {
-  critical: <AlertTriangle className="h-3 w-3 shrink-0" />,
-  soon:     <Clock className="h-3 w-3 shrink-0" />,
-  upcoming: <Clock className="h-3 w-3 shrink-0" />,
-  none:     null,
-};
-
-// ── Props ────────────────────────────────────────────────────────────────────
-
-export interface DeadlineBadgeProps {
-  /** ISO date string (YYYY-MM-DD) */
-  dateISO?: string | null;
-  /** Maximum future window in days (default 30) */
+/* Supports three call patterns:
+   1. <DeadlineBadge item={article} lang="fr" />            — item.deadline is string | object
+   2. <DeadlineBadge dateISO="2025-09-01" lang="fr" />      — direct ISO string
+   3. <DeadlineBadge item={{ deadline: { dateISO: "..." } }} lang="fr" />  */
+interface DeadlineBadgeBaseProps {
+  lang: ContentLanguage;
   windowDays?: number;
-  /** Display language */
-  lang?: "fr" | "ht";
-  /** Label prefix override */
+  variant?: string;
   prefix?: { fr: string; ht: string };
-  /** Visual variant */
-  variant?: "compact" | "pill";
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+interface ItemProps extends DeadlineBadgeBaseProps {
+  item: { deadline?: string | { dateISO?: string } | null };
+  dateISO?: never;
+}
 
-export function DeadlineBadge({
-  dateISO,
-  windowDays = 30,
-  lang = "fr",
-  prefix,
-  variant = "pill",
-}: DeadlineBadgeProps) {
-  const date = parseISODateSafe(dateISO);
+interface DirectProps extends DeadlineBadgeBaseProps {
+  dateISO: string;
+  item?: never;
+}
+
+export type DeadlineBadgeProps = ItemProps | DirectProps;
+
+export function DeadlineBadge(props: DeadlineBadgeProps) {
+  const { lang, windowDays = 30 } = props;
+
+  let iso: string | undefined;
+  if ("dateISO" in props && props.dateISO) {
+    iso = props.dateISO;
+  } else if (props.item?.deadline) {
+    const dl = props.item.deadline;
+    iso = typeof dl === "string" ? dl : dl?.dateISO;
+  }
+
+  if (!iso) return null;
+
+  const date = parseISODateSafe(iso);
   if (!date) return null;
 
   const days = daysUntil(date);
   if (days < 0 || days > windowDays) return null;
 
-  const tier = urgencyTier(days);
-  const label = formatDaysLabel(days, lang, prefix);
-  const styles = TIER_STYLES[tier];
-  const icon = TIER_ICON[tier];
+  const fr = lang === "fr";
+  let text: string;
+  let style: string;
 
-  if (variant === "compact") {
-    return (
-      <span
-        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${styles}`}
-        title={dateISO ?? ""}
-      >
-        {icon}
-        {label}
-      </span>
-    );
+  if (days === 0) {
+    text = fr ? "Aujourd'hui" : "Jodi a";
+    style = "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400";
+  } else if (days <= 7) {
+    text = fr ? `${days}j restants` : `${days}j rete`;
+    style = "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400";
+  } else {
+    text = fr ? `${days}j` : `${days}j`;
+    style = "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400";
   }
 
-  // pill (default)
+  const prefixText = props.prefix ? (fr ? props.prefix.fr : props.prefix.ht) + " · " : "";
+
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}
-      title={dateISO ?? ""}
-    >
-      {icon}
-      {label}
+    <span className={`badge ${style}`}>
+      <Clock className="h-3 w-3" />
+      {prefixText}{text}
     </span>
   );
 }

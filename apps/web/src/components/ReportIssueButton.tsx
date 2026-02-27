@@ -143,7 +143,7 @@ export function ReportIssueButton({
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 transition-colors hover:text-red-600"
+        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-stone-500 transition-colors hover:text-red-600"
       >
         <svg
           className="h-3.5 w-3.5"
@@ -168,7 +168,7 @@ export function ReportIssueButton({
           className={`fixed bottom-4 right-4 z-50 rounded-lg px-4 py-3 text-sm font-medium shadow-lg transition ${
             toast === "success"
               ? "bg-green-600 text-white"
-              : "bg-brand-500 text-white"
+              : "bg-blue-500 text-white"
           }`}
         >
           {toast === "success"
@@ -196,23 +196,23 @@ export function ReportIssueButton({
             aria-modal="true"
             aria-label={fr ? "Signaler une erreur" : "Siyale yon erè"}
           >
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-stone-900">
               {fr ? "Signaler une erreur" : "Siyale yon erè"}
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-stone-500">
               {fr
                 ? "Aidez-nous à améliorer cette page."
                 : "Ede nou amelyore paj sa a."}
             </p>
 
             {/* Reason selector */}
-            <label className="mt-4 block text-sm font-medium text-gray-700">
+            <label className="mt-4 block text-sm font-medium text-stone-700">
               {fr ? "Type d'erreur" : "Tip erè"}
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as FeedbackReason)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {REASON_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -222,7 +222,7 @@ export function ReportIssueButton({
             </select>
 
             {/* Note */}
-            <label className="mt-3 block text-sm font-medium text-gray-700">
+            <label className="mt-3 block text-sm font-medium text-stone-700">
               {fr ? "Détails (optionnel)" : "Detay (opsyonèl)"}
             </label>
             <textarea
@@ -235,9 +235,9 @@ export function ReportIssueButton({
                   ? "Décrivez brièvement l'erreur…"
                   : "Dekri erè a brèvman…"
               }
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2 text-sm shadow-sm placeholder:text-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
-            <p className="mt-1 text-right text-xs text-gray-400">
+            <p className="mt-1 text-right text-xs text-stone-400">
               {note.length}/500
             </p>
 
@@ -246,7 +246,7 @@ export function ReportIssueButton({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100"
               >
                 {fr ? "Annuler" : "Anile"}
               </button>

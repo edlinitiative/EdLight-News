@@ -38,55 +38,103 @@ export default function RootLayout({
         <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossOrigin="anonymous" />
       </head>
-      <body className="flex min-h-screen flex-col bg-gray-50 dark:bg-slate-950">
+      <body className="flex min-h-screen flex-col">
         <ThemeProvider>
           <LanguageProvider>
             <HtmlLangSync />
-            {/* Skip-to-content link for keyboard / screen-reader users */}
             <a
               href="#main-content"
-              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
             >
               Aller au contenu principal
             </a>
+
             <NavBar />
-            <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:py-6">
+
+            <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
               {children}
             </main>
-            <footer className="mt-10 border-t border-gray-200/70 bg-white/80 py-10 text-sm text-gray-500 backdrop-blur-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-400">
-              <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-3">
-                {/* Brand column */}
-                <div className="space-y-3">
-                  <span className="inline-flex items-center gap-1.5 text-lg tracking-tight text-brand-700 dark:text-brand-300">
-                    <span className="font-serif font-bold">Ed</span>
-                    <span className="font-light text-gray-400 dark:text-slate-500">Light</span>
-                    <span className="text-sm font-medium text-gray-400 dark:text-slate-500">News</span>
-                  </span>
-                  <p className="max-w-xs text-xs leading-relaxed text-gray-400 dark:text-slate-500">
-                    Conçu pour les étudiants haïtiens — Nouvelles, bourses et ressources vérifiées.
-                  </p>
+
+            <footer className="border-t border-stone-200 bg-stone-950 dark:border-stone-800 dark:bg-stone-950">
+              <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* Brand */}
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <div className="flex items-baseline gap-0.5">
+                      <span className="font-serif text-xl font-bold text-white">Ed</span>
+                      <span className="text-xl font-light text-stone-500">Light</span>
+                    </div>
+                    <p className="mt-3 max-w-xs text-sm leading-relaxed text-stone-400">
+                      Conçu pour les étudiants haïtiens — Nouvelles, bourses et ressources vérifiées.
+                    </p>
+                  </div>
+
+                  {/* Navigation */}
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                      Navigation
+                    </h3>
+                    <nav className="mt-4 flex flex-col gap-2.5 text-sm">
+                      {[
+                        { href: "/news", label: "Fil d'actualités" },
+                        { href: "/bourses", label: "Bourses" },
+                        { href: "/opportunites", label: "Opportunités" },
+                        { href: "/haiti", label: "Haïti" },
+                        { href: "/ressources", label: "Ressources" },
+                      ].map((link) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          className="text-stone-400 transition-colors hover:text-white"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </nav>
+                  </div>
+
+                  {/* More */}
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                      Explorer
+                    </h3>
+                    <nav className="mt-4 flex flex-col gap-2.5 text-sm">
+                      {[
+                        { href: "/universites", label: "Universités" },
+                        { href: "/calendrier", label: "Calendrier" },
+                        { href: "/parcours", label: "Parcours" },
+                        { href: "/histoire", label: "Histoire" },
+                        { href: "/succes", label: "Succès" },
+                      ].map((link) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          className="text-stone-400 transition-colors hover:text-white"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </nav>
+                  </div>
+
+                  {/* About */}
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                      À propos
+                    </h3>
+                    <p className="mt-4 text-sm leading-relaxed text-stone-400">
+                      EdLight News synthétise des sources publiques pour informer les étudiants.
+                    </p>
+                  </div>
                 </div>
 
-                {/* Navigation column */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Navigation</h3>
-                  <nav className="flex flex-col gap-1.5 text-xs">
-                    <a href="/news" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Fil d&apos;actualités</a>
-                    <a href="/haiti" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Haïti</a>
-                    <a href="/opportunites" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Opportunités</a>
-                    <a href="/bourses" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Bourses</a>
-                    <a href="/ressources" className="transition-colors hover:text-brand-600 dark:hover:text-brand-400">Ressources</a>
-                  </nav>
-                </div>
-
-                {/* About column */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">À propos</h3>
-                  <p className="text-xs leading-relaxed text-gray-400 dark:text-slate-500">
-                    EdLight News synthétise des sources publiques pour informer les étudiants. Les informations ne constituent pas un conseil officiel.
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-slate-500">
+                {/* Bottom bar */}
+                <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800 pt-8">
+                  <p className="text-xs text-stone-500">
                     © {new Date().getFullYear()} EdLight Initiative
+                  </p>
+                  <p className="text-xs text-stone-600">
+                    Les informations ne constituent pas un conseil officiel.
                   </p>
                 </div>
               </div>

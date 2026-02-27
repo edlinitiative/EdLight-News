@@ -18,7 +18,7 @@ interface GeminiHeroImageProps {
 
 export const GeminiHeroImage = memo(function GeminiHeroImage({
   prompt,
-  fallbackGradient = "from-brand-600 via-blue-700 to-indigo-800",
+  fallbackGradient = "from-blue-600 via-blue-700 to-indigo-800",
   className = "",
   themeAware = false,
   preloadedSrc,
@@ -87,7 +87,7 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
   if (loading) {
     return (
       <div
-        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${fallbackGradient} ${className}`}
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${fallbackGradient} ${className}`}
       >
         {/* Shimmer overlay */}
         <div className="absolute inset-0 animate-pulse bg-white/10" />
@@ -103,7 +103,7 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
   if (error || !imageUrl) {
     return (
       <div
-        className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${fallbackGradient} ${className}`}
+        className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${fallbackGradient} ${className}`}
       >
 
       </div>
@@ -112,7 +112,7 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
 
   // ── Success ────────────────────────────────────────────────────────────
   return (
-    <div className={`relative overflow-hidden rounded-2xl ${className}`}>
+    <div className={`relative overflow-hidden rounded-xl ${className}`}>
       <img
         src={imageUrl}
         alt=""

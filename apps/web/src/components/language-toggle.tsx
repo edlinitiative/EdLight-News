@@ -1,44 +1,19 @@
 "use client";
 
-import { Suspense } from "react";
 import { useLanguage } from "@/lib/language-context";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-function LanguageToggleInner() {
+export function LanguageToggle() {
   const { language, toggle } = useLanguage();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const handleToggle = () => {
-    toggle();
-    const nextLang = language === "fr" ? "ht" : "fr";
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("lang", nextLang);
-    router.push(`${pathname}?${params.toString()}`);
-  };
 
   return (
     <button
-      onClick={handleToggle}
-      className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold transition-all duration-200 hover:border-brand-300 hover:bg-brand-50 dark:border-slate-600 dark:text-slate-300 dark:hover:border-brand-500/50 dark:hover:bg-slate-700"
-      aria-label="Changer de langue / Chanje lang"
+      onClick={toggle}
+      className="inline-flex h-9 items-center gap-1 rounded-lg px-2.5 text-sm font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+      aria-label={language === "fr" ? "Pase an Kreyòl" : "Passer en Français"}
     >
-      {language === "fr" ? "KREYÒL" : "FRANÇAIS"}
+      <span className={language === "fr" ? "font-bold text-blue-600 dark:text-blue-400" : "opacity-50"}>FR</span>
+      <span className="text-stone-300 dark:text-stone-600">/</span>
+      <span className={language === "ht" ? "font-bold text-blue-600 dark:text-blue-400" : "opacity-50"}>HT</span>
     </button>
-  );
-}
-
-export function LanguageToggle() {
-  return (
-    <Suspense
-      fallback={
-        <span className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold dark:border-slate-600 dark:text-slate-300">
-          …
-        </span>
-      }
-    >
-      <LanguageToggleInner />
-    </Suspense>
   );
 }

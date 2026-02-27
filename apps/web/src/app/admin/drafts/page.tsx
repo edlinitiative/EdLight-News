@@ -23,12 +23,12 @@ const STATUS_CONFIG: Record<
 > = {
   draft: {
     label: { fr: "Brouillon", ht: "Bouyon" },
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-stone-100 text-stone-800",
     icon: Clock,
   },
   submitted: {
     label: { fr: "Soumis", ht: "Soumèt" },
-    color: "bg-brand-100 text-brand-800",
+    color: "bg-blue-100 text-blue-800",
     icon: Eye,
   },
   approved: {
@@ -48,18 +48,18 @@ const STATUS_CONFIG: Record<
 function ComingSoon({ fr }: { fr: boolean }) {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-20 text-center">
-      <FileEdit className="mx-auto h-16 w-16 text-gray-300" />
-      <h1 className="text-3xl font-bold text-gray-800">
+      <FileEdit className="mx-auto h-16 w-16 text-stone-300" />
+      <h1 className="text-3xl font-bold text-stone-800">
         {fr ? "Programme Contributeur" : "Pwogram Kontribitè"}
       </h1>
-      <p className="text-lg text-gray-500">
+      <p className="text-lg text-stone-500">
         {fr
           ? "Bientôt, vous pourrez soumettre des articles, guides et fiches pour aider les étudiants haïtiens. Revenez vite !"
           : "Byento, w ap kapab soumèt atik, gid ak fich pou ede elèv ayisyen yo. Tounen vit !"}
       </p>
       <Link
         href={fr ? "/" : "/?lang=ht"}
-        className="inline-block rounded-lg bg-brand-600 px-6 py-3 font-medium text-white transition hover:bg-brand-700"
+        className="inline-block rounded-lg bg-stone-900 px-6 py-3 font-medium text-white transition hover:bg-stone-800 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
       >
         {fr ? "← Retour à l'accueil" : "← Retounen lakay"}
       </Link>
@@ -96,10 +96,10 @@ async function DraftList({ fr }: { fr: boolean }) {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
-          <FileEdit className="mr-2 inline h-6 w-6 text-brand-600" />
+          <FileEdit className="mr-2 inline h-6 w-6 text-blue-600" />
           {fr ? "Gestion des brouillons" : "Jesyon bouyon yo"}
         </h1>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+        <span className="rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600">
           {allDrafts.length} {fr ? "brouillons" : "bouyon"}
         </span>
       </div>
@@ -134,14 +134,14 @@ async function DraftList({ fr }: { fr: boolean }) {
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               <cfg.icon className="h-4 w-4" />
               {fr ? cfg.label.fr : cfg.label.ht}
-              <span className="text-sm font-normal text-gray-400">
+              <span className="text-sm font-normal text-stone-400">
                 ({drafts.length})
               </span>
             </h2>
 
             <div className="overflow-x-auto rounded-lg border">
               <table className="w-full text-left text-sm">
-                <thead className="border-b bg-gray-50 text-xs text-gray-500">
+                <thead className="border-b bg-stone-50 text-xs text-stone-500">
                   <tr>
                     <th className="px-4 py-2">{fr ? "Titre" : "Tit"}</th>
                     <th className="px-4 py-2">{fr ? "Auteur" : "Otè"}</th>
@@ -151,19 +151,19 @@ async function DraftList({ fr }: { fr: boolean }) {
                 </thead>
                 <tbody className="divide-y">
                   {drafts.map((d) => (
-                    <tr key={d.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 font-medium text-gray-900">
+                    <tr key={d.id} className="hover:bg-stone-50">
+                      <td className="px-4 py-2 font-medium text-stone-900">
                         {d.title_fr}
                       </td>
-                      <td className="px-4 py-2 text-gray-600">
+                      <td className="px-4 py-2 text-stone-600">
                         {d.authorId}
                       </td>
                       <td className="px-4 py-2">
-                        <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">
+                        <span className="rounded bg-stone-100 px-2 py-0.5 text-xs">
                           {d.series ?? "—"}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-gray-500 text-xs">
+                      <td className="px-4 py-2 text-stone-500 text-xs">
                         {d.createdAt
                           ? new Date(
                               typeof d.createdAt === "string"
@@ -188,7 +188,7 @@ async function DraftList({ fr }: { fr: boolean }) {
       })}
 
       {allDrafts.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed py-12 text-center text-gray-400">
+        <div className="rounded-lg border-2 border-dashed py-12 text-center text-stone-400">
           <FileEdit className="mx-auto mb-3 h-10 w-10" />
           <p>{fr ? "Aucun brouillon pour le moment." : "Pa gen bouyon pou kounye a."}</p>
         </div>

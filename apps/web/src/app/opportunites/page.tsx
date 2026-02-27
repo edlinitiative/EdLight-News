@@ -86,11 +86,11 @@ export default async function OpportunitesPage({
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-          <Briefcase className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
+          <Briefcase className="mr-1.5 inline h-7 w-7 text-blue-600 dark:text-blue-400" />
           {fr ? "Opportunités" : "Okazyon"}
         </h1>
-        <p className="max-w-2xl text-sm text-gray-600 dark:text-slate-300 sm:text-base">
+        <p className="max-w-2xl text-sm text-stone-600 dark:text-stone-300 sm:text-base">
           {fr
             ? "Bourses, concours, stages et programmes pour étudiants haïtiens."
             : "Bous, konkou, estaj ak pwogram pou elèv ayisyen."}

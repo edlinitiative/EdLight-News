@@ -65,22 +65,22 @@ function LegacyDeadlineRow({
   const date = dl.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
 
   return (
-    <div className="flex items-center gap-3 rounded-md border border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+    <div className="flex items-center gap-3 rounded-md border border-stone-100 dark:border-stone-700 bg-white dark:bg-stone-800 px-3 py-2">
       {date && (
-        <span className="shrink-0 text-xs font-semibold tabular-nums text-gray-400 dark:text-slate-500">
+        <span className="shrink-0 text-xs font-semibold tabular-nums text-stone-400 dark:text-stone-500">
           {date.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
             day: "numeric",
             month: "short",
           })}
         </span>
       )}
-      <span className="flex-1 truncate text-sm text-gray-700 dark:text-slate-300">{dl.label}</span>
+      <span className="flex-1 truncate text-sm text-stone-700 dark:text-stone-300">{dl.label}</span>
       {dl.sourceUrl && (
         <a
           href={dl.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-brand-500 hover:text-brand-700"
+          className="shrink-0 text-blue-500 hover:text-blue-700"
         >
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
@@ -162,10 +162,10 @@ export default async function CalendrierPage({
   return (
     <div className="space-y-10">
       <header className="space-y-2">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
           {fr ? "Calendrier" : "Kalandriye"}
         </h1>
-        <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+        <p className="max-w-2xl text-stone-600 dark:text-stone-300">
           {fr
             ? "Examens haïtiens, inscriptions et dates limites de bourses internationales."
             : "Egzamen ayisyen, enskripsyon ak dat limit bous entènasyonal."}
@@ -186,13 +186,13 @@ export default async function CalendrierPage({
       {/* Legacy article deadlines — collapsed by default to reduce noise */}
       {hasLegacy && (
         <details className="section-shell p-0">
-          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3.5 transition-colors hover:bg-gray-50/70 dark:hover:bg-slate-800/60">
-            <span className="text-sm font-medium text-gray-500 dark:text-slate-400">
+          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3.5 transition-colors hover:bg-stone-50/70 dark:hover:bg-stone-800/60">
+            <span className="text-sm font-medium text-stone-500 dark:text-stone-400">
               {fr
                 ? "📄 Sources additionnelles (articles)"
                 : "📄 Sous adisyonèl (atik)"}
             </span>
-            <span aria-hidden className="text-sm text-gray-400 dark:text-slate-500">
+            <span aria-hidden className="text-sm text-stone-400 dark:text-stone-500">
               ▸
             </span>
           </summary>
@@ -205,7 +205,7 @@ export default async function CalendrierPage({
               />
             ))}
             {calendarData.item && (
-              <p className="mt-2 rounded-md bg-gray-50 dark:bg-slate-800 px-4 py-3 text-sm font-medium text-gray-600 dark:text-slate-300">
+              <p className="mt-2 rounded-md bg-stone-50 dark:bg-stone-800 px-4 py-3 text-sm font-medium text-stone-600 dark:text-stone-300">
                 {calendarData.item.title}
               </p>
             )}
@@ -215,7 +215,7 @@ export default async function CalendrierPage({
 
       {/* Empty state */}
       {!hasAnyData && (
-        <div className="section-shell border-2 border-dashed py-16 text-center text-gray-400 dark:text-slate-500">
+        <div className="section-shell border-2 border-dashed py-16 text-center text-stone-400 dark:text-stone-500">
           <CalendarDays className="mx-auto mb-3 h-10 w-10" />
           <p>
             {fr
@@ -229,7 +229,7 @@ export default async function CalendrierPage({
       <div className="pt-2">
         <Link
           href={lang === "ht" ? "/?lang=ht" : "/"}
-          className="inline-flex items-center rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-sm font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
+          className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/20"
         >
           {fr ? "← Retour à l'accueil" : "← Retounen lakay"}
         </Link>

@@ -184,7 +184,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         {canScrollLeft && (
           <button
             onClick={() => scrollTabs("left")}
-            className="absolute -left-1 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
+            className="absolute -left-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg bg-white text-stone-400 shadow-sm ring-1 ring-stone-200 transition-all hover:text-stone-900 dark:bg-stone-800 dark:text-stone-500 dark:ring-stone-700 dark:hover:text-white"
             aria-label="Scroll tabs left"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -194,7 +194,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         {canScrollRight && (
           <button
             onClick={() => scrollTabs("right")}
-            className="absolute -right-1 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-gray-500 shadow-sm transition-all hover:text-brand-600 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:text-brand-400"
+            className="absolute -right-1 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg bg-white text-stone-400 shadow-sm ring-1 ring-stone-200 transition-all hover:text-stone-900 dark:bg-stone-800 dark:text-stone-500 dark:ring-stone-700 dark:hover:text-white"
             aria-label="Scroll tabs right"
           >
             <ChevronRight className="h-4 w-4" />
@@ -203,7 +203,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
 
         <div
           ref={scrollRef}
-          className="tab-scroll relative flex gap-1 overflow-x-auto rounded-xl bg-gray-100/70 p-1.5 dark:bg-slate-900/55"
+          className="tab-scroll relative flex gap-0.5 overflow-x-auto border-b border-stone-200 pb-px dark:border-stone-800"
           style={{ cursor: "grab" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
@@ -212,12 +212,6 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
           role="tablist"
           aria-label={fr ? "Sections du tableau de bord" : "Seksyon tablo a"}
         >
-          {/* Animated pill indicator */}
-          <span
-            className="absolute top-1.5 z-0 h-[calc(100%-12px)] rounded-lg bg-white shadow-sm transition-all duration-300 ease-out dark:bg-slate-700"
-            style={{ left: pillStyle.left, width: pillStyle.width }}
-          />
-
           {TAB_DEFS.map((tab) => {
             const isActive = activeTab === tab.id;
             const label = fr ? tab.fr : tab.ht;
@@ -235,10 +229,10 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
                 id={`dashboard-tab-${tab.id}`}
                 tabIndex={isActive ? 0 : -1}
                 className={[
-                  "relative z-10 flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 select-none",
+                  "relative z-10 flex shrink-0 items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-all duration-200 select-none",
                   isActive
-                    ? "text-brand-700 dark:text-brand-300"
-                    : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200",
+                    ? "border-stone-900 text-stone-900 dark:border-white dark:text-white"
+                    : "border-transparent text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300",
                 ].join(" ")}
               >
                 <tab.Icon className="h-4 w-4" />
@@ -254,7 +248,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={[
-          "relative overflow-hidden rounded-xl bg-white/95 p-3 transition-all duration-200 ease-out ring-1 ring-gray-200/70 dark:bg-slate-900/50 dark:ring-slate-700/60 sm:p-4",
+          "relative overflow-hidden rounded-xl border border-stone-200 bg-white p-3 transition-all duration-200 ease-out dark:border-stone-800 dark:bg-stone-900 sm:p-4",
           isTransitioning
             ? "translate-y-1 opacity-0"
             : "translate-y-0 opacity-100",
@@ -280,14 +274,14 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
             type="button"
             onClick={() => switchTab(tab.id)}
             aria-label={fr ? `Aller à ${tab.fr}` : `Ale nan ${tab.ht}`}
-            className="flex h-11 w-11 items-center justify-center"
+            className="flex h-9 w-9 items-center justify-center"
           >
             <span
               className={[
                 "h-1.5 rounded-full transition-all",
                 activeTab === tab.id
-                  ? "w-6 bg-brand-500 dark:bg-brand-400"
-                  : "w-1.5 bg-gray-300 hover:bg-gray-400 dark:bg-slate-600 dark:hover:bg-slate-500",
+                  ? "w-5 bg-stone-900 dark:bg-white"
+                  : "w-1.5 bg-stone-200 hover:bg-stone-300 dark:bg-stone-700 dark:hover:bg-stone-600",
               ].join(" ")}
             />
           </button>

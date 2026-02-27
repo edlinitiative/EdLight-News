@@ -234,5 +234,5 @@ export const SUBCAT_COLORS: Record<OpportunitySubCat, string> = {
   stages:     "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
   programmes: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
   ressources: "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  autre:      "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300",
+  autre:      "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300",
 };

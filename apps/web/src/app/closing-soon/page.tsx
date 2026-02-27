@@ -131,7 +131,7 @@ export default async function ClosingSoonPage({
     <div className="space-y-8">
       {/* Header */}
       <section className="section-shell p-0">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/30 dark:via-slate-900 dark:to-orange-950/20 p-8 md:p-12">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/30 dark:via-stone-900 dark:to-orange-950/20 p-8 md:p-12">
           <div className="absolute top-4 right-4 text-red-200 dark:text-red-800">
             <Clock className="h-16 w-16 opacity-20" />
           </div>
@@ -139,7 +139,7 @@ export default async function ClosingSoonPage({
             <Clock className="h-7 w-7 text-red-600" />
             {fr ? "Échéances à venir" : "Dat limit k ap vini"}
           </h1>
-          <p className="mt-2 max-w-xl text-gray-500 dark:text-slate-400">
+          <p className="mt-2 max-w-xl text-stone-500 dark:text-stone-400">
             {fr
               ? "Bourses qui ferment bientôt et événements du calendrier haïtien à ne pas manquer."
               : "Bous ki pral fèmen byento ak evènman kalandriye ayisyen pou pa rate."}
@@ -154,7 +154,7 @@ export default async function ClosingSoonPage({
       <div className="pt-4">
         <Link
           href={lang === "ht" ? "/?lang=ht" : "/"}
-          className="text-sm text-brand-600 hover:underline"
+          className="text-sm text-blue-600 hover:underline"
         >
           {fr ? "← Retour à l'accueil" : "← Retounen lakay"}
         </Link>

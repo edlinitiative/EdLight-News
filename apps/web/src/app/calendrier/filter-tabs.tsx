@@ -72,22 +72,22 @@ function ArchiveMonthBlock({
         })();
 
   return (
-    <details className="overflow-hidden rounded-xl border border-gray-200/70 bg-white/70 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/50">
-      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/60">
+    <details className="overflow-hidden rounded-xl border border-stone-200/70 bg-white/70 shadow-sm dark:border-stone-700/60 dark:bg-stone-900/50">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/60">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium capitalize text-gray-600 dark:text-slate-200">
+          <span className="text-sm font-medium capitalize text-stone-600 dark:text-stone-200">
             {label}
           </span>
-          <span className="rounded-full bg-gray-100 dark:bg-slate-700 px-1.5 py-px text-xs text-gray-400 dark:text-slate-300">
+          <span className="rounded-full bg-stone-100 dark:bg-stone-700 px-1.5 py-px text-xs text-stone-400 dark:text-stone-300">
             {items.length}
           </span>
         </div>
-        <span aria-hidden className="text-sm text-gray-400 dark:text-slate-500">
+        <span aria-hidden className="text-sm text-stone-400 dark:text-stone-500">
           ▸
         </span>
       </summary>
 
-      <div className="divide-y divide-gray-50 dark:divide-slate-800 border-t border-gray-100 dark:border-slate-700">
+      <div className="divide-y divide-stone-50 dark:divide-stone-800 border-t border-stone-100 dark:border-stone-700">
         {items.map((item) => {
           const dateISO = getItemDateISO(item);
           const date = dateISO ? parseISODateSafe(dateISO) : null;
@@ -96,22 +96,22 @@ function ArchiveMonthBlock({
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/50"
+              className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/50"
             >
-              <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300 dark:text-slate-600">
+              <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-stone-300 dark:text-stone-600">
                 {date ? date.getDate() : "?"}
               </span>
               <span
                 className={[
                   "shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium",
                   isHaiti
-                    ? "bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-300"
+                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300"
                     : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300",
                 ].join(" ")}
               >
                 {isHaiti ? "HT" : "Intl"}
               </span>
-              <span className="flex-1 truncate text-sm text-gray-600 dark:text-slate-200">
+              <span className="flex-1 truncate text-sm text-stone-600 dark:text-stone-200">
                 {getItemTitle(item)}
               </span>
             </div>
@@ -143,7 +143,7 @@ function ArchiveSection({
       aria-label={fr ? "Prochains mois" : "Mwa k ap vini yo"}
       className="space-y-3"
     >
-      <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
+      <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
         {fr ? "Prochains mois" : "Mwa k ap vini yo"}
       </h2>
       <div className="space-y-2">
@@ -224,21 +224,21 @@ export function CalendarFilterTabs({
       key: "week",
       count: buckets.thisWeek.length,
       label: fr ? "Cette semaine" : "Semèn sa",
-      tone: "text-brand-700 dark:text-brand-300",
+      tone: "text-blue-700 dark:text-blue-300",
       node: <ThisWeek items={buckets.thisWeek} lang={lang} />,
     },
     {
       key: "month",
       count: buckets.thisMonth.length,
       label: fr ? "Ce mois" : "Mwa sa",
-      tone: "text-gray-700 dark:text-slate-200",
+      tone: "text-stone-700 dark:text-stone-200",
       node: <MonthGrouped items={buckets.thisMonth} lang={lang} />,
     },
     {
       key: "archive",
       count: buckets.archive.length,
       label: fr ? "Prochains mois" : "Mwa k ap vini",
-      tone: "text-gray-700 dark:text-slate-200",
+      tone: "text-stone-700 dark:text-stone-200",
       node: <ArchiveSection items={buckets.archive} lang={lang} />,
     },
   ];
@@ -249,21 +249,21 @@ export function CalendarFilterTabs({
         <div className="relative z-10 space-y-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-slate-400">
-                <CalendarDays className="h-3.5 w-3.5 text-brand-600 dark:text-brand-400" />
+              <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
+                <CalendarDays className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                 {fr ? "Navigation calendrier" : "Navigasyon kalandriye"}
               </p>
-              <p className="mt-1 text-sm text-gray-600 dark:text-slate-300">
+              <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
                 {fr
                   ? "Filtre la vue par zone et type, puis explore la timeline par priorité."
                   : "Filtre vi a pa zòn ak kalite, epi eksplore timeline nan pa priyorite."}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200">
+              <span className="rounded-full border border-stone-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700/70 dark:bg-stone-900/60 dark:text-stone-200">
                 {fr ? "Vue" : "Vi"}: {activeGeoLabel}
               </span>
-              <span className="rounded-full border border-gray-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-200">
+              <span className="rounded-full border border-stone-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700/70 dark:bg-stone-900/60 dark:text-stone-200">
                 {fr ? "Catégorie" : "Kategori"}: {activeCatLabel}
               </span>
               {hasActiveFilters && (
@@ -273,7 +273,7 @@ export function CalendarFilterTabs({
                     setGeoTab("tous");
                     setCatFilter("tous");
                   }}
-                  className="inline-flex items-center gap-1 rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
+                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   {fr ? "Réinitialiser" : "Reyinisyalize"}
@@ -286,9 +286,9 @@ export function CalendarFilterTabs({
             {timelineSections.map((s) => (
               <div
                 key={`${s.key}-stat`}
-                className="rounded-xl border border-gray-200/80 bg-white/80 px-3 py-2 dark:border-slate-700/70 dark:bg-slate-900/55"
+                className="rounded-xl border border-stone-200/80 bg-white/80 px-3 py-2 dark:border-stone-700/70 dark:bg-stone-900/55"
               >
-                <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                <p className="text-[11px] uppercase tracking-wide text-stone-400 dark:text-stone-500">
                   {s.label}
                 </p>
                 <p className={`mt-0.5 text-lg font-bold tracking-tight ${s.tone}`}>{s.count}</p>
@@ -300,9 +300,9 @@ export function CalendarFilterTabs({
             <div
               role="tablist"
               aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
-              className="rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
+              className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
             >
-              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                 {fr ? "Zone" : "Zòn"}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -314,10 +314,10 @@ export function CalendarFilterTabs({
                     aria-selected={geoTab === t.key}
                     onClick={() => setGeoTab(t.key)}
                     className={[
-                      "rounded-full px-4 py-1.5 text-sm font-medium transition",
+                      "rounded-lg px-4 py-1.5 text-sm font-medium transition",
                       geoTab === t.key
-                        ? "bg-brand-600 text-white shadow-sm"
-                        : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600",
+                        ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                        : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600",
                     ].join(" ")}
                   >
                     {t.label} <span className="ml-1 opacity-70">({t.count})</span>
@@ -329,9 +329,9 @@ export function CalendarFilterTabs({
             <div
               role="group"
               aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
-              className="rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
+              className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
             >
-              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                 {fr ? "Type d'échéance" : "Tip dat limit"}
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -341,10 +341,10 @@ export function CalendarFilterTabs({
                     type="button"
                     onClick={() => setCatFilter(p.key)}
                     className={[
-                      "rounded-full px-3 py-1 text-xs font-medium transition",
+                      "rounded-lg px-3 py-1.5 text-xs font-medium transition",
                       catFilter === p.key
-                        ? "bg-gray-800 text-white dark:bg-slate-100 dark:text-slate-900"
-                        : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600",
+                        ? "bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
+                        : "bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600",
                     ].join(" ")}
                   >
                     {p.label}
@@ -390,7 +390,7 @@ export function CalendarFilterTabs({
           )}
 
           {noResults && (
-            <div className="section-shell border-2 border-dashed py-12 text-center text-gray-400 dark:text-slate-500">
+            <div className="section-shell border-2 border-dashed py-12 text-center text-stone-400 dark:text-stone-500">
               <CalendarDays className="mx-auto mb-2 h-8 w-8" />
               <p className="text-sm">
                 {fr
@@ -407,7 +407,7 @@ export function CalendarFilterTabs({
             <section className="section-shell p-3.5">
               <div className="relative z-10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                     {fr ? "Filtres" : "Filtè"}
                   </p>
                   {hasActiveFilters && (
@@ -417,7 +417,7 @@ export function CalendarFilterTabs({
                         setGeoTab("tous");
                         setCatFilter("tous");
                       }}
-                      className="inline-flex items-center gap-1 rounded-full border border-brand-100 bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-300 dark:hover:bg-brand-500/20"
+                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
                     >
                       <RotateCcw className="h-3 w-3" />
                       {fr ? "Reset" : "Reset"}
@@ -428,9 +428,9 @@ export function CalendarFilterTabs({
                 <div
                   role="tablist"
                   aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
-                  className="rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
+                  className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
                 >
-                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                     {fr ? "Zone" : "Zòn"}
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -442,10 +442,10 @@ export function CalendarFilterTabs({
                         aria-selected={geoTab === t.key}
                         onClick={() => setGeoTab(t.key)}
                         className={[
-                          "rounded-full px-3 py-1.5 text-xs font-medium transition",
+                          "rounded-lg px-3 py-1.5 text-xs font-medium transition",
                           geoTab === t.key
-                            ? "bg-brand-600 text-white shadow-sm"
-                            : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600",
+                            ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                            : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600",
                         ].join(" ")}
                       >
                         {t.label} <span className="ml-1 opacity-70">({t.count})</span>
@@ -457,9 +457,9 @@ export function CalendarFilterTabs({
                 <div
                   role="group"
                   aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
-                  className="rounded-2xl border border-gray-200/70 bg-white/70 p-2.5 dark:border-slate-700/60 dark:bg-slate-900/60"
+                  className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
                 >
-                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                     {fr ? "Type d'échéance" : "Tip dat limit"}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -469,10 +469,10 @@ export function CalendarFilterTabs({
                         type="button"
                         onClick={() => setCatFilter(p.key)}
                         className={[
-                          "rounded-full px-3 py-1 text-xs font-medium transition",
+                          "rounded-lg px-3 py-1.5 text-xs font-medium transition",
                           catFilter === p.key
-                            ? "bg-gray-800 text-white dark:bg-slate-100 dark:text-slate-900"
-                            : "bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-600",
+                            ? "bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
+                            : "bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600",
                         ].join(" ")}
                       >
                         {p.label}
@@ -486,12 +486,12 @@ export function CalendarFilterTabs({
             <MiniMonthGrid items={filtered} lang={lang} />
             <div className="section-shell p-3">
               <div className="relative z-10 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                   {fr ? "Légende" : "Lejand"}
                 </p>
-                <div className="space-y-1.5 text-xs text-gray-600 dark:text-slate-300">
+                <div className="space-y-1.5 text-xs text-stone-600 dark:text-stone-300">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-brand-50 px-1.5 py-px text-[10px] font-semibold text-brand-700 dark:bg-brand-900/20 dark:text-brand-300">HT</span>
+                    <span className="rounded-full bg-blue-50 px-1.5 py-px text-[10px] font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">HT</span>
                     <span>{fr ? "Événement Haïti" : "Evènman Ayiti"}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -499,7 +499,7 @@ export function CalendarFilterTabs({
                     <span>{fr ? "International" : "Entènasyonal"}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-brand-500 dark:bg-brand-400" />
+                    <span className="h-2 w-2 rounded-full bg-blue-500 dark:bg-blue-400" />
                     <span>{fr ? "Jour avec événement" : "Jou ki gen evènman"}</span>
                   </div>
                 </div>

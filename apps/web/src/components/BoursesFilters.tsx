@@ -57,7 +57,7 @@ const FUNDING_LABELS: Record<string, { fr: string; ht: string; color: string }> 
   partial:       { fr: "Partiel",    ht: "Pasyèl",        color: "bg-yellow-100 text-yellow-800" },
   stipend:       { fr: "Partiel",    ht: "Pasyèl",        color: "bg-yellow-100 text-yellow-800" },
   "tuition-only":{ fr: "Scolarité",  ht: "Frè etid sèlman", color: "bg-purple-100 text-purple-800" },
-  unknown:       { fr: "Inconnu",    ht: "Enkonni",       color: "bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-300" },
+  unknown:       { fr: "Inconnu",    ht: "Enkonni",       color: "bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300" },
 };
 
 const LEVEL_LABELS: Record<AcademicLevel, { fr: string; ht: string }> = {
@@ -291,10 +291,10 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   const Chip = ({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) => (
     <button
       onClick={onClick}
-      className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-all ${
+      className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
         active
-          ? "bg-brand-600 text-white shadow-sm ring-2 ring-brand-100 dark:ring-brand-500/20"
-          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+          : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
       }`}
     >
       {label}
@@ -304,7 +304,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
   const FilterGroups = ({ compact = false }: { compact?: boolean }) => (
     <div className={compact ? "space-y-3" : "space-y-4"}>
       <div>
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
           {fr ? "Type" : "Tip"}
         </span>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -320,7 +320,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       <div>
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
           {fr ? "Financement" : "Finansman"}
         </span>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -336,7 +336,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       <div>
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
           {fr ? "Niveau" : "Nivo"}
         </span>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -360,7 +360,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       <div>
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
           {fr ? "Pays" : "Peyi"}
         </span>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -384,7 +384,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
       </div>
 
       <div>
-        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
           {fr ? "Éligible Haïti" : "Elijib Ayiti"}
         </span>
         <div className="mt-1 flex flex-wrap gap-1.5">
@@ -403,16 +403,16 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
   return (
     <div className="space-y-5">
-      <div className="sticky top-16 z-20 rounded-3xl border border-gray-200/80 bg-white/95 p-3.5 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/90 sm:p-4">
+      <div className="sticky top-16 z-20 rounded-xl border border-stone-200/80 bg-white/95 p-3.5 shadow-sm backdrop-blur dark:border-stone-700 dark:bg-stone-900/90 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400 dark:text-stone-500">
               {fr ? "Bourses" : "Bous"}
             </p>
-            <p className="text-sm text-gray-700 dark:text-slate-200">
-              <span className="font-semibold text-gray-900 dark:text-white">{filtered.length}</span>{" "}
+            <p className="text-sm text-stone-700 dark:text-stone-200">
+              <span className="font-semibold text-stone-900 dark:text-white">{filtered.length}</span>{" "}
               {fr ? "résultat(s)" : "rezilta"}
-              <span className="ml-2 text-xs text-gray-400 dark:text-slate-500">
+              <span className="ml-2 text-xs text-stone-400 dark:text-stone-500">
                 {fr ? `${scholarships.length} au total` : `${scholarships.length} an total`}
               </span>
             </p>
@@ -423,7 +423,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
               >
                 {fr ? "Réinitialiser" : "Reyinisyalize"}
               </button>
@@ -431,17 +431,17 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-2.5 dark:border-slate-800">
-          <ArrowUpDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
-          <span className="text-xs font-medium text-gray-400 dark:text-slate-500">{fr ? "Trier:" : "Triye:"}</span>
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-stone-100 pt-2.5 dark:border-stone-800">
+          <ArrowUpDown className="h-4 w-4 text-stone-400 dark:text-stone-500" />
+          <span className="text-xs font-medium text-stone-400 dark:text-stone-500">{fr ? "Trier:" : "Triye:"}</span>
           {(["deadline", "latest", "relevance"] as SortMode[]).map((mode) => (
             <button
               key={mode}
               onClick={() => setFilter("sort", mode)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
                 sortMode === mode
-                  ? "bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-900/20 dark:text-brand-300 dark:ring-brand-500/20"
-                  : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                  : "text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
               }`}
             >
               {fr ? SORT_LABELS[mode].fr : SORT_LABELS[mode].ht}
@@ -452,20 +452,20 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
       <div className="grid gap-5 md:grid-cols-[260px,minmax(0,1fr)] xl:grid-cols-[300px,minmax(0,1fr)]">
         <aside>
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 md:sticky md:top-36 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
+          <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-700 dark:bg-stone-900/70 md:sticky md:top-36 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
             <div className="mb-3 flex items-start justify-between gap-2">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400 dark:text-stone-500">
                   {fr ? "Filtres intelligents" : "Filtè entèlijan"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">
+                <p className="text-xs text-stone-500 dark:text-stone-400">
                   {fr ? "URL partageable" : "URL patajab"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:border-brand-200 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                className="rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
               >
                 {fr ? "Reset" : "Reset"}
               </button>
@@ -474,13 +474,13 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
             <button
               type="button"
               onClick={() => setMobileSidebarOpen((v) => !v)}
-              className="mb-2 inline-flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 md:hidden"
+              className="mb-2 inline-flex w-full items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 md:hidden"
               aria-expanded={mobileSidebarOpen}
             >
               <span className="inline-flex items-center gap-1.5">
                 {fr ? "Afficher les filtres" : "Montre filtè yo"}
                 {activeFilterCount > 0 && (
-                  <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] text-white">
+                  <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
                     {activeFilterCount}
                   </span>
                 )}
@@ -506,16 +506,16 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           return (
             <div
               key={s.id}
-              className={`flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 ${
+              className={`flex h-full flex-col rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-stone-700 dark:bg-stone-900 ${
                 isDirectory ? "border-l-4 border-l-indigo-300 dark:border-l-indigo-600" : ""
               }`}
             >
               {/* Header */}
               <div className="flex items-start justify-between">
-                <h3 className="pr-2 text-[15px] font-semibold leading-snug text-gray-900 dark:text-white">{s.name}</h3>
+                <h3 className="pr-2 text-[15px] font-semibold leading-snug text-stone-900 dark:text-white">{s.name}</h3>
                 {cl && (
                   <span
-                    className="ml-2 inline-flex shrink-0 items-center rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    className="ml-2 inline-flex shrink-0 items-center rounded-md border border-stone-200 bg-stone-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
                     title={fr ? cl.fr : cl.ht}
                   >
                     {cl.code}
@@ -540,7 +540,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                   </span>
                 )}
                 {elig === "unknown" && (
-                  <span className="inline-flex items-center gap-0.5 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/20 dark:text-brand-300">
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                     <HelpCircle className="h-3 w-3" />
                     {fr ? "Haïti: À confirmer" : "Ayiti: Pou konfime"}
                   </span>
@@ -557,16 +557,16 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Description */}
               {s.eligibilitySummary && (
-                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-gray-600 dark:text-slate-300">
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
                   {s.eligibilitySummary}
                 </p>
               )}
 
-              <div className="my-3 h-px bg-gray-100 dark:bg-slate-800" />
+              <div className="my-3 h-px bg-stone-100 dark:bg-stone-800" />
 
               {/* Levels */}
               {s.level.length > 0 && (
-                <p className="text-xs text-gray-500 dark:text-slate-400">
+                <p className="text-xs text-stone-500 dark:text-stone-400">
                   <BookOpen className="mr-1 inline h-3 w-3" />
                   {s.level.map((l) => {
                     const lbl = LEVEL_LABELS[l];
@@ -577,7 +577,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Deadline display */}
               {dlLabel && (
-                <p className="mt-1 text-xs font-medium text-brand-700 dark:text-brand-300">
+                <p className="mt-1 text-xs font-medium text-blue-700 dark:text-blue-300">
                   <CalendarDays className="mr-1 inline h-3 w-3" /> {dlLabel}
                 </p>
               )}
@@ -603,7 +603,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               {s.tags && s.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {s.tags.slice(0, 3).map((tag) => (
-                    <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-700 dark:text-slate-300">
+                    <span key={tag} className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600 dark:bg-stone-700 dark:text-stone-300">
                       {tag}
                     </span>
                   ))}
@@ -629,7 +629,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.howToApplyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center rounded-md border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-800/40 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-900/30"
+                        className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
                       >
                         {fr ? "Postuler" : "Aplike"}
                       </a>
@@ -639,7 +639,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={s.officialUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                        className="inline-flex items-center rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
                       >
                         {fr ? "Site officiel" : "Sit ofisyèl"}
                       </a>
@@ -651,7 +651,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                     href={s.deadline.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-brand-400 dark:hover:bg-slate-800"
+                    className="inline-flex items-center rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-blue-400 dark:hover:bg-stone-800"
                   >
                     {fr ? "Source deadline" : "Sous dat limit"}
                   </a>
@@ -660,8 +660,8 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
 
               {/* Sources */}
               {s.sources.length > 0 && (
-                <details className="mt-2 rounded-lg border border-gray-100 bg-gray-50/70 p-2 dark:border-slate-800 dark:bg-slate-800/40">
-                  <summary className="cursor-pointer list-none text-[11px] font-medium text-gray-500 hover:text-brand-700 dark:text-slate-400 dark:hover:text-brand-300">
+                <details className="mt-2 rounded-lg border border-stone-100 bg-stone-50/70 p-2 dark:border-stone-800 dark:bg-stone-800/40">
+                  <summary className="cursor-pointer list-none text-[11px] font-medium text-stone-500 hover:text-blue-700 dark:text-stone-400 dark:hover:text-blue-300">
                     <span className="inline-flex items-center gap-1">
                       <Paperclip className="h-3 w-3" />
                       {fr ? "Sources" : "Sous"} ({s.sources.length})
@@ -674,7 +674,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
                         href={src.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded bg-white px-1.5 py-0.5 text-[10px] text-gray-500 hover:text-brand-700 hover:underline dark:bg-slate-900 dark:text-slate-400 dark:hover:text-brand-300"
+                        className="rounded bg-white px-1.5 py-0.5 text-[10px] text-stone-500 hover:text-blue-700 hover:underline dark:bg-stone-900 dark:text-stone-400 dark:hover:text-blue-300"
                       >
                         {src.label}
                       </a>
@@ -684,7 +684,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
               )}
 
               {/* Trust badges */}
-              <div className="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-2.5 dark:border-slate-800">
+              <div className="mt-3 flex items-center justify-between gap-2 border-t border-stone-100 pt-2.5 dark:border-stone-800">
                 <MetaBadges
                   verifiedAt={s.verifiedAtISO ?? null}
                   updatedAt={s.updatedAtISO ?? null}
@@ -698,7 +698,7 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
           </div>
 
           {filtered.length === 0 && (
-            <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white py-14 text-center text-gray-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-500">
+            <div className="rounded-xl border-2 border-dashed border-stone-200 bg-white py-14 text-center text-stone-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-500">
               <p className="text-base font-medium">
                 {fr
                   ? scholarships.length === 0

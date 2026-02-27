@@ -34,9 +34,9 @@ function urgencyStyle(days: number): UrgencyStyle {
   if (days <= 10)
     return {
       emoji: "🟠",
-      textColor: "text-brand-600",
-      borderColor: "border-brand-200",
-      bgColor: "bg-brand-50",
+      textColor: "text-blue-600",
+      borderColor: "border-blue-200",
+      bgColor: "bg-blue-50",
     };
   return {
       emoji: "🟢",
@@ -60,7 +60,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
       {/* Header */}
       <div className="flex items-center gap-2">
         <span aria-hidden>🚨</span>
-        <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
+        <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
           {fr
             ? "Délais urgents — 14 prochains jours"
             : "Dat limit ijan — 14 jou k ap vini yo"}
@@ -91,8 +91,8 @@ export function UrgentDeadlines({ items, lang }: Props) {
               className={[
                 "flex min-w-[220px] flex-col gap-2 rounded-xl border p-3 shadow-sm sm:min-w-0",
                 style
-                  ? `${style.borderColor} ${style.bgColor} dark:border-slate-700 dark:bg-slate-900/60`
-                  : "border-gray-200 bg-gray-50 dark:border-slate-700 dark:bg-slate-900/60",
+                  ? `${style.borderColor} ${style.bgColor} dark:border-stone-700 dark:bg-stone-900/60`
+                  : "border-stone-200 bg-stone-50 dark:border-stone-700 dark:bg-stone-900/60",
               ].join(" ")}
             >
               {/* Countdown + geo row */}
@@ -100,7 +100,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
                 <span
                   className={[
                     "text-xl font-extrabold tabular-nums leading-none",
-                    style ? style.textColor : "text-gray-500",
+                    style ? style.textColor : "text-stone-500",
                   ].join(" ")}
                 >
                   {style?.emoji}{" "}
@@ -122,7 +122,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
                     className={[
                       "rounded-full px-1.5 py-px text-[10px] font-semibold",
                       isHaiti
-                        ? "bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                         : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
                     ].join(" ")}
                   >
@@ -137,13 +137,13 @@ export function UrgentDeadlines({ items, lang }: Props) {
               </div>
 
               {/* Title */}
-              <p className="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 dark:text-slate-100">
+              <p className="line-clamp-2 text-sm font-semibold leading-snug text-stone-900 dark:text-stone-100">
                 {title}
               </p>
 
               {/* Date + link */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs text-gray-500 dark:text-slate-400">
+                <span className="text-xs text-stone-500 dark:text-stone-400">
                   {date
                     ? date.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
                         day: "numeric",
@@ -156,7 +156,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold text-brand-700 hover:bg-white/60 dark:text-brand-300 dark:hover:bg-slate-800/60"
+                    className="inline-flex items-center gap-0.5 rounded-lg px-2 py-0.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800/60"
                   >
                     <ExternalLink className="h-3 w-3" />
                     {fr ? "Voir" : "Wè"}

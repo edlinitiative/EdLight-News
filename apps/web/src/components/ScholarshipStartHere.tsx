@@ -82,12 +82,12 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
   }
 
   return (
-    <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 sm:p-6">
+    <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900/70 sm:p-6">
       <div className="relative z-10">
-        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
+        <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-2xl">
           {fr ? "Par où commencer ?" : "Ki kote pou kòmanse ?"}
         </h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
           {fr
             ? "Trois portes d'entrée pour financer vos études."
             : "Twa pòt antre pou finanse etid ou yo."}
@@ -100,21 +100,21 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
             key={entry.country}
             type="button"
             onClick={() => navigate(entry.params)}
-            className="group flex flex-col items-start rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
+            className="group flex flex-col items-start rounded-xl border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-stone-700 dark:bg-stone-800"
           >
-            <span className="inline-flex items-center rounded-md border border-brand-200 bg-brand-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-700 dark:border-brand-800/50 dark:bg-brand-900/20 dark:text-brand-300">
+            <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300">
               {entry.code}
             </span>
 
-            <h3 className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
+            <h3 className="mt-3 text-sm font-semibold text-stone-900 dark:text-white">
               {fr ? entry.label.fr : entry.label.ht}
             </h3>
 
-            <p className="mt-1 flex-1 text-xs text-gray-500 dark:text-slate-400">
+            <p className="mt-1 flex-1 text-xs text-stone-500 dark:text-stone-400">
               {fr ? entry.description.fr : entry.description.ht}
             </p>
 
-            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 transition group-hover:gap-2">
+            <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-blue-700 transition group-hover:gap-2">
               {fr ? entry.cta.fr : entry.cta.ht}
               <ArrowRight className="h-3.5 w-3.5" />
             </span>

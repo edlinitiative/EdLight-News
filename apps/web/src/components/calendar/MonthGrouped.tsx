@@ -78,30 +78,30 @@ function CollapsibleWeek({
   const fr = lang === "fr";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200/70 bg-white/70 shadow-sm dark:border-slate-700/60 dark:bg-slate-900/50">
+    <div className="overflow-hidden rounded-xl border border-stone-200/70 bg-white/70 shadow-sm dark:border-stone-700/60 dark:bg-stone-900/50">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/60"
+        className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/60"
         aria-expanded={open}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-700 dark:text-slate-200">
+          <span className="text-sm font-semibold text-stone-700 dark:text-stone-200">
             {bucket.label}
           </span>
-          <span className="rounded-full bg-gray-100 px-1.5 py-px text-xs text-gray-500 dark:bg-slate-700 dark:text-slate-300">
+          <span className="rounded-full bg-stone-100 px-1.5 py-px text-xs text-stone-500 dark:bg-stone-700 dark:text-stone-300">
             {bucket.items.length}
           </span>
         </div>
         {open ? (
-          <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-500" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-stone-400 dark:text-stone-500" />
         ) : (
-          <ChevronRight className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-500" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-stone-400 dark:text-stone-500" />
         )}
       </button>
 
       {open && (
-        <div className="divide-y divide-gray-50 border-t border-gray-100 dark:divide-slate-800 dark:border-slate-700">
+        <div className="divide-y divide-stone-50 border-t border-stone-100 dark:divide-stone-800 dark:border-stone-700">
           {(() => {
             const anchoredDays = new Set<string>();
             return bucket.items.map((item) => {
@@ -123,10 +123,10 @@ function CollapsibleWeek({
                 <div
                   key={item.id}
                   id={anchorId}
-                  className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50/80 dark:hover:bg-slate-800/50"
+                  className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/50"
                 >
                   {/* Day number */}
-                  <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-gray-300 dark:text-slate-600">
+                  <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-stone-300 dark:text-stone-600">
                     {date ? date.getDate() : "?"}
                   </span>
 
@@ -135,7 +135,7 @@ function CollapsibleWeek({
                     className={[
                       "shrink-0 rounded-full px-1.5 py-px text-[10px] font-medium",
                       isHaiti
-                        ? "bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-300"
+                        ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300"
                         : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300",
                     ].join(" ")}
                   >
@@ -150,7 +150,7 @@ function CollapsibleWeek({
                   )}
 
                   {/* Title */}
-                  <span className="flex-1 truncate text-sm text-gray-700 dark:text-slate-200">
+                  <span className="flex-1 truncate text-sm text-stone-700 dark:text-stone-200">
                     {getItemTitle(item)}
                   </span>
                 </div>
@@ -210,10 +210,10 @@ export function MonthGrouped({ items, lang, yearMonth }: Props) {
       className="space-y-3"
     >
       <div className="flex items-center gap-2">
-        <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
+        <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
           {fr ? `Ce mois — ${monthLabel}` : `Mwa sa a — ${monthLabel}`}
         </h2>
-        <span className="rounded-full bg-gray-100 px-2 py-px text-xs text-gray-500 dark:bg-slate-700 dark:text-slate-300">
+        <span className="rounded-full bg-stone-100 px-2 py-px text-xs text-stone-500 dark:bg-stone-700 dark:text-stone-300">
           {items.length}
         </span>
       </div>

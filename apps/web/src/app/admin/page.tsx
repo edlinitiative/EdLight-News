@@ -40,9 +40,9 @@ function StatCard({
 }) {
   return (
     <div className={`rounded-xl border p-5 ${color}`}>
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-sm text-stone-500">{label}</p>
       <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-gray-400">{sub}</p>}
+      {sub && <p className="mt-0.5 text-xs text-stone-400">{sub}</p>}
     </div>
   );
 }
@@ -52,7 +52,7 @@ function StatCard({
 function ResultRow({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
+      <span className="text-stone-500">{label}</span>
       <span className="font-medium tabular-nums">{value}</span>
     </div>
   );
@@ -76,7 +76,7 @@ function TickResultPanel({ result }: { result: TickResult }) {
           {icon} {heading}
         </span>
         {result.durationMs && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-stone-400">
             {(result.durationMs / 1000).toFixed(1)}s
           </span>
         )}
@@ -161,14 +161,14 @@ export default function AdminPage() {
     <section className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-stone-500">
           Pipeline status and controls for EdLight News.
         </p>
       </div>
 
       {/* Stats grid */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-400">
           Overview
         </h2>
         {statsError ? (
@@ -198,7 +198,7 @@ export default function AdminPage() {
         )}
         <button
           onClick={() => void loadStats()}
-          className="mt-2 text-xs text-gray-400 hover:text-gray-600"
+          className="mt-2 text-xs text-stone-400 hover:text-stone-600"
         >
           ↻ Refresh stats
         </button>
@@ -206,14 +206,14 @@ export default function AdminPage() {
 
       {/* Pipeline trigger */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-400">
           Pipeline
         </h2>
         <div className="flex items-center gap-4">
           <button
             onClick={() => void runPipeline()}
             disabled={running}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
           >
             {running ? (
               <>
@@ -225,12 +225,12 @@ export default function AdminPage() {
             )}
           </button>
           {running && (
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-stone-400">
               This may take 1–3 minutes. Please wait.
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-stone-400">
           Runs: ingest → process → generate (FR+HT) → publish drafts → generate images
         </p>
         {tickResult && <TickResultPanel result={tickResult} />}

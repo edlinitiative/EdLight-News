@@ -37,7 +37,7 @@ export function SectionFeed({
 
   if (sorted.length === 0) {
     return (
-      <div className="section-shell border-2 border-dashed py-20 text-center text-gray-400 dark:text-slate-500">
+      <div className="section-shell border-2 border-dashed py-20 text-center text-stone-400 dark:text-stone-500">
         <p className="relative z-10">
           {emptyMessage?.[lang] ??
             (lang === "fr"
@@ -53,7 +53,7 @@ export function SectionFeed({
       {/* Sort toggle */}
       <div className="section-shell p-4">
         <div className="relative z-10 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-slate-400">
+          <span className="text-sm text-stone-500 dark:text-stone-400">
             {lang === "fr" ? "Trier par :" : "Triye pa :"}
           </span>
           {(["relevance", "latest"] as SortMode[]).map((opt) => (
@@ -63,8 +63,8 @@ export function SectionFeed({
               className={[
                 "rounded-full px-3 py-1 text-sm font-medium transition",
                 sort === opt
-                  ? "bg-brand-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600",
+                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600",
               ].join(" ")}
             >
               {opt === "relevance"
@@ -76,7 +76,7 @@ export function SectionFeed({
                   : "Dènye"}
             </button>
           ))}
-          <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">
+          <span className="ml-auto text-xs text-stone-400 dark:text-stone-500">
             {sorted.length} {lang === "fr" ? "articles" : "atik"}
           </span>
         </div>

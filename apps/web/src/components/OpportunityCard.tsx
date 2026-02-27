@@ -31,14 +31,14 @@ import type { DeadlineStatus } from "@/lib/opportunityDeadline";
 
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
-  scholarship: "from-brand-800 to-purple-700",
-  opportunity: "from-purple-700 to-brand-600",
-  news:        "from-teal-700 to-brand-800",
-  event:       "from-brand-700 to-indigo-700",
+  scholarship: "from-blue-800 to-purple-700",
+  opportunity: "from-purple-700 to-blue-600",
+  news:        "from-teal-700 to-blue-800",
+  event:       "from-blue-700 to-indigo-700",
   resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-brand-700 to-brand-900",
+  local_news:  "from-blue-700 to-blue-900",
 };
-const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
+const DEFAULT_FALLBACK_GRADIENT = "from-stone-700 to-stone-900";
 
 export interface OpportunityCardProps {
   article: FeedItem;
@@ -83,7 +83,7 @@ export function OpportunityCard({
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
-      <div className="relative aspect-[5/2] w-full overflow-hidden bg-gray-100">
+      <div className="relative aspect-[5/2] w-full overflow-hidden bg-stone-100">
         {hasImage ? (
           <ImageWithFallback
             src={article.imageUrl!}
@@ -128,7 +128,7 @@ export function OpportunityCard({
             {subCatLabel}
           </span>
           {classification && classification.confidence !== "high" && (
-            <span className="rounded-full bg-gray-50 px-1.5 py-0.5 text-[10px] text-gray-400">
+            <span className="rounded-full bg-stone-50 px-1.5 py-0.5 text-[10px] text-stone-400">
               {classification.confidence === "medium" ? "~" : "?"}
             </span>
           )}
@@ -155,8 +155,8 @@ export function OpportunityCard({
               isExpired
                 ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
                 : deadline.missing
-                  ? "bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400"
-                  : "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+                  ? "bg-stone-100 text-stone-500 dark:bg-stone-700 dark:text-stone-400"
+                  : "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
             }`}
           >
             <CalendarClock className="h-3 w-3" />
@@ -177,17 +177,17 @@ export function OpportunityCard({
         </div>
 
         {/* Title */}
-        <h2 className="mb-1 text-[15px] font-semibold leading-snug group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400 sm:text-base">
+        <h2 className="mb-1 text-[15px] font-semibold leading-snug group-hover:text-blue-600 dark:text-stone-100 dark:group-hover:text-blue-400 sm:text-base">
           {article.title}
         </h2>
 
         {/* Summary */}
-        <p className="mb-2 line-clamp-2 text-sm text-gray-500 dark:text-slate-400">
+        <p className="mb-2 line-clamp-2 text-sm text-stone-500 dark:text-stone-400">
           {article.summary || article.body?.slice(0, 150) || ""}
         </p>
 
         {/* Footer */}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
           {article.sourceName && <span>{article.sourceName}</span>}
           {article.sourceName && article.publishedAt && <span>·</span>}
           {article.publishedAt && (

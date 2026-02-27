@@ -1,48 +1,43 @@
-/**
- * ArticleCard — shared display component for all section grids.
- *
- * Works in both server and client component contexts because it
- * uses no React hooks. Dates are formatted statically (not relative).
- */
-
-import type { ContentLanguage } from "@edlight-news/types";
-import { ClipboardList } from "lucide-react";
 import Link from "next/link";
+import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { DeadlineBadge } from "@/components/DeadlineBadge";
 import {
+  formatRelativeDate,
   categoryLabel,
   CATEGORY_COLORS,
-  formatDate,
 } from "@/lib/utils";
-import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
-import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
+import {
+  classifyOpportunity,
+  contentLooksLikeOpportunity,
+} from "@/lib/opportunityClassifier";
+import {
+  SUBCAT_COLORS,
+  SUBCAT_LABELS,
+  type OpportunitySubCat,
+} from "@/lib/opportunities";
 
-/** Opportunity category values that might use the derived classifier. */
-const OPP_CATEGORIES = new Set([
+interface ArticleCardProps {
+  article: FeedItem;
+  lang: ContentLanguage;
+  compact?: boolean;
+  variant?: "default" | "featured" | "compact";
+}
+
+const OPPORTUNITY_CATEGORIES = new Set([
   "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
 ]);
 
-const SUBCAT_MAP: Record<string, OpportunitySubCat> = {
-  Bourses: "bourses", Programmes: "programmes", Stages: "stages",
-  Concours: "concours", Ressources: "ressources", Autre: "autre",
-};
+function deriveCategory(article: FeedItem, lang: ContentLanguage) {
+  const passesSmellTest =
+    article.itemType === "utility" ||
+    contentLooksLikeOpportunity(article.title ?? "", article.summary);
 
-function looksLikeOpportunity(article: FeedItem): boolean {
-  if (article.itemType === "utility") return true;
-  return contentLooksLikeOpportunity(article.title ?? "", article.summary);
-}
-
-/** Derive display category for an article. For opportunity items, uses the
- *  keyword classifier; for everything else, falls back to raw category. */
-function derivedCategoryInfo(
-  article: FeedItem,
-  lang: ContentLanguage,
-): { label: string; color: string } | null {
   const isOpp =
     (article.vertical === "opportunites" ||
-     OPP_CATEGORIES.has(article.category ?? "")) &&
-    looksLikeOpportunity(article);
+      OPPORTUNITY_CATEGORIES.has(article.category ?? "")) &&
+    passesSmellTest;
 
   if (isOpp) {
     const result = classifyOpportunity({
@@ -53,187 +48,121 @@ function derivedCategoryInfo(
       publisher: article.sourceName,
       url: article.sourceUrl,
     });
-    const sc = SUBCAT_MAP[result.subcategory] ?? "autre";
-    return {
-      label: SUBCAT_LABELS[sc][lang],
-      color: SUBCAT_COLORS[sc],
+    const map: Record<string, OpportunitySubCat> = {
+      Bourses: "bourses", Programmes: "programmes", Stages: "stages",
+      Concours: "concours", Ressources: "ressources", Autre: "autre",
     };
+    const sub = map[result.subcategory] ?? null;
+    if (sub) {
+      return {
+        color: SUBCAT_COLORS[sub],
+        label: SUBCAT_LABELS[sub][lang],
+      };
+    }
   }
 
-  if (!article.category) return null;
-  // Category is opp-adjacent but content doesn't look like an opportunity
-  // → remap to avoid misleading "Concours"/"Stages" labels on general news.
-  const displayCat = OPP_CATEGORIES.has(article.category)
-    ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
-    : article.category;
+  const cat = article.category ?? "";
   return {
-    label: categoryLabel(displayCat, lang),
-    color: CATEGORY_COLORS[displayCat] ?? "bg-gray-100 text-gray-600",
+    color: CATEGORY_COLORS[cat] ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300",
+    label: categoryLabel(cat, lang),
   };
-}
-
-/** Category → fallback gradient CSS for cards without images */
-const FALLBACK_GRADIENTS: Record<string, string> = {
-  scholarship: "from-brand-800 to-purple-700",
-  opportunity: "from-purple-700 to-brand-600",
-  news:        "from-teal-700 to-brand-800",
-  event:       "from-brand-700 to-indigo-700",
-  resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-brand-700 to-brand-900",
-};
-const DEFAULT_FALLBACK_GRADIENT = "from-slate-700 to-slate-900";
-
-export interface ArticleCardProps {
-  article: FeedItem;
-  lang: ContentLanguage;
-  /** Show the deadline badge (used on opportunities cards). */
-  showDeadline?: boolean;
-  /** Compact layout: no summary text, smaller heading. */
-  compact?: boolean;
-  /** Visual variant for content hierarchy. */
-  variant?: "default" | "featured" | "compact";
 }
 
 export function ArticleCard({
   article,
   lang,
-  showDeadline = false,
   compact = false,
   variant = "default",
 }: ArticleCardProps) {
-  const catInfo = derivedCategoryInfo(article, lang);
-
-  // dupeCount includes the canonical version itself, so updates = dupeCount - 1
-  const updateCount = (article.dupeCount ?? 1) - 1;
-  const hasUpdates = updateCount > 0;
-
-  // Show images from publisher, wikidata, branded, and screenshot sources.
-  // Only hide items with no imageUrl at all.
+  const isCompact = compact || variant === "compact";
+  const isFeatured = variant === "featured";
+  const derived = deriveCategory(article, lang);
   const hasImage = !!article.imageUrl;
-  const fallbackGradient =
-    FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
-
-  // Normalize compact prop into variant
-  const v = compact ? "compact" : variant;
-  const isFeatured = v === "featured";
-  const isCompact = v === "compact";
 
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700/60 dark:bg-slate-900/70",
-        isFeatured ? "sm:flex-row sm:col-span-full" : "flex-col",
+        "group flex overflow-hidden card",
+        isFeatured ? "flex-col sm:flex-row sm:col-span-full" : "flex-col",
       ].join(" ")}
     >
-      {/* Image / gradient thumbnail */}
-      <div className={[
-        "relative shrink-0 overflow-hidden bg-gray-100",
-        isFeatured ? "aspect-[3/2] sm:w-2/5" : isCompact ? "aspect-[3/1] w-full" : "aspect-[5/2] w-full",
-      ].join(" ")}>
-        {hasImage ? (
+      {/* Image */}
+      {hasImage && (
+        <div
+          className={[
+            "relative shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-800",
+            isFeatured
+              ? "aspect-video sm:aspect-auto sm:w-80"
+              : isCompact
+                ? "aspect-[2/1]"
+                : "aspect-video",
+          ].join(" ")}
+        >
           <ImageWithFallback
             src={article.imageUrl!}
             alt=""
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            fallback={
-              <div
-                className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
-              >
-                <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-                  {catInfo?.label ?? ""}
-                </span>
-              </div>
-            }
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
-        ) : (
-          <div
-            className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
-          >
-            <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-              {catInfo?.label ?? ""}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="relative flex flex-1 flex-col p-3.5">
-        {/* Badges row */}
-        <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          {catInfo && (
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${catInfo.color}`}
-            >
-              {catInfo.label}
-            </span>
-          )}
-          {article.itemType === "synthesis" && (
-            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-              {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
-              {lang === "fr" ? "sources" : "sous"}
-            </span>
-          )}
-          {article.itemType === "utility" && (
-            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
-              <ClipboardList className="mr-1 inline-block h-3 w-3" />{lang === "fr" ? "Guide étudiant" : "Gid etidyan"}
-            </span>
-          )}
-          {hasUpdates && article.itemType !== "synthesis" && (
-            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-              +{updateCount}&nbsp;
-              {lang === "fr" ? "mises à jour" : "mizajou"}
+          {article.imageSource === "wikidata" && (
+            <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[10px] text-white/70 backdrop-blur-sm">
+              Wikimedia
             </span>
           )}
         </div>
+      )}
 
-        {/* Deadline (opportunities only) */}
-        {showDeadline && article.deadline && (
-          <p className="mb-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
-            {lang === "fr" ? "Limite :" : "Dat limit :"}{" "}
-            {formatDate(article.deadline, lang)}
-          </p>
-        )}
-        {showDeadline && !article.deadline && article.missingDeadline && (
-          <p className="mb-1.5 text-xs font-semibold text-gray-500 dark:text-slate-400">
-            {lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime"}
-          </p>
-        )}
+      {/* Content */}
+      <div className={["flex flex-1 flex-col gap-2", isFeatured ? "p-5" : isCompact ? "p-3.5" : "p-4"].join(" ")}>
+        {/* Top row: category + deadline */}
+        <div className="flex flex-wrap items-center gap-2">
+          {derived.label && (
+            <span className={`badge ${derived.color}`}>{derived.label}</span>
+          )}
+          {article.itemType === "synthesis" && (
+            <span className="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              {lang === "fr" ? "Synthèse" : "Sentèz"}
+              {article.sourceCount ? ` · ${article.sourceCount}` : ""}
+            </span>
+          )}
+          {article.geoTag === "HT" && (
+            <span className="badge bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400">
+              {lang === "fr" ? "Haïti" : "Ayiti"}
+            </span>
+          )}
+          <DeadlineBadge item={article} lang={lang} />
+        </div>
 
         {/* Title */}
-        <h2
+        <h3
           className={[
-            "leading-snug transition-colors group-hover:text-brand-600 dark:text-slate-100 dark:group-hover:text-brand-400",
-            isFeatured
-              ? "mb-1.5 font-serif text-lg font-bold sm:text-xl"
-              : isCompact
-                ? "mb-0.5 text-sm font-semibold"
-                : "mb-1 text-[15px] font-semibold",
+            "font-serif font-bold leading-snug tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
+            isFeatured ? "text-xl sm:text-2xl" : isCompact ? "text-sm line-clamp-2" : "text-base line-clamp-2",
           ].join(" ")}
         >
           {article.title}
-        </h2>
+        </h3>
 
         {/* Summary */}
-        {!isCompact && (
+        {!isCompact && article.summary && (
           <p className={[
-            "mb-2 line-clamp-2 flex-1 text-sm text-gray-500 dark:text-slate-400",
-            isFeatured ? "sm:line-clamp-3" : "",
+            "text-sm leading-relaxed text-stone-500 dark:text-stone-400",
+            isFeatured ? "line-clamp-3" : "line-clamp-2",
           ].join(" ")}>
-            {article.summary || article.body?.slice(0, 150) || ""}
+            {article.summary}
           </p>
         )}
 
-        {/* Footer: source · date (or source count for synthesis) */}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
-          {article.itemType === "synthesis" && article.sourceCount ? (
-            <span>{article.sourceCount} {lang === "fr" ? "sources" : "sous"}</span>
-          ) : article.sourceName ? (
-            <span>{article.sourceName}</span>
-          ) : null}
-          {(article.sourceName || (article.itemType === "synthesis" && article.sourceCount)) && article.publishedAt && <span>·</span>}
+        {/* Footer */}
+        <div className="mt-auto flex items-center gap-2 pt-1 text-xs text-stone-400 dark:text-stone-500">
+          {article.sourceName && (
+            <span className="truncate">{article.sourceName}</span>
+          )}
+          {article.sourceName && article.publishedAt && (
+            <span className="text-stone-300 dark:text-stone-600">·</span>
+          )}
           {article.publishedAt && (
-            <span>{formatDate(article.publishedAt, lang)}</span>
+            <span>{formatRelativeDate(article.publishedAt, lang)}</span>
           )}
         </div>
       </div>

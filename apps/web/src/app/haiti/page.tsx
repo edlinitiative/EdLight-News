@@ -72,16 +72,16 @@ export default async function HaitiPage({
   return (
     <div className="space-y-6">
       <header className="space-y-1.5">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-          <MapPin className="mr-1.5 inline h-7 w-7 text-brand-600 dark:text-brand-400" />
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
+          <MapPin className="mr-1.5 inline h-7 w-7 text-blue-600 dark:text-blue-400" />
           {fr ? "Haïti" : "Ayiti"}
         </h1>
-        <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+        <p className="max-w-2xl text-stone-600 dark:text-stone-300">
           {fr
             ? "Nouvelles locales et actualités éducatives directement d’Haïti."
             : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti."}
         </p>
-        <p className="text-sm text-gray-500 dark:text-slate-400">
+        <p className="text-sm text-stone-500 dark:text-stone-400">
           {articles.length} {fr ? "articles" : "atik"}
         </p>
       </header>

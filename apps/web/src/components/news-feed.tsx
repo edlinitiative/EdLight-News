@@ -161,7 +161,7 @@ function CategoryBadge({ article, lang }: { article: FeedItem; lang: ContentLang
   const displayCat = OPP_CATEGORIES.has(article.category)
     ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
     : article.category;
-  const color = CATEGORY_COLORS[displayCat] ?? "bg-gray-100 text-gray-600";
+  const color = CATEGORY_COLORS[displayCat] ?? "bg-stone-100 text-stone-600";
   return (
     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
       {categoryLabel(displayCat, lang)}
@@ -179,7 +179,7 @@ function TrustSignals({
   mounted?: boolean;
 }) {
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-stone-400">
       {/* Source name or source count for synthesis */}
       {item.itemType === "synthesis" && item.sourceCount ? (
         <span>
@@ -192,7 +192,7 @@ function TrustSignals({
               href={item.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-gray-600 hover:underline"
+              className="hover:text-stone-600 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               {item.sourceName}
@@ -218,10 +218,10 @@ function TrustSignals({
       )}
       {/* Subtle quality labels */}
       {item.weakSource && (
-        <span className="text-gray-300">{lang === "fr" ? "Source indirecte" : "Sous endirèk"}</span>
+        <span className="text-stone-300">{lang === "fr" ? "Source indirecte" : "Sous endirèk"}</span>
       )}
       {item.missingDeadline && (
-        <span className="text-gray-300">{lang === "fr" ? "Date à confirmer" : "Dat pou konfime"}</span>
+        <span className="text-stone-300">{lang === "fr" ? "Date à confirmer" : "Dat pou konfime"}</span>
       )}
     </div>
   );
@@ -459,10 +459,10 @@ export function NewsFeed({
       {/* Header */}
       <div className="section-shell p-4">
         <div className="relative z-10 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white">
           {lang === "fr" ? "Fil — Actualités" : "Fil — Nouvèl"}
         </h1>
-        <span className="text-sm text-gray-400 dark:text-slate-500">
+        <span className="text-sm text-stone-400 dark:text-stone-500">
           {sorted.length} {lang === "fr" ? "articles" : "atik"}
         </span>
         </div>
@@ -472,7 +472,7 @@ export function NewsFeed({
       <div className="section-shell p-4">
       <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Segmented control: Fil étudiant / Tout */}
-        <div className="inline-flex rounded-lg border border-gray-200/80 bg-gray-50 p-0.5 dark:border-slate-700 dark:bg-slate-800">
+        <div className="inline-flex rounded-lg border border-stone-200 bg-stone-100 p-0.5 dark:border-stone-700 dark:bg-stone-800">
           {(["student", "all"] as const).map((mode) => {
             const isActive = mode === feedMode;
             const label =
@@ -490,8 +490,8 @@ export function NewsFeed({
                 className={
                   "rounded-md px-3 py-1.5 text-sm font-medium transition " +
                   (isActive
-                    ? "bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-brand-300"
-                    : "text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200")
+                    ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                    : "text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200")
                 }
               >
                 {label}
@@ -506,10 +506,10 @@ export function NewsFeed({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-            className="w-full rounded-lg border border-gray-200/80 bg-white/80 px-4 py-2 pl-9 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+            className="w-full rounded-lg border border-stone-200/80 bg-white/80 px-4 py-2 pl-9 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
           />
           <svg
-            className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-slate-500"
+            className="absolute left-3 top-2.5 h-4 w-4 text-stone-400 dark:text-stone-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -525,7 +525,7 @@ export function NewsFeed({
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortOption)}
-          className="rounded-lg border border-gray-200/80 bg-white/80 px-3 py-2 text-sm text-gray-900 focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100"
+          className="rounded-lg border border-stone-200/80 bg-white/80 px-3 py-2 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
         >
           {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
             <option key={opt} value={opt}>
@@ -538,12 +538,12 @@ export function NewsFeed({
 
       {/* Legacy toggle — only shown when not server-pre-ranked */}
       {!preRanked && legacyCount > 0 && (
-        <label className="section-shell flex items-center gap-2 p-4 text-sm text-gray-500 dark:text-slate-400">
+        <label className="section-shell flex items-center gap-2 p-4 text-sm text-stone-500 dark:text-stone-400">
           <input
             type="checkbox"
             checked={showLegacy}
             onChange={(e) => setShowLegacy(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-400"
+            className="h-4 w-4 rounded border-stone-300 text-blue-600 focus:ring-blue-400"
           />
           {lang === "fr"
             ? `Afficher les anciens articles (${legacyCount})`
@@ -563,10 +563,10 @@ export function NewsFeed({
               key={cat}
               onClick={() => handleCategory(cat)}
               className={
-                "rounded-full px-3 py-1 text-sm font-medium transition " +
+                "rounded-lg px-3 py-1.5 text-sm font-medium transition " +
                 (isActive
-                  ? "bg-brand-700 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600")
+                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700")
               }
             >
               {label}
@@ -579,14 +579,14 @@ export function NewsFeed({
 
       {/* Student-mode info note */}
       {studentModeFiltered && (
-        <p className="section-shell border-brand-200/70 bg-brand-50/50 px-4 py-3 text-sm text-brand-800 dark:border-brand-800/30 dark:bg-brand-950/10 dark:text-brand-300">
+        <p className="section-shell border-blue-200/70 bg-blue-50/50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800/30 dark:bg-blue-950/10 dark:text-blue-300">
           {lang === "fr"
             ? "Fil étudiant masque les faits divers et certaines actualités générales."
             : "Fil etidyan an kache fe diver ak kèk nouvèl jeneral."}
           {" "}
           <button
             onClick={() => handleModeChange("all")}
-            className="font-medium underline hover:text-brand-900"
+            className="font-medium underline hover:text-blue-900"
           >
             {lang === "fr" ? "Voir tout" : "Wè tout"}
           </button>
@@ -595,7 +595,7 @@ export function NewsFeed({
 
       {/* Empty state */}
       {sorted.length === 0 && (
-        <div className="section-shell border-2 border-dashed p-8 text-center text-gray-500 dark:text-slate-400">
+        <div className="section-shell border-2 border-dashed p-8 text-center text-stone-500 dark:text-stone-400">
           <p className="text-lg">
             {search
               ? lang === "fr"
@@ -622,7 +622,7 @@ export function NewsFeed({
             {/* Image thumbnail */}
             {article.imageUrl && (
               <div className={[
-                "relative shrink-0 overflow-hidden bg-gray-100",
+                "relative shrink-0 overflow-hidden bg-stone-100",
                 i === 0 ? "aspect-[3/2] sm:w-2/5" : "aspect-video w-full",
               ].join(" ")}>
                 <ImageWithFallback
@@ -649,24 +649,24 @@ export function NewsFeed({
                 </span>
               )}
               {article.isLegacy && (
-                <span className="inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
+                <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
                   {lang === "fr" ? "Ancien contenu" : "Ansyen kontni"}
                 </span>
               )}
               {(article.dupeCount ?? 0) > 1 && article.itemType !== "synthesis" && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-stone-400">
                   +{(article.dupeCount ?? 1) - 1}{" "}
                   {lang === "fr" ? "mises à jour" : "mizajou"}
                 </span>
               )}
             </div>
             <h2 className={[
-              "mb-2 font-semibold text-gray-900 transition-colors group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300",
+              "mb-2 font-semibold text-stone-900 transition-colors group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300",
               i === 0 ? "font-serif text-xl" : "text-lg",
             ].join(" ")}>
               {article.title}
             </h2>
-            <p className="line-clamp-3 text-sm text-gray-600 dark:text-slate-300">
+            <p className="line-clamp-3 text-sm text-stone-600 dark:text-stone-300">
               {article.summary || article.body?.slice(0, 200) || ""}
             </p>
             <TrustSignals item={article} lang={lang} mounted={mounted} />

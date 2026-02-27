@@ -64,10 +64,10 @@ export default async function SuccesPage({
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+        <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
           {fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
         </h1>
-        <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+        <p className="max-w-2xl text-stone-600 dark:text-stone-300">
           {fr
             ? "Histoires de réussite et profils inspirants pour la communauté haïtienne."
             : "Istwa siksè ak pwofil ki enspire kominote ayisyèn nan."}
@@ -81,7 +81,7 @@ export default async function SuccesPage({
           defaultSort="relevance"
         />
       ) : (
-        <div className="section-shell border-2 border-dashed py-24 text-center text-gray-400 dark:text-slate-500">
+        <div className="section-shell border-2 border-dashed py-24 text-center text-stone-400 dark:text-stone-500">
           <p className="text-lg font-medium">
             {fr ? "Aucun profil publié récemment." : "Pa gen pwofil pibliye dènyèman."}
           </p>

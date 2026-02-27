@@ -115,22 +115,22 @@ export default async function BoursesPage({
     <div className="space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
             {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
           </h1>
-          <p className="max-w-2xl text-gray-600 dark:text-slate-300">
+          <p className="max-w-2xl text-stone-600 dark:text-stone-300">
             {fr
               ? "Comparez les bourses ouvertes aux étudiants haïtiens, filtrez par pays ou niveau."
               : "Konpare bous ki ouvè pou etidyan ayisyen, filtre pa peyi oswa nivo."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
             {allScholarships.length} {fr ? "résultats" : "rezilta"}
           </span>
           <Link
             href={`/closing-soon${langQ}`}
-            className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100 dark:border-brand-800/50 dark:bg-brand-900/20 dark:text-brand-300 dark:hover:bg-brand-900/30"
+            className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
           >
             {fr ? "Dates limites" : "Dat limit yo"}
             <ArrowRight className="h-3.5 w-3.5" />
@@ -140,15 +140,15 @@ export default async function BoursesPage({
 
       {/* Closing soon banner */}
       {closingSoon.length > 0 && (
-        <section className="mx-auto max-w-6xl rounded-2xl border border-brand-200/80 bg-brand-50/40 px-4 py-5 dark:border-brand-800/40 dark:bg-brand-950/10 sm:px-5">
+        <section className="mx-auto max-w-6xl rounded-xl border border-blue-200/80 bg-blue-50/40 px-4 py-5 dark:border-blue-800/40 dark:bg-blue-950/10 sm:px-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-bold tracking-tight text-brand-800 dark:text-brand-300">
+            <h2 className="font-bold tracking-tight text-blue-800 dark:text-blue-300">
               <Clock className="mr-1 inline h-4 w-4" />
               {fr ? "Date limite bientôt" : "Dat limit byento"}
             </h2>
             <Link
               href={`/closing-soon${langQ}`}
-              className="inline-flex items-center gap-1 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 dark:border-brand-800/40 dark:bg-slate-900/70 dark:text-brand-300"
+              className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/40 dark:bg-stone-900/70 dark:text-blue-300"
             >
               {fr ? "Voir tout" : "Wè tout"}
               <ArrowRight className="h-3.5 w-3.5" />
@@ -156,10 +156,10 @@ export default async function BoursesPage({
           </div>
           <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {closingSoon.slice(0, 4).map((s) => (
-              <li key={s.id} className="rounded-xl border border-white/80 bg-white/90 p-3 text-sm text-brand-700 dark:border-slate-700/50 dark:bg-slate-900/50 dark:text-brand-300">
+              <li key={s.id} className="rounded-xl border border-white/80 bg-white/90 p-3 text-sm text-blue-700 dark:border-stone-700/50 dark:bg-stone-900/50 dark:text-blue-300">
                 <p className="line-clamp-2 font-semibold leading-snug">{s.name}</p>
                 {s.deadline?.dateISO && (
-                  <p className="mt-1 text-xs text-brand-600 dark:text-brand-400">
+                  <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
                     {formatDateBanner(s.deadline.dateISO, lang)}
                   </p>
                 )}
@@ -174,11 +174,11 @@ export default async function BoursesPage({
         <section className="mx-auto max-w-6xl space-y-4 px-2 sm:px-0">
           <ScholarshipStartHere lang={lang} />
           <div className="flex items-center gap-4 py-1">
-            <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
-            <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-slate-500">
+            <div className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
+            <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500">
               {fr ? "Ou explorez toutes les bourses" : "Oswa eksplore tout bous yo"}
             </span>
-            <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
+            <div className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
           </div>
         </section>
       )}

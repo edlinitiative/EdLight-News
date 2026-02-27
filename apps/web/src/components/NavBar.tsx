@@ -1,267 +1,134 @@
 "use client";
 
-import { Suspense, useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { LanguageToggle } from "@/components/language-toggle";
+import { usePathname } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { LanguageToggle } from "@/components/language-toggle";
+import { useLanguage } from "@/lib/language-context";
 
-// ── Tab definitions ──────────────────────────────────────────────────────────
+interface NavLink {
+  href: string;
+  label: { fr: string; ht: string };
+}
 
-/** Primary tabs — always visible */
-const PRIMARY_ITEMS = [
-  { href: "/",             fr: "Accueil",       ht: "Akèy"       },
-  { href: "/opportunites", fr: "Opportunités",  ht: "Okazyon"    },
-  { href: "/bourses",      fr: "Bourses",       ht: "Bous"       },
-  { href: "/universites",  fr: "Universités",   ht: "Inivèsite"  },
-  { href: "/parcours",     fr: "Parcours",      ht: "Pakou"      },
-] as const;
+const NAV_LINKS: NavLink[] = [
+  { href: "/", label: { fr: "Accueil", ht: "Akèy" } },
+  { href: "/bourses", label: { fr: "Bourses", ht: "Bous" } },
+  { href: "/opportunites", label: { fr: "Opportunités", ht: "Okazyon" } },
+  { href: "/universites", label: { fr: "Universités", ht: "Inivèsite" } },
+  { href: "/calendrier", label: { fr: "Calendrier", ht: "Kalandriye" } },
+  { href: "/parcours", label: { fr: "Parcours", ht: "Pakou" } },
+  { href: "/haiti", label: { fr: "Haïti", ht: "Ayiti" } },
+  { href: "/histoire", label: { fr: "Histoire", ht: "Istwa" } },
+  { href: "/news", label: { fr: "Fil", ht: "Fil" } },
+];
 
-/** Secondary tabs — collapsed into "Plus" on desktop */
-const MORE_ITEMS = [
-  { href: "/calendrier", fr: "Calendrier", ht: "Kalandriye" },
-  { href: "/histoire",   fr: "Histoire",   ht: "Istwa"      },
-  { href: "/haiti",      fr: "Haïti",      ht: "Ayiti"      },
-  { href: "/ressources", fr: "Ressources", ht: "Resous"     },
-  { href: "/succes",     fr: "Succès",     ht: "Siksè"      },
-  { href: "/news",       fr: "Fil",        ht: "Fil"        },
-] as const;
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
-const ALL_ITEMS = [...PRIMARY_ITEMS, ...MORE_ITEMS];
-
-// ── Inner component (needs useSearchParams → must be inside Suspense) ────────
-
-function NavBarInner() {
+export function NavBar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const lang = (searchParams.get("lang") ?? "fr") as "fr" | "ht";
-  const langSuffix = lang === "ht" ? "?lang=ht" : "";
+  const { language } = useLanguage();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
-
-  function isActive(href: string) {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
-  }
-
-  // Is the active page inside the "More" menu?
-  const activeMoreItem = MORE_ITEMS.find((item) => isActive(item.href));
-
-  // Close dropdown on outside click
+  // Close mobile menu on route change
   useEffect(() => {
-    if (!moreOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-        setMoreOpen(false);
-      }
-    }
-    document.addEventListener("click", handleClick, true);
-    return () => document.removeEventListener("click", handleClick, true);
-  }, [moreOpen]);
-
-  // Close on route change
-  useEffect(() => {
-    setMoreOpen(false);
+    setMobileOpen(false);
   }, [pathname]);
 
-  // Check scroll overflow
-  const checkOverflow = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 2);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
-  }, []);
-
+  // Lock body scroll when mobile menu is open
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    checkOverflow();
-    el.addEventListener("scroll", checkOverflow, { passive: true });
-    window.addEventListener("resize", checkOverflow);
-    return () => {
-      el.removeEventListener("scroll", checkOverflow);
-      window.removeEventListener("resize", checkOverflow);
-    };
-  }, [checkOverflow]);
-
-  const scroll = (dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir === "left" ? -180 : 180, behavior: "smooth" });
-  };
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200/70 bg-white/85 backdrop-blur-2xl dark:border-slate-700/50 dark:bg-slate-950/80">
-      <div className="mx-auto max-w-6xl px-4">
-        {/* Top row ── logo + controls */}
-        <div className="flex items-center justify-between py-3">
-          <Link
-            href={"/" + langSuffix}
-            className="group inline-flex items-center gap-1.5 px-1 py-1.5 text-xl tracking-tight transition-opacity hover:opacity-80"
-          >
-            <span className="font-serif font-bold text-brand-700 dark:text-brand-300">Ed</span>
-            <span className="font-light text-gray-400 dark:text-slate-500">Light</span>
-            <span className="text-sm font-medium text-gray-400 dark:text-slate-500">News</span>
+    <>
+      <nav
+        ref={navRef}
+        className="sticky top-0 z-50 border-b border-stone-200 bg-white/90 backdrop-blur-xl dark:border-stone-800 dark:bg-stone-950/90"
+      >
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-8 px-4 sm:px-6 lg:px-8">
+          {/* Logo */}
+          <Link href="/" className="flex shrink-0 items-baseline gap-0.5">
+            <span className="font-serif text-lg font-bold text-stone-900 dark:text-white">Ed</span>
+            <span className="text-lg font-light text-stone-400 dark:text-stone-500">Light</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href={"/admin" + langSuffix}
-              className="hidden text-xs font-medium text-gray-400 transition-colors hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 sm:block"
-            >
-              Admin
-            </Link>
-            <LanguageToggle />
-            <DarkModeToggle />
-          </div>
-        </div>
 
-        {/* Tab row */}
-        <div className="relative rounded-xl border border-gray-200/70 bg-white/60 px-1 dark:border-slate-700/60 dark:bg-slate-900/60">
-          {/* Left fade + arrow */}
-          {canScrollLeft && (
-            <>
-              <div className="pointer-events-none absolute bottom-0 left-0 top-0 z-10 w-10 bg-gradient-to-r from-white dark:from-slate-900" />
-              <button
-                onClick={() => scroll("left")}
-                className="absolute bottom-0 left-0 top-0 z-20 flex w-11 items-center justify-center text-gray-400 transition-colors hover:text-brand-600 dark:text-slate-500 dark:hover:text-brand-400"
-                aria-label="Scroll tabs left"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-            </>
-          )}
-
-          {/* Right fade + arrow */}
-          {canScrollRight && (
-            <>
-              <div className="pointer-events-none absolute bottom-0 right-0 top-0 z-10 w-10 bg-gradient-to-l from-white dark:from-slate-900" />
-              <button
-                onClick={() => scroll("right")}
-                className="absolute bottom-0 right-0 top-0 z-20 flex w-11 items-center justify-center text-gray-400 transition-colors hover:text-brand-600 dark:text-slate-500 dark:hover:text-brand-400"
-                aria-label="Scroll tabs right"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </>
-          )}
-
-          <nav
-            ref={scrollRef}
-            className="tab-scroll relative flex items-center overflow-x-auto text-sm"
-            aria-label="Navigation principale"
-          >
-            {PRIMARY_ITEMS.map((item) => {
-              const active = isActive(item.href);
-              const label = lang === "ht" ? item.ht : item.fr;
+          {/* Desktop navigation */}
+          <div className="hidden flex-1 items-center gap-0.5 overflow-x-auto tab-scroll lg:flex">
+            {NAV_LINKS.map((link) => {
+              const active = isActive(pathname, link.href);
               return (
                 <Link
-                  key={item.href}
-                  href={item.href + langSuffix}
-                  aria-current={active ? "page" : undefined}
+                  key={link.href}
+                  href={link.href}
                   className={[
-                    "relative shrink-0 whitespace-nowrap px-4 py-3 font-medium transition-colors duration-200",
+                    "relative whitespace-nowrap rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors",
                     active
-                      ? "text-brand-600 dark:text-brand-400"
-                      : "text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200",
+                      ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
+                      : "text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white",
                   ].join(" ")}
                 >
-                  {label}
-                  {active && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className="absolute inset-x-1 -bottom-px h-[2.5px] rounded-full bg-brand-500 dark:bg-brand-400"
-                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                    />
-                  )}
+                  {link.label[language]}
                 </Link>
               );
             })}
+          </div>
 
-            {/* "Plus" dropdown trigger */}
-            <div ref={moreRef} className="relative shrink-0">
-              <button
-                onClick={() => setMoreOpen((v) => !v)}
-                aria-haspopup="true"
-                aria-expanded={moreOpen}
-                className={[
-                  "flex items-center gap-1 whitespace-nowrap px-4 py-3 font-medium transition-colors duration-200",
-                  activeMoreItem
-                    ? "text-brand-600 dark:text-brand-400"
-                    : "text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200",
-                ].join(" ")}
-              >
-                {activeMoreItem
-                  ? (lang === "ht" ? activeMoreItem.ht : activeMoreItem.fr)
-                  : (lang === "ht" ? "Plis" : "Plus")}
-                <ChevronDown className={[
-                  "h-3.5 w-3.5 transition-transform duration-200",
-                  moreOpen ? "rotate-180" : "",
-                ].join(" ")} />
-                {activeMoreItem && (
-                  <motion.span
-                    layoutId="nav-underline"
-                    className="absolute inset-x-1 -bottom-px h-[2.5px] rounded-full bg-brand-500 dark:bg-brand-400"
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                  />
-                )}
-              </button>
+          {/* Right controls */}
+          <div className="ml-auto flex items-center gap-1 lg:ml-0">
+            <LanguageToggle />
+            <DarkModeToggle />
 
-              <AnimatePresence>
-                {moreOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-lg border border-gray-200/80 bg-white p-1 shadow-lg dark:border-slate-700/60 dark:bg-slate-900"
-                    role="menu"
-                  >
-                    {MORE_ITEMS.map((item) => {
-                      const active = isActive(item.href);
-                      const label = lang === "ht" ? item.ht : item.fr;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href + langSuffix}
-                          role="menuitem"
-                          className={[
-                            "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                            active
-                              ? "bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
-                              : "text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800",
-                          ].join(" ")}
-                        >
-                          {label}
-                        </Link>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </nav>
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800 lg:hidden"
+              aria-label="Menu"
+            >
+              {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
-  );
-}
+      </nav>
 
-// ── Public export ─────────────────────────────────────────────────────────────
-
-export function NavBar() {
-  return (
-    <Suspense
-      fallback={
-        <header className="sticky top-0 z-50 h-[96px] border-b border-gray-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/90" />
-      }
-    >
-      <NavBarInner />
-    </Suspense>
+      {/* Mobile menu overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div className="absolute inset-y-0 right-0 top-14 w-72 border-l border-stone-200 bg-white p-5 shadow-float dark:border-stone-800 dark:bg-stone-950">
+            <nav className="flex flex-col gap-1">
+              {NAV_LINKS.map((link) => {
+                const active = isActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={[
+                      "rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
+                        : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
+                    ].join(" ")}
+                  >
+                    {link.label[language]}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
