@@ -11,7 +11,7 @@
 
 import { Suspense } from "react";
 import Image from "next/image";
-import { BookOpen, Star, CalendarDays, Clock } from "lucide-react";
+import { BookOpen, Star, CalendarDays } from "lucide-react";
 import type { Metadata } from "next";
 import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
