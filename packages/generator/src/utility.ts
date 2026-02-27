@@ -14,13 +14,7 @@ import { editorialBlockForSeries } from "./editorial-tone.js";
 
 const utilitySectionSchema = z.object({
   heading: z.string().min(1),
-  content: z.string().min(1).max(2000),
-});
-
-/** Stricter section schema for snackable formats (HaitiFactOfTheDay). */
-const snackableSectionSchema = z.object({
-  heading: z.string().min(1),
-  content: z.string().min(1).max(500),
+  content: z.string().min(1),
 });
 
 const utilityFactDeadlineSchema = z.object({
@@ -112,16 +106,11 @@ Sois narratif mais rigoureux. Chaque fait DOIT venir d'une source.`,
 
   HaitiFactOfTheDay: `TYPE: FÈT / FAIT DU JOUR
 Crée UN SEUL fait intéressant sur Haïti, vérifié et sourcé.
-STRUCTURE OBLIGATOIRE (3 sections MAXIMUM):
-- Section "Le fait" → UNE phrase-choc suivie d'UNE phrase d'explication. MAX 2 PHRASES, MAX 50 MOTS.
-- Section "Contexte rapide" → 2-3 phrases courtes. MAX 60 MOTS.
-- Section "Source" → UNE phrase citant la source. MAX 20 MOTS.
-LIMITES STRICTES:
-- Le contenu TOTAL ne doit JAMAIS dépasser 130 mots.
-- PAS de listes à puces, PAS de sous-sections.
-- PAS de paragraphes multiples — chaque section = UN SEUL paragraphe court.
-- Le format est "snackable" : si c'est trop long, c'est RATÉ.
-Le fait doit surprendre ou éduquer en 10 secondes de lecture.`,
+STRUCTURE OBLIGATOIRE:
+- Section "Le fait" (une phrase-choc + explication courte, 1 paragraphe)
+- Section "Contexte rapide" (2-3 phrases de contexte)
+- Section "Source" (d'où vient cette information)
+Sois concis — c'est un format "snackable". Le fait doit surprendre ou éduquer.`,
 
   HaitianOfTheWeek: `TYPE: HAÏTIEN(NE) DE LA SEMAINE
 Crée un profil inspirant d'une personnalité haïtienne remarquable.
@@ -324,31 +313,6 @@ export function validateUtilityJson(
   if (output.sections_fr.length === 0) issues.push("No French sections generated");
   if (output.sections_ht.length === 0) issues.push("No Haitian Creole sections generated");
 
-  // 4b. Snackable word-count enforcement for HaitiFactOfTheDay
-  if (series === "HaitiFactOfTheDay") {
-    const FACT_MAX_SECTIONS = 3;
-    const FACT_MAX_WORDS_PER_SECTION = 80;
-    const FACT_MAX_WORDS_TOTAL = 150;
-
-    for (const lang of ["fr", "ht"] as const) {
-      const sections = lang === "fr" ? output.sections_fr : output.sections_ht;
-      if (sections.length > FACT_MAX_SECTIONS) {
-        issues.push(`HaitiFactOfTheDay: ${lang} has ${sections.length} sections (max ${FACT_MAX_SECTIONS})`);
-      }
-      let totalWords = 0;
-      for (const s of sections) {
-        const wc = s.content.split(/\s+/).filter(Boolean).length;
-        totalWords += wc;
-        if (wc > FACT_MAX_WORDS_PER_SECTION) {
-          issues.push(`HaitiFactOfTheDay: ${lang} section "${s.heading}" has ${wc} words (max ${FACT_MAX_WORDS_PER_SECTION})`);
-        }
-      }
-      if (totalWords > FACT_MAX_WORDS_TOTAL) {
-        issues.push(`HaitiFactOfTheDay: ${lang} total ${totalWords} words (max ${FACT_MAX_WORDS_TOTAL})`);
-      }
-    }
-  }
-
   // 5. Speculation marker detection
   const allText = [
     output.title_fr, output.summary_fr,
@@ -386,8 +350,7 @@ export function validateUtilityJson(
       i.includes("No French") ||
       i.includes("No Haitian") ||
       i.includes("references unknown sourceUrl") ||
-      i.includes("Speculation marker") ||
-      i.includes("HaitiFactOfTheDay:"),
+      i.includes("Speculation marker"),
   );
 
   // 7. HaitiEducationCalendar strict validation

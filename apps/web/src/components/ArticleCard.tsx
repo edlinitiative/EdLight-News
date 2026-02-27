@@ -86,6 +86,11 @@ export function ArticleCard({
   const isFeatured = variant === "featured";
   const derived = deriveCategory(article, lang);
   const hasImage = !!article.imageUrl;
+  // Hide branded cards for utility items — they're just gradient+title, no
+  // real imagery, and they make short-form "snackable" content look oversized.
+  const showImage = hasImage && !(
+    article.itemType === "utility" && article.imageSource === "branded"
+  );
   const readTime = estimateReadTime(article.body);
   const fr = lang === "fr";
 
@@ -98,7 +103,7 @@ export function ArticleCard({
       ].join(" ")}
     >
       {/* Image */}
-      {hasImage && (
+      {showImage && (
         <div
           className={[
             "relative shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-800",

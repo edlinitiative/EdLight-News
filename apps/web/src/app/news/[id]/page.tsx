@@ -637,9 +637,14 @@ export default async function ArticlePage({
 
   return (
     <article className="mx-auto max-w-3xl space-y-6">
-      {/* Hero image — best image from dedup group (mirrors card logic) */}
-      {heroImageUrl && (
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800">
+      {/* Hero image — best image from dedup group (mirrors card logic).
+          For utility items (daily fact, history, etc.) with only a branded
+          card, skip the hero entirely — the generated gradient card adds no
+          value and takes up too much space on short-form content. */}
+      {heroImageUrl && !(isUtility && heroImageSource === "branded") && (
+        <div className={`relative w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800 ${
+          isUtility ? "aspect-[2/1]" : "aspect-video"
+        }`}>
           <ImageWithFallback
             src={heroImageUrl}
             alt=""
