@@ -1,27 +1,32 @@
 /**
- * /bourses — Scholarship database page.
+ * /bourses — Scholarship database page (v2 — premium redesign).
  *
  * Server component: fetches all scholarships eligible for Haitian students,
- * serialises them, and delegates filtering/rendering to BoursesFilters (client).
+ * serialises them, and delegates filtering/rendering to client components.
  *
- * When no filter search-params are active the page shows a "Start Here"
- * orientation block with curated country entry cards.
+ * Layout (4 sections):
+ *   1) Header — title, subtitle, count
+ *   2) DeadlineBoard — compact upcoming-deadline strip
+ *   3) Parcours — 4 country path tiles (hidden when filters active)
+ *   4) Catalogue — sticky filter bar + search + card grid
+ *
+ * No backend logic was changed; only UI composition.
  */
 
 import type { Metadata } from "next";
 import type { ContentLanguage, Scholarship } from "@edlight-news/types";
 import { Suspense } from "react";
-import { GraduationCap, Clock, Filter, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { GraduationCap } from "lucide-react";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchScholarshipsForHaiti,
   fetchScholarshipsClosingSoon,
 } from "@/lib/datasets";
 import { BoursesFilters, type SerializedScholarship } from "@/components/BoursesFilters";
-import { ScholarshipStartHere } from "@/components/ScholarshipStartHere";
+import { DeadlineBoard } from "@/components/bourses/DeadlineBoard";
+import { ParcoursTiles } from "@/components/bourses/ParcoursTiles";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
-import { tsToISO as sharedTsToISO, formatDateLocalized } from "@/lib/dates";
+import { tsToISO as sharedTsToISO } from "@/lib/dates";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
@@ -44,7 +49,6 @@ export async function generateMetadata({
   };
 }
 
-// tsToISO imported from @/lib/dates
 const tsToISO = sharedTsToISO;
 
 function serializeScholarship(s: Scholarship): SerializedScholarship {
@@ -78,10 +82,6 @@ function serializeScholarship(s: Scholarship): SerializedScholarship {
   };
 }
 
-// formatDateBanner delegated to shared utility
-const formatDateBanner = (iso: string, lang: ContentLanguage) =>
-  formatDateLocalized(iso, lang);
-
 export default async function BoursesPage({
   searchParams,
 }: {
@@ -90,7 +90,6 @@ export default async function BoursesPage({
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
 
-  // Detect whether any filter search-param is active
   const hasActiveFilters = FILTER_PARAM_KEYS.some(
     (k) => searchParams[k] !== undefined,
   );
@@ -109,74 +108,44 @@ export default async function BoursesPage({
   }
 
   const serialized = allScholarships.map(serializeScholarship);
-  const langQ = lang === "ht" ? "?lang=ht" : "";
+  const closingSerialized = closingSoon.map(serializeScholarship);
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-3">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6">
+      {/* ─── Section 1: Header ─── */}
+      <header className="space-y-3 pt-2">
         <div className="section-rule" />
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
-            <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-              <GraduationCap className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
+            <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
+              <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              {fr ? "Bourses" : "Bous"}
             </h1>
             <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
               {fr
-                ? "Comparez les bourses ouvertes aux étudiants haïtiens, filtrez par pays ou niveau."
-                : "Konpare bous ki ouvè pou etidyan ayisyen, filtre pa peyi oswa nivo."}
+                ? "Trouvez, comparez et suivez les bourses ouvertes aux étudiants haïtiens. Filtrez par pays, niveau ou type de financement."
+                : "Jwenn, konpare epi swiv bous ki ouvè pou etidyan ayisyen. Filtre pa peyi, nivo oswa kalite finansman."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
-              {allScholarships.length} {fr ? "résultats" : "rezilta"}
+            <span className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+              {allScholarships.length} {fr ? "bourses" : "bous"}
             </span>
-            <Link
-              href={`/closing-soon${langQ}`}
-              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
-            >
-              {fr ? "Dates limites" : "Dat limit yo"}
-              <ArrowRight className="h-3 w-3" />
-            </Link>
           </div>
         </div>
       </header>
 
-      {/* Closing soon banner */}
-      {closingSoon.length > 0 && (
-        <section className="mx-auto max-w-6xl rounded-xl border border-blue-200/80 bg-blue-50/40 px-4 py-5 dark:border-blue-800/40 dark:bg-blue-950/10 sm:px-5">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-bold tracking-tight text-blue-800 dark:text-blue-300">
-              <Clock className="mr-1 inline h-4 w-4" />
-              {fr ? "Date limite bientôt" : "Dat limit byento"}
-            </h2>
-            <Link
-              href={`/closing-soon${langQ}`}
-              className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800/40 dark:bg-stone-900/70 dark:text-blue-300"
-            >
-              {fr ? "Voir tout" : "Wè tout"}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            {closingSoon.slice(0, 4).map((s) => (
-              <li key={s.id} className="rounded-xl border border-white/80 bg-white/90 p-3 text-sm text-blue-700 dark:border-stone-700/50 dark:bg-stone-900/50 dark:text-blue-300">
-                <p className="line-clamp-2 font-semibold leading-snug">{s.name}</p>
-                {s.deadline?.dateISO && (
-                  <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                    {formatDateBanner(s.deadline.dateISO, lang)}
-                  </p>
-                )}
-              </li>
-            ))}
-          </ul>
+      {/* ─── Section 2: Deadline Board ─── */}
+      {closingSerialized.length > 0 && (
+        <section className="mx-auto max-w-6xl">
+          <DeadlineBoard scholarships={closingSerialized} lang={lang} max={8} />
         </section>
       )}
 
-      {/* Start-Here orientation block (hidden when filters active) */}
+      {/* ─── Section 3: Parcours (hidden when filters active) ─── */}
       {!hasActiveFilters && (
-        <section className="mx-auto max-w-6xl space-y-4 px-2 sm:px-0">
-          <ScholarshipStartHere lang={lang} />
+        <section className="mx-auto max-w-6xl space-y-4">
+          <ParcoursTiles lang={lang} />
           <div className="flex items-center gap-4 py-1">
             <div className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
             <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500">
@@ -187,8 +156,8 @@ export default async function BoursesPage({
         </section>
       )}
 
-      {/* Client-side filters + cards */}
-      <section className="mx-auto max-w-6xl px-2 pb-4 sm:px-0">
+      {/* ─── Section 4: Catalogue (filters + cards) ─── */}
+      <section className="mx-auto max-w-6xl pb-8">
         <Suspense fallback={null}>
           <BoursesFilters scholarships={serialized} lang={lang} />
         </Suspense>
