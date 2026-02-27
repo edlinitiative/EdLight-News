@@ -462,131 +462,126 @@ export function NewsFeed({
   };
 
   return (
-    <section className="space-y-6">
-      {/* Mode toggle + Search + Sort bar */}
-      <div className="section-shell p-4">
-      <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
-        {/* Segmented control: Fil étudiant / Tout */}
-        <div className="inline-flex rounded-lg border border-stone-200 bg-stone-100 p-0.5 dark:border-stone-700 dark:bg-stone-800">
-          {(["student", "all"] as const).map((mode) => {
-            const isActive = mode === feedMode;
-            const label =
-              mode === "student"
-                ? lang === "fr"
-                  ? "Fil étudiant"
-                  : "Fil etidyan"
-                : lang === "fr"
-                  ? "Tout"
-                  : "Tout";
+    <section className="space-y-5">
+      {/* Controls bar — compact single row */}
+      <div className="flex flex-col gap-2.5">
+        {/* Row 1: mode toggle + search + sort */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="inline-flex shrink-0 rounded-lg border border-stone-200 bg-stone-100 p-0.5 dark:border-stone-700 dark:bg-stone-800">
+            {(["student", "all"] as const).map((mode) => {
+              const isActive = mode === feedMode;
+              const label =
+                mode === "student"
+                  ? lang === "fr"
+                    ? "Fil étudiant"
+                    : "Fil etidyan"
+                  : lang === "fr"
+                    ? "Tout"
+                    : "Tout";
+              return (
+                <button
+                  key={mode}
+                  onClick={() => handleModeChange(mode)}
+                  className={
+                    "rounded-md px-2.5 py-1 text-xs font-medium transition " +
+                    (isActive
+                      ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                      : "text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200")
+                  }
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
+              className="w-full rounded-lg border border-stone-200/80 bg-white/80 px-3 py-1.5 pl-8 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
+            />
+            <svg
+              className="absolute left-2.5 top-2 h-3.5 w-3.5 text-stone-400 dark:text-stone-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortOption)}
+            className="shrink-0 rounded-lg border border-stone-200/80 bg-white/80 px-2.5 py-1.5 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
+          >
+            {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
+              <option key={opt} value={opt}>
+                {SORT_LABELS[opt][lang]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Row 2: category pills */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {FIXED_NEWS_PILLS.map((cat) => {
+            const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
+            const count = pillCounts[cat] ?? 0;
+            const isActive = cat === activeCategory;
             return (
               <button
-                key={mode}
-                onClick={() => handleModeChange(mode)}
+                key={cat}
+                onClick={() => handleCategory(cat)}
                 className={
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition " +
+                  "rounded-md px-2.5 py-1 text-xs font-medium transition " +
                   (isActive
                     ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                    : "text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200")
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700")
                 }
               >
                 {label}
+                <span className="ml-1 opacity-60">{count}</span>
               </button>
             );
           })}
+          {/* Legacy toggle — inline */}
+          {!preRanked && legacyCount > 0 && (
+            <label className="ml-auto flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+              <input
+                type="checkbox"
+                checked={showLegacy}
+                onChange={(e) => setShowLegacy(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-stone-300 text-blue-600 focus:ring-blue-400"
+              />
+              {lang === "fr" ? `Anciens (${legacyCount})` : `Ansyen (${legacyCount})`}
+            </label>
+          )}
         </div>
 
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-            className="w-full rounded-lg border border-stone-200/80 bg-white/80 px-4 py-2 pl-9 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
-          />
-          <svg
-            className="absolute left-3 top-2.5 h-4 w-4 text-stone-400 dark:text-stone-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </div>
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value as SortOption)}
-          className="rounded-lg border border-stone-200/80 bg-white/80 px-3 py-2 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
-        >
-          {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
-            <option key={opt} value={opt}>
-              {SORT_LABELS[opt][lang]}
-            </option>
-          ))}
-        </select>
-      </div>
-      </div>
-
-      {/* Legacy toggle — only shown when not server-pre-ranked */}
-      {!preRanked && legacyCount > 0 && (
-        <label className="section-shell flex items-center gap-2 p-4 text-sm text-stone-500 dark:text-stone-400">
-          <input
-            type="checkbox"
-            checked={showLegacy}
-            onChange={(e) => setShowLegacy(e.target.checked)}
-            className="h-4 w-4 rounded border-stone-300 text-blue-600 focus:ring-blue-400"
-          />
-          {lang === "fr"
-            ? `Afficher les anciens articles (${legacyCount})`
-            : `Montre ansyen atik yo (${legacyCount})`}
-        </label>
-      )}
-
-      {/* Category filter pills — always visible, counts reflect current mode */}
-      <div className="section-shell p-4">
-        <div className="relative z-10 flex flex-wrap gap-2">
-        {FIXED_NEWS_PILLS.map((cat) => {
-          const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
-          const count = pillCounts[cat] ?? 0;
-          const isActive = cat === activeCategory;
-          return (
+        {/* Student-mode note — slim inline */}
+        {studentModeFiltered && (
+          <p className="text-xs text-stone-400 dark:text-stone-500">
+            {lang === "fr"
+              ? "Fil étudiant — certains articles masqués."
+              : "Fil etidyan — kèk atik kache."}
+            {" "}
             <button
-              key={cat}
-              onClick={() => handleCategory(cat)}
-              className={
-                "rounded-lg px-3 py-1.5 text-sm font-medium transition " +
-                (isActive
-                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                  : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700")
-              }
+              onClick={() => handleModeChange("all")}
+              className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
             >
-              {label}
-              <span className="ml-1 opacity-60">{count}</span>
+              {lang === "fr" ? "Voir tout" : "Wè tout"}
             </button>
-          );
-        })}
-        </div>
+          </p>
+        )}
       </div>
-
-      {/* Student-mode info note */}
-      {studentModeFiltered && (
-        <p className="section-shell border-blue-200/70 bg-blue-50/50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800/30 dark:bg-blue-950/10 dark:text-blue-300">
-          {lang === "fr"
-            ? "Fil étudiant masque les faits divers et certaines actualités générales."
-            : "Fil etidyan an kache fe diver ak kèk nouvèl jeneral."}
-          {" "}
-          <button
-            onClick={() => handleModeChange("all")}
-            className="font-medium underline hover:text-blue-900"
-          >
-            {lang === "fr" ? "Voir tout" : "Wè tout"}
-          </button>
-        </p>
-      )}
 
       {/* Empty state */}
       {sorted.length === 0 && (

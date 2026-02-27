@@ -60,9 +60,9 @@ export default async function NewsPage({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-3">
+      <header>
         <div className="section-rule" />
-        <div className="flex items-center justify-between">
+        <div className="mt-3 flex items-center justify-between">
           <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
             <Newspaper className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             {fr ? "Actualités" : "Nouvèl"}
@@ -71,11 +71,6 @@ export default async function NewsPage({
             {articles.length} {fr ? "articles" : "atik"}
           </span>
         </div>
-        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Flux d'actualités éducatives pour les étudiants haïtiens."
-            : "Fil nouvèl edikasyon pou elèv ayisyen yo."}
-        </p>
       </header>
 
       <Suspense
