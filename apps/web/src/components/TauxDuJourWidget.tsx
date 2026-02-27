@@ -31,18 +31,11 @@ const STRINGS = {
     title: "📊 Taux BRH du jour",
     badge: "Aujourd'hui",
     badgeUpdated: "Mis à jour",
-    usdLabel: "Taux de référence USD",
     htgPer: "HTG pour 1 USD",
     bankTitle: "Marché bancaire",
     buy: "Achat",
     sell: "Vente",
     informalTitle: "Marché informel",
-    impactTitle: "🎓 Impact étudiant",
-    impactItems: [
-      "Paiement TOEFL / SAT",
-      "Frais universitaires à l'étranger",
-      "Bourses en USD",
-    ],
     unavailable: "Taux BRH indisponible pour le moment.",
     source: "Source : Banque de la République d'Haïti (BRH)",
     seeOnBrh: "Voir sur brh.ht",
@@ -51,18 +44,11 @@ const STRINGS = {
     title: "📊 To BRH pou jodi a",
     badge: "Jodi a",
     badgeUpdated: "Mizajou",
-    usdLabel: "To referans USD",
     htgPer: "HTG pou 1 USD",
     bankTitle: "Mache bankè",
     buy: "Achte",
     sell: "Vann",
     informalTitle: "Mache enfòmèl",
-    impactTitle: "🎓 Sa sa vle di pou elèv",
-    impactItems: [
-      "Peye TOEFL / SAT",
-      "Frè inivèsite aletranje",
-      "Bous an USD",
-    ],
     unavailable: "To BRH pa disponib kounye a.",
     source: "Sous : Bank de la Repiblik d Ayiti (BRH)",
     seeOnBrh: "Wè sou brh.ht",
@@ -84,14 +70,14 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
   const sourceUrl = data?.sourceUrl ?? BRH_URL;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
+    <div className="relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
       {/* Top accent bar */}
-      <div className="h-1 bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-500" />
+      <div className="h-0.5 bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-500" />
 
-      <div className="px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-4">
+      <div className="px-4 py-3 sm:px-5">
         {/* Header row */}
-        <div className="flex items-start justify-between gap-2">
-          <h2 className="text-sm font-bold text-stone-900 dark:text-white sm:text-base">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-xs font-bold text-stone-900 dark:text-white sm:text-sm">
             {t.title}
           </h2>
           {/* "Aujourd'hui" / "Mis à jour" badge */}
@@ -102,146 +88,86 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
         </div>
 
         {hasData ? (
-          /* ── Active state: rates + impact ──────────────────────────── */
-          <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_auto]">
-            {/* LEFT: Rates */}
-            <div className="space-y-3">
-              {/* Reference rate (prominent) */}
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                  {t.usdLabel}
-                </p>
-                <p className="mt-0.5 text-2xl font-extrabold tabular-nums text-stone-900 dark:text-white sm:text-3xl">
-                  {data!.usdReference}
-                  <span className="ml-1.5 text-sm font-medium text-stone-400 dark:text-stone-500">
-                    {t.htgPer}
+          /* ── Active state: flat inline rates ────────────────────────── */
+          <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1.5">
+            {/* Reference rate (prominent) */}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-white sm:text-2xl">
+                {data!.usdReference}
+              </span>
+              <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
+                {t.htgPer}
+              </span>
+            </div>
+
+            {/* Divider */}
+            <span className="hidden text-stone-200 dark:text-stone-700 sm:inline">|</span>
+
+            {/* Bank rates */}
+            {(data!.bankBuy != null || data!.bankSell != null) && (
+              <div className="flex items-baseline gap-2 text-xs tabular-nums">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                  {t.bankTitle}
+                </span>
+                {data!.bankBuy != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.buy}</span> {data!.bankBuy}
                   </span>
-                </p>
-                {data!.date && (
-                  <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">
-                    {data!.date}
-                  </p>
+                )}
+                {data!.bankSell != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.sell}</span> {data!.bankSell}
+                  </span>
                 )}
               </div>
+            )}
 
-              {/* Bank & informal rates (optional rows) */}
-              <div className="flex flex-wrap gap-x-6 gap-y-2">
-                {(data!.bankBuy != null || data!.bankSell != null) && (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                      {t.bankTitle}
-                    </p>
-                    <div className="mt-0.5 flex items-center gap-3 text-sm tabular-nums">
-                      {data!.bankBuy != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-[10px] font-medium text-stone-400 dark:text-stone-500">
-                            {t.buy}{" "}
-                          </span>
-                          {data!.bankBuy}
-                        </span>
-                      )}
-                      {data!.bankSell != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-[10px] font-medium text-stone-400 dark:text-stone-500">
-                            {t.sell}{" "}
-                          </span>
-                          {data!.bankSell}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+            {/* Informal rates */}
+            {(data!.informalBuy != null || data!.informalSell != null) && (
+              <div className="flex items-baseline gap-2 text-xs tabular-nums">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                  {t.informalTitle}
+                </span>
+                {data!.informalBuy != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.buy}</span> {data!.informalBuy}
+                  </span>
                 )}
-
-                {(data!.informalBuy != null || data!.informalSell != null) && (
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                      {t.informalTitle}
-                    </p>
-                    <div className="mt-0.5 flex items-center gap-3 text-sm tabular-nums">
-                      {data!.informalBuy != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-[10px] font-medium text-stone-400 dark:text-stone-500">
-                            {t.buy}{" "}
-                          </span>
-                          {data!.informalBuy}
-                        </span>
-                      )}
-                      {data!.informalSell != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-[10px] font-medium text-stone-400 dark:text-stone-500">
-                            {t.sell}{" "}
-                          </span>
-                          {data!.informalSell}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                {data!.informalSell != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.sell}</span> {data!.informalSell}
+                  </span>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* RIGHT: Impact étudiant */}
-            <div className="rounded-xl bg-stone-50 p-3 dark:bg-stone-800/60 sm:w-56">
-              <p className="text-xs font-bold text-stone-700 dark:text-stone-300">
-                {t.impactTitle}
-              </p>
-              <ul className="mt-1.5 space-y-1">
-                {t.impactItems.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-1.5 text-xs text-stone-600 dark:text-stone-400"
-                  >
-                    <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-blue-500" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* Date */}
+            {data!.date && (
+              <span className="text-[11px] text-stone-400 dark:text-stone-500">
+                {data!.date}
+              </span>
+            )}
           </div>
         ) : (
           /* ── Placeholder / empty state ─────────────────────────────── */
-          <div className="mt-3 grid gap-4 sm:grid-cols-[1fr_auto]">
-            <div className="flex items-center gap-3 py-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800">
-                <span className="text-lg">💱</span>
-              </div>
-              <div>
-                <p className="text-sm text-stone-500 dark:text-stone-400">
-                  {t.unavailable}
-                </p>
-                <a
-                  href={BRH_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                >
-                  {t.seeOnBrh} ↗
-                </a>
-              </div>
-            </div>
-
-            {/* Impact section still shows in placeholder */}
-            <div className="rounded-xl bg-stone-50 p-3 dark:bg-stone-800/60 sm:w-56">
-              <p className="text-xs font-bold text-stone-700 dark:text-stone-300">
-                {t.impactTitle}
-              </p>
-              <ul className="mt-1.5 space-y-1">
-                {t.impactItems.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-1.5 text-xs text-stone-600 dark:text-stone-400"
-                  >
-                    <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-blue-500" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="mt-2 flex items-center gap-3">
+            <span className="text-base">💱</span>
+            <p className="text-sm text-stone-500 dark:text-stone-400">
+              {t.unavailable}
+            </p>
+            <a
+              href={BRH_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+            >
+              {t.seeOnBrh} ↗
+            </a>
           </div>
         )}
 
         {/* Source footer */}
-        <div className="mt-3 border-t border-stone-100 pt-2 dark:border-stone-800">
+        <div className="mt-2 border-t border-stone-100 pt-1.5 dark:border-stone-800">
           <a
             href={sourceUrl}
             target="_blank"
