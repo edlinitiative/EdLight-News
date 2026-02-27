@@ -19,6 +19,7 @@ import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportun
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { useLanguage } from "@/lib/language-context";
 import { isAllowedInStudentFeed } from "@/lib/studentFeedFilter";
+import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 
 // ── Feed mode ───────────────────────────────────────────────────────────────
 export type FeedMode = "student" | "all";
@@ -309,7 +310,8 @@ export function NewsFeed({
       collapsed.push({ ...group[0]!, dupeCount: group.length });
     }
 
-    return [...collapsed, ...ungrouped];
+    // Suppress "taux du jour" articles (the widget handles exchange rates)
+    return [...collapsed, ...ungrouped].filter((a) => !isTauxDuJourArticle(a));
   }, [rawArticles]);
 
   // Audience-fit filtering.

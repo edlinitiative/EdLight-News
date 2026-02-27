@@ -45,6 +45,8 @@ import {
 } from "@/lib/datasets";
 import { getCalendarGeo } from "@/lib/calendarGeo";
 import { CountryFlag } from "@/components/CountryFlag";
+import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
+import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { buildOgMetadata } from "@/lib/og";
@@ -146,6 +148,9 @@ export default async function AccueilPage({
     safeFetch(fetchAllPathways, [], "pathways"),
     safeFetch(fetchAllUniversities, [], "universities"),
   ]);
+
+  // Suppress "taux du jour" articles (the widget handles exchange rates)
+  const allArticlesFiltered = allArticles.filter((a) => !isTauxDuJourArticle(a));
 
   // Data prep (same logic as before)
   const haitiEvents = upcomingEvents.slice(0, 3);
@@ -444,7 +449,8 @@ export default async function AccueilPage({
           </div>
         </div>
       )}
-
+      {/* ── TAUX BRH DU JOUR WIDGET ─────────────────────────────────── */}
+      <TauxDuJourWidget lang={lang} />
       {/* ── LEAD STORY + SIDEBAR (Newspaper Layout) ────────────────────── */}
       <section>
         <div className="mb-4 section-rule" />
@@ -458,17 +464,17 @@ export default async function AccueilPage({
           </Link>
         </div>
 
-        {allArticles.length > 0 ? (
+        {allArticlesFiltered.length > 0 ? (
           <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
             {/* Lead article */}
             <div>
-              {allArticles[0] && (
-                <ArticleCard article={allArticles[0]} lang={lang} variant="featured" />
+              {allArticlesFiltered[0] && (
+                <ArticleCard article={allArticlesFiltered[0]} lang={lang} variant="featured" />
               )}
               {/* Secondary stories row */}
-              {allArticles.length > 1 && (
+              {allArticlesFiltered.length > 1 && (
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  {allArticles.slice(1, 3).map((a) => (
+                  {allArticlesFiltered.slice(1, 3).map((a) => (
                     <ArticleCard key={a.id} article={a} lang={lang} />
                   ))}
                 </div>
@@ -516,13 +522,13 @@ export default async function AccueilPage({
               </div>
 
               {/* More articles */}
-              {allArticles.length > 3 && (
+              {allArticlesFiltered.length > 3 && (
                 <div>
                   <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
                     {fr ? "Aussi dans l'actu" : "Tou nan aktyalite"}
                   </h3>
                   <div className="space-y-0">
-                    {allArticles.slice(3, 8).map((a, i) => (
+                    {allArticlesFiltered.slice(3, 8).map((a, i) => (
                       <Link
                         key={a.id}
                         href={`/news/${a.id}?lang=${lang}`}

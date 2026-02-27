@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Newspaper } from "lucide-react";
 import { NewsFeed } from "@/components/news-feed";
+import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
 import { fetchEnrichedArticles } from "@/lib/feed";
 import { rankFeed } from "@/lib/ranking";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -60,6 +61,9 @@ export default async function NewsPage({
 
   return (
     <div className="space-y-6">
+      {/* Daily exchange-rate widget (UI-only feature) */}
+      <TauxDuJourWidget lang={language} />
+
       <header>
         <div className="section-rule" />
         <div className="mt-3 flex items-center justify-between">
