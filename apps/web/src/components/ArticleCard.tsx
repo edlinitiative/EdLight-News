@@ -62,10 +62,15 @@ function deriveCategory(article: FeedItem, lang: ContentLanguage) {
     }
   }
 
+  // When an opp-adjacent category failed the smell test, remap to avoid
+  // misleading "Concours"/"Stages"/"Programmes" labels on general news articles.
   const cat = article.category ?? "";
+  const displayCat = OPPORTUNITY_CATEGORIES.has(cat)
+    ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
+    : cat;
   return {
-    color: CATEGORY_COLORS[cat] ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300",
-    label: categoryLabel(cat, lang),
+    color: CATEGORY_COLORS[displayCat] ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300",
+    label: categoryLabel(displayCat, lang),
   };
 }
 

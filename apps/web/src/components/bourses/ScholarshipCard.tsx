@@ -24,7 +24,11 @@ import {
   ChevronDown,
 } from "lucide-react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
-import { countdownLabel } from "@/lib/bourses-ui";
+import {
+  getDeadlineStatus,
+  formatDeadlineDate as formatDeadlineDateShared,
+  badgeStyle,
+} from "@/lib/ui/deadlines";
 
 // ── Label maps (shared with filters — duplicated here for self-containment) ─
 
@@ -64,14 +68,7 @@ const MONTH_NAMES_FR = [
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string, lang: ContentLanguage): string {
-  try {
-    return new Date(iso + (iso.length === 10 ? "T00:00:00" : "")).toLocaleDateString(
-      lang === "fr" ? "fr-FR" : "fr-HT",
-      { day: "numeric", month: "long", year: "numeric" },
-    );
-  } catch {
-    return iso;
-  }
+  return formatDeadlineDateShared(iso, lang) ?? iso;
 }
 
 function deadlineText(s: SerializedScholarship, lang: ContentLanguage): string | null {
@@ -80,7 +77,7 @@ function deadlineText(s: SerializedScholarship, lang: ContentLanguage): string |
 
   switch (accuracy) {
     case "exact":
-      if (s.deadline?.dateISO) return formatDate(s.deadline.dateISO, lang);
+      if (s.deadline?.dateISO) return formatDeadlineDateShared(s.deadline.dateISO, lang);
       return fr ? "À vérifier" : "Pou verifye";
     case "month-only": {
       const m = s.deadline?.month;
@@ -116,10 +113,10 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
   const elig = s.haitianEligibility ?? "unknown";
   const dlText = deadlineText(s, lang);
 
-  // Countdown for exact deadlines
-  const countdown =
+  // Shared deadline status for exact deadlines
+  const dlStatus =
     s.deadline?.dateISO && (s.deadlineAccuracy ?? "exact") === "exact"
-      ? countdownLabel(s.deadline.dateISO, lang)
+      ? getDeadlineStatus(s.deadline.dateISO, lang)
       : null;
 
   const visibleTags = tagsExpanded ? (s.tags ?? []) : (s.tags ?? []).slice(0, 3);
@@ -178,9 +175,15 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
           </span>
         )}
 
-        {countdown && (
-          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            {countdown}
+        {dlStatus && (
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeStyle(dlStatus.badgeVariant)}`}>
+            {dlStatus.badgeLabel}
+          </span>
+        )}
+
+        {dlStatus && dlStatus.daysLeft !== null && (
+          <span className="text-[11px] text-stone-400 dark:text-stone-500">
+            {dlStatus.humanLine}
           </span>
         )}
 

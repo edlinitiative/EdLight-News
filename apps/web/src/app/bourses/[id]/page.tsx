@@ -28,6 +28,7 @@ import { fetchScholarship, COUNTRY_LABELS } from "@/lib/datasets";
 import { CountryFlag } from "@/components/CountryFlag";
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
+import { getDeadlineStatus } from "@/lib/ui/deadlines";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
 import { MONTH_NAMES_FR as SHARED_MONTH_NAMES_FR, formatDateLocalized } from "@/lib/dates";
 import { buildOgMetadata } from "@/lib/og";
@@ -312,8 +313,11 @@ export default async function ScholarshipDetailPage({
         </h3>
         <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">{dlLabel}</p>
         {s.deadline?.dateISO && accuracy === "exact" && (
-          <div className="mt-2">
+          <div className="mt-2 space-y-1">
             <DeadlineBadge item={{ deadline: s.deadline }} lang={lang} />
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              {getDeadlineStatus(s.deadline.dateISO, lang).humanLine}
+            </p>
           </div>
         )}
         {s.deadline?.notes && (

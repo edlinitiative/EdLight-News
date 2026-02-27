@@ -12,6 +12,7 @@ import { GraduationCap, Globe, MapPin, CalendarClock, AlertCircle } from "lucide
 import Link from "next/link";
 import type { FeedItem } from "@/components/news-feed";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
+import { getDeadlineStatus, badgeStyle } from "@/lib/ui/deadlines";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
   formatDate,
@@ -150,29 +151,24 @@ export function OpportunityCard({
             )}
             {regionLabel(region, lang)}
           </span>
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-              isExpired
-                ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                : deadline.missing
-                  ? "bg-stone-100 text-stone-500 dark:bg-stone-700 dark:text-stone-400"
-                  : "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-            }`}
-          >
-            <CalendarClock className="h-3 w-3" />
-            {isExpired
-              ? (lang === "fr" ? "Expiré" : "Ekspire")
-              : deadline.missing
-                ? (lang === "fr" ? "Deadline à confirmer" : "Dat limit pou konfime")
-                : `${lang === "fr" ? "Clôture" : "Fèmti"}: ${deadline.label}`}
-          </span>
+          {(() => {
+            const dlSt = getDeadlineStatus(
+              article.deadline ?? deadline.iso,
+              lang,
+            );
+            return (
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${badgeStyle(dlSt.badgeVariant)}`}
+              >
+                <CalendarClock className="h-3 w-3" />
+                {dlSt.badgeLabel}
+              </span>
+            );
+          })()}
           {!isExpired && !deadline.missing && deadline.iso && (
-            <DeadlineBadge
-              dateISO={deadline.iso}
-              windowDays={30}
-              lang={lang}
-              variant="compact"
-            />
+            <span className="text-[10px] text-stone-400 dark:text-stone-500">
+              {getDeadlineStatus(article.deadline ?? deadline.iso, lang).humanLine}
+            </span>
           )}
         </div>
 

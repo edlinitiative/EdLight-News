@@ -35,36 +35,11 @@ export function isSaved(id: string): boolean {
   return getSavedIds().has(id);
 }
 
-// ── Countdown helpers ───────────────────────────────────────────────────────
+// ── Countdown helpers (deprecated — prefer lib/ui/deadlines.ts) ─────────────
+// Kept as re-exports for any external consumers; internal code now uses
+// getDeadlineStatus / formatDeadlineDate from @/lib/ui/deadlines.
 
-export function daysUntilISO(dateISO: string): number | null {
-  try {
-    const target = new Date(dateISO + (dateISO.length === 10 ? "T00:00:00" : ""));
-    if (isNaN(target.getTime())) return null;
-    const now = new Date();
-    const t = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-    const n = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return Math.round((t.getTime() - n.getTime()) / 86_400_000);
-  } catch {
-    return null;
-  }
-}
-
-export function countdownChip(dateISO: string, lang: "fr" | "ht"): string | null {
-  const days = daysUntilISO(dateISO);
-  if (days === null || days < 0) return null;
-  if (days === 0) return lang === "fr" ? "Aujourd'hui" : "Jodi a";
-  if (days === 1) return lang === "fr" ? "Demain" : "Demen";
-  return `J-${days}`;
-}
-
-export function countdownLabel(dateISO: string, lang: "fr" | "ht"): string | null {
-  const days = daysUntilISO(dateISO);
-  if (days === null || days < 0) return null;
-  if (days === 0) return lang === "fr" ? "clôture aujourd'hui" : "fèmen jodi a";
-  if (days === 1) return lang === "fr" ? "clôture demain" : "fèmen demen";
-  return lang === "fr" ? `clôture dans ${days} jour${days > 1 ? "s" : ""}` : `fèmen nan ${days} jou`;
-}
+export { getDeadlineStatus, formatDeadlineDate, formatDeadlineDateShort } from "@/lib/ui/deadlines";
 
 // ── Text search (client-side, in-memory) ────────────────────────────────────
 

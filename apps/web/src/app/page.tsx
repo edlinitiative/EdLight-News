@@ -31,6 +31,11 @@ import {
   getNextRelevantDate,
 } from "@/lib/deadlines";
 import {
+  getDeadlineStatus,
+  formatDeadlineDateShort,
+  badgeStyle,
+} from "@/lib/ui/deadlines";
+import {
   fetchAllUniversities,
   fetchScholarshipsClosingSoon,
   fetchUpcomingCalendarEvents,
@@ -225,17 +230,18 @@ export default async function AccueilPage({
                   {s.eligibilitySummary && (
                     <p className="mt-1.5 text-xs text-stone-500 line-clamp-2 dark:text-stone-400">{s.eligibilitySummary}</p>
                   )}
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    {dl?.dateISO && (
-                      <span className="badge bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
+                  {(() => { const st = getDeadlineStatus(dl?.dateISO, lang); return (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                      <span className={`badge ${badgeStyle(st.badgeVariant)}`}>
                         <Clock className="h-3 w-3" />
-                        {new Date(dl.dateISO + "T00:00:00").toLocaleDateString(fr ? "fr-FR" : "fr-HT", { day: "numeric", month: "short" })}
+                        {formatDeadlineDateShort(dl?.dateISO, lang) ?? st.badgeLabel}
                       </span>
-                    )}
-                    <span className="inline-flex items-center gap-1 text-stone-400 dark:text-stone-500">
-                      {COUNTRY_LABELS[s.country]?.flag && <CountryFlag code={COUNTRY_LABELS[s.country].flag} />} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
-                    </span>
-                  </div>
+                      <span className="inline-flex items-center gap-1 text-stone-400 dark:text-stone-500">
+                        {COUNTRY_LABELS[s.country]?.flag && <CountryFlag code={COUNTRY_LABELS[s.country].flag} />} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
+                      </span>
+                      <span className="text-[11px] text-stone-400 dark:text-stone-500">{st.humanLine}</span>
+                    </div>
+                  ); })()}
                   {s.howToApplyUrl && (
                     <a href={s.howToApplyUrl} target="_blank" rel="noopener noreferrer"
                       className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
@@ -316,8 +322,7 @@ export default async function AccueilPage({
                     <p className="mt-1 text-sm font-medium text-stone-900 line-clamp-1 dark:text-white">{s.name}</p>
                     {dl?.dateISO && (
                       <p className="text-xs text-stone-500 dark:text-stone-400">
-                        {fr ? "Date limite: " : "Dat limit: "}
-                        {dateObj?.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { day: "numeric", month: "long" })}
+                        {getDeadlineStatus(dl.dateISO, lang).humanLine}
                       </p>
                     )}
                   </div>
@@ -425,9 +430,11 @@ export default async function AccueilPage({
                   className="flex shrink-0 items-center gap-2 text-stone-700 transition-colors hover:text-red-700 dark:text-stone-300 dark:hover:text-red-400"
                 >
                   <span className="font-medium line-clamp-1">{item.title}</span>
-                  <span className="shrink-0 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-900/40 dark:text-red-400">
-                    {item.days === 0 ? (fr ? "Aujourd'hui" : "Jodi a") : `${item.days}j`}
-                  </span>
+                  {(() => { const st = getDeadlineStatus(item.dateISO, lang); return (
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${badgeStyle(st.badgeVariant)}`}>
+                      {st.badgeLabel}
+                    </span>
+                  ); })()}
                   {i < Math.min(topUrgent.length, 3) - 1 && (
                     <span className="text-stone-300 dark:text-stone-600">|</span>
                   )}
@@ -483,15 +490,19 @@ export default async function AccueilPage({
                       href={item.href}
                       className="news-item-compact group"
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-xs font-bold text-stone-600 dark:bg-stone-800 dark:text-stone-400">
-                        {item.days === 0 ? "!" : `${item.days}j`}
-                      </div>
+                      {(() => { const st = getDeadlineStatus(item.dateISO, lang); return (
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold ${badgeStyle(st.badgeVariant)}`}>
+                          {st.badgeLabel}
+                        </div>
+                      ); })()}
                       <div className="min-w-0 flex-1">
                         <h3 className="text-sm font-medium leading-snug text-stone-800 line-clamp-2 transition-colors dark:text-stone-200">
                           {item.title}
                         </h3>
                         <span className="text-[11px] text-stone-400">
                           {item.kind === "bourse" ? (fr ? "Bourse" : "Bous") : (fr ? "Événement" : "Evènman")}
+                          {" · "}
+                          {getDeadlineStatus(item.dateISO, lang).humanLine}
                         </span>
                       </div>
                     </Link>

@@ -8,7 +8,11 @@
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { Clock, ArrowRight } from "lucide-react";
-import { daysUntilISO, countdownChip } from "@/lib/bourses-ui";
+import {
+  getDeadlineStatus,
+  formatDeadlineDateShort,
+  badgeStyle,
+} from "@/lib/ui/deadlines";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 
 interface DeadlineBoardProps {
@@ -30,30 +34,19 @@ const COUNTRY_CODES: Record<string, string> = {
   Global: "🌍",
 };
 
-function formatDeadlineShort(dateISO: string, lang: ContentLanguage): string {
-  try {
-    return new Date(dateISO + (dateISO.length === 10 ? "T00:00:00" : "")).toLocaleDateString(
-      lang === "fr" ? "fr-FR" : "fr-HT",
-      { day: "numeric", month: "short" },
-    );
-  } catch {
-    return dateISO;
-  }
-}
-
 export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProps) {
   const fr = lang === "fr";
 
   const upcoming = scholarships
     .filter((s) => {
       if (!s.deadline?.dateISO) return false;
-      const days = daysUntilISO(s.deadline.dateISO);
-      return days !== null && days >= 0;
+      const st = getDeadlineStatus(s.deadline.dateISO, lang);
+      return st.daysLeft !== null && st.daysLeft >= 0;
     })
     .sort((a, b) => {
-      const aD = daysUntilISO(a.deadline!.dateISO!) ?? 9999;
-      const bD = daysUntilISO(b.deadline!.dateISO!) ?? 9999;
-      return aD - bD;
+      const aS = getDeadlineStatus(a.deadline!.dateISO!, lang);
+      const bS = getDeadlineStatus(b.deadline!.dateISO!, lang);
+      return (aS.daysLeft ?? 9999) - (bS.daysLeft ?? 9999);
     })
     .slice(0, max);
 
@@ -82,11 +75,11 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
 
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-stone-200 dark:scrollbar-thumb-stone-700 snap-x snap-mandatory">
         {upcoming.map((s) => {
-          const days = daysUntilISO(s.deadline!.dateISO!);
-          const chip = countdownChip(s.deadline!.dateISO!, lang);
+          const st = getDeadlineStatus(s.deadline!.dateISO!, lang);
+          const shortDate = formatDeadlineDateShort(s.deadline!.dateISO!, lang);
           const flag = COUNTRY_CODES[s.country] ?? "";
-          const isUrgent = days !== null && days <= 7;
-          const isCritical = days !== null && days <= 2;
+          const isCritical = st.badgeVariant === "today" || (st.daysLeft !== null && st.daysLeft <= 2);
+          const isUrgent = st.badgeVariant === "urgent";
 
           return (
             <div
@@ -109,23 +102,18 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
                       {flag}
                     </span>
                   )}
-                  <span className="text-xs text-stone-500 dark:text-stone-400">
-                    {formatDeadlineShort(s.deadline!.dateISO!, lang)}
-                  </span>
-                  {chip && (
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                        isCritical
-                          ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-                          : isUrgent
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                      }`}
-                    >
-                      {chip}
+                  {shortDate && (
+                    <span className="text-xs text-stone-500 dark:text-stone-400">
+                      {shortDate}
                     </span>
                   )}
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${badgeStyle(st.badgeVariant)}`}>
+                    {st.badgeLabel}
+                  </span>
                 </div>
+                <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-500">
+                  {st.humanLine}
+                </p>
               </div>
               <button
                 type="button"

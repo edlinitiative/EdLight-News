@@ -10,6 +10,7 @@ import { ExternalLink, Clock } from "lucide-react";
 import type { CalendarItem } from "./types";
 import { getItemTitle, getItemDateISO } from "./types";
 import { parseISODateSafe, daysUntil } from "@/lib/deadlines";
+import { getDeadlineStatus, formatDeadlineDateShort } from "@/lib/ui/deadlines";
 
 interface Props {
   items: CalendarItem[];
@@ -73,14 +74,8 @@ export function UrgentDeadlines({ items, lang }: Props) {
               : (item.howToApplyUrl ?? null);
           const uc = days !== null ? urgencyClasses(days) : null;
 
-          const countdownLabel =
-            days === null
-              ? "—"
-              : days === 0
-                ? fr ? "Aujourd'hui" : "Jodi a"
-                : days === 1
-                  ? fr ? "Demain" : "Demen"
-                  : `${days}${fr ? "j" : " jou"}`;
+          const dlStatus = getDeadlineStatus(dateISO, lang);
+          const shortDate = formatDeadlineDateShort(dateISO, lang);
 
           return (
             <div
@@ -97,7 +92,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
                   uc ? uc.countdown : "text-stone-400",
                 ].join(" ")}
               >
-                {countdownLabel}
+                {dlStatus.badgeLabel}
               </span>
 
               {/* Title + meta */}
@@ -107,12 +102,10 @@ export function UrgentDeadlines({ items, lang }: Props) {
                 </p>
                 <div className="mt-0.5 flex items-center gap-1.5">
                   <span className="text-[11px] text-stone-400 dark:text-stone-500">
-                    {date
-                      ? date.toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
-                          day: "numeric",
-                          month: "short",
-                        })
-                      : "—"}
+                    {shortDate ?? "—"}
+                  </span>
+                  <span className="text-[10px] text-stone-400 dark:text-stone-500">
+                    {dlStatus.humanLine}
                   </span>
                   <span
                     className={[

@@ -1,6 +1,10 @@
 import type { ContentLanguage } from "@edlight-news/types";
 import { Clock } from "lucide-react";
-import { parseISODateSafe, daysUntil } from "@/lib/deadlines";
+import {
+  getDeadlineStatus,
+  formatDeadlineDateShort,
+  badgeStyle,
+} from "@/lib/ui/deadlines";
 
 /* Supports three call patterns:
    1. <DeadlineBadge item={article} lang="fr" />            — item.deadline is string | object
@@ -38,33 +42,30 @@ export function DeadlineBadge(props: DeadlineBadgeProps) {
 
   if (!iso) return null;
 
-  const date = parseISODateSafe(iso);
-  if (!date) return null;
+  const st = getDeadlineStatus(iso, lang);
 
-  const days = daysUntil(date);
-  if (days < 0 || days > windowDays) return null;
+  // Bail if no known date or outside window
+  if (st.daysLeft === null) return null;
+  if (st.daysLeft < 0 || st.daysLeft > windowDays) return null;
 
-  const fr = lang === "fr";
-  let text: string;
-  let style: string;
-
-  if (days === 0) {
-    text = fr ? "Aujourd'hui" : "Jodi a";
-    style = "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400";
-  } else if (days <= 7) {
-    text = fr ? `${days}j restants` : `${days}j rete`;
-    style = "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400";
-  } else {
-    text = fr ? `${days}j` : `${days}j`;
-    style = "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400";
-  }
-
-  const prefixText = props.prefix ? (fr ? props.prefix.fr : props.prefix.ht) + " · " : "";
+  const shortDate = formatDeadlineDateShort(iso, lang);
+  const prefixText = props.prefix
+    ? (lang === "fr" ? props.prefix.fr : props.prefix.ht) + " · "
+    : "";
 
   return (
-    <span className={`badge ${style}`}>
-      <Clock className="h-3 w-3" />
-      {prefixText}{text}
+    <span className="inline-flex flex-col items-start gap-0.5">
+      {/* Badge */}
+      <span className={`badge ${badgeStyle(st.badgeVariant)}`}>
+        <Clock className="h-3 w-3" />
+        {prefixText}{st.badgeLabel}
+      </span>
+      {/* Date + human countdown */}
+      {shortDate && (
+        <span className="text-[10px] text-stone-400 dark:text-stone-500">
+          {shortDate} · {st.humanLine}
+        </span>
+      )}
     </span>
   );
 }
