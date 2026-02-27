@@ -104,8 +104,8 @@ export function ExplorePanel({
 
       {open && (
         <div className="space-y-4 border-t border-stone-100 px-5 pb-5 pt-4 dark:border-stone-700/60">
-          {/* ── Quick presets ─────────────────────────── */}
-          <div className="flex flex-wrap gap-2">
+          {/* ── Presets + month dropdown — all on one row ── */}
+          <div className="flex flex-wrap items-center gap-2">
             {presets.map((p) => (
               <button
                 key={p.month}
@@ -120,23 +120,21 @@ export function ExplorePanel({
                 {p.label}
               </button>
             ))}
-          </div>
 
-          {/* ── Any month dropdown ────────────────────── */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-medium text-stone-400 dark:text-stone-500">
-              {fr ? "Ou choisir :" : "Oswa chwazi :"}
+            <span className="mx-1 text-xs font-medium text-stone-300 dark:text-stone-600">
+              {fr ? "ou" : "oswa"}
             </span>
+
             <select
               value={activeMonthFromRange}
               onChange={(e) => {
                 const m = parseInt(e.target.value, 10);
                 if (m >= 1 && m <= 12) onRangeSelect(monthRange(m));
               }}
-              className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 shadow-sm dark:border-stone-600 dark:bg-stone-700 dark:text-stone-200"
+              className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-600 shadow-sm transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
             >
               <option value={0} disabled>
-                {fr ? "Mois…" : "Mwa…"}
+                {fr ? "Choisir un mois…" : "Chwazi yon mwa…"}
               </option>
               {monthNames.map((name, i) => (
                 <option key={i} value={i + 1}>

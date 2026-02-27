@@ -9,7 +9,7 @@
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
-import { getDayLabel, MONTH_NAMES_FR, MONTH_NAMES_HT } from "./shared";
+import { getDayLabel } from "./shared";
 
 interface WeekStripProps {
   days: string[];
@@ -20,19 +20,6 @@ interface WeekStripProps {
   entryCounts?: Record<string, number>;
 }
 
-/** "24 fév. – 2 mars" */
-function rangeLabel(days: string[], lang: ContentLanguage): string {
-  const first = days[0]!;
-  const last = days[days.length - 1]!;
-  const mNames = lang === "fr" ? MONTH_NAMES_FR : MONTH_NAMES_HT;
-  const [m1, d1] = first.split("-");
-  const [m2, d2] = last.split("-");
-  const month1 = mNames[parseInt(m1!, 10) - 1]?.slice(0, 3) ?? m1;
-  const month2 = mNames[parseInt(m2!, 10) - 1]?.slice(0, 3) ?? m2;
-  if (m1 === m2) return `${parseInt(d1!, 10)} – ${parseInt(d2!, 10)} ${month2}.`;
-  return `${parseInt(d1!, 10)} ${month1}. – ${parseInt(d2!, 10)} ${month2}.`;
-}
-
 export function WeekStrip({
   days,
   selectedDate,
@@ -41,27 +28,11 @@ export function WeekStrip({
   lang,
   entryCounts,
 }: WeekStripProps) {
-  const fr = lang === "fr";
 
   return (
-    <div className="sticky top-14 z-40 -mx-4 border-b border-stone-200 bg-white/95 px-4 py-3 backdrop-blur-md dark:border-stone-700 dark:bg-stone-950/95 sm:-mx-6 sm:px-6">
-      {/* Header: range + today reset */}
-      <div className="mb-2 flex items-baseline justify-between">
-        <p className="text-xs font-semibold text-stone-500 dark:text-stone-400">
-          {rangeLabel(days, lang)}
-        </p>
-        {selectedDate !== todayDate && (
-          <button
-            onClick={() => onSelect(todayDate)}
-            className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-          >
-            {fr ? "Aujourd\u2019hui" : "Jodi a"}
-          </button>
-        )}
-      </div>
-
+    <div className="sticky top-14 z-40 -mx-4 px-4 py-3 sm:-mx-6 sm:px-6">
       {/* Day pills — scrollable on mobile, grid on desktop */}
-      <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5 scrollbar-none sm:grid sm:grid-cols-7 sm:gap-1 sm:overflow-visible">
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 scrollbar-none sm:grid sm:grid-cols-7 sm:gap-1.5 sm:overflow-visible">
         {days.map((md) => {
           const label = getDayLabel(md, lang);
           const isSelected = md === selectedDate;
@@ -73,17 +44,17 @@ export function WeekStrip({
               key={md}
               onClick={() => onSelect(md)}
               className={
-                "flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-4 py-2 transition-colors sm:px-0 " +
+                "flex shrink-0 flex-col items-center gap-0.5 rounded-2xl px-4 py-2.5 transition-all sm:px-0 " +
                 (isSelected
-                  ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500"
+                  ? "bg-blue-600 text-white shadow-md ring-1 ring-blue-500/30 dark:bg-blue-500"
                   : isToday
-                    ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                    : "text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-700/50")
+                    ? "bg-blue-600/10 text-blue-700 ring-1 ring-blue-500/20 dark:bg-blue-500/15 dark:text-blue-300"
+                    : "text-stone-500 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800")
               }
             >
               <span
                 className={
-                  "text-[11px] font-medium uppercase " +
+                  "text-[10px] font-semibold uppercase tracking-wider " +
                   (isSelected
                     ? "text-blue-200"
                     : isToday
@@ -102,7 +73,7 @@ export function WeekStrip({
                       key={i}
                       className={
                         "inline-block h-1 w-1 rounded-full " +
-                        (isSelected ? "bg-white/70" : "bg-blue-500 dark:bg-blue-400")
+                        (isSelected ? "bg-white/70" : "bg-blue-400/70 dark:bg-blue-400/50")
                       }
                     />
                   ))}
