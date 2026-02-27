@@ -18,6 +18,8 @@ export type TauxBRH = {
   usdReference?: number | string;
   /** Daily variation of the reference rate, e.g. "-0.06%" */
   dailyVariation?: string;
+  /** Weekly variation of the reference rate, e.g. "-0.07%" */
+  weeklyVariation?: string;
   bankBuy?: number | string;
   bankSell?: number | string;
   informalBuy?: number | string;
@@ -41,6 +43,7 @@ const STRINGS = {
     unavailable: "Taux BRH indisponible pour le moment.",
     source: "Source : Banque de la République d'Haïti (BRH)",
     seeOnBrh: "Voir sur brh.ht",
+    weekLabel: "sem.",
   },
   ht: {
     title: "📊 To BRH pou jodi a",
@@ -54,6 +57,7 @@ const STRINGS = {
     unavailable: "To BRH pa disponib kounye a.",
     source: "Sous : Bank de la Repiblik d Ayiti (BRH)",
     seeOnBrh: "Wè sou brh.ht",
+    weekLabel: "sem.",
   },
 } as const;
 
@@ -104,8 +108,6 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
                 const raw = data!.dailyVariation.replace(",", ".").replace("%", "").trim();
                 const num = parseFloat(raw);
                 if (!Number.isFinite(num) || num === 0) return null;
-                // Positive = gourde weakening (bad for students buying USD) → red ↑
-                // Negative = gourde strengthening (good) → green ↓
                 const up = num > 0;
                 return (
                   <span
@@ -116,6 +118,24 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
                     }`}
                   >
                     {up ? "↑" : "↓"} {data!.dailyVariation}
+                  </span>
+                );
+              })()}
+              {data!.weeklyVariation && (() => {
+                const raw = data!.weeklyVariation.replace(",", ".").replace("%", "").trim();
+                const num = parseFloat(raw);
+                if (!Number.isFinite(num) || num === 0) return null;
+                const up = num > 0;
+                return (
+                  <span
+                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] tabular-nums ${
+                      up
+                        ? "text-red-400 dark:text-red-500"
+                        : "text-emerald-400 dark:text-emerald-500"
+                    }`}
+                    title={lang === "fr" ? "Variation hebdomadaire" : "Varyasyon semèn"}
+                  >
+                    {t.weekLabel} {up ? "↑" : "↓"} {data!.weeklyVariation}
                   </span>
                 );
               })()}
