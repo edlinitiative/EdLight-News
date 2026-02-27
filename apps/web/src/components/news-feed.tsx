@@ -459,10 +459,10 @@ export function NewsFeed({
       {/* Header */}
       <div className="section-shell p-4">
         <div className="relative z-10 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white">
-          {lang === "fr" ? "Fil — Actualités" : "Fil — Nouvèl"}
+        <h1 className="flex items-center gap-2 font-serif text-lg font-bold tracking-tight text-stone-900 dark:text-white">
+          {lang === "fr" ? "Fil d'actualités" : "Fil nouvèl"}
         </h1>
-        <span className="text-sm text-stone-400 dark:text-stone-500">
+        <span className="rounded-md bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-400">
           {sorted.length} {lang === "fr" ? "articles" : "atik"}
         </span>
         </div>
@@ -608,8 +608,8 @@ export function NewsFeed({
         </div>
       )}
 
-      {/* Article grid */}
-      <div className="grid gap-6 sm:grid-cols-2">
+      {/* Article grid — newspaper layout with lead story */}
+      <div className="grid gap-5 sm:grid-cols-2">
         {sorted.map((article, i) => (
           <Link
             key={article.id}
@@ -617,12 +617,13 @@ export function NewsFeed({
             className={[
               "content-card group flex overflow-hidden",
               i === 0 ? "sm:col-span-2 sm:flex-row" : "flex-col",
+              i === 0 ? "border-t-2 border-t-blue-600" : "",
             ].join(" ")}
           >
             {/* Image thumbnail */}
             {article.imageUrl && (
               <div className={[
-                "relative shrink-0 overflow-hidden bg-stone-100",
+                "relative shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-800",
                 i === 0 ? "aspect-[3/2] sm:w-2/5" : "aspect-video w-full",
               ].join(" ")}>
                 <ImageWithFallback
@@ -630,26 +631,26 @@ export function NewsFeed({
                   alt=""
                   fill
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
             )}
-            <div className="flex flex-1 flex-col p-5">
-            <div className="mb-2 flex items-center gap-2">
+            <div className="flex flex-1 flex-col p-4 sm:p-5">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               <CategoryBadge article={article} lang={lang} />
               {article.itemType === "synthesis" && (
-                <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
                   {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
                   {lang === "fr" ? "sources" : "sous"}
                 </span>
               )}
               {article.geoTag === "HT" && (
-                <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+                <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/30 dark:text-red-400">
                   <MapPin className="inline-block h-3 w-3" />
                 </span>
               )}
               {article.isLegacy && (
-                <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
                   {lang === "fr" ? "Ancien contenu" : "Ansyen kontni"}
                 </span>
               )}
@@ -661,12 +662,15 @@ export function NewsFeed({
               )}
             </div>
             <h2 className={[
-              "mb-2 font-semibold text-stone-900 transition-colors group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-300",
-              i === 0 ? "font-serif text-xl" : "text-lg",
+              "mb-2 font-serif font-bold tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
+              i === 0 ? "text-xl sm:text-2xl leading-tight" : "text-base leading-snug line-clamp-3",
             ].join(" ")}>
               {article.title}
             </h2>
-            <p className="line-clamp-3 text-sm text-stone-600 dark:text-stone-300">
+            <p className={[
+              "text-sm leading-relaxed text-stone-500 dark:text-stone-400",
+              i === 0 ? "line-clamp-3" : "line-clamp-2",
+            ].join(" ")}>
               {article.summary || article.body?.slice(0, 200) || ""}
             </p>
             <TrustSignals item={article} lang={lang} mounted={mounted} />

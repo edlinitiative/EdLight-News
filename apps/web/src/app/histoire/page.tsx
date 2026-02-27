@@ -163,11 +163,11 @@ export default async function HistoirePage({
 
           <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.3fr,0.9fr] lg:p-10">
             <div>
-              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300">
                 {fr ? "Aujourd'hui dans l'histoire" : "Jodi a nan istwa"}
               </p>
 
-              <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-5xl">
+              <h1 className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
                 {fr ? "Chronique du " : "Kwonik pou "}
                 <span className="text-blue-700 dark:text-blue-300">
                   {formatMonthDay(todayMD, lang)}

@@ -51,32 +51,48 @@ export default function RootLayout({
 
             <NavBar />
 
-            <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+            <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
               {children}
             </main>
 
             <footer className="border-t border-stone-200 bg-stone-950 dark:border-stone-800 dark:bg-stone-950">
-              <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-                <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
-                  {/* Brand */}
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <div className="flex items-baseline gap-0.5">
-                      <span className="font-serif text-xl font-bold text-white">Ed</span>
-                      <span className="text-xl font-light text-stone-500">Light</span>
+              <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+                {/* Masthead in footer */}
+                <div className="mb-8 border-b border-stone-800 pb-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-serif text-2xl font-black text-white">EdLight</span>
+                        <span className="font-serif text-2xl font-light text-stone-500">News</span>
+                      </div>
+                      <p className="mt-1 text-xs uppercase tracking-widest text-stone-600">
+                        Actualités éducatives · Nouvèl edikasyon
+                      </p>
                     </div>
-                    <p className="mt-3 max-w-xs text-sm leading-relaxed text-stone-400">
+                    <div className="hidden text-right sm:block">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-600">
+                        Édition quotidienne
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* About */}
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <p className="max-w-xs text-sm leading-relaxed text-stone-400">
                       Conçu pour les étudiants haïtiens — Nouvelles, bourses et ressources vérifiées.
                     </p>
                   </div>
 
-                  {/* Navigation */}
+                  {/* Primary sections */}
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-500">
-                      Navigation
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                      Rubriques
                     </h3>
-                    <nav className="mt-4 flex flex-col gap-2.5 text-sm">
+                    <nav className="mt-3 flex flex-col gap-2 text-sm">
                       {[
-                        { href: "/news", label: "Fil d'actualités" },
+                        { href: "/news", label: "Actualités" },
                         { href: "/bourses", label: "Bourses" },
                         { href: "/opportunites", label: "Opportunités" },
                         { href: "/haiti", label: "Haïti" },
@@ -93,12 +109,12 @@ export default function RootLayout({
                     </nav>
                   </div>
 
-                  {/* More */}
+                  {/* Secondary sections */}
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
                       Explorer
                     </h3>
-                    <nav className="mt-4 flex flex-col gap-2.5 text-sm">
+                    <nav className="mt-3 flex flex-col gap-2 text-sm">
                       {[
                         { href: "/universites", label: "Universités" },
                         { href: "/calendrier", label: "Calendrier" },
@@ -119,17 +135,17 @@ export default function RootLayout({
 
                   {/* About */}
                   <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
                       À propos
                     </h3>
-                    <p className="mt-4 text-sm leading-relaxed text-stone-400">
+                    <p className="mt-3 text-sm leading-relaxed text-stone-400">
                       EdLight News synthétise des sources publiques pour informer les étudiants.
                     </p>
                   </div>
                 </div>
 
                 {/* Bottom bar */}
-                <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800 pt-8">
+                <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800 pt-6">
                   <p className="text-xs text-stone-500">
                     © {new Date().getFullYear()} EdLight Initiative
                   </p>

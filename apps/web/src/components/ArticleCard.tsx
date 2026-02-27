@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Clock } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
@@ -68,6 +69,13 @@ function deriveCategory(article: FeedItem, lang: ContentLanguage) {
   };
 }
 
+/** Estimate reading time in minutes from body text length */
+function estimateReadTime(body?: string): number {
+  if (!body) return 1;
+  const words = body.split(/\s+/).length;
+  return Math.max(1, Math.round(words / 220));
+}
+
 export function ArticleCard({
   article,
   lang,
@@ -78,6 +86,8 @@ export function ArticleCard({
   const isFeatured = variant === "featured";
   const derived = deriveCategory(article, lang);
   const hasImage = !!article.imageUrl;
+  const readTime = estimateReadTime(article.body);
+  const fr = lang === "fr";
 
   return (
     <Link
@@ -102,8 +112,16 @@ export function ArticleCard({
           <ImageWithFallback
             src={article.imageUrl!}
             alt=""
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
+          {/* Category overlay on featured */}
+          {isFeatured && derived.label && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
+              <span className="rounded-sm bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                {derived.label}
+              </span>
+            </div>
+          )}
           {article.imageSource === "wikidata" && (
             <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[10px] text-white/70 backdrop-blur-sm">
               Wikimedia
@@ -113,21 +131,21 @@ export function ArticleCard({
       )}
 
       {/* Content */}
-      <div className={["flex flex-1 flex-col gap-2", isFeatured ? "p-5" : isCompact ? "p-3.5" : "p-4"].join(" ")}>
+      <div className={["flex flex-1 flex-col gap-1.5", isFeatured ? "p-5" : isCompact ? "p-3.5" : "p-4"].join(" ")}>
         {/* Top row: category + deadline */}
         <div className="flex flex-wrap items-center gap-2">
-          {derived.label && (
+          {!isFeatured && derived.label && (
             <span className={`badge ${derived.color}`}>{derived.label}</span>
           )}
           {article.itemType === "synthesis" && (
             <span className="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
-              {lang === "fr" ? "Synthèse" : "Sentèz"}
+              {fr ? "Synthèse" : "Sentèz"}
               {article.sourceCount ? ` · ${article.sourceCount}` : ""}
             </span>
           )}
           {article.geoTag === "HT" && (
             <span className="badge bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400">
-              {lang === "fr" ? "Haïti" : "Ayiti"}
+              {fr ? "Haïti" : "Ayiti"}
             </span>
           )}
           <DeadlineBadge item={article} lang={lang} />
@@ -153,17 +171,24 @@ export function ArticleCard({
           </p>
         )}
 
-        {/* Footer */}
-        <div className="mt-auto flex items-center gap-2 pt-1 text-xs text-stone-400 dark:text-stone-500">
+        {/* Footer — newspaper style source line */}
+        <div className="source-line mt-auto pt-1.5">
           {article.sourceName && (
-            <span className="truncate">{article.sourceName}</span>
+            <span className="source-name">{article.sourceName}</span>
           )}
           {article.sourceName && article.publishedAt && (
-            <span className="text-stone-300 dark:text-stone-600">·</span>
+            <span className="source-dot">·</span>
           )}
           {article.publishedAt && (
             <span>{formatRelativeDate(article.publishedAt, lang)}</span>
           )}
+          {(article.sourceName || article.publishedAt) && (
+            <span className="source-dot">·</span>
+          )}
+          <span className="reading-time">
+            <Clock className="h-3 w-3" />
+            {readTime} min
+          </span>
         </div>
       </div>
     </Link>

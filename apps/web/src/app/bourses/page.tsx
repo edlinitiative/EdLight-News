@@ -113,28 +113,32 @@ export default async function BoursesPage({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
-            {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
-          </h1>
-          <p className="max-w-2xl text-stone-600 dark:text-stone-300">
-            {fr
-              ? "Comparez les bourses ouvertes aux étudiants haïtiens, filtrez par pays ou niveau."
-              : "Konpare bous ki ouvè pou etidyan ayisyen, filtre pa peyi oswa nivo."}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
-            {allScholarships.length} {fr ? "résultats" : "rezilta"}
-          </span>
-          <Link
-            href={`/closing-soon${langQ}`}
-            className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
-          >
-            {fr ? "Dates limites" : "Dat limit yo"}
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+      <header className="space-y-3">
+        <div className="section-rule" />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+              <GraduationCap className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              {fr ? "Bourses & Opportunités" : "Bous & Opòtinite"}
+            </h1>
+            <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
+              {fr
+                ? "Comparez les bourses ouvertes aux étudiants haïtiens, filtrez par pays ou niveau."
+                : "Konpare bous ki ouvè pou etidyan ayisyen, filtre pa peyi oswa nivo."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+              {allScholarships.length} {fr ? "résultats" : "rezilta"}
+            </span>
+            <Link
+              href={`/closing-soon${langQ}`}
+              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+            >
+              {fr ? "Dates limites" : "Dat limit yo"}
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
       </header>
 

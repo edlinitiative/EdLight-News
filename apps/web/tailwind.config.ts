@@ -93,6 +93,10 @@ const config: Config = {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
         },
+        ticker: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.5s cubic-bezier(0.16,1,0.3,1) forwards",
@@ -103,6 +107,7 @@ const config: Config = {
         "slide-underline": "slide-underline 0.3s cubic-bezier(0.16,1,0.3,1) forwards",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
         "spin-slow": "spin-slow 8s linear infinite",
+        ticker: "ticker 30s linear infinite",
       },
     },
   },

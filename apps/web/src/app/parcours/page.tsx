@@ -51,11 +51,12 @@ export default async function ParcoursPage({
 
   return (
     <div className="space-y-8">
-      <header className="space-y-2">
-        <h1 className="font-serif text-3xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
+      <header className="space-y-3">
+        <div className="section-rule" />
+        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
           {fr ? "Parcours" : "Pakou"}
         </h1>
-        <p className="max-w-2xl text-stone-600 dark:text-stone-300">
+        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
           {fr
             ? "Guides étape par étape pour étudier à l'étranger depuis Haïti."
             : "Gid etap pa etap pou etidye aletranje depi Ayiti."}

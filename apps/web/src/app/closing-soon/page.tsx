@@ -130,22 +130,18 @@ export default async function ClosingSoonPage({
   return (
     <div className="space-y-8">
       {/* Header */}
-      <section className="section-shell p-0">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 via-white to-orange-50 dark:from-red-950/30 dark:via-stone-900 dark:to-orange-950/20 p-8 md:p-12">
-          <div className="absolute top-4 right-4 text-red-200 dark:text-red-800">
-            <Clock className="h-16 w-16 opacity-20" />
-          </div>
-          <h1 className="flex items-center gap-2 font-serif text-3xl font-bold tracking-tight dark:text-white">
-            <Clock className="h-7 w-7 text-red-600" />
-            {fr ? "Échéances à venir" : "Dat limit k ap vini"}
-          </h1>
-          <p className="mt-2 max-w-xl text-stone-500 dark:text-stone-400">
-            {fr
-              ? "Bourses qui ferment bientôt et événements du calendrier haïtien à ne pas manquer."
-              : "Bous ki pral fèmen byento ak evènman kalandriye ayisyen pou pa rate."}
-          </p>
-        </div>
-      </section>
+      <header className="space-y-3">
+        <div className="section-rule" style={{ borderColor: "#dc2626" }} />
+        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+          <Clock className="h-3.5 w-3.5 text-red-600" />
+          {fr ? "Échéances à venir" : "Dat limit k ap vini"}
+        </h1>
+        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
+          {fr
+            ? "Bourses qui ferment bientôt et événements du calendrier haïtien à ne pas manquer."
+            : "Bous ki pral fèmen byento ak evènman kalandriye ayisyen pou pa rate."}
+        </p>
+      </header>
 
       {/* Tabs + list (client component) */}
       <ClosingSoonTabs items={items} lang={lang} />
