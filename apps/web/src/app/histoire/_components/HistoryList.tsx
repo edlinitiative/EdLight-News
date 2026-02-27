@@ -53,7 +53,7 @@ export function HistoryList({ entries, selectedDate, lang }: HistoryListProps) {
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+      <div className="grid gap-4 sm:grid-cols-2">
         {visible.map((entry) => (
           <HistoryCard key={entry.id} entry={entry} lang={lang} variant="compact" />
         ))}

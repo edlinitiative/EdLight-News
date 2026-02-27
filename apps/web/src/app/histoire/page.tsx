@@ -74,7 +74,7 @@ export default async function HistoirePage({
   return (
     <div className="pb-14">
       {/* ─── Header ─────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-4xl px-4 pt-2 sm:px-6">
+      <section className="mx-auto max-w-6xl px-4 pt-2 sm:px-6">
         <div className="section-rule" />
 
         <div className="mt-4 flex items-center gap-2">
@@ -96,7 +96,7 @@ export default async function HistoirePage({
       </section>
 
       {/* ─── Interactive content (client component) ───────────────── */}
-      <section className="mx-auto mt-8 max-w-4xl px-4 sm:px-6">
+      <section className="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
         <HistoireClient
           todayMD={todayMD}
           monthEntries={monthEntries.map(serializeEntry)}
