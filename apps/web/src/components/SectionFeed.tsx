@@ -85,7 +85,10 @@ export function SectionFeed({
       {/* Grid — first item is featured (full width) */}
       <StaggerGrid className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((article, i) => (
-          <StaggerItem key={article.id}>
+          <StaggerItem
+            key={article.id}
+            className={i === 0 ? "sm:col-span-2 lg:col-span-3" : undefined}
+          >
             <ArticleCard
               article={article}
               lang={lang}

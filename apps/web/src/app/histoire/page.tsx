@@ -11,7 +11,7 @@
 
 import { Suspense } from "react";
 import Image from "next/image";
-import { BookOpen, Star } from "lucide-react";
+import { BookOpen, Star, CalendarDays, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import type { ContentLanguage, AlmanacTag, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -155,94 +155,98 @@ export default async function HistoirePage({
 
   return (
     <div className="space-y-14 pb-12">
-      {/* ═══════════════════════════════════════════════════════════════════
-       *  HERO — calmer editorial layout
-       * ═══════════════════════════════════════════════════════════════════ */}
+      {/* ─── HERO — editorial newspaper style ─────────────────────────── */}
       <section className="mx-auto max-w-6xl px-2 sm:px-0">
-        <div className="relative overflow-hidden rounded-2xl border border-stone-200 bg-white/95 shadow-sm dark:border-stone-700 dark:bg-stone-900/80">
+        <div className="section-rule" />
 
-          <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.3fr,0.9fr] lg:p-10">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-300">
-                {fr ? "Aujourd'hui dans l'histoire" : "Jodi a nan istwa"}
-              </p>
+        {/* Kicker + headline */}
+        <div className="mt-4 flex items-center gap-2">
+          <CalendarDays className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+          <p className="text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+            {fr ? "Aujourd’hui dans l’histoire" : "Jodi a nan istwa"}
+          </p>
+        </div>
 
-              <h1 className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-4xl">
-                {fr ? "Chronique du " : "Kwonik pou "}
-                <span className="text-blue-700 dark:text-blue-300">
-                  {formatMonthDay(todayMD, lang)}
-                </span>
-              </h1>
+        <h1 className="headline-lead mt-3">
+          {fr ? "Chronique du " : "Kwonik pou "}
+          <span className="text-blue-700 dark:text-blue-300">
+            {formatMonthDay(todayMD, lang)}
+          </span>
+        </h1>
 
-              <p className="mt-4 max-w-3xl text-base leading-relaxed text-stone-600 dark:text-stone-300 sm:text-lg">
-                {fr
-                  ? "Une lecture claire des faits marquants d’Haïti : événements, personnalités et fêtes du jour."
-                  : "Yon lekti klè sou moman enpòtan nan istwa Ayiti: evènman, pèsonalite ak fèt jounen an."}
-              </p>
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-500 dark:text-stone-400 sm:text-base">
+          {fr
+            ? "Éphéméride haïtienne — événements historiques, fêtes et personnalités du jour."
+            : "Efemerid ayisyen — evènman istorik, fèt ak pèsonalite jounen an."}
+        </p>
 
-              <div className="mt-6 flex flex-wrap gap-3">
-                <div className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm dark:border-stone-700 dark:bg-stone-800">
-                  <p className="text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400">
-                    {fr ? "Événements" : "Evènman"}
-                  </p>
-                  <p className="text-xl font-bold text-stone-900 dark:text-white">
-                    {todayEntries.length}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm dark:border-stone-700 dark:bg-stone-800">
-                  <p className="text-xs uppercase tracking-wide text-stone-500 dark:text-stone-400">
-                    {todayHolidays.length > 0
-                      ? (fr ? "Fêtes du jour" : "Fèt jodi a")
-                      : (fr ? "Prochaines fêtes" : "Pwochen fèt")}
-                  </p>
-                  <p className="text-xl font-bold text-stone-900 dark:text-white">
-                    {heroHolidays.length}
-                  </p>
-                </div>
+        {/* Stats + Holidays row */}
+        <div className="mt-6 grid gap-5 sm:grid-cols-[auto_1fr]">
+          {/* Stat pills */}
+          <div className="flex items-start gap-3">
+            <div className="flex items-center gap-2.5 rounded-lg border border-stone-200 bg-stone-50 px-3.5 py-2 dark:border-stone-700 dark:bg-stone-800">
+              <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
+                  {fr ? "Événements" : "Evènman"}
+                </p>
+                <p className="text-lg font-bold leading-tight text-stone-900 dark:text-white">
+                  {todayEntries.length}
+                </p>
               </div>
             </div>
-
-            <div className="rounded-xl border border-stone-200 bg-white/85 p-5 backdrop-blur-sm dark:border-stone-700 dark:bg-stone-800/90 sm:p-6">
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
-                <Star className="h-4 w-4 text-blue-500" />
-                {todayHolidays.length > 0
-                  ? (fr ? "Fêtes du jour" : "Fèt jounen an")
-                  : (fr ? "Prochaines fêtes" : "Pwochen fèt")}
-              </h2>
-
-              {heroHolidays.length > 0 ? (
-                <div className="space-y-2.5">
-                  {heroHolidays.map((h) => (
-                    <div
-                      key={h.id}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50/70 px-3 py-2.5 text-sm text-blue-900 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-200"
-                    >
-                      <div className="min-w-0">
-                        <span className="font-medium">
-                          {fr ? h.name_fr : h.name_ht}
-                        </span>
-                        {todayHolidays.length === 0 && (
-                          <p className="text-[11px] text-blue-700/80 dark:text-blue-300/80">
-                            {formatMonthDay(h.monthDay, lang)}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        {h.isNationalHoliday && (
-                          <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                            {fr ? "National" : "Nasyonal"}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="rounded-xl border border-dashed border-stone-200 px-3 py-4 text-sm text-stone-500 dark:border-stone-700 dark:text-stone-400">
-                  {fr ? "Aucune fête enregistrée aujourd’hui." : "Pa gen fèt ki anrejistre jodi a."}
+            <div className="flex items-center gap-2.5 rounded-lg border border-stone-200 bg-stone-50 px-3.5 py-2 dark:border-stone-700 dark:bg-stone-800">
+              <Star className="h-4 w-4 text-amber-500" />
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
+                  {todayHolidays.length > 0
+                    ? (fr ? "Fêtes du jour" : "Fèt jodi a")
+                    : (fr ? "Prochaines fêtes" : "Pwochen fèt")}
                 </p>
-              )}
+                <p className="text-lg font-bold leading-tight text-stone-900 dark:text-white">
+                  {heroHolidays.length}
+                </p>
+              </div>
             </div>
+          </div>
+
+          {/* Holiday list — inline, compact */}
+          <div className="flex flex-wrap items-start gap-2">
+            {heroHolidays.length > 0 ? (
+              heroHolidays.map((h) => {
+                const [mm, dd] = h.monthDay.split("-");
+                return (
+                  <div
+                    key={h.id}
+                    className="flex items-center gap-2.5 rounded-lg border border-stone-200 bg-white px-3 py-2 dark:border-stone-700 dark:bg-stone-800"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-600 text-white">
+                      <span className="text-xs font-bold leading-tight">{parseInt(dd!, 10)}</span>
+                      <span className="text-[8px] uppercase leading-tight opacity-80">
+                        {(fr
+                          ? ["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"]
+                          : ["jan","fev","mas","avr","me","jen","jiy","out","sep","okt","nov","des"]
+                        )[parseInt(mm!, 10) - 1]}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium leading-snug text-stone-900 dark:text-white">
+                        {fr ? h.name_fr : h.name_ht}
+                      </p>
+                      {h.isNationalHoliday && (
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                          {fr ? "National" : "Nasyonal"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="py-2 text-sm text-stone-400 dark:text-stone-500">
+                {fr ? "Aucune fête enregistrée aujourd’hui." : "Pa gen fèt ki anrejistre jodi a."}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -251,17 +255,15 @@ export default async function HistoirePage({
        *  SECTION A — Today's entries
        * ═══════════════════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-6xl px-2 sm:px-0">
-        <div className="mb-5 flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
-              {fr ? "Les faits du jour" : "Reyalite jounen an"}
-            </h2>
-            <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
-              {fr
-                ? "Un format plus lisible pour parcourir l’actualité historique du jour."
-                : "Yon prezantasyon pi klè pou li istwa jounen an."}
-            </p>
-          </div>
+        <div className="section-rule-light" />
+        <div className="mb-5 mt-4 flex items-center justify-between gap-3">
+          <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+            <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+            {fr ? "Les faits du jour" : "Reyalite jounen an"}
+          </h2>
+          <span className="text-xs text-stone-400 dark:text-stone-500">
+            {todayEntries.length} {fr ? "événements" : "evènman"}
+          </span>
         </div>
 
         {todayEntries.length > 0 ? (
@@ -316,11 +318,11 @@ export default async function HistoirePage({
                         </span>
                       </div>
 
-                      <h3 className="text-base font-bold leading-snug tracking-tight text-stone-900 dark:text-white sm:text-lg">
+                      <h3 className="headline-card">
                         {entry.title_fr}
                       </h3>
 
-                      <p className="line-clamp-3 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
+                      <p className="line-clamp-3 text-sm leading-relaxed text-stone-500 dark:text-stone-400">
                         {entry.summary_fr}
                       </p>
                     </div>
@@ -413,6 +415,7 @@ export default async function HistoirePage({
        *  SECTION B — Explorer l'histoire (weekly/monthly archive)
        * ═══════════════════════════════════════════════════════════════════ */}
       <section className="mx-auto max-w-6xl px-2 sm:px-0">
+        <div className="section-rule-light mb-6" />
         <Suspense
           fallback={
             <div className="h-48 animate-pulse rounded-xl border border-stone-200 bg-stone-100 dark:border-stone-700 dark:bg-stone-800" />

@@ -99,7 +99,7 @@ export function ArticleCard({
       href={`/news/${article.id}?lang=${lang}`}
       className={[
         "group flex overflow-hidden card",
-        isFeatured ? "flex-col sm:flex-row sm:col-span-full" : "flex-col",
+        isFeatured ? "flex-col sm:flex-row" : "flex-col",
       ].join(" ")}
     >
       {/* Image */}
