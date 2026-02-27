@@ -88,7 +88,7 @@ export default async function OpportunitesPage({
   const fr = lang === "fr";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6">
+    <div className="space-y-8">
       {/* ─── Section 1: Header ─── */}
       <header className="space-y-3 pt-2">
         <div className="section-rule" />
@@ -113,7 +113,7 @@ export default async function OpportunitesPage({
       </header>
 
       {/* ─── Section 2: Catalogue (filters + cards) ─── */}
-      <section className="mx-auto max-w-6xl pb-8">
+      <section className="pb-8">
         <Suspense fallback={null}>
           <OpportunitiesFeed articles={articles} lang={lang} />
         </Suspense>

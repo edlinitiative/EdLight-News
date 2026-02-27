@@ -111,7 +111,7 @@ export default async function BoursesPage({
   const closingSerialized = closingSoon.map(serializeScholarship);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6">
+    <div className="space-y-8">
       {/* ─── Section 1: Header ─── */}
       <header className="space-y-3 pt-2">
         <div className="section-rule" />
@@ -137,14 +137,14 @@ export default async function BoursesPage({
 
       {/* ─── Section 2: Deadline Board ─── */}
       {closingSerialized.length > 0 && (
-        <section className="mx-auto max-w-6xl">
+        <section>
           <DeadlineBoard scholarships={closingSerialized} lang={lang} max={8} />
         </section>
       )}
 
       {/* ─── Section 3: Parcours (hidden when filters active) ─── */}
       {!hasActiveFilters && (
-        <section className="mx-auto max-w-6xl space-y-4">
+        <section className="space-y-4">
           <ParcoursTiles lang={lang} />
           <div className="flex items-center gap-4 py-1">
             <div className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
@@ -157,7 +157,7 @@ export default async function BoursesPage({
       )}
 
       {/* ─── Section 4: Catalogue (filters + cards) ─── */}
-      <section className="mx-auto max-w-6xl pb-8">
+      <section className="pb-8">
         <Suspense fallback={null}>
           <BoursesFilters scholarships={serialized} lang={lang} />
         </Suspense>
