@@ -3,9 +3,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { ArticleCard } from "@/components/ArticleCard";
 import {
   formatDate,
   formatRelativeDate,
@@ -464,18 +463,6 @@ export function NewsFeed({
 
   return (
     <section className="space-y-6">
-      {/* Header */}
-      <div className="section-shell p-4">
-        <div className="relative z-10 flex items-center justify-between gap-3">
-        <h1 className="flex items-center gap-2 font-serif text-lg font-bold tracking-tight text-stone-900 dark:text-white">
-          {lang === "fr" ? "Fil d'actualités" : "Fil nouvèl"}
-        </h1>
-        <span className="rounded-md bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600 dark:bg-stone-800 dark:text-stone-400">
-          {sorted.length} {lang === "fr" ? "articles" : "atik"}
-        </span>
-        </div>
-      </div>
-
       {/* Mode toggle + Search + Sort bar */}
       <div className="section-shell p-4">
       <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -616,76 +603,76 @@ export function NewsFeed({
         </div>
       )}
 
-      {/* Article grid — newspaper layout with lead story */}
-      <div className="grid gap-5 sm:grid-cols-2">
-        {visible.map((article, i) => (
-          <Link
-            key={article.id}
-            href={`/news/${article.id}?lang=${lang}`}
-            className={[
-              "content-card group flex overflow-hidden",
-              i === 0 ? "sm:col-span-2 sm:flex-row" : "flex-col",
-              i === 0 ? "border-t-2 border-t-blue-600" : "",
-            ].join(" ")}
-          >
-            {/* Image thumbnail */}
-            {article.imageUrl && (
-              <div className={[
-                "relative shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-800",
-                i === 0 ? "aspect-[3/2] sm:w-2/5" : "aspect-video w-full",
-              ].join(" ")}>
-                <ImageWithFallback
-                  src={article.imageUrl}
-                  alt={article.title}
-                  fill
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
+      {/* Lead story + sidebar (newspaper layout) */}
+      {visible.length > 0 && (
+        <>
+          <div className="section-rule" />
+          <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+            {/* Lead article + secondary stories */}
+            <div>
+              <ArticleCard article={visible[0]!} lang={lang} variant="featured" />
+              {visible.length > 1 && (
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  {visible.slice(1, 3).map((a) => (
+                    <ArticleCard key={a.id} article={a} lang={lang} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar: more articles */}
+            {visible.length > 3 && (
+              <aside className="space-y-4 lg:border-l lg:border-stone-200 lg:pl-6 dark:lg:border-stone-800">
+                <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+                  {lang === "fr" ? "Aussi dans l'actu" : "Tou nan aktyalite"}
+                </h3>
+                <div className="space-y-0">
+                  {visible.slice(3, 8).map((a, i) => (
+                    <Link
+                      key={a.id}
+                      href={`/news/${a.id}?lang=${lang}`}
+                      className="news-item-compact group"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded font-serif text-sm font-bold text-stone-300 dark:text-stone-600">
+                        {i + 4}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-medium leading-snug text-stone-800 line-clamp-2 transition-colors dark:text-stone-200">
+                          {a.title}
+                        </h3>
+                        <div className="source-line mt-0.5">
+                          {a.sourceName && <span className="source-name">{a.sourceName}</span>}
+                          {a.sourceName && a.publishedAt && <span className="source-dot">·</span>}
+                          {a.publishedAt && (
+                            <span>
+                              {new Date(a.publishedAt).toLocaleDateString(
+                                lang === "fr" ? "fr-FR" : "fr-HT",
+                                { day: "numeric", month: "short" },
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </aside>
             )}
-            <div className="flex flex-1 flex-col p-4 sm:p-5">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <CategoryBadge article={article} lang={lang} />
-              {article.itemType === "synthesis" && (
-                <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
-                  {lang === "fr" ? "Synthèse" : "Sentèz"} · {article.sourceCount ?? 0}{" "}
-                  {lang === "fr" ? "sources" : "sous"}
-                </span>
-              )}
-              {article.geoTag === "HT" && (
-                <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/30 dark:text-red-400">
-                  <MapPin className="inline-block h-3 w-3" />
-                </span>
-              )}
-              {article.isLegacy && (
-                <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
-                  {lang === "fr" ? "Ancien contenu" : "Ansyen kontni"}
-                </span>
-              )}
-              {(article.dupeCount ?? 0) > 1 && article.itemType !== "synthesis" && (
-                <span className="text-xs text-stone-400">
-                  +{(article.dupeCount ?? 1) - 1}{" "}
-                  {lang === "fr" ? "mises à jour" : "mizajou"}
-                </span>
-              )}
-            </div>
-            <h2 className={[
-              "mb-2 font-serif font-bold tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
-              i === 0 ? "text-xl sm:text-2xl leading-tight" : "text-base leading-snug line-clamp-3",
-            ].join(" ")}>
-              {article.title}
-            </h2>
-            <p className={[
-              "text-sm leading-relaxed text-stone-500 dark:text-stone-400",
-              i === 0 ? "line-clamp-3" : "line-clamp-2",
-            ].join(" ")}>
-              {article.summary || article.body?.slice(0, 200) || ""}
-            </p>
-            <TrustSignals item={article} lang={lang} mounted={mounted} />
-            </div>
-          </Link>
-        ))}
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* Remaining articles grid */}
+      {visible.length > 8 && (
+        <>
+          <div className="section-rule-light" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.slice(8).map((a) => (
+              <ArticleCard key={a.id} article={a} lang={lang} />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Load more */}
       {hasMore && (
