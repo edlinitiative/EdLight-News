@@ -174,15 +174,11 @@ export default async function CalendrierPage({
       </header>
 
       {/* Main timeline dashboard */}
-      <section className="section-shell p-5 sm:p-6">
-        <div className="relative z-10">
-          <CalendarFilterTabs
-            haitiItems={haitiItems}
-            intlItems={intlItems}
-            lang={lang}
-          />
-        </div>
-      </section>
+      <CalendarFilterTabs
+        haitiItems={haitiItems}
+        intlItems={intlItems}
+        lang={lang}
+      />
 
       {/* Legacy article deadlines — collapsed by default to reduce noise */}
       {hasLegacy && (

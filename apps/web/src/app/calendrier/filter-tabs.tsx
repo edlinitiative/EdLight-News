@@ -72,7 +72,7 @@ function ArchiveMonthBlock({
         })();
 
   return (
-    <details className="overflow-hidden rounded-xl border border-stone-200/70 bg-white/70 shadow-sm dark:border-stone-700/60 dark:bg-stone-900/50">
+    <details open className="overflow-hidden rounded-xl border border-stone-200/70 bg-white/70 shadow-sm dark:border-stone-700/60 dark:bg-stone-900/50">
       <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/60">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium capitalize text-stone-600 dark:text-stone-200">
@@ -206,155 +206,63 @@ export function CalendarFilterTabs({
     buckets.thisMonth.length === 0 &&
     buckets.archive.length === 0;
 
-  const activeGeoLabel =
-    geoTabs.find((t) => t.key === geoTab)?.label ?? (fr ? "Tous" : "Tout");
-  const activeCatLabel =
-    catPills.find((p) => p.key === catFilter)?.label ?? (fr ? "Tous" : "Tout");
   const hasActiveFilters = geoTab !== "tous" || catFilter !== "tous";
 
-  const timelineSections = [
-    {
-      key: "urgent",
-      count: buckets.urgent.length,
-      label: fr ? "Urgences" : "Ijans",
-      tone: "text-red-700 dark:text-red-300",
-      node: <UrgentDeadlines items={buckets.urgent} lang={lang} />,
-    },
-    {
-      key: "week",
-      count: buckets.thisWeek.length,
-      label: fr ? "Cette semaine" : "Semèn sa",
-      tone: "text-blue-700 dark:text-blue-300",
-      node: <ThisWeek items={buckets.thisWeek} lang={lang} />,
-    },
-    {
-      key: "month",
-      count: buckets.thisMonth.length,
-      label: fr ? "Ce mois" : "Mwa sa",
-      tone: "text-stone-700 dark:text-stone-200",
-      node: <MonthGrouped items={buckets.thisMonth} lang={lang} />,
-    },
-    {
-      key: "archive",
-      count: buckets.archive.length,
-      label: fr ? "Prochains mois" : "Mwa k ap vini",
-      tone: "text-stone-700 dark:text-stone-200",
-      node: <ArchiveSection items={buckets.archive} lang={lang} />,
-    },
-  ];
-
   return (
-    <div className="space-y-6">
-      <section className="section-shell p-4 sm:p-5">
-        <div className="relative z-10 space-y-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-stone-500 dark:text-stone-400">
-                <CalendarDays className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                {fr ? "Navigation calendrier" : "Navigasyon kalandriye"}
-              </p>
-              <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
-                {fr
-                  ? "Filtre la vue par zone et type, puis explore la timeline par priorité."
-                  : "Filtre vi a pa zòn ak kalite, epi eksplore timeline nan pa priyorite."}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border border-stone-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700/70 dark:bg-stone-900/60 dark:text-stone-200">
-                {fr ? "Vue" : "Vi"}: {activeGeoLabel}
-              </span>
-              <span className="rounded-full border border-stone-200/80 bg-white/80 px-3 py-1 text-xs font-semibold text-stone-700 dark:border-stone-700/70 dark:bg-stone-900/60 dark:text-stone-200">
-                {fr ? "Catégorie" : "Kategori"}: {activeCatLabel}
-              </span>
-              {hasActiveFilters && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setGeoTab("tous");
-                    setCatFilter("tous");
-                  }}
-                  className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  {fr ? "Réinitialiser" : "Reyinisyalize"}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {timelineSections.map((s) => (
-              <div
-                key={`${s.key}-stat`}
-                className="rounded-xl border border-stone-200/80 bg-white/80 px-3 py-2 dark:border-stone-700/70 dark:bg-stone-900/55"
-              >
-                <p className="text-[11px] uppercase tracking-wide text-stone-400 dark:text-stone-500">
-                  {s.label}
-                </p>
-                <p className={`mt-0.5 text-lg font-bold tracking-tight ${s.tone}`}>{s.count}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-3 md:hidden">
-            <div
-              role="tablist"
-              aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
-              className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
+    <div className="space-y-5">
+      {/* ── Compact filter bar — mobile only (desktop filters live in sidebar) ── */}
+      <div className="flex flex-wrap items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1.5">
+          {geoTabs.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={geoTab === t.key}
+              onClick={() => setGeoTab(t.key)}
+              className={[
+                "rounded-full px-3 py-1 text-xs font-medium transition",
+                geoTab === t.key
+                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                  : "bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600",
+              ].join(" ")}
             >
-              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
-                {fr ? "Zone" : "Zòn"}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {geoTabs.map((t) => (
-                  <button
-                    key={t.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={geoTab === t.key}
-                    onClick={() => setGeoTab(t.key)}
-                    className={[
-                      "rounded-lg px-4 py-1.5 text-sm font-medium transition",
-                      geoTab === t.key
-                        ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                        : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600",
-                    ].join(" ")}
-                  >
-                    {t.label} <span className="ml-1 opacity-70">({t.count})</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div
-              role="group"
-              aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
-              className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
-            >
-              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
-                {fr ? "Type d'échéance" : "Tip dat limit"}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {catPills.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => setCatFilter(p.key)}
-                    className={[
-                      "rounded-lg px-3 py-1.5 text-xs font-medium transition",
-                      catFilter === p.key
-                        ? "bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
-                        : "bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600",
-                    ].join(" ")}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+              {t.label}{" "}
+              <span className="opacity-60">{t.count}</span>
+            </button>
+          ))}
         </div>
-      </section>
+        <span className="h-4 w-px bg-stone-200 dark:bg-stone-700" />
+        <div className="flex flex-wrap items-center gap-1.5">
+          {catPills.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => setCatFilter(p.key)}
+              className={[
+                "rounded-full px-2.5 py-1 text-xs font-medium transition",
+                catFilter === p.key
+                  ? "bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
+                  : "bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600",
+              ].join(" ")}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={() => {
+              setGeoTab("tous");
+              setCatFilter("tous");
+            }}
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+          >
+            <RotateCcw className="h-3 w-3" />
+          </button>
+        )}
+      </div>
 
       {/* ── Two-column layout: timeline + mini grid ───────────────────────────── */}
       <div className="md:grid md:grid-cols-[minmax(0,1fr)_18rem] md:items-start md:gap-8 xl:gap-10">
@@ -404,10 +312,10 @@ export function CalendarFilterTabs({
         {/* Sidebar filters + mini month grid — desktop only */}
         <div className="hidden md:block md:w-72 md:shrink-0">
           <div className="sticky top-20 space-y-3">
-            <section className="section-shell p-3.5">
-              <div className="relative z-10 space-y-3">
+            <div className="rounded-xl border border-stone-200/70 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-stone-700/60 dark:bg-stone-900/65">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-stone-400 dark:text-stone-500">
                     {fr ? "Filtres" : "Filtè"}
                   </p>
                   {hasActiveFilters && (
@@ -417,23 +325,23 @@ export function CalendarFilterTabs({
                         setGeoTab("tous");
                         setCatFilter("tous");
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-stone-700 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 transition"
                     >
                       <RotateCcw className="h-3 w-3" />
-                      {fr ? "Reset" : "Reset"}
+                      Reset
                     </button>
                   )}
                 </div>
 
+                {/* Geo row */}
                 <div
                   role="tablist"
                   aria-label={fr ? "Filtre géographique" : "Filt jewografik"}
-                  className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
                 >
-                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
                     {fr ? "Zone" : "Zòn"}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {geoTabs.map((t) => (
                       <button
                         key={`sidebar-${t.key}`}
@@ -442,25 +350,29 @@ export function CalendarFilterTabs({
                         aria-selected={geoTab === t.key}
                         onClick={() => setGeoTab(t.key)}
                         className={[
-                          "rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                          "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
                           geoTab === t.key
                             ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                            : "bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-600",
+                            : "bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700",
                         ].join(" ")}
                       >
-                        {t.label} <span className="ml-1 opacity-70">({t.count})</span>
+                        {t.label}{" "}
+                        <span className="opacity-60">{t.count}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
+                {/* Separator */}
+                <div className="h-px bg-stone-100 dark:bg-stone-800" />
+
+                {/* Category row */}
                 <div
                   role="group"
                   aria-label={fr ? "Filtre par catégorie" : "Filt pa kategori"}
-                  className="rounded-xl border border-stone-200/70 bg-white/70 p-2.5 dark:border-stone-700/60 dark:bg-stone-900/60"
                 >
-                  <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
-                    {fr ? "Type d'échéance" : "Tip dat limit"}
+                  <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
+                    {fr ? "Type" : "Tip"}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {catPills.map((p) => (
@@ -469,10 +381,10 @@ export function CalendarFilterTabs({
                         type="button"
                         onClick={() => setCatFilter(p.key)}
                         className={[
-                          "rounded-lg px-3 py-1.5 text-xs font-medium transition",
+                          "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
                           catFilter === p.key
                             ? "bg-stone-800 text-white dark:bg-stone-100 dark:text-stone-900"
-                            : "bg-stone-100 dark:bg-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-600",
+                            : "bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700",
                         ].join(" ")}
                       >
                         {p.label}
@@ -481,30 +393,9 @@ export function CalendarFilterTabs({
                   </div>
                 </div>
               </div>
-            </section>
+            </div>
 
             <MiniMonthGrid items={filtered} lang={lang} />
-            <div className="section-shell p-3">
-              <div className="relative z-10 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-400 dark:text-stone-500">
-                  {fr ? "Légende" : "Lejand"}
-                </p>
-                <div className="space-y-1.5 text-xs text-stone-600 dark:text-stone-300">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-blue-50 px-1.5 py-px text-[10px] font-semibold text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">HT</span>
-                    <span>{fr ? "Événement Haïti" : "Evènman Ayiti"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-emerald-50 px-1.5 py-px text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">Intl</span>
-                    <span>{fr ? "International" : "Entènasyonal"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-500 dark:bg-blue-400" />
-                    <span>{fr ? "Jour avec événement" : "Jou ki gen evènman"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

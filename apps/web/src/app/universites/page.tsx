@@ -82,80 +82,40 @@ export default async function UniversitesPage({
         </p>
       </header>
 
-      <section className="section-shell">
-        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start xl:grid-cols-[300px_minmax(0,1fr)]">
-          {/* Sidebar filters */}
-          <aside className="glass-panel p-4 lg:sticky lg:top-24 xl:top-28 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto">
-            <h2 className="text-sm font-semibold tracking-wide text-stone-800 dark:text-stone-100">
-              {fr ? "Filtres" : "Filtè"}
-            </h2>
-            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-              {fr ? "Filtrer par pays" : "Filtre pa peyi"}
-            </p>
-
-            <details className="mt-3 lg:hidden">
-              <summary className="cursor-pointer select-none rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700">
-                {fr ? "Ouvrir les filtres" : "Louvri filtè yo"}
-              </summary>
-              <div className="mt-3 flex flex-wrap gap-2">
+      <section className="section-shell space-y-6">
+          {/* Inline country filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+              <Globe2 className="mr-1 inline h-3.5 w-3.5 -translate-y-px" />
+              {fr ? "Pays" : "Peyi"}
+            </span>
+            <Link
+              href={`/universites?lang=${lang}`}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                !filterCountry
+                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                  : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+              }`}
+            >
+              {fr ? "Tous" : "Tout"}
+            </Link>
+            {(Object.keys(grouped) as DatasetCountry[]).map((c) => {
+              const label = COUNTRY_LABELS[c];
+              return (
                 <Link
-                  href={`/universites?lang=${lang}`}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                    !filterCountry
+                  key={c}
+                  href={`/universites?lang=${lang}&country=${c}`}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                    filterCountry === c
                       ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                      : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
+                      : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
                   }`}
                 >
-                  {fr ? "Tous" : "Tout"}
+                  {label?.flag} {fr ? label?.fr : label?.ht}
                 </Link>
-                {(Object.keys(grouped) as DatasetCountry[]).map((c) => {
-                  const label = COUNTRY_LABELS[c];
-                  return (
-                    <Link
-                      key={`mobile-${c}`}
-                      href={`/universites?lang=${lang}&country=${c}`}
-                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                        filterCountry === c
-                          ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                          : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                      }`}
-                    >
-                      {label?.flag} {fr ? label?.fr : label?.ht}
-                    </Link>
-                  );
-                })}
-              </div>
-            </details>
-
-            <div className="mt-3 hidden lg:flex lg:flex-col lg:items-stretch lg:gap-2">
-              <Link
-                href={`/universites?lang=${lang}`}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition lg:rounded-xl lg:px-3 lg:py-2 ${
-                  !filterCountry
-                    ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                    : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                }`}
-              >
-                {fr ? "Tous" : "Tout"}
-              </Link>
-              {(Object.keys(grouped) as DatasetCountry[]).map((c) => {
-                const label = COUNTRY_LABELS[c];
-                return (
-                  <Link
-                    key={c}
-                    href={`/universites?lang=${lang}&country=${c}`}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition lg:rounded-xl lg:px-3 lg:py-2 ${
-                      filterCountry === c
-                        ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                        : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
-                    }`}
-                  >
-                    {label?.flag} {fr ? label?.fr : label?.ht}
-                  </Link>
-                );
-              })}
-            </div>
-          </aside>
+              );
+            })}
+          </div>
 
           {/* University cards by country */}
           <div className="space-y-8">
@@ -263,7 +223,6 @@ export default async function UniversitesPage({
               );
             })}
           </div>
-        </div>
       </section>
 
       {totalCount === 0 && (
