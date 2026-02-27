@@ -4,6 +4,7 @@ import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { NavBar } from "@/components/NavBar";
+import { Footer } from "@/components/Footer";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
 
 const serif = Source_Serif_4({
@@ -37,6 +38,30 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
         <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "EdLight News",
+              url: "https://news.edlight.org",
+              description:
+                "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
+              publisher: {
+                "@type": "Organization",
+                name: "EdLight Initiative",
+                url: "https://edlight.org",
+              },
+              inLanguage: ["fr", "ht"],
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://news.edlight.org/news?search={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body className="flex min-h-screen flex-col">
         <ThemeProvider>
@@ -55,106 +80,7 @@ export default function RootLayout({
               {children}
             </main>
 
-            <footer className="border-t border-stone-200 bg-stone-950 dark:border-stone-800 dark:bg-stone-950">
-              <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-                {/* Masthead in footer */}
-                <div className="mb-8 border-b border-stone-800 pb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-serif text-2xl font-black text-white">EdLight</span>
-                        <span className="font-serif text-2xl font-light text-stone-500">News</span>
-                      </div>
-                      <p className="mt-1 text-xs uppercase tracking-widest text-stone-600">
-                        Actualités éducatives · Nouvèl edikasyon
-                      </p>
-                    </div>
-                    <div className="hidden text-right sm:block">
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-600">
-                        Édition quotidienne
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-                  {/* About */}
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <p className="max-w-xs text-sm leading-relaxed text-stone-400">
-                      Conçu pour les étudiants haïtiens — Nouvelles, bourses et ressources vérifiées.
-                    </p>
-                  </div>
-
-                  {/* Primary sections */}
-                  <div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                      Rubriques
-                    </h3>
-                    <nav className="mt-3 flex flex-col gap-2 text-sm">
-                      {[
-                        { href: "/news", label: "Actualités" },
-                        { href: "/bourses", label: "Bourses" },
-                        { href: "/opportunites", label: "Opportunités" },
-                        { href: "/haiti", label: "Haïti" },
-                        { href: "/ressources", label: "Ressources" },
-                      ].map((link) => (
-                        <a
-                          key={link.href}
-                          href={link.href}
-                          className="text-stone-400 transition-colors hover:text-white"
-                        >
-                          {link.label}
-                        </a>
-                      ))}
-                    </nav>
-                  </div>
-
-                  {/* Secondary sections */}
-                  <div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                      Explorer
-                    </h3>
-                    <nav className="mt-3 flex flex-col gap-2 text-sm">
-                      {[
-                        { href: "/universites", label: "Universités" },
-                        { href: "/calendrier", label: "Calendrier" },
-                        { href: "/parcours", label: "Parcours" },
-                        { href: "/histoire", label: "Histoire" },
-                        { href: "/succes", label: "Succès" },
-                      ].map((link) => (
-                        <a
-                          key={link.href}
-                          href={link.href}
-                          className="text-stone-400 transition-colors hover:text-white"
-                        >
-                          {link.label}
-                        </a>
-                      ))}
-                    </nav>
-                  </div>
-
-                  {/* About */}
-                  <div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
-                      À propos
-                    </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-stone-400">
-                      EdLight News synthétise des sources publiques pour informer les étudiants.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom bar */}
-                <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800 pt-6">
-                  <p className="text-xs text-stone-500">
-                    © {new Date().getFullYear()} EdLight Initiative
-                  </p>
-                  <p className="text-xs text-stone-600">
-                    Les informations ne constituent pas un conseil officiel.
-                  </p>
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </LanguageProvider>
         </ThemeProvider>
       </body>

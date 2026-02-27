@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { OpportunityCard } from "@/components/OpportunityCard";
@@ -43,6 +43,7 @@ function toSubCat(sc: OpportunitySubcategory): OpportunitySubCat {
 
 /** Number of days after expiry beyond which items are hidden by default. */
 const EXPIRED_HIDE_THRESHOLD_DAYS = 14;
+const PAGE_SIZE = 18;
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -174,6 +175,12 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
     });
   }, [filtered, sort]);
 
+  // Pagination
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [subCat, sort, searchQuery, showExpired, includeNoDeadline]);
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
+
   return (
     <div className="grid gap-3 sm:gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
       {/* Sidebar controls */}
@@ -290,8 +297,9 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
             </p>
           </div>
         ) : (
+          <>
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
-            {sorted.map((entry) => (
+            {visible.map((entry) => (
               <OpportunityCard
                 key={entry.article.id}
                 article={entry.article}
@@ -302,6 +310,18 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
               />
             ))}
           </div>
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                className="rounded-lg border border-stone-200 bg-white px-6 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+              >
+                {lang === "fr" ? "Voir plus" : "Wè plis"} ({sorted.length - visibleCount}{" "}
+                {lang === "fr" ? "restantes" : "ki rete"})
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
     </div>

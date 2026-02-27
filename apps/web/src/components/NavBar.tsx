@@ -47,6 +47,7 @@ export function NavBar() {
   const { language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const mobilePanelRef = useRef<HTMLDivElement>(null);
   const fr = language === "fr";
 
   // Close mobile menu on route change
@@ -58,6 +59,44 @@ export function NavBar() {
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  // Focus trap for mobile menu
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const panel = mobilePanelRef.current;
+    if (!panel) return;
+
+    const focusable = () =>
+      panel.querySelectorAll<HTMLElement>(
+        'a[href], button, input, [tabindex]:not([tabindex="-1"])'
+      );
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const els = focusable();
+      if (!els.length) return;
+      const first = els[0]!;
+      const last = els[els.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    // Focus first element when menu opens
+    const els = focusable();
+    if (els.length) els[0]!.focus();
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
   const primaryLinks = NAV_LINKS.filter((l) => l.section === "primary");
@@ -206,7 +245,7 @@ export function NavBar() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 top-[108px] w-80 border-l border-stone-200 bg-white shadow-float dark:border-stone-800 dark:bg-stone-950">
+          <div ref={mobilePanelRef} className="absolute inset-y-0 right-0 top-[108px] w-80 border-l border-stone-200 bg-white shadow-float dark:border-stone-800 dark:bg-stone-950" role="dialog" aria-modal="true" aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}>
             <div className="p-5">
               {/* Primary nav */}
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">

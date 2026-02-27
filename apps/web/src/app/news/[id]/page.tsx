@@ -14,6 +14,7 @@ import {
 } from "@/lib/utils";
 import { MetaBadges } from "@/components/MetaBadges";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
+import { ShareButtons } from "@/components/ShareButtons";
 import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { buildOgMetadata } from "@/lib/og";
@@ -36,6 +37,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const article = await getArticle(params.id);
   if (!article) return { title: "Not found" };
+
+  // Fetch item image for OG metadata (lightweight)
+  let ogImage: string | undefined;
+  try {
+    const item = await itemsRepo.getItem(article.itemId);
+    if (item?.imageUrl && item.imageSource !== "branded" && item.imageSource !== "screenshot") {
+      ogImage = item.imageUrl;
+    }
+  } catch { /* ignore — OG will use default */ }
+
   const title = `${article.title} — EdLight News`;
   const description = article.summary || article.body?.slice(0, 160) || "";
   return {
@@ -46,6 +57,7 @@ export async function generateMetadata({
       description,
       path: `/news/${params.id}`,
       type: "article",
+      image: ogImage,
     }),
   };
 }
@@ -635,8 +647,39 @@ export default async function ArticlePage({
   const lmuSecs = lmuAt?.seconds ?? (lmuAt as Record<string, number> | null)?._seconds;
   const lastUpdateDate = lmuSecs ? formatDate({ seconds: lmuSecs }, currentLang) : null;
 
+  // JSON-LD structured data for NewsArticle
+  const publishedISO = pubSecs ? new Date(pubSecs * 1000).toISOString() : null;
+  const createdISO = createdSecs ? new Date(createdSecs * 1000).toISOString() : null;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: article.title,
+    description: article.summary || article.body?.slice(0, 160) || "",
+    ...(heroImageUrl ? { image: [heroImageUrl] } : {}),
+    datePublished: publishedISO ?? createdISO ?? undefined,
+    ...(lmuSecs ? { dateModified: new Date(lmuSecs * 1000).toISOString() } : {}),
+    author: {
+      "@type": "Organization",
+      name: item?.source?.name ?? "EdLight News",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "EdLight News",
+      url: "https://news.edlight.org",
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://news.edlight.org/news/${article.id}`,
+    },
+    inLanguage: article.language === "fr" ? "fr" : "ht",
+  };
+
   return (
     <article className="mx-auto max-w-3xl space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero image — best image from dedup group (mirrors card logic).
           For utility items (daily fact, history, etc.) with only a branded
           card, skip the hero entirely — the generated gradient card adds no
@@ -647,7 +690,7 @@ export default async function ArticlePage({
         }`}>
           <ImageWithFallback
             src={heroImageUrl}
-            alt=""
+            alt={article.title}
             className="h-full w-full object-cover"
           />
           {/* Image credit label */}
@@ -728,6 +771,13 @@ export default async function ArticlePage({
           {article.summary}
         </p>
       )}
+
+      {/* Share buttons */}
+      <ShareButtons
+        url={`https://news.edlight.org/news/${article.id}`}
+        title={article.title}
+        lang={currentLang}
+      />
 
       {/* What changed note (synthesis living updates) */}
       {isSynthesis && (

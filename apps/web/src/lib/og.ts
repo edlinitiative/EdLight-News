@@ -27,7 +27,7 @@ export function buildOgMetadata({
   type = "website",
 }: OgParams): Partial<Metadata> {
   const url = `${BASE_URL}${path}${lang === "ht" ? "?lang=ht" : ""}`;
-  const ogImage = image ?? `${BASE_URL}/icon.svg`;
+  const ogImage = image ?? `${BASE_URL}/opengraph-image`;
 
   return {
     alternates: {
@@ -41,6 +41,7 @@ export function buildOgMetadata({
       siteName: SITE_NAME,
       locale: lang === "fr" ? "fr_FR" : "ht_HT",
       type,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",

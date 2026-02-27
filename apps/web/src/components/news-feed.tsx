@@ -25,6 +25,7 @@ import { isAllowedInStudentFeed } from "@/lib/studentFeedFilter";
 export type FeedMode = "student" | "all";
 
 const LS_MODE_KEY = "edlight-feed-mode";
+const PAGE_SIZE = 18;
 
 function readPersistedMode(): FeedMode {
   if (typeof window === "undefined") return "student";
@@ -445,6 +446,13 @@ export function NewsFeed({
     return items;
   }, [searchFiltered, sort]);
 
+  // Pagination: show items in pages
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  // Reset visible count when filters / search change
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [activeCategory, search, sort, feedMode]);
+  const visible = sorted.slice(0, visibleCount);
+  const hasMore = visibleCount < sorted.length;
+
   // Navigate with category
   const handleCategory = (cat: FeedCategory) => {
     setActiveCategory(cat);
@@ -610,7 +618,7 @@ export function NewsFeed({
 
       {/* Article grid — newspaper layout with lead story */}
       <div className="grid gap-5 sm:grid-cols-2">
-        {sorted.map((article, i) => (
+        {visible.map((article, i) => (
           <Link
             key={article.id}
             href={`/news/${article.id}?lang=${lang}`}
@@ -628,7 +636,7 @@ export function NewsFeed({
               ].join(" ")}>
                 <ImageWithFallback
                   src={article.imageUrl}
-                  alt=""
+                  alt={article.title}
                   fill
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -678,6 +686,19 @@ export function NewsFeed({
           </Link>
         ))}
       </div>
+
+      {/* Load more */}
+      {hasMore && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="rounded-lg border border-stone-200 bg-white px-6 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+          >
+            {lang === "fr" ? "Voir plus" : "Wè plis"} ({sorted.length - visibleCount}{" "}
+            {lang === "fr" ? "restants" : "ki rete"})
+          </button>
+        </div>
+      )}
     </section>
   );
 }

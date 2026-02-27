@@ -14,6 +14,8 @@ interface ImageWithFallbackProps {
   height?: number;
   /** Use fill mode instead of explicit width/height */
   fill?: boolean;
+  /** Custom sizes hint for fill mode (defaults to responsive 3-col grid) */
+  sizes?: string;
   /** Content to render when the image fails to load */
   fallback?: React.ReactNode;
 }
@@ -30,6 +32,7 @@ export function ImageWithFallback({
   width,
   height,
   fill,
+  sizes,
   fallback,
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(false);
@@ -49,7 +52,7 @@ export function ImageWithFallback({
       loading={loading}
       onError={() => setFailed(true)}
       {...(fill
-        ? { fill: true, sizes: "(max-width: 768px) 100vw, 50vw" }
+        ? { fill: true, sizes: sizes ?? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" }
         : { width: width ?? 400, height: height ?? 300 }
       )}
       unoptimized={isExternal}

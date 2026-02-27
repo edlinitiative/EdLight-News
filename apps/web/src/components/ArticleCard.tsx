@@ -116,7 +116,7 @@ export function ArticleCard({
         >
           <ImageWithFallback
             src={article.imageUrl!}
-            alt=""
+            alt={article.title}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
           {/* Category overlay on featured */}
