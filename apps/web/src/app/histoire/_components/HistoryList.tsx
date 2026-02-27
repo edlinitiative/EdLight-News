@@ -7,13 +7,14 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { ContentLanguage, HaitiHistoryAlmanacEntry } from "@edlight-news/types";
+import type { ContentLanguage } from "@edlight-news/types";
 import { HistoryCard } from "./HistoryCard";
 import { EmptyState } from "./EmptyState";
 import { formatMonthDay } from "./shared";
+import type { SerializableAlmanacEntry } from "./shared";
 
 /** Sort: high confidence first, then year descending. */
-function sortEntries(entries: HaitiHistoryAlmanacEntry[]): HaitiHistoryAlmanacEntry[] {
+function sortEntries(entries: SerializableAlmanacEntry[]): SerializableAlmanacEntry[] {
   return [...entries].sort((a, b) => {
     if (a.confidence === "high" && b.confidence !== "high") return -1;
     if (a.confidence !== "high" && b.confidence === "high") return 1;
@@ -24,7 +25,7 @@ function sortEntries(entries: HaitiHistoryAlmanacEntry[]): HaitiHistoryAlmanacEn
 const INITIAL_SHOW = 5;
 
 interface HistoryListProps {
-  entries: HaitiHistoryAlmanacEntry[];
+  entries: SerializableAlmanacEntry[];
   selectedDate: string; // MM-DD
   lang: ContentLanguage;
 }

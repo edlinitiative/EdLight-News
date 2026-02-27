@@ -7,12 +7,13 @@
 
 import Image from "next/image";
 import { BookOpen, CheckCircle } from "lucide-react";
-import type { ContentLanguage, HaitiHistoryAlmanacEntry } from "@edlight-news/types";
+import type { ContentLanguage } from "@edlight-news/types";
 import { TAG_LABELS } from "./shared";
+import type { SerializableAlmanacEntry } from "./shared";
 
 const ILLUSTRATION_MIN_CONFIDENCE = 0.55;
 
-function shouldShowIllustration(entry: HaitiHistoryAlmanacEntry): boolean {
+function shouldShowIllustration(entry: SerializableAlmanacEntry): boolean {
   if (!entry.illustration?.imageUrl) return false;
   const confidence = entry.illustration.confidence;
   if (typeof confidence !== "number") return true;
@@ -20,7 +21,7 @@ function shouldShowIllustration(entry: HaitiHistoryAlmanacEntry): boolean {
 }
 
 interface HistoryCardProps {
-  entry: HaitiHistoryAlmanacEntry;
+  entry: SerializableAlmanacEntry;
   lang: ContentLanguage;
   /** "hero" = larger card, "compact" = smaller card in list */
   variant?: "hero" | "compact";

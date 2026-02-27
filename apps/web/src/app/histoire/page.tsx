@@ -22,6 +22,7 @@ import {
   getHaitiMonthDay,
 } from "@/lib/datasets";
 import { HistoireClient } from "./_components/HistoireClient";
+import { serializeEntry, serializeHoliday } from "./_components/shared";
 
 export const revalidate = 900;
 
@@ -98,8 +99,8 @@ export default async function HistoirePage({
       <section className="mx-auto mt-8 max-w-4xl px-4 sm:px-6">
         <HistoireClient
           todayMD={todayMD}
-          monthEntries={monthEntries}
-          allHolidays={allHolidays}
+          monthEntries={monthEntries.map(serializeEntry)}
+          allHolidays={allHolidays.map(serializeHoliday)}
           prefetchedMonth={todayMonth}
           lang={lang}
         />

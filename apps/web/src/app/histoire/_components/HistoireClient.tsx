@@ -14,22 +14,21 @@ import { Loader2 } from "lucide-react";
 import type {
   ContentLanguage,
   AlmanacTag,
-  HaitiHistoryAlmanacEntry,
-  HaitiHoliday,
 } from "@edlight-news/types";
 import { HistoryHero } from "./HistoryHero";
 import { WeekStrip } from "./WeekStrip";
 import { ExplorePanel } from "./ExplorePanel";
 import { HistoryList } from "./HistoryList";
 import { getWeekAroundDate } from "./shared";
+import type { SerializableAlmanacEntry, SerializableHoliday } from "./shared";
 
 interface HistoireClientProps {
   /** Today's MM-DD in Haiti timezone */
   todayMD: string;
   /** All entries for the current month (pre-fetched server-side) */
-  monthEntries: HaitiHistoryAlmanacEntry[];
+  monthEntries: SerializableAlmanacEntry[];
   /** All holidays */
-  allHolidays: HaitiHoliday[];
+  allHolidays: SerializableHoliday[];
   /** The month that was pre-fetched (e.g., "02") */
   prefetchedMonth: string;
   lang: ContentLanguage;
@@ -49,7 +48,7 @@ export function HistoireClient({
   const [selectedTag, setSelectedTag] = useState<AlmanacTag | "">("");
 
   // Entries cache: keyed by month string, pre-seeded with server data
-  const [entriesByMonth, setEntriesByMonth] = useState<Record<string, HaitiHistoryAlmanacEntry[]>>({
+  const [entriesByMonth, setEntriesByMonth] = useState<Record<string, SerializableAlmanacEntry[]>>({
     [prefetchedMonth]: initialEntries,
   });
   const [loadingMonth, setLoadingMonth] = useState<string | null>(null);

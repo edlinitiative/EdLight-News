@@ -71,65 +71,58 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
   return (
     <div className="space-y-6">
       {/* Controls row */}
-      <div className="section-shell p-4">
-        <div className="relative z-10 flex flex-wrap items-center gap-3 sm:gap-4">
-          {/* Geo toggle */}
-          <div className="flex flex-wrap items-center gap-2">
-            {(
-              [
-                { key: "all" as const, fr: "Tout Haïti", ht: "Tout Ayiti" },
-                {
-                  key: "students" as const,
-                  fr: "Haïti — Étudiants",
-                  ht: "Ayiti — Etidyan",
-                },
-              ] as const
-            ).map((opt) => (
-              <button
-                key={opt.key}
-                onClick={() => handleFilterChange(opt.key)}
-                className={[
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                  filter === opt.key
-                    ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
-                ].join(" ")}
-              >
-                {fr ? opt.fr : opt.ht}
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        {/* Geo toggle */}
+        {(
+          [
+            { key: "all" as const, fr: "Tout Haïti", ht: "Tout Ayiti" },
+            {
+              key: "students" as const,
+              fr: "Étudiants",
+              ht: "Etidyan",
+            },
+          ] as const
+        ).map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => handleFilterChange(opt.key)}
+            className={[
+              "rounded-md px-2.5 py-1 text-xs font-medium transition",
+              filter === opt.key
+                ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
+            ].join(" ")}
+          >
+            {fr ? opt.fr : opt.ht}
+          </button>
+        ))}
 
-          {/* Sort toggle */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-stone-500 dark:text-stone-400">
-              {fr ? "Trier par :" : "Triye pa :"}
-            </span>
-            {(["relevance", "latest"] as SortMode[]).map((opt) => (
-              <button
-                key={opt}
-                onClick={() => handleSortChange(opt)}
-                className={[
-                  "rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                  sort === opt
-                    ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
-                ].join(" ")}
-              >
-                {opt === "relevance"
-                  ? fr
-                    ? "Pertinence"
-                    : "Pètinans"
-                  : fr
-                    ? "Dernières"
-                    : "Dènye"}
-              </button>
-            ))}
-          </div>
-          <span className="ml-auto text-xs text-stone-400 dark:text-stone-500">
-            {sorted.length} {fr ? "article(s)" : "atik"}
-          </span>
-        </div>
+        <span className="mx-1 text-stone-300 dark:text-stone-600">|</span>
+
+        {/* Sort toggle */}
+        {(["relevance", "latest"] as SortMode[]).map((opt) => (
+          <button
+            key={opt}
+            onClick={() => handleSortChange(opt)}
+            className={[
+              "rounded-md px-2.5 py-1 text-xs font-medium transition",
+              sort === opt
+                ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
+            ].join(" ")}
+          >
+            {opt === "relevance"
+              ? fr
+                ? "Pertinence"
+                : "Pètinans"
+              : fr
+                ? "Dernières"
+                : "Dènye"}
+          </button>
+        ))}
+        <span className="ml-auto text-xs text-stone-400 dark:text-stone-500">
+          {sorted.length} {fr ? "article(s)" : "atik"}
+        </span>
       </div>
 
       {/* Featured article */}

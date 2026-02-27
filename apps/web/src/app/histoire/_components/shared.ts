@@ -3,7 +3,39 @@
  * These are UI-only — no backend logic.
  */
 
-import type { AlmanacTag, ContentLanguage } from "@edlight-news/types";
+import type { AlmanacTag, ContentLanguage, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
+
+// ── Serializable types (Timestamps → strings for Server→Client boundary) ────
+
+/** HaitiHistoryAlmanacEntry with Timestamps converted to ISO strings. */
+export type SerializableAlmanacEntry = Omit<HaitiHistoryAlmanacEntry, "verifiedAt" | "updatedAt"> & {
+  verifiedAt: string | null;
+  updatedAt: string | null;
+};
+
+/** HaitiHoliday with Timestamps converted to ISO strings. */
+export type SerializableHoliday = Omit<HaitiHoliday, "verifiedAt" | "updatedAt"> & {
+  verifiedAt: string | null;
+  updatedAt: string | null;
+};
+
+/** Convert a Firestore Timestamp-like value to an ISO string (or null). */
+function tsToStr(v: unknown): string | null {
+  if (!v || typeof v !== "object") return null;
+  const t = v as { seconds?: number; _seconds?: number; toDate?: () => Date };
+  const secs = t.seconds ?? t._seconds;
+  if (typeof secs === "number") return new Date(secs * 1000).toISOString();
+  if (typeof t.toDate === "function") return t.toDate().toISOString();
+  return null;
+}
+
+export function serializeEntry(e: HaitiHistoryAlmanacEntry): SerializableAlmanacEntry {
+  return { ...e, verifiedAt: tsToStr(e.verifiedAt), updatedAt: tsToStr(e.updatedAt) };
+}
+
+export function serializeHoliday(h: HaitiHoliday): SerializableHoliday {
+  return { ...h, verifiedAt: tsToStr(h.verifiedAt), updatedAt: tsToStr(h.updatedAt) };
+}
 
 export const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> = {
   independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },

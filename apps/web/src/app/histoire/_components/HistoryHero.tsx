@@ -5,13 +5,14 @@
  * If fewer than 3 facts are available, a subtle hint is shown.
  */
 
-import type { ContentLanguage, HaitiHistoryAlmanacEntry, HaitiHoliday } from "@edlight-news/types";
+import type { ContentLanguage } from "@edlight-news/types";
 import { Star } from "lucide-react";
 import { HistoryCard } from "./HistoryCard";
 import { formatMonthDay } from "./shared";
+import type { SerializableAlmanacEntry, SerializableHoliday } from "./shared";
 
 /** Sort: high confidence first, then by year descending (newest first). */
-function sortForHero(entries: HaitiHistoryAlmanacEntry[]): HaitiHistoryAlmanacEntry[] {
+function sortForHero(entries: SerializableAlmanacEntry[]): SerializableAlmanacEntry[] {
   return [...entries].sort((a, b) => {
     if (a.confidence === "high" && b.confidence !== "high") return -1;
     if (a.confidence !== "high" && b.confidence === "high") return 1;
@@ -20,8 +21,8 @@ function sortForHero(entries: HaitiHistoryAlmanacEntry[]): HaitiHistoryAlmanacEn
 }
 
 interface HistoryHeroProps {
-  entries: HaitiHistoryAlmanacEntry[];
-  holidays: HaitiHoliday[];
+  entries: SerializableAlmanacEntry[];
+  holidays: SerializableHoliday[];
   selectedDate: string; // MM-DD
   lang: ContentLanguage;
 }
