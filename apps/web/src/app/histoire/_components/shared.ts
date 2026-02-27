@@ -118,3 +118,57 @@ export function getDayLabel(monthDay: string, lang: ContentLanguage) {
     monthDay,
   };
 }
+
+// ── Date-range helpers ──────────────────────────────────────────────────────
+
+export interface DateRange {
+  start: string; // MM-DD
+  end: string;   // MM-DD
+}
+
+/** Number of days in a month (1-indexed). Uses 2024 as reference (leap year). */
+export function daysInMonth(month: number): number {
+  return new Date(2024, month, 0).getDate();
+}
+
+/** Check if MM-DD `md` is within [start, end] inclusive. Handles year wrap. */
+export function isInRange(md: string, start: string, end: string): boolean {
+  if (start <= end) return md >= start && md <= end;
+  return md >= start || md <= end; // wraps year boundary (e.g. Dec→Jan)
+}
+
+/** Return all distinct month strings ("01"–"12") spanned by a range. */
+export function monthsInRange(start: string, end: string): string[] {
+  const sm = parseInt(start.split("-")[0]!, 10);
+  const em = parseInt(end.split("-")[0]!, 10);
+  const months: string[] = [];
+  if (sm <= em) {
+    for (let m = sm; m <= em; m++) months.push(String(m).padStart(2, "0"));
+  } else {
+    for (let m = sm; m <= 12; m++) months.push(String(m).padStart(2, "0"));
+    for (let m = 1; m <= em; m++) months.push(String(m).padStart(2, "0"));
+  }
+  return months;
+}
+
+/** Format a DateRange as a human-readable string, e.g. "1–28 février" or "15 fév. – 15 mars". */
+export function formatRange(range: DateRange, lang: ContentLanguage): string {
+  const mNames = lang === "fr" ? MONTH_NAMES_FR : MONTH_NAMES_HT;
+  const [m1, d1] = range.start.split("-");
+  const [m2, d2] = range.end.split("-");
+  const mn1 = mNames[parseInt(m1!, 10) - 1] ?? m1;
+  const mn2 = mNames[parseInt(m2!, 10) - 1] ?? m2;
+  if (m1 === m2) return `${parseInt(d1!, 10)} – ${parseInt(d2!, 10)} ${mn2}`;
+  return `${parseInt(d1!, 10)} ${mn1!.slice(0, 3)}. – ${parseInt(d2!, 10)} ${mn2!.slice(0, 3)}.`;
+}
+
+/** Validate that a range spans at most ~31 days. */
+export function isRangeValid(start: string, end: string): boolean {
+  const [sm, sd] = start.split("-").map(Number) as [number, number];
+  const [em, ed] = end.split("-").map(Number) as [number, number];
+  const sDate = new Date(2024, sm - 1, sd);
+  let eDate = new Date(2024, em - 1, ed);
+  if (eDate < sDate) eDate = new Date(2025, em - 1, ed);
+  const diff = Math.round((eDate.getTime() - sDate.getTime()) / 86_400_000);
+  return diff >= 1 && diff <= 31;
+}

@@ -29,9 +29,11 @@ interface HistoryListProps {
   entries: SerializableAlmanacEntry[];
   lang: ContentLanguage;
   emptyLabel?: string;
+  /** Pass true when showing entries from a date range (shows date on each card) */
+  showDate?: boolean;
 }
 
-export function HistoryList({ entries, lang, emptyLabel }: HistoryListProps) {
+export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryListProps) {
   const fr = lang === "fr";
   const [expanded, setExpanded] = useState(false);
 
@@ -50,7 +52,7 @@ export function HistoryList({ entries, lang, emptyLabel }: HistoryListProps) {
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         {visible.map((entry) => (
-          <HistoryCard key={entry.id} entry={entry} lang={lang} />
+          <HistoryCard key={entry.id} entry={entry} lang={lang} showDate={showDate} />
         ))}
       </div>
 

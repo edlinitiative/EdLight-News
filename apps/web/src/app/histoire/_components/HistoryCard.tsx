@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * HistoryCard — single almanac entry card.
  *
@@ -6,14 +8,19 @@
  *   • "Pourquoi c'est important" callout (if takeaway exists)
  *   • Tags as small chips
  *   • Collapsible "Sources & vérification" accordion (default collapsed)
+ *
+ * When an entry has no illustration, falls back to a Wikipedia image search
+ * (French Wikipedia) using the entry title as query. The thumbnail is fetched
+ * client-side and cached in memory for the session.
  */
 
 import Image from "next/image";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, Globe } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
-import { TAG_LABELS } from "./shared";
+import { TAG_LABELS, formatMonthDay } from "./shared";
 import type { SerializableAlmanacEntry } from "./shared";
 import { SourcesAccordion } from "./SourcesAccordion";
+import { useWikiImage } from "./useWikiImage";
 
 const ILLUSTRATION_MIN_CONFIDENCE = 0.55;
 
@@ -27,34 +34,64 @@ function shouldShowIllustration(entry: SerializableAlmanacEntry): boolean {
 interface HistoryCardProps {
   entry: SerializableAlmanacEntry;
   lang: ContentLanguage;
+  /** When showing entries from a date range, display the date on each card */
+  showDate?: boolean;
 }
 
-export function HistoryCard({ entry, lang }: HistoryCardProps) {
+export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
   const fr = lang === "fr";
-  const illustration = shouldShowIllustration(entry) ? entry.illustration : null;
+  const hasOwnIllustration = shouldShowIllustration(entry);
+
+  // Fall back to Wikipedia image when no illustration exists
+  const wikiQuery = !hasOwnIllustration ? entry.title_fr : null;
+  const { url: wikiThumb } = useWikiImage(wikiQuery);
+
+  const imageUrl = hasOwnIllustration ? entry.illustration!.imageUrl : wikiThumb;
+  const isWikiImage = !hasOwnIllustration && !!wikiThumb;
 
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800">
-      {/* Optional illustration */}
-      {illustration && (
+      {/* Image (own illustration or Wikipedia fallback) */}
+      {imageUrl && (
         <div className="relative h-36 w-full overflow-hidden sm:h-44">
-          <Image
-            src={illustration.imageUrl}
-            alt={entry.title_fr}
-            fill
-            sizes="(max-width: 640px) 100vw, 50vw"
-            className="object-cover"
-          />
+          {isWikiImage ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={imageUrl}
+              alt={entry.title_fr}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <Image
+              src={imageUrl}
+              alt={entry.title_fr}
+              fill
+              sizes="(max-width: 640px) 100vw, 50vw"
+              className="object-cover"
+            />
+          )}
+          {isWikiImage && (
+            <span className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[9px] font-medium text-white/80 backdrop-blur-sm">
+              <Globe className="h-2.5 w-2.5" />
+              Wikipedia
+            </span>
+          )}
         </div>
       )}
 
       {/* Body */}
       <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
-        {/* Year + tags row */}
+        {/* Year + date (range mode) + tags row */}
         <div className="flex flex-wrap items-center gap-1.5">
           {entry.year != null && (
             <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-bold tabular-nums text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
               {entry.year}
+            </span>
+          )}
+          {showDate && (
+            <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-600 dark:bg-stone-700 dark:text-stone-300">
+              {formatMonthDay(entry.monthDay, lang)}
             </span>
           )}
           {entry.tags?.slice(0, 3).map((tag) => {
