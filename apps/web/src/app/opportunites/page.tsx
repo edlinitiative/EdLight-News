@@ -1,13 +1,17 @@
 /**
- * /opportunites — Opportunities feed.
+ * /opportunites — Opportunities feed (v2 — premium redesign).
  *
- * Server component: fetches + filters scholarship/opportunity articles.
- * Client component (OpportunitiesFeed): handles subcategory pills,
- * sort (deadline / pertinence / dernières), and "inclure sans deadline" toggle.
+ * Server component: fetches + filters scholarship/opportunity articles,
+ * serialises them, and delegates filtering/rendering to client components.
+ *
+ * Layout (mirrors /bourses):
+ *   1) Header — title, subtitle, count badge
+ *   2) Catalogue — sticky filter bar + search + card grid
  */
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
+import { Suspense } from "react";
 import { Briefcase } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
@@ -38,7 +42,7 @@ export async function generateMetadata({
 export default async function OpportunitesPage({
   searchParams,
 }: {
-  searchParams: { lang?: string };
+  searchParams: { lang?: string; [key: string]: string | string[] | undefined };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
 
@@ -84,22 +88,36 @@ export default async function OpportunitesPage({
   const fr = lang === "fr";
 
   return (
-    <div className="space-y-6">
-      <header className="space-y-3">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 sm:px-6">
+      {/* ─── Section 1: Header ─── */}
+      <header className="space-y-3 pt-2">
         <div className="section-rule" />
-        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-          <Briefcase className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          {fr ? "Opportunités" : "Okazyon"}
-        </h1>
-        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Bourses, concours, stages et programmes pour étudiants haïtiens."
-            : "Bous, konkou, estaj ak pwogram pou elèv ayisyen."}
-        </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
+              <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              {fr ? "Opportunités" : "Okazyon"}
+            </h1>
+            <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
+              {fr
+                ? "Bourses, concours, stages et programmes pour étudiants haïtiens. Filtrez par type, deadline ou pertinence."
+                : "Bous, konkou, estaj ak pwogram pou elèv ayisyen. Filtre pa tip, dat limit oswa pètinans."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
+              {articles.length} {fr ? "opportunités" : "okazyon"}
+            </span>
+          </div>
+        </div>
       </header>
 
-      {/* Client feed with full interactivity */}
-      <OpportunitiesFeed articles={articles} lang={lang} />
+      {/* ─── Section 2: Catalogue (filters + cards) ─── */}
+      <section className="mx-auto max-w-6xl pb-8">
+        <Suspense fallback={null}>
+          <OpportunitiesFeed articles={articles} lang={lang} />
+        </Suspense>
+      </section>
     </div>
   );
 }
