@@ -265,7 +265,7 @@ export default async function HistoirePage({
         </div>
 
         {todayEntries.length > 0 ? (
-          <div className="space-y-4 sm:space-y-5">
+          <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
             {todayEntries
               .sort((a, b) => {
                 if (a.confidence === "high" && b.confidence !== "high") return -1;
@@ -281,109 +281,114 @@ export default async function HistoirePage({
                   return (
                 <article
                   key={entry.id}
-                  className="group rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800 sm:p-6"
+                  className="group flex flex-col rounded-xl border border-stone-200 bg-white shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800"
                 >
-                  {displayIllustration && (
-                    <div className="mb-4 overflow-hidden rounded-xl border border-stone-200 bg-stone-100 dark:border-stone-700 dark:bg-stone-700/40">
-                      <div className="relative aspect-[16/9]">
+                  {/* Top row: optional thumbnail + header */}
+                  <div className={displayIllustration ? "flex gap-0" : ""}>
+                    {displayIllustration && (
+                      <div className="relative hidden w-36 shrink-0 overflow-hidden rounded-tl-xl sm:block sm:w-44">
                         <Image
                           src={displayIllustration.imageUrl}
                           alt={entry.title_fr}
                           fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 900px"
+                          sizes="180px"
                           className="object-cover"
                         />
                       </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-[11px] text-stone-500 dark:text-stone-400">
-                        <span>
-                          {fr ? "Illustration historique" : "Ilistrasyon istorik"}
+                    )}
+
+                    <div className="flex min-w-0 flex-1 flex-col gap-2 p-4 sm:p-5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {entry.year != null && (
+                            <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                              {entry.year}
+                            </span>
+                          )}
+                          {entry.confidence === "high" && (
+                            <span className="rounded-md bg-green-50 px-1.5 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                              {fr ? "Vérifié" : "Verifye"}
+                            </span>
+                          )}
+                        </div>
+                        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-stone-200 bg-stone-50 px-1.5 text-[11px] font-semibold text-stone-500 dark:border-stone-700 dark:bg-stone-700 dark:text-stone-300">
+                          {entry.year != null ? String(entry.year).slice(-2) : String(idx + 1)}
                         </span>
+                      </div>
+
+                      <h3 className="text-base font-bold leading-snug tracking-tight text-stone-900 dark:text-white sm:text-lg">
+                        {entry.title_fr}
+                      </h3>
+
+                      <p className="line-clamp-3 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
+                        {entry.summary_fr}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom section */}
+                  <div className="flex flex-col gap-3 border-t border-stone-100 px-4 pb-4 pt-3 dark:border-stone-700/60 sm:px-5">
+                    {entry.student_takeaway_fr && (
+                      <div className="flex gap-2 rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2.5 dark:border-blue-800/40 dark:bg-blue-900/20">
+                        <BookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-700 dark:text-blue-300" />
+                        <p className="text-xs leading-relaxed text-blue-800 dark:text-blue-300">
+                          <strong>{fr ? "Étudiants" : "Etidyan"}:</strong>{" "}
+                          {entry.student_takeaway_fr}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {entry.tags?.map((tag) => {
+                        const t = TAG_LABELS[tag];
+                        return (
+                          <span
+                            key={tag}
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${t?.color ?? "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300"}`}
+                          >
+                            {fr ? t?.fr : t?.ht}
+                          </span>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                      <MetaBadges
+                        verifiedAt={entry.verifiedAt}
+                        updatedAt={entry.updatedAt}
+                        lang={lang}
+                      />
+                      {entry.sources.length > 0 && (
+                        <span className="text-stone-500 dark:text-stone-400">
+                          {fr ? "Sources : " : "Sous : "}
+                          {entry.sources.map((s, i) => (
+                            <span key={i}>
+                              {i > 0 && " · "}
+                              <a
+                                href={s.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline dark:text-blue-400"
+                              >
+                                {s.label}
+                              </a>
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </div>
+
+                    {displayIllustration && (
+                      <div className="flex items-center justify-between text-[10px] text-stone-400 dark:text-stone-500">
+                        <span>{fr ? "Illustration historique" : "Ilistrasyon istorik"}</span>
                         <a
                           href={displayIllustration.pageUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                          className="font-medium text-blue-500 hover:underline dark:text-blue-400"
                         >
                           Wikimedia Commons
                         </a>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {entry.year != null && (
-                        <span className="rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                          {entry.year}
-                        </span>
-                      )}
-                      {entry.confidence === "high" && (
-                        <span className="rounded-md bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
-                          {fr ? "Vérifié" : "Verifye"}
-                        </span>
-                      )}
-                    </div>
-
-                    <span className="inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-stone-200 bg-stone-50 px-2 text-xs font-semibold text-stone-600 dark:border-stone-700 dark:bg-stone-700 dark:text-stone-300">
-                      {entry.year != null ? String(entry.year).slice(-2) : String(idx + 1)}
-                    </span>
-                  </div>
-
-                  <h3 className="mt-3 text-xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-2xl">
-                    {entry.title_fr}
-                  </h3>
-
-                  <p className="mt-3 text-sm leading-7 text-stone-600 dark:text-stone-300 sm:text-base">
-                    {entry.summary_fr}
-                  </p>
-
-                  {entry.student_takeaway_fr && (
-                    <div className="mt-4 flex gap-3 rounded-xl border border-blue-100 bg-blue-50/60 p-4 dark:border-blue-800/40 dark:bg-blue-900/20">
-                      <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-blue-700 dark:text-blue-300" />
-                      <div className="text-sm text-blue-800 dark:text-blue-300">
-                        <strong>{fr ? "Pour les étudiants" : "Pou etidyan yo"}:</strong>{" "}
-                        {entry.student_takeaway_fr}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    {entry.tags?.map((tag) => {
-                      const t = TAG_LABELS[tag];
-                      return (
-                        <span
-                          key={tag}
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t?.color ?? "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300"}`}
-                        >
-                          {fr ? t?.fr : t?.ht}
-                        </span>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 pt-4 dark:border-stone-700/80">
-                    <MetaBadges
-                      verifiedAt={entry.verifiedAt}
-                      updatedAt={entry.updatedAt}
-                      lang={lang}
-                    />
-
-                    {entry.sources.length > 0 && (
-                      <div className="text-xs text-stone-500 dark:text-stone-400">
-                        {fr ? "Sources : " : "Sous : "}
-                        {entry.sources.map((s, i) => (
-                          <span key={i}>
-                            {i > 0 && " · "}
-                            <a
-                              href={s.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline dark:text-blue-400"
-                            >
-                              {s.label}
-                            </a>
-                          </span>
-                        ))}
                       </div>
                     )}
                   </div>

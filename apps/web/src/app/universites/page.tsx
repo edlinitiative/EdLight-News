@@ -15,6 +15,7 @@ import {
   TUITION_LABELS,
 } from "@/lib/datasets";
 import { MetaBadges } from "@/components/MetaBadges";
+import { CountryFlag } from "@/components/CountryFlag";
 import Link from "next/link";
 import { buildOgMetadata } from "@/lib/og";
 
@@ -111,7 +112,7 @@ export default async function UniversitesPage({
                       : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
                   }`}
                 >
-                  {label?.flag} {fr ? label?.fr : label?.ht}
+                  {label?.flag && <CountryFlag code={label.flag} />} {fr ? label?.fr : label?.ht}
                 </Link>
               );
             })}
@@ -124,8 +125,8 @@ export default async function UniversitesPage({
               const cl = COUNTRY_LABELS[countryKey];
               return (
                 <section key={countryKey} className="space-y-4">
-                  <h2 className="relative z-10 text-xl font-bold tracking-tight dark:text-white">
-                    {cl?.flag} {fr ? cl?.fr : cl?.ht}{" "}
+                  <h2 className="relative z-10 flex items-center gap-2 text-xl font-bold tracking-tight dark:text-white">
+                    {cl?.flag && <CountryFlag code={cl.flag} size="lg" />} {fr ? cl?.fr : cl?.ht}{" "}
                     <span className="text-sm font-normal text-stone-400 dark:text-stone-500">
                       ({unis.length})
                     </span>

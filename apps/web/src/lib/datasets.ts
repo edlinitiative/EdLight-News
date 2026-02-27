@@ -138,15 +138,15 @@ export const fetchPathwaysByGoal = unstable_cache(
 // ── Country display helpers ──────────────────────────────────────────────────
 
 export const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string; flag: string }> = {
-  US: { fr: "États-Unis", ht: "Etazini", flag: "US" },
-  CA: { fr: "Canada", ht: "Kanada", flag: "CA" },
-  FR: { fr: "France", ht: "Frans", flag: "FR" },
-  UK: { fr: "Royaume-Uni", ht: "Wayòm Ini", flag: "UK" },
-  DO: { fr: "Rép. Dominicaine", ht: "Rep. Dominikèn", flag: "DO" },
-  MX: { fr: "Mexique", ht: "Meksik", flag: "MX" },
-  CN: { fr: "Chine", ht: "Lachin", flag: "CN" },
-  RU: { fr: "Russie", ht: "Larisi", flag: "RU" },
-  HT: { fr: "Haïti", ht: "Ayiti", flag: "HT" },
+  US: { fr: "États-Unis", ht: "Etazini", flag: "us" },
+  CA: { fr: "Canada", ht: "Kanada", flag: "ca" },
+  FR: { fr: "France", ht: "Frans", flag: "fr" },
+  UK: { fr: "Royaume-Uni", ht: "Wayòm Ini", flag: "gb" },
+  DO: { fr: "Rép. Dominicaine", ht: "Rep. Dominikèn", flag: "do" },
+  MX: { fr: "Mexique", ht: "Meksik", flag: "mx" },
+  CN: { fr: "Chine", ht: "Lachin", flag: "cn" },
+  RU: { fr: "Russie", ht: "Larisi", flag: "ru" },
+  HT: { fr: "Haïti", ht: "Ayiti", flag: "ht" },
   Global: { fr: "International", ht: "Entènasyonal", flag: "" },
 };
 

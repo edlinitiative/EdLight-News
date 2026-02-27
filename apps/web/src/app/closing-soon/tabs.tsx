@@ -7,6 +7,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { CountryFlag } from "@/components/CountryFlag";
 import {
   DollarSign,
   CalendarDays,
@@ -136,8 +137,9 @@ export function ClosingSoonTabs({
                     {item.title}
                   </p>
                 </div>
-                {item.subtitle && (
-                  <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+                {(item.subtitle || item.countryCode) && (
+                  <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-stone-500 dark:text-stone-400">
+                    {item.countryCode && <CountryFlag code={item.countryCode} />}
                     {item.subtitle}
                   </p>
                 )}

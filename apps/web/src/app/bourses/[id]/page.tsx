@@ -25,6 +25,7 @@ import {
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchScholarship, COUNTRY_LABELS } from "@/lib/datasets";
+import { CountryFlag } from "@/components/CountryFlag";
 import { MetaBadges } from "@/components/MetaBadges";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
@@ -135,8 +136,8 @@ export default async function ScholarshipDetailPage({
             {s.name}
           </h1>
           {cl && (
-            <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-              {cl.flag} {fr ? cl.fr : cl.ht}
+            <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-stone-400">
+              {cl.flag && <CountryFlag code={cl.flag} />} {fr ? cl.fr : cl.ht}
             </p>
           )}
         </div>

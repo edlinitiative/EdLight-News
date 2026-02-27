@@ -58,6 +58,8 @@ export interface ClosingItem {
   geo?: CalendarGeo;
   /** Extra context: institution, country, etc. */
   subtitle?: string;
+  /** Lowercase ISO country code for flag-icons (e.g. "fr", "gb") */
+  countryCode?: string;
   /** Link to apply or view */
   actionUrl?: string;
   actionLabel?: { fr: string; ht: string };
@@ -99,7 +101,8 @@ export default async function ClosingSoonPage({
       title: s.name,
       dateISO: s.deadline!.dateISO!,
       days,
-      subtitle: cl ? `${cl.flag} ${fr ? cl.fr : cl.ht}` : undefined,
+      subtitle: cl ? (fr ? cl.fr : cl.ht) : undefined,
+      countryCode: cl?.flag || undefined,
       actionUrl: s.howToApplyUrl ?? s.officialUrl,
       actionLabel: { fr: "Postuler →", ht: "Aplike →" },
     });

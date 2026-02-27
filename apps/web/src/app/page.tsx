@@ -39,6 +39,7 @@ import {
   TUITION_LABELS,
 } from "@/lib/datasets";
 import { getCalendarGeo } from "@/lib/calendarGeo";
+import { CountryFlag } from "@/components/CountryFlag";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { buildOgMetadata } from "@/lib/og";
@@ -231,8 +232,8 @@ export default async function AccueilPage({
                         {new Date(dl.dateISO + "T00:00:00").toLocaleDateString(fr ? "fr-FR" : "fr-HT", { day: "numeric", month: "short" })}
                       </span>
                     )}
-                    <span className="text-stone-400 dark:text-stone-500">
-                      {COUNTRY_LABELS[s.country]?.flag} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
+                    <span className="inline-flex items-center gap-1 text-stone-400 dark:text-stone-500">
+                      {COUNTRY_LABELS[s.country]?.flag && <CountryFlag code={COUNTRY_LABELS[s.country].flag} />} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
                     </span>
                   </div>
                   {s.howToApplyUrl && (
@@ -613,7 +614,7 @@ export default async function AccueilPage({
               <div key={u.id} className="card p-4">
                 <div className="flex items-start justify-between">
                   <h3 className="text-sm font-semibold text-stone-900 line-clamp-2 dark:text-white">{u.name}</h3>
-                  <span className="ml-2 shrink-0 text-xs text-stone-400">{COUNTRY_LABELS[u.country]?.flag}</span>
+                  <span className="ml-2 shrink-0 text-xs text-stone-400">{COUNTRY_LABELS[u.country]?.flag && <CountryFlag code={COUNTRY_LABELS[u.country].flag} />}</span>
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {u.city && <span className="badge bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300">{u.city}</span>}

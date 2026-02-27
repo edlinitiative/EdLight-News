@@ -11,6 +11,7 @@ import { MapPin, Compass, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
+import { CountryFlag } from "@/components/CountryFlag";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 900;
@@ -76,7 +77,7 @@ export default async function ParcoursPage({
               <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 p-6 dark:from-blue-900/20 dark:to-indigo-900/20">
                 <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full bg-white/40 blur-2xl dark:bg-blue-400/10" />
                 <div className="flex items-center gap-3">
-                  {cl && <span className="text-3xl">{cl.flag}</span>}
+                  {cl?.flag && <CountryFlag code={cl.flag} size="lg" />}
                   <div>
                     <h2 className="text-xl font-bold tracking-tight dark:text-white">
                       {fr ? p.title_fr : (p.title_ht ?? p.title_fr)}
