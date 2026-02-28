@@ -39,7 +39,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
 
   // Fall back to Wikipedia image when no illustration exists
   const wikiQuery = !hasOwnIllustration ? entry.title_fr : null;
-  const { url: wikiThumb } = useWikiImage(wikiQuery);
+  const { url: wikiThumb } = useWikiImage(wikiQuery, entry.year);
 
   const imageUrl = hasOwnIllustration ? entry.illustration!.imageUrl : wikiThumb;
   const isWikiImage = !hasOwnIllustration && !!wikiThumb;

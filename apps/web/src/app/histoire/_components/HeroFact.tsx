@@ -46,7 +46,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
 
   // Wikipedia fallback
   const wikiQuery = !ownIllustration ? entry.title_fr : null;
-  const { url: wikiThumb } = useWikiImage(wikiQuery);
+  const { url: wikiThumb } = useWikiImage(wikiQuery, entry.year);
 
   const imageUrl = ownIllustration ? entry.illustration!.imageUrl : wikiThumb;
   const isWikiImage = !ownIllustration && !!wikiThumb;
