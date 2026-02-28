@@ -245,7 +245,7 @@ export function NavBar() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div ref={mobilePanelRef} className="absolute inset-y-0 right-0 top-[108px] w-80 border-l border-stone-200 bg-white shadow-float dark:border-stone-800 dark:bg-stone-950" role="dialog" aria-modal="true" aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}>
+          <div ref={mobilePanelRef} className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] border-l border-stone-200 bg-white shadow-float overflow-y-auto dark:border-stone-800 dark:bg-stone-950" style={{ WebkitOverflowScrolling: 'touch' }} role="dialog" aria-modal="true" aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}>
             <div className="p-5">
               {/* Primary nav */}
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
