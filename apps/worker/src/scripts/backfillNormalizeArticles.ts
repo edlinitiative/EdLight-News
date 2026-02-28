@@ -201,23 +201,14 @@ async function main() {
 
   while (hasMore && stats.scanned < limit) {
     const remaining = limit - stats.scanned;
-    const pageSize = Math.min(BATCH_SIZE, remaining);
+    // Over-fetch since we filter in-memory
+    const pageSize = Math.min(BATCH_SIZE * 3, remaining * 3);
 
-    // Build query: published web content only
+    // Query: order by createdAt only (no composite index required).
+    // Filter channel/status/lang in-memory to avoid needing a composite index.
     let query = col
-      .where("channel", "==", "web")
-      .where("status", "==", "published")
       .orderBy("createdAt", "desc")
       .limit(pageSize);
-
-    if (lang) {
-      query = col
-        .where("channel", "==", "web")
-        .where("status", "==", "published")
-        .where("language", "==", lang)
-        .orderBy("createdAt", "desc")
-        .limit(pageSize);
-    }
 
     if (lastDocSnap) {
       query = query.startAfter(lastDocSnap);
@@ -230,7 +221,17 @@ async function main() {
     }
     lastDocSnap = snap.docs[snap.docs.length - 1];
 
-    for (const doc of snap.docs) {
+    // In-memory filter: published web content only
+    const eligible = snap.docs.filter((doc) => {
+      const data = doc.data();
+      if (data.channel !== "web") return false;
+      if (data.status !== "published") return false;
+      if (lang && data.language !== lang) return false;
+      return true;
+    });
+
+    for (const doc of eligible) {
+      if (stats.scanned >= limit) break;
       stats.scanned++;
 
       try {
