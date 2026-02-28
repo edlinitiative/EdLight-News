@@ -429,7 +429,7 @@ export default async function AccueilPage({
             <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse-soft" />
             {fr ? "Urgent" : "Ijan"}
           </span>
-          <div className="overflow-hidden">
+          <div className="min-w-0 flex-1 overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex items-center gap-6 text-sm">
               {topUrgent.slice(0, 3).map((item, i) => (
                 <Link

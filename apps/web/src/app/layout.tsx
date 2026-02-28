@@ -76,7 +76,7 @@ export default function RootLayout({
 
             <NavBar />
 
-            <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+            <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8" style={{ WebkitOverflowScrolling: 'touch' }}>
               {children}
             </main>
 
