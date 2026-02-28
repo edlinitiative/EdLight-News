@@ -39,15 +39,11 @@
 
   html {
     scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
   }
 
   body {
     @apply bg-stone-50 text-stone-900 antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Improve mobile scrolling performance */
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: none;
   }
 
   .dark body,
