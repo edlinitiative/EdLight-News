@@ -263,14 +263,16 @@ export function HistoireClient({
         />
       )}
 
-      {/* ── ⑤ Explore accordion ──────────────────────────────── */}
-      <ExplorePanel
-        activeRange={dateRange}
-        onRangeSelect={handleRangeSelect}
-        onRangeClear={handleRangeClear}
-        lang={lang}
-        currentMonth={todayMonth}
-      />
+      {/* ── ⑤ Explore — quiet footer navigation ─────────────── */}
+      <div className="border-t border-stone-100 pt-5 dark:border-stone-800">
+        <ExplorePanel
+          activeRange={dateRange}
+          onRangeSelect={handleRangeSelect}
+          onRangeClear={handleRangeClear}
+          lang={lang}
+          currentMonth={todayMonth}
+        />
+      </div>
     </div>
   );
 }

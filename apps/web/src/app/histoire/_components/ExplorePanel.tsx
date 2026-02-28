@@ -1,19 +1,15 @@
 "use client";
 
 /**
- * ExplorePanel — lightweight month explorer accordion.
+ * ExplorePanel — minimal inline month navigator.
  *
- * Simplified UX:
- *   - 3 quick presets: Mois précédent · Ce mois · Mois prochain
- *   - Simple month dropdown for any month of the year
- *   - Active range indicator with clear button
- *
- * No complex custom date-range picker — month-level granularity is enough
- * for exploration, while the WeekStrip handles day-level navigation.
+ * No accordion, no box — just a quiet row of controls that lets users
+ * jump to another month without dominating the page. Feels like part of
+ * the editorial footer rather than a separate "section".
  */
 
-import { useState, useMemo } from "react";
-import { ChevronDown, ChevronUp, Compass, X } from "lucide-react";
+import { useMemo } from "react";
+import { X } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
   MONTH_NAMES_FR,
@@ -30,12 +26,10 @@ function monthRange(month: number): DateRange {
 }
 
 interface ExplorePanelProps {
-  /** Currently active range (null = single-date mode via WeekStrip) */
   activeRange: DateRange | null;
   onRangeSelect: (range: DateRange) => void;
   onRangeClear: () => void;
   lang: ContentLanguage;
-  /** 1-12, used for computing preset months */
   currentMonth: number;
 }
 
@@ -47,10 +41,8 @@ export function ExplorePanel({
   currentMonth,
 }: ExplorePanelProps) {
   const fr = lang === "fr";
-  const [open, setOpen] = useState(false);
   const monthNames = fr ? MONTH_NAMES_FR : MONTH_NAMES_HT;
 
-  // ── Presets ──
   const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
   const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
 
@@ -68,7 +60,6 @@ export function ExplorePanel({
     return activeRange?.start === r.start && activeRange?.end === r.end;
   };
 
-  // Active month for the dropdown (derives from activeRange if it's a full month)
   const activeMonthFromRange = useMemo(() => {
     if (!activeRange) return 0;
     const sm = parseInt(activeRange.start.split("-")[0]!, 10);
@@ -78,89 +69,64 @@ export function ExplorePanel({
   }, [activeRange]);
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-800">
-      {/* Toggle header */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-5 py-3.5 text-left transition hover:bg-stone-50 dark:hover:bg-stone-700/40"
-      >
-        <div className="flex items-center gap-2.5">
-          <Compass className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-          <span className="text-sm font-semibold text-stone-900 dark:text-white">
-            {fr ? "Explorer un autre mois" : "Eksplore yon lòt mwa"}
+    <div className="flex flex-col gap-3">
+      {/* Active range banner — only when browsing a different month */}
+      {activeRange && (
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+            📅 {formatRange(activeRange, lang)}
           </span>
-          {activeRange && (
-            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-              {formatRange(activeRange, lang)}
-            </span>
-          )}
-        </div>
-        {open ? (
-          <ChevronUp className="h-4 w-4 text-stone-400" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-stone-400" />
-        )}
-      </button>
-
-      {open && (
-        <div className="space-y-4 border-t border-stone-100 px-5 pb-5 pt-4 dark:border-stone-700/60">
-          {/* ── Presets + month dropdown — all on one row ── */}
-          <div className="flex flex-wrap items-center gap-2">
-            {presets.map((p) => (
-              <button
-                key={p.month}
-                onClick={() => onRangeSelect(monthRange(p.month))}
-                className={
-                  "rounded-xl px-4 py-2 text-xs font-semibold transition " +
-                  (isPresetActive(p.month)
-                    ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500"
-                    : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700")
-                }
-              >
-                {p.label}
-              </button>
-            ))}
-
-            <span className="mx-1 text-xs font-medium text-stone-300 dark:text-stone-600">
-              {fr ? "ou" : "oswa"}
-            </span>
-
-            <select
-              value={activeMonthFromRange}
-              onChange={(e) => {
-                const m = parseInt(e.target.value, 10);
-                if (m >= 1 && m <= 12) onRangeSelect(monthRange(m));
-              }}
-              className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-600 shadow-sm transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
-            >
-              <option value={0} disabled>
-                {fr ? "Choisir un mois…" : "Chwazi yon mwa…"}
-              </option>
-              {monthNames.map((name, i) => (
-                <option key={i} value={i + 1}>
-                  {name.charAt(0).toUpperCase() + name.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ── Active range indicator ────────────────── */}
-          {activeRange && (
-            <div className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-2.5 dark:bg-blue-900/20">
-              <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                📅 {formatRange(activeRange, lang)}
-              </span>
-              <button
-                onClick={onRangeClear}
-                className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-              >
-                <X className="h-3 w-3" />
-                {fr ? "Revenir à aujourd\u2019hui" : "Retounen jodi a"}
-              </button>
-            </div>
-          )}
+          <button
+            onClick={onRangeClear}
+            className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-1 text-[11px] font-medium text-stone-500 transition hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700"
+          >
+            <X className="h-2.5 w-2.5" />
+            {fr ? "Aujourd\u2019hui" : "Jodi a"}
+          </button>
         </div>
       )}
+
+      {/* Controls row */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500">
+          {fr ? "Explorer" : "Eksplore"}
+        </span>
+
+        {presets.map((p) => (
+          <button
+            key={p.month}
+            onClick={() => onRangeSelect(monthRange(p.month))}
+            className={
+              "rounded-full px-3 py-1.5 text-[11px] font-semibold transition " +
+              (isPresetActive(p.month)
+                ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500"
+                : "text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200")
+            }
+          >
+            {p.label}
+          </button>
+        ))}
+
+        <span className="text-stone-200 dark:text-stone-700">·</span>
+
+        <select
+          value={activeMonthFromRange}
+          onChange={(e) => {
+            const m = parseInt(e.target.value, 10);
+            if (m >= 1 && m <= 12) onRangeSelect(monthRange(m));
+          }}
+          className="rounded-full bg-transparent px-2 py-1.5 text-[11px] font-semibold text-stone-500 transition hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+        >
+          <option value={0} disabled>
+            {fr ? "Autre mois…" : "Lòt mwa…"}
+          </option>
+          {monthNames.map((name, i) => (
+            <option key={i} value={i + 1}>
+              {name.charAt(0).toUpperCase() + name.slice(1)}
+            </option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }
