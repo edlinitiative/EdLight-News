@@ -199,15 +199,29 @@ describe("validateNormalizationGrounding", () => {
 // ── 4. Markdown formatter ───────────────────────────────────────────────────
 
 describe("formatNormalizedArticle", () => {
-  it("produces markdown with correct heading structure", () => {
+  it("produces markdown with correct heading structure (no emojis)", () => {
     const md = formatNormalizedArticle(VALID_OUTPUT);
-    assert.ok(md.startsWith("# "));
-    assert.ok(md.includes("## 📌 Résumé exécutif"));
-    assert.ok(md.includes("## 🧾 Faits confirmés"));
-    assert.ok(md.includes("## 🗣 Déclarations officielles"));
-    assert.ok(md.includes("## 🔎 Points non clarifiés"));
-    assert.ok(md.includes("## 🎓 Pourquoi c'est important"));
-    assert.ok(md.includes("## 📚 Source"));
+    assert.ok(md.includes("## Faits confirmés"));
+    assert.ok(md.includes("## Déclarations officielles"));
+    assert.ok(md.includes("## Points non clarifiés"));
+    assert.ok(md.includes("## Pourquoi c'est important"));
+    assert.ok(md.includes("## Source"));
+  });
+
+  it("does not include title or summary in body markdown", () => {
+    const md = formatNormalizedArticle(VALID_OUTPUT);
+    // Title is rendered by the page <h1>, not in body
+    assert.ok(!md.startsWith("# "));
+    // Executive summary is rendered separately, not in body
+    assert.ok(!md.includes("Résumé exécutif"));
+  });
+
+  it("contains no emoji characters in headings", () => {
+    const md = formatNormalizedArticle(VALID_OUTPUT);
+    const headings = md.split("\n").filter((l) => l.startsWith("## "));
+    for (const h of headings) {
+      assert.ok(!/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u.test(h), `Emoji found in heading: ${h}`);
+    }
   });
 
   it("omits Déclarations officielles when null", () => {
@@ -230,7 +244,7 @@ describe("formatNormalizedArticle", () => {
 
   it("includes Informations à vérifier when present", () => {
     const md = formatNormalizedArticle(VALID_OUTPUT);
-    assert.ok(md.includes("## ⚠️ Informations à vérifier"));
+    assert.ok(md.includes("## Informations à vérifier"));
     assert.ok(md.includes("Nombre d'élèves bénéficiaires"));
   });
 

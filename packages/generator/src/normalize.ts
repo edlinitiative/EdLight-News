@@ -351,41 +351,38 @@ export function validateNormalizationGrounding(
 export function formatNormalizedArticle(
   article: GeminiNormalizedArticle,
 ): string {
+  // NOTE: title and executive_summary are NOT included here because the
+  // web page already renders them via dedicated <h1> and <p> elements.
+  // Including them in the body Markdown would cause visible duplication.
   const sections: string[] = [];
 
-  // Title
-  sections.push(`# ${article.title}`);
-
-  // Executive summary
-  sections.push(`## 📌 Résumé exécutif\n\n${article.executive_summary}`);
-
   // Confirmed facts
-  sections.push(`## 🧾 Faits confirmés\n\n${article.confirmed_facts}`);
+  sections.push(`## Faits confirmés\n\n${article.confirmed_facts}`);
 
   // Official statements (only if present)
   if (article.official_statements) {
     sections.push(
-      `## 🗣 Déclarations officielles\n\n${article.official_statements}`,
+      `## Déclarations officielles\n\n${article.official_statements}`,
     );
   }
 
   // Unclear points (only if present)
   if (article.unclear_points) {
-    sections.push(`## 🔎 Points non clarifiés\n\n${article.unclear_points}`);
+    sections.push(`## Points non clarifiés\n\n${article.unclear_points}`);
   }
 
   // Why it matters
   sections.push(
-    `## 🎓 Pourquoi c'est important\n\n${article.why_it_matters}`,
+    `## Pourquoi c'est important\n\n${article.why_it_matters}`,
   );
 
   // Source
-  sections.push(`## 📚 Source\n\n${article.source_citation}`);
+  sections.push(`## Source\n\n${article.source_citation}`);
 
   // Information to verify (only if present)
   if (article.information_to_verify) {
     sections.push(
-      `## ⚠️ Informations à vérifier\n\n${article.information_to_verify}`,
+      `## Informations à vérifier\n\n${article.information_to_verify}`,
     );
   }
 

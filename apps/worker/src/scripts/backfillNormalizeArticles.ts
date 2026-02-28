@@ -116,9 +116,11 @@ function buildNormalizeInput(
  * Maps the 7-section structure to sections[] + body.
  */
 function buildUpdatePayload(article: GeminiNormalizedArticle): Record<string, unknown> {
+  // NOTE: "Résumé exécutif" is stored in the `summary` field, NOT as a section.
+  // The page renders title via <h1> and summary via <p>, so duplicating them
+  // in sections[] or body would cause visible repetition.
   const sections: { heading: string; content: string }[] = [];
 
-  sections.push({ heading: "Résumé exécutif", content: article.executive_summary });
   sections.push({ heading: "Faits confirmés", content: article.confirmed_facts });
 
   if (article.official_statements) {
@@ -135,7 +137,8 @@ function buildUpdatePayload(article: GeminiNormalizedArticle): Record<string, un
     sections.push({ heading: "Informations à vérifier", content: article.information_to_verify });
   }
 
-  // Also produce a flat body (Markdown) for renderers that don't support sections
+  // Flat body (Markdown) for renderers that don't support sections.
+  // Title + summary are excluded — the page renders them separately.
   const body = formatNormalizedArticle(article);
 
   return {
