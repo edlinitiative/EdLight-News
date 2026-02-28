@@ -49,6 +49,23 @@ export type {
   UtilityValidationResult,
 } from "./utility.js";
 
+// ── Re-export normalization module ──────────────────────────────────────────
+export {
+  normalizeArticle,
+  validateNormalizationGrounding,
+  formatNormalizedArticle,
+  buildNormalizePrompt,
+  geminiNormalizedArticleSchema,
+  NORMALIZE_PROMPT_VERSION,
+} from "./normalize.js";
+export type {
+  GeminiNormalizedArticle,
+  NormalizeArticleInput,
+  NormalizeArticleResult,
+  NormalizeArticleError,
+  NormalizationValidationResult,
+} from "./normalize.js";
+
 // ── Re-export postprocess module ────────────────────────────────────────────
 export { formatContentVersion } from "./postprocess/formatContentVersion.js";
 export type {
