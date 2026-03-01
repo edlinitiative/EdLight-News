@@ -6,5 +6,7 @@ datasetCountrySchema, academicLevelSchema, tuitionBandSchema, datasetCitationSch
 // History almanac schemas
 almanacConfidenceSchema, almanacCreatedBySchema, almanacTagSchema, haitiHistoryAlmanacEntrySchema, createHaitiHistoryAlmanacEntrySchema, haitiHolidaySchema, createHaitiHolidaySchema, historyPublishLogSchema, 
 // Raw almanac schemas
-almanacRawCategorySchema, almanacRawSourceTypeSchema, almanacRawVerificationStatusSchema, almanacRawSourceSchema, haitiHistoryAlmanacRawSchema, createHaitiHistoryAlmanacRawSchema, } from "./schemas.js";
+almanacRawCategorySchema, almanacRawSourceTypeSchema, almanacRawVerificationStatusSchema, almanacRawSourceSchema, haitiHistoryAlmanacRawSchema, createHaitiHistoryAlmanacRawSchema, 
+// Instagram pipeline schemas
+igPostTypeSchema, igQueueStatusSchema, igDecisionSchema, igSlideSchema, igFormattedPayloadSchema, igQueueItemSchema, createIGQueueItemSchema, } from "./schemas.js";
 //# sourceMappingURL=index.js.map

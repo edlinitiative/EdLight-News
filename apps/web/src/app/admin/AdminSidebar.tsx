@@ -1,0 +1,48 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  FileEdit,
+  BookOpen,
+  Instagram,
+} from "lucide-react";
+
+const NAV_ITEMS = [
+  { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/admin/drafts", label: "Drafts", Icon: FileEdit },
+  { href: "/admin/histoire", label: "Histoire", Icon: BookOpen },
+  { href: "/admin/ig-queue", label: "IG Queue", Icon: Instagram },
+] as const;
+
+export function AdminSidebar() {
+  const pathname = usePathname();
+
+  return (
+    <nav className="mb-6 flex items-center gap-1 overflow-x-auto border-b border-stone-200 pb-3 dark:border-stone-800">
+      {NAV_ITEMS.map(({ href, label, Icon }) => {
+        const isActive =
+          href === "/admin"
+            ? pathname === "/admin"
+            : pathname.startsWith(href);
+
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={[
+              "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isActive
+                ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                : "text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white",
+            ].join(" ")}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

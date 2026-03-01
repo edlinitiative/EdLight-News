@@ -4,10 +4,16 @@
   "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./ig/index.js": "./dist/ig/index.js",
+    "./ig/*": "./dist/ig/*"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "node --import tsx --test src/ig/selection.test.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

@@ -40,4 +40,25 @@ export async function uploadImageBuffer(path, buffer, contentType = "image/png")
     const encodedPath = encodeURIComponent(path);
     return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
 }
+/**
+ * Upload an array of local image files to Firebase Storage and return their
+ * public download URLs.  Designed for IG carousel slides.
+ *
+ * @param localPaths - Absolute paths to local PNG files
+ * @param queueItemId - IG queue item ID (used to namespace the upload path)
+ * @returns Array of public download URLs in the same order
+ */
+export async function uploadCarouselSlides(localPaths, queueItemId) {
+    const { readFileSync } = await import("node:fs");
+    const urls = [];
+    for (let i = 0; i < localPaths.length; i++) {
+        const localPath = localPaths[i];
+        const buffer = readFileSync(localPath);
+        const storagePath = `ig_posts/${queueItemId}/slide_${i + 1}.png`;
+        const url = await uploadImageBuffer(storagePath, buffer, "image/png");
+        urls.push(url);
+    }
+    console.log(`[storage] Uploaded ${urls.length} carousel slides for IG queue item ${queueItemId}`);
+    return urls;
+}
 //# sourceMappingURL=storage.js.map

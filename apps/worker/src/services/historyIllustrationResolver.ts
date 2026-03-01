@@ -94,10 +94,22 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
     commonsQuery: "Parsley massacre",
   },
   {
+    test: /gr[eè]ve.*damien|damien.*gr[eè]ve|[eé]cole.*agriculture.*damien/i,
+    wikipediaFr: "Massacre des Cayes",
+    wikipediaEn: "Les Cayes massacre",
+    commonsQuery: "Les Cayes massacre Haiti 1929",
+  },
+  {
     test: /occupation\s+am[eé]ricaine|marines\s+am[eé]ricains/i,
     wikipediaFr: "Occupation d'Haïti par les États-Unis",
     wikipediaEn: "United States occupation of Haiti",
     commonsQuery: "United States occupation of Haiti",
+  },
+  {
+    test: /d[eé]part.*aristide|aristide.*d[eé]part|coup\s*d[''\u2019]?\s*[eé]tat.*ha[iï]ti.*200[4]/i,
+    wikipediaFr: "Coup d'État de 2004 à Haïti",
+    wikipediaEn: "2004 Haitian coup d'état",
+    commonsQuery: "2004 Haitian coup Operation Secure Tomorrow Haiti",
   },
   {
     test: /aristide|jean-bertrand\s+aristide/i,

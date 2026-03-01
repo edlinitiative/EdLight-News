@@ -24,6 +24,7 @@ packages/*/src/*.map
 # misc
 *.log
 nohup.out
+history-illustrations-audit.json
 
 .vercel
 .env*.local

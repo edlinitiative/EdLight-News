@@ -85,6 +85,13 @@ export type {
   AlmanacRawVerificationStatus,
   AlmanacRawSource,
   HaitiHistoryAlmanacRaw,
+  // Instagram pipeline types
+  IGPostType,
+  IGQueueStatus,
+  IGDecision,
+  IGSlide,
+  IGFormattedPayload,
+  IGQueueItem,
 } from "./models.js";
 
 export {
@@ -175,6 +182,14 @@ export {
   almanacRawSourceSchema,
   haitiHistoryAlmanacRawSchema,
   createHaitiHistoryAlmanacRawSchema,
+  // Instagram pipeline schemas
+  igPostTypeSchema,
+  igQueueStatusSchema,
+  igDecisionSchema,
+  igSlideSchema,
+  igFormattedPayloadSchema,
+  igQueueItemSchema,
+  createIGQueueItemSchema,
 } from "./schemas.js";
 
 export type {
@@ -199,4 +214,6 @@ export type {
   CreateHaitiHistoryAlmanacEntry,
   CreateHaitiHoliday,
   CreateHaitiHistoryAlmanacRaw,
+  // Instagram create types
+  CreateIGQueueItem,
 } from "./schemas.js";

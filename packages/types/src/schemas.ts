@@ -760,6 +760,57 @@ export const createHaitiHistoryAlmanacRawSchema = haitiHistoryAlmanacRawSchema.o
 
 export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
 
+// ── Instagram pipeline schemas ─────────────────────────────────────────────
+
+export const igPostTypeSchema = z.enum(["scholarship", "opportunity", "news", "histoire", "utility"]);
+
+export const igQueueStatusSchema = z.enum([
+  "queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual",
+]);
+
+export const igDecisionSchema = z.object({
+  igEligible: z.boolean(),
+  igType: igPostTypeSchema.nullable(),
+  igPriorityScore: z.number().min(0).max(100),
+  reasons: z.array(z.string()),
+  igPostAfter: z.string().optional(),
+  igExpiresAt: z.string().optional(),
+});
+
+export const igSlideSchema = z.object({
+  heading: z.string().min(1),
+  bullets: z.array(z.string()),
+  footer: z.string().optional(),
+});
+
+export const igFormattedPayloadSchema = z.object({
+  slides: z.array(igSlideSchema).min(1),
+  caption: z.string().min(1),
+});
+
+export const igQueueItemSchema = z.object({
+  id: z.string().min(1),
+  sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema,
+  score: z.number().min(0).max(100),
+  status: igQueueStatusSchema,
+  scheduledFor: z.string().optional(),
+  igPostId: z.string().optional(),
+  reasons: z.array(z.string()),
+  payload: igFormattedPayloadSchema.optional(),
+  dryRunPath: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createIGQueueItemSchema = igQueueItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateIGQueueItem = z.infer<typeof createIGQueueItemSchema>;
+
 // ── Inferred create types for datasets ─────────────────────────────────────
 
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;

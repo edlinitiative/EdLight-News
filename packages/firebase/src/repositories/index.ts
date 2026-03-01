@@ -18,3 +18,4 @@ export * as haitiHistoryAlmanacRepo from "./haiti-history-almanac.js";
 export * as haitiHistoryAlmanacRawRepo from "./haiti-history-almanac-raw.js";
 export * as haitiHolidaysRepo from "./haiti-holidays.js";
 export * as historyPublishLogRepo from "./history-publish-log.js";
+export * as igQueueRepo from "./ig-queue.js";

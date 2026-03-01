@@ -1,5 +1,5 @@
 export { getApp, getDb } from "./admin.js";
-export { uploadImageBuffer } from "./storage.js";
+export { uploadImageBuffer, uploadCarouselSlides } from "./storage.js";
 export {
   sourcesRepo,
   rawItemsRepo,
@@ -21,4 +21,5 @@ export {
   haitiHistoryAlmanacRawRepo,
   haitiHolidaysRepo,
   historyPublishLogRepo,
+  igQueueRepo,
 } from "./repositories/index.js";

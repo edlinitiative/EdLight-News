@@ -4592,6 +4592,282 @@ export declare const createHaitiHistoryAlmanacRawSchema: z.ZodObject<Omit<{
     } | undefined;
 }>;
 export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
+export declare const igPostTypeSchema: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>;
+export declare const igQueueStatusSchema: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
+export declare const igDecisionSchema: z.ZodObject<{
+    igEligible: z.ZodBoolean;
+    igType: z.ZodNullable<z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>>;
+    igPriorityScore: z.ZodNumber;
+    reasons: z.ZodArray<z.ZodString, "many">;
+    igPostAfter: z.ZodOptional<z.ZodString>;
+    igExpiresAt: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    reasons: string[];
+    igEligible: boolean;
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | null;
+    igPriorityScore: number;
+    igPostAfter?: string | undefined;
+    igExpiresAt?: string | undefined;
+}, {
+    reasons: string[];
+    igEligible: boolean;
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | null;
+    igPriorityScore: number;
+    igPostAfter?: string | undefined;
+    igExpiresAt?: string | undefined;
+}>;
+export declare const igSlideSchema: z.ZodObject<{
+    heading: z.ZodString;
+    bullets: z.ZodArray<z.ZodString, "many">;
+    footer: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    heading: string;
+    bullets: string[];
+    footer?: string | undefined;
+}, {
+    heading: string;
+    bullets: string[];
+    footer?: string | undefined;
+}>;
+export declare const igFormattedPayloadSchema: z.ZodObject<{
+    slides: z.ZodArray<z.ZodObject<{
+        heading: z.ZodString;
+        bullets: z.ZodArray<z.ZodString, "many">;
+        footer: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        heading: string;
+        bullets: string[];
+        footer?: string | undefined;
+    }, {
+        heading: string;
+        bullets: string[];
+        footer?: string | undefined;
+    }>, "many">;
+    caption: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    slides: {
+        heading: string;
+        bullets: string[];
+        footer?: string | undefined;
+    }[];
+    caption: string;
+}, {
+    slides: {
+        heading: string;
+        bullets: string[];
+        footer?: string | undefined;
+    }[];
+    caption: string;
+}>;
+export declare const igQueueItemSchema: z.ZodObject<{
+    id: z.ZodString;
+    sourceContentId: z.ZodString;
+    igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>;
+    score: z.ZodNumber;
+    status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
+    scheduledFor: z.ZodOptional<z.ZodString>;
+    igPostId: z.ZodOptional<z.ZodString>;
+    reasons: z.ZodArray<z.ZodString, "many">;
+    payload: z.ZodOptional<z.ZodObject<{
+        slides: z.ZodArray<z.ZodObject<{
+            heading: z.ZodString;
+            bullets: z.ZodArray<z.ZodString, "many">;
+            footer: z.ZodOptional<z.ZodString>;
+        }, "strip", z.ZodTypeAny, {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }, {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }>, "many">;
+        caption: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    }, {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    }>>;
+    dryRunPath: z.ZodOptional<z.ZodString>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    reasons: string[];
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    sourceContentId: string;
+    score: number;
+    scheduledFor?: string | undefined;
+    igPostId?: string | undefined;
+    payload?: {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    } | undefined;
+    dryRunPath?: string | undefined;
+}, {
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    reasons: string[];
+    id: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    updatedAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    sourceContentId: string;
+    score: number;
+    scheduledFor?: string | undefined;
+    igPostId?: string | undefined;
+    payload?: {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    } | undefined;
+    dryRunPath?: string | undefined;
+}>;
+export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
+    id: z.ZodString;
+    sourceContentId: z.ZodString;
+    igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>;
+    score: z.ZodNumber;
+    status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
+    scheduledFor: z.ZodOptional<z.ZodString>;
+    igPostId: z.ZodOptional<z.ZodString>;
+    reasons: z.ZodArray<z.ZodString, "many">;
+    payload: z.ZodOptional<z.ZodObject<{
+        slides: z.ZodArray<z.ZodObject<{
+            heading: z.ZodString;
+            bullets: z.ZodArray<z.ZodString, "many">;
+            footer: z.ZodOptional<z.ZodString>;
+        }, "strip", z.ZodTypeAny, {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }, {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }>, "many">;
+        caption: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    }, {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    }>>;
+    dryRunPath: z.ZodOptional<z.ZodString>;
+    createdAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+    updatedAt: z.ZodObject<{
+        seconds: z.ZodNumber;
+        nanoseconds: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        seconds: number;
+        nanoseconds: number;
+    }, {
+        seconds: number;
+        nanoseconds: number;
+    }>;
+}, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    reasons: string[];
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    sourceContentId: string;
+    score: number;
+    scheduledFor?: string | undefined;
+    igPostId?: string | undefined;
+    payload?: {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    } | undefined;
+    dryRunPath?: string | undefined;
+}, {
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    reasons: string[];
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    sourceContentId: string;
+    score: number;
+    scheduledFor?: string | undefined;
+    igPostId?: string | undefined;
+    payload?: {
+        slides: {
+            heading: string;
+            bullets: string[];
+            footer?: string | undefined;
+        }[];
+        caption: string;
+    } | undefined;
+    dryRunPath?: string | undefined;
+}>;
+export type CreateIGQueueItem = z.infer<typeof createIGQueueItemSchema>;
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;
 export type CreateScholarship = z.infer<typeof createScholarshipSchema>;
 export type CreateHaitiCalendarEvent = z.infer<typeof createHaitiCalendarEventSchema>;

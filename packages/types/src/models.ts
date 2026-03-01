@@ -522,6 +522,61 @@ export interface HaitiHistoryAlmanacRaw {
   createdAt: Timestamp;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Instagram pipeline types ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility";
+
+export type IGQueueStatus =
+  | "queued"
+  | "scheduled"
+  | "rendering"
+  | "posted"
+  | "skipped"
+  | "scheduled_ready_for_manual";
+
+/** Decision record produced by the IG selection logic. */
+export interface IGDecision {
+  igEligible: boolean;
+  igType: IGPostType | null;
+  igPriorityScore: number;
+  reasons: string[];
+  /** Delay posting until this ISO date */
+  igPostAfter?: string;
+  /** Do not post after this ISO date */
+  igExpiresAt?: string;
+}
+
+/** A single carousel slide for IG. */
+export interface IGSlide {
+  heading: string;
+  bullets: string[];
+  footer?: string;
+}
+
+/** Formatted output ready for rendering. */
+export interface IGFormattedPayload {
+  slides: IGSlide[];
+  caption: string;
+}
+
+/** Firestore collection: ig_queue */
+export interface IGQueueItem {
+  id: string;
+  sourceContentId: string;
+  igType: IGPostType;
+  score: number;
+  status: IGQueueStatus;
+  scheduledFor?: string; // ISO date-time
+  igPostId?: string;
+  reasons: string[];
+  payload?: IGFormattedPayload;
+  dryRunPath?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // ── Shared enums for datasets ──────────────────────────────────────────────
 
 export type DatasetCountry =

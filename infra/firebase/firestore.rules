@@ -117,5 +117,12 @@ service cloud.firestore {
     match /history_publish_log/{docId} {
       allow read, write: if false;
     }
+
+    // ── Instagram pipeline ─────────────────────────────────────────────
+
+    // IG queue: server-only (managed by worker pipeline)
+    match /ig_queue/{docId} {
+      allow read, write: if false;
+    }
   }
 }

@@ -395,6 +395,45 @@ export interface HaitiHistoryAlmanacRaw {
     verificationStatus: AlmanacRawVerificationStatus;
     createdAt: Timestamp;
 }
+export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility";
+export type IGQueueStatus = "queued" | "scheduled" | "rendering" | "posted" | "skipped" | "scheduled_ready_for_manual";
+/** Decision record produced by the IG selection logic. */
+export interface IGDecision {
+    igEligible: boolean;
+    igType: IGPostType | null;
+    igPriorityScore: number;
+    reasons: string[];
+    /** Delay posting until this ISO date */
+    igPostAfter?: string;
+    /** Do not post after this ISO date */
+    igExpiresAt?: string;
+}
+/** A single carousel slide for IG. */
+export interface IGSlide {
+    heading: string;
+    bullets: string[];
+    footer?: string;
+}
+/** Formatted output ready for rendering. */
+export interface IGFormattedPayload {
+    slides: IGSlide[];
+    caption: string;
+}
+/** Firestore collection: ig_queue */
+export interface IGQueueItem {
+    id: string;
+    sourceContentId: string;
+    igType: IGPostType;
+    score: number;
+    status: IGQueueStatus;
+    scheduledFor?: string;
+    igPostId?: string;
+    reasons: string[];
+    payload?: IGFormattedPayload;
+    dryRunPath?: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
 export type DatasetCountry = "US" | "CA" | "FR" | "UK" | "DO" | "MX" | "CN" | "RU" | "HT" | "Global";
 export type AcademicLevel = "bachelor" | "master" | "phd" | "short_programs";
 export type TuitionBand = "low" | "medium" | "high" | "unknown";

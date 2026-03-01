@@ -17,4 +17,13 @@
  * @returns           - Token-based download URL
  */
 export declare function uploadImageBuffer(path: string, buffer: Buffer, contentType?: string): Promise<string>;
+/**
+ * Upload an array of local image files to Firebase Storage and return their
+ * public download URLs.  Designed for IG carousel slides.
+ *
+ * @param localPaths - Absolute paths to local PNG files
+ * @param queueItemId - IG queue item ID (used to namespace the upload path)
+ * @returns Array of public download URLs in the same order
+ */
+export declare function uploadCarouselSlides(localPaths: string[], queueItemId: string): Promise<string[]>;
 //# sourceMappingURL=storage.d.ts.map

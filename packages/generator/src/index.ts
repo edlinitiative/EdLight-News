@@ -121,6 +121,18 @@ export type {
   VerifyError,
 } from "./verify.js";
 
+// ── Re-export Instagram pipeline module ─────────────────────────────────────
+export {
+  decideIG,
+  applyDedupePenalty,
+  formatForIG,
+  buildScholarshipCarousel,
+  buildOpportunityCarousel,
+  buildNewsCarousel,
+  buildHistoireCarousel,
+  buildUtilityCarousel,
+} from "./ig/index.js";
+
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.65;
 
