@@ -77,8 +77,15 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
       left: tabRect.left - containerRect.left + container.scrollLeft,
       width: tabRect.width,
     });
-    // Scroll active tab into view
-    tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    // Horizontally center the active tab *inside* the tab strip only —
+    // never call scrollIntoView() here because it scrolls the whole page
+    // on mobile when the dashboard section is below the fold.
+    const targetScrollLeft =
+      tabRect.left -
+      containerRect.left +
+      container.scrollLeft -
+      (containerRect.width - tabRect.width) / 2;
+    container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
   }, [activeTab]);
 
   useEffect(() => {

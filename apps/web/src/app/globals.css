@@ -37,10 +37,6 @@
     color-scheme: dark;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
     @apply bg-stone-50 text-stone-900 antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
