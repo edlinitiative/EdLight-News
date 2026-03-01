@@ -57,7 +57,7 @@ const DashboardTabs = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-64 animate-pulse rounded-xl bg-stone-100 dark:bg-stone-800" />
+      <div className="min-h-[28rem] animate-pulse rounded-xl bg-stone-100 dark:bg-stone-800" />
     ),
   },
 );

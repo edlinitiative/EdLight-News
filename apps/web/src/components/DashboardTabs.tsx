@@ -63,6 +63,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragScrollLeft = useRef(0);
+  const hasUserSwitchedTab = useRef(false);
 
   // ── Pill indicator ───────────────────────────────────────────────────────
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
@@ -77,9 +78,11 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
       left: tabRect.left - containerRect.left + container.scrollLeft,
       width: tabRect.width,
     });
-    // Horizontally center the active tab *inside* the tab strip only —
-    // never call scrollIntoView() here because it scrolls the whole page
-    // on mobile when the dashboard section is below the fold.
+    // Only scroll the tab strip after the user actively switches tabs.
+    // On first render the default tab is already visible; calling scrollTo
+    // here would fight with the browser's scroll-anchoring on mobile and
+    // also fire on every address-bar resize event.
+    if (!hasUserSwitchedTab.current) return;
     const targetScrollLeft =
       tabRect.left -
       containerRect.left +
@@ -157,6 +160,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
   const switchTab = useCallback(
     (id: TabId) => {
       if (id === activeTab) return;
+      hasUserSwitchedTab.current = true;
       setIsTransitioning(true);
       setTimeout(() => {
         setActiveTab(id);
@@ -211,7 +215,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         <div
           ref={scrollRef}
           className="tab-scroll relative flex gap-0.5 overflow-x-auto border-b border-stone-200 pb-px dark:border-stone-800"
-          style={{ cursor: "grab" }}
+          style={{ cursor: "grab", touchAction: "pan-y" }}
           onMouseDown={onMouseDown}
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
@@ -254,6 +258,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        style={{ touchAction: "pan-y" }}
         className={[
           "relative overflow-hidden rounded-xl border border-stone-200 bg-white p-3 transition-all duration-200 ease-out dark:border-stone-800 dark:bg-stone-900 sm:p-4",
           isTransitioning

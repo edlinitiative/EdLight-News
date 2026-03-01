@@ -21,6 +21,11 @@
     color-scheme: light;
   }
 
+  html {
+    /* Prevent momentum scroll-chaining on mobile (stops "fling to bottom") */
+    overscroll-behavior-y: contain;
+  }
+
   .dark {
     --surface: #0c0a09;
     --surface-raised: #1c1917;
@@ -69,14 +74,16 @@
   .card {
     @apply rounded-xl border border-stone-200 bg-white transition-all duration-300 ease-out;
   }
-  .card:hover {
-    @apply -translate-y-0.5 border-stone-300 shadow-lift;
+  @media (hover: hover) {
+    .card:hover {
+      @apply -translate-y-0.5 border-stone-300 shadow-lift;
+    }
+    .dark .card:hover {
+      @apply border-stone-700 shadow-lift-dark;
+    }
   }
   .dark .card {
     @apply border-stone-800 bg-stone-900;
-  }
-  .dark .card:hover {
-    @apply border-stone-700 shadow-lift-dark;
   }
 
   /* ── Section container ──────────────────────────────────── */

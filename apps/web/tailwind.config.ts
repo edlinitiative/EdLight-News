@@ -5,6 +5,9 @@ import defaultTheme from "tailwindcss/defaultTheme";
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   darkMode: "class",
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       fontFamily: {
