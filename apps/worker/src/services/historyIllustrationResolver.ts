@@ -1,3 +1,10 @@
+import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+
+import type { WebImageCacheEntry } from "./webImageSearch.js";
+import { cacheKey } from "./webImageSearch.js";
+
 type CommonsImageInfo = {
   thumburl?: string;
   url?: string;
@@ -25,8 +32,22 @@ type WikiPage = {
   pageimage?: string;
 };
 
+type DirectImage = {
+  /** Direct image URL (non-Wikimedia). */
+  url: string;
+  /** Page URL where the image is displayed / credited. */
+  pageUrl: string;
+  pageTitle?: string;
+  author?: string;
+  license?: string;
+};
+
 type OverrideHint = {
   test: RegExp;
+  /** Exact Wikimedia Commons file title (e.g. "File:Example.jpg"). Highest priority — bypasses search. */
+  commonsFile?: string;
+  /** Direct image URL for sources outside Wikimedia Commons. Highest priority — bypasses search. */
+  directImage?: DirectImage;
   wikipediaFr?: string;
   wikipediaEn?: string;
   commonsQuery?: string;
@@ -95,9 +116,16 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
   },
   {
     test: /gr[eè]ve.*damien|damien.*gr[eè]ve|[eé]cole.*agriculture.*damien/i,
-    wikipediaFr: "Massacre des Cayes",
-    wikipediaEn: "Les Cayes massacre",
-    commonsQuery: "Les Cayes massacre Haiti 1929",
+    directImage: {
+      url: "https://islandluminous.fiu.edu/PT8/S18/GT.PT8.SL18.SO1.png",
+      pageUrl: "https://islandluminous.fiu.edu/part08-slide19.html",
+      pageTitle: "The Student Strike at Damien — Island Luminous (FIU)",
+      author: "La Relève (May 1936) — University of Florida George A. Smathers Library",
+      license: "Public Domain",
+    },
+    wikipediaFr: "Occupation d'Haïti par les États-Unis",
+    wikipediaEn: "United States occupation of Haiti",
+    commonsQuery: "United States occupation Haiti 1929",
   },
   {
     test: /occupation\s+am[eé]ricaine|marines\s+am[eé]ricains/i,
@@ -107,6 +135,7 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
   },
   {
     test: /d[eé]part.*aristide|aristide.*d[eé]part|coup\s*d[''\u2019]?\s*[eé]tat.*ha[iï]ti.*200[4]/i,
+    commonsFile: "File:General Richard B. Myers Chairman of the Joint Chiefs of Staff visited Haiti.jpg",
     wikipediaFr: "Coup d'État de 2004 à Haïti",
     wikipediaEn: "2004 Haitian coup d'état",
     commonsQuery: "2004 Haitian coup Operation Secure Tomorrow Haiti",
@@ -249,7 +278,7 @@ export interface ResolvedHistoryIllustration {
   imageUrl: string;
   pageUrl: string;
   pageTitle?: string;
-  provider: "wikimedia_commons";
+  provider: "wikimedia_commons" | "manual";
   author?: string;
   license?: string;
   confidence: number;
@@ -483,9 +512,63 @@ async function searchWikipediaPageImage(
   return null;
 }
 
+/* ── Web image cache (populated by batchWebImageResolve.ts) ───────────────── */
+
+let webImageCache: Record<string, WebImageCacheEntry> | null = null;
+
+function loadWebImageCache(): Record<string, WebImageCacheEntry> {
+  if (webImageCache) return webImageCache;
+  try {
+    const __dir = dirname(fileURLToPath(import.meta.url));
+    const cachePath = resolve(__dir, "../data/web-image-cache.json");
+    webImageCache = JSON.parse(readFileSync(cachePath, "utf-8"));
+    return webImageCache!;
+  } catch {
+    webImageCache = {};
+    return webImageCache;
+  }
+}
+
+async function resolveViaWebImageCache(
+  title: string,
+): Promise<ResolvedHistoryIllustration | null> {
+  const cache = loadWebImageCache();
+  const key = cacheKey(title);
+  const entry = cache[key];
+  if (!entry) return null;
+  return {
+    imageUrl: entry.imageUrl,
+    pageUrl: entry.pageUrl,
+    pageTitle: entry.pageTitle,
+    provider: "manual",
+    author: entry.sourceDomain,
+    license: undefined,
+    confidence: 0.91,
+  };
+}
+
 async function resolveViaOverrideHints(title: string): Promise<ResolvedHistoryIllustration | null> {
   for (const hint of HISTORY_OVERRIDE_HINTS) {
     if (!hint.test.test(title)) continue;
+
+    // Highest priority: direct image pinning (non-Wikimedia source).
+    if (hint.directImage) {
+      return {
+        imageUrl: hint.directImage.url,
+        pageUrl: hint.directImage.pageUrl,
+        pageTitle: hint.directImage.pageTitle,
+        provider: "manual",
+        author: hint.directImage.author,
+        license: hint.directImage.license,
+        confidence: 0.98,
+      };
+    }
+
+    // Second priority: exact Commons file pinning (no search needed).
+    if (hint.commonsFile) {
+      const pinned = await getCommonsFileInfo(hint.commonsFile);
+      if (pinned) return { ...pinned, confidence: 0.97 };
+    }
 
     if (hint.wikipediaFr) {
       const viaFr = await searchWikipediaPageImage(hint.wikipediaFr, "fr");
@@ -561,6 +644,10 @@ export async function resolveHistoryIllustration(
   // Pass 0: curated hints for iconic events/people.
   const hinted = await resolveViaOverrideHints(base);
   if (hinted) return hinted;
+
+  // Pass 0.5: pre-computed web image cache (from batchWebImageResolve).
+  const cached = await resolveViaWebImageCache(base);
+  if (cached) return cached;
 
   const simplified = simplifyTitle(base);
   const names = extractProperNames(base);

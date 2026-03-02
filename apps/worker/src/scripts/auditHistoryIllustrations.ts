@@ -74,7 +74,7 @@ let lastFetchTime = 0;
 const _originalFetch = globalThis.fetch;
 
 globalThis.fetch = async function throttledFetch(
-  input: RequestInfo | URL,
+  input: string | URL | Request,
   init?: RequestInit,
 ): Promise<Response> {
   // Enforce minimum gap between requests.

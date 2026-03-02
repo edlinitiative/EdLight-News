@@ -30,6 +30,7 @@
     "backfill:success-tags-llm": "tsx src/scripts/backfillSuccessTagsLLM.ts",
     "backfill:history-images": "tsx src/scripts/backfillHistoryIllustrations.ts",
     "audit:history-images": "tsx src/scripts/auditHistoryIllustrations.ts",
+    "batch:web-images": "tsx src/scripts/batchWebImageResolve.ts",
     "almanac:expand": "tsx src/scripts/runAlmanacExpansionCli.ts",
     "almanac:verify": "tsx src/scripts/runVerifyAlmanacCli.ts",
     "almanac:coverage": "tsx src/scripts/runCoverageStatsCli.ts",
