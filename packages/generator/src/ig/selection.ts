@@ -20,6 +20,32 @@ const NEWS_STUDENT_MARKERS = [
   "cyclone", "urgence", "emergency", "catastrophe",
 ];
 
+// ── Broader Haiti-relevance markers for news eligibility ───────────────────
+const NEWS_HAITI_MARKERS = [
+  // Governance & politics
+  "gouvernement", "gouvènman", "premier ministre", "président", "parlement",
+  "sénat", "élection", "transition", "conseil présidentiel",
+  // Security
+  "insécurité", "gang", "police", "pnh", "sécurité", "violence",
+  "kidnapping", "enlèvement", "force armée",
+  // Economy & infrastructure
+  "économie", "inflation", "gourde", "dollar", "emploi", "chômage",
+  "commerce", "investissement", "banque", "électricité", "edh",
+  "eau potable", "infrastructure", "route", "transport",
+  // Health & environment
+  "santé", "hôpital", "choléra", "covid", "vaccination",
+  "environnement", "déboisement", "agriculture", "sécurité alimentaire",
+  // Key places
+  "port-au-prince", "cap-haïtien", "gonaïves", "les cayes", "jacmel",
+  "jérémie", "artibonite", "pòtoprens",
+  // International
+  "caricom", "onu", "nations unies", "binuh", "diplomatie",
+  "rapatriement", "migration", "tps", "visa",
+  // Culture & society
+  "kanaval", "carnaval", "vodou", "créole", "patrimoine",
+  "télécommunication", "natcom", "digicel",
+];
+
 // ── Official / strong source domains ───────────────────────────────────────
 const OFFICIAL_DOMAINS = [
   "menfp.gouv.ht", "gouv.ht", "un.org", "unicef.org", "worldbank.org",
@@ -170,19 +196,31 @@ export function decideIG(item: Item): IGDecision {
   if (igType === "news") {
     const audienceFit = item.audienceFitScore ?? 0;
     const studentMarkers = countMatches(fullText, NEWS_STUDENT_MARKERS);
+    const haitiMarkers = countMatches(fullText, NEWS_HAITI_MARKERS);
+    const isHaitiTagged = item.geoTag === "HT";
 
-    if (audienceFit < 0.5 && studentMarkers < 2) {
+    // Accept if: high audience fit, OR enough student markers,
+    // OR Haiti-tagged with some haiti-relevance markers, OR strong haiti content.
+    const eligible =
+      audienceFit >= 0.5 ||
+      studentMarkers >= 2 ||
+      (isHaitiTagged && (audienceFit >= 0.3 || haitiMarkers >= 1)) ||
+      haitiMarkers >= 2;
+
+    if (!eligible) {
       return {
         igEligible: false,
         igType,
         igPriorityScore: 0,
         reasons: [
-          `News: low audience fit (${audienceFit.toFixed(2)}) and few student markers (${studentMarkers})`,
+          `News: low audience fit (${audienceFit.toFixed(2)}), few student markers (${studentMarkers}), few Haiti markers (${haitiMarkers}), geoTag=${item.geoTag ?? "none"}`,
         ],
       };
     }
     if (audienceFit >= 0.5) reasons.push(`News: audience fit ${audienceFit.toFixed(2)} ≥ 0.5`);
     if (studentMarkers >= 2) reasons.push(`News: ${studentMarkers} student-relevance markers`);
+    if (haitiMarkers >= 1) reasons.push(`News: ${haitiMarkers} Haiti-relevance markers`);
+    if (isHaitiTagged) reasons.push(`News: Haiti geoTag`);
   }
 
   // ── Priority scoring ───────────────────────────────────────────────────

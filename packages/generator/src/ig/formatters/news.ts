@@ -17,6 +17,7 @@ export function buildNewsCarousel(item: Item): IGFormattedPayload {
   slides.push({
     heading: shortenText(item.title, 80),
     bullets: bullets1,
+    backgroundImage: item.imageUrl ?? undefined,
   });
 
   // Slide 2: Sections (if content sections exist)

@@ -33,6 +33,7 @@ import {
 } from "@edlight-news/generator";
 import type { UtilitySourcePacket } from "@edlight-news/generator";
 import { extractArticleContent } from "@edlight-news/scraper";
+import { computeDedupeGroupId } from "./scoring.js";
 import type {
   UtilityType,
   UtilitySeries,
@@ -54,6 +55,8 @@ const ENABLE_RU = process.env.ENABLE_RU_STUDYABROAD === "true";
 const MAX_CALENDAR_SOURCES = 8;
 /** Only create a new calendar item if none exists in last N days */
 const CALENDAR_DEDUP_DAYS = 30;
+/** Skip creation if a utility item with the same dedupeGroupId exists within this window */
+const UTILITY_DEDUP_DAYS = 3;
 
 // ── Haiti timezone offset (UTC-5 / EST, Haiti does not observe DST) ─────
 const HAITI_UTC_OFFSET_HOURS = -5;
@@ -582,6 +585,25 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
         }
 
         // ── Normal item creation (non-calendar or first calendar) ───────────
+
+        // Compute semantic dedupeGroupId from the generated title
+        const dedupeGroupId = computeDedupeGroupId(output.title_fr);
+
+        // Pre-creation dedup: skip if a utility item with the same
+        // dedupeGroupId already exists within the dedup window.
+        const existingDupe = await itemsRepo.findRecentUtilityByDedupeGroup(
+          dedupeGroupId,
+          UTILITY_DEDUP_DAYS,
+        );
+        if (existingDupe) {
+          console.log(
+            `[utility] SKIPPED ${job.series} — duplicate of ${existingDupe.id} ` +
+              `("${existingDupe.title?.slice(0, 50)}…", dedupeGroup=${dedupeGroupId})`,
+          );
+          await utilityQueueRepo.markDone(job.id);
+          continue;
+        }
+
         // Create item
         const itemData = {
           rawItemId: `utility-${job.id}`,
@@ -601,6 +623,7 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           itemType: "utility" as const,
           utilityMeta,
           audienceFitScore,
+          dedupeGroupId,
           geoTag: utilityMeta.region?.includes("HT") ? ("HT" as const) : ("Global" as const),
           imageSource: "branded" as const,
           // HaitianOfTheWeek items are success stories by definition

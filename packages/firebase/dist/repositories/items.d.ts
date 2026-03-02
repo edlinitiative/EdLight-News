@@ -28,6 +28,12 @@ export declare function updateItem(id: string, data: ItemUpdate): Promise<void>;
 /** Get a single item by its dedupeGroupId (newest first). */
 export declare function listByDedupeGroupId(dedupeGroupId: string, limit?: number): Promise<Item[]>;
 export declare function deleteItem(id: string): Promise<void>;
+/**
+ * Find a recent utility item with the given dedupeGroupId.
+ * Used to prevent the utility engine from creating duplicate daily_fact /
+ * scholarship / career items about the same underlying story.
+ */
+export declare function findRecentUtilityByDedupeGroup(dedupeGroupId: string, sinceDaysAgo?: number): Promise<Item | null>;
 /** Find an existing synthesis item by its clusterId. */
 export declare function findSynthesisByClusterId(clusterId: string): Promise<Item | null>;
 /**

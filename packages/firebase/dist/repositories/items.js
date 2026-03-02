@@ -82,6 +82,27 @@ export async function listByDedupeGroupId(dedupeGroupId, limit = 10) {
 export async function deleteItem(id) {
     await collection().doc(id).delete();
 }
+/**
+ * Find a recent utility item with the given dedupeGroupId.
+ * Used to prevent the utility engine from creating duplicate daily_fact /
+ * scholarship / career items about the same underlying story.
+ */
+export async function findRecentUtilityByDedupeGroup(dedupeGroupId, sinceDaysAgo = 3) {
+    const since = new Date();
+    since.setDate(since.getDate() - sinceDaysAgo);
+    const sinceTimestamp = Timestamp.fromDate(since);
+    const snap = await collection()
+        .where("itemType", "==", "utility")
+        .where("dedupeGroupId", "==", dedupeGroupId)
+        .where("createdAt", ">=", sinceTimestamp)
+        .orderBy("createdAt", "desc")
+        .limit(1)
+        .get();
+    if (snap.empty)
+        return null;
+    const doc = snap.docs[0];
+    return { id: doc.id, ...doc.data() };
+}
 // ── Synthesis helpers ───────────────────────────────────────────────────────
 /** Find an existing synthesis item by its clusterId. */
 export async function findSynthesisByClusterId(clusterId) {

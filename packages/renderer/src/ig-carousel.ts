@@ -44,6 +44,16 @@ export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: numbe
     .map((b) => `<li>${escapeHtml(b)}</li>`)
     .join("\n          ");
 
+  // Background: if an image URL is provided, use it with a dark overlay;
+  // otherwise fall back to the type-specific gradient.
+  const hasImage = !!slide.backgroundImage;
+  const bodyBackground = hasImage
+    ? `background: ${gradient}; background-image: url('${slide.backgroundImage}'); background-size: cover; background-position: center;`
+    : `background: ${gradient};`;
+  const overlayStyle = hasImage
+    ? `position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 0;`
+    : "";
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -53,13 +63,16 @@ export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: numbe
   body {
     width: 1080px; height: 1080px;
     font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: ${gradient};
+    ${bodyBackground}
     display: flex; flex-direction: column;
     justify-content: space-between;
     padding: 80px;
     color: white;
     overflow: hidden;
+    position: relative;
   }
+  ${hasImage ? `.overlay { ${overlayStyle} }` : ""}
+  .content { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
   .top { display: flex; justify-content: space-between; align-items: flex-start; }
   .category {
     display: inline-block;
@@ -75,7 +88,7 @@ export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: numbe
   .heading {
     font-size: 48px; font-weight: 800;
     line-height: 1.15; letter-spacing: -0.5px;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
     margin-bottom: 32px;
     overflow: hidden;
     display: -webkit-box;
@@ -88,6 +101,7 @@ export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: numbe
     font-size: 28px; line-height: 1.5;
     margin-bottom: 16px;
     opacity: 0.95;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.4);
   }
   .footer {
     font-size: 18px; opacity: 0.6;
@@ -100,6 +114,8 @@ export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: numbe
 </style>
 </head>
 <body>
+  ${hasImage ? `<div class="overlay"></div>` : ""}
+  <div class="content">
   <div class="top">
     ${label ? `<span class="category">${escapeHtml(label)}</span>` : ""}
     <span class="page">${slideIndex + 1}/${totalSlides}</span>
@@ -115,6 +131,7 @@ export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: numbe
   <div class="footer">
     <span>${slide.footer ? escapeHtml(slide.footer) : ""}</span>
     <span class="brand">Ed<span>Light</span> News</span>
+  </div>
   </div>
 </body>
 </html>`;

@@ -4620,28 +4620,34 @@ export declare const igSlideSchema: z.ZodObject<{
     heading: z.ZodString;
     bullets: z.ZodArray<z.ZodString, "many">;
     footer: z.ZodOptional<z.ZodString>;
+    backgroundImage: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     heading: string;
     bullets: string[];
     footer?: string | undefined;
+    backgroundImage?: string | undefined;
 }, {
     heading: string;
     bullets: string[];
     footer?: string | undefined;
+    backgroundImage?: string | undefined;
 }>;
 export declare const igFormattedPayloadSchema: z.ZodObject<{
     slides: z.ZodArray<z.ZodObject<{
         heading: z.ZodString;
         bullets: z.ZodArray<z.ZodString, "many">;
         footer: z.ZodOptional<z.ZodString>;
+        backgroundImage: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         heading: string;
         bullets: string[];
         footer?: string | undefined;
+        backgroundImage?: string | undefined;
     }, {
         heading: string;
         bullets: string[];
         footer?: string | undefined;
+        backgroundImage?: string | undefined;
     }>, "many">;
     caption: z.ZodString;
 }, "strip", z.ZodTypeAny, {
@@ -4649,6 +4655,7 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         heading: string;
         bullets: string[];
         footer?: string | undefined;
+        backgroundImage?: string | undefined;
     }[];
     caption: string;
 }, {
@@ -4656,6 +4663,7 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         heading: string;
         bullets: string[];
         footer?: string | undefined;
+        backgroundImage?: string | undefined;
     }[];
     caption: string;
 }>;
@@ -4673,14 +4681,17 @@ export declare const igQueueItemSchema: z.ZodObject<{
             heading: z.ZodString;
             bullets: z.ZodArray<z.ZodString, "many">;
             footer: z.ZodOptional<z.ZodString>;
+            backgroundImage: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }>, "many">;
         caption: z.ZodString;
     }, "strip", z.ZodTypeAny, {
@@ -4688,6 +4699,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     }, {
@@ -4695,6 +4707,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     }>>;
@@ -4741,6 +4754,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     } | undefined;
@@ -4767,6 +4781,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     } | undefined;
@@ -4786,14 +4801,17 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             heading: z.ZodString;
             bullets: z.ZodArray<z.ZodString, "many">;
             footer: z.ZodOptional<z.ZodString>;
+            backgroundImage: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }>, "many">;
         caption: z.ZodString;
     }, "strip", z.ZodTypeAny, {
@@ -4801,6 +4819,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     }, {
@@ -4808,6 +4827,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     }>>;
@@ -4845,6 +4865,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     } | undefined;
@@ -4862,6 +4883,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             heading: string;
             bullets: string[];
             footer?: string | undefined;
+            backgroundImage?: string | undefined;
         }[];
         caption: string;
     } | undefined;

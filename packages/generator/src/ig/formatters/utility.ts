@@ -13,6 +13,7 @@ export function buildUtilityCarousel(item: Item): IGFormattedPayload {
   slides.push({
     heading: shortenText(item.title, 80),
     bullets: bullets1,
+    backgroundImage: item.imageUrl ?? undefined,
   });
 
   // Slide 2: Extracted facts (deadlines, requirements, steps)

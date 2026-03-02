@@ -553,6 +553,8 @@ export interface IGSlide {
   heading: string;
   bullets: string[];
   footer?: string;
+  /** Optional background image URL. Rendered with a dark overlay for text readability. */
+  backgroundImage?: string;
 }
 
 /** Formatted output ready for rendering. */

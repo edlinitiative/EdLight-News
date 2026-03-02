@@ -647,6 +647,7 @@ export const igSlideSchema = z.object({
     heading: z.string().min(1),
     bullets: z.array(z.string()),
     footer: z.string().optional(),
+    backgroundImage: z.string().url().optional(),
 });
 export const igFormattedPayloadSchema = z.object({
     slides: z.array(igSlideSchema).min(1),

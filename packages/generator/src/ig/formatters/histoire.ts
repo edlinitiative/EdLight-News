@@ -14,6 +14,7 @@ export function buildHistoireCarousel(item: Item): IGFormattedPayload {
   slides.push({
     heading: shortenText(item.title, 80),
     bullets: [shortenText(item.summary, 200)],
+    backgroundImage: item.imageUrl ?? undefined,
   });
 
   // Slide 2: Key facts from extracted text or sections

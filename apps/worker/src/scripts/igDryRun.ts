@@ -57,6 +57,7 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
       "logement et allocation mensuelle pour les étudiants haïtiens de niveau licence. " +
       "Les candidatures sont ouvertes jusqu'au 15 avril 2026.",
     canonicalUrl: "https://example.edu/bourses/montreal-2026",
+    imageUrl: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1080&q=80",
     category: "scholarship",
     deadline: futureDate(10),
     evergreen: false,
@@ -100,6 +101,7 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
       "Google DeepMind recrute des stagiaires pour l'été 2026. Programme de 12 semaines " +
       "à Londres, ouvert aux étudiants en informatique de toute nationalité.",
     canonicalUrl: "https://deepmind.google/careers/internship-2026",
+    imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1080&q=80",
     category: "opportunity",
     deadline: futureDate(21),
     evergreen: false,
@@ -147,6 +149,7 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
       "Les centres d'examen seront répartis dans les 10 départements. " +
       "Un formulaire d'inscription en ligne sera disponible sur le site du MENFP.",
     canonicalUrl: "https://menfp.gouv.ht/communiques/bac-2026",
+    imageUrl: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1080&q=80",
     category: "news",
     geoTag: "HT",
     deadline: null,
@@ -185,6 +188,7 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
       "L'acte d'indépendance fut rédigé par Boisrond-Tonnerre. " +
       "Ce fut l'aboutissement de 13 ans de lutte révolutionnaire.",
     canonicalUrl: "https://edlightnews.com/histoire/independance-haiti",
+    imageUrl: "https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=1080&q=80",
     category: "resource",
     itemType: "utility",
     deadline: null,
@@ -225,6 +229,7 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
       "Toutes les étapes pour constituer un dossier solide sur la plateforme Études en France " +
       "et obtenir un visa étudiant pour la France depuis Haïti.",
     canonicalUrl: "https://edlightnews.com/ressources/campus-france-guide",
+    imageUrl: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1080&q=80",
     category: "resource",
     itemType: "utility",
     deadline: null,
@@ -249,8 +254,8 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
       utilityType: "study_abroad",
       extractedFacts: {
         deadlines: [
-          { label: "Inscription Études en France", dateISO: futureDate(45) },
-          { label: "Entretien Campus France", dateISO: futureDate(60) },
+          { label: "Inscription Études en France", dateISO: futureDate(45), sourceUrl: "https://www.campusfrance.org/fr" },
+          { label: "Entretien Campus France", dateISO: futureDate(60), sourceUrl: "https://www.campusfrance.org/fr" },
         ],
         requirements: [
           "Relevés de notes certifiés",
