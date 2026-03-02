@@ -10,37 +10,31 @@ import { truncateCaption, buildCTA, buildSourceLine, shortenText } from "./helpe
 export function buildHistoireCarousel(item: Item): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
-  // Slide 1: Title + summary
+  // Slide 1: Cover
   slides.push({
     heading: shortenText(item.title, 80),
-    bullets: [shortenText(item.summary, 200)],
+    bullets: [shortenText(item.summary, 180)],
     backgroundImage: item.imageUrl ?? undefined,
   });
 
-  // Slide 2: Key facts from extracted text or sections
+  // Slide 2: Key facts
   if (item.extractedText) {
     const facts = item.extractedText
       .split(/[.!?]\s+/)
       .filter((s) => s.trim().length > 15 && s.trim().length < 120)
       .slice(0, 4)
-      .map((s) => `📌 ${s.trim()}`);
+      .map((s) => s.trim());
 
     if (facts.length >= 1) {
-      slides.push({
-        heading: "Le saviez-vous?",
-        bullets: facts,
-      });
+      slides.push({ heading: "Le saviez-vous", bullets: facts });
     }
   }
 
-  // Slide 3: Student takeaway (if utility meta has citations)
+  // Slide 3: Further reading
   if (item.utilityMeta?.citations?.length) {
-    const citBullets = item.utilityMeta.citations
-      .slice(0, 3)
-      .map((c) => `📖 ${c.label}`);
     slides.push({
       heading: "Pour aller plus loin",
-      bullets: citBullets,
+      bullets: item.utilityMeta.citations.slice(0, 3).map((c) => c.label),
       footer: buildSourceLine(item),
     });
   }
@@ -50,9 +44,8 @@ export function buildHistoireCarousel(item: Item): IGFormattedPayload {
   }
 
   // Caption
-  const emoji = item.utilityMeta?.series === "HaitianOfTheWeek" ? "🇭🇹" : "📜";
   const parts: string[] = [
-    `${emoji} ${item.title}`,
+    item.title,
     "",
     shortenText(item.summary, 400),
     "",

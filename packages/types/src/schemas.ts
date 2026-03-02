@@ -87,6 +87,9 @@ const synthesisMetaSchema = z.object({
 const contentSectionSchema = z.object({
   heading: z.string().min(1),
   content: z.string().min(1),
+  imageUrl: z.string().url().optional(),
+  imageCaption: z.string().optional(),
+  imageCredit: z.string().optional(),
 });
 
 export const sourceCitationSchema = z.object({

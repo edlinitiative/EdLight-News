@@ -282,14 +282,159 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
   } as Item,
 };
 
+// ── Additional Haiti news mocks (political, security, economic) ───────────
+
+const NEWS_EXTRAS: Array<[string, Item]> = [
+  [
+    "news-politique",
+    {
+      id: "mock-news-politique-1",
+      rawItemId: "raw-mock-news-pol",
+      sourceId: "src-mock-news-pol",
+      title: "Le Conseil présidentiel de transition annonce un calendrier électoral pour 2026",
+      summary:
+        "Le Conseil présidentiel de transition a confirmé la tenue d'élections générales " +
+        "en Haïti d'ici la fin de l'année 2026. Un calendrier électoral détaillé sera publié " +
+        "dans les prochaines semaines en concertation avec le Conseil Électoral Provisoire.",
+      extractedText:
+        "Le premier ministre a souligné l'importance d'un processus inclusif. " +
+        "Les partis politiques ont été invités à participer aux consultations. " +
+        "La communauté internationale salue cette avancée vers la stabilité. " +
+        "L'ONU s'est dite prête à fournir une assistance technique.",
+      canonicalUrl: "https://communication.gouv.ht/actualites/calendrier-electoral-2026",
+      imageUrl: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=1080&q=80",
+      category: "news",
+      geoTag: "HT",
+      deadline: null,
+      evergreen: false,
+      confidence: 0.93,
+      qualityFlags: {
+        hasSourceUrl: true,
+        needsReview: false,
+        lowConfidence: false,
+        reasons: [],
+      },
+      citations: [
+        { sourceName: "Gouvernement d'Haïti", sourceUrl: "https://communication.gouv.ht/actualites/calendrier-electoral-2026" },
+      ],
+      audienceFitScore: 0.65,
+      source: {
+        name: "Gouvernement d'Haïti",
+        originalUrl: "https://communication.gouv.ht/actualites/calendrier-electoral-2026",
+      },
+      createdAt: NOW_TS,
+      updatedAt: NOW_TS,
+    } as Item,
+  ],
+  [
+    "news-securite",
+    {
+      id: "mock-news-securite-1",
+      rawItemId: "raw-mock-news-sec",
+      sourceId: "src-mock-news-sec",
+      title: "La PNH et la MSS déploient des unités spécialisées dans l'Artibonite",
+      summary:
+        "La Police Nationale d'Haïti, appuyée par la Mission multinationale d'appui à la sécurité, " +
+        "a lancé une opération de sécurisation dans le département de l'Artibonite. L'objectif est de " +
+        "rétablir la libre circulation sur la Route Nationale 1.",
+      extractedText:
+        "Le directeur général de la PNH a confirmé le déploiement de 500 agents. " +
+        "Les axes routiers vers Gonaïves et Saint-Marc sont désormais sécurisés. " +
+        "Des patrouilles conjointes seront maintenues pour une durée indéterminée. " +
+        "La population est invitée à signaler toute activité suspecte au 114.",
+      canonicalUrl: "https://haitiantimes.com/2026/02/pnh-mss-artibonite",
+      imageUrl: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1080&q=80",
+      category: "news",
+      geoTag: "HT",
+      deadline: null,
+      evergreen: false,
+      confidence: 0.91,
+      qualityFlags: {
+        hasSourceUrl: true,
+        needsReview: false,
+        lowConfidence: false,
+        reasons: [],
+      },
+      citations: [
+        { sourceName: "Haitian Times", sourceUrl: "https://haitiantimes.com/2026/02/pnh-mss-artibonite" },
+      ],
+      audienceFitScore: 0.55,
+      source: {
+        name: "Haitian Times",
+        originalUrl: "https://haitiantimes.com/2026/02/pnh-mss-artibonite",
+      },
+      createdAt: NOW_TS,
+      updatedAt: NOW_TS,
+    } as Item,
+  ],
+  [
+    "news-economie",
+    {
+      id: "mock-news-economie-1",
+      rawItemId: "raw-mock-news-eco",
+      sourceId: "src-mock-news-eco",
+      title: "La BRH stabilise le taux de change : la gourde reprend du terrain face au dollar",
+      summary:
+        "La Banque de la République d'Haïti a annoncé de nouvelles mesures monétaires " +
+        "qui ont permis de stabiliser le taux de change autour de 135 gourdes pour 1 dollar américain. " +
+        "Les économistes saluent cette intervention comme un signal positif.",
+      extractedText:
+        "Le taux de référence est passé de 142 à 135 gourdes en deux semaines. " +
+        "La BRH a injecté 50 millions USD sur le marché des changes. " +
+        "Les transferts de la diaspora restent un pilier de l'économie haïtienne. " +
+        "Les commerçants de la zone métropolitaine constatent une baisse des prix de certains produits importés.",
+      canonicalUrl: "https://lenouvelliste.com/article/brh-taux-change-2026",
+      imageUrl: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=1080&q=80",
+      category: "news",
+      geoTag: "HT",
+      deadline: null,
+      evergreen: false,
+      confidence: 0.89,
+      qualityFlags: {
+        hasSourceUrl: true,
+        needsReview: false,
+        lowConfidence: false,
+        reasons: [],
+      },
+      citations: [
+        { sourceName: "Le Nouvelliste", sourceUrl: "https://lenouvelliste.com/article/brh-taux-change-2026" },
+      ],
+      audienceFitScore: 0.6,
+      source: {
+        name: "Le Nouvelliste",
+        originalUrl: "https://lenouvelliste.com/article/brh-taux-change-2026",
+      },
+      createdAt: NOW_TS,
+      updatedAt: NOW_TS,
+    } as Item,
+  ],
+];
+
 // ── Main ──────────────────────────────────────────────────────────────────
+
+interface DryRunEntry {
+  key: string;
+  igType: IGPostType;
+  item: Item;
+}
 
 async function main() {
   const { type } = parseArgs();
-  const types: IGPostType[] =
+
+  // Build unified entry list: base types + extra news items
+  const entries: DryRunEntry[] = [];
+  for (const igType of ["scholarship", "opportunity", "news", "histoire", "utility"] as IGPostType[]) {
+    entries.push({ key: igType, igType, item: MOCK_ITEMS[igType] });
+  }
+  for (const [key, item] of NEWS_EXTRAS) {
+    entries.push({ key, igType: "news", item });
+  }
+
+  // Filter by --type (matches igType OR key)
+  const filtered =
     type === "all"
-      ? ["scholarship", "opportunity", "news", "histoire", "utility"]
-      : [type];
+      ? entries
+      : entries.filter((e) => e.igType === type || e.key === type);
 
   const baseDir = "/tmp/ig_dry_run";
   mkdirSync(baseDir, { recursive: true });
@@ -297,13 +442,12 @@ async function main() {
   console.log("═".repeat(70));
   console.log("📸 IG Pipeline Dry-Run");
   console.log("═".repeat(70));
-  console.log(`  Types:  ${types.join(", ")}`);
-  console.log(`  Output: ${baseDir}`);
+  console.log(`  Entries: ${filtered.map((e) => e.key).join(", ")}`);
+  console.log(`  Output:  ${baseDir}`);
   console.log("─".repeat(70));
 
-  for (const igType of types) {
-    const item = MOCK_ITEMS[igType];
-    console.log(`\n▶ Processing: ${igType.toUpperCase()}`);
+  for (const { key, igType, item } of filtered) {
+    console.log(`\n▶ Processing: ${key.toUpperCase()} (type=${igType})`);
     console.log(`  Title: ${item.title}`);
 
     // ── Step 1: Selection ────────────────────────────────────────────────
@@ -323,7 +467,7 @@ async function main() {
     console.log(`  ✅ Formatted: ${payload.slides.length} slides, caption ${payload.caption.length} chars`);
 
     // ── Step 3: Render HTML slides ───────────────────────────────────────
-    const itemDir = join(baseDir, igType);
+    const itemDir = join(baseDir, key);
     mkdirSync(itemDir, { recursive: true });
 
     const slidePaths: string[] = [];
@@ -341,7 +485,7 @@ async function main() {
     writeFileSync(payloadPath, JSON.stringify(payload, null, 2), "utf-8");
 
     const mockQueueItem: Partial<IGQueueItem> = {
-      id: `dry-run-${igType}`,
+      id: `dry-run-${key}`,
       sourceContentId: item.id,
       igType: decision.igType,
       score: decision.igPriorityScore,
@@ -376,7 +520,7 @@ async function main() {
   console.log("📊 DRY-RUN SUMMARY");
   console.log("═".repeat(70));
   console.log(`  Output directory: ${baseDir}`);
-  console.log(`  Types processed:  ${types.join(", ")}`);
+  console.log(`  Entries rendered: ${filtered.map((e) => e.key).join(", ")}`);
   console.log("");
   console.log("  Open any slide_*.html in a browser to preview the 1080×1080 carousel.");
   console.log("  To enable real IG posting, set IG_ACCESS_TOKEN and IG_USER_ID env vars.");

@@ -8,45 +8,42 @@ import { truncateCaption, buildCTA, buildSourceLine, shortenText, formatDeadline
 export function buildUtilityCarousel(item: Item): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
-  // Slide 1: Title + summary
-  const bullets1: string[] = [shortenText(item.summary, 200)];
+  // Slide 1: Cover
   slides.push({
     heading: shortenText(item.title, 80),
-    bullets: bullets1,
+    bullets: [shortenText(item.summary, 180)],
     backgroundImage: item.imageUrl ?? undefined,
   });
 
-  // Slide 2: Extracted facts (deadlines, requirements, steps)
+  // Slide 2: Practical info
   const facts = item.utilityMeta?.extractedFacts;
   if (facts) {
-    const bullets2: string[] = [];
-
+    const bullets: string[] = [];
     if (facts.deadlines?.length) {
       for (const d of facts.deadlines.slice(0, 3)) {
-        bullets2.push(`📅 ${d.label}: ${formatDeadline(d.dateISO)}`);
+        bullets.push(`${d.label}: ${formatDeadline(d.dateISO)}`);
       }
     }
     if (facts.requirements?.length) {
       for (const r of facts.requirements.slice(0, 3)) {
-        bullets2.push(`📋 ${r}`);
+        bullets.push(r);
       }
     }
     if (facts.steps?.length) {
       for (const s of facts.steps.slice(0, 3)) {
-        bullets2.push(`➡️ ${s}`);
+        bullets.push(s);
       }
     }
-
-    if (bullets2.length > 0) {
-      slides.push({ heading: "Infos pratiques", bullets: bullets2 });
+    if (bullets.length > 0) {
+      slides.push({ heading: "Infos pratiques", bullets });
     }
   }
 
-  // Slide 3: Tips or notes
+  // Slide 3: Notes
   if (facts?.notes?.length) {
     slides.push({
       heading: "À retenir",
-      bullets: facts.notes.slice(0, 4).map((n) => `💡 ${n}`),
+      bullets: facts.notes.slice(0, 4),
       footer: buildSourceLine(item),
     });
   }
@@ -57,7 +54,7 @@ export function buildUtilityCarousel(item: Item): IGFormattedPayload {
 
   // Caption
   const parts: string[] = [
-    `💡 ${item.title}`,
+    item.title,
     "",
     shortenText(item.summary, 400),
     "",

@@ -36,7 +36,7 @@ export function truncateCaption(caption: string): string {
  */
 export function padCaption(caption: string): string {
   if (caption.length >= MIN_CAPTION_LENGTH) return caption;
-  const tags = "\n\n#EdLightNews #Haiti #Education #Bourse #Opportunité #Étudiant";
+  const tags = "\n\n#EdLightNews #Haiti #Éducation #Bourse #Opportunité";
   return caption + tags;
 }
 
@@ -44,7 +44,7 @@ export function padCaption(caption: string): string {
  * Build the standard CTA line.
  */
 export function buildCTA(): string {
-  return "👉 Détails sur EdLight News — lien dans la bio";
+  return "→ Détails sur EdLight News — lien dans la bio";
 }
 
 /**

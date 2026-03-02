@@ -175,12 +175,21 @@ declare const synthesisMetaSchema: z.ZodObject<{
 declare const contentSectionSchema: z.ZodObject<{
     heading: z.ZodString;
     content: z.ZodString;
+    imageUrl: z.ZodOptional<z.ZodString>;
+    imageCaption: z.ZodOptional<z.ZodString>;
+    imageCredit: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     heading: string;
     content: string;
+    imageUrl?: string | undefined;
+    imageCaption?: string | undefined;
+    imageCredit?: string | undefined;
 }, {
     heading: string;
     content: string;
+    imageUrl?: string | undefined;
+    imageCaption?: string | undefined;
+    imageCredit?: string | undefined;
 }>;
 export declare const sourceCitationSchema: z.ZodObject<{
     name: z.ZodString;
@@ -1041,12 +1050,12 @@ export declare const itemSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     } | null | undefined;
+    imageUrl?: string | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
@@ -1159,12 +1168,12 @@ export declare const itemSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     } | null | undefined;
+    imageUrl?: string | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
@@ -1279,12 +1288,21 @@ export declare const contentVersionSchema: z.ZodObject<{
     sections: z.ZodOptional<z.ZodArray<z.ZodObject<{
         heading: z.ZodString;
         content: z.ZodString;
+        imageUrl: z.ZodOptional<z.ZodString>;
+        imageCaption: z.ZodOptional<z.ZodString>;
+        imageCredit: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }, {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }>, "many">>;
     whatChanged: z.ZodOptional<z.ZodString>;
     synthesisTags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
@@ -1353,6 +1371,9 @@ export declare const contentVersionSchema: z.ZodObject<{
     sections?: {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
@@ -1395,6 +1416,9 @@ export declare const contentVersionSchema: z.ZodObject<{
     sections?: {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
@@ -2039,12 +2063,12 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         seconds: number;
         nanoseconds: number;
     } | null | undefined;
+    imageUrl?: string | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
@@ -2148,12 +2172,12 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         seconds: number;
         nanoseconds: number;
     } | null | undefined;
+    imageUrl?: string | null | undefined;
     extractedText?: string | null | undefined;
     vertical?: string | undefined;
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageUrl?: string | null | undefined;
     imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
@@ -2268,12 +2292,21 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     sections: z.ZodOptional<z.ZodArray<z.ZodObject<{
         heading: z.ZodString;
         content: z.ZodString;
+        imageUrl: z.ZodOptional<z.ZodString>;
+        imageCaption: z.ZodOptional<z.ZodString>;
+        imageCredit: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }, {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }>, "many">>;
     whatChanged: z.ZodOptional<z.ZodString>;
     synthesisTags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
@@ -2333,6 +2366,9 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     sections?: {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;
@@ -2366,6 +2402,9 @@ export declare const createContentVersionSchema: z.ZodObject<Omit<{
     sections?: {
         heading: string;
         content: string;
+        imageUrl?: string | undefined;
+        imageCaption?: string | undefined;
+        imageCredit?: string | undefined;
     }[] | undefined;
     whatChanged?: string | undefined;
     synthesisTags?: string[] | undefined;

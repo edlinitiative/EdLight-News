@@ -56,6 +56,45 @@ const PRIMARY_WORD_TARGET = 500; // 400-600 words
 /** LLM-rewrite: secondary event word target. */
 const SECONDARY_WORD_TARGET = 135; // 120-150 words
 
+/** Minimum illustration confidence to propagate to published content. */
+const MIN_ILLUSTRATION_CONFIDENCE = 0.55;
+
+/** Section with optional image data. */
+interface RichSection {
+  heading: string;
+  content: string;
+  imageUrl?: string;
+  imageCaption?: string;
+  imageCredit?: string;
+}
+
+/** Pick the best illustration from a set of almanac entries. */
+function pickBestIllustration(
+  entries: HaitiHistoryAlmanacEntry[],
+): HaitiHistoryAlmanacEntry["illustration"] | null {
+  let best: HaitiHistoryAlmanacEntry["illustration"] | null = null;
+  let bestConf = -1;
+  for (const e of entries) {
+    const ill = e.illustration;
+    if (!ill?.imageUrl) continue;
+    const conf = ill.confidence ?? 0;
+    if (conf >= MIN_ILLUSTRATION_CONFIDENCE && conf > bestConf) {
+      best = ill;
+      bestConf = conf;
+    }
+  }
+  return best;
+}
+
+/** Build image credit string from illustration metadata. */
+function buildImageCredit(ill: NonNullable<HaitiHistoryAlmanacEntry["illustration"]>): string {
+  const parts: string[] = [];
+  if (ill.author) parts.push(ill.author);
+  if (ill.provider === "wikimedia_commons") parts.push("Wikimedia Commons");
+  if (ill.license) parts.push(ill.license);
+  return parts.length > 0 ? parts.join(" · ") : "";
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getHaitiNow(): Date {
@@ -84,11 +123,11 @@ function buildFrenchBody(
   entries: HaitiHistoryAlmanacEntry[],
   holidays: HaitiHoliday[],
   monthDay: string,
-): { title: string; summary: string; body: string; sections: { heading: string; content: string }[] } {
+): { title: string; summary: string; body: string; sections: RichSection[] } {
   const [mm, dd] = monthDay.split("-");
   const dateLabel = `${dd}/${mm}`;
 
-  const sections: { heading: string; content: string }[] = [];
+  const sections: RichSection[] = [];
 
   // Holiday section
   if (holidays.length > 0) {
@@ -115,9 +154,17 @@ function buildFrenchBody(
       const sourceLinks = entry.sources.map((s) => `[${s.label}](${s.url})`).join(" · ");
       content += `\n\n📚 Sources : ${sourceLinks}`;
     }
+    // Attach illustration if available and confident enough
+    const ill = entry.illustration;
+    const hasIll = !!ill?.imageUrl && (ill.confidence ?? 0) >= MIN_ILLUSTRATION_CONFIDENCE;
     sections.push({
       heading: `${entry.title_fr}${yearLabel}`,
       content,
+      ...(hasIll && ill ? {
+        imageUrl: ill.imageUrl,
+        imageCaption: ill.pageTitle ?? entry.title_fr,
+        imageCredit: buildImageCredit(ill),
+      } : {}),
     });
   }
 
@@ -140,11 +187,11 @@ function buildCreoleBody(
   entries: HaitiHistoryAlmanacEntry[],
   holidays: HaitiHoliday[],
   monthDay: string,
-): { title: string; summary: string; body: string; sections: { heading: string; content: string }[] } {
+): { title: string; summary: string; body: string; sections: RichSection[] } {
   const [mm, dd] = monthDay.split("-");
   const dateLabel = `${dd}/${mm}`;
 
-  const sections: { heading: string; content: string }[] = [];
+  const sections: RichSection[] = [];
 
   // Holiday section in Creole
   if (holidays.length > 0) {
@@ -171,9 +218,17 @@ function buildCreoleBody(
       const sourceLinks = entry.sources.map((s) => `[${s.label}](${s.url})`).join(" · ");
       content += `\n\n📚 Sous : ${sourceLinks}`;
     }
+    // Attach illustration if available and confident enough
+    const ill = entry.illustration;
+    const hasIll = !!ill?.imageUrl && (ill.confidence ?? 0) >= MIN_ILLUSTRATION_CONFIDENCE;
     sections.push({
       heading: `${entry.title_fr}${yearLabel}`,
       content,
+      ...(hasIll && ill ? {
+        imageUrl: ill.imageUrl,
+        imageCaption: ill.pageTitle ?? entry.title_fr,
+        imageCredit: buildImageCredit(ill),
+      } : {}),
     });
   }
 
@@ -481,19 +536,21 @@ async function buildRawVerifiedContent(
 interface PublishContentInput {
   dateISO: string;
   monthDay: string;
-  frContent: { title: string; summary: string; body: string; sections: { heading: string; content: string }[] };
-  htContent: { title: string; summary: string; body: string; sections: { heading: string; content: string }[] };
+  frContent: { title: string; summary: string; body: string; sections: RichSection[] };
+  htContent: { title: string; summary: string; body: string; sections: RichSection[] };
   citations: { sourceName: string; sourceUrl: string }[];
   entryIds: string[];
   holidayId?: string;
   warnings?: string[];
   source: "raw-verified-llm" | "template";
+  /** Best illustration from almanac entries (if any). */
+  heroIllustration?: HaitiHistoryAlmanacEntry["illustration"] | null;
 }
 
 async function publishContent(
   input: PublishContentInput,
 ): Promise<{ published: boolean; skipped: boolean; reason: string; itemId?: string }> {
-  const { dateISO, monthDay, frContent, htContent, citations, entryIds, holidayId, warnings, source } = input;
+  const { dateISO, monthDay, frContent, htContent, citations, entryIds, holidayId, warnings, source, heroIllustration } = input;
 
   const qualityFlags: QualityFlags = {
     hasSourceUrl: true,
@@ -501,6 +558,9 @@ async function publishContent(
     lowConfidence: false,
     reasons: source === "raw-verified-llm" ? ["llm-rewrite-from-raw"] : [],
   };
+
+  // Resolve hero image from best almanac illustration
+  const hasHero = !!heroIllustration?.imageUrl;
 
   const canonicalUrl = `edlight://histoire/${dateISO}`;
   const { item } = await itemsRepo.upsertItemByCanonicalUrl({
@@ -524,7 +584,18 @@ async function publishContent(
     },
     audienceFitScore: 0.95,
     geoTag: "HT" as const,
-    imageSource: "branded" as const,
+    ...(hasHero && heroIllustration ? {
+      imageUrl: heroIllustration.imageUrl,
+      imageSource: "wikidata" as const,
+      imageConfidence: heroIllustration.confidence ?? 0.7,
+      imageAttribution: {
+        name: heroIllustration.author,
+        url: heroIllustration.pageUrl,
+        license: heroIllustration.license,
+      },
+    } : {
+      imageSource: "branded" as const,
+    }),
   });
 
   // Create content versions
@@ -658,6 +729,9 @@ export async function runHistoryDailyPublisher(): Promise<{
             holidayId: holidays[0]?.id,
             warnings: rawWarnings,
             source: "raw-verified-llm",
+            // LLM path uses raw entries which have no illustrations;
+            // fall back to curated almanac entries if available.
+            heroIllustration: pickBestIllustration(entries),
           });
         } else {
           console.warn(
@@ -800,6 +874,7 @@ export async function runHistoryDailyPublisher(): Promise<{
       holidayId: holidays[0]?.id,
       warnings: allWarnings,
       source: "template",
+      heroIllustration: pickBestIllustration(sortedEntries),
     });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

@@ -254,6 +254,12 @@ export type ContentStatus = "draft" | "review" | "published";
 export interface ContentSection {
     heading: string;
     content: string;
+    /** Optional illustration image URL for this section */
+    imageUrl?: string;
+    /** Human-readable image caption */
+    imageCaption?: string;
+    /** Attribution / credit line (e.g. "Wikimedia Commons, CC BY-SA 4.0") */
+    imageCredit?: string;
 }
 export interface ContentVersion {
     id: string;

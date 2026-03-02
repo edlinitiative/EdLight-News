@@ -9,13 +9,22 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { IGSlide, IGFormattedPayload, IGQueueItem } from "@edlight-news/types";
 
-// ── IG-specific gradient mapping ──────────────────────────────────────────
-const IG_TYPE_GRADIENTS: Record<string, string> = {
-  scholarship: "linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)",
-  opportunity: "linear-gradient(135deg, #6d28d9 0%, #db2777 100%)",
-  news:        "linear-gradient(135deg, #0f766e 0%, #1e40af 100%)",
-  histoire:    "linear-gradient(135deg, #92400e 0%, #b91c1c 100%)",
-  utility:     "linear-gradient(135deg, #15803d 0%, #0369a1 100%)",
+// ── Premium design system ─────────────────────────────────────────────────
+
+const IG_TYPE_ACCENTS: Record<string, string> = {
+  scholarship: "#3b82f6",
+  opportunity: "#8b5cf6",
+  news:        "#14b8a6",
+  histoire:    "#d97706",
+  utility:     "#10b981",
+};
+
+const IG_TYPE_DARKS: Record<string, string> = {
+  scholarship: "#060d1f",
+  opportunity: "#0b0814",
+  news:        "#061014",
+  histoire:    "#120b06",
+  utility:     "#060f0b",
 };
 
 const IG_TYPE_LABELS: Record<string, string> = {
@@ -23,8 +32,10 @@ const IG_TYPE_LABELS: Record<string, string> = {
   opportunity: "OPPORTUNITÉ",
   news:        "ACTUALITÉ",
   histoire:    "HISTOIRE",
-  utility:     "INFO PRATIQUE",
+  utility:     "GUIDE",
 };
+
+const FONT_STACK = "'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
 function escapeHtml(s: string): string {
   return s
@@ -36,105 +47,124 @@ function escapeHtml(s: string): string {
 
 /**
  * Build HTML for a single IG carousel slide (1080×1080).
+ *
+ * - Cover slides (with backgroundImage): full-bleed editorial photo layout
+ * - Content slides: dark background with accent bar
  */
-export function buildSlideHTML(slide: IGSlide, igType: string, slideIndex: number, totalSlides: number): string {
-  const gradient = IG_TYPE_GRADIENTS[igType] ?? "linear-gradient(135deg, #1e3a5f 0%, #2c1654 100%)";
+export function buildSlideHTML(
+  slide: IGSlide,
+  igType: string,
+  slideIndex: number,
+  totalSlides: number,
+): string {
+  const accent = IG_TYPE_ACCENTS[igType] ?? "#3b82f6";
+  const dark = IG_TYPE_DARKS[igType] ?? "#060d1f";
   const label = IG_TYPE_LABELS[igType] ?? "";
+  const hasImage = !!slide.backgroundImage;
   const bulletsHtml = slide.bullets
     .map((b) => `<li>${escapeHtml(b)}</li>`)
-    .join("\n          ");
+    .join("\n");
 
-  // Background: if an image URL is provided, use it with a dark overlay;
-  // otherwise fall back to the type-specific gradient.
-  const hasImage = !!slide.backgroundImage;
-  const bodyBackground = hasImage
-    ? `background: ${gradient}; background-image: url('${slide.backgroundImage}'); background-size: cover; background-position: center;`
-    : `background: ${gradient};`;
-  const overlayStyle = hasImage
-    ? `position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 0;`
-    : "";
+  if (hasImage) return buildCoverSlideHTML(slide, label, accent, dark, bulletsHtml, slideIndex, totalSlides);
+  return buildContentSlideHTML(slide, label, accent, dark, bulletsHtml, slideIndex, totalSlides);
+}
 
+/* ── Cover slide: full-bleed image, bottom-weighted text ───────────────── */
+
+function buildCoverSlideHTML(
+  slide: IGSlide, label: string, accent: string, dark: string,
+  bulletsHtml: string, slideIndex: number, totalSlides: number,
+): string {
   return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
+<html><head><meta charset="utf-8">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    width: 1080px; height: 1080px;
-    font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    ${bodyBackground}
-    display: flex; flex-direction: column;
-    justify-content: space-between;
-    padding: 80px;
-    color: white;
-    overflow: hidden;
-    position: relative;
-  }
-  ${hasImage ? `.overlay { ${overlayStyle} }` : ""}
-  .content { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
-  .top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .category {
-    display: inline-block;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(8px);
-    border-radius: 24px;
-    padding: 10px 24px;
-    font-size: 20px; font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-  }
-  .page { font-size: 20px; opacity: 0.7; }
-  .heading {
-    font-size: 48px; font-weight: 800;
-    line-height: 1.15; letter-spacing: -0.5px;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-    margin-bottom: 32px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-  }
-  .bullets { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-  .bullets ul { list-style: none; }
-  .bullets li {
-    font-size: 28px; line-height: 1.5;
-    margin-bottom: 16px;
-    opacity: 0.95;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  }
-  .footer {
-    font-size: 18px; opacity: 0.6;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 16px;
-    display: flex; justify-content: space-between; align-items: flex-end;
-  }
-  .brand { font-size: 28px; font-weight: 800; opacity: 0.9; }
-  .brand span { color: #facc15; }
-</style>
-</head>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1080px;
+  font-family: ${FONT_STACK};
+  background: ${dark} url('${slide.backgroundImage}') center/cover no-repeat;
+  color:#fff; overflow:hidden; position:relative;
+}
+.overlay {
+  position:absolute; inset:0;
+  background: linear-gradient(180deg,
+    rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.30) 35%, rgba(0,0,0,0.78) 100%);
+}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
+.top { display:flex; justify-content:space-between; align-items:center; }
+.lbl { font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; opacity:0.85; }
+.lbl::before { content:''; display:inline-block; width:8px; height:8px; background:${accent}; border-radius:50%; margin-right:10px; vertical-align:middle; }
+.pg { font-size:14px; font-weight:500; opacity:0.4; letter-spacing:1px; }
+.h { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; text-shadow:0 2px 24px rgba(0,0,0,0.5); margin-bottom:20px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+.m ul { list-style:none; }
+.m li { font-size:21px; font-weight:400; line-height:1.55; opacity:0.7; margin-bottom:4px; text-shadow:0 1px 10px rgba(0,0,0,0.4); }
+.bm { margin-top:32px; font-size:16px; font-weight:700; opacity:0.35; letter-spacing:2px; }
+.bm b { color:${accent}; font-weight:700; }
+</style></head>
 <body>
-  ${hasImage ? `<div class="overlay"></div>` : ""}
-  <div class="content">
+<div class="overlay"></div>
+<div class="c">
   <div class="top">
-    ${label ? `<span class="category">${escapeHtml(label)}</span>` : ""}
-    <span class="page">${slideIndex + 1}/${totalSlides}</span>
+    ${label ? `<span class="lbl">${escapeHtml(label)}</span>` : "<span></span>"}
+    <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div>
-    <div class="heading">${escapeHtml(slide.heading)}</div>
-    <div class="bullets">
-      <ul>
-          ${bulletsHtml}
-      </ul>
+    <div class="h">${escapeHtml(slide.heading)}</div>
+    <div class="m"><ul>${bulletsHtml}</ul></div>
+    <div class="bm">ED<b>LIGHT</b></div>
+  </div>
+</div>
+</body></html>`;
+}
+
+/* ── Content slide: dark background with accent bar ────────────────────── */
+
+function buildContentSlideHTML(
+  slide: IGSlide, label: string, accent: string, dark: string,
+  bulletsHtml: string, slideIndex: number, totalSlides: number,
+): string {
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1080px;
+  font-family: ${FONT_STACK};
+  background:${dark}; color:#fff; overflow:hidden; position:relative;
+}
+.bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
+.c { height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px 64px 92px; }
+.hd { margin-bottom:16px; }
+.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:48px; }
+.lbl { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; color:${accent}; opacity:0.6; }
+.pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
+.h { font-size:42px; font-weight:700; line-height:1.15; letter-spacing:-0.3px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+.bd { flex:1; display:flex; flex-direction:column; justify-content:center; }
+.bd ul { list-style:none; }
+.bd li { font-size:25px; line-height:1.55; margin-bottom:28px; opacity:0.82; padding-left:32px; position:relative; }
+.bd li::before { content:'\u2014'; position:absolute; left:0; color:${accent}; opacity:0.5; }
+.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
+.src { font-size:14px; opacity:0.25; max-width:65%; line-height:1.4; }
+.bm { font-size:16px; font-weight:700; opacity:0.3; letter-spacing:2px; }
+.bm b { color:${accent}; font-weight:700; }
+</style></head>
+<body>
+<div class="bar"></div>
+<div class="c">
+  <div class="hd">
+    <div class="top">
+      ${label ? `<span class="lbl">${escapeHtml(label)}</span>` : "<span></span>"}
+      <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
     </div>
+    <div class="h">${escapeHtml(slide.heading)}</div>
   </div>
-  <div class="footer">
-    <span>${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-    <span class="brand">Ed<span>Light</span> News</span>
+  <div class="bd"><ul>${bulletsHtml}</ul></div>
+  <div class="ft">
+    <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
+    <span class="bm">ED<b>LIGHT</b></span>
   </div>
-  </div>
-</body>
-</html>`;
+</div>
+</body></html>`;
 }
 
 export interface CarouselAssetResult {

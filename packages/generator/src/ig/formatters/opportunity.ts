@@ -9,37 +9,37 @@ export function buildOpportunityCarousel(item: Item): IGFormattedPayload {
   const slides: IGSlide[] = [];
   const deadlineStr = item.deadline ?? item.opportunity?.deadline;
 
-  // Slide 1: Title + overview
-  const bullets1: string[] = [];
-  if (deadlineStr) bullets1.push(`📅 Date limite: ${formatDeadline(deadlineStr)}`);
-  if (item.opportunity?.coverage) bullets1.push(`💰 ${item.opportunity.coverage}`);
+  // Slide 1: Cover
+  const meta: string[] = [];
+  if (deadlineStr) meta.push(`Date limite: ${formatDeadline(deadlineStr)}`);
+  if (item.opportunity?.coverage) meta.push(item.opportunity.coverage);
   if (item.geoTag) {
-    const label = item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International";
-    bullets1.push(`🌍 ${label}`);
+    meta.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
     heading: shortenText(item.title, 80),
-    bullets: bullets1.length > 0 ? bullets1 : ["🚀 Opportunité disponible"],
+    bullets: meta.length > 0 ? meta : ["Opportunité disponible"],
     backgroundImage: item.imageUrl ?? undefined,
   });
 
   // Slide 2: Eligibility
-  const bullets2: string[] = [];
   if (item.opportunity?.eligibility?.length) {
-    for (const e of item.opportunity.eligibility.slice(0, 4)) {
-      bullets2.push(`✅ ${e}`);
-    }
-  }
-  if (bullets2.length > 0) {
-    slides.push({ heading: "Qui peut postuler?", bullets: bullets2 });
+    slides.push({
+      heading: "Qui peut postuler",
+      bullets: item.opportunity.eligibility.slice(0, 4),
+    });
   }
 
-  // Slide 3: How to apply + source
-  const bullets3: string[] = [];
-  if (item.opportunity?.howToApply) bullets3.push(item.opportunity.howToApply);
-  if (item.opportunity?.officialLink) bullets3.push(`🔗 ${item.opportunity.officialLink}`);
-  if (bullets3.length > 0) {
-    slides.push({ heading: "Comment postuler", bullets: bullets3, footer: buildSourceLine(item) });
+  // Slide 3: How to apply
+  const applyBullets: string[] = [];
+  if (item.opportunity?.howToApply) applyBullets.push(item.opportunity.howToApply);
+  if (item.opportunity?.officialLink) applyBullets.push(item.opportunity.officialLink);
+  if (applyBullets.length > 0) {
+    slides.push({
+      heading: "Comment postuler",
+      bullets: applyBullets,
+      footer: buildSourceLine(item),
+    });
   }
 
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
@@ -47,12 +47,8 @@ export function buildOpportunityCarousel(item: Item): IGFormattedPayload {
   }
 
   // Caption
-  const parts: string[] = [
-    `🚀 ${item.title}`,
-    "",
-    shortenText(item.summary, 300),
-  ];
-  if (deadlineStr) parts.push("", `📅 Date limite: ${formatDeadline(deadlineStr)}`);
+  const parts: string[] = [item.title, "", shortenText(item.summary, 300)];
+  if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };

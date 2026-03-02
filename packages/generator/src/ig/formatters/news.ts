@@ -8,42 +8,38 @@ import { truncateCaption, buildCTA, buildSourceLine, shortenText } from "./helpe
 export function buildNewsCarousel(item: Item): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
-  // Slide 1: Headline + summary
-  const bullets1: string[] = [shortenText(item.summary, 200)];
+  // Slide 1: Cover
+  const meta: string[] = [];
   if (item.geoTag) {
-    const label = item.geoTag === "HT" ? "🇭🇹 Haïti" : item.geoTag === "Diaspora" ? "🌎 Diaspora" : "🌍 International";
-    bullets1.unshift(label);
+    meta.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
+  meta.push(shortenText(item.summary, 180));
   slides.push({
     heading: shortenText(item.title, 80),
-    bullets: bullets1,
+    bullets: meta,
     backgroundImage: item.imageUrl ?? undefined,
   });
 
-  // Slide 2: Sections (if content sections exist)
+  // Slide 2: Key points
   if (item.extractedText) {
     const keyPoints = item.extractedText
       .split(/[.!?]\s+/)
       .filter((s) => s.trim().length > 20 && s.trim().length < 120)
       .slice(0, 4)
-      .map((s) => `• ${s.trim()}`);
+      .map((s) => s.trim());
 
     if (keyPoints.length >= 2) {
-      slides.push({
-        heading: "Points clés",
-        bullets: keyPoints,
-      });
+      slides.push({ heading: "Points clés", bullets: keyPoints });
     }
   }
 
-  // Last slide footer
   if (slides.length > 0) {
     slides[slides.length - 1]!.footer = buildSourceLine(item);
   }
 
   // Caption
   const parts: string[] = [
-    `📰 ${item.title}`,
+    item.title,
     "",
     shortenText(item.summary, 400),
     "",

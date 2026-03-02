@@ -264,22 +264,148 @@ function SynthesisBadge({
 
 function StructuredSections({
   sections,
+  isHistory,
 }: {
   sections: ContentSection[];
+  isHistory?: boolean;
 }) {
   if (!sections || sections.length === 0) return null;
+
   return (
-    <div className="space-y-6">
-      {sections.map((section, i) => (
-        <section key={i}>
-          <h2 className="mb-2 text-xl font-bold dark:text-white">{section.heading}</h2>
-          <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none">
-            <ReactMarkdown>{section.content}</ReactMarkdown>
-          </div>
-        </section>
-      ))}
+    <div className={isHistory ? "space-y-10" : "space-y-6"}>
+      {sections.map((section, i) => {
+        // Split content to extract student takeaway and source lines
+        // so we can render them as styled callouts instead of raw markdown.
+        const { mainContent, takeaway, sourceLine } = isHistory
+          ? extractHistoryParts(section.content)
+          : { mainContent: section.content, takeaway: null, sourceLine: null };
+
+        return (
+          <section
+            key={i}
+            className={
+              isHistory
+                ? "relative rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800/80"
+                : ""
+            }
+          >
+            {/* Section heading */}
+            <h2
+              className={
+                isHistory
+                  ? "mb-4 text-xl font-bold leading-snug text-stone-900 dark:text-white"
+                  : "mb-2 text-xl font-bold dark:text-white"
+              }
+            >
+              {section.heading}
+            </h2>
+
+            {/* Section illustration */}
+            {section.imageUrl && (
+              <figure className="mb-4 overflow-hidden rounded-lg">
+                <div className="relative aspect-[2/1] w-full bg-stone-100 dark:bg-stone-700">
+                  <ImageWithFallback
+                    src={section.imageUrl}
+                    alt={section.imageCaption || section.heading}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                {(section.imageCaption || section.imageCredit) && (
+                  <figcaption className="mt-1.5 text-xs text-stone-400 dark:text-stone-500">
+                    {section.imageCaption}
+                    {section.imageCredit && (
+                      <span className="ml-1 text-stone-400/70">— {section.imageCredit}</span>
+                    )}
+                  </figcaption>
+                )}
+              </figure>
+            )}
+
+            {/* Main body text */}
+            <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-relaxed">
+              <ReactMarkdown>{mainContent}</ReactMarkdown>
+            </div>
+
+            {/* Student takeaway callout */}
+            {takeaway && (
+              <div className="mt-4 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
+                <span className="mt-0.5 flex-shrink-0 text-lg">💡</span>
+                <div className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+                  <span className="font-semibold">{takeaway.label}</span>{" "}
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <span>{children}</span>,
+                    }}
+                  >
+                    {takeaway.text}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
+
+            {/* Source citation badge */}
+            {sourceLine && (
+              <div className="mt-3 flex items-start gap-2 text-sm text-stone-500 dark:text-stone-400">
+                <span className="mt-0.5 flex-shrink-0 text-xs">📚</span>
+                <div className="prose-sm prose dark:prose-invert prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline prose-a:decoration-blue-300 dark:prose-a:decoration-blue-700 prose-a:underline-offset-2">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <span>{children}</span>,
+                    }}
+                  >
+                    {sourceLine}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
+
+            {/* Divider between sections (except last) */}
+            {isHistory && i < sections.length - 1 && (
+              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
+                <div className="h-2 w-2 rounded-full bg-stone-300 dark:bg-stone-600" />
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
+}
+
+/** Extract student takeaway (💡) and source (📚) lines from section content. */
+function extractHistoryParts(content: string): {
+  mainContent: string;
+  takeaway: { label: string; text: string } | null;
+  sourceLine: string | null;
+} {
+  const lines = content.split("\n");
+  const mainLines: string[] = [];
+  let takeaway: { label: string; text: string } | null = null;
+  let sourceLine: string | null = null;
+
+  for (const line of lines) {
+    // Match 💡 **Pour les étudiants :** ... or 💡 **Pou etidyan yo :** ...
+    const takeawayMatch = line.match(
+      /^\s*💡\s*\*\*(.+?)\s*[:\u00a0]\*\*\s*(.+)/,
+    );
+    if (takeawayMatch) {
+      takeaway = { label: takeawayMatch[1]!.trim(), text: takeawayMatch[2]!.trim() };
+      continue;
+    }
+    // Match 📚 Sources : ... or 📚 Sous : ...
+    const sourceMatch = line.match(/^\s*📚\s*(.+)/);
+    if (sourceMatch) {
+      sourceLine = sourceMatch[1]!.trim();
+      continue;
+    }
+    mainLines.push(line);
+  }
+
+  return {
+    mainContent: mainLines.join("\n").trim(),
+    takeaway,
+    sourceLine,
+  };
 }
 
 function SynthesisSourcesList({
@@ -582,6 +708,7 @@ export default async function ArticlePage({
 
   const isSynthesis = item?.itemType === "synthesis";
   const isUtility = item?.itemType === "utility";
+  const isHistory = isUtility && item?.utilityMeta?.utilityType === "history";
 
   // Derive subcategory using the classifier for opportunity items
   const OPPORTUNITY_CATEGORIES = new Set([
@@ -682,18 +809,22 @@ export default async function ArticlePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Hero image — best image from dedup group (mirrors card logic).
-          For utility items (daily fact, history, etc.) with only a branded
-          card, skip the hero entirely — the generated gradient card adds no
-          value and takes up too much space on short-form content. */}
+          For utility items (daily fact, etc.) with only a branded card,
+          skip the hero entirely — the generated gradient card adds no value.
+          For history articles with a real illustration, show a cinematic hero. */}
       {heroImageUrl && !(isUtility && heroImageSource === "branded") && (
         <div className={`relative w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800 ${
-          isUtility ? "aspect-[2/1]" : "aspect-video"
+          isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
         }`}>
           <ImageWithFallback
             src={heroImageUrl}
             alt={article.title}
             className="h-full w-full object-cover"
           />
+          {/* Dark gradient overlay for history hero (text legibility) */}
+          {isHistory && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          )}
           {/* Image credit label */}
           {heroImageSource === "publisher" && (
             <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
@@ -718,8 +849,8 @@ export default async function ArticlePage({
         </div>
       )}
 
-      {/* Top meta */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Top meta badges */}
+      <div className="flex flex-wrap items-center gap-2">
         {(derivedSubCat || item?.category) && (
           <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${catColor}`}>
             {catLabel}
@@ -735,21 +866,20 @@ export default async function ArticlePage({
         <span className="text-xs text-stone-400 uppercase dark:text-stone-500">
           {article.language === "fr" ? "Français" : "Kreyòl Ayisyen"}
         </span>
+        {/* Inline date for compact layout */}
+        {(pubDate || createdDate) && (
+          <span className="text-xs text-stone-400 dark:text-stone-500">
+            · {pubDate || createdDate}
+          </span>
+        )}
       </div>
 
-      {/* Published date */}
-      {(pubDate || createdDate) && (
-        <p className="text-sm text-stone-500 dark:text-stone-400">
-          {currentLang === "fr" ? "Publié le" : "Pibliye"} {pubDate || createdDate}
-          {isSynthesis && lastUpdateDate && (
-            <span className="ml-2 text-emerald-600">
-              · {currentLang === "fr" ? "Mis à jour le" : "Mizajou"} {lastUpdateDate}
-            </span>
-          )}
-        </p>
-      )}
+      {/* Title */}
+      <h1 className={`font-bold leading-tight dark:text-white ${
+        isHistory ? "text-2xl sm:text-3xl" : "text-3xl"
+      }`}>{article.title}</h1>
 
-      {/* Trust badges */}
+      {/* Trust badges (utility/history articles) */}
       {isUtility && item && (
         <MetaBadges
           verifiedAt={item.updatedAt}
@@ -760,15 +890,23 @@ export default async function ArticlePage({
         />
       )}
 
-      {/* Title */}
-      <h1 className="text-3xl font-bold leading-tight dark:text-white">{article.title}</h1>
+      {/* Synthesis update date */}
+      {isSynthesis && lastUpdateDate && (
+        <p className="text-sm text-emerald-600 dark:text-emerald-400">
+          {currentLang === "fr" ? "Mis à jour le" : "Mizajou"} {lastUpdateDate}
+        </p>
+      )}
 
-      {/* Source links (non-synthesis only) */}
-      {!isSynthesis && <SourceLinks item={item} />}
+      {/* Source links (non-synthesis, non-history only) */}
+      {!isSynthesis && !isHistory && <SourceLinks item={item} />}
 
-      {/* Summary */}
+      {/* Summary — for history articles, render as a styled lead paragraph */}
       {article.summary && (
-        <p className="text-lg text-stone-600 leading-relaxed dark:text-stone-300">
+        <p className={`leading-relaxed ${
+          isHistory
+            ? "text-base text-stone-600 dark:text-stone-300 border-l-4 border-amber-400 pl-4 italic"
+            : "text-lg text-stone-600 dark:text-stone-300"
+        }`}>
           {article.summary}
         </p>
       )}
@@ -796,7 +934,7 @@ export default async function ArticlePage({
 
       {/* Body: structured sections for synthesis/utility, markdown for regular */}
       {article.sections && article.sections.length > 0 ? (
-        <StructuredSections sections={stripStructuredSourceSections(article.sections)} />
+        <StructuredSections sections={stripStructuredSourceSections(article.sections)} isHistory={isHistory} />
       ) : (
         <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none">
           <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
