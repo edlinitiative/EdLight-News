@@ -66,7 +66,8 @@ export async function generateMetadata({
 
 /** Headings that the AI sometimes embeds in the body / sections. We strip
  *  them because the page already renders dedicated source components.        */
-const SOURCE_HEADING_RE = /^sources?( consultées| konsilte)?$/i;
+const SOURCE_HEADING_RE =
+  /^(sources?( consultées| utilisées| citées| konsilte( yo)?)?|sous( konsilte( yo)?)?|références?( consultées)?)$/i;
 
 /** Remove trailing source-like sections from a Markdown body string. */
 function stripMarkdownSourceSections(md: string | undefined | null): string {
@@ -794,7 +795,7 @@ export default async function ArticlePage({
       {isUtility && item && <UtilityFactsFiche item={item} lang={currentLang} />}
 
       {/* Body: structured sections for synthesis/utility, markdown for regular */}
-      {(isSynthesis || isUtility) && article.sections && article.sections.length > 0 ? (
+      {article.sections && article.sections.length > 0 ? (
         <StructuredSections sections={stripStructuredSourceSections(article.sections)} />
       ) : (
         <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none">
@@ -838,8 +839,9 @@ export default async function ArticlePage({
         />
       )}
 
-      {/* Legacy citations (for older items without source object) */}
-      {!item?.source && (article.citations?.length ?? 0) > 0 && (
+      {/* Legacy citations (for older items without source object).
+         Skip for utility / synthesis — they render dedicated source components above. */}
+      {!isSynthesis && !isUtility && !item?.source && (article.citations?.length ?? 0) > 0 && (
         <section className="border-t pt-4 dark:border-stone-700">
           <h2 className="text-base font-semibold dark:text-white">Sources</h2>
           <ul className="mt-2 space-y-1">

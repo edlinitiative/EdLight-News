@@ -260,11 +260,16 @@ function deduplicateSources(sources: SourceCitation[]): SourceCitation[] {
   return [...seen.values()];
 }
 
-/** Check if sections already contain a "Sources" heading */
+/** Check if sections already contain a "Sources" heading (any variant) */
 function hasSourcesSection(sections: ContentSection[]): boolean {
-  return sections.some(
-    (s) => /^sources?$/i.test(s.heading.trim()) || /^sous$/i.test(s.heading.trim()),
-  );
+  return sections.some((s) => {
+    const h = s.heading.trim();
+    return (
+      /^sources?( consultées| utilisées| citées| konsilte( yo)?)?$/i.test(h) ||
+      /^sous( konsilte( yo)?)?$/i.test(h) ||
+      /^références?( consultées)?$/i.test(h)
+    );
+  });
 }
 
 /** Build inline sources section content */

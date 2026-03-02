@@ -105,6 +105,32 @@ export async function generateForItems(): Promise<{
 
       const draft = result.draft;
 
+      // Quality gate: reject placeholder / "À confirmer" content.
+      // When Gemini has no real source text (e.g. an RSS index page),
+      // it sometimes fabricates vague filler that adds no value.
+      const bodyFr = draft.body_fr ?? "";
+      const bodyHt = draft.body_ht ?? "";
+      const confirmCount =
+        (bodyFr.match(/[àa] confirmer/gi)?.length ?? 0) +
+        (bodyHt.match(/pou konfime/gi)?.length ?? 0);
+      if (confirmCount >= 3) {
+        console.log(
+          `[generate] SKIPPED item ${item.id} — body is mostly placeholder content (${confirmCount}× "à confirmer")`,
+        );
+        skipped++;
+        continue;
+      }
+
+      // Quality gate: reject extremely short bodies that contain no real info
+      const bodyMinLen = 150; // ~2 short sentences
+      if (bodyFr.length < bodyMinLen && bodyHt.length < bodyMinLen) {
+        console.log(
+          `[generate] SKIPPED item ${item.id} — body too short (fr=${bodyFr.length}, ht=${bodyHt.length} chars)`,
+        );
+        skipped++;
+        continue;
+      }
+
       // Relevance gate: skip content not relevant to Haiti
       if (!draft.haiti_relevant) {
         console.log(`[generate] SKIPPED item ${item.id} — not Haiti-relevant ("${draft.title_fr.slice(0, 60)}…")`);
