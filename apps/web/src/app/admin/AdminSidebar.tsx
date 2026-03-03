@@ -7,6 +7,7 @@ import {
   FileEdit,
   BookOpen,
   Instagram,
+  Send,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/admin/drafts", label: "Drafts", Icon: FileEdit },
   { href: "/admin/histoire", label: "Histoire", Icon: BookOpen },
   { href: "/admin/ig-queue", label: "IG Queue", Icon: Instagram },
+  { href: "/admin/ig-publish", label: "IG Publish", Icon: Send },
 ] as const;
 
 export function AdminSidebar() {
