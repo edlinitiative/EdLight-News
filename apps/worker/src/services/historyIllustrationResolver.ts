@@ -148,7 +148,29 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
     commonsQuery: "Jean-Bertrand Aristide",
   },
   {
-    test: /duvalier|fran[cç]ois\s+duvalier|jean-claude\s+duvalier/i,
+    test: /mich[eè]le\s+bennett|bennett\s+duvalier|fuite.*duvalier|duvalier.*fuite/i,
+    commonsFile: "File:Baby Doc (centrée).jpg",
+    wikipediaFr: "Jean-Claude Duvalier",
+    wikipediaEn: "Jean-Claude Duvalier",
+    commonsQuery: "Jean-Claude Duvalier",
+  },
+  {
+    test: /jean-claude\s+duvalier|baby\s+doc/i,
+    commonsFile: "File:Baby Doc (centrée).jpg",
+    wikipediaFr: "Jean-Claude Duvalier",
+    wikipediaEn: "Jean-Claude Duvalier",
+    commonsQuery: "Jean-Claude Duvalier portrait",
+  },
+  {
+    test: /françois\s+duvalier|papa\s+doc/i,
+    commonsFile: "File:François Duvalier Presidential Portrait (1957).png",
+    wikipediaFr: "François Duvalier",
+    wikipediaEn: "François Duvalier",
+    commonsQuery: "François Duvalier portrait",
+  },
+  {
+    test: /duvalier/i,
+    commonsFile: "File:François Duvalier Presidential Portrait (1957).png",
     wikipediaFr: "François Duvalier",
     wikipediaEn: "François Duvalier",
     commonsQuery: "François Duvalier",
@@ -194,12 +216,6 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
     wikipediaFr: "Constitution haïtienne de 1987",
     wikipediaEn: "Constitution of Haiti",
     commonsQuery: "Constitution of Haiti",
-  },
-  {
-    test: /jean-claude\s+duvalier|baby\s+doc/i,
-    wikipediaFr: "Jean-Claude Duvalier",
-    wikipediaEn: "Jean-Claude Duvalier",
-    commonsQuery: "Jean-Claude Duvalier portrait",
   },
   {
     test: /ren[eé]\s+pr[eé]val/i,

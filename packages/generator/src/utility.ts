@@ -327,6 +327,16 @@ export function validateUtilityJson(
     }
   }
 
+  // 5b. "À confirmer" placeholder detection — sources returned no real content
+  const confirmCount =
+    (allText.match(/[àa] confirmer/gi)?.length ?? 0) +
+    (allText.match(/pou konfime/gi)?.length ?? 0);
+  if (confirmCount >= 3) {
+    issues.push(
+      `Excessive placeholder content: ${confirmCount}× "à confirmer" — sources likely returned no usable text`,
+    );
+  }
+
   // 6. Allowlist domain enforcement
   if (allowlistDomains && allowlistDomains.length > 0) {
     const domainSet = new Set(allowlistDomains.map((d) => d.toLowerCase()));
@@ -350,7 +360,8 @@ export function validateUtilityJson(
       i.includes("No French") ||
       i.includes("No Haitian") ||
       i.includes("references unknown sourceUrl") ||
-      i.includes("Speculation marker"),
+      i.includes("Speculation marker") ||
+      i.includes("Excessive placeholder content"),
   );
 
   // 7. HaitiEducationCalendar strict validation

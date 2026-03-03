@@ -56,7 +56,10 @@ const MAX_CALENDAR_SOURCES = 8;
 /** Only create a new calendar item if none exists in last N days */
 const CALENDAR_DEDUP_DAYS = 30;
 /** Skip creation if a utility item with the same dedupeGroupId exists within this window */
-const UTILITY_DEDUP_DAYS = 3;
+const UTILITY_DEDUP_DAYS = 7;
+/** Longer dedup window for series that recycle the same generic topics */
+const RECURRING_SERIES_DEDUP_DAYS = 14;
+const RECURRING_SERIES: Set<string> = new Set(["HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]);
 
 // ── Haiti timezone offset (UTC-5 / EST, Haiti does not observe DST) ─────
 const HAITI_UTC_OFFSET_HOURS = -5;
@@ -584,6 +587,28 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           }
         }
 
+        // ── Quality gate: reject placeholder / "À confirmer" content ────────
+        // When sources return feed index pages instead of real articles,
+        // Gemini generates vague filler with repeated "à confirmer".
+        const allBodyText = [
+          ...output.sections_fr.map((s) => s.content),
+          ...output.sections_ht.map((s) => s.content),
+        ].join(" ");
+        const confirmCount =
+          (allBodyText.match(/[àa] confirmer/gi)?.length ?? 0) +
+          (allBodyText.match(/pou konfime/gi)?.length ?? 0);
+        if (confirmCount >= 3) {
+          console.log(
+            `[utility] SKIPPED ${job.series} — body is mostly placeholder content ` +
+              `(${confirmCount}× "à confirmer"): "${output.title_fr.slice(0, 60)}"`,
+          );
+          await utilityQueueRepo.markFailed(job.id, [
+            `Placeholder content: ${confirmCount}× "à confirmer" — sources likely returned no real content`,
+          ]);
+          result.errors++;
+          continue;
+        }
+
         // ── Normal item creation (non-calendar or first calendar) ───────────
 
         // Compute semantic dedupeGroupId from the generated title
@@ -591,9 +616,12 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
 
         // Pre-creation dedup: skip if a utility item with the same
         // dedupeGroupId already exists within the dedup window.
+        const dedupDays = RECURRING_SERIES.has(job.series)
+          ? RECURRING_SERIES_DEDUP_DAYS
+          : UTILITY_DEDUP_DAYS;
         const existingDupe = await itemsRepo.findRecentUtilityByDedupeGroup(
           dedupeGroupId,
-          UTILITY_DEDUP_DAYS,
+          dedupDays,
         );
         if (existingDupe) {
           console.log(
