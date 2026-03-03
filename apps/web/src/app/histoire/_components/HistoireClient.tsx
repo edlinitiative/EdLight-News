@@ -30,6 +30,7 @@ import {
   isInRange,
   monthsInRange,
   pickHeroEntry,
+  getHaitiMonthDayClient,
   type DateRange,
 } from "./shared";
 import type { SerializableAlmanacEntry, SerializableHoliday } from "./shared";
@@ -53,6 +54,7 @@ export function HistoireClient({
 
   // ── State ──
   const [selectedDate, setSelectedDate] = useState(todayMD);
+  const [liveTodayMD, setLiveTodayMD] = useState(todayMD);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
 
   const [entriesByMonth, setEntriesByMonth] = useState<Record<string, SerializableAlmanacEntry[]>>({
@@ -60,9 +62,18 @@ export function HistoireClient({
   });
   const [loadingMonths, setLoadingMonths] = useState<Set<string>>(new Set());
 
+  // ── Rehydrate today's date on the client (ISR page may be stale) ──
+  useEffect(() => {
+    const clientToday = getHaitiMonthDayClient();
+    if (clientToday !== todayMD) {
+      setLiveTodayMD(clientToday);
+      setSelectedDate(clientToday);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Derived ──
   const selectedMonthStr = selectedDate.split("-")[0]!;
-  const todayMonth = parseInt(todayMD.split("-")[0]!, 10);
+  const todayMonth = parseInt(liveTodayMD.split("-")[0]!, 10);
   const weekDays = useMemo(() => getWeekAroundDate(selectedDate), [selectedDate]);
 
   // ── Month loading ──
@@ -247,7 +258,7 @@ export function HistoireClient({
       <WeekStrip
         days={weekDays}
         selectedDate={selectedDate}
-        todayDate={todayMD}
+        todayDate={liveTodayMD}
         onSelect={handleWeekSelect}
         lang={lang}
         entryCounts={entryCounts}

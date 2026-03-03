@@ -135,13 +135,14 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
   },
   {
     test: /d[eé]part.*aristide|aristide.*d[eé]part|coup\s*d[''\u2019]?\s*[eé]tat.*ha[iï]ti.*200[4]/i,
-    commonsFile: "File:General Richard B. Myers Chairman of the Joint Chiefs of Staff visited Haiti.jpg",
-    wikipediaFr: "Coup d'État de 2004 à Haïti",
-    wikipediaEn: "2004 Haitian coup d'état",
-    commonsQuery: "2004 Haitian coup Operation Secure Tomorrow Haiti",
+    commonsFile: "File:Jean-Bertrand Aristide - 1991 (cropped).jpg",
+    wikipediaFr: "Jean-Bertrand Aristide",
+    wikipediaEn: "Jean-Bertrand Aristide",
+    commonsQuery: "Jean-Bertrand Aristide portrait",
   },
   {
     test: /aristide|jean-bertrand\s+aristide/i,
+    commonsFile: "File:Jean-Bertrand Aristide - 1991 (cropped).jpg",
     wikipediaFr: "Jean-Bertrand Aristide",
     wikipediaEn: "Jean-Bertrand Aristide",
     commonsQuery: "Jean-Bertrand Aristide",

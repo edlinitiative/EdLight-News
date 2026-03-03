@@ -79,6 +79,22 @@ export const MONTH_NAMES_HT = [
 export const DAY_NAMES_FR = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
 export const DAY_NAMES_HT = ["dim.", "len.", "mad.", "mèk.", "jed.", "van.", "sam."];
 
+/**
+ * Client-side Haiti date helper.
+ * Uses Intl.DateTimeFormat so DST transitions are handled correctly.
+ */
+export function getHaitiMonthDayClient(): string {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Port-au-Prince",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = fmt.formatToParts(new Date());
+  const mm = parts.find((p) => p.type === "month")!.value;
+  const dd = parts.find((p) => p.type === "day")!.value;
+  return `${mm}-${dd}`;
+}
+
 /** Format MM-DD → "23 février" */
 export function formatMonthDay(monthDay: string, lang: ContentLanguage): string {
   const [mm, dd] = monthDay.split("-");

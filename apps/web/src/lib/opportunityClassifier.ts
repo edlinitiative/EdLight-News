@@ -167,7 +167,9 @@ const SMELL_REGEXES: RegExp[] = (() => {
     // ── Competitions ──
     "concours", "hackathon", "olympiade",
     // ── Application actions ──
-    "postuler", "deadline", "date limite", "cloture",
+    // NOTE: "deadline", "date limite", "cloture" removed — too ambiguous as
+    // standalone signals (government deadlines, parliamentary closures, etc.).
+    "postuler",
     // ── Academic context ──
     "universitaire", "university",
     // ── Opportunity generic ──
@@ -203,18 +205,29 @@ export function contentLooksLikeOpportunity(
 
 // ── Matching helpers ─────────────────────────────────────────────────────────
 
+/**
+ * Match a keyword in normalised text.
+ * Multi-word phrases: literal `includes` (word boundaries implied by spaces).
+ * Single words: word-boundary regex to prevent substring false positives
+ * (e.g. "formation" inside "informations").
+ */
+function kwMatch(text: string, kw: string): boolean {
+  if (kw.includes(" ")) return text.includes(kw);
+  return new RegExp(`\\b${kw}\\b`).test(text);
+}
+
 /** Count how many keywords from the list appear in the text. */
 function countMatches(text: string, keywords: readonly string[]): number {
   let count = 0;
   for (const kw of keywords) {
-    if (text.includes(kw)) count++;
+    if (kwMatch(text, kw)) count++;
   }
   return count;
 }
 
 /** Check if any keyword from the list appears in the text. */
 function hasMatch(text: string, keywords: readonly string[]): boolean {
-  return keywords.some((kw) => text.includes(kw));
+  return keywords.some((kw) => kwMatch(text, kw));
 }
 
 // ── Confidence scoring ───────────────────────────────────────────────────────

@@ -2286,7 +2286,7 @@
     "createdBy": "seed"
   },
   {
-    "monthDay": "02-28",
+    "monthDay": "02-29",
     "year": 2004,
     "title_fr": "Départ controversé du Président Jean-Bertrand Aristide",
     "summary_fr": "Au milieu d'une insurrection armée et sous la pression internationale, notamment des États-Unis et de la France, le président Jean-Bertrand Aristide quitte Haïti pour l'exil. Les circonstances de son départ sont très controversées, Aristide affirmant avoir été victime d'un \"kidnapping\" et d'un coup d'État moderne. Cet événement a plongé le pays dans une nouvelle période d'instabilité politique et d'intervention étrangère.",
@@ -2405,14 +2405,19 @@
   {
     "monthDay": "03-02",
     "year": 2004,
-    "title_fr": "Départ d'Aristide et arrivée de la MINUSTAH",
-    "summary_fr": "Le 29 février 2004, Jean-Bertrand Aristide quitte le pouvoir et part en exil. L'ONU déploie la MINUSTAH (Mission des Nations Unies pour la stabilisation en Haïti) qui restera jusqu'en 2017.",
-    "student_takeaway_fr": "Les missions de paix de l'ONU en Haïti soulèvent des questions importantes sur la souveraineté et l'aide internationale.",
+    "title_fr": "Déploiement de la Force multinationale intérimaire en Haïti",
+    "summary_fr": "Après le départ du président Aristide le 29 février 2004 et l'adoption de la Résolution 1529 du Conseil de sécurité de l'ONU, les premiers contingents de la Force multinationale intérimaire (Operation Secure Tomorrow) arrivent en Haïti, menés par des Marines américains. Leur mission : sécuriser Port-au-Prince et stabiliser le pays en attendant le déploiement de la MINUSTAH, qui prendra le relais en juin 2004.",
+    "student_takeaway_fr": "Les interventions militaires étrangères en Haïti soulèvent des questions complexes sur la souveraineté nationale et l'aide internationale en temps de crise politique.",
     "tags": [
       "politics",
-      "diplomacy"
+      "diplomacy",
+      "military"
     ],
     "sources": [
+      {
+        "label": "Wikipedia – Operation Secure Tomorrow",
+        "url": "https://en.wikipedia.org/wiki/Operation_Secure_Tomorrow"
+      },
       {
         "label": "Wikipedia – MINUSTAH",
         "url": "https://en.wikipedia.org/wiki/United_Nations_Stabilisation_Mission_in_Haiti"

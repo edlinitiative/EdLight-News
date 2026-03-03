@@ -217,21 +217,30 @@ export const fetchRecentHistoryLogs = unstable_cache(
   { revalidate: 900, tags: ["history-logs"] },
 );
 
-// ── Haiti timezone helper (UTC-5, no DST) ────────────────────────────────────
+// ── Haiti timezone helper (America/Port-au-Prince — observes DST) ────────────
 
 export function getHaitiMonthDay(): string {
-  const utc = new Date();
-  const haiti = new Date(utc.getTime() - 5 * 60 * 60 * 1000);
-  const mm = String(haiti.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(haiti.getUTCDate()).padStart(2, "0");
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Port-au-Prince",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = fmt.formatToParts(new Date());
+  const mm = parts.find((p) => p.type === "month")!.value;
+  const dd = parts.find((p) => p.type === "day")!.value;
   return `${mm}-${dd}`;
 }
 
 export function getHaitiDateISO(): string {
-  const utc = new Date();
-  const haiti = new Date(utc.getTime() - 5 * 60 * 60 * 1000);
-  const yyyy = haiti.getUTCFullYear();
-  const mm = String(haiti.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(haiti.getUTCDate()).padStart(2, "0");
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Port-au-Prince",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = fmt.formatToParts(new Date());
+  const yyyy = parts.find((p) => p.type === "year")!.value;
+  const mm = parts.find((p) => p.type === "month")!.value;
+  const dd = parts.find((p) => p.type === "day")!.value;
   return `${yyyy}-${mm}-${dd}`;
 }
