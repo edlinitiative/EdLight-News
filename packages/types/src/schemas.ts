@@ -107,8 +107,9 @@ export const utilitySeriesSchema = z.enum([
   "HaitiFactOfTheDay",
   "HaitianOfTheWeek",
   "HaitiEducationCalendar",
+  "EdLightCode",
 ]);
-export const utilityTypeSchema = z.enum(["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile", "school_calendar"]);
+export const utilityTypeSchema = z.enum(["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile", "school_calendar", "code"]);
 export const utilityAudienceSchema = z.enum(["lycee", "universite", "international"]);
 export const utilityRegionSchema = z.enum(["HT", "US", "CA", "FR", "DO", "RU", "Global"]);
 

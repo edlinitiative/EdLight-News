@@ -97,8 +97,8 @@ export interface SynthesisMeta {
     validationPassed: boolean;
     lastSynthesizedAt: string;
 }
-export type UtilitySeries = "StudyAbroad" | "Career" | "ScholarshipRadar" | "ScholarshipRadarWeekly" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek" | "HaitiEducationCalendar";
-export type UtilityType = "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile" | "school_calendar";
+export type UtilitySeries = "StudyAbroad" | "Career" | "ScholarshipRadar" | "ScholarshipRadarWeekly" | "HaitiHistory" | "HaitiFactOfTheDay" | "HaitianOfTheWeek" | "HaitiEducationCalendar" | "EdLightCode";
+export type UtilityType = "study_abroad" | "career" | "scholarship" | "opportunity" | "history" | "daily_fact" | "profile" | "school_calendar" | "code";
 export type UtilityAudience = "lycee" | "universite" | "international";
 export type UtilityRegion = "HT" | "US" | "CA" | "FR" | "DO" | "RU" | "Global";
 export interface UtilityCitation {
