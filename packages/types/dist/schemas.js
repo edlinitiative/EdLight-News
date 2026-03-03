@@ -652,9 +652,24 @@ export const igSlideSchema = z.object({
     footer: z.string().optional(),
     backgroundImage: z.string().url().optional(),
 });
+export const igMemeTemplateSchema = z.enum([
+    "drake", "expanding-brain", "distracted", "starter-pack",
+    "two-buttons", "tell-me", "nobody", "reaction", "comparison",
+]);
+export const igMemePanelSchema = z.object({
+    text: z.string().min(1),
+    emoji: z.string().optional(),
+});
+export const igMemeSlideSchema = z.object({
+    template: igMemeTemplateSchema,
+    panels: z.array(igMemePanelSchema).min(2).max(4),
+    topicLine: z.string().optional(),
+    tone: z.enum(["witty", "wholesome", "ironic", "hype"]),
+});
 export const igFormattedPayloadSchema = z.object({
     slides: z.array(igSlideSchema).min(1),
     caption: z.string().min(1),
+    memeSlide: igMemeSlideSchema.optional(),
 });
 export const igQueueItemSchema = z.object({
     id: z.string().min(1),

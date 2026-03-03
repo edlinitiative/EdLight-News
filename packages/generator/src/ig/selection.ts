@@ -283,6 +283,12 @@ export function decideIG(item: Item): IGDecision {
     reasons.push(`Weak source: -10`);
   }
 
+  // Meme-worthy bonus: relatable content gets a virality boost
+  if (isMemeWorthyItem(item, igType, fullText)) {
+    score += 5;
+    reasons.push(`Meme-worthy content: +5 (virality boost)`);
+  }
+
   // Clamp 0..100
   score = Math.max(0, Math.min(100, Math.round(score)));
 
@@ -293,6 +299,29 @@ export function decideIG(item: Item): IGDecision {
     reasons,
     igExpiresAt,
   };
+}
+
+/**
+ * Quick heuristic: is this item likely to produce a good meme?
+ * Used for a small score bonus — actual meme generation happens later.
+ */
+function isMemeWorthyItem(item: Item, igType: IGPostType, fullText: string): boolean {
+  // Scholarships and opportunities are always relatable meme material
+  if (igType === "scholarship" || igType === "opportunity") return true;
+
+  // Haiti-tagged news with high engagement signals
+  if (igType === "news" && item.geoTag === "HT" && (item.audienceFitScore ?? 0) >= 0.6) return true;
+
+  // Histoire is good for nostalgic/cultural memes
+  if (igType === "histoire") return true;
+
+  // Utility: only student-centric topics
+  if (igType === "utility") {
+    const memeableKeywords = ["bourse", "visa", "inscription", "admission", "campus", "cv", "stage", "examen"];
+    return memeableKeywords.some((kw) => fullText.toLowerCase().includes(kw));
+  }
+
+  return false;
 }
 
 /**

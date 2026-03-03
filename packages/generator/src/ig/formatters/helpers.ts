@@ -41,6 +41,15 @@ export function padCaption(caption: string): string {
 }
 
 /**
+ * Append meme-friendly hashtags to boost discoverability.
+ * Only call this when the payload includes a meme slide.
+ */
+export function appendMemeHashtags(caption: string): string {
+  const memeTags = "\n\n#Meme #Relatable #ÉtudiantsHaïtiens #StudentLife #HaitiMemes #Motivation";
+  return truncateCaption(caption + memeTags);
+}
+
+/**
  * Build the standard CTA line.
  */
 export function buildCTA(): string {

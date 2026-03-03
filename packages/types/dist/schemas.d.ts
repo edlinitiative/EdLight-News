@@ -4671,6 +4671,48 @@ export declare const igSlideSchema: z.ZodObject<{
     footer?: string | undefined;
     backgroundImage?: string | undefined;
 }>;
+export declare const igMemeTemplateSchema: z.ZodEnum<["drake", "expanding-brain", "distracted", "starter-pack", "two-buttons", "tell-me", "nobody", "reaction", "comparison"]>;
+export declare const igMemePanelSchema: z.ZodObject<{
+    text: z.ZodString;
+    emoji: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    text: string;
+    emoji?: string | undefined;
+}, {
+    text: string;
+    emoji?: string | undefined;
+}>;
+export declare const igMemeSlideSchema: z.ZodObject<{
+    template: z.ZodEnum<["drake", "expanding-brain", "distracted", "starter-pack", "two-buttons", "tell-me", "nobody", "reaction", "comparison"]>;
+    panels: z.ZodArray<z.ZodObject<{
+        text: z.ZodString;
+        emoji: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        text: string;
+        emoji?: string | undefined;
+    }, {
+        text: string;
+        emoji?: string | undefined;
+    }>, "many">;
+    topicLine: z.ZodOptional<z.ZodString>;
+    tone: z.ZodEnum<["witty", "wholesome", "ironic", "hype"]>;
+}, "strip", z.ZodTypeAny, {
+    template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+    panels: {
+        text: string;
+        emoji?: string | undefined;
+    }[];
+    tone: "witty" | "wholesome" | "ironic" | "hype";
+    topicLine?: string | undefined;
+}, {
+    template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+    panels: {
+        text: string;
+        emoji?: string | undefined;
+    }[];
+    tone: "witty" | "wholesome" | "ironic" | "hype";
+    topicLine?: string | undefined;
+}>;
 export declare const igFormattedPayloadSchema: z.ZodObject<{
     slides: z.ZodArray<z.ZodObject<{
         heading: z.ZodString;
@@ -4689,6 +4731,37 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         backgroundImage?: string | undefined;
     }>, "many">;
     caption: z.ZodString;
+    memeSlide: z.ZodOptional<z.ZodObject<{
+        template: z.ZodEnum<["drake", "expanding-brain", "distracted", "starter-pack", "two-buttons", "tell-me", "nobody", "reaction", "comparison"]>;
+        panels: z.ZodArray<z.ZodObject<{
+            text: z.ZodString;
+            emoji: z.ZodOptional<z.ZodString>;
+        }, "strip", z.ZodTypeAny, {
+            text: string;
+            emoji?: string | undefined;
+        }, {
+            text: string;
+            emoji?: string | undefined;
+        }>, "many">;
+        topicLine: z.ZodOptional<z.ZodString>;
+        tone: z.ZodEnum<["witty", "wholesome", "ironic", "hype"]>;
+    }, "strip", z.ZodTypeAny, {
+        template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+        panels: {
+            text: string;
+            emoji?: string | undefined;
+        }[];
+        tone: "witty" | "wholesome" | "ironic" | "hype";
+        topicLine?: string | undefined;
+    }, {
+        template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+        panels: {
+            text: string;
+            emoji?: string | undefined;
+        }[];
+        tone: "witty" | "wholesome" | "ironic" | "hype";
+        topicLine?: string | undefined;
+    }>>;
 }, "strip", z.ZodTypeAny, {
     slides: {
         heading: string;
@@ -4697,6 +4770,15 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         backgroundImage?: string | undefined;
     }[];
     caption: string;
+    memeSlide?: {
+        template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+        panels: {
+            text: string;
+            emoji?: string | undefined;
+        }[];
+        tone: "witty" | "wholesome" | "ironic" | "hype";
+        topicLine?: string | undefined;
+    } | undefined;
 }, {
     slides: {
         heading: string;
@@ -4705,6 +4787,15 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         backgroundImage?: string | undefined;
     }[];
     caption: string;
+    memeSlide?: {
+        template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+        panels: {
+            text: string;
+            emoji?: string | undefined;
+        }[];
+        tone: "witty" | "wholesome" | "ironic" | "hype";
+        topicLine?: string | undefined;
+    } | undefined;
 }>;
 export declare const igQueueItemSchema: z.ZodObject<{
     id: z.ZodString;
@@ -4733,6 +4824,37 @@ export declare const igQueueItemSchema: z.ZodObject<{
             backgroundImage?: string | undefined;
         }>, "many">;
         caption: z.ZodString;
+        memeSlide: z.ZodOptional<z.ZodObject<{
+            template: z.ZodEnum<["drake", "expanding-brain", "distracted", "starter-pack", "two-buttons", "tell-me", "nobody", "reaction", "comparison"]>;
+            panels: z.ZodArray<z.ZodObject<{
+                text: z.ZodString;
+                emoji: z.ZodOptional<z.ZodString>;
+            }, "strip", z.ZodTypeAny, {
+                text: string;
+                emoji?: string | undefined;
+            }, {
+                text: string;
+                emoji?: string | undefined;
+            }>, "many">;
+            topicLine: z.ZodOptional<z.ZodString>;
+            tone: z.ZodEnum<["witty", "wholesome", "ironic", "hype"]>;
+        }, "strip", z.ZodTypeAny, {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        }, {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        }>>;
     }, "strip", z.ZodTypeAny, {
         slides: {
             heading: string;
@@ -4741,6 +4863,15 @@ export declare const igQueueItemSchema: z.ZodObject<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     }, {
         slides: {
             heading: string;
@@ -4749,6 +4880,15 @@ export declare const igQueueItemSchema: z.ZodObject<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     }>>;
     dryRunPath: z.ZodOptional<z.ZodString>;
     createdAt: z.ZodObject<{
@@ -4796,6 +4936,15 @@ export declare const igQueueItemSchema: z.ZodObject<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     } | undefined;
     dryRunPath?: string | undefined;
 }, {
@@ -4823,6 +4972,15 @@ export declare const igQueueItemSchema: z.ZodObject<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     } | undefined;
     dryRunPath?: string | undefined;
 }>;
@@ -4853,6 +5011,37 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             backgroundImage?: string | undefined;
         }>, "many">;
         caption: z.ZodString;
+        memeSlide: z.ZodOptional<z.ZodObject<{
+            template: z.ZodEnum<["drake", "expanding-brain", "distracted", "starter-pack", "two-buttons", "tell-me", "nobody", "reaction", "comparison"]>;
+            panels: z.ZodArray<z.ZodObject<{
+                text: z.ZodString;
+                emoji: z.ZodOptional<z.ZodString>;
+            }, "strip", z.ZodTypeAny, {
+                text: string;
+                emoji?: string | undefined;
+            }, {
+                text: string;
+                emoji?: string | undefined;
+            }>, "many">;
+            topicLine: z.ZodOptional<z.ZodString>;
+            tone: z.ZodEnum<["witty", "wholesome", "ironic", "hype"]>;
+        }, "strip", z.ZodTypeAny, {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        }, {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        }>>;
     }, "strip", z.ZodTypeAny, {
         slides: {
             heading: string;
@@ -4861,6 +5050,15 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     }, {
         slides: {
             heading: string;
@@ -4869,6 +5067,15 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     }>>;
     dryRunPath: z.ZodOptional<z.ZodString>;
     createdAt: z.ZodObject<{
@@ -4907,6 +5114,15 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     } | undefined;
     dryRunPath?: string | undefined;
 }, {
@@ -4925,6 +5141,15 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             backgroundImage?: string | undefined;
         }[];
         caption: string;
+        memeSlide?: {
+            template: "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+            panels: {
+                text: string;
+                emoji?: string | undefined;
+            }[];
+            tone: "witty" | "wholesome" | "ironic" | "hype";
+            topicLine?: string | undefined;
+        } | undefined;
     } | undefined;
     dryRunPath?: string | undefined;
 }>;

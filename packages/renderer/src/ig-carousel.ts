@@ -7,7 +7,8 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { IGSlide, IGFormattedPayload, IGQueueItem } from "@edlight-news/types";
+import type { IGSlide, IGFormattedPayload, IGQueueItem, IGMemeSlide } from "@edlight-news/types";
+import { buildMemeSlideHTML } from "./ig-meme.js";
 
 // ── Premium design system ─────────────────────────────────────────────────
 
@@ -182,6 +183,8 @@ export interface CarouselAssetResult {
  *
  * If Chromium (via the existing renderer) is available, renders PNGs.
  * Otherwise, falls back to "dry-run" mode: saves HTML templates + JSON payload.
+ *
+ * When payload.memeSlide is present, it is appended as the final carousel image.
  */
 export async function generateCarouselAssets(
   queueItem: IGQueueItem,
@@ -196,6 +199,9 @@ export async function generateCarouselAssets(
 
   const slidePaths: string[] = [];
   let mode: "rendered" | "dry-run" = "dry-run";
+
+  // Total slides: content slides + optional meme slide
+  const totalSlides = payload.slides.length + (payload.memeSlide ? 1 : 0);
 
   // Try to render PNGs using the existing branded card pipeline
   try {
@@ -215,6 +221,16 @@ export async function generateCarouselAssets(
       writeFileSync(pngPath, buffer);
       slidePaths.push(pngPath);
     }
+
+    // Render meme slide as final carousel image (if present)
+    if (payload.memeSlide) {
+      const memeHtml = buildMemeSlideHTML(payload.memeSlide);
+      const memeBuffer = await renderMemeSlideWithChromium(memeHtml);
+      const memePath = join(exportDir, `slide_meme.png`);
+      writeFileSync(memePath, memeBuffer);
+      slidePaths.push(memePath);
+    }
+
     mode = "rendered";
   } catch {
     // Chromium not available — fall back to dry-run HTML exports
@@ -222,12 +238,67 @@ export async function generateCarouselAssets(
 
     for (let i = 0; i < payload.slides.length; i++) {
       const slide = payload.slides[i]!;
-      const html = buildSlideHTML(slide, queueItem.igType, i, payload.slides.length);
+      const html = buildSlideHTML(slide, queueItem.igType, i, totalSlides);
       const htmlPath = join(exportDir, `slide_${i + 1}.html`);
       writeFileSync(htmlPath, html, "utf-8");
       slidePaths.push(htmlPath);
     }
+
+    // Meme slide dry-run HTML export
+    if (payload.memeSlide) {
+      const memeHtml = buildMemeSlideHTML(payload.memeSlide);
+      const memeHtmlPath = join(exportDir, `slide_meme.html`);
+      writeFileSync(memeHtmlPath, memeHtml, "utf-8");
+      slidePaths.push(memeHtmlPath);
+    }
   }
 
   return { mode, slidePaths, payloadPath, exportDir };
+}
+
+/**
+ * Render a meme slide HTML string to PNG using the shared Chromium instance.
+ */
+async function renderMemeSlideWithChromium(html: string): Promise<Buffer> {
+  const { renderBrandedCardPNG: _unused, ...rest } = await import("./index.js");
+  // We need the browser — reuse the same approach as renderBrandedCardPNG
+  // but set content directly from the meme HTML
+  const pw = await import("playwright-core");
+  const chromiumModule = pw.chromium;
+
+  const executablePaths = [
+    process.env.PLAYWRIGHT_CHROMIUM_PATH,
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+  ].filter(Boolean) as string[];
+
+  let browser;
+  for (const executablePath of executablePaths) {
+    try {
+      browser = await chromiumModule.launch({
+        executablePath,
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+      });
+      break;
+    } catch {
+      // Try next
+    }
+  }
+  if (!browser) {
+    browser = await chromiumModule.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    });
+  }
+
+  const page = await browser.newPage({ viewport: { width: 1080, height: 1080 } });
+  try {
+    await page.setContent(html, { waitUntil: "load", timeout: 60_000 });
+    const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
+    return Buffer.from(buffer);
+  } finally {
+    await page.close();
+    await browser.close();
+  }
 }

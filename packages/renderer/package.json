@@ -6,7 +6,8 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./ig-carousel.js": "./dist/ig-carousel.js"
+    "./ig-carousel.js": "./dist/ig-carousel.js",
+    "./ig-meme.js": "./dist/ig-meme.js"
   },
   "scripts": {
     "build": "tsc",

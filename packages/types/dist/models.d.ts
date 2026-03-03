@@ -422,10 +422,35 @@ export interface IGSlide {
     /** Optional background image URL. Rendered with a dark overlay for text readability. */
     backgroundImage?: string;
 }
+/**
+ * Meme templates inspired by popular viral formats.
+ * Each maps to a specific visual layout in the renderer.
+ */
+export type IGMemeTemplate = "drake" | "expanding-brain" | "distracted" | "starter-pack" | "two-buttons" | "tell-me" | "nobody" | "reaction" | "comparison";
+/** A single panel/tier within a meme. */
+export interface IGMemePanel {
+    /** The text label for this panel */
+    text: string;
+    /** Optional emoji/icon to render alongside the text */
+    emoji?: string;
+}
+/** A meme slide to be rendered as a separate carousel image. */
+export interface IGMemeSlide {
+    /** Which meme layout template to use */
+    template: IGMemeTemplate;
+    /** The panels/tiers of the meme (2-4 depending on template) */
+    panels: IGMemePanel[];
+    /** Optional topic/setup text displayed at the top of the meme */
+    topicLine?: string;
+    /** Tone tag for moderation: must be student-safe humor */
+    tone: "witty" | "wholesome" | "ironic" | "hype";
+}
 /** Formatted output ready for rendering. */
 export interface IGFormattedPayload {
     slides: IGSlide[];
     caption: string;
+    /** Optional meme slide inserted as the last carousel image for virality. */
+    memeSlide?: IGMemeSlide;
 }
 /** Firestore collection: ig_queue */
 export interface IGQueueItem {

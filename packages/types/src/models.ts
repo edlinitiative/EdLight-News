@@ -563,10 +563,49 @@ export interface IGSlide {
   backgroundImage?: string;
 }
 
+// ── Meme slide types (Litquidity-style viral content) ──────────────────────
+
+/**
+ * Meme templates inspired by popular viral formats.
+ * Each maps to a specific visual layout in the renderer.
+ */
+export type IGMemeTemplate =
+  | "drake"           // Top: bad option, Bottom: good option (two-panel)
+  | "expanding-brain" // 3-4 tiers of increasing "enlightenment"
+  | "distracted"      // Distracted boyfriend: current / distraction / ignored
+  | "starter-pack"    // "X Starter Pack" — 4 relatable items
+  | "two-buttons"     // Anxious choice between two options
+  | "tell-me"         // "Tell me X without telling me X" + punchline
+  | "nobody"          // "Nobody: … / Haitian students: …"
+  | "reaction"        // Single reaction caption over a bold emoji/icon
+  | "comparison";     // Side-by-side "Expectation vs Reality"
+
+/** A single panel/tier within a meme. */
+export interface IGMemePanel {
+  /** The text label for this panel */
+  text: string;
+  /** Optional emoji/icon to render alongside the text */
+  emoji?: string;
+}
+
+/** A meme slide to be rendered as a separate carousel image. */
+export interface IGMemeSlide {
+  /** Which meme layout template to use */
+  template: IGMemeTemplate;
+  /** The panels/tiers of the meme (2-4 depending on template) */
+  panels: IGMemePanel[];
+  /** Optional topic/setup text displayed at the top of the meme */
+  topicLine?: string;
+  /** Tone tag for moderation: must be student-safe humor */
+  tone: "witty" | "wholesome" | "ironic" | "hype";
+}
+
 /** Formatted output ready for rendering. */
 export interface IGFormattedPayload {
   slides: IGSlide[];
   caption: string;
+  /** Optional meme slide inserted as the last carousel image for virality. */
+  memeSlide?: IGMemeSlide;
 }
 
 /** Firestore collection: ig_queue */
