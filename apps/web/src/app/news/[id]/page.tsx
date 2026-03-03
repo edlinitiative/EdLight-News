@@ -15,6 +15,7 @@ import {
 import { MetaBadges } from "@/components/MetaBadges";
 import { ReportIssueButton } from "@/components/ReportIssueButton";
 import { ShareButtons } from "@/components/ShareButtons";
+import { BrandedHero } from "@/components/BrandedHero";
 import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { buildOgMetadata } from "@/lib/og";
@@ -307,7 +308,16 @@ function StructuredSections({
                   <ImageWithFallback
                     src={section.imageUrl}
                     alt={section.imageCaption || section.heading}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 768px"
                     className="h-full w-full object-cover"
+                    fallback={
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 to-stone-300 dark:from-stone-700 dark:to-stone-600">
+                        <span className="text-xs font-bold tracking-wide text-stone-400 dark:text-stone-500">
+                          ED<span className="text-stone-300 dark:text-stone-600">LIGHT</span>
+                        </span>
+                      </div>
+                    }
                   />
                 </div>
                 {(section.imageCaption || section.imageCredit) && (
@@ -811,42 +821,72 @@ export default async function ArticlePage({
       {/* Hero image — best image from dedup group (mirrors card logic).
           For utility items (daily fact, etc.) with only a branded card,
           skip the hero entirely — the generated gradient card adds no value.
-          For history articles with a real illustration, show a cinematic hero. */}
+          For branded-source images on non-utility articles, render a polished
+          CSS hero instead of the static PNG (crisp at all sizes, dark-mode aware).
+          For real images, use the CSS hero as a graceful fallback. */}
       {heroImageUrl && !(isUtility && heroImageSource === "branded") && (
-        <div className={`relative w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800 ${
-          isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
-        }`}>
-          <ImageWithFallback
-            src={heroImageUrl}
-            alt={article.title}
-            className="h-full w-full object-cover"
+        heroImageSource === "branded" ? (
+          <BrandedHero
+            title={article.title}
+            category={item?.category}
+            sourceName={item?.source?.name}
+            className={isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"}
           />
-          {/* Dark gradient overlay for history hero (text legibility) */}
-          {isHistory && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          )}
-          {/* Image credit label */}
-          {heroImageSource === "publisher" && (
-            <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-              {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
-            </span>
-          )}
-          {heroImageSource === "wikidata" && (
-            <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-              {heroImageAttribution?.name
-                ? `Photo : ${heroImageAttribution.name}`
-                : "Wikimedia Commons"}
-              {heroImageAttribution?.license
-                ? ` (${heroImageAttribution.license})`
-                : ""}
-            </span>
-          )}
-          {heroImageSource === "screenshot" && (
-            <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-              {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
-            </span>
-          )}
-        </div>
+        ) : (
+          <div className={`relative w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800 ${
+            isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
+          }`}>
+            <ImageWithFallback
+              src={heroImageUrl}
+              alt={article.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="h-full w-full object-cover"
+              fallback={
+                <BrandedHero
+                  title={article.title}
+                  category={item?.category}
+                  sourceName={item?.source?.name}
+                  className="h-full w-full"
+                />
+              }
+            />
+            {/* Dark gradient overlay for history hero (text legibility) */}
+            {isHistory && (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            )}
+            {/* Image credit label */}
+            {heroImageSource === "publisher" && (
+              <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
+                {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
+              </span>
+            )}
+            {heroImageSource === "wikidata" && (
+              <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
+                {heroImageAttribution?.name
+                  ? `Photo : ${heroImageAttribution.name}`
+                  : "Wikimedia Commons"}
+                {heroImageAttribution?.license
+                  ? ` (${heroImageAttribution.license})`
+                  : ""}
+              </span>
+            )}
+            {heroImageSource === "screenshot" && (
+              <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
+                {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
+              </span>
+            )}
+          </div>
+        )
+      )}
+      {/* No image at all — show CSS branded hero as graceful placeholder */}
+      {!heroImageUrl && !isUtility && (
+        <BrandedHero
+          title={article.title}
+          category={item?.category}
+          sourceName={item?.source?.name}
+          className="aspect-video"
+        />
       )}
 
       {/* Top meta badges */}

@@ -13,6 +13,7 @@ import { MapPin } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { getItemGeo } from "@/lib/itemGeo";
+import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { HaitiFeed } from "@/components/HaitiFeed";
 import { buildOgMetadata } from "@/lib/og";
 
@@ -61,11 +62,14 @@ export default async function HaitiPage({
     (a) => getItemGeo({ ...a, summary: a.summary ?? "" }) === "Haiti",
   );
 
-  const articles = rankAndDeduplicate(haitiOnly, {
+  const ranked = rankAndDeduplicate(haitiOnly, {
     audienceFitThreshold: 0.65,
     publisherCap: 4,
     topN: 40,
   });
+
+  // Suppress "taux du jour" articles — the TauxDuJourWidget handles rates
+  const articles = ranked.filter((a) => !isTauxDuJourArticle(a));
 
   const fr = lang === "fr";
 

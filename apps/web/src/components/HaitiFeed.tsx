@@ -5,7 +5,6 @@ import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
 import { ArticleCard } from "@/components/ArticleCard";
 import { isStudentFocused } from "@/lib/itemGeo";
-import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import { ChevronDown } from "lucide-react";
 
@@ -38,14 +37,11 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
     setVisibleCount(PAGE_SIZE);
   }, []);
 
-  // Suppress "taux du jour" articles (the widget handles exchange rates)
-  const tauxFiltered = articles.filter((a) => !isTauxDuJourArticle(a));
-
   // Secondary student filter
   const filtered =
     filter === "students"
-      ? tauxFiltered.filter((a) => isStudentFocused(a))
-      : tauxFiltered;
+      ? articles.filter((a) => isStudentFocused(a))
+      : articles;
 
   const sorted = [...filtered].sort((a, b) => {
     if (sort === "relevance") {
