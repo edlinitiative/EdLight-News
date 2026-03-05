@@ -51,6 +51,23 @@ const MAX_TEXT_PER_SOURCE = 2000;
 const MAX_SOURCES_PER_JOB = 5;
 const ENABLE_RU = process.env.ENABLE_RU_STUDYABROAD === "true";
 
+/**
+ * Minimum combined source-text length (chars) required before we generate
+ * content for "snackable" series whose quality hinges on rich input.
+ * If the total text across all fetched packets is below this threshold the
+ * job is skipped with a clear log message.
+ */
+const MIN_SOURCE_TEXT_SNACKABLE = 300;
+/** Series that are short-form and therefore most sensitive to thin sources */
+const SNACKABLE_SERIES: Set<string> = new Set(["HaitiFactOfTheDay", "HaitiHistory"]);
+
+/**
+ * When a source's extracted text is shorter than this value (chars) we
+ * suspect it came from an RSS summary / index page.  We attempt a follow-up
+ * scrape of the canonical article URL to get the real content.
+ */
+const THIN_SOURCE_THRESHOLD = 250;
+
 /** Max sources to pull for calendar jobs */
 const MAX_CALENDAR_SOURCES = 8;
 /** Only create a new calendar item if none exists in last N days */
@@ -158,9 +175,34 @@ async function fetchSourcePacket(source: UtilitySource): Promise<UtilitySourcePa
       return null;
     }
 
-    const extracted = await extractArticleContent(source.url, {
+    let extracted = await extractArticleContent(source.url, {
       articleBody: source.parsingHints?.selectorMain,
     });
+
+    // ── Follow-up scrape for thin RSS/index sources ─────────────────────
+    // If the initial scrape returned very little text it's likely an RSS
+    // summary page.  Try fetching the canonical article URL for the real
+    // content (canonicalUrl may differ from the feed URL).
+    if (
+      extracted.text.length < THIN_SOURCE_THRESHOLD &&
+      extracted.canonicalUrl &&
+      extracted.canonicalUrl !== source.url
+    ) {
+      console.log(
+        `[utility] Thin source (${extracted.text.length} chars) from ${source.url} — ` +
+          `retrying with canonical URL ${extracted.canonicalUrl}`,
+      );
+      try {
+        const deeper = await extractArticleContent(extracted.canonicalUrl, {
+          articleBody: source.parsingHints?.selectorMain,
+        });
+        if (deeper.text.length > extracted.text.length) {
+          extracted = deeper;
+        }
+      } catch {
+        // canonical URL fetch failed — fall through with original
+      }
+    }
 
     const text = extracted.text.slice(0, MAX_TEXT_PER_SOURCE);
     if (text.length < 50) {
@@ -400,6 +442,25 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           await utilityQueueRepo.markFailed(job.id, ["No source packets could be fetched"]);
           result.errors++;
           continue;
+        }
+
+        // ── Snackable source-quality gate ────────────────────────────────
+        // For short-form series (daily_fact, history) the generated quality
+        // is directly proportional to how much substance the sources contain.
+        // Reject early if the combined text is too thin.
+        if (SNACKABLE_SERIES.has(job.series)) {
+          const combinedLen = packets.reduce((sum, p) => sum + p.extractedText.length, 0);
+          if (combinedLen < MIN_SOURCE_TEXT_SNACKABLE) {
+            console.log(
+              `[utility] SKIPPED ${job.series} — source text too thin ` +
+                `(${combinedLen} chars < ${MIN_SOURCE_TEXT_SNACKABLE} minimum)`,
+            );
+            await utilityQueueRepo.markFailed(job.id, [
+              `Source text too thin for ${job.series}: ${combinedLen} chars (need ≥${MIN_SOURCE_TEXT_SNACKABLE})`,
+            ]);
+            result.errors++;
+            continue;
+          }
         }
 
         // Collect allowlist domains for validation

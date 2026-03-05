@@ -110,6 +110,13 @@ STRUCTURE OBLIGATOIRE:
 - Section "Le fait" (une phrase-choc + explication courte, 1 paragraphe)
 - Section "Contexte rapide" (2-3 phrases de contexte)
 - Section "Source" (d'où vient cette information)
+
+RÈGLES DE QUALITÉ SPÉCIFIQUES AU FAIT DU JOUR:
+1. Le fait DOIT contenir au moins UN détail concret: un chiffre, un nom propre, un lieu précis, une date, ou un domaine spécifique. Exemples: "15 femmes", "à l'Université de Limonade", "en plomberie et électricité", "en mars 2026".
+2. Ne produis JAMAIS un fait vague composé uniquement de généralités ("promouvoir l'égalité", "briser les stéréotypes", "ouvrir des opportunités"). Ces phrases ne sont PAS des faits.
+3. Si les sources ne contiennent pas assez de détails concrets pour produire un fait spécifique, mets "à confirmer" pour les détails manquants plutôt que de les remplacer par des généralités.
+4. Si le texte source fait moins de ~200 mots et ne fournit que des informations vagues, mets confidence ≤ 0.3 dans les deadlines (via sourceUrl) pour signaler la faiblesse du contenu.
+
 Sois concis — c'est un format "snackable". Le fait doit surprendre ou éduquer.`,
 
   HaitianOfTheWeek: `TYPE: HAÏTIEN(NE) DE LA SEMAINE
@@ -337,7 +344,29 @@ export function validateUtilityJson(
     );
   }
 
-  // 6. Allowlist domain enforcement
+  // 6. HaitiFactOfTheDay concreteness check — detect vague filler content
+  if (series === "HaitiFactOfTheDay") {
+    const factSection = output.sections_fr.find(
+      (s) => s.heading.toLowerCase().includes("fait") || s.heading.toLowerCase().includes("fèt"),
+    );
+    if (factSection) {
+      const body = factSection.content;
+      // A concrete fact should contain at least one: number, proper noun
+      // (capitalized multi-word), specific place, or date.
+      const hasNumber = /\d/.test(body);
+      // Proper noun heuristic: two+ consecutive capitalized words that
+      // aren't at the start of a sentence.
+      const hasProperNoun = /(?<=[.!?]\s+|,\s+|\b(?:à|de|en|du|des|le|la|les|l')\s*)[A-ZÀ-Ü][a-zà-ü]+(?:[\s-][A-ZÀ-Ü][a-zà-ü]+)/.test(body);
+      const hasDate = /\d{4}|\d{1,2}\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)/i.test(body);
+      if (!hasNumber && !hasProperNoun && !hasDate) {
+        issues.push(
+          'HaitiFactOfTheDay "Le fait" section lacks concrete details (no numbers, proper nouns, or dates)',
+        );
+      }
+    }
+  }
+
+  // 7. Allowlist domain enforcement
   if (allowlistDomains && allowlistDomains.length > 0) {
     const domainSet = new Set(allowlistDomains.map((d) => d.toLowerCase()));
     for (const cit of output.citations) {
@@ -361,10 +390,11 @@ export function validateUtilityJson(
       i.includes("No Haitian") ||
       i.includes("references unknown sourceUrl") ||
       i.includes("Speculation marker") ||
-      i.includes("Excessive placeholder content"),
+      i.includes("Excessive placeholder content") ||
+      i.includes("lacks concrete details"),
   );
 
-  // 7. HaitiEducationCalendar strict validation
+  // 8. HaitiEducationCalendar strict validation
   if (series === "HaitiEducationCalendar") {
     // Require at least 1 citation from an official domain (priority >= 100 → tracked via allowlistDomains)
     const officialDomains = new Set(["menfp.gouv.ht", "ueh.edu.ht"]);
