@@ -74,9 +74,14 @@ export async function publishIgPost(
   }
 
   // ── Real IG Graph API publishing ────────────────────────────────────────
+  // Supports both token types:
+  //   • Instagram Login tokens → graph.instagram.com
+  //   • Facebook Login tokens  → graph.facebook.com
+  // Detect based on IG_API_HOST env var (defaults to graph.instagram.com).
   try {
     const { accessToken, igUserId } = creds;
-    const baseUrl = `https://graph.facebook.com/v19.0/${igUserId}`;
+    const apiHost = process.env.IG_API_HOST ?? "graph.instagram.com";
+    const baseUrl = `https://${apiHost}/v21.0/${igUserId}`;
 
     // Step 1: Create carousel container items (one per slide image)
     const containerIds: string[] = [];

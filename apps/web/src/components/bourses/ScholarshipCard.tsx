@@ -65,6 +65,64 @@ const MONTH_NAMES_FR = [
   "juillet", "août", "septembre", "octobre", "novembre", "décembre",
 ];
 
+/**
+ * Country-themed card backgrounds.
+ * Each entry provides a subtle gradient for the card corner
+ * and a flag emoji rendered as a faded watermark.
+ */
+const COUNTRY_BG: Record<DatasetCountry, { gradient: string; darkGradient: string; emoji: string }> = {
+  US: {
+    gradient: "from-blue-50 via-transparent to-transparent",
+    darkGradient: "dark:from-blue-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇺🇸",
+  },
+  CA: {
+    gradient: "from-red-50 via-transparent to-transparent",
+    darkGradient: "dark:from-red-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇨🇦",
+  },
+  FR: {
+    gradient: "from-blue-50 via-transparent to-transparent",
+    darkGradient: "dark:from-blue-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇫🇷",
+  },
+  UK: {
+    gradient: "from-indigo-50 via-transparent to-transparent",
+    darkGradient: "dark:from-indigo-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇬🇧",
+  },
+  DO: {
+    gradient: "from-red-50 via-transparent to-transparent",
+    darkGradient: "dark:from-red-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇩🇴",
+  },
+  MX: {
+    gradient: "from-green-50 via-transparent to-transparent",
+    darkGradient: "dark:from-green-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇲🇽",
+  },
+  CN: {
+    gradient: "from-red-50 via-transparent to-transparent",
+    darkGradient: "dark:from-red-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇨🇳",
+  },
+  RU: {
+    gradient: "from-sky-50 via-transparent to-transparent",
+    darkGradient: "dark:from-sky-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇷🇺",
+  },
+  HT: {
+    gradient: "from-blue-50 via-transparent to-transparent",
+    darkGradient: "dark:from-blue-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🇭🇹",
+  },
+  Global: {
+    gradient: "from-amber-50 via-transparent to-transparent",
+    darkGradient: "dark:from-amber-950/30 dark:via-transparent dark:to-transparent",
+    emoji: "🌍",
+  },
+};
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string, lang: ContentLanguage): string {
@@ -122,15 +180,29 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
   const visibleTags = tagsExpanded ? (s.tags ?? []) : (s.tags ?? []).slice(0, 3);
   const hiddenTagCount = (s.tags?.length ?? 0) - 3;
 
+  const bg = COUNTRY_BG[s.country] ?? COUNTRY_BG.Global;
+
   return (
     <article
       id={`scholarship-${s.id}`}
-      className={`group flex h-full flex-col rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-stone-900 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-stone-900 ${
         isDirectory
           ? "border-l-4 border-l-indigo-300 border-stone-200 dark:border-l-indigo-600 dark:border-stone-700"
           : "border-stone-200 dark:border-stone-700"
       }`}
     >
+      {/* ── Decorative country-themed background ── */}
+      <div
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${bg.gradient} ${bg.darkGradient}`}
+        aria-hidden="true"
+      />
+      <span
+        className="pointer-events-none absolute -right-4 -top-2 select-none text-[7rem] leading-none opacity-[0.07] dark:opacity-[0.05] transition-transform duration-300 group-hover:scale-110"
+        aria-hidden="true"
+      >
+        {bg.emoji}
+      </span>
+
       {/* ── Top row: Title + Funding chip + Save ── */}
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
