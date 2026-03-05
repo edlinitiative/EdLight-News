@@ -25,7 +25,7 @@ export async function GET() {
         caption: data.payload?.caption
           ? data.payload.caption.slice(0, 200) + (data.payload.caption.length > 200 ? "…" : "")
           : null,
-        slidesCount: data.payload?.slides?.length ?? 0,
+        slidesCount: (data.payload?.slides?.length ?? 0) + (data.payload?.memeSlide ? 1 : 0),
         dryRunPath: data.dryRunPath ?? null,
         igPostId: data.igPostId ?? null,
         createdAt: data.createdAt?._seconds

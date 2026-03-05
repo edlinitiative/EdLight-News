@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -191,9 +191,8 @@ export default function IGQueuePage() {
             </thead>
             <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
               {filtered.map((entry) => (
-                <>
+                <Fragment key={entry.id}>
                   <tr
-                    key={entry.id}
                     className="cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/50"
                     onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
                   >
@@ -255,7 +254,7 @@ export default function IGQueuePage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

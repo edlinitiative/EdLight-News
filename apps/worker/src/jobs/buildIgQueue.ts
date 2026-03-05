@@ -7,7 +7,7 @@
  */
 
 import { itemsRepo, igQueueRepo } from "@edlight-news/firebase";
-import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generator/ig/index.js";
+import { decideIG, applyDedupePenalty, formatForIGWithMeme } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus } from "@edlight-news/types";
 
 export interface BuildIgQueueResult {
@@ -82,8 +82,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           continue;
         }
 
-        // Format the payload
-        const payload = formatForIG(decision.igType, item);
+        // Format the payload (includes meme generation when eligible)
+        const payload = await formatForIGWithMeme(decision.igType, item);
 
         // Insert as queued
         await igQueueRepo.createIGQueueItem({
