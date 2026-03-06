@@ -31,6 +31,8 @@ interface SeedSource {
   priority: "hot" | "normal";
   /** Set to false to disable a source without removing it from the seed file */
   active?: boolean;
+  /** Whether publisher images are safe to embed in IG posts (default true) */
+  igImageSafe?: boolean;
   selectors?: {
     listItem?: string;
     articleBody?: string;
@@ -74,9 +76,12 @@ async function main() {
       updatedAt: FieldValue.serverTimestamp(),
     };
 
-    // Only set selectors when provided (avoids overwriting with undefined)
+    // Only set optional fields when provided (avoids overwriting with undefined)
     if (seed.selectors) {
       data.selectors = seed.selectors;
+    }
+    if (seed.igImageSafe !== undefined) {
+      data.igImageSafe = seed.igImageSafe;
     }
 
     if (snap.exists) {

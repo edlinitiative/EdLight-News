@@ -5,7 +5,8 @@
     "url": "https://www.juno7.ht/feed/",
     "language": "fr",
     "pollCadenceSec": 1800,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "name": "AyiboPost",
@@ -13,7 +14,8 @@
     "url": "https://ayibopost.com/feed/",
     "language": "fr",
     "pollCadenceSec": 1800,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "name": "Le Nouvelliste",
@@ -22,6 +24,7 @@
     "language": "fr",
     "pollCadenceSec": 1800,
     "priority": "hot",
+    "igImageSafe": false,
     "selectors": {
       "listItem": "article a, .article-card a",
       "articleBody": "article .article-body, .post-content",
@@ -35,6 +38,7 @@
     "language": "fr",
     "pollCadenceSec": 3600,
     "priority": "hot",
+    "igImageSafe": false,
     "selectors": {
       "listItem": "a.titrenewsrecent, .news a",
       "articleBody": ".articletexte, #articlebody",
@@ -48,6 +52,7 @@
     "language": "fr",
     "pollCadenceSec": 3600,
     "priority": "normal",
+    "igImageSafe": false,
     "selectors": {
       "listItem": ".news-item a, article a",
       "articleBody": ".article-body, .story-content",
@@ -60,7 +65,8 @@
     "url": "https://news.google.com/rss/search?q=Haiti&hl=fr&gl=HT&ceid=HT:fr",
     "language": "fr",
     "pollCadenceSec": 3600,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "name": "Google News — Haiti Éducation & Bourses",
@@ -68,7 +74,8 @@
     "url": "https://news.google.com/rss/search?q=Haiti+bourses+OR+%C3%A9ducation+OR+scholarship&hl=fr&gl=HT&ceid=HT:fr",
     "language": "fr",
     "pollCadenceSec": 7200,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "name": "Google News — Haiti Diaspora",
@@ -76,7 +83,8 @@
     "url": "https://news.google.com/rss/search?q=Haiti+diaspora&hl=fr&gl=HT&ceid=HT:fr",
     "language": "fr",
     "pollCadenceSec": 14400,
-    "priority": "normal"
+    "priority": "normal",
+    "igImageSafe": false
   },
   {
     "name": "ReliefWeb — Haiti",
@@ -92,7 +100,8 @@
     "url": "https://haitiantimes.com/feed/",
     "language": "fr",
     "pollCadenceSec": 3600,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "name": "RFI — Amériques",
@@ -132,7 +141,8 @@
     "url": "https://news.google.com/rss/search?q=Haiti&hl=en&gl=US&ceid=US:en",
     "language": "fr",
     "pollCadenceSec": 3600,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "name": "UN News — Migrants & Refugees",
@@ -238,6 +248,7 @@
     "language": "fr",
     "pollCadenceSec": 3600,
     "priority": "hot",
+    "igImageSafe": false,
     "selectors": {
       "listItem": "article a, .package a, .story-body a",
       "articleBody": ".story-body, .article-body, .paywall",
@@ -507,7 +518,8 @@
     "url": "https://news.google.com/rss/search?q=bourse+%C3%A9tudiants+ha%C3%AFtiens+OR+scholarship+Haiti&hl=fr&gl=HT&ceid=HT:fr",
     "language": "fr",
     "pollCadenceSec": 7200,
-    "priority": "hot"
+    "priority": "hot",
+    "igImageSafe": false
   },
   {
     "_group": "opportunities",
@@ -516,7 +528,8 @@
     "url": "https://news.google.com/rss/search?q=concours+OR+stage+OR+programme+%C3%A9tudiants+Haiti&hl=fr&gl=HT&ceid=HT:fr",
     "language": "fr",
     "pollCadenceSec": 14400,
-    "priority": "normal"
+    "priority": "normal",
+    "igImageSafe": false
   },
   {
     "_group": "opportunities",
@@ -552,6 +565,7 @@
     "url": "https://news.google.com/rss/search?q=bourse+OR+fellowship+OR+scholarship+Cara%C3%AFbes+OR+Caribbean+francophone&hl=fr&ceid=FR:fr",
     "language": "fr",
     "pollCadenceSec": 14400,
-    "priority": "normal"
+    "priority": "normal",
+    "igImageSafe": false
   }
 ]

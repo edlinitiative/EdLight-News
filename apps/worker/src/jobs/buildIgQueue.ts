@@ -6,10 +6,11 @@
  * and inserts/merges into ig_queue.
  */
 
-import { itemsRepo, igQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
+import { itemsRepo, igQueueRepo, contentVersionsRepo, sourcesRepo } from "@edlight-news/firebase";
 import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generator/ig/index.js";
-import type { BilingualText } from "@edlight-news/generator/ig/index.js";
-import type { Item, IGQueueStatus } from "@edlight-news/types";
+import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
+import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
+import { findFreeImage } from "../services/commonsImageSearch.js";
 
 export interface BuildIgQueueResult {
   evaluated: number;
@@ -51,6 +52,9 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
       // For simplicity, just track the sourceContentIds
       recentGroupIds.add(posted.sourceContentId);
     }
+
+    // Pre-load source cache for igImageSafe lookup
+    const sourceCache = new Map<string, Source | null>();
 
     for (const item of items) {
       result.evaluated++;
@@ -101,8 +105,32 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           // Versions unavailable — formatter will fall back to raw item fields
         }
 
+        // Look up source to check igImageSafe
+        let igImageSafe = true;
+        if (!sourceCache.has(item.sourceId)) {
+          sourceCache.set(item.sourceId, await sourcesRepo.getSource(item.sourceId));
+        }
+        const source = sourceCache.get(item.sourceId);
+        if (source?.igImageSafe === false) {
+          igImageSafe = false;
+        }
+
+        // For unsafe sources, try to find a free-licensed replacement image
+        let overrideImageUrl: string | undefined;
+        if (!igImageSafe && item.imageSource === "publisher") {
+          try {
+            const freeImage = await findFreeImage(item);
+            if (freeImage) {
+              overrideImageUrl = freeImage.imageUrl;
+            }
+          } catch (err) {
+            console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
+          }
+        }
+
         // Format the payload
-        const payload = formatForIG(decision.igType, item, bi);
+        const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
+        const payload = formatForIG(decision.igType, item, opts);
 
         // Insert as queued
         await igQueueRepo.createIGQueueItem({

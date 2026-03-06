@@ -28,6 +28,13 @@ export interface Source {
   pollCadenceSec: number;
   /** Priority level for ordering in tick */
   priority: SourcePriority;
+  /**
+   * Whether the source's publisher images are safe to embed in IG posts.
+   * When false, IG formatters skip the publisher backgroundImage and use
+   * a free-licensed alternative (Commons/Flickr) or the branded gradient.
+   * Defaults to true when absent.
+   */
+  igImageSafe?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -54,7 +61,7 @@ export interface RawItem {
 export type GeoTag = "HT" | "Diaspora" | "Global";
 
 /** How the article image was obtained */
-export type ImageSource = "publisher" | "wikidata" | "branded" | "screenshot";
+export type ImageSource = "publisher" | "wikidata" | "branded" | "screenshot" | "commons";
 
 /** Metadata about the article image */
 export interface ImageMeta {

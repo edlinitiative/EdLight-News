@@ -6,7 +6,7 @@
 
 export { decideIG, applyDedupePenalty } from "./selection.js";
 export { formatForIG } from "./formatters/index.js";
-export type { BilingualText } from "./formatters/index.js";
+export type { BilingualText, FormatIGOptions } from "./formatters/index.js";
 export {
   buildScholarshipCarousel,
   buildOpportunityCarousel,

@@ -33,7 +33,7 @@ const sourceSelectorsSchema = z.object({
 
 const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
 
-const imageSourceSchema = z.enum(["publisher", "wikidata", "branded", "screenshot"]);
+const imageSourceSchema = z.enum(["publisher", "wikidata", "branded", "screenshot", "commons"]);
 
 const imageMetaSchema = z.object({
   width: z.number().positive().optional(),
