@@ -396,5 +396,51 @@
     "priority": 50,
     "active": true,
     "parsingHints": { "selectorMain": "article, .content, main" }
+  },
+  {
+    "label": "Python.org – Tutoriels débutants",
+    "url": "https://docs.python.org/fr/3/tutorial/index.html",
+    "type": "html",
+    "series": "EdLightCode",
+    "utilityTypes": ["code"],
+    "region": ["Global"],
+    "allowlistDomain": "docs.python.org",
+    "priority": 10,
+    "active": true,
+    "parsingHints": { "selectorMain": "article, .document, main" }
+  },
+  {
+    "label": "MDN Web Docs – HTML & CSS",
+    "url": "https://developer.mozilla.org/fr/docs/Learn/HTML/Introduction_to_HTML",
+    "type": "html",
+    "series": "EdLightCode",
+    "utilityTypes": ["code"],
+    "region": ["Global"],
+    "allowlistDomain": "developer.mozilla.org",
+    "priority": 9,
+    "active": true,
+    "parsingHints": { "selectorMain": "article, .article-content, main" }
+  },
+  {
+    "label": "freeCodeCamp – Actualités",
+    "url": "https://www.freecodecamp.org/news/rss/",
+    "type": "rss",
+    "series": "EdLightCode",
+    "utilityTypes": ["code"],
+    "region": ["Global"],
+    "allowlistDomain": "freecodecamp.org",
+    "priority": 8,
+    "active": true
+  },
+  {
+    "label": "Replit Blog",
+    "url": "https://blog.replit.com/rss.xml",
+    "type": "rss",
+    "series": "EdLightCode",
+    "utilityTypes": ["code"],
+    "region": ["Global"],
+    "allowlistDomain": "blog.replit.com",
+    "priority": 7,
+    "active": true
   }
 ]

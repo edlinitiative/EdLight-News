@@ -25,7 +25,8 @@ export type EditorialToneKey =
   | "study-abroad"
   | "career"
   | "profile"
-  | "news";
+  | "news"
+  | "code";
 
 // ── Per-tone editorial directives ───────────────────────────────────────────
 
@@ -191,6 +192,32 @@ const DIRECTIVES: Record<EditorialToneKey, EditorialDirective> = {
       "Maintain credibility.",
     ].join("\n"),
   },
+
+  // ── EdLight Code ──────────────────────────────────────────────────────────
+  code: {
+    key: "code",
+    tone: [
+      "Clear, pedagogical, encouraging.",
+      "Technical but accessible to beginners.",
+      "No jargon without explanation.",
+    ].join("\n"),
+    style: [
+      "Step-by-step tutorial format.",
+      "Sections: Objectif, Prérequis, Étapes, Code exemple, Pour aller plus loin, Sources.",
+      "400–700 words.",
+    ].join("\n"),
+    rules: [
+      "Every code snippet must be correct and tested.",
+      "Explain each step before showing code.",
+      "Use only technologies accessible to students (free tools, no paid APIs).",
+      "Do not assume prior knowledge beyond what is stated in Prérequis.",
+    ].join("\n"),
+    studentLens: [
+      "Target Haitian students learning to code.",
+      "Highlight practical applications in the Haitian context.",
+      "Encourage experimentation and build confidence.",
+    ].join("\n"),
+  },
 };
 
 // ── Series → Tone mapping ───────────────────────────────────────────────────
@@ -204,6 +231,7 @@ const SERIES_TONE_MAP: Record<UtilitySeries, EditorialToneKey> = {
   HaitianOfTheWeek: "profile",
   HaitiFactOfTheDay: "news",
   HaitiEducationCalendar: "news",
+  EdLightCode: "code",
 };
 
 // ── Public API ──────────────────────────────────────────────────────────────

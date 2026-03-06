@@ -127,7 +127,8 @@ export type UtilitySeries =
   | "HaitiHistory"
   | "HaitiFactOfTheDay"
   | "HaitianOfTheWeek"
-  | "HaitiEducationCalendar";
+  | "HaitiEducationCalendar"
+  | "EdLightCode";
 
 export type UtilityType =
   | "study_abroad"
@@ -137,7 +138,8 @@ export type UtilityType =
   | "history"
   | "daily_fact"
   | "profile"
-  | "school_calendar";
+  | "school_calendar"
+  | "code";
 
 export type UtilityAudience = "lycee" | "universite" | "international";
 export type UtilityRegion = "HT" | "US" | "CA" | "FR" | "DO" | "RU" | "Global";

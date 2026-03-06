@@ -143,6 +143,22 @@ RÈGLES SPÉCIALES CALENDRIER:
 4. Utilise le champ "notes" pour les perturbations/mises à jour/grèves/reports.
 5. Inclus ABSOLUMENT les mots-clés: inscription, admission, concours, bac, NS, rentrée, calendrier, résultats, session.
 6. Le contenu DOIT être ancré dans les sources officielles haïtiennes (MENFP, UEH).`,
+
+  EdLightCode: `TYPE: EDLIGHT CODE — TUTORIEL DE PROGRAMMATION
+Crée un tutoriel de code pratique pour un étudiant haïtien débutant ou intermédiaire.
+STRUCTURE OBLIGATOIRE:
+- Section "Objectif" (ce que l'étudiant va apprendre ou construire)
+- Section "Prérequis" (niveau attendu, outils nécessaires — gratuits et accessibles)
+- Section "Étapes" (instructions pas-à-pas numérotées, claires et testées)
+- Section "Code exemple" (snippet(s) de code complet(s) et fonctionnel(s))
+- Section "Pour aller plus loin" (exercices, variantes, ressources suivantes)
+- Section "Sources" (documentation officielle ou tutoriels de référence)
+RÈGLES SPÉCIALES CODE:
+1. Utilise uniquement des outils gratuits (Python, HTML/CSS/JS, VS Code, Replit, etc.).
+2. Chaque extrait de code doit être correct et directement exécutable.
+3. Explique chaque étape AVANT de montrer le code.
+4. Adapte les exemples au contexte haïtien si possible (noms, données, cas d'usage).
+5. Le contenu doit être 100% basé sur les sources fournies — n'invente aucune syntaxe.`,
 };
 
 // ── Prompt builder ──────────────────────────────────────────────────────────
@@ -301,7 +317,7 @@ export function validateUtilityJson(
 
   // 3. Citation count by series
   const citCount = output.citations.length;
-  const needsTwo = ["StudyAbroad", "Career", "HaitiHistory", "HaitianOfTheWeek"];
+  const needsTwo = ["StudyAbroad", "Career", "HaitiHistory", "HaitianOfTheWeek", "EdLightCode"];
   const needsOne = ["ScholarshipRadar", "HaitiFactOfTheDay", "HaitiEducationCalendar"];
 
   if (needsTwo.includes(series) && citCount < 2) {

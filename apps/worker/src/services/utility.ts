@@ -148,6 +148,8 @@ function seriesToUtilityType(series: UtilitySeries): UtilityType {
       return "profile";
     case "HaitiEducationCalendar":
       return "school_calendar";
+    case "EdLightCode":
+      return "code";
   }
 }
 
@@ -156,10 +158,10 @@ function seriesToUtilityType(series: UtilitySeries): UtilityType {
 function seriesToCategory(series: UtilitySeries): ItemCategory {
   switch (series) {
     case "ScholarshipRadar":
-      return "bourses";
     case "ScholarshipRadarWeekly":
       return "bourses";
     case "HaitiEducationCalendar":
+    case "EdLightCode":
       return "resource";
     default:
       return "resource";
@@ -260,6 +262,9 @@ function getScheduledSlots(): ScheduledSlot[] {
       // Wednesday → StudyAbroad with rotation
       const rk = getStudyAbroadRotationKey();
       slots.push({ series: "StudyAbroad", rotationKey: rk });
+    } else if (dow === 5) {
+      // Friday → EdLightCode
+      slots.push({ series: "EdLightCode" });
     } else if (dow % 2 === 0) {
       // Even days → Career
       slots.push({ series: "Career" });
