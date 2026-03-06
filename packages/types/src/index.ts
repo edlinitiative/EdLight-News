@@ -90,6 +90,7 @@ export type {
   IGQueueStatus,
   IGDecision,
   IGSlide,
+  IGSlideLayout,
   IGMemeTemplate,
   IGMemePanel,
   IGMemeSlide,

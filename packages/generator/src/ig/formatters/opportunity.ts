@@ -6,7 +6,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, shortenText, humanizeUrl, type BilingualText } from "./helpers.js";
+import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, type BilingualText } from "./helpers.js";
 
 export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -23,8 +23,9 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
-    heading: shortenText(title, 90),
+    heading: shortenHeadline(title),
     bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [shortenText(summary, 180)],
+    layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
@@ -33,6 +34,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     slides.push({
       heading: "Qui peut postuler ?",
       bullets: [item.opportunity.eligibility.slice(0, 3).join(". ")],
+      layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
@@ -46,6 +48,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     slides.push({
       heading: "Comment postuler",
       bullets: [applyParts.join("  ·  ")],
+      layout: "explanation",
       footer: buildSourceLine(item),
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });

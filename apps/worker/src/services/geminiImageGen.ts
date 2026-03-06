@@ -9,6 +9,7 @@
 
 import { uploadImageBuffer } from "@edlight-news/firebase";
 import type { Item } from "@edlight-news/types";
+import { findEditorialImage } from "./editorialImageSearch.js";
 
 // Read lazily — dotenv may not have run yet when this module is imported
 function getApiKey(): string | undefined {
@@ -172,17 +173,35 @@ async function callGeminiFlashFallback(prompt: string, apiKey: string): Promise<
 // ── Public API ─────────────────────────────────────────────────────────────
 
 /**
- * Generate a contextual image for an IG post using Gemini.
- * Uploads to Firebase Storage and returns the public URL.
+ * Generate a contextual image for an IG post.
  *
- * Returns null if generation fails (non-blocking).
+ * Pipeline:
+ *   1. Editorial search (Unsplash → Wikimedia Commons) — free, high-quality
+ *   2. Gemini AI generation (Imagen 3 → Flash fallback) — if editorial fails
+ *
+ * Uploads to Firebase Storage and returns the public URL.
+ * Returns null if all methods fail (non-blocking).
  */
 export async function generateContextualImage(
   item: Item,
   customPrompt?: string,
 ): Promise<GeneratedImage | null> {
+  // Skip editorial search when a custom prompt is provided (caller wants AI art)
+  if (!customPrompt) {
+    try {
+      const editorial = await findEditorialImage(item);
+      if (editorial) {
+        console.log(`[imagen3] Using editorial image from ${editorial.source} (score=${editorial.score})`);
+        return { url: editorial.url, prompt: `editorial:${editorial.source}` };
+      }
+    } catch (err) {
+      console.warn("[imagen3] Editorial search failed, falling back to AI:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Fall through to Gemini AI generation
   const prompt = customPrompt ?? buildImagePrompt(item);
-  console.log(`[imagen3] Generating image for "${item.title?.slice(0, 60)}..."`);
+  console.log(`[imagen3] Generating AI image for "${item.title?.slice(0, 60)}..."`);
 
   const buffer = await callImagen3(prompt);
   if (!buffer) return null;

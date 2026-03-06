@@ -561,6 +561,9 @@ export interface IGDecision {
   igExpiresAt?: string;
 }
 
+/** Slide layout hint for the renderer. */
+export type IGSlideLayout = "headline" | "explanation" | "data";
+
 /** A single carousel slide for IG. */
 export interface IGSlide {
   heading: string;
@@ -568,6 +571,12 @@ export interface IGSlide {
   footer?: string;
   /** Optional background image URL. Rendered with a dark overlay for text readability. */
   backgroundImage?: string;
+  /** Layout hint for the renderer (headline / explanation / data). */
+  layout?: IGSlideLayout;
+  /** Big stat number for data slides (e.g. "100 %"). */
+  statValue?: string;
+  /** One-line description below the stat (e.g. "Frais de scolarité couverts"). */
+  statDescription?: string;
 }
 
 // ── Meme slide types (Litquidity-style viral content) ──────────────────────

@@ -1,51 +1,22 @@
 /**
  * @edlight-news/renderer – IG Carousel asset generation
  *
- * Bloomberg Business / Litquidity-inspired design:
- *   • Every slide has a full-bleed background image + heavy overlay
- *   • One key point per slide — large bold text that tells the story
- *   • Category pill badge top-left, page counter top-right
- *   • Self-contained storytelling: swipe through = read the whole story
- *   • Taux du jour uses a dedicated financial terminal template
+ * Professional media layout (Bloomberg / Axios inspired):
+ *   • Safe margins: 120 top / 90 side / 100 bottom
+ *   • 3-level type hierarchy: label → headline → body
+ *   • 3 slide layouts: headline / explanation / data
+ *   • Taux du jour: dedicated financial terminal template
+ *   • Backward-compatible: slides without layout field auto-resolve
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { IGSlide, IGFormattedPayload, IGQueueItem, IGMemeSlide } from "@edlight-news/types";
+import type { IGSlide, IGSlideLayout, IGFormattedPayload, IGQueueItem } from "@edlight-news/types";
 import { buildMemeSlideHTML } from "./ig-meme.js";
-
-// ── Design tokens ──────────────────────────────────────────────────────────
-
-const IG_TYPE_ACCENTS: Record<string, string> = {
-  scholarship: "#60a5fa",
-  opportunity: "#fbbf24",
-  news:        "#2dd4bf",
-  histoire:    "#f59e0b",
-  utility:     "#34d399",
-  taux:        "#eab308",
-};
-
-const IG_TYPE_DARKS: Record<string, string> = {
-  scholarship: "#060d1f",
-  opportunity: "#0f0d08",
-  news:        "#061014",
-  histoire:    "#120b06",
-  utility:     "#060f0b",
-  taux:        "#0a1628",
-};
-
-const IG_TYPE_LABELS: Record<string, string> = {
-  scholarship: "BOURSE",
-  opportunity: "OPPORTUNITÉ",
-  news:        "ACTUALITÉ",
-  histoire:    "HISTOIRE",
-  utility:     "GUIDE",
-  taux:        "TAUX DU JOUR",
-};
-
-const FONT_STACK = "'Inter', 'Noto Color Emoji', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
-
-const GOOGLE_FONTS_LINK = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">`;
+import {
+  CANVAS, MARGIN, FONT_STACK, GOOGLE_FONTS_LINK, TYPE,
+  ACCENT, DARK, LABEL, OVERLAY,
+} from "./design-tokens.js";
 
 function escapeHtml(s: string): string {
   return s
@@ -55,14 +26,26 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Resolve the layout for a slide. New slides carry an explicit `layout` field;
+ * legacy slides (pre-refactor) get auto-resolved for backward compat.
+ */
+function resolveLayout(slide: IGSlide, slideIndex: number): IGSlideLayout {
+  if (slide.layout) return slide.layout;
+  // Legacy heuristic: first slide → headline, rest → explanation
+  return slideIndex === 0 ? "headline" : "explanation";
+}
+
 // ── Public entry point ─────────────────────────────────────────────────────
 
 /**
  * Build HTML for a single IG carousel slide (1080×1350, 4:5 portrait).
  *
- * Bloomberg/Litquidity style:
- * - Every slide: full-bleed image + heavy overlay + one bold point
- * - Taux slides: dedicated financial terminal template
+ * Layout-driven dispatch:
+ *   - headline:    big bold title + optional sub-line (cover / beat slides)
+ *   - explanation: medium headline + body bullets (detail slides)
+ *   - data:        giant stat number + description (impact/coverage slides)
+ *   - taux:        dedicated financial terminal template
  */
 export function buildSlideHTML(
   slide: IGSlide,
@@ -70,9 +53,9 @@ export function buildSlideHTML(
   slideIndex: number,
   totalSlides: number,
 ): string {
-  const accent = IG_TYPE_ACCENTS[igType] ?? "#60a5fa";
-  const dark = IG_TYPE_DARKS[igType] ?? "#060d1f";
-  const label = IG_TYPE_LABELS[igType] ?? "";
+  const accent = ACCENT[igType] ?? "#60a5fa";
+  const dark = DARK[igType] ?? "#060d1f";
+  const label = LABEL[igType] ?? "";
 
   // Taux slides use dedicated financial-styled templates
   if (igType === "taux") {
@@ -81,210 +64,200 @@ export function buildSlideHTML(
       : buildTauxDetailHTML(slide, accent, slideIndex, totalSlides);
   }
 
-  // Bloomberg style: every slide is a story beat with image + overlay
-  if (slide.backgroundImage) {
-    return buildStoryBeatHTML(slide, label, accent, dark, slideIndex, totalSlides);
-  }
+  const layout = resolveLayout(slide, slideIndex);
+  const isFirst = slideIndex === 0;
 
-  // Fallback for slides without an image: dark editorial card
-  return buildDarkBeatHTML(slide, label, accent, dark, slideIndex, totalSlides);
+  switch (layout) {
+    case "data":
+      return buildDataHTML(slide, label, accent, dark, isFirst);
+    case "explanation":
+      return buildExplanationHTML(slide, label, accent, dark, isFirst);
+    case "headline":
+    default:
+      return buildHeadlineHTML(slide, label, accent, dark, isFirst);
+  }
 }
 
-// ── Story-beat slide: full-bleed image + overlay + one bold point ──────────
+// ── Shared CSS helpers ─────────────────────────────────────────────────────
 
-function buildStoryBeatHTML(
-  slide: IGSlide, label: string, accent: string, dark: string,
-  slideIndex: number, totalSlides: number,
+function resetCss(): string {
+  return `* { margin:0; padding:0; box-sizing:border-box; }`;
+}
+
+function bodyCss(dark: string, bgImage?: string): string {
+  const bg = bgImage
+    ? `${dark} url('${bgImage}') center/cover no-repeat`
+    : dark;
+  return `body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; background:${bg}; color:#fff; overflow:hidden; position:relative; }`;
+}
+
+function overlayCss(gradient: string): string {
+  return `.overlay { position:absolute; inset:0; background:${gradient}; }`;
+}
+
+function glowCss(accent: string): string {
+  return `.bg-glow { position:absolute; inset:0; background: radial-gradient(ellipse at 20% 80%, ${accent}08 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, ${accent}06 0%, transparent 50%); }
+.accent-bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }`;
+}
+
+function pillCss(accent: string): string {
+  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:2.5px; padding:8px 20px; border-radius:4px; }`;
+}
+
+function brandHtml(accent: string, size = 18): string {
+  return `<span style="font-size:${size}px;font-weight:800;letter-spacing:2.5px;display:flex;align-items:center;gap:6px"><span style="color:rgba(255,255,255,0.85)">EDLIGHT</span><span style="color:${accent}">NEWS</span></span>`;
+}
+
+function topBrandHtml(accent: string): string {
+  return `<span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>`;
+}
+
+function topBrandCss(accent: string): string {
+  return `.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
+.top-brand .el { color:#fff; opacity:0.9; }
+.top-brand .nw { color:${accent}; }`;
+}
+
+function bottomBarHtml(footer: string | undefined, accent: string, showBrand: boolean): string {
+  return `<div class="bottom">
+    <span class="src">${footer ? escapeHtml(footer) : ""}</span>
+    ${showBrand ? brandHtml(accent) : ""}
+  </div>`;
+}
+
+function bottomCss(): string {
+  return `.bottom { display:flex; justify-content:space-between; align-items:flex-end; padding-top:16px; border-top:1px solid rgba(255,255,255,0.10); }
+.src { font-size:${TYPE.source}px; opacity:0.3; max-width:60%; line-height:1.4; font-weight:400; }`;
+}
+
+// ── HEADLINE layout ────────────────────────────────────────────────────────
+// Big bold title + optional one-liner. Used for covers and story beats.
+
+function buildHeadlineHTML(
+  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean,
 ): string {
-  const isFirstSlide = slideIndex === 0;
   const bodyText = slide.bullets
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
     .join("\n    ");
+  const hasImage = !!slide.backgroundImage;
+  const hSize = isFirst ? TYPE.headlineHero : TYPE.headlineInner;
+  const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  width:1080px; height:1350px;
-  font-family: ${FONT_STACK};
-  background: ${dark} url('${slide.backgroundImage}') center/cover no-repeat;
-  color:#fff; overflow:hidden; position:relative;
-}
-.overlay {
-  position:absolute; inset:0;
-  background: ${isFirstSlide
-    ? `linear-gradient(180deg,
-    rgba(0,0,0,0.55) 0%,
-    rgba(0,0,0,0.25) 20%,
-    rgba(0,0,0,0.30) 45%,
-    rgba(0,0,0,0.75) 70%,
-    rgba(0,0,0,0.95) 100%)`
-    : `linear-gradient(180deg,
-    rgba(0,0,0,0.50) 0%,
-    rgba(0,0,0,0.35) 25%,
-    rgba(0,0,0,0.50) 55%,
-    rgba(0,0,0,0.92) 100%)`};
-}
-.c {
-  position:relative; z-index:1;
-  height:100%; display:flex; flex-direction:column;
-  justify-content:space-between;
-  padding:${isFirstSlide ? "72px 72px 64px" : "72px 72px 60px"};
-}
+${resetCss()}
+${bodyCss(dark, slide.backgroundImage)}
+${hasImage ? overlayCss(isFirst ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
+${pillCss(accent)}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
-.pill {
-  display:inline-flex; align-items:center; gap:8px;
-  background:${accent}; color:#000;
-  font-size:14px; font-weight:800; text-transform:uppercase;
-  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
-}
-${isFirstSlide ? `.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
-.top-brand .el { color:#fff; opacity:0.9; }
-.top-brand .nw { color:${accent}; }` : ""}
+${isFirst ? topBrandCss(accent) : ""}
 .main { margin-top:auto; }
-${isFirstSlide ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; }` : ""}
-.h {
-  font-size:${isFirstSlide ? "64px" : "52px"};
-  font-weight:${isFirstSlide ? "900" : "800"}; line-height:1.08; letter-spacing:-1px;
-  text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5);
-  margin-bottom:${isFirstSlide ? "24px" : "28px"};
-  overflow:hidden; display:-webkit-box;
-  -webkit-line-clamp:${isFirstSlide ? "5" : "4"};
-  -webkit-box-orient:vertical;
-}
-.bt {
-  font-size:${isFirstSlide ? "28px" : "34px"};
-  font-weight:${isFirstSlide ? "400" : "500"};
-  line-height:1.45;
-  opacity:${isFirstSlide ? "0.80" : "0.90"};
-  text-shadow:0 1px 16px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.4);
-  margin-bottom:8px;
-  max-height:${isFirstSlide ? "220px" : "320px"};
-  overflow:hidden;
-  display:-webkit-box;
-  -webkit-line-clamp:${isFirstSlide ? "5" : "6"};
-  -webkit-box-orient:vertical;
-}
-.bottom {
-  display:flex; justify-content:space-between; align-items:flex-end;
-  margin-top:28px; padding-top:16px;
-  border-top:1px solid rgba(255,255,255,0.10);
-}
-.src { font-size:14px; opacity:0.3; max-width:60%; line-height:1.4; font-weight:400; }
-.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
-.bm .el { color:#fff; opacity:0.85; }
-.bm .nw { color:${accent}; }
+${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; }` : ""}
+.h { font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 4 : 5}; -webkit-box-orient:vertical; }
+.bt { font-size:${TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.45; opacity:${isFirst ? 0.80 : 0.90}; text-shadow:0 1px 16px rgba(0,0,0,0.7); margin-bottom:8px; max-height:${isFirst ? 180 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 4 : 6}; -webkit-box-orient:vertical; }
+${bottomCss()}
 </style></head>
 <body>
-<div class="overlay"></div>
+${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div class="accent-bar"></div>'}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
-    ${isFirstSlide ? `<span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>` : ""}
+    ${isFirst ? topBrandHtml(accent) : ""}
   </div>
   <div class="main">
-    ${isFirstSlide ? `<div class="accent-rule"></div>` : ""}
+    ${isFirst ? '<div class="accent-rule"></div>' : ""}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bodyText}
-    <div class="bottom">
-      <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-      ${isFirstSlide ? "" : `<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>`}
-    </div>
+    ${bottomBarHtml(slide.footer, accent, !isFirst)}
   </div>
 </div>
 </body></html>`;
 }
 
-// ── Dark editorial slide (no image fallback) ──────────────────────────────
+// ── EXPLANATION layout ─────────────────────────────────────────────────────
+// Medium headline + body bullets. Used for detail / eligibility / how-to slides.
 
-function buildDarkBeatHTML(
-  slide: IGSlide, label: string, accent: string, dark: string,
-  slideIndex: number, totalSlides: number,
+function buildExplanationHTML(
+  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean,
 ): string {
-  const isFirstSlide = slideIndex === 0;
-  const bodyText = slide.bullets
+  const bulletsHtml = slide.bullets
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
     .join("\n    ");
+  const hasImage = !!slide.backgroundImage;
+  const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  width:1080px; height:1350px;
-  font-family: ${FONT_STACK};
-  background: ${dark};
-  color:#fff; overflow:hidden; position:relative;
-}
-.bg {
-  position:absolute; inset:0;
-  background:
-    radial-gradient(ellipse at 20% 80%, ${accent}08 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, ${accent}06 0%, transparent 50%);
-}
-.bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
-.c {
-  position:relative; z-index:1;
-  height:100%; display:flex; flex-direction:column;
-  justify-content:space-between;
-  padding:72px 72px 60px 80px;
-}
+${resetCss()}
+${bodyCss(dark, slide.backgroundImage)}
+${hasImage ? overlayCss(OVERLAY.inner) : glowCss(accent)}
+${pillCss(accent)}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
-.pill {
-  display:inline-flex; align-items:center; gap:8px;
-  background:${accent}; color:#000;
-  font-size:14px; font-weight:800; text-transform:uppercase;
-  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
-}
-${isFirstSlide ? `.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
-.top-brand .el { color:#fff; opacity:0.9; }
-.top-brand .nw { color:${accent}; }` : ""}
-.main {
-  flex:1; display:flex; flex-direction:column;
-  justify-content:center; padding:40px 0;
-}
-${isFirstSlide ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; }` : ""}
-.h {
-  font-size:${isFirstSlide ? "56px" : "50px"}; font-weight:${isFirstSlide ? "900" : "800"}; line-height:1.12; letter-spacing:-0.5px;
-  margin-bottom:32px;
-  overflow:hidden; display:-webkit-box;
-  -webkit-line-clamp:${isFirstSlide ? "5" : "4"}; -webkit-box-orient:vertical;
-}
-.bt {
-  font-size:34px; font-weight:400; line-height:1.45; opacity:0.85;
-  margin-bottom:12px;
-  max-height:320px; overflow:hidden;
-  display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical;
-}
-.bottom {
-  display:flex; justify-content:space-between; align-items:flex-end;
-  padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);
-}
-.src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
-.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
-.bm .el { color:rgba(255,255,255,0.55); }
-.bm .nw { color:${accent}; opacity:0.8; }
+.main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
+.h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:32px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.45; opacity:0.85; margin-bottom:12px; max-height:320px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; }
+${bottomCss()}
 </style></head>
 <body>
-<div class="bg"></div>
-<div class="bar"></div>
+${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div class="accent-bar"></div>'}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
-    ${isFirstSlide ? `<span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>` : ""}
   </div>
   <div class="main">
-    ${isFirstSlide ? `<div class="accent-rule"></div>` : ""}
     <div class="h">${escapeHtml(slide.heading)}</div>
-    ${bodyText}
+    ${bulletsHtml}
   </div>
-  <div class="bottom">
-    <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-    ${isFirstSlide ? "" : `<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>`}
+  ${bottomBarHtml(slide.footer, accent, !isFirst)}
+</div>
+</body></html>`;
+}
+
+// ── DATA layout ────────────────────────────────────────────────────────────
+// Giant stat number + description. Used for coverage amounts, percentages, etc.
+
+function buildDataHTML(
+  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean,
+): string {
+  const stat = slide.statValue ?? slide.heading;
+  const desc = slide.statDescription ?? (slide.bullets[0] || "");
+  const hasImage = !!slide.backgroundImage;
+  const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px`;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+${resetCss()}
+${bodyCss(dark, slide.backgroundImage)}
+${hasImage ? overlayCss(OVERLAY.inner) : glowCss(accent)}
+${pillCss(accent)}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
+.top { display:flex; justify-content:space-between; align-items:center; }
+.center { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:16px; }
+.stat { font-size:${TYPE.stat}px; font-weight:900; line-height:1; letter-spacing:-3px; color:${accent}; text-shadow:0 4px 60px rgba(0,0,0,0.5); }
+.stat-desc { font-size:${TYPE.body}px; font-weight:500; opacity:0.7; max-width:80%; line-height:1.35; }
+.stat-heading { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
+${bottomCss()}
+</style></head>
+<body>
+${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div class="accent-bar"></div>'}
+<div class="c">
+  <div class="top">
+    ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
   </div>
+  <div class="center">
+    <div class="stat-heading">${escapeHtml(slide.heading)}</div>
+    <div class="stat">${escapeHtml(stat)}</div>
+    ${desc ? `<div class="stat-desc">${escapeHtml(desc)}</div>` : ""}
+  </div>
+  ${bottomBarHtml(slide.footer, accent, !isFirst)}
 </div>
 </body></html>`;
 }
@@ -306,47 +279,22 @@ function buildTauxCoverHTML(
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  width:1080px; height:1350px;
-  font-family:${FONT_STACK};
-  ${bgCss}
-  color:#fff; overflow:hidden; position:relative;
-}
+${resetCss()}
+body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
 ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.82); }` : ""}
-.grid {
-  position:absolute; inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size:40px 40px;
-}
-.glow {
-  position:absolute; top:-200px; right:-100px; width:600px; height:600px;
-  background:radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%);
-}
-.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:64px 72px; }
+.grid { position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size:40px 40px; }
+.glow { position:absolute; top:-200px; right:-100px; width:600px; height:600px; background:radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%); }
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; }
-.pill {
-  display:inline-flex; align-items:center; gap:8px;
-  background:${accent}; color:#000;
-  font-size:14px; font-weight:800; text-transform:uppercase;
-  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
-}
-.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
-.top-brand .el { color:#fff; opacity:0.9; }
-.top-brand .nw { color:${accent}; }
+${pillCss(accent)}
+${topBrandCss(accent)}
 .rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; }
 .rate-label { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
 .rate-value { font-size:140px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
 .rate-unit { font-size:30px; font-weight:500; opacity:0.40; margin-top:12px; letter-spacing:1.5px; }
 .meta { display:flex; justify-content:center; gap:40px; margin-top:36px; }
 .meta span { font-size:22px; opacity:0.55; font-weight:500; }
-.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; }
-.src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
-.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
-.bm .el { color:rgba(255,255,255,0.55); }
-.bm .nw { color:${accent}; }
+${bottomCss()}
 </style></head>
 <body>
 ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
@@ -355,17 +303,17 @@ ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="c">
   <div class="top">
     <span class="pill">TAUX DU JOUR</span>
-    <span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+    ${topBrandHtml(accent)}
   </div>
   <div class="rate">
-    <div class="rate-label">TAUX DE R\u00c9F\u00c9RENCE BRH</div>
+    <div class="rate-label">TAUX DE RÉFÉRENCE BRH</div>
     <div class="rate-value">${escapeHtml(slide.heading)}</div>
     <div class="rate-unit">HTG / 1 USD</div>
     <div class="meta">${metaHtml}</div>
   </div>
-  <div class="ft">
-    <span class="src">${slide.footer ? escapeHtml(slide.footer) : "Source: Banque de la R\u00e9publique d\u2019Ha\u00efti (BRH)"}</span>
-    <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+  <div class="bottom">
+    <span class="src">${slide.footer ? escapeHtml(slide.footer) : "Source: Banque de la République d\u2019Haïti (BRH)"}</span>
+    ${brandHtml(accent)}
   </div>
 </div>
 </body></html>`;
@@ -384,38 +332,18 @@ function buildTauxDetailHTML(
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  width:1080px; height:1350px;
-  font-family:${FONT_STACK};
-  background:linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%);
-  color:#fff; overflow:hidden; position:relative;
-}
-.grid {
-  position:absolute; inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size:40px 40px;
-}
-.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:64px 72px; }
+${resetCss()}
+body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; background:linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%); color:#fff; overflow:hidden; position:relative; }
+.grid { position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size:40px 40px; }
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; }
-.pill {
-  display:inline-flex; align-items:center; gap:8px;
-  background:${accent}; color:#000;
-  font-size:14px; font-weight:800; text-transform:uppercase;
-  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
-}
-.h { font-size:52px; font-weight:800; line-height:1.12; margin-bottom:48px; letter-spacing:-0.5px; }
+${pillCss(accent)}
+.h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.12; margin-bottom:48px; letter-spacing:-0.5px; }
 .rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
 .row { padding:34px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
 .row:last-child { border-bottom:none; }
-.row-text { font-size:34px; line-height:1.45; opacity:0.88; font-weight:500; }
-.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; }
-.src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
-.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
-.bm .el { color:rgba(255,255,255,0.55); }
-.bm .nw { color:${accent}; }
+.row-text { font-size:${TYPE.body}px; line-height:1.45; opacity:0.88; font-weight:500; }
+${bottomCss()}
 </style></head>
 <body>
 <div class="grid"></div>
@@ -427,9 +355,9 @@ body {
   <div class="rows">
     ${rowsHtml}
   </div>
-  <div class="ft">
+  <div class="bottom">
     <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-    <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+    ${brandHtml(accent)}
   </div>
 </div>
 </body></html>`;

@@ -4655,21 +4655,31 @@ export declare const igDecisionSchema: z.ZodObject<{
     igPostAfter?: string | undefined;
     igExpiresAt?: string | undefined;
 }>;
+export declare const igSlideLayoutSchema: z.ZodEnum<["headline", "explanation", "data"]>;
 export declare const igSlideSchema: z.ZodObject<{
     heading: z.ZodString;
     bullets: z.ZodArray<z.ZodString, "many">;
     footer: z.ZodOptional<z.ZodString>;
     backgroundImage: z.ZodOptional<z.ZodString>;
+    layout: z.ZodOptional<z.ZodEnum<["headline", "explanation", "data"]>>;
+    statValue: z.ZodOptional<z.ZodString>;
+    statDescription: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     heading: string;
     bullets: string[];
     footer?: string | undefined;
     backgroundImage?: string | undefined;
+    layout?: "headline" | "explanation" | "data" | undefined;
+    statValue?: string | undefined;
+    statDescription?: string | undefined;
 }, {
     heading: string;
     bullets: string[];
     footer?: string | undefined;
     backgroundImage?: string | undefined;
+    layout?: "headline" | "explanation" | "data" | undefined;
+    statValue?: string | undefined;
+    statDescription?: string | undefined;
 }>;
 export declare const igMemeTemplateSchema: z.ZodEnum<["drake", "expanding-brain", "distracted", "starter-pack", "two-buttons", "tell-me", "nobody", "reaction", "comparison"]>;
 export declare const igMemePanelSchema: z.ZodObject<{
@@ -4719,16 +4729,25 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         bullets: z.ZodArray<z.ZodString, "many">;
         footer: z.ZodOptional<z.ZodString>;
         backgroundImage: z.ZodOptional<z.ZodString>;
+        layout: z.ZodOptional<z.ZodEnum<["headline", "explanation", "data"]>>;
+        statValue: z.ZodOptional<z.ZodString>;
+        statDescription: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         heading: string;
         bullets: string[];
         footer?: string | undefined;
         backgroundImage?: string | undefined;
+        layout?: "headline" | "explanation" | "data" | undefined;
+        statValue?: string | undefined;
+        statDescription?: string | undefined;
     }, {
         heading: string;
         bullets: string[];
         footer?: string | undefined;
         backgroundImage?: string | undefined;
+        layout?: "headline" | "explanation" | "data" | undefined;
+        statValue?: string | undefined;
+        statDescription?: string | undefined;
     }>, "many">;
     caption: z.ZodString;
     memeSlide: z.ZodOptional<z.ZodObject<{
@@ -4768,6 +4787,9 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         bullets: string[];
         footer?: string | undefined;
         backgroundImage?: string | undefined;
+        layout?: "headline" | "explanation" | "data" | undefined;
+        statValue?: string | undefined;
+        statDescription?: string | undefined;
     }[];
     caption: string;
     memeSlide?: {
@@ -4785,6 +4807,9 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
         bullets: string[];
         footer?: string | undefined;
         backgroundImage?: string | undefined;
+        layout?: "headline" | "explanation" | "data" | undefined;
+        statValue?: string | undefined;
+        statDescription?: string | undefined;
     }[];
     caption: string;
     memeSlide?: {
@@ -4812,16 +4837,25 @@ export declare const igQueueItemSchema: z.ZodObject<{
             bullets: z.ZodArray<z.ZodString, "many">;
             footer: z.ZodOptional<z.ZodString>;
             backgroundImage: z.ZodOptional<z.ZodString>;
+            layout: z.ZodOptional<z.ZodEnum<["headline", "explanation", "data"]>>;
+            statValue: z.ZodOptional<z.ZodString>;
+            statDescription: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }>, "many">;
         caption: z.ZodString;
         memeSlide: z.ZodOptional<z.ZodObject<{
@@ -4861,6 +4895,9 @@ export declare const igQueueItemSchema: z.ZodObject<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -4878,6 +4915,9 @@ export declare const igQueueItemSchema: z.ZodObject<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -4934,6 +4974,9 @@ export declare const igQueueItemSchema: z.ZodObject<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -4970,6 +5013,9 @@ export declare const igQueueItemSchema: z.ZodObject<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -4999,16 +5045,25 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             bullets: z.ZodArray<z.ZodString, "many">;
             footer: z.ZodOptional<z.ZodString>;
             backgroundImage: z.ZodOptional<z.ZodString>;
+            layout: z.ZodOptional<z.ZodEnum<["headline", "explanation", "data"]>>;
+            statValue: z.ZodOptional<z.ZodString>;
+            statDescription: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }, {
             heading: string;
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }>, "many">;
         caption: z.ZodString;
         memeSlide: z.ZodOptional<z.ZodObject<{
@@ -5048,6 +5103,9 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -5065,6 +5123,9 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -5112,6 +5173,9 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {
@@ -5139,6 +5203,9 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
             bullets: string[];
             footer?: string | undefined;
             backgroundImage?: string | undefined;
+            layout?: "headline" | "explanation" | "data" | undefined;
+            statValue?: string | undefined;
+            statDescription?: string | undefined;
         }[];
         caption: string;
         memeSlide?: {

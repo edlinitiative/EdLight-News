@@ -94,6 +94,16 @@ export function shortenText(text: string, max: number): string {
   return (lastSpace > max * 0.5 ? truncated.slice(0, lastSpace) : truncated) + "…";
 }
 
+/**
+ * Shorten a headline to at most `maxWords` words.
+ * Keeps the first N words and appends "…" if truncated.
+ */
+export function shortenHeadline(text: string, maxWords = 10): string {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text.trim();
+  return words.slice(0, maxWords).join(" ") + "…";
+}
+
 // Known news/media domains — "Postulez" doesn't make sense for these
 const NEWS_DOMAINS = [
   "juno7.ht", "loophaiti.com", "ayibopost.com", "lenouvelliste.com",

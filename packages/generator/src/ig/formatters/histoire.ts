@@ -5,7 +5,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText, type BilingualText } from "./helpers.js";
+import { truncateCaption, buildCTA, buildSourceLine, shortenText, shortenHeadline, type BilingualText } from "./helpers.js";
 import { isJunkSentence } from "./news.js";
 
 export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
@@ -16,8 +16,9 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
 
   // Slide 1: Cover
   slides.push({
-    heading: shortenText(title, 80),
+    heading: shortenHeadline(title),
     bullets: [shortenText(summary, 180)],
+    layout: "headline",
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
@@ -31,7 +32,7 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
       .slice(0, 4);
 
     if (facts.length >= 1) {
-      slides.push({ heading: "Le saviez-vous", bullets: facts });
+      slides.push({ heading: "Le saviez-vous", bullets: facts, layout: "explanation" });
     }
   }
 
@@ -40,6 +41,7 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
     slides.push({
       heading: "Pour aller plus loin",
       bullets: item.utilityMeta.citations.slice(0, 3).map((c) => c.label),
+      layout: "explanation",
       footer: buildSourceLine(item),
     });
   }

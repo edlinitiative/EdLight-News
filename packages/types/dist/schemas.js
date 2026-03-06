@@ -646,11 +646,15 @@ export const igDecisionSchema = z.object({
     igPostAfter: z.string().optional(),
     igExpiresAt: z.string().optional(),
 });
+export const igSlideLayoutSchema = z.enum(["headline", "explanation", "data"]);
 export const igSlideSchema = z.object({
     heading: z.string().min(1),
     bullets: z.array(z.string()),
     footer: z.string().optional(),
     backgroundImage: z.string().url().optional(),
+    layout: igSlideLayoutSchema.optional(),
+    statValue: z.string().optional(),
+    statDescription: z.string().optional(),
 });
 export const igMemeTemplateSchema = z.enum([
     "drake", "expanding-brain", "distracted", "starter-pack",

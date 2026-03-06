@@ -12,7 +12,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText, type BilingualText } from "./helpers.js";
+import { truncateCaption, buildCTA, buildSourceLine, shortenText, shortenHeadline, type BilingualText } from "./helpers.js";
 
 // Patterns that indicate a sentence is scraping junk, not real content
 const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
@@ -47,8 +47,9 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   // ── Slide 1: Hero cover — big bold headline only (Bloomberg style) ──
   // No subtitle bullet — the headline tells the story, CSS clamp handles overflow.
   slides.push({
-    heading: title,
+    heading: shortenHeadline(title),
     bullets: [],
+    layout: "headline",
     footer: geoLabel,
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
@@ -63,6 +64,7 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     slides.push({
       heading: beat,
       bullets: [],  // No sub-bullets — the heading IS the point
+      layout: "headline",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }

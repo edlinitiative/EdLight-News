@@ -11,7 +11,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, shortenText, type BilingualText } from "./helpers.js";
+import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, type BilingualText } from "./helpers.js";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -28,8 +28,9 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
-    heading: shortenText(title, 90),
+    heading: shortenHeadline(title),
     bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [shortenText(summary, 180)],
+    layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
@@ -41,6 +42,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
       slides.push({
         heading: "Qui peut postuler ?",
         bullets: [elig.join(". ")],
+        layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
     } else {
@@ -48,11 +50,13 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
       slides.push({
         heading: "Qui peut postuler ?",
         bullets: [elig.slice(0, 2).join(". ")],
+        layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
       slides.push({
         heading: "Autres critères",
         bullets: [elig.slice(2, 4).join(". ")],
+        layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
     }
@@ -68,7 +72,20 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     slides.push({
       heading: "Comment postuler",
       bullets: [applyParts.join("  ·  ")],
+      layout: "explanation",
       footer: buildSourceLine(item),
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  }
+
+  // ── Data slide: coverage amount (if available) ──
+  if (item.opportunity?.coverage) {
+    slides.push({
+      heading: "Couverture",
+      bullets: [],
+      layout: "data",
+      statValue: item.opportunity.coverage,
+      statDescription: "Frais couverts par la bourse",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
