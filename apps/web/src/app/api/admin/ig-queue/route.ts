@@ -14,6 +14,29 @@ export async function GET() {
 
     const items = snap.docs.map((doc) => {
       const data = doc.data();
+
+      // Full slides array for visual preview
+      const slides = (data.payload?.slides ?? []).map(
+        (s: { heading?: string; bullets?: string[]; footer?: string; backgroundImage?: string }) => ({
+          heading: s.heading ?? "",
+          bullets: s.bullets ?? [],
+          footer: s.footer ?? null,
+          backgroundImage: s.backgroundImage ?? null,
+        }),
+      );
+
+      // Meme slide (if present)
+      const memeSlide = data.payload?.memeSlide
+        ? {
+            template: data.payload.memeSlide.template ?? "reaction",
+            panels: (data.payload.memeSlide.panels ?? []).map(
+              (p: { text?: string; emoji?: string }) => ({ text: p.text ?? "", emoji: p.emoji ?? undefined }),
+            ),
+            topicLine: data.payload.memeSlide.topicLine ?? undefined,
+            tone: data.payload.memeSlide.tone ?? "witty",
+          }
+        : null;
+
       return {
         id: doc.id,
         sourceContentId: data.sourceContentId,
@@ -22,10 +45,10 @@ export async function GET() {
         status: data.status,
         scheduledFor: data.scheduledFor ?? null,
         reasons: data.reasons ?? [],
-        caption: data.payload?.caption
-          ? data.payload.caption.slice(0, 200) + (data.payload.caption.length > 200 ? "…" : "")
-          : null,
-        slidesCount: (data.payload?.slides?.length ?? 0) + (data.payload?.memeSlide ? 1 : 0),
+        caption: data.payload?.caption ?? null,
+        slides,
+        memeSlide,
+        slidesCount: slides.length + (memeSlide ? 1 : 0),
         dryRunPath: data.dryRunPath ?? null,
         igPostId: data.igPostId ?? null,
         createdAt: data.createdAt?._seconds

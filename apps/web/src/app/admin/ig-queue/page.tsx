@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { Copy, Check, ExternalLink, RefreshCw } from "lucide-react";
+import { IGPostPreview } from "@/components/IGSlidePreview";
+import type { SlideData, MemeSlideData } from "@/components/IGSlidePreview";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -13,6 +16,8 @@ interface IGQueueEntry {
   scheduledFor: string | null;
   reasons: string[];
   caption: string | null;
+  slides: SlideData[];
+  memeSlide: MemeSlideData | null;
   slidesCount: number;
   dryRunPath: string | null;
   igPostId: string | null;
@@ -31,12 +36,20 @@ interface IGQueueCounts {
 // ── Status badge colors ──────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  queued: "bg-blue-100 text-blue-800",
-  scheduled: "bg-yellow-100 text-yellow-800",
-  scheduled_ready_for_manual: "bg-orange-100 text-orange-800",
-  rendering: "bg-purple-100 text-purple-800",
-  posted: "bg-green-100 text-green-800",
-  skipped: "bg-stone-100 text-stone-500",
+  queued: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  scheduled: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  scheduled_ready_for_manual: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  rendering: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  posted: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  skipped: "bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
+};
+
+const TYPE_ACCENTS: Record<string, string> = {
+  scholarship: "border-blue-500",
+  opportunity: "border-violet-500",
+  news: "border-teal-500",
+  histoire: "border-amber-600",
+  utility: "border-emerald-500",
 };
 
 const TYPE_EMOJIS: Record<string, string> = {
@@ -47,12 +60,12 @@ const TYPE_EMOJIS: Record<string, string> = {
   utility: "💡",
 };
 
-// ── Components ───────────────────────────────────────────────────────────────
+// ── Small components ─────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   const colors = STATUS_COLORS[status] ?? "bg-stone-100 text-stone-600";
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors}`}>
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${colors}`}>
       {status.replace(/_/g, " ")}
     </span>
   );
@@ -60,12 +73,12 @@ function StatusBadge({ status }: { status: string }) {
 
 function ScoreBadge({ score }: { score: number }) {
   const color =
-    score >= 80 ? "text-green-700 bg-green-50" :
-    score >= 60 ? "text-blue-700 bg-blue-50" :
-    score >= 40 ? "text-yellow-700 bg-yellow-50" :
-    "text-stone-500 bg-stone-50";
+    score >= 80 ? "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/30" :
+    score >= 60 ? "text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-900/30" :
+    score >= 40 ? "text-yellow-700 bg-yellow-50 dark:text-yellow-300 dark:bg-yellow-900/30" :
+    "text-stone-500 bg-stone-50 dark:text-stone-400 dark:bg-stone-800";
   return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold tabular-nums ${color}`}>
+    <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${color}`}>
       {score}
     </span>
   );
@@ -74,26 +87,119 @@ function ScoreBadge({ score }: { score: number }) {
 function CountCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className={`rounded-lg border px-4 py-3 ${color}`}>
-      <p className="text-xs text-stone-500">{label}</p>
+      <p className="text-xs text-stone-500 dark:text-stone-400">{label}</p>
       <p className="text-2xl font-bold tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return (
+    <button onClick={copy} className="ml-1 inline-flex items-center text-stone-400 transition hover:text-stone-600 dark:hover:text-stone-300" title="Copy caption">
+      {copied ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+    </button>
+  );
+}
+
+// ── Post card ────────────────────────────────────────────────────────────────
+
+function PostCard({ entry }: { entry: IGQueueEntry }) {
+  const [showFullCaption, setShowFullCaption] = useState(false);
+  const accentBorder = TYPE_ACCENTS[entry.igType] ?? "border-stone-300";
+
+  return (
+    <div className={`overflow-hidden rounded-xl border-t-4 ${accentBorder} bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900`}>
+      {/* Visual preview */}
+      <div className="p-3">
+        <IGPostPreview
+          igType={entry.igType}
+          slides={entry.slides}
+          memeSlide={entry.memeSlide}
+        />
+      </div>
+
+      {/* Meta bar */}
+      <div className="flex items-center gap-2 border-t border-stone-100 px-3 py-2 dark:border-stone-800">
+        <span className="text-base">{TYPE_EMOJIS[entry.igType] ?? "📄"}</span>
+        <span className="text-xs font-medium text-stone-700 dark:text-stone-300">{entry.igType}</span>
+        <ScoreBadge score={entry.score} />
+        <StatusBadge status={entry.status} />
+        {entry.igPostId && (
+          <a
+            href={`https://www.instagram.com/p/${entry.igPostId}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto text-stone-400 hover:text-blue-500"
+            title="View on Instagram"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+
+      {/* Caption */}
+      {entry.caption && (
+        <div className="border-t border-stone-100 px-3 py-2 dark:border-stone-800">
+          <div className="flex items-start justify-between">
+            <pre
+              className="flex-1 cursor-pointer whitespace-pre-wrap font-sans text-[11px] leading-relaxed text-stone-600 dark:text-stone-400"
+              onClick={() => setShowFullCaption(!showFullCaption)}
+            >
+              {showFullCaption
+                ? entry.caption
+                : entry.caption.length > 150
+                  ? entry.caption.slice(0, 150) + "…"
+                  : entry.caption}
+            </pre>
+            <CopyButton text={entry.caption} />
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-stone-100 px-3 py-1.5 text-[10px] text-stone-400 dark:border-stone-800">
+        <span>{entry.slidesCount} slide{entry.slidesCount !== 1 ? "s" : ""}</span>
+        <span>
+          {entry.scheduledFor
+            ? new Date(entry.scheduledFor).toLocaleString("fr-FR", {
+                timeZone: "America/Port-au-Prince",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : entry.createdAt
+              ? new Date(entry.createdAt).toLocaleDateString("fr-FR")
+              : "—"}
+        </span>
+      </div>
     </div>
   );
 }
 
 // ── Filter tabs ──────────────────────────────────────────────────────────────
 
-const FILTER_OPTIONS = ["all", "queued", "scheduled", "posted", "skipped"] as const;
-type FilterOption = (typeof FILTER_OPTIONS)[number];
+const STATUS_FILTERS = ["all", "queued", "scheduled", "posted", "skipped"] as const;
+type StatusFilter = (typeof STATUS_FILTERS)[number];
+
+const TYPE_FILTERS = ["all", "scholarship", "opportunity", "news", "histoire", "utility"] as const;
+type TypeFilter = (typeof TYPE_FILTERS)[number];
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function IGQueuePage() {
   const [entries, setEntries] = useState<IGQueueEntry[]>([]);
   const [counts, setCounts] = useState<IGQueueCounts | null>(null);
-  const [filter, setFilter] = useState<FilterOption>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -115,149 +221,97 @@ export default function IGQueuePage() {
     void loadData();
   }, [loadData]);
 
-  const filtered = filter === "all"
-    ? entries
-    : entries.filter((e) => {
-        if (filter === "scheduled") return e.status === "scheduled" || e.status === "scheduled_ready_for_manual";
-        return e.status === filter;
-      });
+  const filtered = entries.filter((e) => {
+    const statusMatch =
+      statusFilter === "all" ||
+      (statusFilter === "scheduled"
+        ? e.status === "scheduled" || e.status === "scheduled_ready_for_manual"
+        : e.status === statusFilter);
+    const typeMatch = typeFilter === "all" || e.igType === typeFilter;
+    return statusMatch && typeMatch;
+  });
 
   return (
     <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Instagram Queue</h1>
-        <p className="mt-1 text-sm text-stone-500">
-          Curated IG posting pipeline — view queued, scheduled, and posted items.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Instagram Queue</h1>
+          <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+            Visual preview of the IG posting pipeline
+          </p>
+        </div>
+        <button
+          onClick={() => void loadData()}
+          className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-500 transition hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
+        >
+          <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
       </div>
 
       {/* Counts */}
       {counts && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <CountCard label="Queued" value={counts.queued} color="bg-blue-50" />
-          <CountCard label="Scheduled" value={counts.scheduled} color="bg-yellow-50" />
-          <CountCard label="Posted" value={counts.posted} color="bg-green-50" />
-          <CountCard label="Skipped" value={counts.skipped} color="bg-stone-50" />
-          <CountCard label="Rendering" value={counts.rendering} color="bg-purple-50" />
+          <CountCard label="Queued" value={counts.queued} color="bg-blue-50 dark:bg-blue-900/10" />
+          <CountCard label="Scheduled" value={counts.scheduled} color="bg-yellow-50 dark:bg-yellow-900/10" />
+          <CountCard label="Posted" value={counts.posted} color="bg-green-50 dark:bg-green-900/10" />
+          <CountCard label="Skipped" value={counts.skipped} color="bg-stone-50 dark:bg-stone-800/50" />
+          <CountCard label="Rendering" value={counts.rendering} color="bg-purple-50 dark:bg-purple-900/10" />
         </div>
       )}
 
-      {/* Filter tabs */}
-      <div className="flex gap-2">
-        {FILTER_OPTIONS.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => setFilter(opt)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-              filter === opt
-                ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300"
-            }`}
-          >
-            {opt === "all" ? "All" : opt.charAt(0).toUpperCase() + opt.slice(1)}
-          </button>
-        ))}
-        <button
-          onClick={() => void loadData()}
-          className="ml-auto text-xs text-stone-400 hover:text-stone-600"
-        >
-          ↻ Refresh
-        </button>
+      {/* Status filter tabs */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {STATUS_FILTERS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setStatusFilter(opt)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                statusFilter === opt
+                  ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300"
+              }`}
+            >
+              {opt === "all" ? "All" : opt.charAt(0).toUpperCase() + opt.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* Type filter tabs */}
+        <div className="flex flex-wrap gap-1.5">
+          {TYPE_FILTERS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setTypeFilter(opt)}
+              className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
+                typeFilter === opt
+                  ? "bg-stone-700 text-white dark:bg-stone-300 dark:text-stone-900"
+                  : "bg-stone-50 text-stone-500 hover:bg-stone-100 dark:bg-stone-800 dark:text-stone-400"
+              }`}
+            >
+              {opt === "all" ? "All types" : `${TYPE_EMOJIS[opt] ?? ""} ${opt}`}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Error state */}
+      {/* Error */}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {/* Loading */}
       {loading && <p className="text-sm text-stone-400">Loading…</p>}
 
-      {/* Table */}
+      {/* Card grid */}
       {!loading && filtered.length === 0 && (
         <p className="text-sm text-stone-400">No items found.</p>
       )}
 
       {!loading && filtered.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="min-w-full divide-y divide-stone-200 text-sm">
-            <thead className="bg-stone-50 dark:bg-stone-800">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Type</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Score</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Status</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Scheduled</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Slides</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100 dark:divide-stone-700">
-              {filtered.map((entry) => (
-                <Fragment key={entry.id}>
-                  <tr
-                    className="cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/50"
-                    onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                  >
-                    <td className="px-4 py-2.5 whitespace-nowrap">
-                      <span className="mr-1">{TYPE_EMOJIS[entry.igType] ?? "📄"}</span>
-                      {entry.igType}
-                    </td>
-                    <td className="px-4 py-2.5"><ScoreBadge score={entry.score} /></td>
-                    <td className="px-4 py-2.5"><StatusBadge status={entry.status} /></td>
-                    <td className="px-4 py-2.5 whitespace-nowrap text-xs text-stone-500">
-                      {entry.scheduledFor
-                        ? new Date(entry.scheduledFor).toLocaleString("fr-FR", { timeZone: "America/Port-au-Prince" })
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-2.5 text-center tabular-nums">{entry.slidesCount}</td>
-                    <td className="px-4 py-2.5 text-xs text-stone-400">
-                      {entry.createdAt ? new Date(entry.createdAt).toLocaleDateString("fr-FR") : "—"}
-                    </td>
-                  </tr>
-                  {expandedId === entry.id && (
-                    <tr key={`${entry.id}-detail`}>
-                      <td colSpan={6} className="bg-stone-50/50 px-6 py-4 dark:bg-stone-800/30">
-                        <div className="space-y-3 text-xs">
-                          <div>
-                            <span className="font-semibold text-stone-500">Item ID:</span>{" "}
-                            <span className="font-mono">{entry.sourceContentId}</span>
-                          </div>
-                          {entry.caption && (
-                            <div>
-                              <span className="font-semibold text-stone-500">Caption preview:</span>
-                              <p className="mt-1 max-w-xl whitespace-pre-wrap text-stone-600 dark:text-stone-300">
-                                {entry.caption}
-                              </p>
-                            </div>
-                          )}
-                          {entry.reasons.length > 0 && (
-                            <div>
-                              <span className="font-semibold text-stone-500">Reasons:</span>
-                              <ul className="mt-1 list-inside list-disc text-stone-500">
-                                {entry.reasons.map((r, i) => (
-                                  <li key={i}>{r}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {entry.igPostId && (
-                            <div>
-                              <span className="font-semibold text-stone-500">IG Post ID:</span>{" "}
-                              <span className="font-mono">{entry.igPostId}</span>
-                            </div>
-                          )}
-                          {entry.dryRunPath && (
-                            <div>
-                              <span className="font-semibold text-stone-500">Dry-run path:</span>{" "}
-                              <span className="font-mono">{entry.dryRunPath}</span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((entry) => (
+            <PostCard key={entry.id} entry={entry} />
+          ))}
         </div>
       )}
     </section>
