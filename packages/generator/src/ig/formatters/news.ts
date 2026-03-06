@@ -44,33 +44,27 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   const geoLabel = item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International";
   const imageUrl = item.imageUrl ?? undefined;
 
-  // ── Slide 1: Hero cover — headline + short summary ──
+  // ── Slide 1: Hero cover — big bold headline only (Bloomberg style) ──
+  // No subtitle bullet — the headline tells the story, CSS clamp handles overflow.
   slides.push({
-    heading: shortenText(title, 90),
-    bullets: [shortenText(summary, 200)],
+    heading: title,
+    bullets: [],
     footer: geoLabel,
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // ── Slides 2+: Story beats from extracted text ──
-  // Each beat is ONE key point displayed large on its own slide
-  if (item.extractedText) {
-    const sentences = item.extractedText
-      .split(/[.!?]\s+/)
-      .map((s) => s.trim().replace(/\s+/g, " "))
-      .filter((s) => s.length > 30 && s.length < 200)
-      .filter((s) => !isJunkSentence(s));
+  // ── Slides 2+: Story beats ──
+  // Prefer French-language beats. If extractedText is in English (common for
+  // English-language sources like Haitian Times), synthesize beats from the
+  // bilingual summary instead to avoid showing raw English fragments.
+  const beats = extractFrenchBeats(item, summary);
 
-    // Pick the best 2-3 story beats (spread across the text)
-    const beats = pickSpreadBeats(sentences, 3);
-
-    for (const beat of beats) {
-      slides.push({
-        heading: beat.length > 120 ? shortenText(beat, 120) : beat,
-        bullets: [],  // No sub-bullets — the heading IS the point
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-      });
-    }
+  for (const beat of beats) {
+    slides.push({
+      heading: beat,
+      bullets: [],  // No sub-bullets — the heading IS the point
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
   }
 
   // ── Last slide: source attribution ──
@@ -84,6 +78,63 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };
+}
+
+// ── French language detection ──────────────────────────────────────────────
+
+const FRENCH_MARKERS = [
+  " le ", " la ", " les ", " des ", " du ", " un ", " une ",
+  " est ", " sont ", " dans ", " pour ", " par ", " avec ",
+  " sur ", " qui ", " que ", " cette ", " selon ",
+  " à ", " au ", " aux ", " été ", " mais ",
+];
+
+/**
+ * Simple heuristic: count French stop-words. If fewer than 5 hits per 500 chars,
+ * the text is likely NOT French (probably English).
+ */
+function looksLikeFrench(text: string): boolean {
+  if (!text || text.length < 50) return false;
+  const sample = ` ${text.slice(0, 800).toLowerCase()} `;
+  const hits = FRENCH_MARKERS.filter((m) => sample.includes(m)).length;
+  return hits >= 5;
+}
+
+/**
+ * Extract 2-3 story beats in French from the best available source:
+ * 1. If extractedText is in French → parse sentences from it
+ * 2. Otherwise → split the French summary into meaningful beats
+ */
+function extractFrenchBeats(item: Item, frSummary: string): string[] {
+  // Try extractedText first (most detailed)
+  if (item.extractedText && looksLikeFrench(item.extractedText)) {
+    const sentences = item.extractedText
+      .split(/[.!?]\s+/)
+      .map((s) => s.trim().replace(/\s+/g, " "))
+      .filter((s) => s.length > 30 && s.length < 250)
+      .filter((s) => !isJunkSentence(s));
+
+    const beats = pickSpreadBeats(sentences, 3);
+    if (beats.length > 0) return beats;
+  }
+
+  // Fallback: synthesize beats from the French summary
+  if (frSummary && frSummary.length > 40) {
+    const sentences = frSummary
+      .split(/[.!?]\s+/)
+      .map((s) => s.trim().replace(/\s+/g, " "))
+      .filter((s) => s.length > 25);
+
+    if (sentences.length >= 2) {
+      return sentences.slice(0, 3);
+    }
+    // Single long summary → show it as one beat
+    if (frSummary.length > 60) {
+      return [frSummary];
+    }
+  }
+
+  return [];
 }
 
 /**
