@@ -447,8 +447,5 @@ export async function renderCarousel(
   throw new Error("renderCarousel not yet implemented");
 }
 
-export async function renderStory(
-  _contentVersion: ContentVersion,
-): Promise<Omit<Asset, "id" | "createdAt"> | null> {
-  throw new Error("renderStory not yet implemented");
-}
+// Re-export the new story renderer for convenience
+export { generateStoryAssets, buildStorySlideHTML } from "./ig-story.js";

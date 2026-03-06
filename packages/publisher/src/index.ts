@@ -212,3 +212,107 @@ export async function publishToWhatsApp(
   // TODO: implement WhatsApp Cloud API publishing
   throw new Error("publishToWhatsApp not yet implemented");
 }
+
+// ── IG Stories API ──────────────────────────────────────────────────────────
+
+export interface IGStoryPublishResult {
+  posted: boolean;
+  igMediaId?: string;
+  dryRun: boolean;
+  dryRunPath?: string;
+  error?: string;
+}
+
+/**
+ * Publish a single image as an Instagram Story via Graph API.
+ *
+ * The IG Graph API processes Stories via the same two-step flow:
+ *   1. POST /media  with media_type=STORIES + image_url
+ *   2. POST /media_publish  with creation_id
+ *
+ * Stories support only a single image per API call (no carousel).
+ * For multi-frame stories, call this function once per frame.
+ *
+ * Falls back to dry-run if credentials are not configured.
+ */
+export async function publishIgStory(
+  imageUrl: string,
+  storyId: string,
+): Promise<IGStoryPublishResult> {
+  const creds = getIGCredentials();
+
+  if (!creds) {
+    const exportDir = `/tmp/ig_stories/${storyId}`;
+    console.log(`[publisher] IG Story dry-run: ${storyId} → ${imageUrl}`);
+    return { posted: false, dryRun: true, dryRunPath: exportDir };
+  }
+
+  try {
+    const { accessToken, igUserId } = creds;
+    const apiHost = process.env.IG_API_HOST ?? "graph.instagram.com";
+    const baseUrl = `https://${apiHost}/v21.0/${igUserId}`;
+    const authHeader = `Bearer ${accessToken}`;
+
+    async function igPost(
+      url: string,
+      params: Record<string, string>,
+    ): Promise<{ id?: string; error?: { message: string } }> {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: authHeader },
+        body: new URLSearchParams(params),
+      });
+      return (await res.json()) as { id?: string; error?: { message: string } };
+    }
+
+    async function igGet(
+      url: string,
+    ): Promise<{ status_code?: string; id?: string; error?: { message: string } }> {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { Authorization: authHeader },
+      });
+      return (await res.json()) as any;
+    }
+
+    async function waitForContainer(containerId: string): Promise<void> {
+      const apiBase = `https://${apiHost}/v21.0`;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const status = await igGet(`${apiBase}/${containerId}?fields=status_code`);
+        const code = status.status_code ?? "UNKNOWN";
+        console.log(`[publisher] Story container ${containerId}: ${code} (attempt ${attempt + 1})`);
+        if (code === "FINISHED") return;
+        if (code === "ERROR" || code === "EXPIRED") {
+          throw new Error(`Story container ${containerId} status: ${code}`);
+        }
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+      throw new Error(`Story container ${containerId} did not become FINISHED in time`);
+    }
+
+    // Step 1: Create Story media container
+    const data = await igPost(`${baseUrl}/media`, {
+      media_type: "STORIES",
+      image_url: imageUrl,
+    });
+    if (data.error) throw new Error(`IG Story API error: ${data.error.message}`);
+    const containerId = data.id!;
+    console.log(`[publisher] Story container created: ${containerId}`);
+
+    // Wait for container to finish processing
+    await waitForContainer(containerId);
+
+    // Step 2: Publish
+    const publishData = await igPost(`${baseUrl}/media_publish`, {
+      creation_id: containerId,
+    });
+    if (publishData.error) throw new Error(`IG Story publish error: ${publishData.error.message}`);
+
+    console.log(`[publisher] IG Story published: ${publishData.id}`);
+    return { posted: true, igMediaId: publishData.id, dryRun: false };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[publisher] IG Story publish failed: ${msg}`);
+    return { posted: false, dryRun: false, error: msg };
+  }
+}

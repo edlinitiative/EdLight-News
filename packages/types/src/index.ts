@@ -95,6 +95,11 @@ export type {
   IGMemeSlide,
   IGFormattedPayload,
   IGQueueItem,
+  // Instagram Stories types
+  IGStoryQueueStatus,
+  IGStorySlide,
+  IGStoryPayload,
+  IGStoryQueueItem,
 } from "./models.js";
 
 export {
@@ -196,6 +201,12 @@ export {
   igFormattedPayloadSchema,
   igQueueItemSchema,
   createIGQueueItemSchema,
+  // Instagram Stories schemas
+  igStoryQueueStatusSchema,
+  igStorySlideSchema,
+  igStoryPayloadSchema,
+  igStoryQueueItemSchema,
+  createIGStoryQueueItemSchema,
 } from "./schemas.js";
 
 export type {
@@ -222,4 +233,6 @@ export type {
   CreateHaitiHistoryAlmanacRaw,
   // Instagram create types
   CreateIGQueueItem,
+  // Instagram Stories create types
+  CreateIGStoryQueueItem,
 } from "./schemas.js";

@@ -8,5 +8,7 @@ almanacConfidenceSchema, almanacCreatedBySchema, almanacTagSchema, haitiHistoryA
 // Raw almanac schemas
 almanacRawCategorySchema, almanacRawSourceTypeSchema, almanacRawVerificationStatusSchema, almanacRawSourceSchema, haitiHistoryAlmanacRawSchema, createHaitiHistoryAlmanacRawSchema, 
 // Instagram pipeline schemas
-igPostTypeSchema, igQueueStatusSchema, igDecisionSchema, igSlideSchema, igMemeTemplateSchema, igMemePanelSchema, igMemeSlideSchema, igFormattedPayloadSchema, igQueueItemSchema, createIGQueueItemSchema, } from "./schemas.js";
+igPostTypeSchema, igQueueStatusSchema, igDecisionSchema, igSlideSchema, igMemeTemplateSchema, igMemePanelSchema, igMemeSlideSchema, igFormattedPayloadSchema, igQueueItemSchema, createIGQueueItemSchema, 
+// Instagram Stories schemas
+igStoryQueueStatusSchema, igStorySlideSchema, igStoryPayloadSchema, igStoryQueueItemSchema, createIGStoryQueueItemSchema, } from "./schemas.js";
 //# sourceMappingURL=index.js.map

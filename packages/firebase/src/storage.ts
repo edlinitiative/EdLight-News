@@ -78,3 +78,25 @@ export async function uploadCarouselSlides(
   );
   return urls;
 }
+
+/**
+ * Upload a single story frame PNG to Firebase Storage and return its
+ * public download URL.
+ *
+ * @param localPath    - Absolute path to the local PNG file
+ * @param storyId      - IG story queue item ID
+ * @param frameIndex   - 0-based frame index
+ * @returns            - Public download URL
+ */
+export async function uploadStorySlide(
+  localPath: string,
+  storyId: string,
+  frameIndex: number,
+): Promise<string> {
+  const { readFileSync } = await import("node:fs");
+  const buffer = readFileSync(localPath);
+  const storagePath = `ig_stories/${storyId}/frame_${frameIndex + 1}.png`;
+  const url = await uploadImageBuffer(storagePath, buffer, "image/png");
+  console.log(`[storage] Uploaded story frame ${frameIndex + 1} for ${storyId}`);
+  return url;
+}

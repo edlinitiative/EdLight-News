@@ -474,6 +474,39 @@ export interface IGQueueItem {
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
+export type IGStoryQueueStatus = "queued" | "rendering" | "posted" | "skipped" | "failed";
+/** A single story slide (1080×1920 / 9:16). */
+export interface IGStorySlide {
+    /** Main headline for the story frame */
+    heading: string;
+    /** Supporting text lines */
+    bullets: string[];
+    /** Optional background image (cover frame) */
+    backgroundImage?: string;
+    /** Accent colour override for this frame */
+    accent?: string;
+}
+/** Formatted Story payload ready for rendering. */
+export interface IGStoryPayload {
+    /** Ordered story frames (1-6 images; IG shows each for 5 s) */
+    slides: IGStorySlide[];
+    /** Date label for the story (e.g. "6 mars 2026") */
+    dateLabel: string;
+}
+/** Firestore collection: ig_story_queue */
+export interface IGStoryQueueItem {
+    id: string;
+    /** ISO date key YYYY-MM-DD — one story per day */
+    dateKey: string;
+    status: IGStoryQueueStatus;
+    /** Source item IDs included in the summary */
+    sourceItemIds: string[];
+    igMediaId?: string;
+    payload?: IGStoryPayload;
+    error?: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
 export type DatasetCountry = "US" | "CA" | "FR" | "UK" | "DO" | "MX" | "CN" | "RU" | "HT" | "Global";
 export type AcademicLevel = "bachelor" | "master" | "phd" | "short_programs";
 export type TuitionBand = "low" | "medium" | "high" | "unknown";

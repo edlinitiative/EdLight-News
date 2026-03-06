@@ -26,4 +26,14 @@ export declare function uploadImageBuffer(path: string, buffer: Buffer, contentT
  * @returns Array of public download URLs in the same order
  */
 export declare function uploadCarouselSlides(localPaths: string[], queueItemId: string): Promise<string[]>;
+/**
+ * Upload a single story frame PNG to Firebase Storage and return its
+ * public download URL.
+ *
+ * @param localPath    - Absolute path to the local PNG file
+ * @param storyId      - IG story queue item ID
+ * @param frameIndex   - 0-based frame index
+ * @returns            - Public download URL
+ */
+export declare function uploadStorySlide(localPath: string, storyId: string, frameIndex: number): Promise<string>;
 //# sourceMappingURL=storage.d.ts.map

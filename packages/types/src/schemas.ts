@@ -833,6 +833,44 @@ export const createIGQueueItemSchema = igQueueItemSchema.omit({
 
 export type CreateIGQueueItem = z.infer<typeof createIGQueueItemSchema>;
 
+// ── IG Story schemas ───────────────────────────────────────────────────────
+
+export const igStoryQueueStatusSchema = z.enum([
+  "queued", "rendering", "posted", "skipped", "failed",
+]);
+
+export const igStorySlideSchema = z.object({
+  heading: z.string().min(1),
+  bullets: z.array(z.string()),
+  backgroundImage: z.string().optional(),
+  accent: z.string().optional(),
+});
+
+export const igStoryPayloadSchema = z.object({
+  slides: z.array(igStorySlideSchema).min(1).max(6),
+  dateLabel: z.string().min(1),
+});
+
+export const igStoryQueueItemSchema = z.object({
+  id: z.string().min(1),
+  dateKey: z.string().min(1),
+  status: igStoryQueueStatusSchema,
+  sourceItemIds: z.array(z.string()),
+  igMediaId: z.string().optional(),
+  payload: igStoryPayloadSchema.optional(),
+  error: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createIGStoryQueueItemSchema = igStoryQueueItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateIGStoryQueueItem = z.infer<typeof createIGStoryQueueItemSchema>;
+
 // ── Inferred create types for datasets ─────────────────────────────────────
 
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;

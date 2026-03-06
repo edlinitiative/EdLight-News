@@ -9,8 +9,10 @@ import { runDatasetRefresh } from "../services/datasets.js";
 import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { buildIgTaux } from "../jobs/buildIgTaux.js";
+import { buildIgStory } from "../jobs/buildIgStory.js";
 import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
 import { processIgScheduled } from "../jobs/processIgScheduled.js";
+import { processIgStory } from "../jobs/processIgStory.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 export const tickRouter = Router();
@@ -79,13 +81,15 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       console.warn("[tick] history publisher error:", err instanceof Error ? err.message : err);
     }
 
-    // Step 10: Instagram pipeline — build queue, taux post, schedule, and process
-    let igResult = { buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 }, taux: { queued: false, skipped: "" }, schedule: { scheduled: 0, skipped: "" }, process: { processed: 0, posted: 0, dryRun: 0, errors: 0 } };
+    // Step 10: Instagram pipeline — build queue, taux post, stories, schedule, and process
+    let igResult: { buildQueue: any; taux: any; story: any; schedule: any; process: any; storyProcess: any } = { buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 }, taux: { queued: false, skipped: "" }, story: { queued: false, skipped: "" }, schedule: { scheduled: 0, skipped: "" }, process: { processed: 0, posted: 0, dryRun: 0, errors: 0 }, storyProcess: { processed: 0, posted: 0, dryRun: 0, errors: 0 } };
     try {
       igResult.buildQueue = await buildIgQueue();
       igResult.taux = await buildIgTaux();
+      igResult.story = await buildIgStory();
       igResult.schedule = await scheduleIgPost();
       igResult.process = await processIgScheduled();
+      igResult.storyProcess = await processIgStory();
     } catch (err) {
       // IG pipeline is non-critical — log and continue
       console.warn("[tick] IG pipeline error:", err instanceof Error ? err.message : err);
