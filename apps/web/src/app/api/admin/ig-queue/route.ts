@@ -25,17 +25,7 @@ export async function GET() {
         }),
       );
 
-      // Meme slide (if present)
-      const memeSlide = data.payload?.memeSlide
-        ? {
-            template: data.payload.memeSlide.template ?? "reaction",
-            panels: (data.payload.memeSlide.panels ?? []).map(
-              (p: { text?: string; emoji?: string }) => ({ text: p.text ?? "", emoji: p.emoji ?? undefined }),
-            ),
-            topicLine: data.payload.memeSlide.topicLine ?? undefined,
-            tone: data.payload.memeSlide.tone ?? "witty",
-          }
-        : null;
+      // Meme slide removed — memes are no longer generated
 
       return {
         id: doc.id,
@@ -47,8 +37,7 @@ export async function GET() {
         reasons: data.reasons ?? [],
         caption: data.payload?.caption ?? null,
         slides,
-        memeSlide,
-        slidesCount: slides.length + (memeSlide ? 1 : 0),
+        slidesCount: slides.length,
         dryRunPath: data.dryRunPath ?? null,
         igPostId: data.igPostId ?? null,
         createdAt: data.createdAt?._seconds

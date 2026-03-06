@@ -191,6 +191,41 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
+  // Quality flags: needs review or low confidence → not ready for IG
+  if (item.qualityFlags?.needsReview || item.qualityFlags?.lowConfidence) {
+    return {
+      igEligible: false,
+      igType,
+      igPriorityScore: 0,
+      reasons: [
+        item.qualityFlags?.needsReview
+          ? "Flagged as needs review"
+          : "Flagged as low confidence",
+      ],
+    };
+  }
+
+  // Image required — IG is a visual platform, skip items without images
+  if (!item.imageUrl) {
+    return {
+      igEligible: false,
+      igType,
+      igPriorityScore: 0,
+      reasons: ["Missing imageUrl — required for IG"],
+    };
+  }
+
+  // Taux du jour articles from third-party sources (Juno7, etc.)
+  // We produce our own branded taux post via BRH scraper.
+  if (isTauxDuJourArticle(item)) {
+    return {
+      igEligible: false,
+      igType,
+      igPriorityScore: 0,
+      reasons: ["Taux du jour article — suppressed (use branded taux post)"],
+    };
+  }
+
   // Scholarship/opportunity without deadline → ineligible
   if ((igType === "scholarship" || igType === "opportunity") && !item.deadline && !item.opportunity?.deadline) {
     if (!item.evergreen) {
@@ -213,20 +248,19 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // News: conditional eligibility
+  // News: conditional eligibility (tighter gate for IG than web)
   if (igType === "news") {
     const audienceFit = item.audienceFitScore ?? 0;
     const studentMarkers = countMatches(fullText, NEWS_STUDENT_MARKERS);
     const haitiMarkers = countMatches(fullText, NEWS_HAITI_MARKERS);
     const isHaitiTagged = item.geoTag === "HT";
 
-    // Accept if: high audience fit, OR enough student markers,
-    // OR Haiti-tagged with some haiti-relevance markers, OR strong haiti content.
+    // IG is curated — require higher audience fit than web (0.55 vs 0.5)
     const eligible =
-      audienceFit >= 0.5 ||
+      audienceFit >= 0.55 ||
       studentMarkers >= 2 ||
-      (isHaitiTagged && (audienceFit >= 0.3 || haitiMarkers >= 1)) ||
-      haitiMarkers >= 2;
+      (isHaitiTagged && (audienceFit >= 0.35 || haitiMarkers >= 2)) ||
+      haitiMarkers >= 3;
 
     if (!eligible) {
       return {
@@ -304,12 +338,6 @@ export function decideIG(item: Item): IGDecision {
     reasons.push(`Weak source: -10`);
   }
 
-  // Meme-worthy bonus: relatable content gets a virality boost
-  if (isMemeWorthyItem(item, igType, fullText)) {
-    score += 5;
-    reasons.push(`Meme-worthy content: +5 (virality boost)`);
-  }
-
   // Clamp 0..100
   score = Math.max(0, Math.min(100, Math.round(score)));
 
@@ -323,25 +351,24 @@ export function decideIG(item: Item): IGDecision {
 }
 
 /**
- * Quick heuristic: is this item likely to produce a good meme?
- * Used for a small score bonus — actual meme generation happens later.
+ * Returns true when an item looks like a "taux du jour" exchange-rate
+ * post from a third-party publisher (Juno7, etc.).
+ * We produce our own branded taux post via the BRH scraper.
  */
-function isMemeWorthyItem(item: Item, igType: IGPostType, fullText: string): boolean {
-  // Scholarships and opportunities are always relatable meme material
-  if (igType === "scholarship" || igType === "opportunity") return true;
-
-  // Haiti-tagged news with high engagement signals
-  if (igType === "news" && item.geoTag === "HT" && (item.audienceFitScore ?? 0) >= 0.6) return true;
-
-  // Histoire is good for nostalgic/cultural memes
-  if (igType === "histoire") return true;
-
-  // Utility: only student-centric topics
-  if (igType === "utility") {
-    const memeableKeywords = ["bourse", "visa", "inscription", "admission", "campus", "cv", "stage", "examen"];
-    return memeableKeywords.some((kw) => fullText.toLowerCase().includes(kw));
+function isTauxDuJourArticle(item: Item): boolean {
+  const text = `${item.title} ${item.summary}`.toLowerCase();
+  if (text.includes("taux du jour")) return true;
+  if (
+    text.includes("taux") &&
+    (/\busd\b/.test(text) ||
+      text.includes("dollar") ||
+      text.includes("gourde") ||
+      /\bbrh\b/.test(text) ||
+      text.includes("taux de référence") ||
+      text.includes("taux de reference"))
+  ) {
+    return true;
   }
-
   return false;
 }
 

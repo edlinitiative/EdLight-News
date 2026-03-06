@@ -23,18 +23,6 @@ interface IGSlideData {
   footer: string | null;
 }
 
-interface IGMemePanel {
-  text: string;
-  emoji?: string;
-}
-
-interface IGMemeSlideData {
-  template: string;
-  panels: IGMemePanel[];
-  topicLine?: string;
-  tone: string;
-}
-
 interface IGPublishEntry {
   id: string;
   sourceContentId: string;
@@ -46,7 +34,6 @@ interface IGPublishEntry {
   slides: IGSlideData[];
   slideUrls: string[];
   slideCount: number;
-  memeSlide: IGMemeSlideData | null;
   dryRunPath: string | null;
   igPostId: string | null;
   reasons: string[];
@@ -296,29 +283,6 @@ function PostCard({
                       )}
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* Meme slide info */}
-              {entry.memeSlide && (
-                <div className="rounded-md border border-amber-200 bg-amber-50/50 p-3 text-xs dark:border-amber-800 dark:bg-amber-900/20">
-                  <p className="font-semibold text-amber-700 dark:text-amber-300">
-                    🎭 Meme slide ({entry.memeSlide.template})
-                  </p>
-                  {entry.memeSlide.topicLine && (
-                    <p className="mt-1 text-amber-600 dark:text-amber-400">
-                      {entry.memeSlide.topicLine}
-                    </p>
-                  )}
-                  <div className="mt-1 space-y-0.5 text-amber-600 dark:text-amber-400">
-                    {entry.memeSlide.panels.map((p, i) => (
-                      <p key={i}>
-                        {p.emoji ? `${p.emoji} ` : ""}
-                        {p.text}
-                      </p>
-                    ))}
-                  </div>
-                  <p className="mt-1 text-amber-400">Tone: {entry.memeSlide.tone}</p>
                 </div>
               )}
             </div>

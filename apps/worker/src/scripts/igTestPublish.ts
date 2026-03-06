@@ -21,11 +21,12 @@ import { formatForIG } from "@edlight-news/generator/ig/index.js";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { uploadCarouselSlides } from "@edlight-news/firebase";
 import { publishIgPost } from "@edlight-news/publisher";
-import type { IGQueueItem, IGFormattedPayload, ContentItem } from "@edlight-news/types";
+import type { IGQueueItem, IGFormattedPayload, Item } from "@edlight-news/types";
+import { Timestamp } from "firebase-admin/firestore";
 
 // ── Mock item (scholarship — highest base score) ──────────────────────────
 
-const mockItem: ContentItem = {
+const mockItem: Item = {
   id: `test-publish-${Date.now()}`,
   sourceId: "test-source",
   title: "🎓 Test — Pipeline Instagram EdLight News",
@@ -93,8 +94,8 @@ async function main() {
     status: "rendering",
     reasons: ["Test publish"],
     payload,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   };
 
   // Step 3: Render carousel PNGs

@@ -65,8 +65,7 @@ export async function GET() {
     const toItem = async (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = doc.data();
       const contentSlideCount = data.payload?.slides?.length ?? 0;
-      const hasMemeSlide = !!data.payload?.memeSlide;
-      const totalSlideCount = contentSlideCount + (hasMemeSlide ? 1 : 0);
+      const totalSlideCount = contentSlideCount;
       const slideUrls = totalSlideCount > 0 ? await getSlideUrls(doc.id, totalSlideCount) : [];
 
       return {
@@ -86,7 +85,6 @@ export async function GET() {
         ),
         slideUrls,
         slideCount: totalSlideCount,
-        memeSlide: data.payload?.memeSlide ?? null,
         dryRunPath: data.dryRunPath ?? null,
         igPostId: data.igPostId ?? null,
         reasons: data.reasons ?? [],

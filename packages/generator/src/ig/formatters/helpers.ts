@@ -8,6 +8,17 @@ const MAX_CAPTION_LENGTH = 1200;
 const MIN_CAPTION_LENGTH = 600;
 
 /**
+ * Bilingual text overrides from content_versions (fr + ht).
+ * When provided, formatters use these instead of raw item.title/summary.
+ */
+export interface BilingualText {
+  frTitle: string;
+  frSummary: string;
+  htTitle?: string;
+  htSummary?: string;
+}
+
+/**
  * Format an ISO deadline string to a human-readable French date.
  */
 export function formatDeadline(isoDate: string): string {
@@ -41,19 +52,10 @@ export function padCaption(caption: string): string {
 }
 
 /**
- * Append meme-friendly hashtags to boost discoverability.
- * Only call this when the payload includes a meme slide.
- */
-export function appendMemeHashtags(caption: string): string {
-  const memeTags = "\n\n#Meme #Relatable #ÉtudiantsHaïtiens #StudentLife #HaitiMemes #Motivation";
-  return truncateCaption(caption + memeTags);
-}
-
-/**
- * Build the standard CTA line.
+ * Build the standard bilingual CTA line (French + Kreyòl).
  */
 export function buildCTA(): string {
-  return "→ Détails sur EdLight News — lien dans la bio";
+  return "→ Détails sur EdLight News — lien dans la bio\n→ Detay sou EdLight News — lyen nan biyo";
 }
 
 /**

@@ -3,7 +3,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText } from "./helpers.js";
+import { truncateCaption, buildCTA, buildSourceLine, shortenText, type BilingualText } from "./helpers.js";
 
 // Patterns that indicate a sentence is scraping junk, not real content
 const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
@@ -57,16 +57,19 @@ export function isJunkSentence(sentence: string): boolean {
   );
 }
 
-export function buildNewsCarousel(item: Item): IGFormattedPayload {
+export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
+
+  const title = bi?.frTitle ?? item.title;
+  const summary = bi?.frSummary ?? item.summary;
 
   // Geo label for footer display
   const geoLabel = item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International";
 
   // Slide 1: Cover — summary only (geo tag moved to footer)
   slides.push({
-    heading: shortenText(item.title, 80),
-    bullets: [shortenText(item.summary, 180)],
+    heading: shortenText(title, 80),
+    bullets: [shortenText(summary, 180)],
     footer: geoLabel,
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
@@ -102,16 +105,16 @@ export function buildNewsCarousel(item: Item): IGFormattedPayload {
     slides[slides.length - 1]!.footer = buildSourceLine(item);
   }
 
-  // Caption
+  // Caption — bilingual (French primary, Kreyòl secondary)
   const parts: string[] = [
-    item.title,
+    title,
     "",
-    shortenText(item.summary, 400),
-    "",
-    buildCTA(),
-    "",
-    buildSourceLine(item),
+    shortenText(summary, 400),
   ];
+  if (bi?.htSummary) {
+    parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
+  }
+  parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };
 }

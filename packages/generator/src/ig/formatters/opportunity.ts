@@ -3,11 +3,14 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, shortenText, humanizeUrl } from "./helpers.js";
+import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, shortenText, humanizeUrl, type BilingualText } from "./helpers.js";
 
-export function buildOpportunityCarousel(item: Item): IGFormattedPayload {
+export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
   const deadlineStr = item.deadline ?? item.opportunity?.deadline;
+
+  const title = bi?.frTitle ?? item.title;
+  const summary = bi?.frSummary ?? item.summary;
 
   // Slide 1: Cover
   const meta: string[] = [];
@@ -17,7 +20,7 @@ export function buildOpportunityCarousel(item: Item): IGFormattedPayload {
     meta.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
-    heading: shortenText(item.title, 80),
+    heading: shortenText(title, 80),
     bullets: meta.length > 0 ? meta : ["Opportunité disponible"],
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
@@ -46,8 +49,9 @@ export function buildOpportunityCarousel(item: Item): IGFormattedPayload {
     slides[slides.length - 1]!.footer = buildSourceLine(item);
   }
 
-  // Caption
-  const parts: string[] = [item.title, "", shortenText(item.summary, 300)];
+  // Caption — bilingual
+  const parts: string[] = [title, "", shortenText(summary, 300)];
+  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 250)}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
   parts.push("", buildCTA(), "", buildSourceLine(item));
 

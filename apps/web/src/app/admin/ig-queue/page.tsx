@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Copy, Check, ExternalLink, RefreshCw } from "lucide-react";
 import { IGPostPreview } from "@/components/IGSlidePreview";
-import type { SlideData, MemeSlideData } from "@/components/IGSlidePreview";
+import type { SlideData } from "@/components/IGSlidePreview";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,7 +17,6 @@ interface IGQueueEntry {
   reasons: string[];
   caption: string | null;
   slides: SlideData[];
-  memeSlide: MemeSlideData | null;
   slidesCount: number;
   dryRunPath: string | null;
   igPostId: string | null;
@@ -120,7 +119,6 @@ function PostCard({ entry }: { entry: IGQueueEntry }) {
         <IGPostPreview
           igType={entry.igType}
           slides={entry.slides}
-          memeSlide={entry.memeSlide}
         />
       </div>
 

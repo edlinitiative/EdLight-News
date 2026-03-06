@@ -5,16 +5,19 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText } from "./helpers.js";
+import { truncateCaption, buildCTA, buildSourceLine, shortenText, type BilingualText } from "./helpers.js";
 import { isJunkSentence } from "./news.js";
 
-export function buildHistoireCarousel(item: Item): IGFormattedPayload {
+export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
+
+  const title = bi?.frTitle ?? item.title;
+  const summary = bi?.frSummary ?? item.summary;
 
   // Slide 1: Cover
   slides.push({
-    heading: shortenText(item.title, 80),
-    bullets: [shortenText(item.summary, 180)],
+    heading: shortenText(title, 80),
+    bullets: [shortenText(summary, 180)],
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
@@ -45,16 +48,14 @@ export function buildHistoireCarousel(item: Item): IGFormattedPayload {
     slides[slides.length - 1]!.footer = buildSourceLine(item);
   }
 
-  // Caption
+  // Caption — bilingual
   const parts: string[] = [
-    item.title,
+    title,
     "",
-    shortenText(item.summary, 400),
-    "",
-    buildCTA(),
-    "",
-    buildSourceLine(item),
+    shortenText(summary, 400),
   ];
+  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
+  parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };
 }

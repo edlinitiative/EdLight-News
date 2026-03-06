@@ -126,20 +126,13 @@ export {
   decideIG,
   applyDedupePenalty,
   formatForIG,
-  formatForIGWithMeme,
   buildScholarshipCarousel,
   buildOpportunityCarousel,
   buildNewsCarousel,
   buildHistoireCarousel,
   buildUtilityCarousel,
-  generateMemeSlide,
-  isMemeWorthy,
-  getMemeTemplates,
 } from "./ig/index.js";
-export type {
-  GenerateMemeResult,
-  GenerateMemeError,
-} from "./ig/index.js";
+export type { BilingualText } from "./ig/index.js";
 
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.65;

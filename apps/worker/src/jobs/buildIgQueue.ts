@@ -6,8 +6,9 @@
  * and inserts/merges into ig_queue.
  */
 
-import { itemsRepo, igQueueRepo } from "@edlight-news/firebase";
-import { decideIG, applyDedupePenalty, formatForIGWithMeme } from "@edlight-news/generator/ig/index.js";
+import { itemsRepo, igQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
+import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generator/ig/index.js";
+import type { BilingualText } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus } from "@edlight-news/types";
 
 export interface BuildIgQueueResult {
@@ -82,8 +83,26 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           continue;
         }
 
-        // Format the payload (includes meme generation when eligible)
-        const payload = await formatForIGWithMeme(decision.igType, item);
+        // Fetch bilingual content_versions (fr + ht) for proper captions
+        let bi: BilingualText | undefined;
+        try {
+          const versions = await contentVersionsRepo.listByItemId(item.id);
+          const fr = versions.find((v) => v.language === "fr");
+          const ht = versions.find((v) => v.language === "ht");
+          if (fr) {
+            bi = {
+              frTitle: fr.title,
+              frSummary: fr.summary,
+              htTitle: ht?.title,
+              htSummary: ht?.summary,
+            };
+          }
+        } catch {
+          // Versions unavailable — formatter will fall back to raw item fields
+        }
+
+        // Format the payload
+        const payload = formatForIG(decision.igType, item, bi);
 
         // Insert as queued
         await igQueueRepo.createIGQueueItem({
