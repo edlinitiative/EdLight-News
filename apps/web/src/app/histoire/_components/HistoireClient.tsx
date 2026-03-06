@@ -3,19 +3,21 @@
 /**
  * HistoireClient — client orchestrator for /histoire.
  *
- * New editorial layout flow:
- *   ① Hero Fact   — the single most important event, immersive card
- *   ② Holidays    — ribbon banners (if any)
- *   ③ WeekStrip   — sticky 7-day nav (clicking exits range mode)
- *   ④ Sub-facts   — "Aussi ce jour-là" grid with inline category pills
- *   ⑤ Explore     — month-level accordion (presets + dropdown)
+ * Redesigned layout flow:
+ *   ① WeekStrip  — sticky 7-day nav (always visible at top)
+ *   ② Holidays   — ribbon banners (if any)
+ *   ③ Explore    — month navigator (visible, not buried)
+ *   ④ Hero Fact  — the single most important event, editorial card
+ *   ⑤ Sub-facts  — "Aussi ce jour-là" with inline category pills
  *
- * Supports two modes:
- *   - Single-date (default, driven by WeekStrip)
- *   - Range/month (driven by ExplorePanel)
+ * Features:
+ *   - URL state sync (date= searchParam)
+ *   - CSS transitions on content swap
+ *   - "Back to today" in empty states
  */
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { CalendarHeart, Loader2, Star } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import { WeekStrip } from "./WeekStrip";
@@ -51,35 +53,62 @@ export function HistoireClient({
   lang,
 }: HistoireClientProps) {
   const fr = lang === "fr";
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // ── State ──
-  const [selectedDate, setSelectedDate] = useState(todayMD);
+  const initialDate = searchParams.get("date") ?? todayMD;
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [liveTodayMD, setLiveTodayMD] = useState(todayMD);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
+  const [contentKey, setContentKey] = useState(0); // for CSS transitions
 
   const [entriesByMonth, setEntriesByMonth] = useState<Record<string, SerializableAlmanacEntry[]>>({
     [prefetchedMonth]: initialEntries,
   });
   const [loadingMonths, setLoadingMonths] = useState<Set<string>>(new Set());
 
+  // Ref to avoid stale closures in ensureMonthLoaded
+  const entriesByMonthRef = useRef(entriesByMonth);
+  entriesByMonthRef.current = entriesByMonth;
+
   // ── Rehydrate today's date on the client (ISR page may be stale) ──
   useEffect(() => {
     const clientToday = getHaitiMonthDayClient();
     if (clientToday !== todayMD) {
       setLiveTodayMD(clientToday);
-      setSelectedDate(clientToday);
+      // Only auto-navigate to today if no date param was provided
+      if (!searchParams.get("date")) {
+        setSelectedDate(clientToday);
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── URL sync ──
+  const updateURL = useCallback(
+    (date: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (date === liveTodayMD) {
+        params.delete("date");
+      } else {
+        params.set("date", date);
+      }
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [router, pathname, searchParams, liveTodayMD],
+  );
 
   // ── Derived ──
   const selectedMonthStr = selectedDate.split("-")[0]!;
   const todayMonth = parseInt(liveTodayMD.split("-")[0]!, 10);
   const weekDays = useMemo(() => getWeekAroundDate(selectedDate), [selectedDate]);
 
-  // ── Month loading ──
+  // ── Month loading (stable callback — uses ref to avoid dep on entriesByMonth) ──
   const ensureMonthLoaded = useCallback(
     async (monthStr: string) => {
-      if (entriesByMonth[monthStr]) return;
+      if (entriesByMonthRef.current[monthStr]) return;
       setLoadingMonths((prev) => {
         if (prev.has(monthStr)) return prev;
         const next = new Set(prev);
@@ -102,21 +131,21 @@ export function HistoireClient({
         });
       }
     },
-    [entriesByMonth],
+    [], // stable — reads from ref
   );
 
   // Load months for current view
   useEffect(() => {
     if (dateRange) {
       for (const m of monthsInRange(dateRange.start, dateRange.end)) {
-        if (!entriesByMonth[m]) void ensureMonthLoaded(m);
+        void ensureMonthLoaded(m);
       }
     } else {
-      if (!entriesByMonth[selectedMonthStr]) void ensureMonthLoaded(selectedMonthStr);
+      void ensureMonthLoaded(selectedMonthStr);
       const months = new Set(weekDays.map((d) => d.split("-")[0]!));
-      for (const m of months) if (!entriesByMonth[m]) void ensureMonthLoaded(m);
+      for (const m of months) void ensureMonthLoaded(m);
     }
-  }, [selectedMonthStr, weekDays, dateRange, entriesByMonth, ensureMonthLoaded]);
+  }, [selectedMonthStr, weekDays, dateRange, ensureMonthLoaded]);
 
   // ── Entries computation ──
   const entriesForDate = useMemo(
@@ -174,14 +203,25 @@ export function HistoireClient({
   const handleWeekSelect = useCallback((md: string) => {
     setSelectedDate(md);
     setDateRange(null);
-  }, []);
+    setContentKey((k) => k + 1);
+    updateURL(md);
+  }, [updateURL]);
+
+  const handleGoToday = useCallback(() => {
+    setSelectedDate(liveTodayMD);
+    setDateRange(null);
+    setContentKey((k) => k + 1);
+    updateURL(liveTodayMD);
+  }, [liveTodayMD, updateURL]);
 
   const handleRangeSelect = useCallback((range: DateRange) => {
     setDateRange(range);
+    setContentKey((k) => k + 1);
   }, []);
 
   const handleRangeClear = useCallback(() => {
     setDateRange(null);
+    setContentKey((k) => k + 1);
   }, []);
 
   // ── Labels ──
@@ -191,43 +231,15 @@ export function HistoireClient({
 
   return (
     <div className="space-y-6">
-      {/* ── ① Hero Fact ──────────────────────────────────────── */}
-      {isLoading ? (
-        <div className="flex flex-col items-center gap-3 py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-          <p className="text-sm text-stone-400 dark:text-stone-500">
-            {fr ? "Chargement…" : "Chajman…"}
-          </p>
-        </div>
-      ) : hero ? (
-        <div className="space-y-3">
-          {/* Date context label */}
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wide text-stone-400 dark:text-stone-500">
-              {dateRange
-                ? (fr ? "Fait marquant" : "Reyalite enpòtan")
-                : `${dateLabel} — ${fr ? "fait marquant" : "reyalite enpòtan"}`}
-            </p>
-            <div className="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
-              <CalendarHeart className="h-3.5 w-3.5" />
-              <span>
-                {activeEntries.length} {fr ? "fait" : "reyalite"}{activeEntries.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-          </div>
-
-          <HeroFact
-            entry={hero}
-            lang={lang}
-            showDate={!!dateRange}
-          />
-        </div>
-      ) : (
-        <EmptyState
-          lang={lang}
-          dateLabel={dateLabel}
-        />
-      )}
+      {/* ── ① Sticky WeekStrip ───────────────────────────────── */}
+      <WeekStrip
+        days={weekDays}
+        selectedDate={selectedDate}
+        todayDate={liveTodayMD}
+        onSelect={handleWeekSelect}
+        lang={lang}
+        entryCounts={entryCounts}
+      />
 
       {/* ── ② Holiday banners ────────────────────────────────── */}
       {activeHolidays.length > 0 && (
@@ -235,12 +247,12 @@ export function HistoireClient({
           {activeHolidays.map((h) => (
             <div
               key={h.id}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100/60 px-3.5 py-2 text-sm font-medium text-amber-800 dark:from-amber-900/20 dark:to-amber-900/10 dark:text-amber-300"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100/60 px-3.5 py-2.5 text-sm font-medium text-amber-800 dark:from-amber-900/20 dark:to-amber-800/15 dark:text-amber-200"
             >
               <Star className="h-3.5 w-3.5 text-amber-500" />
               {fr ? h.name_fr : h.name_ht}
               {h.isNationalHoliday && (
-                <span className="ml-1 rounded-full bg-amber-200/60 px-2 py-0.5 text-[10px] font-semibold uppercase dark:bg-amber-800/30">
+                <span className="ml-1 rounded-full bg-amber-200/60 px-2 py-0.5 text-[10px] font-semibold uppercase dark:bg-amber-800/30 dark:text-amber-300">
                   {fr ? "National" : "Nasyonal"}
                 </span>
               )}
@@ -254,35 +266,69 @@ export function HistoireClient({
         </div>
       )}
 
-      {/* ── ③ Sticky WeekStrip ───────────────────────────────── */}
-      <WeekStrip
-        days={weekDays}
-        selectedDate={selectedDate}
-        todayDate={liveTodayMD}
-        onSelect={handleWeekSelect}
+      {/* ── ③ Explore — month navigator ──────────────────────── */}
+      <ExplorePanel
+        activeRange={dateRange}
+        onRangeSelect={handleRangeSelect}
+        onRangeClear={handleRangeClear}
         lang={lang}
-        entryCounts={entryCounts}
+        currentMonth={todayMonth}
       />
 
-      {/* ── ④ Sub-facts: "Aussi ce jour-là" ──────────────────── */}
-      {!isLoading && secondaryEntries.length > 0 && (
-        <HistoryList
-          entries={secondaryEntries}
-          lang={lang}
-          emptyLabel={dateLabel}
-          showDate={!!dateRange}
-        />
-      )}
+      {/* ── ④ Hero Fact ──────────────────────────────────────── */}
+      <div
+        key={contentKey}
+        className="animate-in fade-in duration-200"
+      >
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-3 py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+            <p className="text-sm text-stone-400 dark:text-stone-500">
+              {fr ? "Chargement\u2026" : "Chajman\u2026"}
+            </p>
+          </div>
+        ) : hero ? (
+          <div className="space-y-3">
+            {/* Date context label */}
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                {dateRange
+                  ? (fr ? "Fait marquant" : "Reyalite enp\u00f2tan")
+                  : `${dateLabel} \u2014 ${fr ? "fait marquant" : "reyalite enp\u00f2tan"}`}
+              </p>
+              <div className="flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+                <CalendarHeart className="h-3.5 w-3.5" />
+                <span>
+                  {activeEntries.length} {fr ? "fait" : "reyalite"}{activeEntries.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
 
-      {/* ── ⑤ Explore — quiet footer navigation ─────────────── */}
-      <div className="border-t border-stone-100 pt-5 dark:border-stone-800">
-        <ExplorePanel
-          activeRange={dateRange}
-          onRangeSelect={handleRangeSelect}
-          onRangeClear={handleRangeClear}
-          lang={lang}
-          currentMonth={todayMonth}
-        />
+            <HeroFact
+              entry={hero}
+              lang={lang}
+              showDate={!!dateRange}
+            />
+          </div>
+        ) : (
+          <EmptyState
+            lang={lang}
+            dateLabel={dateLabel}
+            onGoToday={selectedDate !== liveTodayMD ? handleGoToday : undefined}
+          />
+        )}
+
+        {/* ── ⑤ Sub-facts: "Aussi ce jour-là" ──────────────────── */}
+        {!isLoading && secondaryEntries.length > 0 && (
+          <div className="mt-6">
+            <HistoryList
+              entries={secondaryEntries}
+              lang={lang}
+              emptyLabel={dateLabel}
+              showDate={!!dateRange}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

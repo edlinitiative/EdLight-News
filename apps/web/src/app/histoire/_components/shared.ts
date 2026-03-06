@@ -38,21 +38,21 @@ export function serializeHoliday(h: HaitiHoliday): SerializableHoliday {
 }
 
 export const TAG_LABELS: Record<AlmanacTag, { fr: string; ht: string; color: string }> = {
-  independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
-  culture:       { fr: "Culture",       ht: "Kilti",        color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300" },
-  education:     { fr: "Éducation",     ht: "Edikasyon",    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
-  politics:      { fr: "Politique",     ht: "Politik",      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
-  science:       { fr: "Science",       ht: "Syans",        color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300" },
-  military:      { fr: "Militaire",     ht: "Militè",       color: "bg-stone-100 text-stone-800 dark:bg-stone-700 dark:text-stone-300" },
-  economy:       { fr: "Économie",      ht: "Ekonomi",      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
-  literature:    { fr: "Littérature",   ht: "Literati",     color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300" },
-  art:           { fr: "Art",           ht: "La",           color: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300" },
-  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
-  sports:        { fr: "Sports",        ht: "Espò",         color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
-  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-stone-200 text-stone-800 dark:bg-stone-700 dark:text-stone-300" },
-  diplomacy:     { fr: "Diplomatie",    ht: "Diplomasi",    color: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300" },
-  resistance:    { fr: "Résistance",    ht: "Rezistans",    color: "bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300" },
-  revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300" },
+  independence:  { fr: "Indépendance",  ht: "Endepandans",  color: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" },
+  culture:       { fr: "Culture",       ht: "Kilti",        color: "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300" },
+  education:     { fr: "Éducation",     ht: "Edikasyon",    color: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" },
+  politics:      { fr: "Politique",     ht: "Politik",      color: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300" },
+  science:       { fr: "Science",       ht: "Syans",        color: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" },
+  military:      { fr: "Militaire",     ht: "Militè",       color: "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300" },
+  economy:       { fr: "Économie",      ht: "Ekonomi",      color: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300" },
+  literature:    { fr: "Littérature",   ht: "Literati",     color: "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300" },
+  art:           { fr: "Art",           ht: "La",           color: "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300" },
+  religion:      { fr: "Religion",      ht: "Relijyon",     color: "bg-stone-100 text-stone-700 dark:bg-stone-700 dark:text-stone-300" },
+  sports:        { fr: "Sports",        ht: "Espò",         color: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" },
+  disaster:      { fr: "Catastrophe",   ht: "Katastwòf",    color: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300" },
+  diplomacy:     { fr: "Diplomatie",    ht: "Diplomasi",    color: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" },
+  resistance:    { fr: "Résistance",    ht: "Rezistans",    color: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300" },
+  revolution:    { fr: "Révolution",    ht: "Revolisyon",   color: "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300" },
 };
 
 export const ALL_TAGS: AlmanacTag[] = [
@@ -101,6 +101,13 @@ export function formatMonthDay(monthDay: string, lang: ContentLanguage): string 
   const monthIdx = parseInt(mm!, 10) - 1;
   const name = lang === "fr" ? MONTH_NAMES_FR[monthIdx] : MONTH_NAMES_HT[monthIdx];
   return `${parseInt(dd!, 10)} ${name ?? mm}`;
+}
+
+/** Convert MM-DD (+ optional year) to an ISO date string for `<time>` datetime. */
+export function toISODate(monthDay: string, year?: number | null): string {
+  const y = year ?? new Date().getFullYear();
+  const [mm, dd] = monthDay.split("-");
+  return `${y}-${mm}-${dd}`;
 }
 
 /** Get an array of MM-DD strings for 7 days centred around a given MM-DD (±3). */

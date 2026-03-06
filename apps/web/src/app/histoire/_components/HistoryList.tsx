@@ -71,7 +71,7 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
     <section className="space-y-4">
       {/* Section heading + filter pills */}
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-sm font-bold text-stone-700 dark:text-stone-300">
+        <h3 className="font-serif text-base font-bold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-lg">
           {fr ? "Aussi ce jour-là" : "Menm jou sa a tou"}
         </h3>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -80,10 +80,10 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
               <button
                 onClick={() => setSelectedTag("")}
                 className={
-                  "rounded-lg px-2.5 py-1 text-[11px] font-semibold transition " +
+                  "rounded-lg px-2.5 py-1 text-xs font-semibold transition " +
                   (selectedTag === ""
                     ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
-                    : "text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200")
+                    : "text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200")
                 }
               >
                 {fr ? "Tous" : "Tout"}
@@ -96,10 +96,10 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
                     key={t}
                     onClick={() => setSelectedTag(isActive ? "" : t)}
                     className={
-                      "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition " +
+                      "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition " +
                       (isActive
                         ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
-                        : `text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200`)
+                        : `text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200`)
                     }
                   >
                     <Tag className="h-2.5 w-2.5" />
