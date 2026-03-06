@@ -99,8 +99,9 @@ body {
 .h { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; text-shadow:0 2px 30px rgba(0,0,0,0.7), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:20px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
 .m ul { list-style:none; }
 .m li { font-size:21px; font-weight:400; line-height:1.55; opacity:0.85; margin-bottom:4px; text-shadow:0 1px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); }
-.bm { margin-top:32px; font-size:16px; font-weight:700; opacity:0.35; letter-spacing:2px; }
-.bm b { color:${accent}; font-weight:700; }
+.bm { margin-top:32px; font-size:18px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
+.bm .el { color:#fff; opacity:0.9; }
+.bm .nw { color:${accent}; opacity:0.9; }
 </style></head>
 <body>
 <div class="overlay"></div>
@@ -112,7 +113,7 @@ body {
   <div>
     <div class="h">${escapeHtml(slide.heading)}</div>
     <div class="m"><ul>${bulletsHtml}</ul></div>
-    <div class="bm">ED<b>LIGHT</b></div>
+    <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
   </div>
 </div>
 </body></html>`;
@@ -146,8 +147,9 @@ body {
 .bd li::before { content:'\u2014'; position:absolute; left:0; color:${accent}; opacity:0.5; }
 .ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
 .src { font-size:14px; opacity:0.25; max-width:65%; line-height:1.4; }
-.bm { font-size:16px; font-weight:700; opacity:0.3; letter-spacing:2px; }
-.bm b { color:${accent}; font-weight:700; }
+.bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
+.bm .el { color:rgba(255,255,255,0.5); }
+.bm .nw { color:${accent}; opacity:0.7; }
 </style></head>
 <body>
 <div class="bar"></div>
@@ -162,7 +164,7 @@ body {
   <div class="bd"><ul>${bulletsHtml}</ul></div>
   <div class="ft">
     <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-    <span class="bm">ED<b>LIGHT</b></span>
+    <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
   </div>
 </div>
 </body></html>`;
