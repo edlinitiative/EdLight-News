@@ -1,4 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#2563eb"/>
-  <text x="16" y="24" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="22" fill="#fff">E</text>
+  <defs>
+    <clipPath id="bg"><rect width="32" height="32" rx="7"/></clipPath>
+    <radialGradient id="glow" cx="0.2" cy="0.85" r="0.9">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="32" height="32" rx="7" fill="#1e3a8a"/>
+  <rect width="32" height="32" rx="7" fill="url(#glow)"/>
+
+  <g clip-path="url(#bg)">
+    <!-- broadcast arcs radiating from bottom-left -->
+    <!-- outer arc -->
+    <circle cx="6" cy="26" r="24" fill="none" stroke="#93c5fd" stroke-width="2.8" stroke-opacity="0.45"
+            stroke-dasharray="37.7 150" stroke-linecap="round"/>
+    <!-- middle arc -->
+    <circle cx="6" cy="26" r="17" fill="none" stroke="#bfdbfe" stroke-width="2.8" stroke-opacity="0.7"
+            stroke-dasharray="26.7 150" stroke-linecap="round"/>
+    <!-- inner arc -->
+    <circle cx="6" cy="26" r="10" fill="none" stroke="#ffffff" stroke-width="2.8"
+            stroke-dasharray="15.7 150" stroke-linecap="round"/>
+
+    <!-- beacon dot -->
+    <circle cx="6" cy="26" r="3.2" fill="#f97316"/>
+    <circle cx="6" cy="26" r="1.6" fill="#fde68a"/>
+  </g>
 </svg>
