@@ -1,0 +1,112 @@
+/**
+ * IG Publish Now — one-shot script to trigger IG posting immediately.
+ *
+ * Bypasses all time-gating and scheduling. Grabs the top queued item,
+ * renders it, and publishes directly.
+ *
+ * Usage:  cd apps/worker && npx tsx src/scripts/igPublishNow.ts
+ */
+import path from "path";
+import dotenv from "dotenv";
+dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
+
+import { buildIgQueue } from "../jobs/buildIgQueue.js";
+import { igQueueRepo, uploadCarouselSlides } from "@edlight-news/firebase";
+import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { publishIgPost } from "@edlight-news/publisher";
+
+async function main() {
+  console.log("=== IG Publish Now ===\n");
+
+  // Check credentials
+  const hasToken = !!process.env.IG_ACCESS_TOKEN;
+  const hasUser = !!process.env.IG_USER_ID;
+  console.log(`IG_ACCESS_TOKEN: ${hasToken ? "✓ set" : "✗ MISSING"}`);
+  console.log(`IG_USER_ID: ${hasUser ? "✓ set" : "✗ MISSING"}`);
+  console.log(`PLAYWRIGHT_CHROMIUM_PATH: ${process.env.PLAYWRIGHT_CHROMIUM_PATH ?? "(auto-detect)"}\n`);
+
+  if (!hasToken || !hasUser) {
+    console.error("Missing IG credentials. Set IG_ACCESS_TOKEN and IG_USER_ID in .env");
+    process.exit(1);
+  }
+
+  // Step 1: Ensure there are items in the queue
+  console.log("--- Step 1: Build IG Queue ---");
+  const buildResult = await buildIgQueue();
+  console.log(JSON.stringify(buildResult, null, 2));
+
+  // Step 2: Grab top queued items directly (bypass scheduleIgPost entirely)
+  console.log("\n--- Step 2: Grab top queued items ---");
+  const queued = await igQueueRepo.listQueuedByScore(3);
+  console.log(`Found ${queued.length} queued items`);
+
+  if (queued.length === 0) {
+    console.log("Nothing to publish. Checking all statuses...");
+    for (const status of ["scheduled", "rendering", "posted", "skipped"] as const) {
+      try {
+        const items = await igQueueRepo.listByStatus(status, 3);
+        console.log(`  ${status}: ${items.length} items`);
+      } catch { /* ignore index errors */ }
+    }
+    process.exit(0);
+  }
+
+  // Step 3: Render and publish top item
+  for (const item of queued.slice(0, 2)) {
+    console.log(`\n--- Publishing: ${item.id} (score=${item.score}, type=${item.igType}) ---`);
+
+    if (!item.payload) {
+      console.warn(`  No payload, skipping`);
+      continue;
+    }
+
+    try {
+      // Mark as rendering
+      await igQueueRepo.updateStatus(item.id, "rendering");
+
+      // Render carousel
+      console.log("  Rendering carousel...");
+      const assets = await generateCarouselAssets(item, item.payload);
+      console.log(`  Rendered ${assets.slidePaths.length} slides (mode=${assets.mode})`);
+
+      // Upload slides to Firebase Storage
+      let slideUrls = assets.slidePaths;
+      if (assets.mode === "rendered") {
+        try {
+          console.log("  Uploading to Firebase Storage...");
+          slideUrls = await uploadCarouselSlides(assets.slidePaths, item.id);
+          console.log(`  Uploaded ${slideUrls.length} slides`);
+        } catch (uploadErr) {
+          console.warn("  Storage upload failed, using local paths:", uploadErr);
+        }
+      }
+
+      // Publish
+      console.log("  Publishing to Instagram...");
+      const publishResult = await publishIgPost(item, item.payload, slideUrls);
+      console.log("  Result:", JSON.stringify(publishResult, null, 2));
+
+      if (publishResult.posted) {
+        await igQueueRepo.markPosted(item.id, publishResult.igPostId);
+        console.log(`  ✓ POSTED: ${publishResult.igPostId}`);
+      } else if (publishResult.dryRun) {
+        console.log(`  ⚠ DRY RUN: ${publishResult.dryRunPath}`);
+      } else {
+        console.error(`  ✗ FAILED: ${publishResult.error}`);
+        await igQueueRepo.updateStatus(item.id, "queued");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`  ✗ ERROR: ${msg}`);
+      await igQueueRepo.updateStatus(item.id, "queued");
+    }
+  }
+
+  console.log("\n=== Done ===");
+  process.exit(0);
+}
+
+main().catch((e) => {
+  console.error("FATAL:", e);
+  process.exit(1);
+});
