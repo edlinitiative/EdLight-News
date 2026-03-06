@@ -106,20 +106,20 @@ function CoverSlide({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {label && (
             <span style={{
-              fontSize: "clamp(8px, 1.4vw, 15px)", fontWeight: 600, textTransform: "uppercase",
+              fontSize: "clamp(8px, 1.4cqw, 15px)", fontWeight: 600, textTransform: "uppercase",
               letterSpacing: "3.5px", opacity: 0.85, display: "flex", alignItems: "center", gap: "8px",
             }}>
               <span style={{ width: 8, height: 8, background: accent, borderRadius: "50%", display: "inline-block", flexShrink: 0 }} />
               {label}
             </span>
           )}
-          <span style={{ fontSize: "clamp(8px, 1.3vw, 14px)", fontWeight: 500, opacity: 0.4, letterSpacing: "1px" }}>
+          <span style={{ fontSize: "clamp(8px, 1.3cqw, 14px)", fontWeight: 500, opacity: 0.4, letterSpacing: "1px" }}>
             {slideIndex + 1} / {totalSlides}
           </span>
         </div>
         <div>
           <div style={{
-            fontSize: "clamp(18px, 5vw, 54px)", fontWeight: 700, lineHeight: 1.1,
+            fontSize: "clamp(18px, 5cqw, 54px)", fontWeight: 700, lineHeight: 1.1,
             letterSpacing: "-0.5px", textShadow: "0 2px 24px rgba(0,0,0,0.5)", marginBottom: "12px",
             overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical",
           }}>
@@ -128,12 +128,12 @@ function CoverSlide({
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {slide.bullets.map((b, i) => (
               <li key={i} style={{
-                fontSize: "clamp(10px, 1.94vw, 21px)", fontWeight: 400, lineHeight: 1.55,
+                fontSize: "clamp(10px, 1.94cqw, 21px)", fontWeight: 400, lineHeight: 1.55,
                 opacity: 0.7, marginBottom: 4, textShadow: "0 1px 10px rgba(0,0,0,0.4)",
               }}>{b}</li>
             ))}
           </ul>
-          <div style={{ marginTop: "20px", fontSize: "clamp(9px, 1.48vw, 16px)", fontWeight: 700, opacity: 0.35, letterSpacing: "2px" }}>
+          <div style={{ marginTop: "20px", fontSize: "clamp(9px, 1.48cqw, 16px)", fontWeight: 700, opacity: 0.35, letterSpacing: "2px" }}>
             ED<span style={{ color: accent, fontWeight: 700 }}>LIGHT</span>
           </div>
         </div>
@@ -167,16 +167,16 @@ function ContentSlide({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
             {label && (
               <span style={{
-                fontSize: "clamp(8px, 1.2vw, 13px)", fontWeight: 600, textTransform: "uppercase",
+                fontSize: "clamp(8px, 1.2cqw, 13px)", fontWeight: 600, textTransform: "uppercase",
                 letterSpacing: "3.5px", color: accent, opacity: 0.6,
               }}>{label}</span>
             )}
-            <span style={{ fontSize: "clamp(8px, 1.3vw, 14px)", fontWeight: 500, opacity: 0.3, letterSpacing: "1px" }}>
+            <span style={{ fontSize: "clamp(8px, 1.3cqw, 14px)", fontWeight: 500, opacity: 0.3, letterSpacing: "1px" }}>
               {slideIndex + 1} / {totalSlides}
             </span>
           </div>
           <div style={{
-            fontSize: "clamp(16px, 3.89vw, 42px)", fontWeight: 700, lineHeight: 1.15,
+            fontSize: "clamp(16px, 3.89cqw, 42px)", fontWeight: 700, lineHeight: 1.15,
             letterSpacing: "-0.3px", overflow: "hidden",
             display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
           }}>
@@ -187,7 +187,7 @@ function ContentSlide({
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {slide.bullets.map((b, i) => (
               <li key={i} style={{
-                fontSize: "clamp(11px, 2.31vw, 25px)", lineHeight: 1.55, marginBottom: "16px",
+                fontSize: "clamp(11px, 2.31cqw, 25px)", lineHeight: 1.55, marginBottom: "16px",
                 opacity: 0.82, paddingLeft: "24px", position: "relative",
               }}>
                 <span style={{ position: "absolute", left: 0, color: accent, opacity: 0.5 }}>—</span>
@@ -200,10 +200,10 @@ function ContentSlide({
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px",
         }}>
-          <span style={{ fontSize: "clamp(8px, 1.3vw, 14px)", opacity: 0.25, maxWidth: "65%", lineHeight: 1.4 }}>
+          <span style={{ fontSize: "clamp(8px, 1.3cqw, 14px)", opacity: 0.25, maxWidth: "65%", lineHeight: 1.4 }}>
             {slide.footer ?? ""}
           </span>
-          <span style={{ fontSize: "clamp(9px, 1.48vw, 16px)", fontWeight: 700, opacity: 0.3, letterSpacing: "2px" }}>
+          <span style={{ fontSize: "clamp(9px, 1.48cqw, 16px)", fontWeight: 700, opacity: 0.3, letterSpacing: "2px" }}>
             ED<span style={{ color: accent, fontWeight: 700 }}>LIGHT</span>
           </span>
         </div>
@@ -226,14 +226,14 @@ function MemeBase({ tone, topicLine, children }: { tone: string; topicLine?: str
       {topicLine && (
         <div style={{
           position: "absolute", top: "4.4%", left: "6.67%", right: "6.67%",
-          fontSize: "clamp(9px, 1.85vw, 20px)", fontWeight: 600,
+          fontSize: "clamp(9px, 1.85cqw, 20px)", fontWeight: 600,
           textTransform: "uppercase", letterSpacing: "3px", opacity: 0.5,
         }}>{topicLine}</div>
       )}
       {children}
       <div style={{
         position: "absolute", bottom: "3.7%", right: "6.67%",
-        fontSize: "clamp(9px, 1.48vw, 16px)", fontWeight: 700, opacity: 0.25, letterSpacing: "2px",
+        fontSize: "clamp(9px, 1.48cqw, 16px)", fontWeight: 700, opacity: 0.25, letterSpacing: "2px",
       }}>
         ED<span style={{ color: accent, fontWeight: 700 }}>LIGHT</span>
       </div>
@@ -250,12 +250,12 @@ function DrakeMeme({ meme }: { meme: MemeSlideData }) {
     <MemeBase tone={meme.tone} topicLine={meme.topicLine}>
       <div style={{ display: "grid", gridTemplateRows: "1fr 1fr", height: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", padding: "0 7.4%", gap: "3.7%", background: "rgba(255,50,50,0.08)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <span style={{ fontSize: "clamp(24px, 7.4vw, 80px)", flexShrink: 0 }}>{reject?.emoji ?? "🙅"}</span>
-          <span style={{ fontSize: "clamp(14px, 3.33vw, 36px)", fontWeight: 600, lineHeight: 1.3, opacity: 0.5, textDecoration: "line-through" }}>{reject?.text}</span>
+          <span style={{ fontSize: "clamp(24px, 7.4cqw, 80px)", flexShrink: 0 }}>{reject?.emoji ?? "🙅"}</span>
+          <span style={{ fontSize: "clamp(14px, 3.33cqw, 36px)", fontWeight: 600, lineHeight: 1.3, opacity: 0.5, textDecoration: "line-through" }}>{reject?.text}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", padding: "0 7.4%", gap: "3.7%", background: "rgba(50,255,100,0.08)" }}>
-          <span style={{ fontSize: "clamp(24px, 7.4vw, 80px)", flexShrink: 0 }}>{prefer?.emoji ?? "😎"}</span>
-          <span style={{ fontSize: "clamp(14px, 3.33vw, 36px)", fontWeight: 600, lineHeight: 1.3, color: accent }}>{prefer?.text}</span>
+          <span style={{ fontSize: "clamp(24px, 7.4cqw, 80px)", flexShrink: 0 }}>{prefer?.emoji ?? "😎"}</span>
+          <span style={{ fontSize: "clamp(14px, 3.33cqw, 36px)", fontWeight: 600, lineHeight: 1.3, color: accent }}>{prefer?.text}</span>
         </div>
       </div>
     </MemeBase>
@@ -264,7 +264,7 @@ function DrakeMeme({ meme }: { meme: MemeSlideData }) {
 
 function ExpandingBrainMeme({ meme }: { meme: MemeSlideData }) {
   const accent = TONE_ACCENTS[meme.tone] ?? "#facc15";
-  const sizes = ["clamp(11px, 2.6vw, 28px)", "clamp(12px, 2.96vw, 32px)", "clamp(14px, 3.52vw, 38px)", "clamp(16px, 4.07vw, 44px)"];
+  const sizes = ["clamp(11px, 2.6cqw, 28px)", "clamp(12px, 2.96cqw, 32px)", "clamp(14px, 3.52cqw, 38px)", "clamp(16px, 4.07cqw, 44px)"];
   const opacities = [0.4, 0.6, 0.8, 1.0];
   const brainEmojis = ["🧠", "🧠✨", "🧠💫", "🧠🌌"];
   const margins = [0, 2.78, 5.56, 8.33];
@@ -273,7 +273,7 @@ function ExpandingBrainMeme({ meme }: { meme: MemeSlideData }) {
       <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "9.3% 6.67% 7.4%", justifyContent: "space-around" }}>
         {meme.panels.map((p, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: "2.96%", padding: "1.5% 2.2%", borderLeft: `3px solid ${accent}`, marginLeft: `${margins[i]}%`, opacity: opacities[i] }}>
-            <span style={{ fontSize: "clamp(18px, 4.4vw, 48px)", flexShrink: 0 }}>{p.emoji ?? brainEmojis[i]}</span>
+            <span style={{ fontSize: "clamp(18px, 4.4cqw, 48px)", flexShrink: 0 }}>{p.emoji ?? brainEmojis[i]}</span>
             <span style={{ fontSize: sizes[i], fontWeight: 600, lineHeight: 1.3 }}>{p.text}</span>
           </div>
         ))}
@@ -288,10 +288,10 @@ function NobodyMeme({ meme }: { meme: MemeSlideData }) {
   return (
     <MemeBase tone={meme.tone} topicLine={meme.topicLine}>
       <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 7.4%", gap: "4.4%" }}>
-        <div style={{ fontSize: "clamp(12px, 2.96vw, 32px)", fontWeight: 500, opacity: 0.35 }}>{nobody?.emoji ?? ""} {nobody?.text}</div>
+        <div style={{ fontSize: "clamp(12px, 2.96cqw, 32px)", fontWeight: 500, opacity: 0.35 }}>{nobody?.emoji ?? ""} {nobody?.text}</div>
         <div>
-          <span style={{ fontSize: "clamp(24px, 6.67vw, 72px)", display: "block", marginBottom: "1.5%" }}>{reaction?.emoji ?? "😂"}</span>
-          <div style={{ fontSize: "clamp(16px, 3.89vw, 42px)", fontWeight: 700, color: accent, lineHeight: 1.3 }}>{reaction?.text}</div>
+          <span style={{ fontSize: "clamp(24px, 6.67cqw, 72px)", display: "block", marginBottom: "1.5%" }}>{reaction?.emoji ?? "😂"}</span>
+          <div style={{ fontSize: "clamp(16px, 3.89cqw, 42px)", fontWeight: 700, color: accent, lineHeight: 1.3 }}>{reaction?.text}</div>
         </div>
       </div>
     </MemeBase>
@@ -301,14 +301,14 @@ function NobodyMeme({ meme }: { meme: MemeSlideData }) {
 function StarterPackMeme({ meme }: { meme: MemeSlideData }) {
   return (
     <MemeBase tone={meme.tone}>
-      <div style={{ textAlign: "center", padding: "6.67% 7.4% 2.2%", fontSize: "clamp(14px, 3.33vw, 36px)", fontWeight: 700, color: TONE_ACCENTS[meme.tone] ?? "#facc15", letterSpacing: "-0.5px" }}>
+      <div style={{ textAlign: "center", padding: "6.67% 7.4% 2.2%", fontSize: "clamp(14px, 3.33cqw, 36px)", fontWeight: 700, color: TONE_ACCENTS[meme.tone] ?? "#facc15", letterSpacing: "-0.5px" }}>
         {meme.topicLine ?? "Starter Pack"}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: "2.2%", padding: "2.2% 7.4% 7.4%", height: "78%" }}>
         {meme.panels.map((p, i) => (
           <div key={i} style={{ background: "rgba(255,255,255,0.04)", borderRadius: "20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1.5%", padding: "2.2%" }}>
-            <span style={{ fontSize: "clamp(20px, 5.19vw, 56px)" }}>{p.emoji ?? "📦"}</span>
-            <span style={{ fontSize: "clamp(10px, 2.22vw, 24px)", fontWeight: 600, textAlign: "center", lineHeight: 1.3, opacity: 0.85 }}>{p.text}</span>
+            <span style={{ fontSize: "clamp(20px, 5.19cqw, 56px)" }}>{p.emoji ?? "📦"}</span>
+            <span style={{ fontSize: "clamp(10px, 2.22cqw, 24px)", fontWeight: 600, textAlign: "center", lineHeight: 1.3, opacity: 0.85 }}>{p.text}</span>
           </div>
         ))}
       </div>
@@ -322,12 +322,12 @@ function TwoButtonsMeme({ meme }: { meme: MemeSlideData }) {
   return (
     <MemeBase tone={meme.tone} topicLine={meme.topicLine}>
       <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "4.4%", padding: "9.3% 5.9% 7.4%" }}>
-        <div style={{ fontSize: "clamp(32px, 8.89vw, 96px)" }}>😰</div>
+        <div style={{ fontSize: "clamp(32px, 8.89cqw, 96px)" }}>😰</div>
         <div style={{ display: "flex", gap: "2.96%", width: "100%" }}>
           {[left, right].map((p, i) => (
             <div key={i} style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: `2px solid ${i === 1 ? accent : "rgba(255,255,255,0.1)"}`, borderRadius: "20px", padding: "4.4% 2.96%", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "1.5%" }}>
-              <span style={{ fontSize: "clamp(20px, 5.19vw, 56px)" }}>{p?.emoji ?? (i === 0 ? "🅰️" : "🅱️")}</span>
-              <span style={{ fontSize: "clamp(11px, 2.59vw, 28px)", fontWeight: 600, lineHeight: 1.3 }}>{p?.text}</span>
+              <span style={{ fontSize: "clamp(20px, 5.19cqw, 56px)" }}>{p?.emoji ?? (i === 0 ? "🅰️" : "🅱️")}</span>
+              <span style={{ fontSize: "clamp(11px, 2.59cqw, 28px)", fontWeight: 600, lineHeight: 1.3 }}>{p?.text}</span>
             </div>
           ))}
         </div>
@@ -342,10 +342,10 @@ function TellMeMeme({ meme }: { meme: MemeSlideData }) {
   return (
     <MemeBase tone={meme.tone} topicLine={meme.topicLine}>
       <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 7.4%", gap: "5.9%" }}>
-        <div style={{ fontSize: "clamp(12px, 2.78vw, 30px)", fontWeight: 500, opacity: 0.5, lineHeight: 1.4, fontStyle: "italic" }}>{setup?.emoji ?? "🤔"} {setup?.text}</div>
+        <div style={{ fontSize: "clamp(12px, 2.78cqw, 30px)", fontWeight: 500, opacity: 0.5, lineHeight: 1.4, fontStyle: "italic" }}>{setup?.emoji ?? "🤔"} {setup?.text}</div>
         <div>
-          <span style={{ fontSize: "clamp(22px, 5.93vw, 64px)", display: "block", marginBottom: "1.1%" }}>{punchline?.emoji ?? "💀"}</span>
-          <div style={{ fontSize: "clamp(16px, 4.07vw, 44px)", fontWeight: 700, color: accent, lineHeight: 1.25 }}>{punchline?.text}</div>
+          <span style={{ fontSize: "clamp(22px, 5.93cqw, 64px)", display: "block", marginBottom: "1.1%" }}>{punchline?.emoji ?? "💀"}</span>
+          <div style={{ fontSize: "clamp(16px, 4.07cqw, 44px)", fontWeight: 700, color: accent, lineHeight: 1.25 }}>{punchline?.text}</div>
         </div>
       </div>
     </MemeBase>
@@ -365,16 +365,16 @@ function DistractedMeme({ meme }: { meme: MemeSlideData }) {
       <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 6.67%", gap: "2.2%" }}>
         {panels.map((p, i) => (
           <div key={i}>
-            <div style={{ fontSize: "clamp(8px, 1.3vw, 14px)", textTransform: "uppercase", letterSpacing: "2px", opacity: 0.3, marginBottom: "0.4%" }}>{p.label}</div>
+            <div style={{ fontSize: "clamp(8px, 1.3cqw, 14px)", textTransform: "uppercase", letterSpacing: "2px", opacity: 0.3, marginBottom: "0.4%" }}>{p.label}</div>
             <div style={{
               display: "flex", alignItems: "center", gap: "2.59%", padding: "2.59% 2.96%", borderRadius: "16px",
               background: p.cls === "distract" ? "rgba(255,200,0,0.08)" : p.cls === "focus" ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.02)",
               border: p.cls === "distract" ? `2px solid ${accent}` : "none",
               opacity: p.cls === "focus" ? 0.4 : p.cls === "ignored" ? 0.3 : 1,
             }}>
-              <span style={{ fontSize: "clamp(20px, 5.19vw, 56px)", flexShrink: 0 }}>{p.data?.emoji ?? (i === 0 ? "📚" : i === 1 ? "👀" : "🫣")}</span>
+              <span style={{ fontSize: "clamp(20px, 5.19cqw, 56px)", flexShrink: 0 }}>{p.data?.emoji ?? (i === 0 ? "📚" : i === 1 ? "👀" : "🫣")}</span>
               <span style={{
-                fontSize: "clamp(12px, 2.78vw, 30px)", fontWeight: 600, lineHeight: 1.3,
+                fontSize: "clamp(12px, 2.78cqw, 30px)", fontWeight: 600, lineHeight: 1.3,
                 textDecoration: p.cls === "focus" ? "line-through" : "none",
                 color: p.cls === "distract" ? accent : "inherit",
               }}>{p.data?.text}</span>
@@ -394,9 +394,9 @@ function ComparisonMeme({ meme }: { meme: MemeSlideData }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "100%" }}>
         {[{ data: left, label: "Attente", emoji: "🤞", isRight: false }, { data: right, label: "Réalité", emoji: "😅", isRight: true }].map((col, i) => (
           <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "9.3% 4.4% 7.4%", gap: "2.2%", borderRight: i === 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-            <div style={{ fontSize: "clamp(9px, 1.48vw, 16px)", textTransform: "uppercase", letterSpacing: "3px", opacity: 0.35 }}>{col.label}</div>
-            <span style={{ fontSize: "clamp(28px, 7.4vw, 80px)" }}>{col.data?.emoji ?? col.emoji}</span>
-            <span style={{ fontSize: "clamp(11px, 2.59vw, 28px)", fontWeight: 600, textAlign: "center", lineHeight: 1.3, color: col.isRight ? accent : "inherit" }}>{col.data?.text}</span>
+            <div style={{ fontSize: "clamp(9px, 1.48cqw, 16px)", textTransform: "uppercase", letterSpacing: "3px", opacity: 0.35 }}>{col.label}</div>
+            <span style={{ fontSize: "clamp(28px, 7.4cqw, 80px)" }}>{col.data?.emoji ?? col.emoji}</span>
+            <span style={{ fontSize: "clamp(11px, 2.59cqw, 28px)", fontWeight: 600, textAlign: "center", lineHeight: 1.3, color: col.isRight ? accent : "inherit" }}>{col.data?.text}</span>
           </div>
         ))}
       </div>
@@ -410,9 +410,9 @@ function ReactionMeme({ meme }: { meme: MemeSlideData }) {
   return (
     <MemeBase tone={meme.tone} topicLine={meme.topicLine}>
       <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "9.3% 7.4% 7.4%", gap: "5.2%", textAlign: "center" }}>
-        <div style={{ fontSize: "clamp(11px, 2.59vw, 28px)", fontWeight: 500, lineHeight: 1.4, opacity: 0.6, maxWidth: "74%" }}>{headline?.text}</div>
-        <span style={{ fontSize: "clamp(40px, 11.1vw, 120px)" }}>{reaction?.emoji ?? "💀"}</span>
-        <div style={{ fontSize: "clamp(14px, 3.52vw, 38px)", fontWeight: 700, color: accent, lineHeight: 1.25, maxWidth: "65%" }}>{reaction?.text}</div>
+        <div style={{ fontSize: "clamp(11px, 2.59cqw, 28px)", fontWeight: 500, lineHeight: 1.4, opacity: 0.6, maxWidth: "74%" }}>{headline?.text}</div>
+        <span style={{ fontSize: "clamp(40px, 11.1cqw, 120px)" }}>{reaction?.emoji ?? "💀"}</span>
+        <div style={{ fontSize: "clamp(14px, 3.52cqw, 38px)", fontWeight: 700, color: accent, lineHeight: 1.25, maxWidth: "65%" }}>{reaction?.text}</div>
       </div>
     </MemeBase>
   );
@@ -470,7 +470,7 @@ export function IGPostPreview({ igType, slides, memeSlide, caption }: IGPostPrev
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full" style={{ containerType: "inline-size" }}>
       <div className="relative overflow-hidden rounded-lg">
         {isContentSlide ? (
           <SlidePreview slide={slides[current]!} igType={igType} slideIndex={current} totalSlides={totalSlides} />
