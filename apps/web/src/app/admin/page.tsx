@@ -125,6 +125,10 @@ export default function AdminPage() {
     setStatsError(null);
     try {
       const res = await fetch("/api/admin/stats");
+      if (res.status === 401) {
+        window.location.href = "/admin/login?from=/admin";
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to load stats");
       setStats(data as Stats);
@@ -142,6 +146,10 @@ export default function AdminPage() {
     setTickResult(null);
     try {
       const res = await fetch("/api/admin/tick", { method: "POST" });
+      if (res.status === 401) {
+        window.location.href = "/admin/login?from=/admin";
+        return;
+      }
       const data = (await res.json()) as TickResult;
       setTickResult(data);
       if (data.ok) setTimeout(() => void loadStats(), 500);

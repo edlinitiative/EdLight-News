@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Lock, Loader2, AlertCircle } from "lucide-react";
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") || "/admin";
 
@@ -32,8 +31,9 @@ export function LoginForm() {
         return;
       }
 
-      router.push(from);
-      router.refresh();
+      // Use window.location for a full navigation so the middleware
+      // sees the freshly-set cookie on the very first page request.
+      window.location.href = from;
     } catch {
       setError("Network error. Please try again.");
     } finally {

@@ -97,6 +97,10 @@ export default function AdminHistoireImagesPage() {
     try {
       const monthDay = toMonthDay(dateStr);
       const res = await fetch(`/api/admin/histoire/entries?monthDay=${monthDay}`);
+      if (res.status === 401) {
+        window.location.href = "/admin/login?from=/admin/histoire/images";
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to fetch entries");
       setEntries(data.entries ?? []);
@@ -354,6 +358,11 @@ function ImageUploadForm({ entryId, onSuccess }: ImageUploadFormProps) {
         method: "POST",
         body: formData,
       });
+
+      if (res.status === 401) {
+        window.location.href = "/admin/login?from=/admin/histoire/images";
+        return;
+      }
 
       const data = await res.json();
 
