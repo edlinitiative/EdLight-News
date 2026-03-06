@@ -145,9 +145,11 @@ function hasRealOpportunityFields(item: Item): boolean {
   const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
   const hasHowToApply = !!(opp.howToApply && opp.howToApply.trim().length > 5);
   const hasOfficialLink = !!(opp.officialLink && opp.officialLink.trim().length > 5);
-  // Need at least 2 of the 3 fields to be considered a real opportunity
+  // Need at least 2 of the 3 fields to be considered a real opportunity.
+  // A single field (e.g. just an officialLink) is often a news article
+  // that Gemini mis-classified.
   const count = [hasEligibility, hasHowToApply, hasOfficialLink].filter(Boolean).length;
-  return count >= 1;
+  return count >= 2;
 }
 
 // ── Main selection function ────────────────────────────────────────────────

@@ -4,7 +4,7 @@
 
 import type { Item } from "@edlight-news/types";
 
-const MAX_CAPTION_LENGTH = 1200;
+const MAX_CAPTION_LENGTH = 2200; // IG's actual limit
 const MIN_CAPTION_LENGTH = 600;
 
 /**
@@ -39,7 +39,24 @@ export function formatDeadline(isoDate: string): string {
  */
 export function truncateCaption(caption: string): string {
   if (caption.length <= MAX_CAPTION_LENGTH) return caption;
-  return caption.slice(0, MAX_CAPTION_LENGTH - 3) + "…";
+
+  // Try to cut at a sentence boundary (. ! ? followed by space/newline)
+  const cutZone = caption.slice(0, MAX_CAPTION_LENGTH - 3);
+  const lastSentenceEnd = Math.max(
+    cutZone.lastIndexOf(". "),
+    cutZone.lastIndexOf(".\n"),
+    cutZone.lastIndexOf("! "),
+    cutZone.lastIndexOf("!\n"),
+    cutZone.lastIndexOf("? "),
+    cutZone.lastIndexOf("?\n"),
+  );
+
+  // Use sentence boundary if it's in the latter half, otherwise word boundary
+  if (lastSentenceEnd > MAX_CAPTION_LENGTH * 0.5) {
+    return caption.slice(0, lastSentenceEnd + 1);
+  }
+  const lastSpace = cutZone.lastIndexOf(" ");
+  return (lastSpace > MAX_CAPTION_LENGTH * 0.5 ? caption.slice(0, lastSpace) : cutZone) + "…";
 }
 
 /**

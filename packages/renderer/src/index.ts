@@ -10,14 +10,14 @@ import { chromium, type Browser } from "playwright-core";
 
 // ── Category → gradient mapping ───────────────────────────────────────────
 const CATEGORY_GRADIENTS: Record<string, string> = {
-  scholarship: "linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)",
-  opportunity: "linear-gradient(135deg, #6d28d9 0%, #db2777 100%)",
-  news:        "linear-gradient(135deg, #0f766e 0%, #1e40af 100%)",
-  event:       "linear-gradient(135deg, #c2410c 0%, #b91c1c 100%)",
-  resource:    "linear-gradient(135deg, #15803d 0%, #0369a1 100%)",
-  local_news:  "linear-gradient(135deg, #b91c1c 0%, #1e3a8a 100%)",
+  scholarship: "linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)",
+  opportunity: "linear-gradient(135deg, #78350f 0%, #92400e 100%)",
+  news:        "linear-gradient(135deg, #0f766e 0%, #134e4a 100%)",
+  event:       "linear-gradient(135deg, #7c2d12 0%, #9a3412 100%)",
+  resource:    "linear-gradient(135deg, #14532d 0%, #0f766e 100%)",
+  local_news:  "linear-gradient(135deg, #7f1d1d 0%, #1e3a8a 100%)",
 };
-const DEFAULT_GRADIENT = "linear-gradient(135deg, #1e3a5f 0%, #2c1654 100%)";
+const DEFAULT_GRADIENT = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
 
 // ── Category labels (French) ──────────────────────────────────────────────
 const CATEGORY_LABELS: Record<string, string> = {
@@ -31,6 +31,11 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 // ── Shared browser instance (reused across calls within same process) ─────
 let _browser: Browser | null = null;
+
+/** Shared browser instance — exported so ig-carousel.ts can reuse it. */
+export async function getBrowserInstance(): Promise<Browser> {
+  return getBrowser();
+}
 
 async function getBrowser(): Promise<Browser> {
   if (_browser?.isConnected()) return _browser;

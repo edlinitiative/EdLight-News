@@ -14,7 +14,7 @@ import { buildMemeSlideHTML } from "./ig-meme.js";
 
 const IG_TYPE_ACCENTS: Record<string, string> = {
   scholarship: "#3b82f6",
-  opportunity: "#8b5cf6",
+  opportunity: "#f59e0b",
   news:        "#14b8a6",
   histoire:    "#d97706",
   utility:     "#10b981",
@@ -22,7 +22,7 @@ const IG_TYPE_ACCENTS: Record<string, string> = {
 
 const IG_TYPE_DARKS: Record<string, string> = {
   scholarship: "#060d1f",
-  opportunity: "#0b0814",
+  opportunity: "#0f0d08",
   news:        "#061014",
   histoire:    "#120b06",
   utility:     "#060f0b",
@@ -37,6 +37,8 @@ const IG_TYPE_LABELS: Record<string, string> = {
 };
 
 const FONT_STACK = "'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+const GOOGLE_FONTS_LINK = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">`;
 
 function escapeHtml(s: string): string {
   return s
@@ -78,6 +80,7 @@ function buildCoverSlideHTML(
 ): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -127,6 +130,7 @@ function buildContentSlideHTML(
 ): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -205,23 +209,27 @@ export async function generateCarouselAssets(
   // Total slides: content slides + optional meme slide
   const totalSlides = payload.slides.length + (payload.memeSlide ? 1 : 0);
 
-  // Try to render PNGs using the existing branded card pipeline
+  // Try to render PNGs using Chromium + our custom slide HTML templates
   try {
-    // Dynamic import to avoid hard dependency on playwright
-    const { renderBrandedCardPNG } = await import("./index.js");
+    const { getBrowserInstance } = await import("./index.js");
+    // Use our editorial slide templates (cover images, bullets, layout)
+    const browser = await getBrowserInstance();
 
     for (let i = 0; i < payload.slides.length; i++) {
       const slide = payload.slides[i]!;
-      // Use existing branded card renderer for a styled 1080×1080 image
-      const buffer = await renderBrandedCardPNG({
-        title: slide.heading,
-        category: queueItem.igType as any,
-        sourceName: slide.footer,
-        size: "square",
-      });
-      const pngPath = join(exportDir, `slide_${i + 1}.png`);
-      writeFileSync(pngPath, buffer);
-      slidePaths.push(pngPath);
+      const html = buildSlideHTML(slide, queueItem.igType, i, totalSlides);
+      const page = await browser.newPage({ viewport: { width: 1080, height: 1080 } });
+      try {
+        await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
+        // Wait for cover image to load (if present)
+        await page.evaluate("document.fonts.ready");
+        const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
+        const pngPath = join(exportDir, `slide_${i + 1}.png`);
+        writeFileSync(pngPath, Buffer.from(buffer));
+        slidePaths.push(pngPath);
+      } finally {
+        await page.close();
+      }
     }
 
     // Render meme slide as final carousel image (if present)
