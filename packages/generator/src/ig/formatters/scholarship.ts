@@ -22,7 +22,7 @@ export function buildScholarshipCarousel(item: Item): IGFormattedPayload {
   slides.push({
     heading: item.title.length > 80 ? item.title.slice(0, 77) + "…" : item.title,
     bullets: meta.length > 0 ? meta : ["Bourse disponible"],
-    backgroundImage: item.imageUrl ?? undefined,
+    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
   // Slide 2: Eligibility

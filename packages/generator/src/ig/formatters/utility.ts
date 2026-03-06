@@ -12,7 +12,7 @@ export function buildUtilityCarousel(item: Item): IGFormattedPayload {
   slides.push({
     heading: shortenText(item.title, 80),
     bullets: [shortenText(item.summary, 180)],
-    backgroundImage: item.imageUrl ?? undefined,
+    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
   // Slide 2: Practical info

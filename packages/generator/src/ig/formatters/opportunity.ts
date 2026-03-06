@@ -19,7 +19,7 @@ export function buildOpportunityCarousel(item: Item): IGFormattedPayload {
   slides.push({
     heading: shortenText(item.title, 80),
     bullets: meta.length > 0 ? meta : ["Opportunité disponible"],
-    backgroundImage: item.imageUrl ?? undefined,
+    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
   // Slide 2: Eligibility

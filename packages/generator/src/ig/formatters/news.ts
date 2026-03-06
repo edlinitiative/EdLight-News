@@ -68,7 +68,7 @@ export function buildNewsCarousel(item: Item): IGFormattedPayload {
     heading: shortenText(item.title, 80),
     bullets: [shortenText(item.summary, 180)],
     footer: geoLabel,
-    backgroundImage: item.imageUrl ?? undefined,
+    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
   // Slide 2: Key points — from extractedText with quality filtering
