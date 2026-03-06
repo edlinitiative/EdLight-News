@@ -178,14 +178,38 @@ export async function publishIgPost(
     const publishData = await igPost(`${baseUrl}/media_publish`, {
       creation_id: creationId,
     });
-    if (publishData.error) throw new Error(`IG API error: ${publishData.error.message}`);
 
-    console.log(`[publisher] IG post published: ${publishData.id}`);
-    return {
-      posted: true,
-      igPostId: publishData.id,
-      dryRun: false,
-    };
+    if (publishData.id) {
+      console.log(`[publisher] IG post published: ${publishData.id}`);
+      return {
+        posted: true,
+        igPostId: publishData.id,
+        dryRun: false,
+      };
+    }
+
+    // Instagram sometimes returns "Application request limit reached" but still
+    // publishes the post. Wait and check the media list before giving up.
+    if (publishData.error?.message?.includes("request limit")) {
+      console.warn(`[publisher] Rate-limit response — checking if post appeared anyway...`);
+      await new Promise((r) => setTimeout(r, 20_000));
+
+      const checkRes = await fetch(
+        `https://${apiHost}/v21.0/${creds.igUserId}/media?fields=id,timestamp&limit=1`,
+        { headers: { Authorization: authHeader } },
+      );
+      const checkData = (await checkRes.json()) as { data?: { id: string; timestamp: string }[] };
+      const newest = checkData.data?.[0];
+      if (newest) {
+        const age = Date.now() - new Date(newest.timestamp).getTime();
+        if (age < 120_000) {
+          console.log(`[publisher] Post appeared on IG despite rate-limit error: ${newest.id}`);
+          return { posted: true, igPostId: newest.id, dryRun: false };
+        }
+      }
+    }
+
+    throw new Error(`IG API error: ${publishData.error?.message ?? "unknown"}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[publisher] IG publish failed: ${msg}`);
