@@ -59,12 +59,20 @@ export default async function AdminHistoirePage() {
           <BookOpen className="h-6 w-6 text-blue-600" />
           Admin — Histoire & Fèt
         </h1>
-        <Link
-          href="/admin"
-          className="text-sm text-stone-500 hover:text-stone-700"
-        >
-          ← Retour admin
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/histoire/images"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            🖼️ Gérer les images
+          </Link>
+          <Link
+            href="/admin"
+            className="text-sm text-stone-500 hover:text-stone-700"
+          >
+            ← Retour admin
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

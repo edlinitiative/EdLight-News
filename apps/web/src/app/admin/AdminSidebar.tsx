@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   FileEdit,
   BookOpen,
+  ImagePlus,
   Instagram,
   Send,
 } from "lucide-react";
@@ -14,12 +15,16 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/drafts", label: "Drafts", Icon: FileEdit },
   { href: "/admin/histoire", label: "Histoire", Icon: BookOpen },
+  { href: "/admin/histoire/images", label: "Images", Icon: ImagePlus },
   { href: "/admin/ig-queue", label: "IG Queue", Icon: Instagram },
   { href: "/admin/ig-publish", label: "IG Publish", Icon: Send },
 ] as const;
 
 export function AdminSidebar() {
   const pathname = usePathname();
+
+  // Hide sidebar on the login page
+  if (pathname === "/admin/login") return null;
 
   return (
     <nav className="mb-6 flex items-center gap-1 overflow-x-auto border-b border-stone-200 pb-3 dark:border-stone-800">
