@@ -74,3 +74,16 @@ export function shortenText(text: string, max: number): string {
   const lastSpace = truncated.lastIndexOf(" ");
   return (lastSpace > max * 0.5 ? truncated.slice(0, lastSpace) : truncated) + "…";
 }
+
+/**
+ * Convert a raw URL into human-friendly text for IG slides.
+ * e.g. "https://www.campusfrance.org/apply" → "Postulez sur campusfrance.org"
+ */
+export function humanizeUrl(url: string): string {
+  try {
+    const domain = new URL(url).hostname.replace(/^www\./, "");
+    return `Postulez sur ${domain}`;
+  } catch {
+    return "Voir le lien dans la bio";
+  }
+}

@@ -88,6 +88,84 @@ const BOT_PROTECTION_PATTERNS: (string | RegExp)[] = [
   /checking (if the site|your) (connection|browser)/i,
 ];
 
+// ── Boilerplate patterns to strip from extracted article text ──────────────
+// These fragments come from form widgets, cookie banners, comment sections,
+// newsletter prompts, ad-blocker warnings, and other non-content elements
+// that survive DOM-level removal because they live inside the <article> body.
+
+const BOILERPLATE_PATTERNS: (string | RegExp)[] = [
+  // Email / newsletter subscription prompts (Juno7, WordPress, etc.)
+  "Prévenez-moi de tous les nouveaux commentaires par e-mail",
+  "Prévenez-moi de tous les nouveaux articles par e-mail",
+  "Avertissez-moi par e-mail lorsque le commentaire est approuvé",
+  "Enregistrer mon nom, mon e-mail et mon site dans le navigateur",
+  "Adresse e-mail *",
+  "Votre adresse e-mail ne sera pas publiée",
+  "Votre adresse de messagerie ne sera pas publiée",
+  "Les champs obligatoires sont indiqués avec *",
+  "Laisser un commentaire",
+  "Annuler la réponse",
+  // Cookie / consent banners
+  "Accepter Gérer mes choix",
+  "Accepter tout",
+  "Gérer mes choix",
+  "Continuer sans accepter",
+  "En poursuivant votre navigation",
+  "nous utilisons des cookies",
+  "paramétrer les cookies",
+  // Ad-blocker / embed warnings
+  "Une extension de votre navigateur semble bloquer le chargement du lecteur vidéo",
+  "Pour pouvoir regarder ce contenu, vous devez la désactiver ou la désinstaller",
+  "Pour afficher ce contenu YouTube, il est nécessaire d'autoriser les cookies",
+  "Pour afficher ce contenu Twitter",
+  "Pour afficher ce contenu Truth Social",
+  "Pour afficher ce contenu Facebook",
+  "mesure d'audience et de publicité",
+  // Article metadata fragments
+  "Mots-clés associés à l'article",
+  "Articles similaires",
+  "Partager cet article",
+  "Partager sur Facebook",
+  "Partager sur Twitter",
+  "Partager sur WhatsApp",
+  "Envoyer par e-mail",
+  "Copier le lien",
+  // Related content prompts
+  /À lire aussi\s*[.:…]/i,
+  /À voir aussi\s*[.:…]/i,
+  /Lire aussi\s*[.:…]/i,
+  /Sur le même sujet\s*[.:…]/i,
+  // Photo credits that appear mid-text (keep them at start/end gracefully)
+  /©\s*[A-Z][^.]{5,60},\s*AFP/,
+  /©\s*[A-Z][^.]{5,60},\s*Reuters/,
+  /©\s*[A-Z][^.]{5,60},\s*Getty/,
+  // Timestamps from comments leaked into article body
+  /\d+\s*heures?\s*ago/,
+  /\d+\s*jours?\s*ago/,
+  /\d+\s*minutes?\s*ago/,
+  // Print / share toolbars
+  "Imprimer cet article",
+  "Télécharger en PDF",
+];
+
+/**
+ * Strip known boilerplate fragments from extracted text.
+ * Applied after whitespace normalization, before truncation.
+ */
+export function stripBoilerplate(text: string): string {
+  let cleaned = text;
+  for (const pattern of BOILERPLATE_PATTERNS) {
+    if (typeof pattern === "string") {
+      // Remove the string and any surrounding whitespace
+      cleaned = cleaned.split(pattern).join(" ");
+    } else {
+      cleaned = cleaned.replace(new RegExp(pattern, "gi"), " ");
+    }
+  }
+  // Collapse any resulting multi-spaces
+  return cleaned.replace(/\s{2,}/g, " ").trim();
+}
+
 /**
  * Returns true when the extracted text looks like a CAPTCHA / anti-bot
  * challenge page rather than genuine article content.
@@ -531,6 +609,10 @@ export async function extractArticleContent(
 
   // Clean up whitespace
   text = text.replace(/\s{2,}/g, " ").trim();
+
+  // Strip common web-page boilerplate that leaks through DOM extraction
+  text = stripBoilerplate(text);
+
   if (text.length > 10_000) {
     text = text.slice(0, 10_000) + "…";
   }

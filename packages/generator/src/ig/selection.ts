@@ -112,11 +112,16 @@ function mapCategoryToIGType(item: Item): IGPostType | null {
   switch (cat) {
     case "scholarship":
     case "bourses":
+      // Validate: a real scholarship should have meaningful opportunity fields.
+      // If Gemini mis-classified a news article as a scholarship but it lacks
+      // eligibility, howToApply, or officialLink, downgrade to "news".
+      if (!hasRealOpportunityFields(item)) return "news";
       return "scholarship";
     case "opportunity":
     case "concours":
     case "stages":
     case "programmes":
+      if (!hasRealOpportunityFields(item)) return "news";
       return "opportunity";
     case "news":
     case "local_news":
@@ -127,6 +132,22 @@ function mapCategoryToIGType(item: Item): IGPostType | null {
     default:
       return null;
   }
+}
+
+/**
+ * A real opportunity/scholarship should have at least some structured
+ * opportunity data — eligibility, howToApply, or officialLink.
+ * Items that were mis-classified by Gemini will lack these fields.
+ */
+function hasRealOpportunityFields(item: Item): boolean {
+  const opp = item.opportunity;
+  if (!opp) return false;
+  const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
+  const hasHowToApply = !!(opp.howToApply && opp.howToApply.trim().length > 5);
+  const hasOfficialLink = !!(opp.officialLink && opp.officialLink.trim().length > 5);
+  // Need at least 2 of the 3 fields to be considered a real opportunity
+  const count = [hasEligibility, hasHowToApply, hasOfficialLink].filter(Boolean).length;
+  return count >= 1;
 }
 
 // ── Main selection function ────────────────────────────────────────────────

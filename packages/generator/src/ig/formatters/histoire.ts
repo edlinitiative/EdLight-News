@@ -6,6 +6,7 @@
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { truncateCaption, buildCTA, buildSourceLine, shortenText } from "./helpers.js";
+import { isJunkSentence } from "./news.js";
 
 export function buildHistoireCarousel(item: Item): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -17,13 +18,14 @@ export function buildHistoireCarousel(item: Item): IGFormattedPayload {
     backgroundImage: item.imageUrl ?? undefined,
   });
 
-  // Slide 2: Key facts
+  // Slide 2: Key facts (with junk filtering)
   if (item.extractedText) {
     const facts = item.extractedText
       .split(/[.!?]\s+/)
-      .filter((s) => s.trim().length > 15 && s.trim().length < 120)
-      .slice(0, 4)
-      .map((s) => s.trim());
+      .map((s) => s.trim())
+      .filter((s) => s.length > 15 && s.length < 120)
+      .filter((s) => !isJunkSentence(s))
+      .slice(0, 4);
 
     if (facts.length >= 1) {
       slides.push({ heading: "Le saviez-vous", bullets: facts });

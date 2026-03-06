@@ -6,7 +6,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine } from "./helpers.js";
+import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl } from "./helpers.js";
 
 export function buildScholarshipCarousel(item: Item): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -36,7 +36,7 @@ export function buildScholarshipCarousel(item: Item): IGFormattedPayload {
   // Slide 3: How to apply
   const applyBullets: string[] = [];
   if (item.opportunity?.howToApply) applyBullets.push(item.opportunity.howToApply);
-  if (item.opportunity?.officialLink) applyBullets.push(item.opportunity.officialLink);
+  if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
   if (applyBullets.length > 0) {
     slides.push({
       heading: "Comment postuler",
