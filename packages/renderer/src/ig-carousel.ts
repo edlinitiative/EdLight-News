@@ -89,16 +89,16 @@ body {
 .overlay {
   position:absolute; inset:0;
   background: linear-gradient(180deg,
-    rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.30) 35%, rgba(0,0,0,0.78) 100%);
+    rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.45) 30%, rgba(0,0,0,0.82) 100%);
 }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .lbl { font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; opacity:0.85; }
 .lbl::before { content:''; display:inline-block; width:8px; height:8px; background:${accent}; border-radius:50%; margin-right:10px; vertical-align:middle; }
 .pg { font-size:14px; font-weight:500; opacity:0.4; letter-spacing:1px; }
-.h { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; text-shadow:0 2px 24px rgba(0,0,0,0.5); margin-bottom:20px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+.h { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; text-shadow:0 2px 30px rgba(0,0,0,0.7), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:20px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
 .m ul { list-style:none; }
-.m li { font-size:21px; font-weight:400; line-height:1.55; opacity:0.7; margin-bottom:4px; text-shadow:0 1px 10px rgba(0,0,0,0.4); }
+.m li { font-size:21px; font-weight:400; line-height:1.55; opacity:0.85; margin-bottom:4px; text-shadow:0 1px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); }
 .bm { margin-top:32px; font-size:16px; font-weight:700; opacity:0.35; letter-spacing:2px; }
 .bm b { color:${accent}; font-weight:700; }
 </style></head>
