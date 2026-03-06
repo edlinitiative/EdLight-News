@@ -46,6 +46,65 @@ const NEWS_HAITI_MARKERS = [
   "télécommunication", "natcom", "digicel",
 ];
 
+// ── Non-Haiti eligibility markers (Africa-only, etc.) ──────────────────────
+// If eligibility text contains these, the scholarship is NOT for Haitian students
+const NON_HAITI_ELIGIBILITY_BLOCKERS = [
+  "african", "africain", "afrique", "africa",
+  "nigerian", "kenyan", "south african", "ghanaian",
+  "sub-saharan", "subsaharan", "sub saharan",
+  "citizens of african", "pays africains",
+  "ressortissants africains", "africains uniquement",
+  "african union", "union africaine",
+  "afdb", "african development",
+];
+
+// Countries whose residents are the target audience for EdLight
+const HAITI_RELEVANT_COUNTRIES = [
+  "haiti", "haïti", "ayiti",
+  "all countries", "tous les pays",
+  "worldwide", "international", "global",
+  "caribbean", "caraïbes", "karayib",
+  "developing countries", "pays en développement",
+  "latin america", "amérique latine",
+  "ht",  // ISO code
+];
+
+/**
+ * Returns false when a scholarship/opportunity is clearly NOT relevant
+ * to Haitian students (e.g. African-only, Nigerian-only, etc.).
+ */
+function isHaitiRelevantOpportunity(item: Item): { relevant: boolean; reason?: string } {
+  const opp = item.opportunity;
+  const eligText = (opp?.eligibility ?? []).join(" ").toLowerCase();
+  const titleSummary = `${item.title} ${item.summary}`.toLowerCase();
+  const combined = `${eligText} ${titleSummary}`;
+  const norm = normalizeText(combined);
+
+  // 1. Check for explicit Africa-only blockers
+  for (const blocker of NON_HAITI_ELIGIBILITY_BLOCKERS) {
+    if (norm.includes(normalizeText(blocker))) {
+      // Make sure it's not also mentioning Haiti/Caribbean/global
+      const hasHaitiMention = HAITI_RELEVANT_COUNTRIES.some(c => norm.includes(normalizeText(c)));
+      if (!hasHaitiMention) {
+        return { relevant: false, reason: `Eligibility contains "${blocker}" with no Haiti/global mention` };
+      }
+    }
+  }
+
+  // 2. Check geoTag — if explicitly not HT/Diaspora/Global and no Haiti mention
+  if (item.geoTag && item.geoTag !== "HT" && item.geoTag !== "Diaspora" && item.geoTag !== "Global") {
+    return { relevant: false, reason: `geoTag=${item.geoTag} — not Haiti-relevant` };
+  }
+
+  // 3. Low audience fit + no Haiti keywords → skip
+  const audienceFit = item.audienceFitScore ?? 0.5;
+  if (audienceFit < 0.35) {
+    return { relevant: false, reason: `Very low audienceFitScore (${audienceFit.toFixed(2)})` };
+  }
+
+  return { relevant: true };
+}
+
 // ── Official / strong source domains ───────────────────────────────────────
 const OFFICIAL_DOMAINS = [
   "menfp.gouv.ht", "gouv.ht", "un.org", "unicef.org", "worldbank.org",
@@ -270,6 +329,20 @@ export function decideIG(item: Item): IGDecision {
       igPriorityScore: 0,
       reasons: ["Scholarship/opportunity missing official link"],
     };
+  }
+
+  // Scholarship/opportunity: Haiti-relevance gate
+  // Block Africa-only, Nigeria-only, etc. that aren't relevant to Haitian students
+  if (igType === "scholarship" || igType === "opportunity") {
+    const relevance = isHaitiRelevantOpportunity(item);
+    if (!relevance.relevant) {
+      return {
+        igEligible: false,
+        igType,
+        igPriorityScore: 0,
+        reasons: [`Not Haiti-relevant: ${relevance.reason}`],
+      };
+    }
   }
 
   // News: conditional eligibility (tighter gate for IG than web)

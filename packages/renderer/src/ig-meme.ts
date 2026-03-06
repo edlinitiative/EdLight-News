@@ -1,7 +1,7 @@
 /**
  * @edlight-news/renderer – Meme slide HTML templates
  *
- * Litquidity-style meme layouts rendered as 1080×1080 HTML for Playwright.
+ * Litquidity-style meme layouts rendered as 1080×1350 (4:5 portrait) HTML for Playwright.
  * Each template maps to a distinct visual layout:
  * - drake:           Two-panel reject/prefer
  * - expanding-brain: 4-tier escalation
@@ -48,7 +48,7 @@ function baseCSS(accent: string, bg: string): string {
   return `
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-  width:1080px; height:1080px;
+  width:1080px; height:1350px;
   font-family: ${FONT_STACK};
   background: ${bg};
   color: #fff;
@@ -343,7 +343,7 @@ const RENDERERS: Record<IGMemeTemplate, (meme: IGMemeSlide, accent: string, bg: 
 };
 
 /**
- * Build the HTML for a meme slide (1080×1080).
+ * Build the HTML for a meme slide (1080×1350, 4:5 portrait).
  * Returns a complete HTML document ready for Playwright screenshot.
  */
 export function buildMemeSlideHTML(meme: IGMemeSlide): string {

@@ -72,16 +72,17 @@ async function getBrowser(): Promise<Browser> {
 }
 
 // ── Branded card sizes ────────────────────────────────────────────────────
-export type BrandedCardSize = "landscape" | "square";
+export type BrandedCardSize = "landscape" | "square" | "portrait";
 
 const SIZE_DIMS: Record<BrandedCardSize, { width: number; height: number }> = {
   landscape: { width: 1200, height: 630 },
   square: { width: 1080, height: 1080 },
+  portrait: { width: 1080, height: 1350 },
 };
 
 /**
  * Build the branded card HTML string.
- * Supports both 1200×630 (landscape / social share) and 1080×1080 (Instagram).
+ * Supports 1200×630 (landscape), 1080×1080 (square), and 1080×1350 (portrait / IG 4:5).
  */
 function buildBrandedCardHTML(opts: {
   title: string;

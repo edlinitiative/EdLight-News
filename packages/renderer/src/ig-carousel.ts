@@ -58,7 +58,7 @@ function escapeHtml(s: string): string {
 // ── Public entry point ─────────────────────────────────────────────────────
 
 /**
- * Build HTML for a single IG carousel slide (1080×1080).
+ * Build HTML for a single IG carousel slide (1080×1350, 4:5 portrait).
  *
  * Bloomberg/Litquidity style:
  * - Every slide: full-bleed image + heavy overlay + one bold point
@@ -107,7 +107,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-  width:1080px; height:1080px;
+  width:1080px; height:1350px;
   font-family: ${FONT_STACK};
   background: ${dark} url('${slide.backgroundImage}') center/cover no-repeat;
   color:#fff; overflow:hidden; position:relative;
@@ -116,15 +116,15 @@ body {
   position:absolute; inset:0;
   background: linear-gradient(180deg,
     rgba(0,0,0,0.50) 0%,
-    rgba(0,0,0,0.40) 25%,
-    rgba(0,0,0,0.55) 60%,
+    rgba(0,0,0,0.35) 25%,
+    rgba(0,0,0,0.50) 55%,
     rgba(0,0,0,0.92) 100%);
 }
 .c {
   position:relative; z-index:1;
   height:100%; display:flex; flex-direction:column;
   justify-content:space-between;
-  padding:${isFirstSlide ? "64px 72px 60px" : "64px 72px 56px"};
+  padding:${isFirstSlide ? "72px 72px 64px" : "72px 72px 60px"};
 }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .pill {
@@ -136,25 +136,25 @@ body {
 .pg { font-size:15px; font-weight:600; opacity:0.5; letter-spacing:1px; }
 .main { margin-top:auto; }
 .h {
-  font-size:${isFirstSlide ? "56px" : "48px"};
-  font-weight:800; line-height:1.08; letter-spacing:-0.8px;
+  font-size:${isFirstSlide ? "60px" : "52px"};
+  font-weight:800; line-height:1.10; letter-spacing:-0.8px;
   text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5);
-  margin-bottom:${isFirstSlide ? "20px" : "24px"};
+  margin-bottom:${isFirstSlide ? "24px" : "28px"};
   overflow:hidden; display:-webkit-box;
-  -webkit-line-clamp:${isFirstSlide ? "4" : "3"};
+  -webkit-line-clamp:${isFirstSlide ? "5" : "4"};
   -webkit-box-orient:vertical;
 }
 .bt {
-  font-size:${isFirstSlide ? "26px" : "32px"};
+  font-size:${isFirstSlide ? "28px" : "34px"};
   font-weight:${isFirstSlide ? "400" : "500"};
   line-height:1.45;
   opacity:${isFirstSlide ? "0.80" : "0.90"};
   text-shadow:0 1px 16px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.4);
   margin-bottom:8px;
-  max-height:${isFirstSlide ? "180px" : "260px"};
+  max-height:${isFirstSlide ? "220px" : "320px"};
   overflow:hidden;
   display:-webkit-box;
-  -webkit-line-clamp:${isFirstSlide ? "4" : "5"};
+  -webkit-line-clamp:${isFirstSlide ? "5" : "6"};
   -webkit-box-orient:vertical;
 }
 .bottom {
@@ -202,7 +202,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-  width:1080px; height:1080px;
+  width:1080px; height:1350px;
   font-family: ${FONT_STACK};
   background: ${dark};
   color:#fff; overflow:hidden; position:relative;
@@ -218,7 +218,7 @@ body {
   position:relative; z-index:1;
   height:100%; display:flex; flex-direction:column;
   justify-content:space-between;
-  padding:64px 72px 56px 80px;
+  padding:72px 72px 60px 80px;
 }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .pill {
@@ -230,19 +230,19 @@ body {
 .pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
 .main {
   flex:1; display:flex; flex-direction:column;
-  justify-content:center; padding:20px 0;
+  justify-content:center; padding:40px 0;
 }
 .h {
-  font-size:46px; font-weight:800; line-height:1.10; letter-spacing:-0.5px;
-  margin-bottom:28px;
+  font-size:50px; font-weight:800; line-height:1.12; letter-spacing:-0.5px;
+  margin-bottom:32px;
   overflow:hidden; display:-webkit-box;
-  -webkit-line-clamp:3; -webkit-box-orient:vertical;
+  -webkit-line-clamp:4; -webkit-box-orient:vertical;
 }
 .bt {
-  font-size:32px; font-weight:400; line-height:1.45; opacity:0.85;
+  font-size:34px; font-weight:400; line-height:1.45; opacity:0.85;
   margin-bottom:12px;
-  max-height:250px; overflow:hidden;
-  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
+  max-height:320px; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical;
 }
 .bottom {
   display:flex; justify-content:space-between; align-items:flex-end;
@@ -292,7 +292,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-  width:1080px; height:1080px;
+  width:1080px; height:1350px;
   font-family:${FONT_STACK};
   ${bgCss}
   color:#fff; overflow:hidden; position:relative;
@@ -320,10 +320,10 @@ ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background
 .pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
 .rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; }
 .rate-label { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
-.rate-value { font-size:120px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
-.rate-unit { font-size:26px; font-weight:500; opacity:0.40; margin-top:8px; letter-spacing:1.5px; }
-.meta { display:flex; justify-content:center; gap:40px; margin-top:28px; }
-.meta span { font-size:20px; opacity:0.55; font-weight:500; }
+.rate-value { font-size:140px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
+.rate-unit { font-size:30px; font-weight:500; opacity:0.40; margin-top:12px; letter-spacing:1.5px; }
+.meta { display:flex; justify-content:center; gap:40px; margin-top:36px; }
+.meta span { font-size:22px; opacity:0.55; font-weight:500; }
 .ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; }
 .src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
 .bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
@@ -368,7 +368,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-  width:1080px; height:1080px;
+  width:1080px; height:1350px;
   font-family:${FONT_STACK};
   background:linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%);
   color:#fff; overflow:hidden; position:relative;
@@ -389,11 +389,11 @@ body {
   letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
 }
 .pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
-.h { font-size:48px; font-weight:800; line-height:1.12; margin-bottom:40px; letter-spacing:-0.5px; }
+.h { font-size:52px; font-weight:800; line-height:1.12; margin-bottom:48px; letter-spacing:-0.5px; }
 .rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
-.row { padding:28px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
+.row { padding:34px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
 .row:last-child { border-bottom:none; }
-.row-text { font-size:32px; line-height:1.45; opacity:0.88; font-weight:500; }
+.row-text { font-size:34px; line-height:1.45; opacity:0.88; font-weight:500; }
 .ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; }
 .src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
 .bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
@@ -450,7 +450,7 @@ export async function generateCarouselAssets(
     for (let i = 0; i < payload.slides.length; i++) {
       const slide = payload.slides[i]!;
       const html = buildSlideHTML(slide, queueItem.igType, i, totalSlides);
-      const page = await browser.newPage({ viewport: { width: 1080, height: 1080 } });
+      const page = await browser.newPage({ viewport: { width: 1080, height: 1350 } });
       try {
         await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
         await page.evaluate("document.fonts.ready");
@@ -524,7 +524,7 @@ async function renderMemeSlideWithChromium(html: string): Promise<Buffer> {
     });
   }
 
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1080 } });
+  const page = await browser.newPage({ viewport: { width: 1080, height: 1350 } });
   try {
     await page.setContent(html, { waitUntil: "load", timeout: 60_000 });
     const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
