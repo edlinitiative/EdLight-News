@@ -65,20 +65,24 @@ async function main() {
       // Mark as rendering
       await igQueueRepo.updateStatus(item.id, "rendering");
 
-      // If the cover slide has no background image, try generating one with Gemini
-      if (item.payload.slides[0] && !item.payload.slides[0].backgroundImage) {
-        console.log("  No cover image — trying Gemini image generation...");
+      // Bloomberg style: every slide needs a background image.
+      // Generate one via Gemini if any slides are missing images.
+      const slidesNeedingImage = item.payload.slides.filter((s) => !s.backgroundImage);
+      if (slidesNeedingImage.length > 0) {
+        console.log(`  ${slidesNeedingImage.length}/${item.payload.slides.length} slides need images — trying Gemini...`);
         try {
           const sourceItem = await itemsRepo.getItem(item.sourceContentId);
           if (sourceItem) {
             const generated = await generateContextualImage(sourceItem);
             if (generated) {
-              item.payload.slides[0].backgroundImage = generated.url;
-              console.log(`  ✓ Generated cover image`);
-              // Persist the updated payload
+              // Apply the same image to all slides that need one
+              for (const slide of slidesNeedingImage) {
+                slide.backgroundImage = generated.url;
+              }
+              console.log(`  ✓ Applied generated image to ${slidesNeedingImage.length} slides`);
               await igQueueRepo.setPayload(item.id, item.payload);
             } else {
-              console.log("  ⚠ Gemini image gen returned null — using branded template");
+              console.log("  ⚠ Gemini image gen returned null — dark template fallback");
             }
           }
         } catch (imgErr) {

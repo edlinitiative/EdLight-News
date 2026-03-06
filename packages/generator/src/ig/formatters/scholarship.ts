@@ -1,58 +1,84 @@
 /**
- * IG Formatter – Scholarship carousel
+ * IG Formatter – Scholarship carousel (Bloomberg/Litquidity style)
  *
- * Builds structured slides + caption from normalized Item fields.
- * Never invents facts — only uses existing content fields.
+ * Each slide = one story beat. Self-contained swipe-through.
+ * Slide 1: Hook — scholarship name + coverage
+ * Slide 2: Eligibility (one bold statement)
+ * Slide 3: Deadline + how to apply
+ * Slide 4: Source / CTA
+ *
+ * Every slide carries backgroundImage for full-bleed rendering.
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, type BilingualText } from "./helpers.js";
+import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, shortenText, type BilingualText } from "./helpers.js";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
   const deadlineStr = item.deadline ?? item.opportunity?.deadline;
-
   const title = bi?.frTitle ?? item.title;
   const summary = bi?.frSummary ?? item.summary;
+  const imageUrl = item.imageUrl ?? undefined;
 
-  // Slide 1: Cover
-  const meta: string[] = [];
-  if (item.opportunity?.coverage) meta.push(item.opportunity.coverage);
-  if (deadlineStr) meta.push(`Date limite: ${formatDeadline(deadlineStr)}`);
+  // ── Slide 1: Hero cover ──
+  const coverSub: string[] = [];
+  if (item.opportunity?.coverage) coverSub.push(item.opportunity.coverage);
+  if (deadlineStr) coverSub.push(`Date limite: ${formatDeadline(deadlineStr)}`);
   if (item.geoTag) {
-    meta.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
+    coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
-    heading: title.length > 80 ? title.slice(0, 77) + "…" : title,
-    bullets: meta.length > 0 ? meta : ["Bourse disponible"],
-    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
+    heading: shortenText(title, 90),
+    bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [shortenText(summary, 180)],
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // Slide 2: Eligibility
+  // ── Slide 2: Eligibility (single bold statement per slide) ──
   if (item.opportunity?.eligibility?.length) {
-    slides.push({
-      heading: "Conditions d'éligibilité",
-      bullets: item.opportunity.eligibility.slice(0, 4),
-    });
+    const elig = item.opportunity.eligibility;
+    // Combine into one concise statement for each slide
+    if (elig.length <= 2) {
+      slides.push({
+        heading: "Qui peut postuler ?",
+        bullets: [elig.join(". ")],
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+    } else {
+      // Split across 2 slides if many criteria
+      slides.push({
+        heading: "Qui peut postuler ?",
+        bullets: [elig.slice(0, 2).join(". ")],
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+      slides.push({
+        heading: "Autres critères",
+        bullets: [elig.slice(2, 4).join(". ")],
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+    }
   }
 
-  // Slide 3: How to apply
-  const applyBullets: string[] = [];
-  if (item.opportunity?.howToApply) applyBullets.push(item.opportunity.howToApply);
-  if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
-  if (applyBullets.length > 0) {
+  // ── Slide 3: Deadline + How to apply ──
+  const applyParts: string[] = [];
+  if (deadlineStr) applyParts.push(`Date limite: ${formatDeadline(deadlineStr)}`);
+  if (item.opportunity?.howToApply) applyParts.push(item.opportunity.howToApply);
+  if (item.opportunity?.officialLink) applyParts.push(humanizeUrl(item.opportunity.officialLink));
+
+  if (applyParts.length > 0) {
     slides.push({
       heading: "Comment postuler",
-      bullets: applyBullets,
+      bullets: [applyParts.join("  ·  ")],
       footer: buildSourceLine(item),
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
 
+  // Ensure last slide has source
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
     slides[slides.length - 1]!.footer = buildSourceLine(item);
   }
 
-  // Caption — bilingual
+  // ── Caption ──
   const parts: string[] = [title, "", summary];
   if (bi?.htSummary) parts.push("", `🇭🇹 ${bi.htSummary}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);

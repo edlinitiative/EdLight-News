@@ -1,8 +1,12 @@
 /**
  * @edlight-news/renderer – IG Carousel asset generation
  *
- * Generates carousel slide images or dry-run JSON+HTML exports.
- * Reuses the existing branded card pipeline when Chromium is available.
+ * Bloomberg Business / Litquidity-inspired design:
+ *   • Every slide has a full-bleed background image + heavy overlay
+ *   • One key point per slide — large bold text that tells the story
+ *   • Category pill badge top-left, page counter top-right
+ *   • Self-contained storytelling: swipe through = read the whole story
+ *   • Taux du jour uses a dedicated financial terminal template
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -10,14 +14,14 @@ import { join } from "node:path";
 import type { IGSlide, IGFormattedPayload, IGQueueItem, IGMemeSlide } from "@edlight-news/types";
 import { buildMemeSlideHTML } from "./ig-meme.js";
 
-// ── Premium design system ─────────────────────────────────────────────────
+// ── Design tokens ──────────────────────────────────────────────────────────
 
 const IG_TYPE_ACCENTS: Record<string, string> = {
-  scholarship: "#3b82f6",
-  opportunity: "#f59e0b",
-  news:        "#14b8a6",
-  histoire:    "#d97706",
-  utility:     "#10b981",
+  scholarship: "#60a5fa",
+  opportunity: "#fbbf24",
+  news:        "#2dd4bf",
+  histoire:    "#f59e0b",
+  utility:     "#34d399",
   taux:        "#eab308",
 };
 
@@ -51,11 +55,14 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+// ── Public entry point ─────────────────────────────────────────────────────
+
 /**
  * Build HTML for a single IG carousel slide (1080×1080).
  *
- * - Cover slides (with backgroundImage): full-bleed editorial photo layout
- * - Content slides: dark background with accent bar
+ * Bloomberg/Litquidity style:
+ * - Every slide: full-bleed image + heavy overlay + one bold point
+ * - Taux slides: dedicated financial terminal template
  */
 export function buildSlideHTML(
   slide: IGSlide,
@@ -63,13 +70,9 @@ export function buildSlideHTML(
   slideIndex: number,
   totalSlides: number,
 ): string {
-  const accent = IG_TYPE_ACCENTS[igType] ?? "#3b82f6";
+  const accent = IG_TYPE_ACCENTS[igType] ?? "#60a5fa";
   const dark = IG_TYPE_DARKS[igType] ?? "#060d1f";
   const label = IG_TYPE_LABELS[igType] ?? "";
-  const hasImage = !!slide.backgroundImage;
-  const bulletsHtml = slide.bullets
-    .map((b) => `<li>${escapeHtml(b)}</li>`)
-    .join("\n");
 
   // Taux slides use dedicated financial-styled templates
   if (igType === "taux") {
@@ -78,16 +81,26 @@ export function buildSlideHTML(
       : buildTauxDetailHTML(slide, accent, slideIndex, totalSlides);
   }
 
-  if (hasImage) return buildCoverSlideHTML(slide, label, accent, dark, bulletsHtml, slideIndex, totalSlides);
-  return buildContentSlideHTML(slide, label, accent, dark, bulletsHtml, slideIndex, totalSlides);
+  // Bloomberg style: every slide is a story beat with image + overlay
+  if (slide.backgroundImage) {
+    return buildStoryBeatHTML(slide, label, accent, dark, slideIndex, totalSlides);
+  }
+
+  // Fallback for slides without an image: dark editorial card
+  return buildDarkBeatHTML(slide, label, accent, dark, slideIndex, totalSlides);
 }
 
-/* ── Cover slide: full-bleed image, bottom-weighted text ───────────────── */
+// ── Story-beat slide: full-bleed image + overlay + one bold point ──────────
 
-function buildCoverSlideHTML(
+function buildStoryBeatHTML(
   slide: IGSlide, label: string, accent: string, dark: string,
-  bulletsHtml: string, slideIndex: number, totalSlides: number,
+  slideIndex: number, totalSlides: number,
 ): string {
+  const isFirstSlide = slideIndex === 0;
+  const bodyText = slide.bullets
+    .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
+    .join("\n    ");
+
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
@@ -102,47 +115,86 @@ body {
 .overlay {
   position:absolute; inset:0;
   background: linear-gradient(180deg,
-    rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.60) 30%, rgba(0,0,0,0.88) 100%);
+    rgba(0,0,0,0.50) 0%,
+    rgba(0,0,0,0.40) 25%,
+    rgba(0,0,0,0.55) 60%,
+    rgba(0,0,0,0.92) 100%);
 }
-.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
+.c {
+  position:relative; z-index:1;
+  height:100%; display:flex; flex-direction:column;
+  justify-content:space-between;
+  padding:${isFirstSlide ? "64px 72px 60px" : "64px 72px 56px"};
+}
 .top { display:flex; justify-content:space-between; align-items:center; }
-.lbl { font-size:15px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; opacity:0.85; }
-.lbl::before { content:''; display:inline-block; width:8px; height:8px; background:${accent}; border-radius:50%; margin-right:10px; vertical-align:middle; }
-.pg { font-size:14px; font-weight:500; opacity:0.4; letter-spacing:1px; }
-.h { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; text-shadow:0 2px 30px rgba(0,0,0,0.7), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:20px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
-.m ul { list-style:none; }
-.m li { font-size:24px; font-weight:400; line-height:1.55; opacity:0.85; margin-bottom:4px; text-shadow:0 1px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); }
-.bm { margin-top:32px; font-size:18px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
-.bm .el { color:#fff; opacity:0.9; }
-.bm .nw { color:${accent}; opacity:0.9; }
+.pill {
+  display:inline-flex; align-items:center; gap:8px;
+  background:${accent}; color:#000;
+  font-size:14px; font-weight:800; text-transform:uppercase;
+  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
+}
+.pg { font-size:15px; font-weight:600; opacity:0.5; letter-spacing:1px; }
+.main { margin-top:auto; }
+.h {
+  font-size:${isFirstSlide ? "56px" : "48px"};
+  font-weight:800; line-height:1.08; letter-spacing:-0.8px;
+  text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5);
+  margin-bottom:${isFirstSlide ? "20px" : "24px"};
+  overflow:hidden; display:-webkit-box;
+  -webkit-line-clamp:${isFirstSlide ? "4" : "3"};
+  -webkit-box-orient:vertical;
+}
+.bt {
+  font-size:${isFirstSlide ? "26px" : "32px"};
+  font-weight:${isFirstSlide ? "400" : "500"};
+  line-height:1.45;
+  opacity:${isFirstSlide ? "0.80" : "0.90"};
+  text-shadow:0 1px 16px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.4);
+  margin-bottom:8px;
+  max-height:${isFirstSlide ? "180px" : "260px"};
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:${isFirstSlide ? "4" : "5"};
+  -webkit-box-orient:vertical;
+}
+.bottom {
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-top:28px; padding-top:16px;
+  border-top:1px solid rgba(255,255,255,0.10);
+}
+.src { font-size:14px; opacity:0.3; max-width:60%; line-height:1.4; font-weight:400; }
+.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
+.bm .el { color:#fff; opacity:0.85; }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
 <div class="overlay"></div>
 <div class="c">
   <div class="top">
-    ${label ? `<span class="lbl">${escapeHtml(label)}</span>` : "<span></span>"}
+    ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
     <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
   </div>
-  <div>
+  <div class="main">
     <div class="h">${escapeHtml(slide.heading)}</div>
-    <div class="m"><ul>${bulletsHtml}</ul></div>
-    <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
+    ${bodyText}
+    <div class="bottom">
+      <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
+      <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+    </div>
   </div>
 </div>
 </body></html>`;
 }
 
-/* ── Content slide: dark background with accent bar ────────────────────── */
+// ── Dark editorial slide (no image fallback) ──────────────────────────────
 
-function buildContentSlideHTML(
+function buildDarkBeatHTML(
   slide: IGSlide, label: string, accent: string, dark: string,
-  _bulletsHtml: string, slideIndex: number, totalSlides: number,
+  slideIndex: number, totalSlides: number,
 ): string {
-  /* Editorial row layout: each bullet becomes a full-width row separated by
-     fine rules — Bloomberg / Reuters IG style, no bullet markers. */
-  const rowsHtml = slide.bullets
-    .map((b) => `<div class="row"><div class="row-txt">${escapeHtml(b)}</div></div>`)
-    .join("\n      ");
+  const bodyText = slide.bullets
+    .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
+    .join("\n    ");
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -152,36 +204,68 @@ ${GOOGLE_FONTS_LINK}
 body {
   width:1080px; height:1080px;
   font-family: ${FONT_STACK};
-  background:${dark}; color:#fff; overflow:hidden; position:relative;
+  background: ${dark};
+  color:#fff; overflow:hidden; position:relative;
+}
+.bg {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 20% 80%, ${accent}08 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, ${accent}06 0%, transparent 50%);
 }
 .bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
-.c { height:100%; display:flex; flex-direction:column; padding:56px 72px 48px 80px; }
-.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
-.lbl { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; color:${accent}; opacity:0.6; }
-.pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
-.h { font-size:44px; font-weight:700; line-height:1.15; letter-spacing:-0.3px; margin-bottom:28px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
-.rows { flex:1; display:flex; flex-direction:column; justify-content:center; }
-.row { padding:22px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
-.row:first-child { border-top:1px solid rgba(255,255,255,0.07); }
-.row-txt { font-size:30px; line-height:1.50; font-weight:400; opacity:0.88; }
-.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:18px; margin-top:auto; }
-.src { font-size:14px; opacity:0.25; max-width:65%; line-height:1.4; }
-.bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
-.bm .el { color:rgba(255,255,255,0.5); }
-.bm .nw { color:${accent}; opacity:0.7; }
+.c {
+  position:relative; z-index:1;
+  height:100%; display:flex; flex-direction:column;
+  justify-content:space-between;
+  padding:64px 72px 56px 80px;
+}
+.top { display:flex; justify-content:space-between; align-items:center; }
+.pill {
+  display:inline-flex; align-items:center; gap:8px;
+  background:${accent}; color:#000;
+  font-size:14px; font-weight:800; text-transform:uppercase;
+  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
+}
+.pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
+.main {
+  flex:1; display:flex; flex-direction:column;
+  justify-content:center; padding:20px 0;
+}
+.h {
+  font-size:46px; font-weight:800; line-height:1.10; letter-spacing:-0.5px;
+  margin-bottom:28px;
+  overflow:hidden; display:-webkit-box;
+  -webkit-line-clamp:3; -webkit-box-orient:vertical;
+}
+.bt {
+  font-size:32px; font-weight:400; line-height:1.45; opacity:0.85;
+  margin-bottom:12px;
+  max-height:250px; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
+}
+.bottom {
+  display:flex; justify-content:space-between; align-items:flex-end;
+  padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);
+}
+.src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
+.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
+.bm .el { color:rgba(255,255,255,0.55); }
+.bm .nw { color:${accent}; opacity:0.8; }
 </style></head>
 <body>
+<div class="bg"></div>
 <div class="bar"></div>
 <div class="c">
   <div class="top">
-    ${label ? `<span class="lbl">${escapeHtml(label)}</span>` : "<span></span>"}
+    ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
     <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
   </div>
-  <div class="h">${escapeHtml(slide.heading)}</div>
-  <div class="rows">
-      ${rowsHtml}
+  <div class="main">
+    <div class="h">${escapeHtml(slide.heading)}</div>
+    ${bodyText}
   </div>
-  <div class="ft">
+  <div class="bottom">
     <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
     <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
   </div>
@@ -189,7 +273,7 @@ body {
 </body></html>`;
 }
 
-/* ── Taux du Jour: financial terminal cover (big rate number) ──────────── */
+// ── Taux du Jour: financial terminal cover (big rate number) ──────────────
 
 function buildTauxCoverHTML(
   slide: IGSlide, accent: string, totalSlides: number,
@@ -197,6 +281,10 @@ function buildTauxCoverHTML(
   const metaHtml = slide.bullets
     .map((b) => `<span>${escapeHtml(b)}</span>`)
     .join("");
+
+  const bgCss = slide.backgroundImage
+    ? `background: #0a1628 url('${slide.backgroundImage}') center/cover no-repeat;`
+    : `background: linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #0a1628 100%);`;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -206,42 +294,49 @@ ${GOOGLE_FONTS_LINK}
 body {
   width:1080px; height:1080px;
   font-family:${FONT_STACK};
-  background:linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #0a1628 100%);
+  ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
+${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.82); }` : ""}
 .grid {
   position:absolute; inset:0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
   background-size:40px 40px;
 }
 .glow {
   position:absolute; top:-200px; right:-100px; width:600px; height:600px;
-  background:radial-gradient(circle, rgba(234,179,8,0.06) 0%, transparent 70%);
+  background:radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%);
 }
-.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:64px 72px; }
 .top { display:flex; justify-content:space-between; align-items:center; }
-.lbl { font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:4px; color:${accent}; opacity:0.7; }
-.pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
-.rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:8px; }
-.rate-label { font-size:17px; font-weight:500; opacity:0.4; letter-spacing:3px; text-transform:uppercase; }
-.rate-value { font-size:104px; font-weight:800; letter-spacing:-3px; color:${accent}; line-height:1; }
-.rate-unit { font-size:22px; font-weight:500; opacity:0.35; margin-top:6px; letter-spacing:1px; }
-.meta { display:flex; justify-content:center; gap:40px; margin-top:24px; }
-.meta span { font-size:18px; opacity:0.5; font-weight:500; }
-.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
-.src { font-size:13px; opacity:0.2; max-width:60%; line-height:1.4; }
-.bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
-.bm .el { color:rgba(255,255,255,0.5); }
-.bm .nw { color:${accent}; opacity:0.7; }
+.pill {
+  display:inline-flex; align-items:center; gap:8px;
+  background:${accent}; color:#000;
+  font-size:14px; font-weight:800; text-transform:uppercase;
+  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
+}
+.pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
+.rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; }
+.rate-label { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
+.rate-value { font-size:120px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
+.rate-unit { font-size:26px; font-weight:500; opacity:0.40; margin-top:8px; letter-spacing:1.5px; }
+.meta { display:flex; justify-content:center; gap:40px; margin-top:28px; }
+.meta span { font-size:20px; opacity:0.55; font-weight:500; }
+.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; }
+.src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
+.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
+.bm .el { color:rgba(255,255,255,0.55); }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
+${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="grid"></div>
 <div class="glow"></div>
 <div class="c">
   <div class="top">
-    <span class="lbl">TAUX DU JOUR</span>
+    <span class="pill">TAUX DU JOUR</span>
     <span class="pg">1 / ${totalSlides}</span>
   </div>
   <div class="rate">
@@ -258,7 +353,7 @@ body {
 </body></html>`;
 }
 
-/* ── Taux du Jour: financial terminal detail (market rows) ─────────────── */
+// ── Taux du Jour: financial terminal detail (market rows) ─────────────────
 
 function buildTauxDetailHTML(
   slide: IGSlide, accent: string, slideIndex: number, totalSlides: number,
@@ -281,30 +376,35 @@ body {
 .grid {
   position:absolute; inset:0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
   background-size:40px 40px;
 }
-.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
-.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
-.lbl { font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:4px; color:${accent}; opacity:0.5; }
-.pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
-.h { font-size:46px; font-weight:700; line-height:1.15; margin-bottom:36px; letter-spacing:-0.3px; }
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:64px 72px; }
+.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; }
+.pill {
+  display:inline-flex; align-items:center; gap:8px;
+  background:${accent}; color:#000;
+  font-size:14px; font-weight:800; text-transform:uppercase;
+  letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
+}
+.pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
+.h { font-size:48px; font-weight:800; line-height:1.12; margin-bottom:40px; letter-spacing:-0.5px; }
 .rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
-.row { padding:26px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+.row { padding:28px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
 .row:last-child { border-bottom:none; }
-.row-text { font-size:28px; line-height:1.5; opacity:0.85; font-weight:500; }
-.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
-.src { font-size:13px; opacity:0.2; max-width:60%; line-height:1.4; }
-.bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
-.bm .el { color:rgba(255,255,255,0.5); }
-.bm .nw { color:${accent}; opacity:0.7; }
+.row-text { font-size:32px; line-height:1.45; opacity:0.88; font-weight:500; }
+.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.08); padding-top:18px; }
+.src { font-size:14px; opacity:0.25; max-width:60%; line-height:1.4; }
+.bm { font-size:18px; font-weight:800; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
+.bm .el { color:rgba(255,255,255,0.55); }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
 <div class="grid"></div>
 <div class="c">
   <div class="top">
-    <span class="lbl">TAUX DU JOUR</span>
+    <span class="pill">TAUX DU JOUR</span>
     <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="h">${escapeHtml(slide.heading)}</div>
@@ -319,24 +419,15 @@ body {
 </body></html>`;
 }
 
+// ── Asset generation pipeline ──────────────────────────────────────────────
+
 export interface CarouselAssetResult {
   mode: "rendered" | "dry-run";
-  /** Paths to PNG files (rendered) or HTML files (dry-run) */
   slidePaths: string[];
-  /** Path to the JSON payload file */
   payloadPath: string;
-  /** Base directory for all assets */
   exportDir: string;
 }
 
-/**
- * Generate carousel assets for an IG queue item.
- *
- * If Chromium (via the existing renderer) is available, renders PNGs.
- * Otherwise, falls back to "dry-run" mode: saves HTML templates + JSON payload.
- *
- * When payload.memeSlide is present, it is appended as the final carousel image.
- */
 export async function generateCarouselAssets(
   queueItem: IGQueueItem,
   payload: IGFormattedPayload,
@@ -344,20 +435,16 @@ export async function generateCarouselAssets(
   const exportDir = `/tmp/ig_exports/${queueItem.id}`;
   mkdirSync(exportDir, { recursive: true });
 
-  // Save JSON payload
   const payloadPath = join(exportDir, "payload.json");
   writeFileSync(payloadPath, JSON.stringify({ queueItem, payload }, null, 2), "utf-8");
 
   const slidePaths: string[] = [];
   let mode: "rendered" | "dry-run" = "dry-run";
 
-  // Total slides: content slides + optional meme slide
   const totalSlides = payload.slides.length + (payload.memeSlide ? 1 : 0);
 
-  // Try to render PNGs using Chromium + our custom slide HTML templates
   try {
     const { getBrowserInstance } = await import("./index.js");
-    // Use our editorial slide templates (cover images, bullets, layout)
     const browser = await getBrowserInstance();
 
     for (let i = 0; i < payload.slides.length; i++) {
@@ -366,7 +453,6 @@ export async function generateCarouselAssets(
       const page = await browser.newPage({ viewport: { width: 1080, height: 1080 } });
       try {
         await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
-        // Wait for cover image to load (if present)
         await page.evaluate("document.fonts.ready");
         const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
         const pngPath = join(exportDir, `slide_${i + 1}.png`);
@@ -377,7 +463,6 @@ export async function generateCarouselAssets(
       }
     }
 
-    // Render meme slide as final carousel image (if present)
     if (payload.memeSlide) {
       const memeHtml = buildMemeSlideHTML(payload.memeSlide);
       const memeBuffer = await renderMemeSlideWithChromium(memeHtml);
@@ -388,7 +473,6 @@ export async function generateCarouselAssets(
 
     mode = "rendered";
   } catch {
-    // Chromium not available — fall back to dry-run HTML exports
     console.warn("[ig-renderer] Chromium unavailable, using dry-run HTML mode");
 
     for (let i = 0; i < payload.slides.length; i++) {
@@ -399,7 +483,6 @@ export async function generateCarouselAssets(
       slidePaths.push(htmlPath);
     }
 
-    // Meme slide dry-run HTML export
     if (payload.memeSlide) {
       const memeHtml = buildMemeSlideHTML(payload.memeSlide);
       const memeHtmlPath = join(exportDir, `slide_meme.html`);
@@ -411,13 +494,7 @@ export async function generateCarouselAssets(
   return { mode, slidePaths, payloadPath, exportDir };
 }
 
-/**
- * Render a meme slide HTML string to PNG using the shared Chromium instance.
- */
 async function renderMemeSlideWithChromium(html: string): Promise<Buffer> {
-  const { renderBrandedCardPNG: _unused, ...rest } = await import("./index.js");
-  // We need the browser — reuse the same approach as renderBrandedCardPNG
-  // but set content directly from the meme HTML
   const pw = await import("playwright-core");
   const chromiumModule = pw.chromium;
 

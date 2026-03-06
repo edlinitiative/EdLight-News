@@ -10,7 +10,10 @@
 import { uploadImageBuffer } from "@edlight-news/firebase";
 import type { Item } from "@edlight-news/types";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Read lazily — dotenv may not have run yet when this module is imported
+function getApiKey(): string | undefined {
+  return process.env.GEMINI_API_KEY;
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -65,14 +68,15 @@ function buildImagePrompt(item: Item): string {
 // ── Gemini API call ────────────────────────────────────────────────────────
 
 async function callGeminiImageGen(prompt: string): Promise<Buffer | null> {
-  if (!GEMINI_API_KEY) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
     console.warn("[geminiImageGen] No GEMINI_API_KEY set");
     return null;
   }
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
