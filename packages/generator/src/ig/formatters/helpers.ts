@@ -94,14 +94,28 @@ export function shortenText(text: string, max: number): string {
   return (lastSpace > max * 0.5 ? truncated.slice(0, lastSpace) : truncated) + "…";
 }
 
+// Known news/media domains — "Postulez" doesn't make sense for these
+const NEWS_DOMAINS = [
+  "juno7.ht", "loophaiti.com", "ayibopost.com", "lenouvelliste.com",
+  "haitilibre.com", "alterpresse.org", "metropolehaiti.com",
+  "radiotelevisioncaraibes.com", "vfrancaise.com", "maghaiti.net",
+  "bbc.com", "reuters.com", "france24.com", "rfi.fr", "lemonde.fr",
+  "nytimes.com", "theguardian.com", "aljazeera.com", "cnn.com",
+  "apnews.com", "voanews.com",
+];
+
 /**
  * Convert a raw URL into human-friendly text for IG slides.
  * e.g. "https://www.campusfrance.org/apply" → "Postulez sur campusfrance.org"
+ * For news sites → "Plus d'infos sur juno7.ht"
  */
 export function humanizeUrl(url: string): string {
   try {
     const domain = new URL(url).hostname.replace(/^www\./, "");
-    return `Postulez sur ${domain}`;
+    const isNews = NEWS_DOMAINS.some((nd) => domain === nd || domain.endsWith("." + nd));
+    return isNews
+      ? `Plus d'infos sur ${domain}`
+      : `Postulez sur ${domain}`;
   } catch {
     return "Voir le lien dans la bio";
   }

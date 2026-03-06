@@ -34,6 +34,7 @@ const FORMATTERS: Record<IGPostType, (item: Item, bi?: BilingualText) => IGForma
   news: buildNewsCarousel,
   histoire: buildHistoireCarousel,
   utility: buildUtilityCarousel,
+  taux: buildUtilityCarousel, // Taux posts are built by buildIgTaux job, not via formatForIG
 };
 
 /**

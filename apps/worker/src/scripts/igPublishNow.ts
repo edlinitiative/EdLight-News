@@ -11,9 +11,10 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
 
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
-import { igQueueRepo, uploadCarouselSlides } from "@edlight-news/firebase";
+import { igQueueRepo, itemsRepo, uploadCarouselSlides } from "@edlight-news/firebase";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { publishIgPost } from "@edlight-news/publisher";
+import { generateContextualImage } from "../services/geminiImageGen.js";
 
 async function main() {
   console.log("=== IG Publish Now ===\n");
@@ -63,6 +64,27 @@ async function main() {
     try {
       // Mark as rendering
       await igQueueRepo.updateStatus(item.id, "rendering");
+
+      // If the cover slide has no background image, try generating one with Gemini
+      if (item.payload.slides[0] && !item.payload.slides[0].backgroundImage) {
+        console.log("  No cover image — trying Gemini image generation...");
+        try {
+          const sourceItem = await itemsRepo.getItem(item.sourceContentId);
+          if (sourceItem) {
+            const generated = await generateContextualImage(sourceItem);
+            if (generated) {
+              item.payload.slides[0].backgroundImage = generated.url;
+              console.log(`  ✓ Generated cover image`);
+              // Persist the updated payload
+              await igQueueRepo.setPayload(item.id, item.payload);
+            } else {
+              console.log("  ⚠ Gemini image gen returned null — using branded template");
+            }
+          }
+        } catch (imgErr) {
+          console.warn("  ⚠ Image gen failed:", imgErr instanceof Error ? imgErr.message : imgErr);
+        }
+      }
 
       // Render carousel
       console.log("  Rendering carousel...");

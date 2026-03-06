@@ -280,6 +280,25 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
     createdAt: NOW_TS,
     updatedAt: NOW_TS,
   } as Item,
+
+  taux: {
+    id: "mock-taux-1",
+    rawItemId: "raw-mock-taux",
+    sourceId: "src-mock-brh",
+    title: "Taux du Jour – BRH",
+    summary: "Taux de référence de la Banque de la République d'Haïti.",
+    canonicalUrl: "https://www.brh.ht/taux-du-jour/",
+    category: "resource",
+    itemType: "utility",
+    deadline: null,
+    evergreen: true,
+    confidence: 1.0,
+    citations: [],
+    qualityFlags: { hasSourceUrl: true, needsReview: false, lowConfidence: false, reasons: [] },
+    source: { name: "BRH", originalUrl: "https://www.brh.ht/taux-du-jour/" },
+    createdAt: NOW_TS,
+    updatedAt: NOW_TS,
+  } as Item,
 };
 
 // ── Additional Haiti news mocks (political, security, economic) ───────────

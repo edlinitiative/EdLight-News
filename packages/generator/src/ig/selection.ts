@@ -134,22 +134,44 @@ function mapCategoryToIGType(item: Item): IGPostType | null {
   }
 }
 
+/** Known news/media domains — officialLink to these is not an application link */
+const NEWS_LINK_DOMAINS = [
+  "juno7.ht", "loophaiti.com", "ayibopost.com", "lenouvelliste.com",
+  "haitilibre.com", "alterpresse.org", "metropolehaiti.com",
+  "radiotelevisioncaraibes.com", "vfrancaise.com", "maghaiti.net",
+  "bbc.com", "reuters.com", "france24.com", "rfi.fr", "lemonde.fr",
+  "nytimes.com", "theguardian.com", "aljazeera.com", "cnn.com",
+  "apnews.com", "voanews.com",
+];
+
+function isNewsUrl(url: string): boolean {
+  try {
+    const domain = new URL(url).hostname.replace(/^www\./, "");
+    return NEWS_LINK_DOMAINS.some((nd) => domain === nd || domain.endsWith("." + nd));
+  } catch {
+    return false;
+  }
+}
+
 /**
- * A real opportunity/scholarship should have at least some structured
- * opportunity data — eligibility, howToApply, or officialLink.
- * Items that were mis-classified by Gemini will lack these fields.
+ * A real opportunity/scholarship MUST have eligibility criteria (strongest signal)
+ * plus at least one of: howToApply or officialLink to a non-news domain.
+ * Items mis-classified by Gemini (e.g. news about time changes) lack these.
  */
 function hasRealOpportunityFields(item: Item): boolean {
   const opp = item.opportunity;
   if (!opp) return false;
+  // Eligibility is mandatory — the strongest signal for a real opportunity
   const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
-  const hasHowToApply = !!(opp.howToApply && opp.howToApply.trim().length > 5);
-  const hasOfficialLink = !!(opp.officialLink && opp.officialLink.trim().length > 5);
-  // Need at least 2 of the 3 fields to be considered a real opportunity.
-  // A single field (e.g. just an officialLink) is often a news article
-  // that Gemini mis-classified.
-  const count = [hasEligibility, hasHowToApply, hasOfficialLink].filter(Boolean).length;
-  return count >= 2;
+  if (!hasEligibility) return false;
+  // Plus at least one of: substantive howToApply or officialLink to a real application site
+  const hasHowToApply = !!(opp.howToApply && opp.howToApply.trim().length > 10);
+  const hasOfficialLink = !!(
+    opp.officialLink &&
+    opp.officialLink.trim().length > 5 &&
+    !isNewsUrl(opp.officialLink)
+  );
+  return hasHowToApply || hasOfficialLink;
 }
 
 // ── Main selection function ────────────────────────────────────────────────
@@ -286,6 +308,7 @@ export function decideIG(item: Item): IGDecision {
   const BASE_SCORES: Record<IGPostType, number> = {
     scholarship: 70,
     opportunity: 65,
+    taux: 60,
     utility: 55,
     histoire: 50,
     news: 45,

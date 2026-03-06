@@ -18,6 +18,7 @@ const IG_TYPE_ACCENTS: Record<string, string> = {
   news:        "#14b8a6",
   histoire:    "#d97706",
   utility:     "#10b981",
+  taux:        "#eab308",
 };
 
 const IG_TYPE_DARKS: Record<string, string> = {
@@ -26,6 +27,7 @@ const IG_TYPE_DARKS: Record<string, string> = {
   news:        "#061014",
   histoire:    "#120b06",
   utility:     "#060f0b",
+  taux:        "#0a1628",
 };
 
 const IG_TYPE_LABELS: Record<string, string> = {
@@ -34,11 +36,12 @@ const IG_TYPE_LABELS: Record<string, string> = {
   news:        "ACTUALITÉ",
   histoire:    "HISTOIRE",
   utility:     "GUIDE",
+  taux:        "TAUX DU JOUR",
 };
 
-const FONT_STACK = "'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+const FONT_STACK = "'Inter', 'Noto Color Emoji', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
-const GOOGLE_FONTS_LINK = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">`;
+const GOOGLE_FONTS_LINK = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">`;
 
 function escapeHtml(s: string): string {
   return s
@@ -67,6 +70,13 @@ export function buildSlideHTML(
   const bulletsHtml = slide.bullets
     .map((b) => `<li>${escapeHtml(b)}</li>`)
     .join("\n");
+
+  // Taux slides use dedicated financial-styled templates
+  if (igType === "taux") {
+    return slideIndex === 0
+      ? buildTauxCoverHTML(slide, accent, totalSlides)
+      : buildTauxDetailHTML(slide, accent, slideIndex, totalSlides);
+  }
 
   if (hasImage) return buildCoverSlideHTML(slide, label, accent, dark, bulletsHtml, slideIndex, totalSlides);
   return buildContentSlideHTML(slide, label, accent, dark, bulletsHtml, slideIndex, totalSlides);
@@ -101,7 +111,7 @@ body {
 .pg { font-size:14px; font-weight:500; opacity:0.4; letter-spacing:1px; }
 .h { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; text-shadow:0 2px 30px rgba(0,0,0,0.7), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:20px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
 .m ul { list-style:none; }
-.m li { font-size:21px; font-weight:400; line-height:1.55; opacity:0.85; margin-bottom:4px; text-shadow:0 1px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); }
+.m li { font-size:24px; font-weight:400; line-height:1.55; opacity:0.85; margin-bottom:4px; text-shadow:0 1px 12px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4); }
 .bm { margin-top:32px; font-size:18px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:6px; }
 .bm .el { color:#fff; opacity:0.9; }
 .bm .nw { color:${accent}; opacity:0.9; }
@@ -144,10 +154,10 @@ body {
 .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:48px; }
 .lbl { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; color:${accent}; opacity:0.6; }
 .pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
-.h { font-size:42px; font-weight:700; line-height:1.15; letter-spacing:-0.3px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+.h { font-size:50px; font-weight:700; line-height:1.15; letter-spacing:-0.3px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
 .bd { flex:1; display:flex; flex-direction:column; justify-content:center; }
 .bd ul { list-style:none; }
-.bd li { font-size:25px; line-height:1.55; margin-bottom:28px; opacity:0.82; padding-left:32px; position:relative; }
+.bd li { font-size:30px; line-height:1.5; margin-bottom:22px; opacity:0.82; padding-left:32px; position:relative; }
 .bd li::before { content:'\u2014'; position:absolute; left:0; color:${accent}; opacity:0.5; }
 .ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
 .src { font-size:14px; opacity:0.25; max-width:65%; line-height:1.4; }
@@ -166,6 +176,136 @@ body {
     <div class="h">${escapeHtml(slide.heading)}</div>
   </div>
   <div class="bd"><ul>${bulletsHtml}</ul></div>
+  <div class="ft">
+    <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
+    <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+  </div>
+</div>
+</body></html>`;
+}
+
+/* ── Taux du Jour: financial terminal cover (big rate number) ──────────── */
+
+function buildTauxCoverHTML(
+  slide: IGSlide, accent: string, totalSlides: number,
+): string {
+  const metaHtml = slide.bullets
+    .map((b) => `<span>${escapeHtml(b)}</span>`)
+    .join("");
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1080px;
+  font-family:${FONT_STACK};
+  background:linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #0a1628 100%);
+  color:#fff; overflow:hidden; position:relative;
+}
+.grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+.glow {
+  position:absolute; top:-200px; right:-100px; width:600px; height:600px;
+  background:radial-gradient(circle, rgba(234,179,8,0.06) 0%, transparent 70%);
+}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
+.top { display:flex; justify-content:space-between; align-items:center; }
+.lbl { font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:4px; color:${accent}; opacity:0.7; }
+.pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
+.rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:8px; }
+.rate-label { font-size:17px; font-weight:500; opacity:0.4; letter-spacing:3px; text-transform:uppercase; }
+.rate-value { font-size:104px; font-weight:800; letter-spacing:-3px; color:${accent}; line-height:1; }
+.rate-unit { font-size:22px; font-weight:500; opacity:0.35; margin-top:6px; letter-spacing:1px; }
+.meta { display:flex; justify-content:center; gap:40px; margin-top:24px; }
+.meta span { font-size:18px; opacity:0.5; font-weight:500; }
+.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
+.src { font-size:13px; opacity:0.2; max-width:60%; line-height:1.4; }
+.bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
+.bm .el { color:rgba(255,255,255,0.5); }
+.bm .nw { color:${accent}; opacity:0.7; }
+</style></head>
+<body>
+<div class="grid"></div>
+<div class="glow"></div>
+<div class="c">
+  <div class="top">
+    <span class="lbl">TAUX DU JOUR</span>
+    <span class="pg">1 / ${totalSlides}</span>
+  </div>
+  <div class="rate">
+    <div class="rate-label">TAUX DE R\u00c9F\u00c9RENCE BRH</div>
+    <div class="rate-value">${escapeHtml(slide.heading)}</div>
+    <div class="rate-unit">HTG / 1 USD</div>
+    <div class="meta">${metaHtml}</div>
+  </div>
+  <div class="ft">
+    <span class="src">${slide.footer ? escapeHtml(slide.footer) : "Source: Banque de la R\u00e9publique d\u2019Ha\u00efti (BRH)"}</span>
+    <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+  </div>
+</div>
+</body></html>`;
+}
+
+/* ── Taux du Jour: financial terminal detail (market rows) ─────────────── */
+
+function buildTauxDetailHTML(
+  slide: IGSlide, accent: string, slideIndex: number, totalSlides: number,
+): string {
+  const rowsHtml = slide.bullets
+    .map((b) => `<div class="row"><div class="row-text">${escapeHtml(b)}</div></div>`)
+    .join("\n    ");
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1080px;
+  font-family:${FONT_STACK};
+  background:linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%);
+  color:#fff; overflow:hidden; position:relative;
+}
+.grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
+.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; }
+.lbl { font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:4px; color:${accent}; opacity:0.5; }
+.pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
+.h { font-size:46px; font-weight:700; line-height:1.15; margin-bottom:36px; letter-spacing:-0.3px; }
+.rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
+.row { padding:26px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+.row:last-child { border-bottom:none; }
+.row-text { font-size:28px; line-height:1.5; opacity:0.85; font-weight:500; }
+.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
+.src { font-size:13px; opacity:0.2; max-width:60%; line-height:1.4; }
+.bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
+.bm .el { color:rgba(255,255,255,0.5); }
+.bm .nw { color:${accent}; opacity:0.7; }
+</style></head>
+<body>
+<div class="grid"></div>
+<div class="c">
+  <div class="top">
+    <span class="lbl">TAUX DU JOUR</span>
+    <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
+  </div>
+  <div class="h">${escapeHtml(slide.heading)}</div>
+  <div class="rows">
+    ${rowsHtml}
+  </div>
   <div class="ft">
     <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
     <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>

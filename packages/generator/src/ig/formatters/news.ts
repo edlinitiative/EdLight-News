@@ -88,18 +88,6 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     }
   }
 
-  // Ensure at least 2 slides — fall back to summary split if key points were insufficient
-  if (slides.length < 2 && item.summary && item.summary.length > 60) {
-    const summaryBullets = item.summary
-      .split(/[.!?]\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 15 && !isJunkSentence(s))
-      .slice(0, 3);
-    if (summaryBullets.length >= 1) {
-      slides.push({ heading: "En bref", bullets: summaryBullets });
-    }
-  }
-
   // Source attribution on last slide
   if (slides.length > 0) {
     slides[slides.length - 1]!.footer = buildSourceLine(item);

@@ -539,7 +539,7 @@ export interface HaitiHistoryAlmanacRaw {
 // ── Instagram pipeline types ────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility";
+export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility" | "taux";
 
 export type IGQueueStatus =
   | "queued"

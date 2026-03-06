@@ -4631,11 +4631,11 @@ export declare const createHaitiHistoryAlmanacRawSchema: z.ZodObject<Omit<{
     } | undefined;
 }>;
 export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
-export declare const igPostTypeSchema: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>;
+export declare const igPostTypeSchema: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>;
 export declare const igQueueStatusSchema: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
 export declare const igDecisionSchema: z.ZodObject<{
     igEligible: z.ZodBoolean;
-    igType: z.ZodNullable<z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>>;
+    igType: z.ZodNullable<z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>>;
     igPriorityScore: z.ZodNumber;
     reasons: z.ZodArray<z.ZodString, "many">;
     igPostAfter: z.ZodOptional<z.ZodString>;
@@ -4643,14 +4643,14 @@ export declare const igDecisionSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     reasons: string[];
     igEligible: boolean;
-    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | null;
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux" | null;
     igPriorityScore: number;
     igPostAfter?: string | undefined;
     igExpiresAt?: string | undefined;
 }, {
     reasons: string[];
     igEligible: boolean;
-    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | null;
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux" | null;
     igPriorityScore: number;
     igPostAfter?: string | undefined;
     igExpiresAt?: string | undefined;
@@ -4800,7 +4800,7 @@ export declare const igFormattedPayloadSchema: z.ZodObject<{
 export declare const igQueueItemSchema: z.ZodObject<{
     id: z.ZodString;
     sourceContentId: z.ZodString;
-    igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>;
+    igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>;
     score: z.ZodNumber;
     status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
     scheduledFor: z.ZodOptional<z.ZodString>;
@@ -4923,7 +4923,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
-    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux";
     sourceContentId: string;
     score: number;
     scheduledFor?: string | undefined;
@@ -4959,7 +4959,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
         seconds: number;
         nanoseconds: number;
     };
-    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux";
     sourceContentId: string;
     score: number;
     scheduledFor?: string | undefined;
@@ -4987,7 +4987,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
 export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
     id: z.ZodString;
     sourceContentId: z.ZodString;
-    igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility"]>;
+    igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>;
     score: z.ZodNumber;
     status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
     scheduledFor: z.ZodOptional<z.ZodString>;
@@ -5101,7 +5101,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
 }, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
     status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
     reasons: string[];
-    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux";
     sourceContentId: string;
     score: number;
     scheduledFor?: string | undefined;
@@ -5128,7 +5128,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
 }, {
     status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
     reasons: string[];
-    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire";
+    igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux";
     sourceContentId: string;
     score: number;
     scheduledFor?: string | undefined;

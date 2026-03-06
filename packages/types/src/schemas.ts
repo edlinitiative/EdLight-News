@@ -765,7 +765,7 @@ export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlma
 
 // ── Instagram pipeline schemas ─────────────────────────────────────────────
 
-export const igPostTypeSchema = z.enum(["scholarship", "opportunity", "news", "histoire", "utility"]);
+export const igPostTypeSchema = z.enum(["scholarship", "opportunity", "news", "histoire", "utility", "taux"]);
 
 export const igQueueStatusSchema = z.enum([
   "queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual",

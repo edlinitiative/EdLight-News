@@ -116,29 +116,27 @@ function formatTauxCarousel(taux: TauxBRH): IGFormattedPayload {
 
   const dateLabel = taux.date ?? new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-  // Slide 1: Cover — bold reference rate
+  // Slide 1: Cover — bold reference rate (rendered BIG by taux template)
+  // The heading IS the rate number; the taux renderer displays it at 104px gold
+  const coverMeta: string[] = [dateLabel];
+  if (taux.dailyVariation) coverMeta.push(`Variation: ${taux.dailyVariation}`);
+
   slides.push({
-    heading: `📊 Taux du Jour`,
-    bullets: [
-      `1 USD = ${taux.usdReference?.toFixed(4) ?? "—"} HTG`,
-      dateLabel,
-      ...(taux.dailyVariation ? [`Variation jour: ${taux.dailyVariation}`] : []),
-    ],
+    heading: taux.usdReference?.toFixed(4) ?? "—",
+    bullets: coverMeta,
     footer: "Source: Banque de la République d'Haïti (BRH)",
   });
 
-  // Slide 2: Markets breakdown
+  // Slide 2: Markets breakdown (only if we have market data)
   const marketBullets: string[] = [];
   if (taux.bankBuy != null && taux.bankSell != null) {
-    marketBullets.push(`🏦 Marché bancaire`);
-    marketBullets.push(`  Achat: ${taux.bankBuy.toFixed(4)} — Vente: ${taux.bankSell.toFixed(4)}`);
+    marketBullets.push(`Bancaire — Achat: ${taux.bankBuy.toFixed(4)}  |  Vente: ${taux.bankSell.toFixed(4)}`);
   }
   if (taux.informalBuy != null && taux.informalSell != null) {
-    marketBullets.push(`💵 Marché informel`);
-    marketBullets.push(`  Achat: ${taux.informalBuy.toFixed(4)} — Vente: ${taux.informalSell.toFixed(4)}`);
+    marketBullets.push(`Informel — Achat: ${taux.informalBuy.toFixed(4)}  |  Vente: ${taux.informalSell.toFixed(4)}`);
   }
   if (taux.weeklyVariation) {
-    marketBullets.push(`📈 Variation semaine: ${taux.weeklyVariation}`);
+    marketBullets.push(`Variation semaine: ${taux.weeklyVariation}`);
   }
   if (marketBullets.length > 0) {
     slides.push({
@@ -148,16 +146,16 @@ function formatTauxCarousel(taux: TauxBRH): IGFormattedPayload {
     });
   }
 
-  // Caption — bilingual
+  // Caption — bilingual, clean (no emojis — they render poorly in some contexts)
   const caption = [
-    `📊 Taux BRH du jour — ${dateLabel}`,
+    `Taux BRH du jour — ${dateLabel}`,
     "",
     `Taux de référence: 1 USD = ${taux.usdReference?.toFixed(4) ?? "—"} HTG`,
     ...(taux.dailyVariation ? [`Variation/jour: ${taux.dailyVariation}`] : []),
     ...(taux.bankBuy != null ? [`Bancaire — Achat: ${taux.bankBuy.toFixed(4)} | Vente: ${taux.bankSell?.toFixed(4)}`] : []),
     ...(taux.informalBuy != null ? [`Informel — Achat: ${taux.informalBuy.toFixed(4)} | Vente: ${taux.informalSell?.toFixed(4)}`] : []),
     "",
-    "🇭🇹 To BRH pou jodi a",
+    "To BRH pou jodi a",
     `1 USD = ${taux.usdReference?.toFixed(4) ?? "—"} HTG`,
     "",
     "→ Détails sur EdLight News — lien dans la bio",
@@ -210,7 +208,7 @@ export async function buildIgTaux(): Promise<BuildIgTauxResult> {
   // Insert into ig_queue with high priority (score 95)
   await igQueueRepo.createIGQueueItem({
     sourceContentId: `taux-${todayStr}`,
-    igType: "utility",
+    igType: "taux",
     score: 95, // High priority — always posts first
     status: "queued" as IGQueueStatus,
     reasons: [`Branded taux du jour post for ${taux.date ?? todayStr}`],

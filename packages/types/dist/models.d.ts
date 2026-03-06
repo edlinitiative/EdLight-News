@@ -408,7 +408,7 @@ export interface HaitiHistoryAlmanacRaw {
     verificationStatus: AlmanacRawVerificationStatus;
     createdAt: Timestamp;
 }
-export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility";
+export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility" | "taux";
 export type IGQueueStatus = "queued" | "scheduled" | "rendering" | "posted" | "skipped" | "scheduled_ready_for_manual";
 /** Decision record produced by the IG selection logic. */
 export interface IGDecision {
