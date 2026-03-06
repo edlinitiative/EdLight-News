@@ -72,6 +72,35 @@ export async function countPostedToday() {
         .get();
     return snap.data().count;
 }
+/**
+ * Returns all items posted or scheduled today (for type-diversity checks).
+ * Only includes minimal fields: id, igType, status.
+ */
+export async function listPostedAndScheduledToday() {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startTs = Timestamp.fromDate(startOfDay);
+    // Posted today
+    const postedSnap = await collection()
+        .where("status", "==", "posted")
+        .where("updatedAt", ">=", startTs)
+        .select("igType", "status")
+        .get();
+    // Scheduled today
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const scheduledSnap = await collection()
+        .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
+        .where("scheduledFor", ">=", startOfDay.toISOString())
+        .where("scheduledFor", "<", endOfDay.toISOString())
+        .select("igType", "status")
+        .get();
+    const results = [];
+    for (const doc of [...postedSnap.docs, ...scheduledSnap.docs]) {
+        const data = doc.data();
+        results.push({ id: doc.id, igType: data.igType, status: data.status });
+    }
+    return results;
+}
 export async function countScheduledToday() {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -114,11 +114,18 @@ body {
 }
 .overlay {
   position:absolute; inset:0;
-  background: linear-gradient(180deg,
+  background: ${isFirstSlide
+    ? `linear-gradient(180deg,
+    rgba(0,0,0,0.55) 0%,
+    rgba(0,0,0,0.25) 20%,
+    rgba(0,0,0,0.30) 45%,
+    rgba(0,0,0,0.75) 70%,
+    rgba(0,0,0,0.95) 100%)`
+    : `linear-gradient(180deg,
     rgba(0,0,0,0.50) 0%,
     rgba(0,0,0,0.35) 25%,
     rgba(0,0,0,0.50) 55%,
-    rgba(0,0,0,0.92) 100%);
+    rgba(0,0,0,0.92) 100%)`};
 }
 .c {
   position:relative; z-index:1;
@@ -133,11 +140,14 @@ body {
   font-size:14px; font-weight:800; text-transform:uppercase;
   letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
 }
-.pg { font-size:15px; font-weight:600; opacity:0.5; letter-spacing:1px; }
+${isFirstSlide ? `.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
+.top-brand .el { color:#fff; opacity:0.9; }
+.top-brand .nw { color:${accent}; }` : ""}
 .main { margin-top:auto; }
+${isFirstSlide ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; }` : ""}
 .h {
-  font-size:${isFirstSlide ? "60px" : "52px"};
-  font-weight:800; line-height:1.10; letter-spacing:-0.8px;
+  font-size:${isFirstSlide ? "64px" : "52px"};
+  font-weight:${isFirstSlide ? "900" : "800"}; line-height:1.08; letter-spacing:-1px;
   text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5);
   margin-bottom:${isFirstSlide ? "24px" : "28px"};
   overflow:hidden; display:-webkit-box;
@@ -172,14 +182,15 @@ body {
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
-    <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
+    ${isFirstSlide ? `<span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>` : ""}
   </div>
   <div class="main">
+    ${isFirstSlide ? `<div class="accent-rule"></div>` : ""}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bodyText}
     <div class="bottom">
       <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-      <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+      ${isFirstSlide ? "" : `<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>`}
     </div>
   </div>
 </div>
@@ -192,6 +203,7 @@ function buildDarkBeatHTML(
   slide: IGSlide, label: string, accent: string, dark: string,
   slideIndex: number, totalSlides: number,
 ): string {
+  const isFirstSlide = slideIndex === 0;
   const bodyText = slide.bullets
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
     .join("\n    ");
@@ -227,16 +239,19 @@ body {
   font-size:14px; font-weight:800; text-transform:uppercase;
   letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
 }
-.pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
+${isFirstSlide ? `.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
+.top-brand .el { color:#fff; opacity:0.9; }
+.top-brand .nw { color:${accent}; }` : ""}
 .main {
   flex:1; display:flex; flex-direction:column;
   justify-content:center; padding:40px 0;
 }
+${isFirstSlide ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; }` : ""}
 .h {
-  font-size:50px; font-weight:800; line-height:1.12; letter-spacing:-0.5px;
+  font-size:${isFirstSlide ? "56px" : "50px"}; font-weight:${isFirstSlide ? "900" : "800"}; line-height:1.12; letter-spacing:-0.5px;
   margin-bottom:32px;
   overflow:hidden; display:-webkit-box;
-  -webkit-line-clamp:4; -webkit-box-orient:vertical;
+  -webkit-line-clamp:${isFirstSlide ? "5" : "4"}; -webkit-box-orient:vertical;
 }
 .bt {
   font-size:34px; font-weight:400; line-height:1.45; opacity:0.85;
@@ -259,15 +274,16 @@ body {
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
-    <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
+    ${isFirstSlide ? `<span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>` : ""}
   </div>
   <div class="main">
+    ${isFirstSlide ? `<div class="accent-rule"></div>` : ""}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bodyText}
   </div>
   <div class="bottom">
     <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
-    <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+    ${isFirstSlide ? "" : `<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>`}
   </div>
 </div>
 </body></html>`;
@@ -317,7 +333,9 @@ ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background
   font-size:14px; font-weight:800; text-transform:uppercase;
   letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
 }
-.pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
+.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
+.top-brand .el { color:#fff; opacity:0.9; }
+.top-brand .nw { color:${accent}; }
 .rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; }
 .rate-label { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
 .rate-value { font-size:140px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
@@ -337,7 +355,7 @@ ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="c">
   <div class="top">
     <span class="pill">TAUX DU JOUR</span>
-    <span class="pg">1 / ${totalSlides}</span>
+    <span class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
   </div>
   <div class="rate">
     <div class="rate-label">TAUX DE R\u00c9F\u00c9RENCE BRH</div>
@@ -388,7 +406,6 @@ body {
   font-size:14px; font-weight:800; text-transform:uppercase;
   letter-spacing:2.5px; padding:8px 20px; border-radius:4px;
 }
-.pg { font-size:15px; font-weight:600; opacity:0.35; letter-spacing:1px; }
 .h { font-size:52px; font-weight:800; line-height:1.12; margin-bottom:48px; letter-spacing:-0.5px; }
 .rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
 .row { padding:34px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
@@ -405,7 +422,6 @@ body {
 <div class="c">
   <div class="top">
     <span class="pill">TAUX DU JOUR</span>
-    <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="h">${escapeHtml(slide.heading)}</div>
   <div class="rows">

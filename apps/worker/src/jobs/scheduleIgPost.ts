@@ -103,13 +103,34 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const scheduledToday = await igQueueRepo.countScheduledToday();
   const totalToday = postedToday + scheduledToday;
 
-  // Get top queued item
-  const queued = await igQueueRepo.listQueuedByScore(1);
+  // Get a broader pool of queued items so we can enforce type diversity
+  const queued = await igQueueRepo.listQueuedByScore(30);
   if (queued.length === 0) {
     return { scheduled: 0, skipped: "no-queued-items" };
   }
 
-  const topItem = queued[0]!;
+  // ── Type diversity: ensure news gets represented ─────────────────────
+  // Check what types have already been scheduled/posted today.
+  // If no news has been scheduled today and there are news items in queue,
+  // pick the top news item instead of the global top item.
+  const todayStatuses = await igQueueRepo.listPostedAndScheduledToday();
+  const todayTypes = new Set(todayStatuses.map((i) => i.igType));
+  const hasNewsToday = todayTypes.has("news");
+
+  let topItem = queued[0]!;
+
+  // Every other post slot, prefer news if none today yet
+  // Also: if 3+ non-news posts are scheduled and 0 news, force news
+  const nonNewsToday = todayStatuses.filter((i) => i.igType !== "news").length;
+  const needsNewsDiversity = !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
+
+  if (needsNewsDiversity) {
+    const topNewsItem = queued.find((q) => q.igType === "news");
+    if (topNewsItem) {
+      topItem = topNewsItem;
+      console.log(`[scheduleIgPost] type-diversity: picking news item ${topItem.id} (score=${topItem.score}) — no news posted today`);
+    }
+  }
 
   // Cap enforcement: 5 normal, 7 for urgent (score >= 90)
   const isUrgent = topItem.score >= 90;

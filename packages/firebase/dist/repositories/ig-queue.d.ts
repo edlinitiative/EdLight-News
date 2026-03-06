@@ -8,6 +8,11 @@ export declare function listQueuedByScore(limit?: number): Promise<IGQueueItem[]
 export declare function listScheduled(limit?: number): Promise<IGQueueItem[]>;
 export declare function listRecentPosted(sinceDaysAgo?: number, limit?: number): Promise<IGQueueItem[]>;
 export declare function countPostedToday(): Promise<number>;
+/**
+ * Returns all items posted or scheduled today (for type-diversity checks).
+ * Only includes minimal fields: id, igType, status.
+ */
+export declare function listPostedAndScheduledToday(): Promise<Pick<IGQueueItem, "id" | "igType" | "status">[]>;
 export declare function countScheduledToday(): Promise<number>;
 export declare function updateStatus(id: string, status: IGQueueStatus, extra?: Record<string, unknown>): Promise<void>;
 export declare function setPayload(id: string, payload: IGFormattedPayload): Promise<void>;

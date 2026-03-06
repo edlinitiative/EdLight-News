@@ -37,11 +37,12 @@ async function main() {
   console.log(JSON.stringify(buildResult, null, 2));
 
   // Step 2: Grab top queued items directly (bypass scheduleIgPost entirely)
-  console.log("\n--- Step 2: Grab top queued items ---");
-  const queued = await igQueueRepo.listQueuedByScore(3);
-  console.log(`Found ${queued.length} queued items`);
+  // Ensure type diversity: include at least one news item if available
+  console.log("\n--- Step 2: Grab top queued items (with type diversity) ---");
+  const allQueued = await igQueueRepo.listQueuedByScore(30);
+  console.log(`Found ${allQueued.length} total queued items`);
 
-  if (queued.length === 0) {
+  if (allQueued.length === 0) {
     console.log("Nothing to publish. Checking all statuses...");
     for (const status of ["scheduled", "rendering", "posted", "skipped"] as const) {
       try {
@@ -51,6 +52,27 @@ async function main() {
     }
     process.exit(0);
   }
+
+  // Build a diverse selection: top item + top news item (if the top isn't already news)
+  const queued: typeof allQueued = [];
+  const topItem = allQueued[0]!;
+  queued.push(topItem);
+
+  if (topItem.igType !== "news") {
+    const topNews = allQueued.find((q) => q.igType === "news");
+    if (topNews) {
+      queued.push(topNews);
+      console.log(`  → Added news item for type diversity: ${topNews.id} (score=${topNews.score})`);
+    }
+  }
+
+  // If we only have 1, try to add a second of a different type
+  if (queued.length < 2) {
+    const second = allQueued.find((q) => q.id !== topItem.id);
+    if (second) queued.push(second);
+  }
+
+  console.log(`Publishing ${queued.length} items (types: ${queued.map((q) => q.igType).join(", ")})`);
 
   // Step 3: Render and publish top item
   for (const item of queued.slice(0, 2)) {
