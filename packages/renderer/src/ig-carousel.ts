@@ -102,7 +102,7 @@ body {
 .overlay {
   position:absolute; inset:0;
   background: linear-gradient(180deg,
-    rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.45) 30%, rgba(0,0,0,0.82) 100%);
+    rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.60) 30%, rgba(0,0,0,0.88) 100%);
 }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -136,8 +136,14 @@ body {
 
 function buildContentSlideHTML(
   slide: IGSlide, label: string, accent: string, dark: string,
-  bulletsHtml: string, slideIndex: number, totalSlides: number,
+  _bulletsHtml: string, slideIndex: number, totalSlides: number,
 ): string {
+  /* Editorial row layout: each bullet becomes a full-width row separated by
+     fine rules — Bloomberg / Reuters IG style, no bullet markers. */
+  const rowsHtml = slide.bullets
+    .map((b) => `<div class="row"><div class="row-txt">${escapeHtml(b)}</div></div>`)
+    .join("\n      ");
+
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
@@ -149,17 +155,16 @@ body {
   background:${dark}; color:#fff; overflow:hidden; position:relative;
 }
 .bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
-.c { height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:72px 80px 64px 92px; }
-.hd { margin-bottom:16px; }
-.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:48px; }
+.c { height:100%; display:flex; flex-direction:column; padding:56px 72px 48px 80px; }
+.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
 .lbl { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:3.5px; color:${accent}; opacity:0.6; }
 .pg { font-size:14px; font-weight:500; opacity:0.3; letter-spacing:1px; }
-.h { font-size:50px; font-weight:700; line-height:1.15; letter-spacing:-0.3px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
-.bd { flex:1; display:flex; flex-direction:column; justify-content:center; }
-.bd ul { list-style:none; }
-.bd li { font-size:30px; line-height:1.5; margin-bottom:22px; opacity:0.82; padding-left:32px; position:relative; }
-.bd li::before { content:'\u2014'; position:absolute; left:0; color:${accent}; opacity:0.5; }
-.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:20px; }
+.h { font-size:44px; font-weight:700; line-height:1.15; letter-spacing:-0.3px; margin-bottom:28px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+.rows { flex:1; display:flex; flex-direction:column; justify-content:center; }
+.row { padding:22px 0; border-bottom:1px solid rgba(255,255,255,0.07); }
+.row:first-child { border-top:1px solid rgba(255,255,255,0.07); }
+.row-txt { font-size:30px; line-height:1.50; font-weight:400; opacity:0.88; }
+.ft { display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid rgba(255,255,255,0.06); padding-top:18px; margin-top:auto; }
 .src { font-size:14px; opacity:0.25; max-width:65%; line-height:1.4; }
 .bm { font-size:16px; font-weight:700; letter-spacing:2px; display:flex; align-items:center; gap:5px; }
 .bm .el { color:rgba(255,255,255,0.5); }
@@ -168,14 +173,14 @@ body {
 <body>
 <div class="bar"></div>
 <div class="c">
-  <div class="hd">
-    <div class="top">
-      ${label ? `<span class="lbl">${escapeHtml(label)}</span>` : "<span></span>"}
-      <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
-    </div>
-    <div class="h">${escapeHtml(slide.heading)}</div>
+  <div class="top">
+    ${label ? `<span class="lbl">${escapeHtml(label)}</span>` : "<span></span>"}
+    <span class="pg">${slideIndex + 1} / ${totalSlides}</span>
   </div>
-  <div class="bd"><ul>${bulletsHtml}</ul></div>
+  <div class="h">${escapeHtml(slide.heading)}</div>
+  <div class="rows">
+      ${rowsHtml}
+  </div>
   <div class="ft">
     <span class="src">${slide.footer ? escapeHtml(slide.footer) : ""}</span>
     <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>

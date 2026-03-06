@@ -181,7 +181,7 @@ export async function buildIgTaux(): Promise<BuildIgTauxResult> {
   const todayStr = toHaitiDate(new Date()).toISOString().slice(0, 10);
   const recentTaux = await igQueueRepo.listRecentPosted(1, 20);
   const alreadyPostedToday = recentTaux.some(
-    (p) => p.igType === "utility" && p.sourceContentId.startsWith("taux-") && p.sourceContentId.includes(todayStr),
+    (p) => p.igType === "taux" && p.sourceContentId.startsWith("taux-") && p.sourceContentId.includes(todayStr),
   );
 
   // Also check if queued/scheduled
