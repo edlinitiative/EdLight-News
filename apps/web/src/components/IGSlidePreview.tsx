@@ -421,6 +421,7 @@ function ReactionMeme({ meme }: { meme: MemeSlideData }) {
 // ── Meme dispatcher ──────────────────────────────────────────────────────────
 
 function MemeSlide({ meme }: { meme: MemeSlideData }) {
+  if (!meme?.template) return null;
   const renderers: Record<string, React.FC<{ meme: MemeSlideData }>> = {
     drake: DrakeMeme, "expanding-brain": ExpandingBrainMeme, nobody: NobodyMeme,
     "starter-pack": StarterPackMeme, "two-buttons": TwoButtonsMeme, "tell-me": TellMeMeme,
@@ -459,14 +460,23 @@ export function IGPostPreview({ igType, slides, memeSlide, caption }: IGPostPrev
 
   const isContentSlide = current < slides.length;
 
+  // Nothing to render — show placeholder
+  if (totalSlides === 0) {
+    return (
+      <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-stone-100 text-sm text-stone-400 dark:bg-stone-800">
+        No slides yet
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="relative overflow-hidden rounded-lg">
         {isContentSlide ? (
           <SlidePreview slide={slides[current]!} igType={igType} slideIndex={current} totalSlides={totalSlides} />
-        ) : (
-          <MemeSlide meme={memeSlide!} />
-        )}
+        ) : memeSlide ? (
+          <MemeSlide meme={memeSlide} />
+        ) : null}
         {totalSlides > 1 && (
           <>
             {current > 0 && (
