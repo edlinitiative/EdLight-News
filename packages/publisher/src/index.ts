@@ -82,50 +82,102 @@ export async function publishIgPost(
     const { accessToken, igUserId } = creds;
     const apiHost = process.env.IG_API_HOST ?? "graph.instagram.com";
     const baseUrl = `https://${apiHost}/v21.0/${igUserId}`;
+    const authHeader = `Bearer ${accessToken}`;
 
-    // Step 1: Create carousel container items (one per slide image)
-    const containerIds: string[] = [];
-    for (const imagePath of slidePaths) {
-      // In production, images should be hosted at public URLs.
-      // For now, we assume slidePaths are public URLs if API creds exist.
-      const res = await fetch(`${baseUrl}/media`, {
+    /** POST helper – uses URLSearchParams (form-encoded) as required by the
+     *  Instagram Graph API (JSON body causes "Cannot parse access token"). */
+    async function igPost(
+      url: string,
+      params: Record<string, string>,
+    ): Promise<{ id?: string; error?: { message: string } }> {
+      const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_url: imagePath,
-          is_carousel_item: true,
-          access_token: accessToken,
-        }),
+        headers: { Authorization: authHeader },
+        body: new URLSearchParams(params),
       });
-      const data = (await res.json()) as { id?: string; error?: { message: string } };
-      if (data.error) throw new Error(`IG API error: ${data.error.message}`);
-      if (data.id) containerIds.push(data.id);
+      return (await res.json()) as { id?: string; error?: { message: string } };
     }
 
-    // Step 2: Create carousel container
-    const carouselRes = await fetch(`${baseUrl}/media`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    /** GET helper for checking container status. */
+    async function igGet(
+      url: string,
+    ): Promise<{ status_code?: string; id?: string; error?: { message: string } }> {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { Authorization: authHeader },
+      });
+      return (await res.json()) as any;
+    }
+
+    /** Poll until a media container is FINISHED (ready to publish).
+     *  IG recommends polling once per minute for up to 5 minutes. */
+    async function waitForContainer(containerId: string, label = ""): Promise<void> {
+      const apiBase = `https://${apiHost}/v21.0`;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const status = await igGet(`${apiBase}/${containerId}?fields=status_code`);
+        const code = status.status_code ?? "UNKNOWN";
+        console.log(`[publisher] Container ${label}${containerId}: ${code} (attempt ${attempt + 1})`);
+        if (code === "FINISHED") return;
+        if (code === "ERROR" || code === "EXPIRED") {
+          throw new Error(`Container ${containerId} status: ${code}`);
+        }
+        // Wait 5 seconds between polls
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+      throw new Error(`Container ${containerId} did not become FINISHED in time`);
+    }
+
+    // Carousel requires ≥ 2 images. If only 1, publish as single image post.
+    let creationId: string;
+
+    if (slidePaths.length === 1) {
+      // Single image post
+      const data = await igPost(`${baseUrl}/media`, {
+        image_url: slidePaths[0]!,
+        caption: payload.caption,
+      });
+      if (data.error) throw new Error(`IG API error (single): ${data.error.message}`);
+      creationId = data.id!;
+      console.log(`[publisher] Single image container created: ${creationId}`);
+
+      // Wait for single image container to be ready
+      await waitForContainer(creationId, "single ");
+    } else {
+      // Step 1: Create carousel container items (one per slide image)
+      const containerIds: string[] = [];
+      for (let i = 0; i < slidePaths.length; i++) {
+        const data = await igPost(`${baseUrl}/media`, {
+          image_url: slidePaths[i]!,
+          is_carousel_item: "true",
+        });
+        if (data.error) throw new Error(`IG API error: ${data.error.message}`);
+        if (data.id) containerIds.push(data.id);
+        console.log(`[publisher] Carousel item ${i + 1}/${slidePaths.length} created: ${data.id}`);
+      }
+
+      // Wait for each child container to finish processing
+      for (let i = 0; i < containerIds.length; i++) {
+        await waitForContainer(containerIds[i]!, `slide ${i + 1} `);
+      }
+
+      // Step 2: Create carousel container
+      const carouselData = await igPost(`${baseUrl}/media`, {
         media_type: "CAROUSEL",
         children: containerIds.join(","),
         caption: payload.caption,
-        access_token: accessToken,
-      }),
-    });
-    const carouselData = (await carouselRes.json()) as { id?: string; error?: { message: string } };
-    if (carouselData.error) throw new Error(`IG API error: ${carouselData.error.message}`);
+      });
+      if (carouselData.error) throw new Error(`IG API error: ${carouselData.error.message}`);
+      creationId = carouselData.id!;
+      console.log(`[publisher] Carousel container created: ${creationId}`);
 
-    // Step 3: Publish the carousel
-    const publishRes = await fetch(`${baseUrl}/media_publish`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        creation_id: carouselData.id,
-        access_token: accessToken,
-      }),
+      // Wait for carousel container to finish
+      await waitForContainer(creationId, "carousel ");
+    }
+
+    // Publish (works for both single image and carousel)
+    const publishData = await igPost(`${baseUrl}/media_publish`, {
+      creation_id: creationId,
     });
-    const publishData = (await publishRes.json()) as { id?: string; error?: { message: string } };
     if (publishData.error) throw new Error(`IG API error: ${publishData.error.message}`);
 
     console.log(`[publisher] IG post published: ${publishData.id}`);
