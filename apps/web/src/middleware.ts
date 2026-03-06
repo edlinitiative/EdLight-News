@@ -5,22 +5,37 @@
  * (except /admin/login). Redirects unauthenticated users to the login page.
  *
  * Also protects /api/admin/* routes (except /api/admin/auth) by returning 401.
+ *
+ * Uses the Web Crypto API (not Node.js crypto) for Edge Runtime compatibility.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
 
 const COOKIE_NAME = "edlight-admin-token";
+const ENCODER = new TextEncoder();
 
-/** Recreate the expected token (must match admin-auth.ts logic). */
-function expectedToken(password: string): string {
-  return createHmac("sha256", password)
-    .update("edlight-admin-session")
-    .digest("hex");
+/** HMAC-SHA256 using Web Crypto API (Edge-compatible). */
+async function hmacSha256Hex(key: string, message: string): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    ENCODER.encode(key),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, ENCODER.encode(message));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-function isValidToken(token: string, password: string): boolean {
-  const expected = expectedToken(password);
+/** Recreate the expected token (must match admin-auth.ts logic). */
+async function expectedToken(password: string): Promise<string> {
+  return hmacSha256Hex(password, "edlight-admin-session");
+}
+
+async function isValidToken(token: string, password: string): Promise<boolean> {
+  const expected = await expectedToken(password);
   if (token.length !== expected.length) return false;
   let mismatch = 0;
   for (let i = 0; i < token.length; i++) {
@@ -29,7 +44,7 @@ function isValidToken(token: string, password: string): boolean {
   return mismatch === 0;
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Skip auth for the login page and the auth API endpoint
@@ -54,7 +69,7 @@ export function middleware(req: NextRequest) {
 
   // Check the cookie
   const token = req.cookies.get(COOKIE_NAME)?.value;
-  const authenticated = !!token && isValidToken(token, password);
+  const authenticated = !!token && await isValidToken(token, password);
 
   if (authenticated) {
     return NextResponse.next();

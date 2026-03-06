@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = loginAdmin(password);
+    const result = await loginAdmin(password);
 
     if (!result.ok) {
       return NextResponse.json(

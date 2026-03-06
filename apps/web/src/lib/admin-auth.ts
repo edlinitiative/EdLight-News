@@ -10,10 +10,11 @@
  */
 
 import { cookies } from "next/headers";
-import { createHmac } from "crypto";
 
 const COOKIE_NAME = "edlight-admin-token";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+
+const ENCODER = new TextEncoder();
 
 /**
  * Derive a signing key from ADMIN_PASSWORD so the cookie can't be forged
@@ -25,15 +26,30 @@ function getSigningKey(): string {
   return password;
 }
 
+/** HMAC-SHA256 using Web Crypto API (Edge-compatible). */
+async function hmacSha256Hex(key: string, message: string): Promise<string> {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    ENCODER.encode(key),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, ENCODER.encode(message));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /** Create a signed token from the password. */
-export function createAdminToken(): string {
+export async function createAdminToken(): Promise<string> {
   const key = getSigningKey();
-  return createHmac("sha256", key).update("edlight-admin-session").digest("hex");
+  return hmacSha256Hex(key, "edlight-admin-session");
 }
 
 /** Verify that a token matches the expected signature. */
-function verifyToken(token: string): boolean {
-  const expected = createAdminToken();
+async function verifyToken(token: string): Promise<boolean> {
+  const expected = await createAdminToken();
   // Constant-time comparison
   if (token.length !== expected.length) return false;
   let mismatch = 0;
@@ -60,11 +76,11 @@ export async function isAdminAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return false;
-  return verifyToken(token);
+  return await verifyToken(token);
 }
 
 /** Verify the password and return a Set-Cookie header value on success. */
-export function loginAdmin(password: string): { ok: boolean; cookie?: string } {
+export async function loginAdmin(password: string): Promise<{ ok: boolean; cookie?: string }> {
   const expected = process.env.ADMIN_PASSWORD;
 
   // No password configured
@@ -76,7 +92,7 @@ export function loginAdmin(password: string): { ok: boolean; cookie?: string } {
     return { ok: false };
   }
 
-  const token = createAdminToken();
+  const token = await createAdminToken();
   const cookie = [
     `${COOKIE_NAME}=${token}`,
     `Path=/admin`,
