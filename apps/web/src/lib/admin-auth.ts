@@ -95,7 +95,7 @@ export async function loginAdmin(password: string): Promise<{ ok: boolean; cooki
   const token = await createAdminToken();
   const cookie = [
     `${COOKIE_NAME}=${token}`,
-    `Path=/admin`,
+    `Path=/`,
     `HttpOnly`,
     `SameSite=Lax`,
     `Max-Age=${COOKIE_MAX_AGE}`,
@@ -109,5 +109,5 @@ export async function loginAdmin(password: string): Promise<{ ok: boolean; cooki
 
 /** Return a Set-Cookie header value that clears the admin cookie. */
 export function logoutCookie(): string {
-  return `${COOKIE_NAME}=; Path=/admin; HttpOnly; SameSite=Lax; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
 }
