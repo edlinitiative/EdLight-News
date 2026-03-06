@@ -2,9 +2,14 @@
  * IG Formatter – Daily Summary Story
  *
  * Takes the top N items of the day and produces a multi-frame
- * 1080×1920 story: cover → headlines 1-5 → closing CTA.
+ * 1080×1920 story: cover → headline frames → (CTA auto-appended by renderer).
  *
- * Bilingual: headings in French, bullets may include Kreyòl hints.
+ * Design principles for Stories:
+ *  - Each frame must be scannable in ≤ 5 seconds
+ *  - Max 2 bullets per headline frame (summary + optional Kreyòl/deadline)
+ *  - Source attribution as a separate line, not a bullet
+ *  - Emoji-free headings for a clean editorial look
+ *  - Bilingual: French heading, optional Kreyòl bullet
  */
 
 import type { Item, IGStoryPayload, IGStorySlide } from "@edlight-news/types";
@@ -22,14 +27,15 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   bourses:     "#3b82f6",
 };
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  scholarship: "🎓",
-  opportunity: "🚀",
-  news:        "📰",
-  local_news:  "🇭🇹",
-  event:       "📅",
-  resource:    "📚",
-  bourses:     "🎓",
+/** Short French category labels for inline context on the heading. */
+const CATEGORY_LABELS: Record<string, string> = {
+  scholarship: "BOURSE",
+  opportunity: "OPPORTUNITÉ",
+  news:        "ACTUALITÉ",
+  local_news:  "HAÏTI",
+  event:       "ÉVÉNEMENT",
+  resource:    "RESSOURCE",
+  bourses:     "BOURSE",
 };
 
 export interface StoryItemInput {
@@ -42,7 +48,8 @@ export interface StoryItemInput {
  *
  * @param items  - Ranked array of items (best first), ideally 3-5
  * @param date   - The date for the story (defaults to today)
- * @returns      - IGStoryPayload with cover + 1 frame per item
+ * @returns      - IGStoryPayload with cover + 1 frame per headline
+ *                (CTA frame is auto-appended by the renderer)
  */
 export function buildDailySummaryStory(
   items: StoryItemInput[],
@@ -56,56 +63,62 @@ export function buildDailySummaryStory(
   });
 
   const slides: IGStorySlide[] = [];
+  const headlineCount = Math.min(items.length, 5);
 
   // ── Cover frame ──────────────────────────────────────────────────────────
-  const headlineCount = Math.min(items.length, 5);
   const coverBullets: string[] = [
-    `${headlineCount} actualité${headlineCount > 1 ? "s" : ""} à retenir`,
-    "Éducation · Bourses · Haïti",
+    `${headlineCount} actualité${headlineCount > 1 ? "s" : ""} à retenir aujourd'hui`,
   ];
 
   // Use the best item's image as cover background if available
   const coverImage = items.find((i) => i.item.imageUrl)?.item.imageUrl ?? undefined;
 
   slides.push({
-    heading: `Résumé du jour`,
+    heading: "Résumé du jour",
     bullets: coverBullets,
     backgroundImage: coverImage,
   });
 
   // ── Headline frames (one per item, max 5) ────────────────────────────────
+  // Each frame: clean heading + max 2 tight bullets (scannable in 5 s)
   for (let i = 0; i < headlineCount; i++) {
     const { item, bi } = items[i]!;
     const title = bi?.frTitle ?? item.title;
     const summary = bi?.frSummary ?? item.summary;
     const cat = item.category ?? "news";
-    const emoji = CATEGORY_EMOJI[cat] ?? "📰";
+    const catLabel = CATEGORY_LABELS[cat] ?? "";
 
-    const bullets: string[] = [shortenText(summary, 200)];
+    // Tight bullets — max 2 for fast scanning
+    const bullets: string[] = [shortenText(summary, 140)];
 
-    // Add Kreyòl hint if available
-    if (bi?.htSummary) {
-      bullets.push(`🇭🇹 ${shortenText(bi.htSummary, 140)}`);
-    }
-
-    // Deadline callout for scholarships / opportunities
+    // Second bullet: prefer deadline for scholarships, else Kreyòl hint
     if (item.deadline) {
       try {
         const dl = new Date(item.deadline);
-        const dlStr = dl.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+        const dlStr = dl.toLocaleDateString("fr-FR", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
         bullets.push(`⏰ Date limite: ${dlStr}`);
       } catch {
-        // ignore bad deadline
+        // fallback to Kreyòl if deadline can't be parsed
+        if (bi?.htSummary) {
+          bullets.push(`🇭🇹 ${shortenText(bi.htSummary, 100)}`);
+        }
       }
+    } else if (bi?.htSummary) {
+      bullets.push(`🇭🇹 ${shortenText(bi.htSummary, 100)}`);
     }
 
+    // Source as a separate styled line (renderer handles it differently)
     const sourceName = item.source?.name ?? item.citations?.[0]?.sourceName ?? "";
     if (sourceName) {
       bullets.push(`Source: ${sourceName}`);
     }
 
     slides.push({
-      heading: `${emoji} ${shortenText(title, 90)}`,
+      heading: catLabel ? `${catLabel} — ${shortenText(title, 75)}` : shortenText(title, 85),
       bullets,
       accent: CATEGORY_ACCENTS[cat],
     });
