@@ -1,6 +1,9 @@
 /**
  * Run the full tick pipeline directly (without starting Express).
  * Usage: npx tsx src/scripts/runTick.ts
+ *
+ * Mirrors ALL steps from routes/tick.ts so GHA cron produces identical
+ * results to the Cloud Scheduler → Cloud Run path.
  */
 import path from "path";
 import dotenv from "dotenv";
@@ -13,6 +16,13 @@ import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { runUtilityEngine } from "../services/utility.js";
 import { runDatasetRefresh } from "../services/datasets.js";
+import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
+import { buildIgQueue } from "../jobs/buildIgQueue.js";
+import { buildIgTaux } from "../jobs/buildIgTaux.js";
+import { buildIgStory } from "../jobs/buildIgStory.js";
+import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
+import { processIgScheduled } from "../jobs/processIgScheduled.js";
+import { processIgStory } from "../jobs/processIgStory.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 async function main() {
@@ -64,6 +74,37 @@ async function main() {
     console.log(JSON.stringify(datasetResult, null, 2));
   } catch (err) {
     console.warn("[datasets] error:", err instanceof Error ? err.message : err);
+  }
+
+  console.log("\n=== Step 9: Haiti History Daily Publisher ===");
+  try {
+    const historyResult = await runHistoryDailyPublisher();
+    console.log(JSON.stringify(historyResult, null, 2));
+  } catch (err) {
+    console.warn("[history] error:", err instanceof Error ? err.message : err);
+  }
+
+  console.log("\n=== Step 10: Instagram Pipeline ===");
+  try {
+    const igBuildQueue = await buildIgQueue();
+    console.log("[ig] buildQueue:", JSON.stringify(igBuildQueue, null, 2));
+
+    const igTaux = await buildIgTaux();
+    console.log("[ig] taux:", JSON.stringify(igTaux, null, 2));
+
+    const igStory = await buildIgStory();
+    console.log("[ig] story:", JSON.stringify(igStory, null, 2));
+
+    const igSchedule = await scheduleIgPost();
+    console.log("[ig] schedule:", JSON.stringify(igSchedule, null, 2));
+
+    const igProcess = await processIgScheduled();
+    console.log("[ig] process:", JSON.stringify(igProcess, null, 2));
+
+    const igStoryProcess = await processIgStory();
+    console.log("[ig] storyProcess:", JSON.stringify(igStoryProcess, null, 2));
+  } catch (err) {
+    console.warn("[ig] error:", err instanceof Error ? err.message : err);
   }
 
   const durationMs = Date.now() - startMs;

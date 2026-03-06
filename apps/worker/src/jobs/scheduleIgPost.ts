@@ -32,13 +32,16 @@ function isQuietHour(date: Date): boolean {
   return hour >= 23 || hour < 7;
 }
 
+// Haiti is UTC−5 year-round (no DST since 2016).
+const HAITI_OFFSET_HOURS = 5;
+
 function getNextSlot(): Date {
   const now = new Date();
   const haitiNow = toHaitiDate(now);
   const haitiHour = haitiNow.getHours();
   const haitiMinute = haitiNow.getMinutes();
 
-  // 7 slots spread across the day for 3-7 posts
+  // 7 slots spread across the day (Haiti local time) for 3-7 posts
   const slots = [
     { hour: 8, minute: 0 },    // Morning — early scrollers
     { hour: 10, minute: 30 },   // Mid-morning
@@ -49,13 +52,14 @@ function getNextSlot(): Date {
     { hour: 21, minute: 0 },    // Late evening
   ];
 
+  // haitiNow's year/month/date reflect Haiti calendar (system-TZ shifted)
+  const haitiYear = haitiNow.getFullYear();
+  const haitiMonth = haitiNow.getMonth(); // 0-indexed
+  const haitiDay = haitiNow.getDate();
+
   // Find next available slot today or tomorrow
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
     for (const slot of slots) {
-      const slotDate = new Date(haitiNow);
-      slotDate.setDate(slotDate.getDate() + dayOffset);
-      slotDate.setHours(slot.hour, slot.minute, 0, 0);
-
       // If today, must be in the future
       if (dayOffset === 0) {
         if (
@@ -66,15 +70,26 @@ function getNextSlot(): Date {
         }
       }
 
-      return slotDate;
+      // Convert Haiti local time → proper UTC
+      // Date.UTC handles day/month overflow automatically
+      return new Date(
+        Date.UTC(
+          haitiYear,
+          haitiMonth,
+          haitiDay + dayOffset,
+          slot.hour + HAITI_OFFSET_HOURS,
+          slot.minute,
+          0,
+          0,
+        ),
+      );
     }
   }
 
-  // Fallback: tomorrow 08:00
-  const tomorrow = new Date(haitiNow);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(8, 0, 0, 0);
-  return tomorrow;
+  // Fallback: tomorrow 08:00 Haiti = 13:00 UTC
+  return new Date(
+    Date.UTC(haitiYear, haitiMonth, haitiDay + 1, 8 + HAITI_OFFSET_HOURS, 0, 0, 0),
+  );
 }
 
 export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
