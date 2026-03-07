@@ -229,12 +229,20 @@ const TAUX_BG_PATH = "ig/assets/taux-background.png";
  * Generates it exactly once via Gemini AI and reuses the same URL forever.
  * Returns the public download URL.
  */
-export async function ensureTauxBackground(): Promise<string | null> {
+export async function ensureTauxBackground(forceRegenerate = false): Promise<string | null> {
   const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
   const { getStorage } = await import("firebase-admin/storage");
   const { getApp } = await import("@edlight-news/firebase");
   const bucket = getStorage(getApp()).bucket(bucketName);
   const file = bucket.file(TAUX_BG_PATH);
+
+  // Delete cached image if caller wants regeneration
+  if (forceRegenerate) {
+    try {
+      await file.delete({ ignoreNotFound: true });
+      console.log("[taux-bg] Deleted cached taux background for regeneration");
+    } catch { /* ignore */ }
+  }
 
   // Check if it already exists
   const [exists] = await file.exists();
@@ -250,16 +258,17 @@ export async function ensureTauxBackground(): Promise<string | null> {
     }
   }
 
-  // Generate a new one
+  // Generate a new one with premium quality prompt
   console.log("[taux-bg] Generating one-time taux background image...");
   const prompt = [
-    "Abstract dark financial terminal background:",
-    "- Deep navy (#0a1628) to black gradient",
-    "- Subtle gold (#eab308) grid lines and accent curves",
-    "- Faint currency symbols ($ HTG) as ghosted watermarks",
-    "- Cinematic depth, slight film grain texture",
-    "- NO text, NO numbers, NO charts — purely atmospheric",
-    "- Portrait orientation 4:5, premium Bloomberg/Reuters aesthetic",
+    "Ultra high resolution abstract dark financial terminal background, at least 1080 pixels wide, extremely sharp details:",
+    "- Deep navy (#0a1628) to near-black gradient, rich colour depth",
+    "- Subtle gold (#eab308) grid lines and flowing accent curves with soft glow",
+    "- Faint currency symbols ($ HTG) as ghosted watermarks blended into background",
+    "- Cinematic depth of field, slight film grain texture, photorealistic quality",
+    "- NO text, NO numbers, NO charts, NO people — purely atmospheric",
+    "- Portrait orientation 4:5 (1080×1350), premium Bloomberg/Reuters aesthetic",
+    "- Must look like a high-end financial wallpaper, not AI-generated",
   ].join("\n");
 
   const url = await generateCustomImage(prompt, TAUX_BG_PATH);

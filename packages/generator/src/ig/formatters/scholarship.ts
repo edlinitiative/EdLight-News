@@ -34,14 +34,13 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // ── Slide 2: Eligibility (single bold statement per slide) ──
+  // ── Slide 2: Eligibility (separate bullets for each criterion) ──
   if (item.opportunity?.eligibility?.length) {
     const elig = item.opportunity.eligibility;
-    // Combine into one concise statement for each slide
-    if (elig.length <= 2) {
+    if (elig.length <= 4) {
       slides.push({
         heading: "Qui peut postuler ?",
-        bullets: [elig.join(". ")],
+        bullets: elig,
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
@@ -49,34 +48,33 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
       // Split across 2 slides if many criteria
       slides.push({
         heading: "Qui peut postuler ?",
-        bullets: [elig.slice(0, 2).join(". ")],
+        bullets: elig.slice(0, 3),
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
       slides.push({
         heading: "Autres critères",
-        bullets: [elig.slice(2, 4).join(". ")],
+        bullets: elig.slice(3, 6),
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
     }
   }
 
-  // ── Slide 3: Deadline + How to apply ──
-  const applyParts: string[] = [];
-  if (deadlineStr) applyParts.push(`Date limite: ${formatDeadline(deadlineStr)}`);
-  if (item.opportunity?.howToApply) applyParts.push(item.opportunity.howToApply);
-  if (item.opportunity?.officialLink) applyParts.push(humanizeUrl(item.opportunity.officialLink));
+  // ── Slide 3: Deadline + How to apply (distinct bullets with emoji markers) ──
+  const applyBullets: string[] = [];
+  if (deadlineStr) applyBullets.push(`📅 Date limite: ${formatDeadline(deadlineStr)}`);
+  if (item.opportunity?.howToApply) applyBullets.push(`📝 ${item.opportunity.howToApply}`);
+  if (item.opportunity?.officialLink) applyBullets.push(`🔗 ${humanizeUrl(item.opportunity.officialLink)}`);
+  if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
 
-  if (applyParts.length > 0) {
-    slides.push({
-      heading: "Comment postuler",
-      bullets: [applyParts.join("  ·  ")],
-      layout: "explanation",
-      footer: buildSourceLine(item),
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
-  }
+  slides.push({
+    heading: "Comment postuler",
+    bullets: applyBullets,
+    layout: "explanation",
+    footer: buildSourceLine(item),
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
 
   // ── Data slide: coverage amount (if available) ──
   if (item.opportunity?.coverage) {

@@ -86,11 +86,12 @@ export const OVERLAY = {
     rgba(0,0,0,0.80) 70%,
     rgba(0,0,0,0.97) 82%,
     rgba(0,0,0,0.99) 100%)`,
-  /** Inner slide overlay — extra-dark bottom 20% hides source watermarks */
+  /** Inner slide overlay — gradual darkening, heavy only in bottom 12% to avoid text cutoff */
   inner: `linear-gradient(180deg,
     rgba(0,0,0,0.50) 0%,
     rgba(0,0,0,0.35) 25%,
-    rgba(0,0,0,0.50) 55%,
-    rgba(0,0,0,0.96) 80%,
+    rgba(0,0,0,0.45) 55%,
+    rgba(0,0,0,0.75) 75%,
+    rgba(0,0,0,0.96) 88%,
     rgba(0,0,0,0.99) 100%)`,
 } as const;

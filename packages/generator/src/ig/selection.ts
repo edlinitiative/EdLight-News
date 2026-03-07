@@ -217,9 +217,39 @@ function isNewsUrl(url: string): boolean {
  * plus at least one of: howToApply or officialLink to a non-news domain.
  * Items mis-classified by Gemini (e.g. news about time changes) lack these.
  */
+/** Words that signal the article is news (sports, crime, politics), not a real opportunity */
+const NEWS_SIGNAL_WORDS = [
+  // Sports
+  "victoire", "match", "equipe", "équipe", "football", "soccer", "grenadière",
+  "grenadier", "championnat", "coupe", "tournoi", "joueur", "joueuse",
+  "entraîneur", "stade", "but", "penalty", "qualification", "fifa",
+  "concacaf", "ligue", "saison", "score", "défaite",
+  // Crime / Security
+  "attentat", "meurtre", "arrestation", "gang", "violence", "kidnapping",
+  "enlèvement", "fusillade", "police", "insécurité", "criminel",
+  // Politics / Government
+  "élection", "sénateur", "député", "premier ministre", "président",
+  "parlement", "gouvernement", "vote", "mandat", "opposition",
+  "manifestation", "protestation", "crise politique",
+];
+
+function looksLikeNewsContent(item: Item): boolean {
+  const text = `${item.title ?? ""} ${item.summary ?? ""}`.toLowerCase();
+  let hits = 0;
+  for (const word of NEWS_SIGNAL_WORDS) {
+    if (text.includes(word)) hits++;
+    if (hits >= 2) return true;
+  }
+  return false;
+}
+
 function hasRealOpportunityFields(item: Item): boolean {
   const opp = item.opportunity;
   if (!opp) return false;
+
+  // Content-based guard: if title+summary strongly signal news, downgrade
+  if (looksLikeNewsContent(item)) return false;
+
   // Eligibility is mandatory — the strongest signal for a real opportunity
   const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
   if (!hasEligibility) return false;

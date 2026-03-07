@@ -207,7 +207,7 @@ ${pillCss(accent)}
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
 .h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:32px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
-.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.45; opacity:0.85; margin-bottom:12px; max-height:320px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; }
+.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.45; opacity:0.85; margin-bottom:12px; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; }
 ${bottomCss()}
 </style></head>
 <body>
@@ -334,12 +334,17 @@ function buildTauxDetailHTML(
     .map((b) => `<div class="row"><div class="row-text">${escapeHtml(b)}</div></div>`)
     .join("\n    ");
 
+  const bgCss = slide.backgroundImage
+    ? `background: #0a1628 url('${slide.backgroundImage}') center/cover no-repeat;`
+    : `background: linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%);`;
+
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
-body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; background:linear-gradient(180deg, #0a1628 0%, #0d1b2a 100%); color:#fff; overflow:hidden; position:relative; }
+body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
+${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.82); }` : ""}
 .grid { position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size:40px 40px; }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; }
@@ -352,6 +357,7 @@ ${pillCss(accent)}
 ${bottomCss()}
 </style></head>
 <body>
+${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="grid"></div>
 <div class="c">
   <div class="top">

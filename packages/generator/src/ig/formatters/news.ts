@@ -126,7 +126,7 @@ const MAX_BEAT_CHARS = 200;
  * Split text into complete sentences, keeping the ending punctuation.
  * E.g. "Hello world. Next one!" → ["Hello world.", "Next one!"]
  */
-function splitSentences(text: string): string[] {
+export function splitSentences(text: string): string[] {
   // Match sentences that end with . ! or ? followed by space/EOL
   const raw = text.match(/[^.!?]*[^.!?\s][^.!?]*[.!?]+/g);
   if (!raw) return [];
@@ -143,7 +143,7 @@ function splitSentences(text: string): string[] {
  * - "L'article … est apparu en premier sur …" trailers
  * - "Plus de contenu" sections
  */
-function cleanExtractedText(text: string): string {
+export function cleanExtractedText(text: string): string {
   return text
     // Strip HTML tags
     .replace(/<[^>]+>/g, " ")

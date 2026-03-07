@@ -98,7 +98,7 @@ export function shortenText(text: string, max: number): string {
  * Shorten a headline to at most `maxWords` words.
  * Keeps the first N words and appends "…" if truncated.
  */
-export function shortenHeadline(text: string, maxWords = 10): string {
+export function shortenHeadline(text: string, maxWords = 14): string {
   const words = text.trim().split(/\s+/);
   if (words.length <= maxWords) return text.trim();
   return words.slice(0, maxWords).join(" ") + "…";

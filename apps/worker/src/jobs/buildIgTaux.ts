@@ -153,6 +153,7 @@ async function formatTauxCarousel(taux: TauxBRH): Promise<IGFormattedPayload> {
       heading: "Détail des marchés",
       bullets: marketBullets,
       footer: "brh.ht/taux-du-jour",
+      ...(bgUrl ? { backgroundImage: bgUrl } : {}),
     });
   }
 
