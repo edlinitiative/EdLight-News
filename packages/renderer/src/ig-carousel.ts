@@ -101,7 +101,7 @@ function glowCss(accent: string): string {
 }
 
 function pillCss(accent: string): string {
-  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:2.5px; padding:8px 20px; border-radius:4px; }`;
+  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:12px 28px; border-radius:4px; }`;
 }
 
 function brandHtml(accent: string, size = 18): string {

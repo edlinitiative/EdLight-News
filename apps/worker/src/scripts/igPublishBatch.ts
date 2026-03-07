@@ -16,6 +16,7 @@ import { formatForIG } from "@edlight-news/generator/ig/formatters/index.js";
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { generateContextualImage } from "../services/geminiImageGen.js";
+import { findEditorialImage } from "../services/editorialImageSearch.js";
 
 const token = process.env.IG_ACCESS_TOKEN!;
 const userId = process.env.IG_USER_ID!;
@@ -102,6 +103,25 @@ async function publishOneManual(queueItem: any): Promise<boolean> {
         for (const s of needsImage) s.backgroundImage = gen.url;
         await igQueueRepo.setPayload(queueItem.id, formatted);
         console.log("  ✓ AI image generated");
+
+        // For histoire posts: find an alternative Unsplash image for inner slides
+        // so they don't all look identical. Fallback to same hero image.
+        if (queueItem.igType === "histoire" && formatted.slides.length > 1) {
+          let altUrl: string | undefined;
+          try {
+            const alt = await findEditorialImage(item, 3);
+            if (alt && alt.url !== gen.url) {
+              altUrl = alt.url;
+              console.log(`  ✓ Alt image for inner slides (${alt.source})`);
+            }
+          } catch { /* non-blocking */ }
+
+          const innerUrl = altUrl ?? gen.url;
+          for (let i = 1; i < formatted.slides.length; i++) {
+            formatted.slides[i]!.backgroundImage = innerUrl;
+          }
+          await igQueueRepo.setPayload(queueItem.id, formatted);
+        }
       }
     } catch (e: any) {
       console.warn("  ⚠ Image gen failed:", e.message ?? e);
@@ -241,6 +261,11 @@ async function main() {
     (q) => q.igType === "news" && !picks.some((p) => p.id === q.id),
   );
   if (news2) picks.push(news2);
+
+  const histoire = queued.find(
+    (q) => q.igType === "histoire" && !picks.some((p) => p.id === q.id),
+  );
+  if (histoire) picks.push(histoire);
 
   console.log(
     `Publishing ${picks.length} posts: ${picks.map((p) => p.igType).join(", ")}`,

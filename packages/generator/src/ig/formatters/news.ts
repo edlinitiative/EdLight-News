@@ -170,14 +170,26 @@ function cleanExtractedText(text: string): string {
 }
 
 /**
- * If a beat is too long for a headline slide, truncate at the nearest
- * clause boundary (comma, semicolon, dash) and append "…".
- * This ensures the text reads as a complete thought.
+ * If a beat is too long for a headline slide, find the best way to shorten
+ * it while keeping a complete, polished thought:
+ *   1. If a complete sub-sentence exists within the limit (last "."), use it.
+ *   2. Otherwise truncate at a clause boundary (, ; – —) and end with ".".
+ *   3. Last resort: word-boundary truncation with ".".
+ * Never produces "…" — every slide ends with a proper period.
  */
 function capBeatLength(text: string, max = MAX_BEAT_CHARS): string {
   if (text.length <= max) return text;
-  // Find a clause boundary (comma, semicolon, dash) within the limit
+
   const chunk = text.slice(0, max);
+
+  // Best: find a complete sub-sentence (ends with ".")
+  // Skip periods inside decimal numbers like "250.000"
+  const periodIdx = chunk.lastIndexOf(".");
+  if (periodIdx > max * 0.45 && !/\d$/.test(chunk.slice(periodIdx - 1, periodIdx))) {
+    return chunk.slice(0, periodIdx + 1).trim();
+  }
+
+  // Good: clause boundary (comma, semicolon, dash)
   const lastBreak = Math.max(
     chunk.lastIndexOf(", "),
     chunk.lastIndexOf("; "),
@@ -187,12 +199,13 @@ function capBeatLength(text: string, max = MAX_BEAT_CHARS): string {
   if (lastBreak > max * 0.4) {
     return chunk.slice(0, lastBreak).replace(/[,;\s]+$/, "") + ".";
   }
-  // No clause boundary — truncate at last word
+
+  // Fallback: word-boundary truncation
   const lastSpace = chunk.lastIndexOf(" ");
   if (lastSpace > max * 0.5) {
-    return chunk.slice(0, lastSpace).replace(/[,;\s]+$/, "") + "…";
+    return chunk.slice(0, lastSpace).replace(/[,;\s]+$/, "") + ".";
   }
-  return chunk + "…";
+  return chunk.trimEnd() + ".";
 }
 
 /**
@@ -235,15 +248,21 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
 
 /**
  * Pick N sentences spread evenly across the text (not all from the beginning).
- * This gives a more balanced story arc.
+ * Prefers sentences that are already short enough to avoid truncation.
+ * This gives a more balanced story arc with cleaner output.
  */
 function pickSpreadBeats(sentences: string[], n: number): string[] {
   if (sentences.length <= n) return sentences;
-  const step = Math.floor(sentences.length / (n + 1));
+
+  // Prefer sentences that won't need truncation
+  const short = sentences.filter((s) => s.length <= MAX_BEAT_CHARS);
+  const pool = short.length >= n ? short : sentences;
+
+  const step = Math.floor(pool.length / (n + 1));
   const picks: string[] = [];
   for (let i = 0; i < n; i++) {
-    const idx = Math.min(step * (i + 1), sentences.length - 1);
-    picks.push(sentences[idx]!);
+    const idx = Math.min(step * (i + 1), pool.length - 1);
+    picks.push(pool[idx]!);
   }
   return picks;
 }

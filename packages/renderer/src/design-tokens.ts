@@ -33,7 +33,7 @@ export const GOOGLE_FONTS_LINK =
 /** Font sizes in px – 3-level hierarchy. */
 export const TYPE = {
   /** Category pill label */
-  label: 14,
+  label: 20,
   /** First-slide hero headline */
   headlineHero: 88,
   /** Inner slide headline */
@@ -78,17 +78,19 @@ export const LABEL: Record<string, string> = {
 // ── Overlay gradients ──────────────────────────────────────────────────────
 
 export const OVERLAY = {
-  /** Heavy overlay for hero (first) slide with image */
+  /** Heavy overlay for hero (first) slide with image — extra-dark bottom 20% hides watermarks */
   hero: `linear-gradient(180deg,
     rgba(0,0,0,0.55) 0%,
     rgba(0,0,0,0.25) 20%,
     rgba(0,0,0,0.30) 45%,
-    rgba(0,0,0,0.75) 70%,
-    rgba(0,0,0,0.95) 100%)`,
-  /** Lighter overlay for inner slides with image */
+    rgba(0,0,0,0.80) 70%,
+    rgba(0,0,0,0.97) 82%,
+    rgba(0,0,0,0.99) 100%)`,
+  /** Inner slide overlay — extra-dark bottom 20% hides source watermarks */
   inner: `linear-gradient(180deg,
     rgba(0,0,0,0.50) 0%,
     rgba(0,0,0,0.35) 25%,
     rgba(0,0,0,0.50) 55%,
-    rgba(0,0,0,0.92) 100%)`,
+    rgba(0,0,0,0.96) 80%,
+    rgba(0,0,0,0.99) 100%)`,
 } as const;

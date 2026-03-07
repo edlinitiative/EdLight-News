@@ -12,6 +12,7 @@
 
 import { igQueueRepo } from "@edlight-news/firebase";
 import type { IGFormattedPayload, IGSlide, IGQueueStatus } from "@edlight-news/types";
+import { ensureTauxBackground } from "../services/geminiImageGen.js";
 
 // ── Haiti timezone ─────────────────────────────────────────────────────────
 const HAITI_TZ = "America/Port-au-Prince";
@@ -111,10 +112,18 @@ function parseRate(raw: string | undefined | null): number | undefined {
 
 // ── Carousel builder ───────────────────────────────────────────────────────
 
-function formatTauxCarousel(taux: TauxBRH): IGFormattedPayload {
+async function formatTauxCarousel(taux: TauxBRH): Promise<IGFormattedPayload> {
   const slides: IGSlide[] = [];
 
   const dateLabel = taux.date ?? new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+  // One-time branded background (generated once, reused forever)
+  let bgUrl: string | undefined;
+  try {
+    bgUrl = (await ensureTauxBackground()) ?? undefined;
+  } catch (e) {
+    console.warn("[buildIgTaux] Taux background fetch failed:", e);
+  }
 
   // Slide 1: Cover — bold reference rate (rendered BIG by taux template)
   // The heading IS the rate number; the taux renderer displays it at 104px gold
@@ -125,6 +134,7 @@ function formatTauxCarousel(taux: TauxBRH): IGFormattedPayload {
     heading: taux.usdReference?.toFixed(4) ?? "—",
     bullets: coverMeta,
     footer: "Source: Banque de la République d'Haïti (BRH)",
+    ...(bgUrl ? { backgroundImage: bgUrl } : {}),
   });
 
   // Slide 2: Markets breakdown (only if we have market data)
@@ -202,8 +212,8 @@ export async function buildIgTaux(): Promise<BuildIgTauxResult> {
     return { queued: false, skipped: "brh-fetch-failed" };
   }
 
-  // Format carousel
-  const payload = formatTauxCarousel(taux);
+  // Format carousel (async — resolves taux background image)
+  const payload = await formatTauxCarousel(taux);
 
   // Insert into ig_queue with high priority (score 95)
   await igQueueRepo.createIGQueueItem({

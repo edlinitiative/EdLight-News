@@ -41,6 +41,8 @@ function buildImagePrompt(item: Item): string {
     local_news: "Port-au-Prince cityscape, Haitian landmarks, Caribbean architecture",
     event: "conference hall, seminar, educational gathering",
     resource: "modern workspace, technology, learning tools",
+    taux: "financial terminal, currency exchange, gold accents on dark navy",
+    histoire: "historical Haiti, vintage Caribbean photography, sepia tones",
   };
 
   const hint = contextHints[category] ?? contextHints.news;
@@ -216,6 +218,55 @@ export async function generateContextualImage(
     console.error("[imagen3] Upload failed:", err instanceof Error ? err.message : err);
     return null;
   }
+}
+
+// ── One-time taux background ───────────────────────────────────────────────
+
+const TAUX_BG_PATH = "ig/assets/taux-background.png";
+
+/**
+ * Ensure the branded taux-du-jour background image exists in Firebase Storage.
+ * Generates it exactly once via Gemini AI and reuses the same URL forever.
+ * Returns the public download URL.
+ */
+export async function ensureTauxBackground(): Promise<string | null> {
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
+  const { getStorage } = await import("firebase-admin/storage");
+  const { getApp } = await import("@edlight-news/firebase");
+  const bucket = getStorage(getApp()).bucket(bucketName);
+  const file = bucket.file(TAUX_BG_PATH);
+
+  // Check if it already exists
+  const [exists] = await file.exists();
+  if (exists) {
+    // Build the download URL from existing metadata
+    const [meta] = await file.getMetadata();
+    const token = (meta.metadata as Record<string, string> | undefined)?.firebaseStorageDownloadTokens;
+    if (token) {
+      const encoded = encodeURIComponent(TAUX_BG_PATH);
+      const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encoded}?alt=media&token=${token}`;
+      console.log("[taux-bg] Reusing existing taux background");
+      return url;
+    }
+  }
+
+  // Generate a new one
+  console.log("[taux-bg] Generating one-time taux background image...");
+  const prompt = [
+    "Abstract dark financial terminal background:",
+    "- Deep navy (#0a1628) to black gradient",
+    "- Subtle gold (#eab308) grid lines and accent curves",
+    "- Faint currency symbols ($ HTG) as ghosted watermarks",
+    "- Cinematic depth, slight film grain texture",
+    "- NO text, NO numbers, NO charts — purely atmospheric",
+    "- Portrait orientation 4:5, premium Bloomberg/Reuters aesthetic",
+  ].join("\n");
+
+  const url = await generateCustomImage(prompt, TAUX_BG_PATH);
+  if (url) {
+    console.log("[taux-bg] ✓ Taux background generated and stored permanently");
+  }
+  return url;
 }
 
 /**
