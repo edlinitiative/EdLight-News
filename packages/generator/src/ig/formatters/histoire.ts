@@ -23,49 +23,54 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // Slide 2: Key facts — use cleaned + split pipeline for quality sentences
+  // Slide 2: Key facts — always produce this slide
   let facts: string[] = [];
+
+  // Try extractedText first (most detail)
   if (item.extractedText) {
     const cleaned = cleanExtractedText(item.extractedText);
     facts = splitSentences(cleaned)
-      .filter((s) => s.length >= 20 && s.length <= 180)
+      .filter((s) => s.length >= 20 && s.length <= 200)
       .filter((s) => !isJunkSentence(s))
       .slice(0, 4);
   }
-  // Fallback: extract sentences from summary if extractedText produced too few
+
+  // Always fall back to summary sentences if we don't have enough
   if (facts.length < 2 && summary) {
     const summaryFacts = splitSentences(summary)
-      .filter((s) => s.length >= 20 && s.length <= 180)
+      .filter((s) => s.length >= 15 && s.length <= 200)
       .filter((s) => !isJunkSentence(s));
-    // Merge, dedupe
     for (const sf of summaryFacts) {
       if (!facts.includes(sf)) facts.push(sf);
       if (facts.length >= 4) break;
     }
   }
+
+  // If we still have nothing, use the full summary as a single bullet
+  if (facts.length === 0 && summary) {
+    facts = [shortenText(summary, 280)];
+  }
+
   if (facts.length >= 1) {
     slides.push({
-      heading: "Le saviez-vous",
+      heading: "Le saviez-vous ?",
       bullets: facts,
       layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
 
-  // Slide 3: Further reading
-  if (item.utilityMeta?.citations?.length) {
-    slides.push({
-      heading: "Pour aller plus loin",
-      bullets: item.utilityMeta.citations.slice(0, 3).map((c) => c.label),
-      layout: "explanation",
-      footer: buildSourceLine(item),
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
-  }
-
-  if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
-    slides[slides.length - 1]!.footer = buildSourceLine(item);
-  }
+  // Slide 3: Source + CTA (always — replaces the old "Pour aller plus loin")
+  slides.push({
+    heading: "En savoir plus",
+    bullets: [
+      "→ Lien dans la bio pour l'article complet",
+      "→ Lyen nan biyo pou atik konplè a",
+    ],
+    layout: "explanation",
+    footer: buildSourceLine(item),
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
 
   // Caption — bilingual
   const parts: string[] = [
