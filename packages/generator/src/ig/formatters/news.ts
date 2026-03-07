@@ -26,6 +26,23 @@ const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
   /^à lire aussi/i, /^à voir aussi/i, /^lire aussi/i, /^sur le même sujet/i,
   /^©\s/, /\d+\s*heures?\s*ago/, /^https?:\/\//,
   "page précédente", "page suivante", "retour à l'accueil",
+  // Web UI junk that leaks through scraping
+  "click to comment", "leave a reply", "leave a comment",
+  "in this article", "your email address", "notify me",
+  "log in to leave", "save my name", "required fields",
+  "read more", "read also", "see also", "related articles",
+  "newsletter", "subscribe", "s'abonner", "s'inscrire",
+  /^publicité/i, /^pub$/i, /^ad$/i,
+  /^tags?\s*:/i, /^catégorie/i, /^filed under/i,
+  /l'article .+ est apparu en premier sur/i,
+  // HTML / ad tracker remnants
+  /zoneid=/i, /insert_random_number/i, /<img\s/i, /<a\s/i, /<\/a>/i,
+  /\.js["']/i, /\.php/i, /\.aspx/i,
+  "faites défiler", "plus de contenu", "contenu sponsorisé",
+  /^\s*src=["']/i, /border=["']?0/i,
+  // Sidebar / related article fragments
+  /^[A-ZÀ-Ü][a-zà-ü]+ [A-ZÀ-Ü][a-zà-ü]+ (Politique|Économie|Sport|Culture|Société|Diplomatie|Justice)/,
+  "diaspora", /^partager$/i,
 ];
 
 export function isJunkSentence(sentence: string): boolean {
@@ -102,37 +119,114 @@ function looksLikeFrench(text: string): boolean {
   return hits >= 5;
 }
 
+/** Maximum characters for a single beat line on a headline slide. */
+const MAX_BEAT_CHARS = 200;
+
+/**
+ * Split text into complete sentences, keeping the ending punctuation.
+ * E.g. "Hello world. Next one!" → ["Hello world.", "Next one!"]
+ */
+function splitSentences(text: string): string[] {
+  // Match sentences that end with . ! or ? followed by space/EOL
+  const raw = text.match(/[^.!?]*[^.!?\s][^.!?]*[.!?]+/g);
+  if (!raw) return [];
+  return raw
+    .map((s) => s.trim().replace(/\s+/g, " "))
+    .filter((s) => s.length > 0);
+}
+
+/**
+ * Strip common scraping artifacts from extracted text before parsing:
+ * - HTML tags (<a>, <img>, etc.)
+ * - Ad tracker URLs and parameters
+ * - "PUBLICITÉ — Faites défiler…" blocks
+ * - "L'article … est apparu en premier sur …" trailers
+ * - "Plus de contenu" sections
+ */
+function cleanExtractedText(text: string): string {
+  return text
+    // Strip HTML tags
+    .replace(/<[^>]+>/g, " ")
+    // Remove ad tracker URLs (zoneid=, INSERT_RANDOM, etc.)
+    .replace(/https?:\/\/ads\.[^\s]*/gi, "")
+    .replace(/zoneid=[^\s]*/gi, "")
+    .replace(/INSERT_RANDOM_NUMBER_HERE/gi, "")
+    .replace(/['"][^'"]*\.(js|php|aspx)[^'"]*['"]/gi, "")
+    // Remove PUBLICITÉ blocks (may span to next sentence)
+    .replace(/PUBLICITÉ[^.]*\./gi, "")
+    .replace(/[Ff]aites défiler[^.]*\./g, "")
+    // Remove "L'article ... est apparu en premier sur ..." trailers
+    .replace(/L'article\s+.+?est apparu en premier sur\s+\S+\.?/gi, "")
+    // Remove "Plus de contenu" / related article sections and everything after
+    .replace(/Plus de contenu.*/gis, "")
+    .replace(/Articles? (similaires?|connexes?|associ[eé]s?).*/gis, "")
+    .replace(/Sur le même sujet.*/gis, "")
+    .replace(/À lire (aussi|également).*/gis, "")
+    .replace(/Lire (aussi|la suite).*/gis, "")
+    // Clean up multiple spaces / newlines
+    .replace(/\s{2,}/g, " ")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
+
+/**
+ * If a beat is too long for a headline slide, truncate at the nearest
+ * clause boundary (comma, semicolon, dash) and append "…".
+ * This ensures the text reads as a complete thought.
+ */
+function capBeatLength(text: string, max = MAX_BEAT_CHARS): string {
+  if (text.length <= max) return text;
+  // Find a clause boundary (comma, semicolon, dash) within the limit
+  const chunk = text.slice(0, max);
+  const lastBreak = Math.max(
+    chunk.lastIndexOf(", "),
+    chunk.lastIndexOf("; "),
+    chunk.lastIndexOf(" – "),
+    chunk.lastIndexOf(" — "),
+  );
+  if (lastBreak > max * 0.4) {
+    return chunk.slice(0, lastBreak).replace(/[,;\s]+$/, "") + ".";
+  }
+  // No clause boundary — truncate at last word
+  const lastSpace = chunk.lastIndexOf(" ");
+  if (lastSpace > max * 0.5) {
+    return chunk.slice(0, lastSpace).replace(/[,;\s]+$/, "") + "…";
+  }
+  return chunk + "…";
+}
+
 /**
  * Extract 2-3 story beats in French from the best available source:
  * 1. If extractedText is in French → parse sentences from it
  * 2. Otherwise → split the French summary into meaningful beats
+ *
+ * Each beat is a complete sentence capped at ~160 chars so it renders
+ * cleanly on a headline slide without being visually clipped.
  */
 function extractFrenchBeats(item: Item, frSummary: string): string[] {
   // Try extractedText first (most detailed)
   if (item.extractedText && looksLikeFrench(item.extractedText)) {
-    const sentences = item.extractedText
-      .split(/[.!?]\s+/)
-      .map((s) => s.trim().replace(/\s+/g, " "))
-      .filter((s) => s.length > 30 && s.length < 250)
+    const cleaned = cleanExtractedText(item.extractedText);
+    const sentences = splitSentences(cleaned)
+      .filter((s) => s.length > 30 && s.length < 350)
       .filter((s) => !isJunkSentence(s));
 
-    const beats = pickSpreadBeats(sentences, 3);
-    if (beats.length > 0) return beats;
+    const picks = pickSpreadBeats(sentences, 3);
+    if (picks.length > 0) return picks.map((b) => capBeatLength(b));
   }
 
   // Fallback: synthesize beats from the French summary
   if (frSummary && frSummary.length > 40) {
-    const sentences = frSummary
-      .split(/[.!?]\s+/)
-      .map((s) => s.trim().replace(/\s+/g, " "))
-      .filter((s) => s.length > 25);
+    const sentences = splitSentences(frSummary)
+      .filter((s) => s.length > 25)
+      .filter((s) => !isJunkSentence(s));
 
     if (sentences.length >= 2) {
-      return sentences.slice(0, 3);
+      return sentences.slice(0, 3).map((b) => capBeatLength(b));
     }
-    // Single long summary → show it as one beat
+    // Single long summary → cap it
     if (frSummary.length > 60) {
-      return [frSummary];
+      return [capBeatLength(frSummary)];
     }
   }
 

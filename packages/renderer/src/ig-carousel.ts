@@ -140,7 +140,13 @@ function buildHeadlineHTML(
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
     .join("\n    ");
   const hasImage = !!slide.backgroundImage;
-  const hSize = isFirst ? TYPE.headlineHero : TYPE.headlineInner;
+  // Responsive inner headline: scale down for longer text so it never clips
+  const hSize = isFirst
+    ? TYPE.headlineHero
+    : slide.heading.length > 120 ? 48
+    : slide.heading.length > 80 ? 56
+    : TYPE.headlineInner;
+  const hClamp = isFirst ? 4 : slide.heading.length > 120 ? 8 : 6;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
 
   return `<!DOCTYPE html>
@@ -156,7 +162,7 @@ ${pillCss(accent)}
 ${isFirst ? topBrandCss(accent) : ""}
 .main { margin-top:auto; }
 ${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; }` : ""}
-.h { font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 4 : 5}; -webkit-box-orient:vertical; }
+.h { font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 4 : hClamp}; -webkit-box-orient:vertical; }
 .bt { font-size:${TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.45; opacity:${isFirst ? 0.80 : 0.90}; text-shadow:0 1px 16px rgba(0,0,0,0.7); margin-bottom:8px; max-height:${isFirst ? 180 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 4 : 6}; -webkit-box-orient:vertical; }
 ${bottomCss()}
 </style></head>
