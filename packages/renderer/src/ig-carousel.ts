@@ -206,8 +206,8 @@ ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
-.h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:32px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
-.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.45; opacity:0.85; margin-bottom:12px; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 8px rgba(0,0,0,0.6); }
+.h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.88; margin-bottom:20px; padding-left:18px; border-left:3px solid ${accent}22; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 8px rgba(0,0,0,0.6); }
 ${bottomCss()}
 </style></head>
 <body>

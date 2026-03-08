@@ -86,13 +86,13 @@ export const OVERLAY = {
     rgba(0,0,0,0.80) 70%,
     rgba(0,0,0,0.97) 82%,
     rgba(0,0,0,0.99) 100%)`,
-  /** Inner slide overlay — light enough to see background, text has own shadow */
+  /** Inner slide overlay — readable text with visible background behind it */
   inner: `linear-gradient(180deg,
-    rgba(0,0,0,0.40) 0%,
-    rgba(0,0,0,0.25) 20%,
-    rgba(0,0,0,0.30) 50%,
-    rgba(0,0,0,0.55) 70%,
-    rgba(0,0,0,0.80) 85%,
-    rgba(0,0,0,0.95) 95%,
-    rgba(0,0,0,0.99) 100%)`,
+    rgba(0,0,0,0.35) 0%,
+    rgba(0,0,0,0.20) 20%,
+    rgba(0,0,0,0.25) 50%,
+    rgba(0,0,0,0.50) 70%,
+    rgba(0,0,0,0.78) 85%,
+    rgba(0,0,0,0.92) 95%,
+    rgba(0,0,0,0.97) 100%)`,
 } as const;

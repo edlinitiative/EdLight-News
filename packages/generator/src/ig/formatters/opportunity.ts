@@ -15,44 +15,67 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   const summary = bi?.frSummary ?? item.summary;
   const imageUrl = item.imageUrl ?? undefined;
 
-  // ── Slide 1: Hero cover ──
+  // ── Slide 1: Hero cover (generous headline limit to avoid 3-dots) ──
   const coverSub: string[] = [];
-  if (deadlineStr) coverSub.push(`Date limite: ${formatDeadline(deadlineStr)}`);
   if (item.opportunity?.coverage) coverSub.push(item.opportunity.coverage);
   if (item.geoTag) {
     coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
-    heading: shortenHeadline(title),
-    bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [shortenText(summary, 180)],
+    heading: shortenHeadline(title, 20),
+    bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [],
     layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // ── Slide 2: Eligibility ──
+  // ── Slide 2: About — what is this opportunity ──
+  slides.push({
+    heading: "De quoi s'agit-il ?",
+    bullets: [shortenText(summary, 350)],
+    layout: "explanation",
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
+
+  // ── Slide 3: Eligibility (separate bullets for readability) ──
   if (item.opportunity?.eligibility?.length) {
-    slides.push({
-      heading: "Qui peut postuler ?",
-      bullets: [item.opportunity.eligibility.slice(0, 3).join(". ")],
-      layout: "explanation",
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
+    const elig = item.opportunity.eligibility;
+    if (elig.length <= 5) {
+      slides.push({
+        heading: "Qui peut postuler ?",
+        bullets: elig.map((e) => `✓ ${e}`),
+        layout: "explanation",
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+    } else {
+      slides.push({
+        heading: "Qui peut postuler ?",
+        bullets: elig.slice(0, 4).map((e) => `✓ ${e}`),
+        layout: "explanation",
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+      slides.push({
+        heading: "Autres critères",
+        bullets: elig.slice(4, 8).map((e) => `✓ ${e}`),
+        layout: "explanation",
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+    }
   }
 
-  // ── Slide 3: How to apply ──
-  const applyParts: string[] = [];
-  if (deadlineStr) applyParts.push(`Date limite: ${formatDeadline(deadlineStr)}`);
-  if (item.opportunity?.howToApply) applyParts.push(item.opportunity.howToApply);
-  if (item.opportunity?.officialLink) applyParts.push(humanizeUrl(item.opportunity.officialLink));
-  if (applyParts.length > 0) {
-    slides.push({
-      heading: "Comment postuler",
-      bullets: [applyParts.join("  ·  ")],
-      layout: "explanation",
-      footer: buildSourceLine(item),
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
-  }
+  // ── Slide 4: How to apply (link first, then deadline last) ──
+  const applyBullets: string[] = [];
+  if (item.opportunity?.officialLink) applyBullets.push(`🔗 ${humanizeUrl(item.opportunity.officialLink)}`);
+  if (item.opportunity?.howToApply) applyBullets.push(`📝 ${item.opportunity.howToApply}`);
+  if (deadlineStr) applyBullets.push(`📅 Date limite: ${formatDeadline(deadlineStr)}`);
+  if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
+
+  slides.push({
+    heading: "Comment postuler",
+    bullets: applyBullets,
+    layout: "explanation",
+    footer: buildSourceLine(item),
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
 
   // Ensure last slide has source
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {

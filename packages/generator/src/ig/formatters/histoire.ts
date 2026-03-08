@@ -60,17 +60,48 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
     });
   }
 
-  // Slide 3: Source + CTA (always — replaces the old "Pour aller plus loin")
-  slides.push({
-    heading: "En savoir plus",
-    bullets: [
-      "→ Lien dans la bio pour l'article complet",
-      "→ Lyen nan biyo pou atik konplè a",
-    ],
-    layout: "explanation",
-    footer: buildSourceLine(item),
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-  });
+  // Slide 3: Additional context — more depth about the fact (NOT random links)
+  // Pull extra sentences from extractedText that weren't used in slide 2,
+  // or rephrase the summary to give a different angle.
+  let extraFacts: string[] = [];
+  if (item.extractedText) {
+    const cleaned = cleanExtractedText(item.extractedText);
+    const allSentences = splitSentences(cleaned)
+      .filter((s) => s.length >= 20 && s.length <= 250)
+      .filter((s) => !isJunkSentence(s));
+    // Skip the ones already used in slide 2
+    extraFacts = allSentences
+      .filter((s) => !facts.includes(s))
+      .slice(0, 3);
+  }
+
+  // Fallback: use the summary if we couldn't get extra facts
+  if (extraFacts.length === 0 && summary) {
+    const alt = splitSentences(summary)
+      .filter((s) => s.length >= 15 && s.length <= 250)
+      .filter((s) => !isJunkSentence(s))
+      .filter((s) => !facts.includes(s));
+    extraFacts = alt.slice(0, 2);
+  }
+
+  if (extraFacts.length > 0) {
+    slides.push({
+      heading: "Pour mieux comprendre",
+      bullets: extraFacts,
+      layout: "explanation",
+      footer: buildSourceLine(item),
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  } else {
+    // Minimal final slide — just source attribution
+    slides.push({
+      heading: "Source",
+      bullets: [buildSourceLine(item)],
+      layout: "explanation",
+      footer: buildSourceLine(item),
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  }
 
   // Caption — bilingual
   const parts: string[] = [

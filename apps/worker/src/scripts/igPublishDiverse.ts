@@ -62,8 +62,8 @@ async function waitForContainer(cid: string, label: string): Promise<boolean> {
 async function publishOneManual(queueItem: any): Promise<boolean> {
   console.log(`\n--- ${queueItem.igType}: ${queueItem.id} (score=${queueItem.score}) ---`);
 
-  // Taux posts already have payload — skip item lookup
-  if (queueItem.igType === "taux") {
+  // Items with pre-built payload (taux, histoire-manual, etc.) — skip item lookup
+  if (queueItem.payload?.slides?.length) {
     return publishFromPayload(queueItem);
   }
 
@@ -140,7 +140,7 @@ async function publishOneManual(queueItem: any): Promise<boolean> {
 async function publishFromPayload(queueItem: any): Promise<boolean> {
   let formatted = queueItem.payload;
   if (!formatted?.slides?.length) {
-    console.log("  No payload on taux item, skipping");
+    console.log("  No payload on item, skipping");
     return false;
   }
 
