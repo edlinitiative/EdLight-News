@@ -62,13 +62,18 @@ async function waitForContainer(cid: string, label: string): Promise<boolean> {
 async function publishOneManual(queueItem: any): Promise<boolean> {
   console.log(`\n--- ${queueItem.igType}: ${queueItem.id} (score=${queueItem.score}) ---`);
 
-  // Items with pre-built payload (taux, histoire-manual, etc.) — skip item lookup
-  if (queueItem.payload?.slides?.length) {
+  // Taux posts never have a source item — always use pre-built payload
+  if (queueItem.igType === "taux") {
     return publishFromPayload(queueItem);
   }
 
   const item = await itemsRepo.getItem(queueItem.sourceContentId);
   if (!item) {
+    // No source item — fall back to pre-built payload if available
+    if (queueItem.payload?.slides?.length) {
+      console.log("  Source not found, using pre-built payload");
+      return publishFromPayload(queueItem);
+    }
     console.log("  Source not found, skipping");
     return false;
   }
