@@ -140,13 +140,15 @@ function buildHeadlineHTML(
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
     .join("\n    ");
   const hasImage = !!slide.backgroundImage;
-  // Responsive inner headline: scale down for longer text so it never clips
+  // Responsive headline: scale down for longer text so it never clips
   const hSize = isFirst
-    ? TYPE.headlineHero
+    ? slide.heading.length > 60 ? 64
+    : slide.heading.length > 40 ? 72
+    : TYPE.headlineHero
     : slide.heading.length > 120 ? 48
     : slide.heading.length > 80 ? 56
     : TYPE.headlineInner;
-  const hClamp = isFirst ? 4 : slide.heading.length > 120 ? 8 : 6;
+  const hClamp = isFirst ? (slide.heading.length > 60 ? 6 : 5) : slide.heading.length > 120 ? 8 : 6;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
 
   return `<!DOCTYPE html>
@@ -207,7 +209,7 @@ ${pillCss(accent)}
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
 .h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
-.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.88; margin-bottom:20px; padding-left:18px; border-left:3px solid ${accent}22; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 8px rgba(0,0,0,0.6); }
+.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.92; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}88; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 8px rgba(0,0,0,0.6); }
 ${bottomCss()}
 </style></head>
 <body>
@@ -288,7 +290,6 @@ ${GOOGLE_FONTS_LINK}
 ${resetCss()}
 body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
 ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.55); }` : ""}
-.grid { position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size:40px 40px; }
 .glow { position:absolute; top:-200px; right:-100px; width:600px; height:600px; background:radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%); }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -304,7 +305,6 @@ ${bottomCss()}
 </style></head>
 <body>
 ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
-<div class="grid"></div>
 <div class="glow"></div>
 <div class="c">
   <div class="top">
@@ -366,7 +366,6 @@ ${GOOGLE_FONTS_LINK}
 ${resetCss()}
 body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
 ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.60); }` : ""}
-.grid { position:absolute; inset:0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size:40px 40px; }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; }
 ${pillCss(accent)}
@@ -374,16 +373,15 @@ ${pillCss(accent)}
 .rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
 .row { padding:34px 0; border-bottom:1px solid rgba(255,255,255,0.08); }
 .row:last-child { border-bottom:none; }
-.row-label { font-size:18px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:${accent}; margin-bottom:16px; }
+.row-label { font-size:26px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:${accent}; margin-bottom:16px; }
 .row-pair { display:flex; gap:60px; }
 .pair-col { display:flex; flex-direction:column; gap:6px; }
-.pair-head { font-size:14px; font-weight:600; letter-spacing:2px; opacity:0.40; text-transform:uppercase; }
-.pair-val { font-size:44px; font-weight:800; letter-spacing:-1px; line-height:1; }
+.pair-head { font-size:20px; font-weight:600; letter-spacing:2px; opacity:0.50; text-transform:uppercase; }
+.pair-val { font-size:56px; font-weight:800; letter-spacing:-1px; line-height:1; }
 ${bottomCss()}
 </style></head>
 <body>
 ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
-<div class="grid"></div>
 <div class="c">
   <div class="top">
     <span class="pill">TAUX DU JOUR</span>

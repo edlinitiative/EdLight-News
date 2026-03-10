@@ -47,20 +47,20 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     if (elig.length <= 5) {
       slides.push({
         heading: "Qui peut postuler ?",
-        bullets: elig.map((e) => `✓ ${e}`),
+        bullets: elig,
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
     } else {
       slides.push({
         heading: "Qui peut postuler ?",
-        bullets: elig.slice(0, 4).map((e) => `✓ ${e}`),
+        bullets: elig.slice(0, 4),
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
       slides.push({
         heading: "Autres critères",
-        bullets: elig.slice(4, 8).map((e) => `✓ ${e}`),
+        bullets: elig.slice(4, 8),
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
@@ -69,9 +69,9 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
 
   // ── Slide 4: How to apply (link first, then instructions, deadline last) ──
   const applyBullets: string[] = [];
-  if (item.opportunity?.officialLink) applyBullets.push(`🔗 ${humanizeUrl(item.opportunity.officialLink)}`);
-  if (item.opportunity?.howToApply) applyBullets.push(`📝 ${item.opportunity.howToApply}`);
-  if (deadlineStr) applyBullets.push(`📅 Date limite: ${formatDeadline(deadlineStr)}`);
+  if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
+  if (item.opportunity?.howToApply) applyBullets.push(item.opportunity.howToApply);
+  if (deadlineStr) applyBullets.push(`Date limite: ${formatDeadline(deadlineStr)}`);
   if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
 
   slides.push({
