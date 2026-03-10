@@ -318,8 +318,11 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Image required — IG is a visual platform, skip items without images
-  if (!item.imageUrl) {
+  // Image required — IG is a visual platform, skip items without images.
+  // Exception: histoire and utility types use branded images generated at
+  // render time, so they don't need a publisher imageUrl.
+  const BRANDED_IMAGE_TYPES: Set<IGPostType> = new Set(["histoire", "utility"]);
+  if (!item.imageUrl && !BRANDED_IMAGE_TYPES.has(igType)) {
     return {
       igEligible: false,
       igType,

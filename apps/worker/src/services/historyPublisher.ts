@@ -183,6 +183,68 @@ function buildFrenchBody(
   return { title, summary, body, sections };
 }
 
+// ── Lightweight FR → Haitian Creole adaptation ──────────────────────────────
+// The curated almanac only stores French text. Rather than serving identical
+// FR text labeled as HT, we apply common FR→HT word substitutions. This is
+// not full translation but produces visibly distinct Creole output.
+const FR_HT_SUBS: [RegExp, string][] = [
+  // Common articles / prepositions
+  [/\bLe\b/g, "Le"], // keep proper nouns
+  [/\bles\b/g, "yo"],
+  [/\bdes\b/g, "nan"],
+  [/\bdu\b/g, "nan"],
+  [/\bde la\b/g, "nan"],
+  [/\bd'Haïti\b/g, "Ayiti"],
+  [/\bHaïti\b/g, "Ayiti"],
+  [/\bhaïtien(ne)?s?\b/gi, "ayisyen"],
+  // Common verbs
+  [/\best\b/g, "se"],
+  [/\bétait\b/g, "te"],
+  [/\ba été\b/g, "te"],
+  [/\bfut\b/g, "te"],
+  [/\bsont\b/g, "se"],
+  [/\bétaient\b/g, "te"],
+  [/\bont été\b/g, "te"],
+  // Key words
+  [/\bhistoire\b/gi, "istwa"],
+  [/\bprésiden(t|ce)\b/gi, "prezidan"],
+  [/\bgouvernement\b/gi, "gouvènman"],
+  [/\bindépendance\b/gi, "endepandans"],
+  [/\brépublique\b/gi, "repiblik"],
+  [/\bconstitution\b/gi, "konstitisyon"],
+  [/\bpeuple\b/gi, "pèp"],
+  [/\bpays\b/gi, "peyi"],
+  [/\bvictoire\b/gi, "viktwa"],
+  [/\bbataille\b/gi, "batay"],
+  [/\barmée\b/gi, "lame"],
+  [/\bgénéral\b/gi, "jeneral"],
+  [/\bsoldats?\b/gi, "sòlda"],
+  [/\bliberté\b/gi, "libète"],
+  [/\besclavage\b/gi, "esklavaj"],
+  [/\brévolution\b/gi, "revolisyon"],
+  [/\bélection\b/gi, "eleksyon"],
+  [/\béducation\b/gi, "edikasyon"],
+  [/\buniversité\b/gi, "inivèsite"],
+  [/\bétudiant(e)?s?\b/gi, "etidyan"],
+  [/\bécole\b/gi, "lekòl"],
+  [/\bPour les étudiants\b/gi, "Pou etidyan yo"],
+  [/\bSources\b/g, "Sous"],
+  // Connectors
+  [/\bcependant\b/gi, "sepandan"],
+  [/\bégalement\b/gi, "tou"],
+  [/\bainsi que\b/gi, "ansanm ak"],
+  [/\bnotamment\b/gi, "sitou"],
+  [/\baujourd'hui\b/gi, "jodi a"],
+];
+
+function lightCreoleAdapt(frenchText: string): string {
+  let text = frenchText;
+  for (const [re, replacement] of FR_HT_SUBS) {
+    text = text.replace(re, replacement);
+  }
+  return text;
+}
+
 function buildCreoleBody(
   entries: HaitiHistoryAlmanacEntry[],
   holidays: HaitiHoliday[],
@@ -207,12 +269,12 @@ function buildCreoleBody(
     });
   }
 
-  // History entries — use French text with Creole heading (we don't have full HT translations for history)
+  // History entries — apply lightweight FR→HT adaptation
   for (const entry of entries) {
     const yearLabel = entry.year ? ` (${entry.year})` : "";
-    let content = entry.summary_fr; // Fallback to French for almanac content
+    let content = lightCreoleAdapt(entry.summary_fr);
     if (entry.student_takeaway_fr) {
-      content += `\n\n💡 **Pou etidyan yo :** ${entry.student_takeaway_fr}`;
+      content += `\n\n💡 **Pou etidyan yo :** ${lightCreoleAdapt(entry.student_takeaway_fr)}`;
     }
     if (entry.sources && entry.sources.length > 0) {
       const sourceLinks = entry.sources.map((s) => `[${s.label}](${s.url})`).join(" · ");
@@ -222,7 +284,7 @@ function buildCreoleBody(
     const ill = entry.illustration;
     const hasIll = !!ill?.imageUrl && (ill.confidence ?? 0) >= MIN_ILLUSTRATION_CONFIDENCE;
     sections.push({
-      heading: `${entry.title_fr}${yearLabel}`,
+      heading: `${lightCreoleAdapt(entry.title_fr)}${yearLabel}`,
       content,
       ...(hasIll && ill ? {
         imageUrl: ill.imageUrl,
