@@ -86,6 +86,18 @@ export async function listRecentItems(limit = 50): Promise<Item[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Item);
 }
 
+export async function listRecentByItemType(
+  itemType: string,
+  limit = 50,
+): Promise<Item[]> {
+  const snap = await collection()
+    .where("itemType", "==", itemType)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Item);
+}
+
 export async function updateItem(
   id: string,
   data: ItemUpdate,

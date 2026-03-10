@@ -63,6 +63,14 @@ export async function listRecentItems(limit = 50) {
         .get();
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
+export async function listRecentByItemType(itemType, limit = 50) {
+    const snap = await collection()
+        .where("itemType", "==", itemType)
+        .orderBy("createdAt", "desc")
+        .limit(limit)
+        .get();
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
 export async function updateItem(id, data) {
     // Strip undefined values — Firestore rejects them
     const clean = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));

@@ -69,12 +69,12 @@ export function buildSlideHTML(
 
   switch (layout) {
     case "data":
-      return buildDataHTML(slide, label, accent, dark, isFirst);
+      return buildDataHTML(slide, label, accent, dark, isFirst, igType);
     case "explanation":
-      return buildExplanationHTML(slide, label, accent, dark, isFirst);
+      return buildExplanationHTML(slide, label, accent, dark, isFirst, igType);
     case "headline":
     default:
-      return buildHeadlineHTML(slide, label, accent, dark, isFirst);
+      return buildHeadlineHTML(slide, label, accent, dark, isFirst, igType);
   }
 }
 
@@ -134,7 +134,7 @@ function bottomCss(): string {
 // Big bold title + optional one-liner. Used for covers and story beats.
 
 function buildHeadlineHTML(
-  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean,
+  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean, igType = "",
 ): string {
   const bodyText = slide.bullets
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
@@ -157,7 +157,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
-${hasImage ? overlayCss(isFirst ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
+${hasImage ? overlayCss((isFirst || igType === "news") ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -189,7 +189,7 @@ ${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div cl
 // Medium headline + body bullets. Used for detail / eligibility / how-to slides.
 
 function buildExplanationHTML(
-  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean,
+  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean, igType = "",
 ): string {
   const bulletsHtml = slide.bullets
     .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
@@ -203,7 +203,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
-${hasImage ? overlayCss(OVERLAY.inner) : glowCss(accent)}
+${hasImage ? overlayCss(igType === "news" ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -231,7 +231,7 @@ ${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div cl
 // Giant stat number + description. Used for coverage amounts, percentages, etc.
 
 function buildDataHTML(
-  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean,
+  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean, igType = "",
 ): string {
   const stat = slide.statValue ?? slide.heading;
   const desc = slide.statDescription ?? (slide.bullets[0] || "");
@@ -244,7 +244,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
-${hasImage ? overlayCss(OVERLAY.inner) : glowCss(accent)}
+${hasImage ? overlayCss(igType === "news" ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -289,7 +289,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
-${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.55); }` : ""}
+${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.65); }` : ""}
 .glow { position:absolute; top:-200px; right:-100px; width:600px; height:600px; background:radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%); }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -365,7 +365,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
-${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.60); }` : ""}
+${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.70); }` : ""}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; }
 ${pillCss(accent)}

@@ -24,6 +24,7 @@ export declare function upsertItemByCanonicalUrl(data: CreateItem): Promise<{
  */
 export declare function listItemsByCategory(category: string): Promise<Item[]>;
 export declare function listRecentItems(limit?: number): Promise<Item[]>;
+export declare function listRecentByItemType(itemType: string, limit?: number): Promise<Item[]>;
 export declare function updateItem(id: string, data: ItemUpdate): Promise<void>;
 /** Get a single item by its dedupeGroupId (newest first). */
 export declare function listByDedupeGroupId(dedupeGroupId: string, limit?: number): Promise<Item[]>;

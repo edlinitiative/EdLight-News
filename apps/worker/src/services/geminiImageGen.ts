@@ -262,8 +262,8 @@ export async function ensureTauxBackground(forceRegenerate = false): Promise<str
   console.log("[taux-bg] Generating one-time taux background image...");
   const prompt = [
     "Ultra high resolution abstract dark background for a financial data display, at least 1080 pixels wide, extremely sharp details:",
-    "- Deep navy (#0a1628) to near-black smooth gradient, rich colour depth",
-    "- Soft gold (#eab308) flowing accent curves and bokeh light spots with gentle glow",
+    "- Deep navy (#0a1628) to near-black smooth gradient, near-black everywhere, minimal luminosity, rich colour depth",
+    "- Extremely faint, barely visible gold (#eab308) dim accent wisps — no bright spots, no bokeh, no glow",
     "- NO grid lines, NO chart lines, NO rulers, NO sharp geometric patterns",
     "- Smooth organic shapes only — flowing gradients, soft particles, subtle noise texture",
     "- Faint currency symbols ($ HTG) as ghosted watermarks blended into background",

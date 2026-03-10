@@ -69,11 +69,6 @@ async function publishOneManual(queueItem: any): Promise<boolean> {
 
   const item = await itemsRepo.getItem(queueItem.sourceContentId);
   if (!item) {
-    // No source item — fall back to pre-built payload if available
-    if (queueItem.payload?.slides?.length) {
-      console.log("  Source not found, using pre-built payload");
-      return publishFromPayload(queueItem);
-    }
     console.log("  Source not found, skipping");
     return false;
   }
