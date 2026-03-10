@@ -34,6 +34,7 @@ import {
   attemptYearFallback,
 } from "../validation/historyValidation.js";
 import { isHighConfidenceSourceType } from "../historySources/historySourceRegistry.js";
+import { generateCustomImage } from "./geminiImageGen.js";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,94 @@ function buildImageCredit(ill: NonNullable<HaitiHistoryAlmanacEntry["illustratio
   if (ill.provider === "wikimedia_commons") parts.push("Wikimedia Commons");
   if (ill.license) parts.push(ill.license);
   return parts.length > 0 ? parts.join(" · ") : "";
+}
+
+// ── AI Editorial Illustration ───────────────────────────────────────────────
+
+/** Build a Gemini image-generation prompt from almanac entries. */
+function buildHistoryImagePrompt(entries: HaitiHistoryAlmanacEntry[]): string {
+  const events = entries
+    .map((e) => {
+      const year = e.year ? ` (${e.year})` : "";
+      return `• ${e.title_fr}${year}`;
+    })
+    .join("\n");
+
+  return [
+    "Create a colorful editorial illustration for a Haitian history educational post.",
+    "",
+    "Events featured today:",
+    events,
+    "",
+    "Style requirements:",
+    "- Bold, vibrant Caribbean color palette (warm yellows, ocean blues, lush greens, sunset oranges)",
+    "- Hand-drawn editorial illustration style, NOT photorealistic",
+    "- Symbolic/metaphorical imagery — do NOT depict specific named individuals",
+    "- Include subtle Haitian cultural motifs (tropical flora, architecture, Caribbean sea)",
+    "- Educational, dignified tone appropriate for students",
+    "- Portrait orientation (4:5 aspect ratio, 1080×1350 pixels)",
+    "- NO text, NO words, NO letters, NO numbers overlaid on the image",
+    "- Clean composition with a clear focal point",
+  ].join("\n");
+}
+
+/**
+ * Ensure an AI editorial illustration exists for the given almanac entries.
+ * Returns the illustration metadata (existing or freshly generated).
+ * Falls back gracefully — never blocks publishing.
+ */
+async function ensureHistoryIllustration(
+  monthDay: string,
+  entries: HaitiHistoryAlmanacEntry[],
+  existingIllustration?: HaitiHistoryAlmanacEntry["illustration"] | null,
+): Promise<{ imageUrl: string; imageSource: "gemini_ai" | "wikidata"; confidence: number; attribution?: { name?: string; url?: string; license?: string } } | null> {
+  // If the first entry already has a gemini_ai illustration, reuse it
+  if (existingIllustration?.provider === "gemini_ai" && existingIllustration.imageUrl) {
+    return {
+      imageUrl: existingIllustration.imageUrl,
+      imageSource: "gemini_ai",
+      confidence: existingIllustration.confidence ?? 0.85,
+    };
+  }
+
+  // Generate new AI illustration
+  try {
+    const prompt = buildHistoryImagePrompt(entries);
+    const storagePath = `histoire/illustrations/${monthDay}.png`;
+    const url = await generateCustomImage(prompt, storagePath);
+
+    if (!url) {
+      console.warn(`[history-publisher] AI illustration generation failed for ${monthDay}, falling back`);
+      return null;
+    }
+
+    // Persist illustration metadata on the first almanac entry
+    const firstEntry = entries[0];
+    if (firstEntry) {
+      try {
+        await haitiHistoryAlmanacRepo.update(firstEntry.id, {
+          illustration: {
+            imageUrl: url,
+            pageUrl: url,
+            provider: "gemini_ai" as const,
+            confidence: 0.85,
+          },
+        } as Partial<typeof firstEntry>);
+      } catch (updateErr) {
+        console.warn(`[history-publisher] Could not persist illustration metadata: ${updateErr}`);
+      }
+    }
+
+    console.log(`[history-publisher] ✓ AI illustration generated for ${monthDay}`);
+    return {
+      imageUrl: url,
+      imageSource: "gemini_ai",
+      confidence: 0.85,
+    };
+  } catch (err) {
+    console.error(`[history-publisher] AI illustration error for ${monthDay}:`, err);
+    return null;
+  }
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -607,12 +696,14 @@ interface PublishContentInput {
   source: "raw-verified-llm" | "template";
   /** Best illustration from almanac entries (if any). */
   heroIllustration?: HaitiHistoryAlmanacEntry["illustration"] | null;
+  /** Almanac entries — used for AI illustration generation. */
+  entries?: HaitiHistoryAlmanacEntry[];
 }
 
 async function publishContent(
   input: PublishContentInput,
 ): Promise<{ published: boolean; skipped: boolean; reason: string; itemId?: string }> {
-  const { dateISO, monthDay, frContent, htContent, citations, entryIds, holidayId, warnings, source, heroIllustration } = input;
+  const { dateISO, monthDay, frContent, htContent, citations, entryIds, holidayId, warnings, source, heroIllustration, entries: inputEntries } = input;
 
   const qualityFlags: QualityFlags = {
     hasSourceUrl: true,
@@ -621,8 +712,36 @@ async function publishContent(
     reasons: source === "raw-verified-llm" ? ["llm-rewrite-from-raw"] : [],
   };
 
-  // Resolve hero image from best almanac illustration
-  const hasHero = !!heroIllustration?.imageUrl;
+  // ── Resolve hero image: prefer AI illustration → existing wiki → branded fallback ──
+  let heroImage: { imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "branded"; imageConfidence?: number; imageAttribution?: { name?: string; url?: string; license?: string } };
+
+  // Try AI editorial illustration first (if entries are available)
+  const aiResult = inputEntries && inputEntries.length > 0
+    ? await ensureHistoryIllustration(monthDay, inputEntries, heroIllustration)
+    : null;
+
+  if (aiResult) {
+    heroImage = {
+      imageUrl: aiResult.imageUrl,
+      imageSource: "gemini_ai",
+      imageConfidence: aiResult.confidence,
+      imageAttribution: aiResult.attribution,
+    };
+  } else if (heroIllustration?.imageUrl) {
+    // Fallback to existing Wikimedia illustration
+    heroImage = {
+      imageUrl: heroIllustration.imageUrl,
+      imageSource: "wikidata",
+      imageConfidence: heroIllustration.confidence ?? 0.7,
+      imageAttribution: {
+        name: heroIllustration.author,
+        url: heroIllustration.pageUrl,
+        license: heroIllustration.license,
+      },
+    };
+  } else {
+    heroImage = { imageUrl: "", imageSource: "branded" };
+  }
 
   const canonicalUrl = `edlight://histoire/${dateISO}`;
   const { item } = await itemsRepo.upsertItemByCanonicalUrl({
@@ -646,15 +765,11 @@ async function publishContent(
     },
     audienceFitScore: 0.95,
     geoTag: "HT" as const,
-    ...(hasHero && heroIllustration ? {
-      imageUrl: heroIllustration.imageUrl,
-      imageSource: "wikidata" as const,
-      imageConfidence: heroIllustration.confidence ?? 0.7,
-      imageAttribution: {
-        name: heroIllustration.author,
-        url: heroIllustration.pageUrl,
-        license: heroIllustration.license,
-      },
+    ...(heroImage.imageUrl ? {
+      imageUrl: heroImage.imageUrl,
+      imageSource: heroImage.imageSource as "wikidata",
+      imageConfidence: heroImage.imageConfidence ?? 0.7,
+      imageAttribution: heroImage.imageAttribution,
     } : {
       imageSource: "branded" as const,
     }),
@@ -794,6 +909,7 @@ export async function runHistoryDailyPublisher(): Promise<{
             // LLM path uses raw entries which have no illustrations;
             // fall back to curated almanac entries if available.
             heroIllustration: pickBestIllustration(entries),
+            entries,
           });
         } else {
           console.warn(
@@ -937,6 +1053,7 @@ export async function runHistoryDailyPublisher(): Promise<{
       warnings: allWarnings,
       source: "template",
       heroIllustration: pickBestIllustration(sortedEntries),
+      entries: sortedEntries,
     });
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

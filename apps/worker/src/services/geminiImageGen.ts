@@ -42,7 +42,7 @@ function buildImagePrompt(item: Item): string {
     event: "conference hall, seminar, educational gathering",
     resource: "modern workspace, technology, learning tools",
     taux: "financial terminal, currency exchange, gold accents on dark navy",
-    histoire: "historical Haiti, vintage Caribbean photography, sepia tones",
+    histoire: "colorful editorial illustration of Haitian history, Caribbean warmth, bold composition, educational style",
   };
 
   const hint = contextHints[category] ?? contextHints.news;

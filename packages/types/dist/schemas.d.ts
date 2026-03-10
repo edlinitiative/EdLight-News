@@ -59,7 +59,7 @@ declare const sourceSelectorsSchema: z.ZodObject<{
     title?: string | undefined;
 }>;
 declare const geoTagSchema: z.ZodEnum<["HT", "Diaspora", "Global"]>;
-declare const imageSourceSchema: z.ZodEnum<["publisher", "wikidata", "branded", "screenshot", "commons"]>;
+declare const imageSourceSchema: z.ZodEnum<["publisher", "wikidata", "branded", "screenshot", "commons", "gemini_ai"]>;
 declare const imageMetaSchema: z.ZodObject<{
     width: z.ZodOptional<z.ZodNumber>;
     height: z.ZodOptional<z.ZodNumber>;
@@ -782,7 +782,7 @@ export declare const itemSchema: z.ZodObject<{
         nanoseconds: number;
     }>>>;
     imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "wikidata", "branded", "screenshot", "commons"]>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "wikidata", "branded", "screenshot", "commons", "gemini_ai"]>>;
     imageConfidence: z.ZodOptional<z.ZodNumber>;
     imageMeta: z.ZodOptional<z.ZodObject<{
         width: z.ZodOptional<z.ZodNumber>;
@@ -1056,7 +1056,7 @@ export declare const itemSchema: z.ZodObject<{
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | "gemini_ai" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
@@ -1174,7 +1174,7 @@ export declare const itemSchema: z.ZodObject<{
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | "gemini_ai" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
@@ -1804,7 +1804,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     }>>>;
     imageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "wikidata", "branded", "screenshot", "commons"]>>;
+    imageSource: z.ZodOptional<z.ZodEnum<["publisher", "wikidata", "branded", "screenshot", "commons", "gemini_ai"]>>;
     imageConfidence: z.ZodOptional<z.ZodNumber>;
     imageMeta: z.ZodOptional<z.ZodObject<{
         width: z.ZodOptional<z.ZodNumber>;
@@ -2069,7 +2069,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | "gemini_ai" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
@@ -2178,7 +2178,7 @@ export declare const createItemSchema: z.ZodObject<Omit<{
     geoTag?: "HT" | "Diaspora" | "Global" | undefined;
     audienceFitScore?: number | undefined;
     dedupeGroupId?: string | undefined;
-    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | undefined;
+    imageSource?: "publisher" | "wikidata" | "branded" | "screenshot" | "commons" | "gemini_ai" | undefined;
     imageConfidence?: number | undefined;
     imageMeta?: {
         width?: number | undefined;
@@ -4046,7 +4046,7 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
         imageUrl: z.ZodString;
         pageUrl: z.ZodString;
         pageTitle: z.ZodOptional<z.ZodString>;
-        provider: z.ZodOptional<z.ZodEnum<["wikimedia_commons", "manual"]>>;
+        provider: z.ZodOptional<z.ZodEnum<["wikimedia_commons", "manual", "gemini_ai"]>>;
         author: z.ZodOptional<z.ZodString>;
         license: z.ZodOptional<z.ZodString>;
         confidence: z.ZodOptional<z.ZodNumber>;
@@ -4056,7 +4056,7 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     }, {
         imageUrl: string;
@@ -4064,7 +4064,7 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     }>>;
     sources: z.ZodArray<z.ZodObject<{
@@ -4127,7 +4127,7 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     } | undefined;
 }, {
@@ -4158,7 +4158,7 @@ export declare const haitiHistoryAlmanacEntrySchema: z.ZodObject<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     } | undefined;
 }>;
@@ -4174,7 +4174,7 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
         imageUrl: z.ZodString;
         pageUrl: z.ZodString;
         pageTitle: z.ZodOptional<z.ZodString>;
-        provider: z.ZodOptional<z.ZodEnum<["wikimedia_commons", "manual"]>>;
+        provider: z.ZodOptional<z.ZodEnum<["wikimedia_commons", "manual", "gemini_ai"]>>;
         author: z.ZodOptional<z.ZodString>;
         license: z.ZodOptional<z.ZodString>;
         confidence: z.ZodOptional<z.ZodNumber>;
@@ -4184,7 +4184,7 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     }, {
         imageUrl: string;
@@ -4192,7 +4192,7 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     }>>;
     sources: z.ZodArray<z.ZodObject<{
@@ -4246,7 +4246,7 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     } | undefined;
 }, {
@@ -4268,7 +4268,7 @@ export declare const createHaitiHistoryAlmanacEntrySchema: z.ZodObject<Omit<{
         license?: string | undefined;
         confidence?: number | undefined;
         pageTitle?: string | undefined;
-        provider?: "wikimedia_commons" | "manual" | undefined;
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai" | undefined;
         author?: string | undefined;
     } | undefined;
 }>;

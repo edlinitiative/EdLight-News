@@ -26,7 +26,7 @@ const sourceSelectorsSchema = z.object({
     title: z.string().optional(),
 });
 const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
-const imageSourceSchema = z.enum(["publisher", "wikidata", "branded", "screenshot", "commons"]);
+const imageSourceSchema = z.enum(["publisher", "wikidata", "branded", "screenshot", "commons", "gemini_ai"]);
 const imageMetaSchema = z.object({
     width: z.number().positive().optional(),
     height: z.number().positive().optional(),
@@ -556,7 +556,7 @@ export const haitiHistoryAlmanacEntrySchema = z.object({
         imageUrl: z.string().url(),
         pageUrl: z.string().url(),
         pageTitle: z.string().optional(),
-        provider: z.enum(["wikimedia_commons", "manual"]).optional(),
+        provider: z.enum(["wikimedia_commons", "manual", "gemini_ai"]).optional(),
         author: z.string().optional(),
         license: z.string().optional(),
         confidence: z.number().min(0).max(1).optional(),

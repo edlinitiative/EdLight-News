@@ -346,7 +346,7 @@ export interface HaitiHistoryAlmanacEntry {
         imageUrl: string;
         pageUrl: string;
         pageTitle?: string;
-        provider?: "wikimedia_commons" | "manual";
+        provider?: "wikimedia_commons" | "manual" | "gemini_ai";
         author?: string;
         license?: string;
         /** 0-1 confidence that the illustration matches the fact. */
