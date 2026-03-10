@@ -147,6 +147,7 @@ export async function processRawItems(): Promise<{
         summary,
         canonicalUrl,
         extractedText,
+        itemType: "source" as const,
         category: initialCategory,
         deadline: classification.deadline ?? null,
         evergreen: false,

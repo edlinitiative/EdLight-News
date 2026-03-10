@@ -19,8 +19,8 @@ const utilitySectionSchema = z.object({
 
 const utilityFactDeadlineSchema = z.object({
   label: z.string().min(1),
-  dateISO: z.string(),
-  sourceUrl: z.string().url(),
+  dateISO: z.string().default(""),
+  sourceUrl: z.string().default(""),
 });
 
 export const geminiUtilitySchema = z.object({
@@ -31,11 +31,16 @@ export const geminiUtilitySchema = z.object({
   sections_fr: z.array(utilitySectionSchema).min(1),
   sections_ht: z.array(utilitySectionSchema).min(1),
   facts: z.object({
-    deadlines: z.array(utilityFactDeadlineSchema),
-    requirements: z.array(z.string()),
-    steps: z.array(z.string()),
-    eligibility: z.array(z.string()),
+    deadlines: z.array(utilityFactDeadlineSchema).default([]),
+    requirements: z.array(z.string()).default([]),
+    steps: z.array(z.string()).default([]),
+    eligibility: z.array(z.string()).default([]),
     notes: z.array(z.string()).optional(),
+  }).default({
+    deadlines: [],
+    requirements: [],
+    steps: [],
+    eligibility: [],
   }),
   citations: z.array(
     z.object({ label: z.string().min(1), url: z.string().url() }),
@@ -230,6 +235,14 @@ export async function generateUtilityFromPackets(
         error: "Gemini utility response is not valid JSON",
         rawResponse: raw.slice(0, 500),
       };
+    }
+
+    // Gemini sometimes returns facts as an array instead of an object — coerce
+    if (parsed && typeof parsed === "object" && "facts" in parsed) {
+      const p = parsed as Record<string, unknown>;
+      if (Array.isArray(p.facts)) {
+        p.facts = { deadlines: [], requirements: [], steps: [], eligibility: [] };
+      }
     }
 
     const result = geminiUtilitySchema.safeParse(parsed);
