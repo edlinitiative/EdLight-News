@@ -67,7 +67,7 @@ export default async function RessourcesPage({
   );
 
   const articles = rankAndDeduplicate(resourcePool, {
-    audienceFitThreshold: 0.60,
+    audienceFitThreshold: 0.40,
     publisherCap: 4,
     topN: 50,
   });

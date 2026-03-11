@@ -63,7 +63,7 @@ export default async function HaitiPage({
   );
 
   const ranked = rankAndDeduplicate(haitiOnly, {
-    audienceFitThreshold: 0.65,
+    audienceFitThreshold: 0.40,
     publisherCap: 4,
     topN: 40,
   });

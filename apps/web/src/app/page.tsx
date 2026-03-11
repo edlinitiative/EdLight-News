@@ -179,7 +179,7 @@ export default async function AccueilPage({
 
   const succesPool = allArticles.filter(isSuccessArticle);
   const succesArticles = rankAndDeduplicate(succesPool, {
-    audienceFitThreshold: 0.5,
+    audienceFitThreshold: 0.40,
     publisherCap: 2,
     topN: 6,
   }).slice(0, 6);

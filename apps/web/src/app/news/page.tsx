@@ -54,7 +54,7 @@ export default async function NewsPage({
   //   - sort by audienceFitScore desc → publishedAt desc
   //   - max 3 articles from same publisher within top 20
   const articles = rankFeed(enriched, {
-    audienceFitThreshold: 0.65,
+    audienceFitThreshold: 0.40,
     publisherCap: 3,
     topN: 20,
   });

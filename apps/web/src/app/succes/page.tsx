@@ -54,7 +54,7 @@ export default async function SuccesPage({
 
   // Deduplicate + rank (same pipeline as other pages)
   const articles = rankAndDeduplicate(successPool, {
-    audienceFitThreshold: 0.5,
+    audienceFitThreshold: 0.40,
     publisherCap: 4,
     topN: 12,
   });

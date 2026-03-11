@@ -153,18 +153,22 @@
     "priority": "normal"
   },
   {
-    "name": "USAID Haiti",
+    "name": "USAID Haiti (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=USAID+Haiti&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 43200,
+    "priority": "hot"
+  },
+  {
+    "_comment": "DISABLED — original URL returns 404 since mid-2024",
+    "name": "USAID Haiti (old)",
     "type": "html",
     "url": "https://www.usaid.gov/haiti",
     "language": "fr",
     "active": false,
     "pollCadenceSec": 43200,
-    "priority": "hot",
-    "selectors": {
-      "listItem": ".views-row a, .usa-card a, .news-item a",
-      "articleBody": ".field--name-body, .usa-prose, main .content",
-      "title": "h1.page-title, h1"
-    }
+    "priority": "hot"
   },
   {
     "name": "US Embassy Port-au-Prince",
@@ -242,18 +246,23 @@
     }
   },
   {
-    "name": "Miami Herald — Haiti",
-    "type": "html",
-    "url": "https://www.miamiherald.com/news/nation-world/world/americas/haiti/",
+    "name": "Miami Herald — Haiti (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=site%3Amiamiherald.com+Haiti&hl=en&gl=US&ceid=US:en",
     "language": "fr",
     "pollCadenceSec": 3600,
     "priority": "hot",
-    "igImageSafe": false,
-    "selectors": {
-      "listItem": "article a, .package a, .story-body a",
-      "articleBody": ".story-body, .article-body, .paywall",
-      "title": "h1.headline, article h1"
-    }
+    "igImageSafe": false
+  },
+  {
+    "_comment": "DISABLED — original URL times out (bot protection)",
+    "name": "Miami Herald — Haiti (old)",
+    "type": "html",
+    "url": "https://www.miamiherald.com/news/nation-world/world/americas/haiti/",
+    "language": "fr",
+    "active": false,
+    "pollCadenceSec": 3600,
+    "priority": "hot"
   },
   {
     "name": "IOM — Haiti",
@@ -421,17 +430,22 @@
     "priority": "hot"
   },
   {
-    "name": "Bourses du Gouvernement Français (BGF)",
+    "name": "Bourses du Gouvernement Français (BGF via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=campusfrance+bourses+OR+%22BGF%22+OR+%22gouvernement+fran%C3%A7ais%22+scholarship&hl=fr&gl=FR&ceid=FR:fr",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_comment": "DISABLED — original URL returns 404",
+    "name": "Bourses du Gouvernement Français (BGF old)",
     "type": "html",
     "url": "https://www.campusfrance.org/fr/les-bourses-du-gouvernement-francais-bgf",
     "language": "fr",
+    "active": false,
     "pollCadenceSec": 86400,
-    "priority": "hot",
-    "selectors": {
-      "listItem": ".card a, .views-row a, article a",
-      "articleBody": ".field--name-body, .node__content, main .content",
-      "title": "h1.page-title, h1"
-    }
+    "priority": "hot"
   },
   {
     "name": "Bourses Québec (FRQNT/FRQS/FRQSC)",
@@ -533,10 +547,21 @@
   },
   {
     "_group": "opportunities",
-    "name": "Opportunity Desk",
+    "name": "Opportunity Desk (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=site%3Aopportunitydesk.org+scholarship+OR+fellowship+OR+internship&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "DISABLED — original feed returns 403 Forbidden",
+    "name": "Opportunity Desk (old)",
     "type": "rss",
     "url": "https://opportunitydesk.org/feed/",
     "language": "fr",
+    "active": false,
     "pollCadenceSec": 14400,
     "priority": "hot"
   },

@@ -80,7 +80,7 @@ export default async function OpportunitesPage({
   );
 
   const articles = rankAndDeduplicate(opportunityPool, {
-    audienceFitThreshold: 0.65,
+    audienceFitThreshold: 0.40,
     publisherCap: 3,
     topN: 40,
   });
