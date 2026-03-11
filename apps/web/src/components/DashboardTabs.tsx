@@ -240,7 +240,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
                 id={`dashboard-tab-${tab.id}`}
                 tabIndex={isActive ? 0 : -1}
                 className={[
-                  "relative z-10 flex shrink-0 items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-all duration-200 select-none",
+                  "relative z-10 flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-all duration-200 select-none",
                   isActive
                     ? "border-stone-900 text-stone-900 dark:border-white dark:text-white"
                     : "border-transparent text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300",

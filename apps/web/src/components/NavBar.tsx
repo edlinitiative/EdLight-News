@@ -254,7 +254,7 @@ export function NavBar() {
           <div ref={mobilePanelRef} className="absolute inset-y-0 right-0 top-[108px] w-80 border-l border-stone-200 bg-white shadow-float dark:border-stone-800 dark:bg-stone-950" role="dialog" aria-modal="true" aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}>
             <div className="p-5">
               {/* Primary nav */}
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
                 {fr ? "Rubriques" : "Ribrik"}
               </p>
               <nav className="mb-5 flex flex-col gap-0.5">
@@ -281,7 +281,7 @@ export function NavBar() {
               <div className="mb-5 border-t border-stone-100 dark:border-stone-800" />
 
               {/* Secondary nav */}
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
                 {fr ? "Explorer" : "Eksplore"}
               </p>
               <nav className="mb-5 flex flex-col gap-0.5">
@@ -319,7 +319,7 @@ export function NavBar() {
 
               {/* Edition line in mobile */}
               <div className="rounded-lg bg-stone-50 p-3 dark:bg-stone-900">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
                   {fr ? "Édition" : "Edisyon"}
                 </p>
                 <p className="mt-1 text-xs capitalize text-stone-500 dark:text-stone-400" suppressHydrationWarning>

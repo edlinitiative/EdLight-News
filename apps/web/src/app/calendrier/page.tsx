@@ -80,9 +80,9 @@ function LegacyDeadlineRow({
           href={dl.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-blue-500 hover:text-blue-700"
+          className="-m-2 shrink-0 p-2 text-blue-500 hover:text-blue-700"
         >
-          <ExternalLink className="h-3.5 w-3.5" />
+          <ExternalLink className="h-4 w-4" />
         </a>
       )}
     </div>

@@ -71,7 +71,7 @@ export function ClosingSoonTabs({
             key={t.key}
             onClick={() => setTab(t.key)}
             className={[
-              "rounded-lg px-4 py-1.5 text-sm font-medium transition",
+              "rounded-lg px-4 py-2.5 text-sm font-medium transition sm:py-1.5",
               tab === t.key
                 ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
                 : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
@@ -98,11 +98,11 @@ export function ClosingSoonTabs({
           {filtered.map((item) => (
             <div
               key={`${item.kind}-${item.id}`}
-              className="flex items-center gap-4 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md dark:hover:border-stone-600"
+              className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md dark:border-stone-700 dark:bg-stone-800 dark:hover:border-stone-600 sm:flex-row sm:items-center sm:gap-4"
             >
-              {/* Kind icon */}
+              {/* Kind icon — hidden on mobile to save space */}
               <div
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                className={`hidden shrink-0 items-center justify-center rounded-lg sm:flex sm:h-10 sm:w-10 ${
                   item.kind === "bourse"
                     ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                     : "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
@@ -117,9 +117,9 @@ export function ClosingSoonTabs({
 
               {/* Content */}
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span
-                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-semibold ${
                       item.kind === "bourse"
                         ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
                         : item.geo === "Haiti"
@@ -133,7 +133,7 @@ export function ClosingSoonTabs({
                         ? (fr ? "Calendrier Haïti" : "Kalandriye Ayiti")
                         : "International"}
                   </span>
-                  <p className="font-medium text-stone-900 dark:text-white line-clamp-1">
+                  <p className="font-medium text-stone-900 dark:text-white line-clamp-2 sm:line-clamp-1">
                     {item.title}
                   </p>
                 </div>
@@ -145,30 +145,33 @@ export function ClosingSoonTabs({
                 )}
               </div>
 
-              {/* Deadline badge */}
-              <DeadlineBadge
-                dateISO={item.dateISO}
-                windowDays={item.kind === "bourse" ? 30 : 14}
-                lang={lang}
-                prefix={
-                  item.kind === "bourse"
-                    ? undefined
-                    : { fr: "Événement", ht: "Evènman" }
-                }
-              />
+              {/* Bottom row on mobile: badge + action side-by-side */}
+              <div className="flex items-center justify-between gap-3 sm:contents">
+                {/* Deadline badge */}
+                <DeadlineBadge
+                  dateISO={item.dateISO}
+                  windowDays={item.kind === "bourse" ? 30 : 14}
+                  lang={lang}
+                  prefix={
+                    item.kind === "bourse"
+                      ? undefined
+                      : { fr: "Événement", ht: "Evènman" }
+                  }
+                />
 
-              {/* Action link */}
-              {item.actionUrl && (
-                <a
-                  href={item.actionUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600"
-                >
-                  <ExternalLink className="mr-1 inline h-3 w-3" />
-                  {fr ? item.actionLabel?.fr : item.actionLabel?.ht}
-                </a>
-              )}
+                {/* Action link — larger touch target */}
+                {item.actionUrl && (
+                  <a
+                    href={item.actionUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[44px] shrink-0 items-center rounded-lg bg-stone-100 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300 dark:hover:bg-stone-600"
+                  >
+                    <ExternalLink className="mr-1.5 inline h-3.5 w-3.5" />
+                    {fr ? item.actionLabel?.fr : item.actionLabel?.ht}
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>

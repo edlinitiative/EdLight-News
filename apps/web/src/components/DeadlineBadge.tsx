@@ -62,7 +62,7 @@ export function DeadlineBadge(props: DeadlineBadgeProps) {
       </span>
       {/* Date + human countdown */}
       {shortDate && (
-        <span className="text-[10px] text-stone-400 dark:text-stone-500">
+        <span className="text-[11px] text-stone-400 dark:text-stone-500">
           {shortDate} · {st.humanLine}
         </span>
       )}

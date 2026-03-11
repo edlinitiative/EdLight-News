@@ -127,13 +127,13 @@ export function ArticleCard({
           {/* Category overlay on featured */}
           {isFeatured && derived.label && (
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
-              <span className="rounded-sm bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              <span className="rounded-sm bg-blue-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
                 {derived.label}
               </span>
             </div>
           )}
           {article.imageSource === "wikidata" && (
-            <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[10px] text-white/70 backdrop-blur-sm">
+            <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[11px] text-white/70 backdrop-blur-sm">
               Wikimedia
             </span>
           )}

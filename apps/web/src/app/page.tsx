@@ -99,7 +99,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-end justify-between gap-3 pb-3">
-      <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+      <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-white">
         {icon}{title}
       </h2>
       <Link
@@ -247,7 +247,7 @@ export default async function AccueilPage({
                       <span className="inline-flex items-center gap-1 text-stone-400 dark:text-stone-500">
                         {COUNTRY_LABELS[s.country]?.flag && <CountryFlag code={COUNTRY_LABELS[s.country].flag} />} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
                       </span>
-                      <span className="text-[11px] text-stone-400 dark:text-stone-500">{st.humanLine}</span>
+                      <span className="text-xs text-stone-400 dark:text-stone-500">{st.humanLine}</span>
                     </div>
                   ); })()}
                   {s.howToApplyUrl && (
@@ -429,7 +429,7 @@ export default async function AccueilPage({
             <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse-soft" />
             {fr ? "Urgent" : "Ijan"}
           </span>
-          <div className="overflow-hidden">
+          <div className="overflow-x-auto tab-scroll">
             <div className="flex items-center gap-6 text-sm">
               {topUrgent.slice(0, 3).map((item, i) => (
                 <Link
@@ -439,7 +439,7 @@ export default async function AccueilPage({
                 >
                   <span className="font-medium line-clamp-1">{item.title}</span>
                   {(() => { const st = getDeadlineStatus(item.dateISO, lang); return (
-                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold ${badgeStyle(st.badgeVariant)}`}>
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[11px] font-bold ${badgeStyle(st.badgeVariant)}`}>
                       {st.badgeLabel}
                     </span>
                   ); })()}
@@ -458,7 +458,7 @@ export default async function AccueilPage({
       <section>
         <div className="mb-4 section-rule" />
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+          <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-white">
             <Newspaper className="h-3.5 w-3.5 text-blue-600" />
             {fr ? "À la une" : "Premye paj"}
           </h2>
@@ -488,7 +488,7 @@ export default async function AccueilPage({
             <aside className="space-y-5 lg:border-l lg:border-stone-200 lg:pl-6 dark:lg:border-stone-800">
               {/* Urgency sidebar */}
               <div>
-                <h3 className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+                <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
                   <Clock className="h-3 w-3 text-orange-500" />
                   {fr ? "Échéances proches" : "Dat limit ki pre"}
                 </h3>
@@ -508,7 +508,7 @@ export default async function AccueilPage({
                         <h3 className="text-sm font-medium leading-snug text-stone-800 line-clamp-2 transition-colors dark:text-stone-200">
                           {item.title}
                         </h3>
-                        <span className="text-[11px] text-stone-400">
+                        <span className="text-xs text-stone-400">
                           {item.kind === "bourse" ? (fr ? "Bourse" : "Bous") : (fr ? "Événement" : "Evènman")}
                           {" · "}
                           {getDeadlineStatus(item.dateISO, lang).humanLine}
@@ -527,7 +527,7 @@ export default async function AccueilPage({
               {/* More articles */}
               {allArticlesFiltered.length > 3 && (
                 <div>
-                  <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+                  <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
                     {fr ? "Aussi dans l'actu" : "Tou nan aktyalite"}
                   </h3>
                   <div className="space-y-0">
@@ -583,7 +583,7 @@ export default async function AccueilPage({
             </div>
             <div>
               <p className="text-xl font-bold text-stone-900 dark:text-white">{stat.value}</p>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">{stat.label}</p>
+              <p className="text-xs text-stone-500 dark:text-stone-400">{stat.label}</p>
             </div>
           </Link>
         ))}
@@ -594,7 +594,7 @@ export default async function AccueilPage({
         <div className="section-rule" />
         <div className="flex items-end justify-between gap-3">
           <div className="space-y-1">
-            <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+            <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-white">
               <Briefcase className="h-3.5 w-3.5 text-blue-600" />
               {fr ? "Tableau de bord" : "Tablo"}
             </h2>
@@ -660,7 +660,7 @@ export default async function AccueilPage({
       {/* ── SECTIONS NAVIGATION ─────────────────────────────────────────── */}
       <section className="space-y-4">
         <div className="section-rule" />
-        <h2 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+        <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-white">
           <Compass className="h-3.5 w-3.5 text-blue-600" />
           {fr ? "Rubriques" : "Ribrik"}
         </h2>

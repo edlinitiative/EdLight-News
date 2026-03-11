@@ -96,7 +96,7 @@ export function BrandedHero({
         {label && (
           <>
             <span className={`h-2 w-2 rounded-full ${accent}`} />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-xs">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/70 sm:text-xs">
               {label}
             </span>
           </>

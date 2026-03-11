@@ -89,7 +89,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
             {t.title}
           </h2>
           {/* "Aujourd'hui" / "Mis à jour" badge */}
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
             {data?.updatedAt || data?.date ? t.badgeUpdated : t.badge}
           </span>
@@ -97,7 +97,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
 
         {hasData ? (
           /* ── Active state: flat inline rates ────────────────────────── */
-          <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1.5">
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-5 sm:gap-y-1.5">
             {/* Reference rate (prominent) */}
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-white sm:text-2xl">
@@ -113,7 +113,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
                 const up = num > 0;
                 return (
                   <span
-                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-semibold tabular-nums ${
+                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] font-semibold tabular-nums ${
                       up
                         ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
                         : "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
@@ -130,7 +130,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
                 const up = num > 0;
                 return (
                   <span
-                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] tabular-nums ${
+                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] tabular-nums ${
                       up
                         ? "text-red-400 dark:text-red-500"
                         : "text-emerald-400 dark:text-emerald-500"
@@ -149,7 +149,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
             {/* Bank rates */}
             {(data!.bankBuy != null || data!.bankSell != null) && (
               <div className="flex items-baseline gap-2 text-xs tabular-nums">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                   {t.bankTitle}
                 </span>
                 {data!.bankBuy != null && (
@@ -168,7 +168,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
             {/* Informal rates */}
             {(data!.informalBuy != null || data!.informalSell != null) && (
               <div className="flex items-baseline gap-2 text-xs tabular-nums">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
                   {t.informalTitle}
                 </span>
                 {data!.informalBuy != null && (

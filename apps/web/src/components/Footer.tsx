@@ -75,7 +75,7 @@ export function Footer() {
               </p>
             </div>
             <div className="hidden text-right sm:block">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-600">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-stone-600">
                 {T.edition[lang]}
               </p>
             </div>
@@ -92,7 +92,7 @@ export function Footer() {
 
           {/* Primary sections */}
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
               {T.headingRubriques[lang]}
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
@@ -110,7 +110,7 @@ export function Footer() {
 
           {/* Secondary sections */}
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
               {T.headingExplore[lang]}
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
@@ -128,7 +128,7 @@ export function Footer() {
 
           {/* About */}
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-stone-500">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
               {T.headingAbout[lang]}
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-stone-400">
