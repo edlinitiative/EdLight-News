@@ -31,7 +31,7 @@ function StatCard({
   label,
   value,
   sub,
-  color = "bg-white",
+  color = "bg-white dark:bg-stone-800",
 }: {
   label: string;
   value: number | string;
@@ -39,10 +39,10 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className={`rounded-xl border p-5 ${color}`}>
-      <p className="text-sm text-stone-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-stone-400">{sub}</p>}
+    <div className={`rounded-xl border border-stone-200 p-5 dark:border-stone-700 ${color}`}>
+      <p className="text-sm text-stone-500 dark:text-stone-400">{label}</p>
+      <p className="mt-1 text-3xl font-bold tabular-nums dark:text-white">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">{sub}</p>}
     </div>
   );
 }
@@ -52,14 +52,16 @@ function StatCard({
 function ResultRow({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex items-center justify-between text-sm">
-      <span className="text-stone-500">{label}</span>
-      <span className="font-medium tabular-nums">{value}</span>
+      <span className="text-stone-500 dark:text-stone-400">{label}</span>
+      <span className="font-medium tabular-nums dark:text-white">{value}</span>
     </div>
   );
 }
 
 function TickResultPanel({ result }: { result: TickResult }) {
-  const bg = result.ok ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200";
+  const bg = result.ok
+    ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
+    : "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800";
   const icon = result.ok
     ? <CheckCircle className="inline-block h-5 w-5 text-green-600" />
     : <XCircle className="inline-block h-5 w-5 text-red-600" />;
@@ -83,11 +85,11 @@ function TickResultPanel({ result }: { result: TickResult }) {
       </div>
 
       {result.error && (
-        <p className="text-sm text-red-700">{result.error}</p>
+        <p className="text-sm text-red-700 dark:text-red-400">{result.error}</p>
       )}
 
       {result.results && (
-        <div className="divide-y rounded-lg bg-white/60 px-4 py-2">
+        <div className="divide-y divide-stone-200 rounded-lg bg-white/60 px-4 py-2 dark:divide-stone-700 dark:bg-stone-800/60">
           <div className="py-2">
             <ResultRow label="Ingest — new raw items" value={result.results.ingest?.new ?? 0} />
           </div>
@@ -168,8 +170,8 @@ export default function AdminPage() {
   return (
     <section className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-stone-500">
+        <h1 className="text-2xl font-bold dark:text-white">Admin Dashboard</h1>
+        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
           Pipeline status and controls for EdLight News.
         </p>
       </div>
@@ -189,13 +191,13 @@ export default function AdminPage() {
               label="Published articles"
               value={stats?.contentVersions.published ?? "—"}
               sub="FR + HT combined"
-              color="bg-green-50"
+              color="bg-green-50 dark:bg-green-950/30"
             />
             <StatCard
               label="Drafts"
               value={stats?.contentVersions.draft ?? "—"}
               sub="awaiting review"
-              color={(stats?.contentVersions.draft ?? 0) > 0 ? "bg-yellow-50" : "bg-white"}
+              color={(stats?.contentVersions.draft ?? 0) > 0 ? "bg-yellow-50 dark:bg-yellow-950/30" : "bg-white dark:bg-stone-800"}
             />
             <StatCard
               label="With images"

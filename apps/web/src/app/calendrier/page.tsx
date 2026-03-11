@@ -8,7 +8,7 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CalendarDays, ExternalLink, Clock3, Globe2 } from "lucide-react";
+import { CalendarDays, ExternalLink, Clock3, Globe2, FileText, ChevronRight } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
   fetchCalendarData,
@@ -163,7 +163,8 @@ export default async function CalendrierPage({
     <div className="space-y-10">
       <header className="space-y-3">
         <div className="section-rule" />
-        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
+          <CalendarDays className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           {fr ? "Calendrier" : "Kalandriye"}
         </h1>
         <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
@@ -184,14 +185,13 @@ export default async function CalendrierPage({
       {hasLegacy && (
         <details className="section-shell p-0">
           <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3.5 transition-colors hover:bg-stone-50/70 dark:hover:bg-stone-800/60">
-            <span className="text-sm font-medium text-stone-500 dark:text-stone-400">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 dark:text-stone-400">
+              <FileText className="h-3.5 w-3.5" />
               {fr
-                ? "📄 Sources additionnelles (articles)"
-                : "📄 Sous adisyonèl (atik)"}
+                ? "Sources additionnelles (articles)"
+                : "Sous adisyonèl (atik)"}
             </span>
-            <span aria-hidden className="text-sm text-stone-400 dark:text-stone-500">
-              ▸
-            </span>
+            <ChevronRight className="h-4 w-4 text-stone-400 transition-transform [[open]>&]:rotate-90 dark:text-stone-500" />
           </summary>
           <div className="relative z-10 space-y-2.5 px-5 pb-5 pt-2.5">
             {upcomingLegacy.map((dl, idx) => (

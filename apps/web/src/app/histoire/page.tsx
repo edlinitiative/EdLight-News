@@ -11,6 +11,7 @@
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
+import { Landmark } from "lucide-react";
 import { buildOgMetadata } from "@/lib/og";
 import {
   fetchAlmanacByMonth,
@@ -68,7 +69,9 @@ export default async function HistoirePage({
     <div className="pb-14">
       {/* ─── Header ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
-        <h1 className="headline-lead">
+        <div className="section-rule" />
+        <h1 className="headline-lead mt-3 flex items-center gap-2">
+          <Landmark className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           {fr ? "Aujourd\u2019hui dans l\u2019histoire" : "Jodi a nan istwa"}
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-500 dark:text-stone-400 sm:text-base">

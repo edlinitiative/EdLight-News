@@ -134,9 +134,9 @@ export default async function ClosingSoonPage({
     <div className="space-y-8">
       {/* Header */}
       <header className="space-y-3">
-        <div className="section-rule" style={{ borderColor: "#dc2626" }} />
-        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-          <Clock className="h-3.5 w-3.5 text-red-600" />
+        <div className="section-rule border-red-600 dark:border-red-500" />
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
+          <Clock className="h-6 w-6 text-red-600 dark:text-red-400" />
           {fr ? "Échéances à venir" : "Dat limit k ap vini"}
         </h1>
         <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">

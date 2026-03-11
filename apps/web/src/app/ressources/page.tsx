@@ -78,8 +78,8 @@ export default async function RessourcesPage({
     <div className="space-y-8">
       <header className="space-y-3">
         <div className="section-rule" />
-        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-          <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
+          <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           {fr ? "Ressources" : "Resous"}
         </h1>
         <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
