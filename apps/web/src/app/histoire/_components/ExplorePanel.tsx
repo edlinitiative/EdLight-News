@@ -8,7 +8,7 @@
  */
 
 import { useMemo } from "react";
-import { Compass, X } from "lucide-react";
+import { CalendarDays, Compass, X } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import {
   MONTH_NAMES_FR,
@@ -84,7 +84,8 @@ export function ExplorePanel({
               onClick={onRangeClear}
               className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
             >
-              📅 {formatRange(activeRange, lang)}
+              <CalendarDays className="h-3 w-3" />
+              {formatRange(activeRange, lang)}
               <X className="h-3 w-3" />
             </button>
           )}

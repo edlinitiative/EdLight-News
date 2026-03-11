@@ -71,7 +71,7 @@ export function Footer() {
                 <span className="font-serif text-2xl font-light text-stone-500">News</span>
               </div>
               <p className="mt-1 text-xs uppercase tracking-widest text-stone-600">
-                Actualités éducatives · Nouvèl edikasyon
+                {lang === "fr" ? "Actualités éducatives" : "Nouvèl edikasyon"} · {lang === "fr" ? "Bourses & Ressources" : "Bous & Resous"}
               </p>
             </div>
             <div className="hidden text-right sm:block">
@@ -100,7 +100,7 @@ export function Footer() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-stone-400 transition-colors hover:text-white"
+                  className="footer-link w-fit"
                 >
                   {link.label}
                 </a>
@@ -118,7 +118,7 @@ export function Footer() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-stone-400 transition-colors hover:text-white"
+                  className="footer-link w-fit"
                 >
                   {link.label}
                 </a>

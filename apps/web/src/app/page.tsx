@@ -579,7 +579,7 @@ export default async function AccueilPage({
             className="group flex items-center gap-3 rounded-xl border border-stone-200 bg-white p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-lift dark:border-stone-800 dark:bg-stone-900"
           >
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${stat.bg}`}>
-              <stat.Icon className={`h-4.5 w-4.5 ${stat.color}`} />
+              <stat.Icon className={`h-5 w-5 ${stat.color}`} />
             </div>
             <div>
               <p className="text-xl font-bold text-stone-900 dark:text-white">{stat.value}</p>

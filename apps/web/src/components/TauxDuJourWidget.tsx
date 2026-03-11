@@ -10,6 +10,7 @@
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
+import { BarChart3 } from "lucide-react";
 
 // ── Minimal UI type (no backend dependency) ─────────────────────────────────
 
@@ -32,7 +33,7 @@ export type TauxBRH = {
 
 const STRINGS = {
   fr: {
-    title: "📊 Taux BRH du jour",
+    title: "Taux BRH du jour",
     badge: "Aujourd'hui",
     badgeUpdated: "Mis à jour",
     htgPer: "HTG pour 1 USD",
@@ -46,7 +47,7 @@ const STRINGS = {
     weekLabel: "sem.",
   },
   ht: {
-    title: "📊 To BRH pou jodi a",
+    title: "To BRH pou jodi a",
     badge: "Jodi a",
     badgeUpdated: "Mizajou",
     htgPer: "HTG pou 1 USD",
@@ -83,7 +84,8 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
       <div className="px-4 py-3 sm:px-5">
         {/* Header row */}
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-xs font-bold text-stone-900 dark:text-white sm:text-sm">
+          <h2 className="flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white sm:text-sm">
+            <BarChart3 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             {t.title}
           </h2>
           {/* "Aujourd'hui" / "Mis à jour" badge */}
@@ -192,7 +194,7 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
         ) : (
           /* ── Placeholder / empty state ─────────────────────────────── */
           <div className="mt-2 flex items-center gap-3">
-            <span className="text-base">💱</span>
+            <span className="text-sm font-medium text-stone-400 dark:text-stone-500">—</span>
             <p className="text-sm text-stone-500 dark:text-stone-400">
               {t.unavailable}
             </p>

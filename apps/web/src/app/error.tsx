@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, RotateCcw } from "lucide-react";
 
 export default function GlobalError({
   error,
@@ -16,10 +16,15 @@ export default function GlobalError({
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-8 px-4 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-100 dark:bg-red-950/30">
-        <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+      {/* Animated glow behind icon */}
+      <div className="relative">
+        <div className="absolute -inset-6 animate-pulse-soft rounded-full bg-red-100 opacity-50 blur-2xl dark:bg-red-950/30" />
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-red-200 bg-red-50 shadow-soft dark:border-red-900/40 dark:bg-red-950/30">
+          <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
+        </div>
       </div>
-      <div className="space-y-2">
+
+      <div className="space-y-3">
         <h2 className="font-serif text-2xl font-bold text-stone-900 dark:text-white">
           Un problème est survenu
         </h2>
@@ -30,13 +35,18 @@ export default function GlobalError({
           Nou pa t kapab chaje paj sa a. Tanpri eseye ankò.
         </p>
       </div>
+
       {error.digest && (
-        <p className="font-mono text-xs text-stone-300 dark:text-stone-700">Réf\u00a0: {error.digest}</p>
+        <p className="rounded-md bg-stone-50 px-3 py-1.5 font-mono text-xs text-stone-400 dark:bg-stone-900 dark:text-stone-600">
+          Réf\u00a0: {error.digest}
+        </p>
       )}
+
       <button
         onClick={reset}
-        className="rounded-lg bg-stone-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
+        className="group inline-flex items-center gap-2 rounded-lg bg-stone-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lift dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
       >
+        <RotateCcw className="h-4 w-4 transition-transform group-hover:-rotate-45" />
         Réessayer / Eseye ankò
       </button>
     </div>

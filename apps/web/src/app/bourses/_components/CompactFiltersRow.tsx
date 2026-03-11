@@ -90,7 +90,7 @@ export function CompactFiltersRow({
           onChange={(e) => onFilterChange("level", e.target.value)}
           className="h-8 appearance-none rounded-xl border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600"
         >
-          <option value="all">{fr ? "🎓 Niveau" : "🎓 Nivo"}</option>
+          <option value="all">{fr ? "Niveau" : "Nivo"}</option>
           {levelOptions.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}

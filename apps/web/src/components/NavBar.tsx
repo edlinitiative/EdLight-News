@@ -176,6 +176,25 @@ export function NavBar() {
         <div className="mx-auto flex h-11 max-w-6xl items-center gap-0 px-4 sm:px-6 lg:px-8">
           {/* Primary sections */}
           <div className="hidden flex-1 items-center gap-0 overflow-x-auto tab-scroll lg:flex">
+            {/* Home link first */}
+            <Link
+              href="/"
+              className={[
+                "nav-link relative whitespace-nowrap px-3 py-2.5 text-[12px] font-medium transition-colors",
+                pathname === "/"
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300",
+              ].join(" ")}
+            >
+              {fr ? "Accueil" : "Akèy"}
+              {pathname === "/" && (
+                <span className="absolute inset-x-0 -bottom-px h-[2px] bg-blue-600 dark:bg-blue-400" />
+              )}
+            </Link>
+
+            {/* Divider */}
+            <span className="mx-1 h-4 w-px bg-stone-200 dark:bg-stone-700" />
+
             {primaryLinks.map((link) => {
               const active = isActive(pathname, link.href);
               return (
@@ -222,19 +241,6 @@ export function NavBar() {
               );
             })}
           </div>
-
-          {/* Home link (desktop) */}
-          <Link
-            href="/"
-            className={[
-              "hidden text-[12px] font-medium transition-colors lg:block",
-              pathname === "/"
-                ? "text-blue-600 dark:text-blue-400"
-                : "text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300",
-            ].join(" ")}
-          >
-            {fr ? "Accueil" : "Akèy"}
-          </Link>
         </div>
       </nav>
 

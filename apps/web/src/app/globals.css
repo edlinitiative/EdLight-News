@@ -22,8 +22,14 @@
   }
 
   html {
+    scroll-behavior: smooth;
     /* Prevent momentum scroll-chaining on mobile (stops "fling to bottom") */
     overscroll-behavior-y: contain;
+  }
+
+  /* Anchored sections get breathing room under sticky nav */
+  [id] {
+    scroll-margin-top: 4rem;
   }
 
   .dark {
@@ -45,6 +51,7 @@
   body {
     @apply bg-stone-50 text-stone-900 antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.2s ease;
   }
 
   .dark body,
@@ -311,5 +318,34 @@
   /* ── Masthead (large news brand header) ─────────────────── */
   .masthead-rule {
     @apply border-b-[3px] border-double border-stone-900 dark:border-stone-100;
+  }
+
+  /* ── Smooth entrance for page content ────────────────────── */
+  .page-enter {
+    animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* ── Staggered children (loading skeletons, card grids) ──── */
+  .stagger-children > * {
+    opacity: 0;
+    animation: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+
+  /* ── Footer link hover underline ─────────────────────────── */
+  .footer-link {
+    @apply relative text-stone-400 transition-colors hover:text-white;
+  }
+  .footer-link::after {
+    content: "";
+    @apply absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 bg-stone-500 transition-transform duration-200;
+  }
+  .footer-link:hover::after {
+    @apply scale-x-100;
   }
 }
