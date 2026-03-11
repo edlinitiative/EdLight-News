@@ -3,7 +3,7 @@
  * should not have been auto-published under the new quality gates.
  *
  * Criteria for demotion (status → "draft"):
- *   1. Parent item's audienceFitScore < 0.65  (PUBLISH_SCORE_THRESHOLD)
+ *   1. Parent item's audienceFitScore < 0.40  (PUBLISH_SCORE_THRESHOLD)
  *   2. Parent item has no extractedText       (thin/hollow content)
  *
  * Usage:

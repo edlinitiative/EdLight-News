@@ -141,7 +141,7 @@ export function computeScoring(title: string, body: string, category?: string): 
 
   // Category bonus (max +0.20)
   if (category === "scholarship" || category === "opportunity") score += 0.20;
-  else if (category === "local_news") score += 0.15;
+  else if (category === "local_news" || category === "news") score += 0.15;
   else if (category === "resource" || category === "event") score += 0.10;
 
   // Off-mission penalty
