@@ -768,7 +768,7 @@ export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlma
 export const igPostTypeSchema = z.enum(["scholarship", "opportunity", "news", "histoire", "utility", "taux"]);
 
 export const igQueueStatusSchema = z.enum([
-  "queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual",
+  "queued", "scheduled", "rendering", "posted", "skipped", "expired", "scheduled_ready_for_manual",
 ]);
 
 export const igDecisionSchema = z.object({

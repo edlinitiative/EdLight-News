@@ -8,7 +8,30 @@
 import { igQueueRepo, itemsRepo, uploadCarouselSlides } from "@edlight-news/firebase";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { publishIgPost } from "@edlight-news/publisher";
-import type { IGQueueItem } from "@edlight-news/types";
+import type { IGQueueItem, IGPostType } from "@edlight-news/types";
+
+// Must match the TTLs in scheduleIgPost.ts
+const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
+  news: 48,
+  taux: 24,
+  utility: 72,
+  histoire: 168,
+  opportunity: 336,
+  scholarship: 336,
+};
+
+/** Check if an IG queue item is too old to post. */
+function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
+  const ttlHours = STALENESS_TTL_HOURS[item.igType] ?? 72;
+  const createdMs =
+    item.createdAt && typeof item.createdAt === "object" && "seconds" in item.createdAt
+      ? (item.createdAt as { seconds: number }).seconds * 1000
+      : item.createdAt instanceof Date
+        ? item.createdAt.getTime()
+        : 0;
+  if (createdMs === 0) return false;
+  return Date.now() - createdMs > ttlHours * 60 * 60 * 1000;
+}
 
 export interface ProcessIgScheduledResult {
   processed: number;
@@ -39,6 +62,17 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
       result.processed++;
 
       try {
+        // ── Final freshness check ────────────────────────────────────────
+        // An item may have been queued days ago and only now reached its
+        // scheduled slot.  Don't post stale content.
+        if (isStale(item)) {
+          console.log(`[processIgScheduled] item ${item.id} (${item.igType}) is stale — expiring instead of posting`);
+          await igQueueRepo.updateStatus(item.id, "expired", {
+            reasons: [...item.reasons, `Expired at post time: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL`],
+          });
+          continue;
+        }
+
         // Mark as rendering
         await igQueueRepo.updateStatus(item.id, "rendering");
 

@@ -11,13 +11,39 @@
  */
 
 import { igQueueRepo } from "@edlight-news/firebase";
+import type { IGPostType } from "@edlight-news/types";
 
 // Haiti timezone
 const HAITI_TZ = "America/Port-au-Prince";
 
+// ── Staleness TTLs per IG post type (hours) ─────────────────────────────────
+// News goes stale fast; scholarships with deadlines stay relevant longer.
+const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
+  news: 48,          // 2 days — breaking/current events
+  taux: 24,          // 1 day  — exchange rates are daily
+  utility: 72,       // 3 days — fait-du-jour, study tips
+  histoire: 168,     // 7 days — historical content is evergreen-ish
+  opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
+  scholarship: 336,  // 14 days — scholarships (capped by deadline)
+};
+
 export interface ScheduleIgPostResult {
   scheduled: number;
   skipped: string;
+  expired: number;
+}
+
+/** Check if an IG queue item is too old to post. */
+function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
+  const ttlHours = STALENESS_TTL_HOURS[item.igType] ?? 72;
+  const createdMs =
+    item.createdAt && typeof item.createdAt === "object" && "seconds" in item.createdAt
+      ? (item.createdAt as { seconds: number }).seconds * 1000
+      : item.createdAt instanceof Date
+        ? item.createdAt.getTime()
+        : 0;
+  if (createdMs === 0) return false; // can't determine age — don't expire
+  return Date.now() - createdMs > ttlHours * 60 * 60 * 1000;
 }
 
 function toHaitiDate(date: Date): Date {
@@ -93,9 +119,11 @@ function getNextSlot(): Date {
 }
 
 export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
+  let expired = 0;
+
   // Check quiet hours
   if (isQuietHour(new Date())) {
-    return { scheduled: 0, skipped: "quiet-hours" };
+    return { scheduled: 0, skipped: "quiet-hours", expired: 0 };
   }
 
   // Check daily caps
@@ -105,8 +133,27 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
 
   // Get a broader pool of queued items so we can enforce type diversity
   const queued = await igQueueRepo.listQueuedByScore(30);
-  if (queued.length === 0) {
-    return { scheduled: 0, skipped: "no-queued-items" };
+
+  // ── Expire stale items ───────────────────────────────────────────────
+  // Before picking an item, mark any stale queued items as expired so they
+  // never get posted with outdated content.
+  const fresh = [];
+  for (const item of queued) {
+    if (isStale(item)) {
+      await igQueueRepo.updateStatus(item.id, "expired", {
+        reasons: [...item.reasons, `Expired: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL for ${item.igType}`],
+      });
+      expired++;
+    } else {
+      fresh.push(item);
+    }
+  }
+  if (expired > 0) {
+    console.log(`[scheduleIgPost] expired ${expired} stale queued item(s)`);
+  }
+
+  if (fresh.length === 0) {
+    return { scheduled: 0, skipped: "no-queued-items", expired };
   }
 
   // ── Type diversity: ensure news gets represented ─────────────────────
@@ -117,7 +164,7 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const todayTypes = new Set(todayStatuses.map((i) => i.igType));
   const hasNewsToday = todayTypes.has("news");
 
-  let topItem = queued[0]!;
+  let topItem = fresh[0]!;
 
   // Every other post slot, prefer news if none today yet
   // Also: if 3+ non-news posts are scheduled and 0 news, force news
@@ -125,7 +172,7 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const needsNewsDiversity = !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
 
   if (needsNewsDiversity) {
-    const topNewsItem = queued.find((q) => q.igType === "news");
+    const topNewsItem = fresh.find((q) => q.igType === "news");
     if (topNewsItem) {
       topItem = topNewsItem;
       console.log(`[scheduleIgPost] type-diversity: picking news item ${topItem.id} (score=${topItem.score}) — no news posted today`);
@@ -137,7 +184,7 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const maxToday = isUrgent ? 7 : 5;
 
   if (totalToday >= maxToday) {
-    return { scheduled: 0, skipped: `daily-cap-reached (${totalToday}/${maxToday})` };
+    return { scheduled: 0, skipped: `daily-cap-reached (${totalToday}/${maxToday})`, expired };
   }
 
   // Check if there's already a scheduled post for the next slot
@@ -154,12 +201,12 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   });
 
   if (hasConflict) {
-    return { scheduled: 0, skipped: "slot-already-filled" };
+    return { scheduled: 0, skipped: "slot-already-filled", expired };
   }
 
   // Schedule the post
   await igQueueRepo.setScheduled(topItem.id, nextSlotISO);
   console.log(`[scheduleIgPost] scheduled item ${topItem.id} (score=${topItem.score}, type=${topItem.igType}) for ${nextSlotISO}`);
 
-  return { scheduled: 1, skipped: "" };
+  return { scheduled: 1, skipped: "", expired };
 }

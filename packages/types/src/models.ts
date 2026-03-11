@@ -547,6 +547,7 @@ export type IGQueueStatus =
   | "rendering"
   | "posted"
   | "skipped"
+  | "expired"
   | "scheduled_ready_for_manual";
 
 /** Decision record produced by the IG selection logic. */

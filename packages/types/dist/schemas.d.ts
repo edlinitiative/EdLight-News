@@ -4632,7 +4632,7 @@ export declare const createHaitiHistoryAlmanacRawSchema: z.ZodObject<Omit<{
 }>;
 export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
 export declare const igPostTypeSchema: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>;
-export declare const igQueueStatusSchema: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
+export declare const igQueueStatusSchema: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "expired", "scheduled_ready_for_manual"]>;
 export declare const igDecisionSchema: z.ZodObject<{
     igEligible: z.ZodBoolean;
     igType: z.ZodNullable<z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>>;
@@ -4827,7 +4827,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
     sourceContentId: z.ZodString;
     igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>;
     score: z.ZodNumber;
-    status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
+    status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "expired", "scheduled_ready_for_manual"]>;
     scheduledFor: z.ZodOptional<z.ZodString>;
     igPostId: z.ZodOptional<z.ZodString>;
     reasons: z.ZodArray<z.ZodString, "many">;
@@ -4952,7 +4952,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
         nanoseconds: number;
     }>;
 }, "strip", z.ZodTypeAny, {
-    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "expired" | "scheduled_ready_for_manual";
     reasons: string[];
     id: string;
     createdAt: {
@@ -4991,7 +4991,7 @@ export declare const igQueueItemSchema: z.ZodObject<{
     } | undefined;
     dryRunPath?: string | undefined;
 }, {
-    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "expired" | "scheduled_ready_for_manual";
     reasons: string[];
     id: string;
     createdAt: {
@@ -5035,7 +5035,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
     sourceContentId: z.ZodString;
     igType: z.ZodEnum<["scholarship", "opportunity", "news", "histoire", "utility", "taux"]>;
     score: z.ZodNumber;
-    status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "scheduled_ready_for_manual"]>;
+    status: z.ZodEnum<["queued", "scheduled", "rendering", "posted", "skipped", "expired", "scheduled_ready_for_manual"]>;
     scheduledFor: z.ZodOptional<z.ZodString>;
     igPostId: z.ZodOptional<z.ZodString>;
     reasons: z.ZodArray<z.ZodString, "many">;
@@ -5160,7 +5160,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
         nanoseconds: number;
     }>;
 }, "id" | "createdAt" | "updatedAt">, "strip", z.ZodTypeAny, {
-    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "expired" | "scheduled_ready_for_manual";
     reasons: string[];
     igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux";
     sourceContentId: string;
@@ -5190,7 +5190,7 @@ export declare const createIGQueueItemSchema: z.ZodObject<Omit<{
     } | undefined;
     dryRunPath?: string | undefined;
 }, {
-    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "scheduled_ready_for_manual";
+    status: "skipped" | "queued" | "scheduled" | "rendering" | "posted" | "expired" | "scheduled_ready_for_manual";
     reasons: string[];
     igType: "utility" | "scholarship" | "opportunity" | "news" | "histoire" | "taux";
     sourceContentId: string;
