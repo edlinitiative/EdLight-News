@@ -9,7 +9,7 @@ export async function GET() {
     const snap = await db
       .collection("ig_queue")
       .orderBy("createdAt", "desc")
-      .limit(100)
+      .limit(250)
       .get();
 
     const items = snap.docs.map((doc) => {
@@ -56,6 +56,7 @@ export async function GET() {
       posted: items.filter((i) => i.status === "posted").length,
       skipped: items.filter((i) => i.status === "skipped").length,
       rendering: items.filter((i) => i.status === "rendering").length,
+      expired: items.filter((i) => i.status === "expired").length,
     };
 
     return NextResponse.json({ items, counts });

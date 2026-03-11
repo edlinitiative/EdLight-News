@@ -11,7 +11,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, type BilingualText } from "./helpers.js";
+import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, ensureFrenchEligibility, ensureFrenchHowToApply, type BilingualText } from "./helpers.js";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -43,7 +43,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
 
   // ── Slide 3: Eligibility (separate bullets with checkmarks) ──
   if (item.opportunity?.eligibility?.length) {
-    const elig = item.opportunity.eligibility;
+    const elig = ensureFrenchEligibility(item.opportunity.eligibility);
     if (elig.length <= 5) {
       slides.push({
         heading: "Qui peut postuler ?",
@@ -70,7 +70,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   // ── Slide 4: How to apply (link first, then instructions, deadline last) ──
   const applyBullets: string[] = [];
   if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
-  if (item.opportunity?.howToApply) applyBullets.push(item.opportunity.howToApply);
+  if (item.opportunity?.howToApply) applyBullets.push(ensureFrenchHowToApply(item.opportunity.howToApply));
   if (deadlineStr) applyBullets.push(`Date limite: ${formatDeadline(deadlineStr)}`);
   if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
 

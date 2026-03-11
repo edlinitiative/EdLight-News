@@ -331,6 +331,32 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
+  // Thin-content gate: news articles with very short body text produce
+  // generic carousels (e.g. Juno7 summary-only articles). Skip them.
+  if (igType === "news") {
+    const bodyText = item.extractedText ?? item.summary ?? "";
+    const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
+    if (wordCount < 200) {
+      return {
+        igEligible: false,
+        igType,
+        igPriorityScore: 0,
+        reasons: [`Thin content: ${wordCount} words (min 200 for news IG)`],
+      };
+    }
+  }
+
+  // Low image confidence: non-branded types need a real hero image.
+  // Images flagged as generic/stock/logo by the classifier are unusable on IG.
+  if (!BRANDED_IMAGE_TYPES.has(igType) && (item.imageConfidence ?? 1) < 0.4) {
+    return {
+      igEligible: false,
+      igType,
+      igPriorityScore: 0,
+      reasons: [`Low imageConfidence (${(item.imageConfidence ?? 0).toFixed(2)} < 0.40)`],
+    };
+  }
+
   // Taux du jour articles from third-party sources (Juno7, etc.)
   // We produce our own branded taux post via BRH scraper.
   if (isTauxDuJourArticle(item)) {

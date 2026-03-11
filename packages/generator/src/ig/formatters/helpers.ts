@@ -7,6 +7,54 @@ import type { Item } from "@edlight-news/types";
 const MAX_CAPTION_LENGTH = 2200; // IG's actual limit
 const MIN_CAPTION_LENGTH = 600;
 
+// ── English-detection for eligibility/howToApply safety net ─────────────────
+
+/** Common English function words that rarely appear in French. */
+const EN_MARKERS = [
+  /\bmust be\b/i, /\bshould be\b/i, /\bapplicants?\b/i,
+  /\brequired\b/i, /\bsubmit\b/i, /\byou must\b/i,
+  /\beligible\b/i, /\bcitizens? of\b/i, /\bnationals? of\b/i,
+  /\bapply online\b/i, /\bapplication form\b/i,
+  /\bundergradiate\b/i, /\bundergraduate\b/i, /\bgraduate\b/i,
+  /\bscholarship\b/i, /\bfunding\b/i, /\bfellowship\b/i,
+  /\bthe applicant\b/i, /\bopen to\b/i, /\bmust have\b/i,
+  /\bdeveloping countr/i, /\ball nationalities\b/i,
+];
+
+/**
+ * Returns true when the text is likely English rather than French.
+ * Uses a lightweight marker approach — no heavy NLP needed.
+ */
+export function looksEnglish(text: string): boolean {
+  if (!text || text.length < 10) return false;
+  let hits = 0;
+  for (const re of EN_MARKERS) {
+    if (re.test(text)) hits++;
+    if (hits >= 2) return true;
+  }
+  return false;
+}
+
+/**
+ * Filter an eligibility array: drop bullets that are clearly English
+ * and replace with a single French fallback if all are English.
+ */
+export function ensureFrenchEligibility(bullets: string[]): string[] {
+  const french = bullets.filter((b) => !looksEnglish(b));
+  if (french.length > 0) return french;
+  // All bullets were English — return a generic French note
+  return ["Voir les critères d'éligibilité sur le site officiel"];
+}
+
+/**
+ * Return a French howToApply string; if the input is English, replace
+ * with a generic French instruction.
+ */
+export function ensureFrenchHowToApply(text: string): string {
+  if (looksEnglish(text)) return "Postulez via le site officiel (lien dans la bio)";
+  return text;
+}
+
 /**
  * Bilingual text overrides from content_versions (fr + ht).
  * When provided, formatters use these instead of raw item.title/summary.

@@ -30,6 +30,7 @@ interface IGQueueCounts {
   posted: number;
   skipped: number;
   rendering: number;
+  expired: number;
 }
 
 // ── Status badge colors ──────────────────────────────────────────────────────
@@ -41,6 +42,7 @@ const STATUS_COLORS: Record<string, string> = {
   rendering: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
   posted: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
   skipped: "bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400",
+  expired: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 const TYPE_ACCENTS: Record<string, string> = {
@@ -183,7 +185,7 @@ function PostCard({ entry }: { entry: IGQueueEntry }) {
 
 // ── Filter tabs ──────────────────────────────────────────────────────────────
 
-const STATUS_FILTERS = ["all", "queued", "scheduled", "posted", "skipped"] as const;
+const STATUS_FILTERS = ["all", "queued", "scheduled", "rendering", "posted", "skipped", "expired"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
 const TYPE_FILTERS = ["all", "scholarship", "opportunity", "news", "histoire", "utility"] as const;
@@ -249,12 +251,13 @@ export default function IGQueuePage() {
 
       {/* Counts */}
       {counts && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <CountCard label="Queued" value={counts.queued} color="bg-blue-50 dark:bg-blue-900/10" />
           <CountCard label="Scheduled" value={counts.scheduled} color="bg-yellow-50 dark:bg-yellow-900/10" />
+          <CountCard label="Rendering" value={counts.rendering} color="bg-purple-50 dark:bg-purple-900/10" />
           <CountCard label="Posted" value={counts.posted} color="bg-green-50 dark:bg-green-900/10" />
           <CountCard label="Skipped" value={counts.skipped} color="bg-stone-50 dark:bg-stone-800/50" />
-          <CountCard label="Rendering" value={counts.rendering} color="bg-purple-50 dark:bg-purple-900/10" />
+          <CountCard label="Expired" value={counts.expired} color="bg-red-50 dark:bg-red-900/10" />
         </div>
       )}
 

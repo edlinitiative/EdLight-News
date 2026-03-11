@@ -4,9 +4,6 @@ node_modules
 
 # build outputs
 dist
-# keep types/dist and firebase/dist committed so Vercel always has them
-!packages/types/dist/
-!packages/firebase/dist/
 .next
 .turbo
 out

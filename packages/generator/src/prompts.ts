@@ -53,7 +53,7 @@ RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
   "cluster_slug": "story-topic-keyword-year",
   "extracted": {
     "deadline": "2026-03-15 ou null si pas de deadline",
-    "eligibility": "Critères d'éligibilité ou null",
+    "eligibility": "Critères d'éligibilité EN FRANÇAIS (même si la source est en anglais) ou null",
     "category": "scholarship|opportunity|news|event|resource|local_news"
   }
 }`;
