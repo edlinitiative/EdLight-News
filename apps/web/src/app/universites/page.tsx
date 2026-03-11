@@ -137,7 +137,7 @@ export default async function UniversitesPage({
                       return (
                         <div
                           key={uni.id}
-                          className="content-card p-5"
+                          className="content-card flex flex-col p-5"
                         >
                           <div className="flex items-start justify-between">
                             <h3 className="font-semibold leading-tight dark:text-white">{uni.name}</h3>
@@ -153,16 +153,21 @@ export default async function UniversitesPage({
                           {uni.city && (
                             <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">{uni.city}</p>
                           )}
-                          {tuition && (
-                            <p className="mt-1 text-xs text-stone-400 dark:text-stone-500">
-                              <DollarSign className="mr-0.5 inline h-3 w-3" />{fr ? tuition.fr : tuition.ht}
-                            </p>
-                          )}
-                          {uni.languages && uni.languages.length > 0 && (
-                            <p className="mt-1 text-xs text-stone-400 dark:text-stone-500">
-                              <Languages className="mr-0.5 inline h-3 w-3" />{uni.languages.join(", ")}
-                            </p>
-                          )}
+
+                          {/* Info pills row */}
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {tuition && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                <DollarSign className="h-3 w-3" />{fr ? tuition.fr : tuition.ht}
+                              </span>
+                            )}
+                            {uni.languages && uni.languages.length > 0 && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                <Languages className="h-3 w-3" />{uni.languages.join(", ")}
+                              </span>
+                            )}
+                          </div>
+
                           {uni.tags && uni.tags.length > 0 && (
                             <div className="mt-2 flex flex-wrap gap-1">
                               {uni.tags.slice(0, 4).map((tag) => (
@@ -172,25 +177,30 @@ export default async function UniversitesPage({
                               ))}
                             </div>
                           )}
-                          <div className="mt-3 flex gap-2">
-                            <a
-                              href={uni.admissionsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline"
-                            >
-                              {fr ? "Admissions →" : "Admisyon →"}
-                            </a>
-                            {uni.scholarshipUrl && (
+
+                          {/* Links — separated by a divider for visual clarity */}
+                          <div className="mt-auto flex flex-col gap-2.5 pt-3">
+                            <div className="border-t border-stone-100 dark:border-stone-800" />
+                            <div className="flex gap-3">
                               <a
-                                href={uni.scholarshipUrl}
+                                href={uni.admissionsUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs font-medium text-green-600 dark:text-green-400 hover:underline"
+                                className="text-xs font-medium text-blue-700 dark:text-blue-400 hover:underline"
                               >
-                                {fr ? "Bourses →" : "Bous →"}
+                                {fr ? "Admissions →" : "Admisyon →"}
                               </a>
-                            )}
+                              {uni.scholarshipUrl && (
+                                <a
+                                  href={uni.scholarshipUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-medium text-green-600 dark:text-green-400 hover:underline"
+                                >
+                                  {fr ? "Bourses →" : "Bous →"}
+                                </a>
+                              )}
+                            </div>
                           </div>
                           {/* Sources */}
                           {uni.sources && uni.sources.length > 0 && (

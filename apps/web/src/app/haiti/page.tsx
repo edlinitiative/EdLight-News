@@ -86,6 +86,11 @@ export default async function HaitiPage({
             {articles.length} {fr ? "articles" : "atik"}
           </span>
         </div>
+        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
+          {fr
+            ? "Nouvelles locales et actualités éducatives directement d'Haïti."
+            : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti."}
+        </p>
       </header>
 
       <HaitiFeed articles={articles} lang={lang} />

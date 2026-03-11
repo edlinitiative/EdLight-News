@@ -77,6 +77,11 @@ export default async function NewsPage({
             {articles.length} {fr ? "articles" : "atik"}
           </span>
         </div>
+        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
+          {fr
+            ? "Toute l'actualité éducative pour les étudiants haïtiens, vérifiée et synthétisée."
+            : "Tout nouvèl edikasyon pou elèv ayisyen yo, verifye epi senteze."}
+        </p>
       </header>
 
       <Suspense

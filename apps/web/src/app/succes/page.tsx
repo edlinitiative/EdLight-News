@@ -74,6 +74,11 @@ export default async function SuccesPage({
             {articles.length} {fr ? "articles" : "atik"}
           </span>
         </div>
+        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
+          {fr
+            ? "Des histoires de réussite qui inspirent la communauté haïtienne."
+            : "Istwa siksè ki enspire kominote ayisyèn nan."}
+        </p>
       </header>
 
       {articles.length > 0 ? (

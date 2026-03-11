@@ -55,6 +55,7 @@ export default async function ParcoursPage({
       <header className="space-y-3">
         <div className="section-rule" />
         <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+          <Compass className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
           {fr ? "Parcours" : "Pakou"}
         </h1>
         <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
@@ -91,11 +92,14 @@ export default async function ParcoursPage({
 
               {/* Steps */}
               {p.steps && p.steps.length > 0 && (
-                <div className="divide-y dark:divide-stone-700/80">
+                <div className="relative divide-y dark:divide-stone-700/80">
+                  {/* Vertical connector line behind step numbers */}
+                  <div className="absolute left-[1.125rem] top-6 bottom-6 w-px bg-blue-100 dark:bg-blue-900/30 sm:left-[1.375rem]" />
+
                   {p.steps.map((step, idx) => (
-                      <div key={idx} className="flex gap-4 p-4 sm:p-5">
+                      <div key={idx} className="relative flex gap-4 p-4 sm:p-5">
                         {/* Step number */}
-                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 ring-4 ring-blue-50 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-900/20">
+                        <div className="relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 ring-4 ring-white dark:bg-blue-900/30 dark:text-blue-300 dark:ring-stone-900">
                           {idx + 1}
                         </div>
                         <div className="min-w-0">

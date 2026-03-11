@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
-import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle, Lightbulb, BookOpen, ArrowLeft } from "lucide-react";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
 import type { ContentVersion, ContentLanguage, Item, ContentSection } from "@edlight-news/types";
 import {
@@ -339,7 +339,7 @@ function StructuredSections({
             {/* Student takeaway callout */}
             {takeaway && (
               <div className="mt-4 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
-                <span className="mt-0.5 flex-shrink-0 text-lg">💡</span>
+                <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-400" />
                 <div className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
                   <span className="font-semibold">{takeaway.label}</span>{" "}
                   <ReactMarkdown
@@ -356,7 +356,7 @@ function StructuredSections({
             {/* Source citation badge */}
             {sourceLine && (
               <div className="mt-3 flex items-start gap-2 text-sm text-stone-500 dark:text-stone-400">
-                <span className="mt-0.5 flex-shrink-0 text-xs">📚</span>
+                <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-400 dark:text-stone-500" />
                 <div className="prose-sm prose dark:prose-invert prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline prose-a:decoration-blue-300 dark:prose-a:decoration-blue-700 prose-a:underline-offset-2">
                   <ReactMarkdown
                     components={{
@@ -813,7 +813,7 @@ export default async function ArticlePage({
   };
 
   return (
-    <article className="mx-auto max-w-3xl space-y-6">
+    <article className="mx-auto max-w-3xl space-y-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -973,6 +973,7 @@ export default async function ArticlePage({
       {isUtility && item && <UtilityFactsFiche item={item} lang={currentLang} />}
 
       {/* Body: structured sections for synthesis/utility, markdown for regular */}
+      <div className="border-t border-stone-200 pt-6 dark:border-stone-800">
       {article.sections && article.sections.length > 0 ? (
         <StructuredSections sections={stripStructuredSourceSections(article.sections)} isHistory={isHistory} />
       ) : (
@@ -980,6 +981,7 @@ export default async function ArticlePage({
           <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
         </div>
       )}
+      </div>
 
       {/* Utility source citations */}
       {isUtility && (
@@ -1066,9 +1068,10 @@ export default async function ArticlePage({
       <div className="pt-4">
         <Link
           href={`/news?lang=${currentLang}`}
-          className="text-sm text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
+          className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
         >
-          ← {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
         </Link>
       </div>
     </article>
