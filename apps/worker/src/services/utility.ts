@@ -78,19 +78,30 @@ const UTILITY_DEDUP_DAYS = 7;
 const RECURRING_SERIES_DEDUP_DAYS = 14;
 const RECURRING_SERIES: Set<string> = new Set(["HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]);
 
-// ── Haiti timezone offset (UTC-5 / EST, Haiti does not observe DST) ─────
-const HAITI_UTC_OFFSET_HOURS = -5;
+// ── Haiti timezone (dynamic DST: EST = UTC-5 Nov-Mar, EDT = UTC-4 Mar-Nov) ──
+const HAITI_TZ = "America/Port-au-Prince";
+
+/**
+ * Compute the current UTC offset for Haiti dynamically.
+ * Returns the offset in hours (negative = behind UTC, e.g. -4 for EDT, -5 for EST).
+ */
+function getHaitiOffsetHours(date: Date = new Date()): number {
+  const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
+  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
+  const diffMs = new Date(haitiStr).getTime() - new Date(utcStr).getTime();
+  return Math.round(diffMs / (60 * 60 * 1000));
+}
 
 function getHaitiHour(): number {
   const now = new Date();
   const utcH = now.getUTCHours();
-  return (utcH + HAITI_UTC_OFFSET_HOURS + 24) % 24;
+  return (utcH + getHaitiOffsetHours(now) + 24) % 24;
 }
 
 function getHaitiDayOfWeek(): number {
   const now = new Date();
   // Adjust UTC date by Haiti offset to get local day
-  const haitiTime = new Date(now.getTime() + HAITI_UTC_OFFSET_HOURS * 3600000);
+  const haitiTime = new Date(now.getTime() + getHaitiOffsetHours(now) * 3600000);
   return haitiTime.getUTCDay(); // 0=Sun, 1=Mon, …, 6=Sat
 }
 

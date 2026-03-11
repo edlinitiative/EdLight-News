@@ -38,8 +38,19 @@ import { generateCustomImage } from "./geminiImageGen.js";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
-/** Haiti UTC offset (EST, no DST). */
-const HAITI_UTC_OFFSET_HOURS = -5;
+const HAITI_TZ = "America/Port-au-Prince";
+
+/**
+ * Compute the current UTC offset for Haiti dynamically.
+ * Haiti observes US Eastern time rules (EST = UTC-5, EDT = UTC-4).
+ * Returns the offset in hours (negative = behind UTC, e.g. -4 for EDT, -5 for EST).
+ */
+function getHaitiOffsetHours(date: Date = new Date()): number {
+  const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
+  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
+  const diffMs = new Date(haitiStr).getTime() - new Date(utcStr).getTime();
+  return Math.round(diffMs / (60 * 60 * 1000)); // -4 (EDT) or -5 (EST)
+}
 
 /** Only publish once per day — skip if log already says "published". */
 const PUBLISH_HOUR_MIN = 6;
@@ -98,30 +109,69 @@ function buildImageCredit(ill: NonNullable<HaitiHistoryAlmanacEntry["illustratio
 
 // ── AI Editorial Illustration ───────────────────────────────────────────────
 
-/** Build a Gemini image-generation prompt from almanac entries. */
+/** Infer the historical era label from a year for period-accurate visuals. */
+function inferEra(year: number | null | undefined): string {
+  if (!year) return "historical Haiti";
+  if (year < 1804) return "colonial-era / revolutionary Haiti (Saint-Domingue)";
+  if (year < 1850) return "early independent Haiti, post-revolution (early 19th century)";
+  if (year < 1900) return "19th-century Haiti, era of political upheaval and nation-building";
+  if (year < 1960) return "early-to-mid 20th century Haiti, era of modernization";
+  if (year < 2000) return "late 20th century Haiti, era of political transition and democracy";
+  return "modern-day Haiti (21st century)";
+}
+
+/**
+ * Build a rich editorial cartoon prompt from almanac entries.
+ *
+ * Style: Bold editorial illustration like The New Yorker, The Economist,
+ * or Time magazine covers. Cartoon-style people are encouraged — it is
+ * fine to depict historical figures as stylised illustrated characters.
+ */
 function buildHistoryImagePrompt(entries: HaitiHistoryAlmanacEntry[]): string {
-  const events = entries
-    .map((e) => {
-      const year = e.year ? ` (${e.year})` : "";
-      return `• ${e.title_fr}${year}`;
-    })
-    .join("\n");
+  const hero = entries[0];
+  if (!hero) return "A bold editorial cartoon about Haitian history in the style of The New Yorker.";
+
+  const year = hero.year ?? null;
+  const era = inferEra(year);
+
+  // Build rich context for the hero event
+  const heroLines: string[] = [
+    `MAIN EVENT: "${hero.title_fr}"${year ? ` (year ${year})` : ""}`,
+  ];
+  if (hero.summary_fr) {
+    heroLines.push(`WHAT HAPPENED: ${hero.summary_fr}`);
+  }
+  if (hero.student_takeaway_fr) {
+    heroLines.push(`WHY IT MATTERS: ${hero.student_takeaway_fr}`);
+  }
+
+  // Secondary events as brief context
+  const others = entries.slice(1, 3);
+  const otherLines = others.length > 0
+    ? ["", "Also on this day:", ...others.map((e) => `• ${e.title_fr}${e.year ? ` (${e.year})` : ""}`)]
+    : [];
 
   return [
-    "Create a colorful editorial illustration for a Haitian history educational post.",
-    "",
-    "Events featured today:",
-    events,
-    "",
-    "Style requirements:",
-    "- Bold, vibrant Caribbean color palette (warm yellows, ocean blues, lush greens, sunset oranges)",
-    "- Hand-drawn editorial illustration style, NOT photorealistic",
-    "- Symbolic/metaphorical imagery — do NOT depict specific named individuals",
-    "- Include subtle Haitian cultural motifs (tropical flora, architecture, Caribbean sea)",
-    "- Educational, dignified tone appropriate for students",
-    "- Portrait orientation (4:5 aspect ratio, 1080×1350 pixels)",
-    "- NO text, NO words, NO letters, NO numbers overlaid on the image",
-    "- Clean composition with a clear focal point",
+    `Create a bold editorial cartoon illustration of this Haitian historical event.`,
+    ``,
+    ...heroLines,
+    ...otherLines,
+    ``,
+    `ERA: ${era}`,
+    ``,
+    `ART DIRECTION:`,
+    `- STYLE: Bold, graphic editorial cartoon — like a cover of The New Yorker, The Economist, or Time magazine. Strong outlines, flat bold colours, confident ink-work, slight stylisation. NOT photorealistic, NOT a painting, NOT a textbook illustration.`,
+    `- PEOPLE: Draw the historical figures as stylised cartoon characters with expressive faces, period-accurate clothing for ${year ? `${year}` : "the era"}, and dynamic poses that tell the story. Show them front-facing and recognisable as characters (it is perfectly fine to depict people as cartoons).`,
+    `- SCENE: Depict the SPECIFIC event described above — the action, the drama, the moment. NOT generic Caribbean scenery. Include setting details appropriate to ${year ? `Haiti in ${year}` : "the era"} (architecture, landscape, objects).`,
+    `- COMPOSITION: Strong focal point, dramatic angle, clear visual storytelling. The viewer should immediately understand what is happening.`,
+    `- COLOUR: Rich, saturated editorial palette — warm Caribbean tones (golden yellows, deep ocean blues, lush greens, sunset oranges) with bold contrast. Colours should pop.`,
+    `- MOOD: Dramatic, dignified, engaging — appropriate for an educational publication aimed at students.`,
+    ``,
+    `STRICT RULES:`,
+    `- The illustration MUST clearly depict the specific event described, not be generic`,
+    `- NO text, NO words, NO letters, NO numbers anywhere in the image`,
+    `- Portrait orientation (4:5 aspect ratio)`,
+    `- Clean, professional, publication-ready quality`,
   ].join("\n");
 }
 
@@ -188,7 +238,7 @@ async function ensureHistoryIllustration(
 
 function getHaitiNow(): Date {
   const utc = new Date();
-  return new Date(utc.getTime() + HAITI_UTC_OFFSET_HOURS * 60 * 60 * 1000);
+  return new Date(utc.getTime() + getHaitiOffsetHours(utc) * 60 * 60 * 1000);
 }
 
 function getTodayMonthDay(): string {
@@ -769,7 +819,7 @@ async function publishContent(
       imageUrl: heroImage.imageUrl,
       imageSource: heroImage.imageSource as "wikidata",
       imageConfidence: heroImage.imageConfidence ?? 0.7,
-      imageAttribution: heroImage.imageAttribution,
+      ...(heroImage.imageAttribution ? { imageAttribution: heroImage.imageAttribution } : {}),
     } : {
       imageSource: "branded" as const,
     }),
