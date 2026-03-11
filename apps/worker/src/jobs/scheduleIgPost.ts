@@ -131,16 +131,32 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   // missing Firestore index) can stay in "scheduled" status forever,
   // inflating the daily cap and blocking all new scheduling.
   const allScheduled = await igQueueRepo.listAllScheduled(50);
+  const now = new Date();
   for (const item of allScheduled) {
+    // Expire if content is stale (based on createdAt TTL)
     if (isStale(item)) {
       await igQueueRepo.updateStatus(item.id, "expired", {
         reasons: [...(item.reasons ?? []), `Expired scheduled: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL for ${item.igType}`],
       });
       expired++;
+      continue;
+    }
+    // Also expire items whose scheduled slot passed more than 2 hours ago.
+    // These are "zombie" items that were scheduled but never processed,
+    // likely due to a crash or infrastructure issue.
+    if (item.scheduledFor) {
+      const scheduledTime = new Date(item.scheduledFor).getTime();
+      const overduMs = now.getTime() - scheduledTime;
+      if (overduMs > 2 * 60 * 60 * 1000) {
+        await igQueueRepo.updateStatus(item.id, "expired", {
+          reasons: [...(item.reasons ?? []), `Expired: scheduled slot missed by ${Math.round(overduMs / 3600000)}h (scheduledFor=${item.scheduledFor})`],
+        });
+        expired++;
+      }
     }
   }
   if (expired > 0) {
-    console.log(`[scheduleIgPost] expired ${expired} stale scheduled item(s)`);
+    console.log(`[scheduleIgPost] expired ${expired} stale/overdue scheduled item(s)`);
   }
 
   // Check daily caps (Haiti-day-aware)
