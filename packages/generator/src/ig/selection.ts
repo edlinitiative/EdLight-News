@@ -441,8 +441,8 @@ export function decideIG(item: Item): IGDecision {
     scholarship: 70,
     opportunity: 65,
     taux: 60,
+    histoire: 60,
     utility: 55,
-    histoire: 50,
     news: 45,
   };
   let score = BASE_SCORES[igType];

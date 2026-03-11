@@ -59,16 +59,26 @@ export function formatForIG(
   const formatter = FORMATTERS[igType];
   const payload = formatter(item, options.bi);
 
-  // Handle image safety for the cover slide
+  // Handle image safety
   const igImageSafe = options.igImageSafe ?? true;
+
   if (!igImageSafe && payload.slides.length > 0) {
-    const cover = payload.slides[0]!;
+    // Source flagged as unsafe — strip ALL slides' images
+    for (const slide of payload.slides) {
+      delete slide.backgroundImage;
+    }
+    // Optionally restore cover with a free-licensed alternative
     if (options.overrideImageUrl) {
-      // Use the free-licensed alternative image
-      cover.backgroundImage = options.overrideImageUrl;
-    } else {
-      // No alternative found — strip publisher image, renderer uses branded gradient
-      delete cover.backgroundImage;
+      payload.slides[0]!.backgroundImage = options.overrideImageUrl;
+    }
+  } else if (
+    (igType === "scholarship" || igType === "opportunity") &&
+    payload.slides.length > 1
+  ) {
+    // Scholarship/opportunity publisher images consistently contain text/logos
+    // that clash with overlay text — strip inner slides by default, keep cover
+    for (let i = 1; i < payload.slides.length; i++) {
+      delete payload.slides[i]!.backgroundImage;
     }
   }
 

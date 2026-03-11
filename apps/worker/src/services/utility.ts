@@ -3,9 +3,9 @@
  * on a daily schedule with six recurring series.
  *
  * Daily slots (America/Port-au-Prince ≈ UTC-5):
+ *   06:30  HaitiFactOfTheDay OR HaitiHistory (early morning)
  *   07:30  ScholarshipRadar / deadline-oriented
  *   13:00  Career OR StudyAbroad (weekly anchors)
- *   19:00  HaitiFactOfTheDay OR HaitiHistory
  *
  * Weekly anchors:
  *   Monday    → Career
@@ -281,8 +281,9 @@ function getScheduledSlots(): ScheduledSlot[] {
     }
   }
 
-  // ── 19:00 slot: HaitiFactOfTheDay / HaitiHistory / HaitianOfTheWeek ─────
-  if (hour >= 18 && hour < 22) {
+  // ── 06:30 slot: HaitiFactOfTheDay / HaitiHistory / HaitianOfTheWeek ─────
+  // Moved to early morning so items are queued before the first IG slot (08:00)
+  if (hour >= 6 && hour < 9) {
     if (dow === 6) {
       // Saturday → HaitianOfTheWeek
       slots.push({ series: "HaitianOfTheWeek" });

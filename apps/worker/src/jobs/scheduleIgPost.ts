@@ -6,8 +6,10 @@
  *
  * Rules:
  * - Max 5 feed posts/day (up to 7 if score >= 90 urgent content)
- * - Quiet hours: 23:00–07:00 Haiti time (UTC-5 / America/Port-au-Prince)
+ * - Quiet hours: 23:00–07:00 Haiti time (America/Port-au-Prince)
  * - Preferred slots spread across the day for best engagement
+ * - Daily staples (taux, histoire, utility) get priority morning slots
+ * - Per-type caps prevent any single type from dominating the feed
  */
 
 import { igQueueRepo } from "@edlight-news/firebase";
@@ -26,6 +28,18 @@ const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
   opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
   scholarship: 336,  // 14 days — scholarships (capped by deadline)
 };
+
+// ── Per-type daily caps ─────────────────────────────────────────────────────
+// Prevent any single type from dominating the feed. undefined = no cap.
+const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
+  scholarship: 2,
+  opportunity: 2,
+  taux: 1,
+};
+
+// ── Daily staples: types that should post every day, early ──────────────────
+// Order matters — first match gets the earliest available slot.
+const DAILY_STAPLES: IGPostType[] = ["taux", "histoire", "utility"];
 
 export interface ScheduleIgPostResult {
   scheduled: number;
@@ -78,7 +92,7 @@ function getNextSlot(): Date {
   const offsetHours = getHaitiOffsetHours(now);
 
   // 7 slots spread across the day (Haiti local time) for 3-7 posts
-  const slots = [
+  const SLOTS = [
     { hour: 8, minute: 0 },    // Morning — early scrollers
     { hour: 10, minute: 30 },   // Mid-morning
     { hour: 12, minute: 30 },   // Lunch break
@@ -95,7 +109,7 @@ function getNextSlot(): Date {
 
   // Find next available slot today or tomorrow
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-    for (const slot of slots) {
+    for (const slot of SLOTS) {
       // If today, must be in the future
       if (dayOffset === 0) {
         if (
@@ -137,13 +151,9 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   }
 
   // ── Expire stale SCHEDULED items ────────────────────────────────────
-  // Items that were scheduled but never processed (e.g. due to a crash or
-  // missing Firestore index) can stay in "scheduled" status forever,
-  // inflating the daily cap and blocking all new scheduling.
   const allScheduled = await igQueueRepo.listAllScheduled(50);
   const now = new Date();
   for (const item of allScheduled) {
-    // Expire if content is stale (based on createdAt TTL)
     if (isStale(item)) {
       await igQueueRepo.updateStatus(item.id, "expired", {
         reasons: [...(item.reasons ?? []), `Expired scheduled: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL for ${item.igType}`],
@@ -151,9 +161,6 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
       expired++;
       continue;
     }
-    // Also expire items whose scheduled slot passed more than 2 hours ago.
-    // These are "zombie" items that were scheduled but never processed,
-    // likely due to a crash or infrastructure issue.
     if (item.scheduledFor) {
       const scheduledTime = new Date(item.scheduledFor).getTime();
       const overduMs = now.getTime() - scheduledTime;
@@ -178,8 +185,6 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const queued = await igQueueRepo.listQueuedByScore(30);
 
   // ── Expire stale items ───────────────────────────────────────────────
-  // Before picking an item, mark any stale queued items as expired so they
-  // never get posted with outdated content.
   const fresh = [];
   for (const item of queued) {
     if (isStale(item)) {
@@ -199,27 +204,60 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     return { scheduled: 0, skipped: "no-queued-items", expired };
   }
 
-  // ── Type diversity: ensure news gets represented ─────────────────────
-  // Check what types have already been scheduled/posted today.
-  // If no news has been scheduled today and there are news items in queue,
-  // pick the top news item instead of the global top item.
+  // ── What's already posted/scheduled today ────────────────────────────
   const todayStatuses = await igQueueRepo.listPostedAndScheduledToday();
-  const todayTypes = new Set(todayStatuses.map((i) => i.igType));
-  const hasNewsToday = todayTypes.has("news");
+  const todayTypeCounts = new Map<string, number>();
+  for (const s of todayStatuses) {
+    todayTypeCounts.set(s.igType, (todayTypeCounts.get(s.igType) ?? 0) + 1);
+  }
 
-  let topItem = fresh[0]!;
+  let topItem: typeof fresh[0] | undefined;
 
-  // Every other post slot, prefer news if none today yet
-  // Also: if 3+ non-news posts are scheduled and 0 news, force news
-  const nonNewsToday = todayStatuses.filter((i) => i.igType !== "news").length;
-  const needsNewsDiversity = !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
-
-  if (needsNewsDiversity) {
-    const topNewsItem = fresh.find((q) => q.igType === "news");
-    if (topNewsItem) {
-      topItem = topNewsItem;
-      console.log(`[scheduleIgPost] type-diversity: picking news item ${topItem.id} (score=${topItem.score}) — no news posted today`);
+  // ── Daily staples: guarantee taux, histoire, utility post daily ──────
+  // If a staple type hasn't been posted/scheduled today and there's one in
+  // the queue, pick it — regardless of score.
+  for (const stapleType of DAILY_STAPLES) {
+    if ((todayTypeCounts.get(stapleType) ?? 0) > 0) continue; // already covered
+    const candidate = fresh.find((q) => q.igType === stapleType);
+    if (candidate) {
+      topItem = candidate;
+      console.log(`[scheduleIgPost] daily-staple: picking ${stapleType} item ${candidate.id} (score=${candidate.score})`);
+      break;
     }
+  }
+
+  // ── Type diversity: ensure news gets represented ─────────────────────
+  if (!topItem) {
+    const hasNewsToday = (todayTypeCounts.get("news") ?? 0) > 0;
+    const nonNewsToday = todayStatuses.filter((i) => i.igType !== "news").length;
+    const needsNewsDiversity = !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
+
+    if (needsNewsDiversity) {
+      const topNewsItem = fresh.find((q) => q.igType === "news");
+      if (topNewsItem) {
+        topItem = topNewsItem;
+        console.log(`[scheduleIgPost] type-diversity: picking news item ${topItem.id} (score=${topItem.score}) — no news posted today`);
+      }
+    }
+  }
+
+  // ── Per-type cap enforcement ─────────────────────────────────────────
+  // Use highest-score item that hasn't hit its type's daily cap.
+  if (!topItem) {
+    for (const candidate of fresh) {
+      const cap = TYPE_DAILY_CAPS[candidate.igType];
+      if (cap != null && (todayTypeCounts.get(candidate.igType) ?? 0) >= cap) {
+        continue; // this type already hit its daily cap
+      }
+      topItem = candidate;
+      break;
+    }
+  }
+
+  // Absolute fallback — pick the top-scoring item ignoring caps
+  if (!topItem) {
+    topItem = fresh[0]!;
+    console.log(`[scheduleIgPost] fallback: all types at cap, using top-score item ${topItem.id} (type=${topItem.igType})`);
   }
 
   // Cap enforcement: 5 normal, 7 for urgent (score >= 90)
@@ -235,7 +273,6 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const nextSlot = getNextSlot();
   const nextSlotISO = nextSlot.toISOString();
 
-  // If there's already a post scheduled within 1 hour of the next slot, skip
   const hasConflict = scheduled.some((s) => {
     if (!s.scheduledFor) return false;
     const scheduledTime = new Date(s.scheduledFor).getTime();

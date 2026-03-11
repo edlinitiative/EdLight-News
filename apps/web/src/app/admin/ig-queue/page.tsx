@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Copy, Check, ExternalLink, RefreshCw } from "lucide-react";
+import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw } from "lucide-react";
 import { IGPostPreview } from "@/components/IGSlidePreview";
 import type { SlideData } from "@/components/IGSlidePreview";
 
@@ -110,9 +110,19 @@ function CopyButton({ text }: { text: string }) {
 
 // ── Post card ────────────────────────────────────────────────────────────────
 
-function PostCard({ entry }: { entry: IGQueueEntry }) {
+function PostCard({ entry, onAction }: { entry: IGQueueEntry; onAction: (id: string, action: string) => void }) {
   const [showFullCaption, setShowFullCaption] = useState(false);
+  const [busy, setBusy] = useState(false);
   const accentBorder = TYPE_ACCENTS[entry.igType] ?? "border-stone-300";
+
+  const handleAction = async (action: string) => {
+    setBusy(true);
+    try {
+      onAction(entry.id, action);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className={`overflow-hidden rounded-xl border-t-4 ${accentBorder} bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900`}>
@@ -159,6 +169,48 @@ function PostCard({ entry }: { entry: IGQueueEntry }) {
             </pre>
             <CopyButton text={entry.caption} />
           </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      {(entry.status === "queued" || entry.status === "expired" || entry.status === "skipped" || entry.status === "scheduled" || entry.status === "scheduled_ready_for_manual") && (
+        <div className="flex items-center gap-2 border-t border-stone-100 px-3 py-2 dark:border-stone-800">
+          {entry.status === "queued" && (
+            <>
+              <button
+                disabled={busy}
+                onClick={() => void handleAction("push")}
+                className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-300"
+              >
+                <ArrowUpCircle className="h-3 w-3" /> Push
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => void handleAction("skip")}
+                className="flex items-center gap-1 rounded-md bg-stone-50 px-2 py-1 text-[11px] font-medium text-stone-500 transition hover:bg-stone-100 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-400"
+              >
+                <XCircle className="h-3 w-3" /> Skip
+              </button>
+            </>
+          )}
+          {(entry.status === "scheduled" || entry.status === "scheduled_ready_for_manual") && (
+            <button
+              disabled={busy}
+              onClick={() => void handleAction("skip")}
+              className="flex items-center gap-1 rounded-md bg-stone-50 px-2 py-1 text-[11px] font-medium text-stone-500 transition hover:bg-stone-100 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-400"
+            >
+              <XCircle className="h-3 w-3" /> Skip
+            </button>
+          )}
+          {(entry.status === "expired" || entry.status === "skipped") && (
+            <button
+              disabled={busy}
+              onClick={() => void handleAction("requeue")}
+              className="flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700 transition hover:bg-amber-100 disabled:opacity-50 dark:bg-amber-900/30 dark:text-amber-300"
+            >
+              <RotateCcw className="h-3 w-3" /> Re-queue
+            </button>
+          )}
         </div>
       )}
 
@@ -219,6 +271,21 @@ export default function IGQueuePage() {
 
   useEffect(() => {
     void loadData();
+  }, [loadData]);
+
+  const performAction = useCallback(async (id: string, action: string) => {
+    try {
+      const res = await fetch("/api/admin/ig-queue", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Action failed");
+      void loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Action failed");
+    }
   }, [loadData]);
 
   const filtered = entries.filter((e) => {
@@ -311,7 +378,7 @@ export default function IGQueuePage() {
       {!loading && filtered.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((entry) => (
-            <PostCard key={entry.id} entry={entry} />
+            <PostCard key={entry.id} entry={entry} onAction={performAction} />
           ))}
         </div>
       )}
