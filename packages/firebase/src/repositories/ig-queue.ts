@@ -76,10 +76,29 @@ export async function listRecentPosted(sinceDaysAgo = 1, limit = 10): Promise<IG
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as IGQueueItem);
 }
 
+/**
+ * Convert a Date to Haiti local midnight boundaries.
+ * Haiti is UTC−5 year-round (no DST since 2016).
+ */
+function haitiDayBounds(date: Date = new Date()): { startTs: Timestamp; endTs: Timestamp; startISO: string; endISO: string } {
+  const haitiStr = date.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" });
+  const haitiDate = new Date(haitiStr);
+  const y = haitiDate.getFullYear();
+  const m = haitiDate.getMonth();
+  const d = haitiDate.getDate();
+  // Haiti midnight in UTC = Haiti midnight + 5 hours
+  const startUTC = new Date(Date.UTC(y, m, d, 5, 0, 0, 0));
+  const endUTC = new Date(Date.UTC(y, m, d + 1, 5, 0, 0, 0));
+  return {
+    startTs: Timestamp.fromDate(startUTC),
+    endTs: Timestamp.fromDate(endUTC),
+    startISO: startUTC.toISOString(),
+    endISO: endUTC.toISOString(),
+  };
+}
+
 export async function countPostedToday(): Promise<number> {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startTs = Timestamp.fromDate(startOfDay);
+  const { startTs } = haitiDayBounds();
 
   const snap = await collection()
     .where("status", "==", "posted" satisfies IGQueueStatus)
@@ -94,23 +113,20 @@ export async function countPostedToday(): Promise<number> {
  * Only includes minimal fields: id, igType, status.
  */
 export async function listPostedAndScheduledToday(): Promise<Pick<IGQueueItem, "id" | "igType" | "status">[]> {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startTs = Timestamp.fromDate(startOfDay);
+  const { startTs, startISO, endISO } = haitiDayBounds();
 
-  // Posted today
+  // Posted today (Haiti day)
   const postedSnap = await collection()
     .where("status", "==", "posted" satisfies IGQueueStatus)
     .where("updatedAt", ">=", startTs)
     .select("igType", "status")
     .get();
 
-  // Scheduled today
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  // Scheduled today (Haiti day)
   const scheduledSnap = await collection()
     .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
-    .where("scheduledFor", ">=", startOfDay.toISOString())
-    .where("scheduledFor", "<", endOfDay.toISOString())
+    .where("scheduledFor", ">=", startISO)
+    .where("scheduledFor", "<", endISO)
     .select("igType", "status")
     .get();
 
@@ -123,14 +139,12 @@ export async function listPostedAndScheduledToday(): Promise<Pick<IGQueueItem, "
 }
 
 export async function countScheduledToday(): Promise<number> {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const { startISO, endISO } = haitiDayBounds();
 
   const snap = await collection()
     .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
-    .where("scheduledFor", ">=", startOfDay.toISOString())
-    .where("scheduledFor", "<", endOfDay.toISOString())
+    .where("scheduledFor", ">=", startISO)
+    .where("scheduledFor", "<", endISO)
     .count()
     .get();
   return snap.data().count;
@@ -180,6 +194,47 @@ export async function markPosted(
   };
   if (igPostId) update.igPostId = igPostId;
   await collection().doc(id).update(update);
+}
+
+/**
+ * List ALL items in scheduled/rendering status (no limit on date range).
+ * Used by cleanup logic to expire stale scheduled items.
+ */
+export async function listAllScheduled(limit = 50): Promise<IGQueueItem[]> {
+  const snap = await collection()
+    .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
+    .orderBy("scheduledFor", "asc")
+    .limit(limit)
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as IGQueueItem);
+}
+
+/**
+ * Atomically claim a scheduled item for processing by checking its current
+ * status and updating to "rendering" in a single Firestore transaction.
+ * Returns true if the claim succeeded, false if another runner already claimed it.
+ */
+export async function claimForProcessing(id: string): Promise<boolean> {
+  const db = getDb();
+  const ref = collection().doc(id);
+  try {
+    return await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return false;
+      const data = snap.data()!;
+      // Only claim if still in "scheduled" status
+      if (data.status !== "scheduled" && data.status !== "scheduled_ready_for_manual") {
+        return false;
+      }
+      tx.update(ref, {
+        status: "rendering" satisfies IGQueueStatus,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return true;
+    });
+  } catch {
+    return false;
+  }
 }
 
 export async function listAll(limit = 100): Promise<IGQueueItem[]> {

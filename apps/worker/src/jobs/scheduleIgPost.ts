@@ -126,7 +126,24 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     return { scheduled: 0, skipped: "quiet-hours", expired: 0 };
   }
 
-  // Check daily caps
+  // ── Expire stale SCHEDULED items ────────────────────────────────────
+  // Items that were scheduled but never processed (e.g. due to a crash or
+  // missing Firestore index) can stay in "scheduled" status forever,
+  // inflating the daily cap and blocking all new scheduling.
+  const allScheduled = await igQueueRepo.listAllScheduled(50);
+  for (const item of allScheduled) {
+    if (isStale(item)) {
+      await igQueueRepo.updateStatus(item.id, "expired", {
+        reasons: [...(item.reasons ?? []), `Expired scheduled: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL for ${item.igType}`],
+      });
+      expired++;
+    }
+  }
+  if (expired > 0) {
+    console.log(`[scheduleIgPost] expired ${expired} stale scheduled item(s)`);
+  }
+
+  // Check daily caps (Haiti-day-aware)
   const postedToday = await igQueueRepo.countPostedToday();
   const scheduledToday = await igQueueRepo.countScheduledToday();
   const totalToday = postedToday + scheduledToday;

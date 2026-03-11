@@ -5,7 +5,7 @@
  * Runs as part of the /tick pipeline.
  */
 
-import { igQueueRepo, itemsRepo, uploadCarouselSlides } from "@edlight-news/firebase";
+import { igQueueRepo, uploadCarouselSlides } from "@edlight-news/firebase";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGPostType } from "@edlight-news/types";
@@ -73,8 +73,13 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           continue;
         }
 
-        // Mark as rendering
-        await igQueueRepo.updateStatus(item.id, "rendering");
+        // Atomically claim the item — prevents double-processing when both
+        // GHA and Cloud Run runners hit processIgScheduled at the same time.
+        const claimed = await igQueueRepo.claimForProcessing(item.id);
+        if (!claimed) {
+          console.log(`[processIgScheduled] item ${item.id} already claimed by another runner, skipping`);
+          continue;
+        }
 
         // Get the payload (should already exist from buildIgQueue)
         if (!item.payload) {
