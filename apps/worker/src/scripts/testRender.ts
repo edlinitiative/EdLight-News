@@ -144,7 +144,7 @@ async function main() {
 
   for (const s of sampleSlides) {
     const html = buildSlideHTML(s.slide, s.igType, s.index, s.total);
-    const page = await browser.newPage({ viewport: { width: 1080, height: 1350 } });
+    const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2 });
     try {
       await page.setContent(html, { waitUntil: "networkidle", timeout: 30_000 });
       await page.evaluate("document.fonts.ready");

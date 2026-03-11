@@ -51,19 +51,26 @@ export async function GET() {
       .get();
 
     // Second query: scheduled/rendering items (may not be in the 250-item window)
-    const activeSnap = await db
-      .collection("ig_queue")
-      .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
-      .orderBy("scheduledFor", "asc")
-      .limit(50)
-      .get();
+    let activeDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+    try {
+      const activeSnap = await db
+        .collection("ig_queue")
+        .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
+        .orderBy("scheduledFor", "asc")
+        .limit(50)
+        .get();
+      activeDocs = activeSnap.docs;
+    } catch (e) {
+      // Index may not be deployed yet — fall back gracefully
+      console.warn("[api/admin/ig-queue] activeSnap query failed (missing index?):", e);
+    }
 
     // Merge and deduplicate by doc ID
     const seen = new Set<string>();
     const items: ReturnType<typeof docToItem>[] = [];
 
     // Active items first (scheduled/rendering) so they appear prominently
-    for (const doc of activeSnap.docs) {
+    for (const doc of activeDocs) {
       if (!seen.has(doc.id)) {
         seen.add(doc.id);
         items.push(docToItem(doc));

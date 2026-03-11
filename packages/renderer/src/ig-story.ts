@@ -427,7 +427,7 @@ async function renderFrameToFile(
   html: string,
   outPath: string,
 ): Promise<void> {
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
+  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 2 });
   try {
     await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
     // Extra font-loading safety: wait for document.fonts.ready

@@ -429,7 +429,7 @@ export async function generateCarouselAssets(
     for (let i = 0; i < payload.slides.length; i++) {
       const slide = payload.slides[i]!;
       const html = buildSlideHTML(slide, queueItem.igType, i, totalSlides);
-      const page = await browser.newPage({ viewport: { width: 1080, height: 1350 } });
+      const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2 });
       try {
         await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
         await page.evaluate("document.fonts.ready");
@@ -503,7 +503,7 @@ async function renderMemeSlideWithChromium(html: string): Promise<Buffer> {
     });
   }
 
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1350 } });
+  const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2 });
   try {
     await page.setContent(html, { waitUntil: "load", timeout: 60_000 });
     const buffer = await page.screenshot({ type: "png", timeout: 60_000 });

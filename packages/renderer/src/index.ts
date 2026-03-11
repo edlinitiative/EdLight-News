@@ -232,6 +232,7 @@ export async function renderBrandedCardPNG(
   const browser = await getBrowser();
   const page = await browser.newPage({
     viewport: { width, height },
+    deviceScaleFactor: 2,
   });
 
   try {
