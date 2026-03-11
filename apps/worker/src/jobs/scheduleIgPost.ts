@@ -58,14 +58,24 @@ function isQuietHour(date: Date): boolean {
   return hour >= 23 || hour < 7;
 }
 
-// Haiti is UTC−5 year-round (no DST since 2016).
-const HAITI_OFFSET_HOURS = 5;
+/**
+ * Compute the current UTC offset for Haiti dynamically.
+ * Haiti observes US Eastern time rules (EST = UTC-5, EDT = UTC-4).
+ * Returns the offset in hours (positive = behind UTC, e.g. 4 for EDT, 5 for EST).
+ */
+function getHaitiOffsetHours(date: Date = new Date()): number {
+  const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
+  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
+  const diffMs = new Date(utcStr).getTime() - new Date(haitiStr).getTime();
+  return Math.round(diffMs / (60 * 60 * 1000));
+}
 
 function getNextSlot(): Date {
   const now = new Date();
   const haitiNow = toHaitiDate(now);
   const haitiHour = haitiNow.getHours();
   const haitiMinute = haitiNow.getMinutes();
+  const offsetHours = getHaitiOffsetHours(now);
 
   // 7 slots spread across the day (Haiti local time) for 3-7 posts
   const slots = [
@@ -96,14 +106,14 @@ function getNextSlot(): Date {
         }
       }
 
-      // Convert Haiti local time → proper UTC
+      // Convert Haiti local time → proper UTC using dynamic offset
       // Date.UTC handles day/month overflow automatically
       return new Date(
         Date.UTC(
           haitiYear,
           haitiMonth,
           haitiDay + dayOffset,
-          slot.hour + HAITI_OFFSET_HOURS,
+          slot.hour + offsetHours,
           slot.minute,
           0,
           0,
@@ -112,9 +122,9 @@ function getNextSlot(): Date {
     }
   }
 
-  // Fallback: tomorrow 08:00 Haiti = 13:00 UTC
+  // Fallback: tomorrow 08:00 Haiti
   return new Date(
-    Date.UTC(haitiYear, haitiMonth, haitiDay + 1, 8 + HAITI_OFFSET_HOURS, 0, 0, 0),
+    Date.UTC(haitiYear, haitiMonth, haitiDay + 1, 8 + offsetHours, 0, 0, 0),
   );
 }
 

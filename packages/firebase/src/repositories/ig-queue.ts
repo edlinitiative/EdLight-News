@@ -77,8 +77,20 @@ export async function listRecentPosted(sinceDaysAgo = 1, limit = 10): Promise<IG
 }
 
 /**
+ * Compute the current UTC offset for Haiti dynamically.
+ * Haiti observes US Eastern time rules (EST = UTC-5, EDT = UTC-4).
+ * Returns the offset in hours (positive = behind UTC).
+ */
+function getHaitiOffsetHours(date: Date = new Date()): number {
+  const haitiStr = date.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" });
+  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
+  const diffMs = new Date(utcStr).getTime() - new Date(haitiStr).getTime();
+  return Math.round(diffMs / (60 * 60 * 1000));
+}
+
+/**
  * Convert a Date to Haiti local midnight boundaries.
- * Haiti is UTC−5 year-round (no DST since 2016).
+ * Uses dynamic offset calculation to handle both EST and EDT.
  */
 function haitiDayBounds(date: Date = new Date()): { startTs: Timestamp; endTs: Timestamp; startISO: string; endISO: string } {
   const haitiStr = date.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" });
@@ -86,9 +98,10 @@ function haitiDayBounds(date: Date = new Date()): { startTs: Timestamp; endTs: T
   const y = haitiDate.getFullYear();
   const m = haitiDate.getMonth();
   const d = haitiDate.getDate();
-  // Haiti midnight in UTC = Haiti midnight + 5 hours
-  const startUTC = new Date(Date.UTC(y, m, d, 5, 0, 0, 0));
-  const endUTC = new Date(Date.UTC(y, m, d + 1, 5, 0, 0, 0));
+  const offsetHours = getHaitiOffsetHours(date);
+  // Haiti midnight in UTC = Haiti midnight + offset hours
+  const startUTC = new Date(Date.UTC(y, m, d, offsetHours, 0, 0, 0));
+  const endUTC = new Date(Date.UTC(y, m, d + 1, offsetHours, 0, 0, 0));
   return {
     startTs: Timestamp.fromDate(startUTC),
     endTs: Timestamp.fromDate(endUTC),
