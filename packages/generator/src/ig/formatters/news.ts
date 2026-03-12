@@ -114,6 +114,7 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     }
   }
   if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
+  parts.push("", "#ActuHaïti #HaitiNews #EdLightNews");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };

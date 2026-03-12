@@ -38,8 +38,9 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
 
   // ── Slide 3: Eligibility (separate bullets for readability) ──
   if (item.opportunity?.eligibility?.length) {
-    const elig = ensureFrenchEligibility(item.opportunity.eligibility);
-    if (elig.length <= 5) {
+    const elig = ensureFrenchEligibility(item.opportunity.eligibility)
+      .map((b) => shortenText(b, 150));
+    if (elig.length <= 4) {
       slides.push({
         heading: "Qui peut postuler ?",
         bullets: elig,
@@ -86,6 +87,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   const parts: string[] = [title, "", shortenText(summary, 300)];
   if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 250)}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
+  parts.push("", "#Opportunité #EdLightNews #Haïti #Éducation #Carrière");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };

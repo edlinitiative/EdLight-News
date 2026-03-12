@@ -1,18 +1,26 @@
 #!/usr/bin/env tsx
 /**
- * IG Formatter Audit Script
+ * IG Formatter Audit v2 — Pixel-Accurate Quality Gate
  *
- * Exercises every formatter with realistic mock data and checks for:
- *  1. Duplicate slides (Jaccard word-overlap > 0.40)
- *  2. Text overflow (heading/bullet exceeding renderer constraints)
- *  3. Empty slides (no heading and no bullets)
- *  4. Missing source attribution on last slide
- *  5. Caption too long (>2200) or suspiciously short (<100)
- *  6. Cover slide issues (clipping risk: long headline + body)
- *  7. Bullet count overflow (>8 on explanation, >6 on headline)
- *  8. English leaking into French slides
- *  9. Junk/scraping artifacts in output
- * 10. Slide count out of range (too few or too many)
+ * Exercises every formatter with 30 scenarios against actual renderer CSS
+ * constraints from ig-carousel.ts + design-tokens.ts.
+ *
+ * PIXEL BUDGETS (1080×1350 canvas, Inter font):
+ *
+ *   HEADLINE layout  (.main max-height = calc(100% - 80px) = 1270px)
+ *     Heading:  responsive font (88/72/64/56/48px), wt 900, LH 1.05
+ *     Body .bt: 34px, LH 1.45  — first(clamp 3, max 150px) inner(clamp 6, max 320px)
+ *     Bottom bar ~41px (16px padding-top + 15px src font + 10px flex)
+ *
+ *   EXPLANATION layout  (usable ~925px)
+ *     padding: 120 top, 140 bottom, pill 44px, bottom-bar 41px, main pad 80px
+ *     .h:  64px, wt 800, LH 1.10, clamp 4, mb 36px  → max ~318px
+ *     .bt: 34px, wt 400, LH 1.50, clamp 8, max-height 420px, mb 20px
+ *     Bullet text width: 876px  (900 − 24px border+padding)
+ *
+ *   DATA layout
+ *     .stat: 120px wt 900 centered
+ *     .stat-desc: 34px, max-width 80% = 720px
  *
  * Usage: npx tsx packages/generator/src/ig/audit-formatters.ts
  */
@@ -25,297 +33,330 @@ import { buildScholarshipCarousel } from "./formatters/scholarship.js";
 import { buildOpportunityCarousel } from "./formatters/opportunity.js";
 import { buildUtilityCarousel } from "./formatters/utility.js";
 
-// Minimal Timestamp mock for test items
+// ── Minimal Timestamp mock ─────────────────────────────────────────────────
 const Timestamp = {
-  now: () => ({ seconds: Math.floor(Date.now() / 1000), nanoseconds: 0, toDate: () => new Date(), toMillis: () => Date.now(), isEqual: () => true, valueOf: () => "" }),
+  now: () => ({
+    seconds: Math.floor(Date.now() / 1000), nanoseconds: 0,
+    toDate: () => new Date(), toMillis: () => Date.now(),
+    isEqual: () => true, valueOf: () => "",
+  }),
 };
 
-// ── Renderer constraints (from design-tokens + ig-carousel CSS) ────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDERER CONSTANTS  (mirrors design-tokens.ts + ig-carousel.ts CSS)
+// ═══════════════════════════════════════════════════════════════════════════
+
 const CANVAS = { width: 1080, height: 1350 };
+const MARGIN = { top: 120, side: 90, bottom: 100 };
+const USABLE_W = CANVAS.width - 2 * MARGIN.side; // 900
+
+const TYPE = { headlineHero: 88, headlineInner: 64, body: 34, stat: 120 };
+
+// Approximate px-per-char multipliers for Inter font (weight-adjusted)
+const CW = { hero: 0.55, inner: 0.55, body: 0.48, stat: 0.65 };
+
 const MAX_CAPTION = 2200;
-const HEADLINE_HERO_FONT = 88;  // first slide
-const HEADLINE_INNER_FONT = 64; // inner slides
-const BODY_FONT = 34;
-const LINE_HEIGHT_H = 1.05;
-const LINE_HEIGHT_BODY = 1.50;
 
-// Approximate max chars per line at given font size (1080px - 2*90px margins = 900px usable)
-const USABLE_WIDTH = 900;
-const CHARS_PER_LINE_HERO = Math.floor(USABLE_WIDTH / (HEADLINE_HERO_FONT * 0.55));  // ~18
-const CHARS_PER_LINE_INNER = Math.floor(USABLE_WIDTH / (HEADLINE_INNER_FONT * 0.50)); // ~28
-const CHARS_PER_LINE_BODY = Math.floor(USABLE_WIDTH / (BODY_FONT * 0.48));            // ~55
+// ── Headline layout pixel budget ───────────────────────────────────────────
 
-// Max visible lines per CSS clamp
-const HEADLINE_CLAMP_FIRST = 5;
-const HEADLINE_CLAMP_INNER = 4;
-const BODY_CLAMP_FIRST = 3;
-const BODY_CLAMP_EXPLANATION = 8;
+function hlFont(heading: string, first: boolean): number {
+  if (first) return heading.length > 60 ? 64 : heading.length > 40 ? 72 : TYPE.headlineHero;
+  return heading.length > 120 ? 48 : heading.length > 80 ? 56 : TYPE.headlineInner;
+}
+function hlClamp(heading: string, first: boolean): number {
+  if (first) return heading.length > 60 ? 6 : 5;
+  return heading.length > 120 ? 8 : 6;
+}
+const HL_LH = 1.05;
+const HL_MAIN_MAX = CANVAS.height - 80; // calc(100% - 80px) = 1270
+const HL_BT_LH = 1.45;
+const HL_BOT = 41; // bottom bar approx
 
-// ── Similarity check ───────────────────────────────────────────────────────
-const STOP_WORDS = new Set([
-  "le", "la", "les", "de", "des", "du", "un", "une", "et", "en",
-  "est", "sont", "dans", "pour", "par", "avec", "sur", "qui", "que",
-  "ce", "cette", "au", "aux", "se", "ne", "pas", "a", "à", "été",
-  "il", "elle", "ils", "ont", "son", "sa", "ses", "leurs", "leur",
-  "mais", "ou", "où", "aussi", "plus", "très", "tout", "tous",
+function hlCpl(font: number): number { return Math.floor(USABLE_W / (font * CW.hero)); }
+function bodyCpl(): number { return Math.floor(USABLE_W / (TYPE.body * CW.body)); }
+
+// ── Explanation layout pixel budget ────────────────────────────────────────
+// Canvas 1350 − top 120 − bottom-pad 140 − pill ~44 − bottom-bar 41 − main top/bottom pad 80
+const EXPL_AVAIL = CANVAS.height - MARGIN.top - 140 - 44 - HL_BOT - 80; // ~925
+
+const EH_FONT = 64; const EH_LH = 1.10; const EH_CLAMP = 4; const EH_MB = 36;
+const EB_FONT = 34; const EB_LH = 1.50; const EB_CLAMP = 8; const EB_MAX_H = 420; const EB_MB = 20;
+const EXPL_BW = USABLE_W - 24; // 876 (border-left 6 + padding-left 18)
+
+function ehCpl(): number { return Math.floor(USABLE_W / (EH_FONT * CW.inner)); }
+function ebCpl(): number { return Math.floor(EXPL_BW / (EB_FONT * CW.body)); }
+
+function explHeadPx(h: string): number {
+  const lines = Math.min(Math.ceil(h.length / ehCpl()), EH_CLAMP);
+  return lines * EH_FONT * EH_LH + EH_MB;
+}
+function explBulletPx(b: string): number {
+  const lines = Math.min(Math.ceil(b.length / ebCpl()), EB_CLAMP);
+  return Math.min(lines * EB_FONT * EB_LH, EB_MAX_H) + EB_MB;
+}
+
+// ── Data layout ────────────────────────────────────────────────────────────
+function statCpl(): number { return Math.floor(USABLE_W / (TYPE.stat * CW.stat)); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SIMILARITY / LANGUAGE / JUNK
+// ═══════════════════════════════════════════════════════════════════════════
+
+const STOP = new Set([
+  "le", "la", "les", "de", "des", "du", "un", "une", "et", "en", "est", "sont",
+  "dans", "pour", "par", "avec", "sur", "qui", "que", "ce", "cette", "au", "aux",
+  "se", "ne", "pas", "a", "à", "été", "il", "elle", "ils", "ont", "son", "sa",
+  "ses", "leurs", "mais", "ou", "où", "aussi", "plus", "très", "tout", "tous",
   "the", "of", "and", "to", "in", "is", "for", "that", "on", "was",
 ]);
 
-function contentWords(text: string): Set<string> {
-  const words = text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/);
-  return new Set(words.filter((w) => w.length > 2 && !STOP_WORDS.has(w)));
+function cWords(t: string): Set<string> {
+  return new Set(
+    t.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/)
+      .filter((w) => w.length > 2 && !STOP.has(w)),
+  );
 }
 
-function jaccard(a: string, b: string): number {
-  const setA = contentWords(a);
-  const setB = contentWords(b);
-  if (setA.size === 0 || setB.size === 0) return 0;
+function jac(a: string, b: string): number {
+  const sa = cWords(a), sb = cWords(b);
+  if (!sa.size || !sb.size) return 0;
   let inter = 0;
-  for (const w of setA) { if (setB.has(w)) inter++; }
-  return inter / (setA.size + setB.size - inter);
+  for (const w of sa) if (sb.has(w)) inter++;
+  return inter / (sa.size + sb.size - inter);
 }
 
-// ── English detection ──────────────────────────────────────────────────────
-const EN_MARKERS = [
-  /\bmust be\b/i, /\bshould be\b/i, /\bapplicants?\b/i,
-  /\brequired\b/i, /\bsubmit\b/i, /\byou must\b/i,
-  /\beligible\b/i, /\bcitizens? of\b/i, /\bopen to\b/i,
-  /\bapplication form\b/i, /\bscholarship\b/i,
+const EN = [
+  /\bmust be\b/i, /\bshould be\b/i, /\bapplicants?\b/i, /\brequired\b/i,
+  /\bsubmit\b/i, /\byou must\b/i, /\beligible\b/i, /\bcitizens? of\b/i,
+  /\bopen to\b/i, /\bapplication form\b/i, /\bscholarship\b/i,
 ];
 
-function looksEnglish(text: string): boolean {
-  if (!text || text.length < 15) return false;
-  let hits = 0;
-  for (const re of EN_MARKERS) { if (re.test(text)) hits++; if (hits >= 2) return true; }
+function enLeak(t: string): boolean {
+  if (!t || t.length < 15) return false;
+  let h = 0;
+  for (const r of EN) { if (r.test(t)) h++; if (h >= 2) return true; }
   return false;
 }
 
-// ── Junk detection ─────────────────────────────────────────────────────────
-const JUNK_PATTERNS = [
+const JUNK = [
   /cookie/i, /prévenez-moi/i, /enregistrer mon nom/i,
   /laisser un commentaire/i, /insert_random/i, /zoneid=/i,
   /<img\s/i, /<a\s/i, /\.php/i, /\.aspx/i,
 ];
 
-function hasJunk(text: string): boolean {
-  return JUNK_PATTERNS.some((p) => p.test(text));
-}
+function hasJunk(t: string): boolean { return JUNK.some((p) => p.test(t)); }
 
-// ── Issue tracking ─────────────────────────────────────────────────────────
-type Severity = "🔴 CRITICAL" | "🟠 WARNING" | "🟡 INFO";
-interface Issue {
-  severity: Severity;
-  formatter: string;
-  scenario: string;
-  message: string;
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// ISSUE TRACKING
+// ═══════════════════════════════════════════════════════════════════════════
+
+type Sev = "🔴 CRITICAL" | "🟠 WARNING" | "🟡 INFO";
+interface Issue { severity: Sev; formatter: string; scenario: string; message: string }
 
 const issues: Issue[] = [];
-let totalTests = 0;
-let passedTests = 0;
+let total = 0;
+let passed = 0;
 
-function report(severity: Severity, formatter: string, scenario: string, message: string) {
-  issues.push({ severity, formatter, scenario, message });
+function rpt(s: Sev, f: string, sc: string, m: string) {
+  issues.push({ severity: s, formatter: f, scenario: sc, message: m });
 }
 
-// ── Audit checks for a single formatter output ────────────────────────────
-function auditPayload(
-  result: IGFormattedPayload,
-  formatter: string,
-  scenario: string,
-) {
-  totalTests++;
-  const { slides, caption } = result;
-  let hasIssue = false;
-
-  // 1. Slide count
-  if (slides.length === 0) {
-    report("🔴 CRITICAL", formatter, scenario, "Zero slides produced");
-    hasIssue = true;
-  }
-  if (slides.length === 1) {
-    report("🟠 WARNING", formatter, scenario, "Only 1 slide (just cover, no content)");
-    hasIssue = true;
-  }
-  if (slides.length > 10) {
-    report("🟠 WARNING", formatter, scenario, `Too many slides: ${slides.length} (IG max is 10)`);
-    hasIssue = true;
-  }
-
-  // 2. Duplicate slides (Jaccard similarity)
-  for (let i = 0; i < slides.length; i++) {
-    for (let j = i + 1; j < slides.length; j++) {
-      const textA = slideText(slides[i]!);
-      const textB = slideText(slides[j]!);
-      const sim = jaccard(textA, textB);
-      if (sim > 0.55) {
-        report("🔴 CRITICAL", formatter, scenario,
-          `Slides ${i + 1} & ${j + 1} are near-duplicates (Jaccard=${sim.toFixed(2)})\n` +
-          `  Slide ${i + 1}: "${textA.slice(0, 80)}…"\n` +
-          `  Slide ${j + 1}: "${textB.slice(0, 80)}…"`);
-        hasIssue = true;
-      } else if (sim > 0.40) {
-        report("🟠 WARNING", formatter, scenario,
-          `Slides ${i + 1} & ${j + 1} have high overlap (Jaccard=${sim.toFixed(2)})\n` +
-          `  Slide ${i + 1}: "${textA.slice(0, 80)}…"\n` +
-          `  Slide ${j + 1}: "${textB.slice(0, 80)}…"`);
-        hasIssue = true;
-      }
-    }
-  }
-
-  // 3. Empty slides
-  for (let i = 0; i < slides.length; i++) {
-    const s = slides[i]!;
-    if (!s.heading && (!s.bullets || s.bullets.length === 0) && !s.statValue) {
-      report("🔴 CRITICAL", formatter, scenario, `Slide ${i + 1} is completely empty`);
-      hasIssue = true;
-    }
-  }
-
-  // 4. Text overflow checks
-  for (let i = 0; i < slides.length; i++) {
-    const s = slides[i]!;
-    const isFirst = i === 0;
-
-    // Heading overflow
-    if (s.heading) {
-      const charsPerLine = isFirst ? CHARS_PER_LINE_HERO : CHARS_PER_LINE_INNER;
-      const maxClamp = isFirst ? HEADLINE_CLAMP_FIRST : HEADLINE_CLAMP_INNER;
-      const estLines = Math.ceil(s.heading.length / charsPerLine);
-      if (estLines > maxClamp) {
-        report("🟠 WARNING", formatter, scenario,
-          `Slide ${i + 1} heading will clip (~${estLines} lines, clamp=${maxClamp}): "${s.heading.slice(0, 60)}…"`);
-        hasIssue = true;
-      }
-    }
-
-    // Body/bullet overflow
-    if (s.bullets && s.layout === "explanation") {
-      const totalBulletText = s.bullets.join(" ");
-      const estLines = Math.ceil(totalBulletText.length / CHARS_PER_LINE_BODY);
-      if (estLines > BODY_CLAMP_EXPLANATION) {
-        report("🟠 WARNING", formatter, scenario,
-          `Slide ${i + 1} bullets may clip (~${estLines} lines, clamp=${BODY_CLAMP_EXPLANATION})`);
-        hasIssue = true;
-      }
-      if (s.bullets.length > 6) {
-        report("🟠 WARNING", formatter, scenario,
-          `Slide ${i + 1} has ${s.bullets.length} bullets (likely overflow)`);
-        hasIssue = true;
-      }
-    }
-
-    // Cover slide: heading + body combined overflow
-    if (isFirst && s.bullets && s.bullets.length > 0) {
-      const headingLines = Math.ceil((s.heading?.length ?? 0) / CHARS_PER_LINE_HERO);
-      const bodyLines = Math.ceil(s.bullets.join(" ").length / CHARS_PER_LINE_BODY);
-      const headingPx = headingLines * HEADLINE_HERO_FONT * LINE_HEIGHT_H;
-      const bodyPx = bodyLines * BODY_FONT * LINE_HEIGHT_BODY;
-      const totalPx = headingPx + bodyPx + 120 + 100 + 80; // margins + pill + padding
-      if (totalPx > CANVAS.height) {
-        report("🔴 CRITICAL", formatter, scenario,
-          `Cover slide may clip: ~${Math.round(totalPx)}px content vs ${CANVAS.height}px canvas`);
-        hasIssue = true;
-      }
-    }
-  }
-
-  // 5. Source attribution
-  const lastSlide = slides[slides.length - 1];
-  if (lastSlide && !lastSlide.footer) {
-    report("🟠 WARNING", formatter, scenario, "Last slide missing source footer");
-    hasIssue = true;
-  }
-  if (lastSlide?.footer && !lastSlide.footer.toLowerCase().includes("source")) {
-    report("🟡 INFO", formatter, scenario, `Last slide footer doesn't mention 'source': "${lastSlide.footer}"`);
-  }
-
-  // 6. Caption checks
-  if (caption.length > MAX_CAPTION) {
-    report("🔴 CRITICAL", formatter, scenario, `Caption too long: ${caption.length} chars (max ${MAX_CAPTION})`);
-    hasIssue = true;
-  }
-  if (caption.length < 80) {
-    report("🟠 WARNING", formatter, scenario, `Caption suspiciously short: ${caption.length} chars`);
-    hasIssue = true;
-  }
-
-  // 7. English leak detection
-  for (let i = 0; i < slides.length; i++) {
-    const text = slideText(slides[i]!);
-    if (looksEnglish(text)) {
-      report("🟠 WARNING", formatter, scenario,
-        `Slide ${i + 1} appears to contain English: "${text.slice(0, 80)}…"`);
-      hasIssue = true;
-    }
-  }
-
-  // 8. Junk/scraping artifacts
-  for (let i = 0; i < slides.length; i++) {
-    const text = slideText(slides[i]!);
-    if (hasJunk(text)) {
-      report("🔴 CRITICAL", formatter, scenario,
-        `Slide ${i + 1} contains scraping junk: "${text.slice(0, 80)}…"`);
-      hasIssue = true;
-    }
-  }
-  if (hasJunk(caption)) {
-    report("🟠 WARNING", formatter, scenario, "Caption contains scraping junk");
-    hasIssue = true;
-  }
-
-  if (!hasIssue) passedTests++;
-}
+// ═══════════════════════════════════════════════════════════════════════════
+// AUDIT ENGINE — checks every dimension per slide
+// ═══════════════════════════════════════════════════════════════════════════
 
 function slideText(s: IGSlide): string {
   return [s.heading ?? "", ...(s.bullets ?? [])].join(" ").trim();
 }
 
-// ── Mock data factory ──────────────────────────────────────────────────────
+function audit(res: IGFormattedPayload, fmt: string, scen: string) {
+  total++;
+  const { slides, caption } = res;
+  let bad = false;
+  const flag = (s: Sev, m: string) => { rpt(s, fmt, scen, m); bad = true; };
+
+  // ── 1. Slide count ──────────────────────────────────────────────────────
+  if (slides.length === 0) flag("🔴 CRITICAL", "Zero slides produced");
+  if (slides.length === 1) flag("🟠 WARNING", "Only 1 slide (just cover, no content)");
+  if (slides.length > 10) flag("🔴 CRITICAL", `${slides.length} slides (IG max 10)`);
+
+  // ── 2. Duplicate slides (Jaccard) ───────────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    for (let j = i + 1; j < slides.length; j++) {
+      const a = slideText(slides[i]!);
+      const b = slideText(slides[j]!);
+      const sim = jac(a, b);
+      if (sim > 0.55)
+        flag("🔴 CRITICAL",
+          `Slides ${i + 1}&${j + 1} near-dup (J=${sim.toFixed(2)})\n` +
+          `    "${a.slice(0, 80)}…"\n    "${b.slice(0, 80)}…"`);
+      else if (sim > 0.40)
+        flag("🟠 WARNING", `Slides ${i + 1}&${j + 1} high overlap (J=${sim.toFixed(2)})`);
+    }
+  }
+
+  // ── 3. Empty slides / blank bullets ─────────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    const sl = slides[i]!;
+    if (!sl.heading && (!sl.bullets?.length) && !sl.statValue)
+      flag("🔴 CRITICAL", `Slide ${i + 1} is completely empty`);
+    for (let b = 0; b < (sl.bullets?.length ?? 0); b++) {
+      if (!sl.bullets![b]?.trim())
+        flag("🟠 WARNING", `Slide ${i + 1} bullet ${b + 1} is blank`);
+    }
+  }
+
+  // ── 4. HEADLINE layout pixel overflow ───────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    const sl = slides[i]!;
+    const lay = sl.layout ?? (i === 0 ? "headline" : "explanation");
+    if (lay !== "headline" || !sl.heading) continue;
+    const first = i === 0;
+    const hf = hlFont(sl.heading, first);
+    const hc = hlClamp(sl.heading, first);
+    const cpl = hlCpl(hf);
+    const estLines = Math.ceil(sl.heading.length / cpl);
+
+    if (estLines > hc)
+      flag("🟠 WARNING",
+        `Slide ${i + 1} heading clips (~${estLines} lines > clamp ${hc}, ${hf}px): ` +
+        `"${sl.heading.slice(0, 55)}…"`);
+
+    // Vertical budget: accent-rule + heading + body + bottom-bar
+    const hPx = Math.min(estLines, hc) * hf * HL_LH + (first ? 24 : 28);
+    let btPx = 0;
+    const bc = bodyCpl();
+    for (const b of sl.bullets ?? []) {
+      const bl = Math.ceil(b.length / bc);
+      const mh = first ? 150 : 320;
+      const cl = first ? 3 : 6;
+      btPx += Math.min(Math.min(bl, cl) * TYPE.body * HL_BT_LH, mh) + 8;
+    }
+    const tot = (first ? 24 : 0) + hPx + btPx + HL_BOT;
+    if (tot > HL_MAIN_MAX)
+      flag("🔴 CRITICAL",
+        `Slide ${i + 1} headline overflow: ~${Math.round(tot)}px > ${HL_MAIN_MAX}px`);
+  }
+
+  // ── 5. EXPLANATION layout pixel overflow ────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    const sl = slides[i]!;
+    const lay = sl.layout ?? (i === 0 ? "headline" : "explanation");
+    if (lay !== "explanation") continue;
+
+    const hPx = sl.heading ? explHeadPx(sl.heading) : 0;
+    let btPx = 0;
+    for (const b of sl.bullets ?? []) btPx += explBulletPx(b);
+    const tot = hPx + btPx;
+
+    if (tot > EXPL_AVAIL)
+      flag("🔴 CRITICAL",
+        `Slide ${i + 1} explanation overflow: ~${Math.round(tot)}px > ${EXPL_AVAIL}px ` +
+        `(head=${Math.round(hPx)}, bullets×${sl.bullets?.length ?? 0}=${Math.round(btPx)})`);
+    else if (tot > EXPL_AVAIL * 0.92)
+      flag("🟠 WARNING",
+        `Slide ${i + 1} explanation tight: ~${Math.round(tot)}px / ${EXPL_AVAIL}px ` +
+        `(${Math.round(tot / EXPL_AVAIL * 100)}%)`);
+
+    // Individual bullet clipping check
+    const ec = ebCpl();
+    for (let b = 0; b < (sl.bullets?.length ?? 0); b++) {
+      const bl = sl.bullets![b]!;
+      if (Math.ceil(bl.length / ec) > EB_CLAMP)
+        flag("🟠 WARNING",
+          `Slide ${i + 1} bullet ${b + 1} clips (>${EB_CLAMP} lines): "${bl.slice(0, 60)}…"`);
+    }
+
+    // Explanation heading clipping
+    if (sl.heading && Math.ceil(sl.heading.length / ehCpl()) > EH_CLAMP)
+      flag("🟠 WARNING",
+        `Slide ${i + 1} expl heading clips (>${EH_CLAMP} lines): "${sl.heading.slice(0, 50)}…"`);
+  }
+
+  // ── 6. DATA layout stat text ────────────────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    const sl = slides[i]!;
+    if (sl.layout !== "data") continue;
+    const sv = sl.statValue ?? sl.heading;
+    if (sv && sv.length > statCpl() * 1.5)
+      flag("🟠 WARNING",
+        `Slide ${i + 1} stat text long (${sv.length} chars): "${sv.slice(0, 40)}…"`);
+  }
+
+  // ── 7. Source attribution ──────────────────────────────────────────────
+  const last = slides[slides.length - 1];
+  if (last && !last.footer)
+    flag("🟠 WARNING", "Last slide missing source footer");
+
+  // ── 8. Caption quality ─────────────────────────────────────────────────
+  if (caption.length > MAX_CAPTION)
+    flag("🔴 CRITICAL", `Caption ${caption.length} > ${MAX_CAPTION}`);
+  if (caption.length < 80)
+    flag("🟠 WARNING", `Caption only ${caption.length} chars`);
+  if (!caption.includes("lien dans la bio") && !caption.includes("lyen nan biyo"))
+    flag("🟠 WARNING", "Caption missing CTA (lien dans la bio)");
+  if (!/#\w+/.test(caption))
+    rpt("🟡 INFO", fmt, scen, "No hashtags in caption");
+
+  // ── 9. English leak ────────────────────────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    const t = slideText(slides[i]!);
+    if (enLeak(t))
+      flag("🟠 WARNING", `Slide ${i + 1} English leak: "${t.slice(0, 80)}…"`);
+  }
+
+  // ── 10. Junk artifacts ─────────────────────────────────────────────────
+  for (let i = 0; i < slides.length; i++) {
+    if (hasJunk(slideText(slides[i]!)))
+      flag("🔴 CRITICAL", `Slide ${i + 1} scraping junk`);
+  }
+  if (hasJunk(caption))
+    flag("🟠 WARNING", "Caption contains junk");
+
+  if (!bad) passed++;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCK DATA FACTORY
+// ═══════════════════════════════════════════════════════════════════════════
+
 const NOW = Timestamp.now();
 
-function makeItem(overrides: Partial<Item>): Item {
+function mk(ov: Partial<Item>): Item {
   return {
-    id: "test-item-1",
-    rawItemId: "raw-1",
-    sourceId: "src-1",
-    title: "Titre par défaut de l'article de test",
-    summary: "Résumé par défaut de l'article.",
-    canonicalUrl: "https://example.com/article",
-    category: "news",
-    deadline: null,
-    evergreen: false,
-    confidence: 0.85,
+    id: "t-1", rawItemId: "r-1", sourceId: "s-1",
+    title: "Titre par défaut", summary: "Résumé par défaut de l'article.",
+    canonicalUrl: "https://example.com/a", category: "news",
+    deadline: null, evergreen: false, confidence: 0.85,
     qualityFlags: { hasSourceUrl: true, needsReview: false, lowConfidence: false, reasons: [] },
-    citations: [{ sourceName: "Le Nouvelliste", sourceUrl: "https://lenouvelliste.com/test" }],
-    source: { name: "Le Nouvelliste", originalUrl: "https://lenouvelliste.com/test" },
-    createdAt: NOW,
-    updatedAt: NOW,
-    ...overrides,
+    citations: [{ sourceName: "Le Nouvelliste", sourceUrl: "https://lenouvelliste.com/t" }],
+    source: { name: "Le Nouvelliste", originalUrl: "https://lenouvelliste.com/t" },
+    createdAt: NOW, updatedAt: NOW,
+    ...ov,
   } as Item;
 }
 
-// ── Test scenarios ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// 30 SCENARIOS
+// ═══════════════════════════════════════════════════════════════════════════
 
 function runAll() {
   console.log("═══════════════════════════════════════════════════════════════");
-  console.log("  IG FORMATTER AUDIT — Expected vs Likely Output");
+  console.log("  IG FORMATTER AUDIT v2 — Pixel-Accurate Quality Gate");
   console.log("═══════════════════════════════════════════════════════════════\n");
 
-  // ════════════════════════════════════════════════════════════════════════
-  // NEWS FORMATTER
-  // ════════════════════════════════════════════════════════════════════════
+  // ────────────────────────────────────────────────────────────────────────
+  // NEWS  (8 scenarios)
+  // ────────────────────────────────────────────────────────────────────────
 
-  // Scenario 1: News with Gemini sections (rich path)
-  auditPayload(
+  // 1. Rich sections (OEA/Haiti)
+  audit(
     buildNewsCarousel(
-      makeItem({
+      mk({
         title: "L'OEA envoie une mission d'évaluation en Haïti pour la crise sécuritaire",
-        summary: "L'Organisation des États Américains a décidé d'envoyer une mission d'évaluation en Haïti pour évaluer la situation sécuritaire et les conditions humanitaires dans le pays.",
-        geoTag: "HT",
-        imageUrl: "https://example.com/img.jpg",
-        extractedText: "L'OEA a décidé d'envoyer une mission en Haïti. La décision a été prise lors de la session extraordinaire du conseil permanent. L'organisation veut évaluer la situation sécuritaire. Les membres ont voté à l'unanimité. La mission sera composée de diplomates. Elle devrait durer deux semaines. Le gouvernement haïtien a salué cette décision. Les autorités locales attendent la mission. La communauté internationale suit de près les développements.",
+        summary: "L'Organisation des États Américains a décidé d'envoyer une mission d'évaluation en Haïti.",
+        geoTag: "HT", imageUrl: "https://img.test/oea.jpg",
+        extractedText: "L'OEA a décidé d'envoyer une mission en Haïti. La décision a été prise lors de la session extraordinaire du conseil permanent.",
       }),
       {
         frTitle: "L'OEA envoie une mission d'évaluation en Haïti pour la crise sécuritaire",
@@ -328,100 +369,115 @@ function runAll() {
         ],
       },
     ),
-    "news", "Rich sections (OEA/Haiti)",
+    "news", "1 — Rich sections (OEA/Haiti)",
   );
 
-  // Scenario 2: News with NO sections, short repetitive article
-  auditPayload(
+  // 2. No sections, repetitive extractedText
+  audit(
     buildNewsCarousel(
-      makeItem({
+      mk({
         title: "Le Premier Ministre rencontre le Secrétaire Général de l'ONU",
         summary: "Le Premier Ministre haïtien a rencontré le Secrétaire Général de l'ONU pour discuter de la situation en Haïti et demander une aide internationale renforcée.",
         geoTag: "HT",
-        extractedText: "Le Premier Ministre haïtien a rencontré le Secrétaire Général des Nations Unies à New York. Lors de cette rencontre, le Premier Ministre a discuté de la situation sécuritaire en Haïti. Le chef du gouvernement haïtien a demandé une aide internationale renforcée pour faire face à la crise. Le Secrétaire Général de l'ONU a exprimé sa préoccupation concernant la situation en Haïti. Il a promis de mobiliser la communauté internationale pour aider Haïti. Le Premier Ministre a également sollicité un soutien pour les élections à venir.",
+        extractedText: "Le Premier Ministre haïtien a rencontré le Secrétaire Général des Nations Unies à New York. Lors de cette rencontre, le Premier Ministre a discuté de la situation sécuritaire en Haïti. Le chef du gouvernement haïtien a demandé une aide internationale renforcée pour faire face à la crise. Le Secrétaire Général de l'ONU a exprimé sa préoccupation concernant la situation en Haïti. Il a promis de mobiliser la communauté internationale pour aider Haïti.",
       }),
     ),
-    "news", "No sections, repetitive extractedText",
+    "news", "2 — No sections, repetitive text",
   );
 
-  // Scenario 3: News with only summary (no extractedText, no sections)
-  auditPayload(
+  // 3. Summary-only
+  audit(
     buildNewsCarousel(
-      makeItem({
+      mk({
         title: "Séisme de magnitude 4.2 ressenti dans le Nord d'Haïti",
         summary: "Un séisme de magnitude 4.2 a été ressenti dans le département du Nord d'Haïti ce matin. Aucune victime n'a été signalée pour le moment. Les autorités surveillent la situation.",
         geoTag: "HT",
       }),
     ),
-    "news", "Summary-only (no extractedText)",
+    "news", "3 — Summary-only",
   );
 
-  // Scenario 4: News with English extractedText (should fallback to French summary)
-  auditPayload(
+  // 4. English extractedText (should fallback to French summary)
+  audit(
     buildNewsCarousel(
-      makeItem({
+      mk({
         title: "Les États-Unis annoncent un nouveau programme d'aide pour Haïti",
-        summary: "Les États-Unis ont annoncé un nouveau programme d'aide humanitaire de 50 millions de dollars pour Haïti, visant à renforcer la sécurité alimentaire et les infrastructures de santé.",
-        extractedText: "The United States announced a new humanitarian aid program for Haiti worth $50 million. The program aims to strengthen food security and health infrastructure. Secretary of State confirmed the commitment during a press conference. The funds will be distributed through international organizations.",
+        summary: "Les États-Unis ont annoncé un programme d'aide humanitaire de 50 millions de dollars pour Haïti, visant à renforcer la sécurité alimentaire.",
+        extractedText: "The United States announced a new humanitarian aid program for Haiti worth $50 million. The program aims to strengthen food security and health infrastructure. Secretary of State confirmed the commitment during a press conference.",
         geoTag: "HT",
       }),
     ),
-    "news", "English extractedText (fallback to French)",
+    "news", "4 — English extractedText (FR fallback)",
   );
 
-  // Scenario 5: News with very long headline
-  auditPayload(
+  // 5. Very long headline
+  audit(
     buildNewsCarousel(
-      makeItem({
-        title: "Le Conseil de Sécurité des Nations Unies adopte une nouvelle résolution autorisant le déploiement d'une force multinationale de sécurité en Haïti pour lutter contre les gangs armés et rétablir l'ordre public",
+      mk({
+        title: "Le Conseil de Sécurité des Nations Unies adopte une nouvelle résolution autorisant le déploiement d'une force multinationale de sécurité en Haïti pour lutter contre les gangs armés et rétablir l'ordre public dans la capitale",
         summary: "Le Conseil de Sécurité a voté à l'unanimité pour le déploiement.",
         geoTag: "HT",
       }),
     ),
-    "news", "Very long headline (overflow risk)",
+    "news", "5 — Very long headline",
   );
 
-  // Scenario 6: News with sections + long section content
-  auditPayload(
+  // 6. Five long Gemini sections (max content test)
+  audit(
     buildNewsCarousel(
-      makeItem({
+      mk({
         title: "Crise alimentaire : le PAM lance un appel d'urgence pour Haïti",
-        summary: "Le Programme Alimentaire Mondial a lancé un appel d'urgence pour financer l'aide alimentaire en Haïti.",
-        geoTag: "HT",
-        imageUrl: "https://example.com/pam.jpg",
+        summary: "Le Programme Alimentaire Mondial a lancé un appel d'urgence.",
+        geoTag: "HT", imageUrl: "https://img.test/pam.jpg",
       }),
       {
         frTitle: "Crise alimentaire : le PAM lance un appel d'urgence pour Haïti",
-        frSummary: "Le Programme Alimentaire Mondial a lancé un appel d'urgence.",
+        frSummary: "Le Programme Alimentaire Mondial a lancé un appel d'urgence pour financer l'aide alimentaire en Haïti.",
         frSections: [
-          { heading: "L'appel d'urgence", content: "Le Programme Alimentaire Mondial des Nations Unies a lancé un appel d'urgence de 200 millions de dollars pour financer l'aide alimentaire en Haïti. Selon le directeur régional du PAM, plus de 4,7 millions de personnes font face à une insécurité alimentaire aiguë dans le pays, dont 1,6 million en situation d'urgence. L'organisation prévoit de fournir des rations alimentaires à 2 millions de personnes au cours des six prochains mois, en ciblant les zones les plus touchées par l'insécurité et les catastrophes naturelles." },
-          { heading: "Contexte humanitaire", content: "La situation humanitaire en Haïti s'est considérablement dégradée au cours des derniers mois. Les gangs armés bloquent les axes routiers principaux, empêchant l'acheminement de l'aide humanitaire vers les populations les plus vulnérables. Les prix des denrées alimentaires de base ont augmenté de 40% en un an, rendant la nourriture inaccessible pour de nombreuses familles haïtiennes." },
+          { heading: "L'appel d'urgence", content: "Le Programme Alimentaire Mondial des Nations Unies a lancé un appel d'urgence de 200 millions de dollars pour financer l'aide alimentaire en Haïti. Selon le directeur régional du PAM, plus de 4,7 millions de personnes font face à une insécurité alimentaire aiguë dans le pays, dont 1,6 million en situation d'urgence. L'organisation prévoit de fournir des rations alimentaires à 2 millions de personnes au cours des six prochains mois." },
+          { heading: "Contexte humanitaire", content: "La situation humanitaire en Haïti s'est considérablement dégradée au cours des derniers mois. Les gangs armés bloquent les axes routiers principaux, empêchant l'acheminement de l'aide humanitaire vers les populations les plus vulnérables. Les prix des denrées alimentaires de base ont augmenté de 40% en un an, rendant la nourriture inaccessible." },
           { heading: "Réponse internationale", content: "Plusieurs pays donateurs ont déjà promis des contributions. La France a annoncé 15 millions d'euros, le Canada 20 millions de dollars canadiens, et l'Union européenne 30 millions d'euros. Cependant, le PAM estime que ces engagements ne couvrent que 30% des besoins identifiés." },
-          { heading: "Défis logistiques", content: "L'acheminement de l'aide reste le principal défi. Les routes principales reliant Port-au-Prince aux provinces sont régulièrement bloquées par des groupes armés. Le PAM travaille avec les forces de sécurité pour identifier des corridors humanitaires sûrs et explore l'utilisation de voies maritimes alternatives pour atteindre les zones les plus isolées." },
+          { heading: "Défis logistiques", content: "L'acheminement de l'aide reste le principal défi. Les routes principales reliant Port-au-Prince aux provinces sont régulièrement bloquées par des groupes armés. Le PAM travaille avec les forces de sécurité pour identifier des corridors humanitaires sûrs et explore l'utilisation de voies maritimes alternatives." },
           { heading: "Perspectives", content: "Sans un financement adéquat et rapide, le PAM prévient que la situation pourrait devenir catastrophique d'ici la fin de l'année. L'organisation appelle la communauté internationale à agir de toute urgence pour éviter une famine à grande échelle en Haïti." },
         ],
       },
     ),
-    "news", "5 long Gemini sections (max content test)",
+    "news", "6 — 5 long sections (max content)",
   );
 
-  // ════════════════════════════════════════════════════════════════════════
-  // HISTOIRE FORMATTER
-  // ════════════════════════════════════════════════════════════════════════
+  // 7. Scraping junk in extractedText
+  audit(
+    buildNewsCarousel(
+      mk({
+        title: "Le gouvernement lance un programme de réforme éducative",
+        summary: "Le ministère de l'Éducation nationale a annoncé un vaste programme de réforme du système éducatif haïtien.",
+        extractedText: "Le gouvernement lance un programme de réforme éducative. Le ministère de l'Éducation a présenté son plan. Prévenez-moi de tous les nouveaux articles par e-mail. Enregistrer mon nom dans le navigateur. Laisser un commentaire Annuler la réponse. Le programme vise à moderniser les écoles. Partager sur Facebook.",
+        geoTag: "HT",
+      }),
+    ),
+    "news", "7 — Scraping junk",
+  );
 
-  // Scenario 7: Histoire with rich sections
-  auditPayload(
+  // 8. Empty summary + empty extractedText
+  audit(
+    buildNewsCarousel(
+      mk({ title: "Événement diplomatique à Port-au-Prince", summary: "", extractedText: "" }),
+    ),
+    "news", "8 — Empty summary+text",
+  );
+
+  // ────────────────────────────────────────────────────────────────────────
+  // HISTOIRE  (5 scenarios)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 9. Rich sections (HaitiHistory)
+  audit(
     buildHistoireCarousel(
-      makeItem({
+      mk({
         title: "Jean-Jacques Dessalines : le père fondateur d'Haïti",
-        summary: "Jean-Jacques Dessalines est le héros de l'indépendance haïtienne, premier dirigeant du pays libre.",
-        category: "news",
-        imageUrl: "https://example.com/dessalines.jpg",
-        utilityMeta: {
-          series: "HaitiHistory",
-          utilityType: "history",
-          citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org/wiki/Dessalines" }],
-        },
+        summary: "Jean-Jacques Dessalines est le héros de l'indépendance haïtienne.",
+        imageUrl: "https://img.test/dessalines.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }] },
       }),
       {
         frTitle: "Jean-Jacques Dessalines : le père fondateur d'Haïti",
@@ -435,76 +491,110 @@ function runAll() {
         ],
       },
     ),
-    "histoire", "Rich sections (HaitiHistory)",
+    "histoire", "9 — Rich sections (Dessalines)",
   );
 
-  // Scenario 8: Histoire with NO sections (legacy fallback)
-  auditPayload(
+  // 10. No sections (legacy fallback)
+  audit(
     buildHistoireCarousel(
-      makeItem({
+      mk({
         title: "La citadelle Laferrière : un monument de la liberté",
-        summary: "La citadelle Laferrière est la plus grande forteresse des Amériques, construite après l'indépendance d'Haïti pour protéger le pays contre une éventuelle invasion française.",
-        extractedText: "La citadelle Laferrière, aussi connue sous le nom de Citadelle Henry, est une grande forteresse située sur le sommet de la montagne Bonnet à l'Évêque, dans le Nord d'Haïti. Construite entre 1805 et 1820 sur ordre du roi Henri Christophe, elle est la plus grande forteresse des Amériques. La citadelle a été classée patrimoine mondial de l'UNESCO en 1982. Elle pouvait abriter jusqu'à 5 000 soldats et contenir des provisions pour résister à un siège d'un an. Ses murs mesurent jusqu'à 4 mètres d'épaisseur. La forteresse n'a jamais été attaquée par les Français.",
-        imageUrl: "https://example.com/citadelle.jpg",
-        utilityMeta: {
-          series: "HaitiFactOfTheDay",
-          utilityType: "daily_fact",
-          citations: [{ label: "UNESCO", url: "https://whc.unesco.org/citadelle" }],
-        },
+        summary: "La citadelle Laferrière est la plus grande forteresse des Amériques, construite après l'indépendance d'Haïti pour protéger le pays.",
+        extractedText: "La citadelle Laferrière, aussi connue sous le nom de Citadelle Henry, est une grande forteresse située sur le sommet de la montagne Bonnet à l'Évêque, dans le Nord d'Haïti. Construite entre 1805 et 1820 sur ordre du roi Henri Christophe, elle est la plus grande forteresse des Amériques. La citadelle a été classée patrimoine mondial de l'UNESCO en 1982. Elle pouvait abriter jusqu'à 5 000 soldats et contenir des provisions pour résister à un siège d'un an.",
+        imageUrl: "https://img.test/citadelle.jpg",
+        utilityMeta: { series: "HaitiFactOfTheDay", utilityType: "daily_fact", citations: [{ label: "UNESCO", url: "https://whc.unesco.org" }] },
       }),
     ),
-    "histoire", "No sections (legacy fallback)",
+    "histoire", "10 — No sections (legacy)",
   );
 
-  // Scenario 9: HaitianOfTheWeek with sections
-  auditPayload(
+  // 11. HaitianOfTheWeek with sections
+  audit(
     buildHistoireCarousel(
-      makeItem({
+      mk({
         title: "Michaëlle Jean : de réfugiée haïtienne à Gouverneure générale du Canada",
-        summary: "Michaëlle Jean est une journaliste et diplomate haïtiano-canadienne qui a marqué l'histoire.",
-        imageUrl: "https://example.com/jean.jpg",
-        utilityMeta: {
-          series: "HaitianOfTheWeek",
-          utilityType: "profile",
-          citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org/wiki/Michaelle_Jean" }],
-        },
+        summary: "Michaëlle Jean est une journaliste et diplomate haïtiano-canadienne remarquable.",
+        imageUrl: "https://img.test/jean.jpg",
+        utilityMeta: { series: "HaitianOfTheWeek", utilityType: "profile", citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }] },
       }),
       {
         frTitle: "Michaëlle Jean : de réfugiée haïtienne à Gouverneure générale du Canada",
         frSummary: "Michaëlle Jean est une journaliste et diplomate haïtiano-canadienne remarquable.",
         htSummary: "Michaëlle Jean se yon jounalis ak diplomat ayisyano-kanadyèn remakab.",
         frSections: [
-          { heading: "Parcours", content: "Née à Port-au-Prince en 1957, Michaëlle Jean a fui la dictature des Duvalier avec sa famille à l'âge de 11 ans. Installée au Canada, elle a poursuivi des études en littérature comparée et en langues romanes à l'Université de Montréal." },
+          { heading: "Parcours", content: "Née à Port-au-Prince en 1957, Michaëlle Jean a fui la dictature des Duvalier avec sa famille à l'âge de 11 ans. Installée au Canada, elle a poursuivi des études en littérature comparée à l'Université de Montréal." },
           { heading: "Carrière journalistique", content: "Elle a été journaliste et animatrice à Radio-Canada et CBC, couvrant des sujets de société et de droits humains pendant plus de 15 ans. Son travail journalistique a mis en lumière les réalités des communautés marginalisées." },
-          { heading: "Gouverneure générale", content: "En 2005, elle est devenue la 27e Gouverneure générale du Canada, la première personne noire et la première personne d'origine haïtienne à occuper ce poste. Son mandat a duré jusqu'en 2010." },
+          { heading: "Gouverneure générale", content: "En 2005, elle est devenue la 27e Gouverneure générale du Canada, la première personne noire et d'origine haïtienne à occuper ce poste. Son mandat a duré jusqu'en 2010." },
           { heading: "Héritage", content: "Après son mandat, elle a été nommée Secrétaire générale de l'Organisation internationale de la Francophonie de 2015 à 2019. Elle reste un symbole de résilience et de réussite pour la diaspora haïtienne." },
         ],
       },
     ),
-    "histoire", "HaitianOfTheWeek with sections",
+    "histoire", "11 — HaitianOfTheWeek",
   );
 
-  // ════════════════════════════════════════════════════════════════════════
-  // SCHOLARSHIP FORMATTER
-  // ════════════════════════════════════════════════════════════════════════
+  // 12. Empty/tiny/source sections (edge case)
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "Un fait historique important",
+        summary: "Un événement clé de l'histoire haïtienne qui mérite d'être connu par tous les Haïtiens.",
+        utilityMeta: { series: "HaitiFactOfTheDay", utilityType: "daily_fact", citations: [] },
+      }),
+      {
+        frTitle: "Un fait historique important",
+        frSummary: "Un événement clé de l'histoire haïtienne qui mérite d'être connu par tous les Haïtiens.",
+        frSections: [
+          { heading: "L'histoire", content: "Short." },
+          { heading: "Contexte", content: "" },
+          { heading: "Sources", content: "Wikipedia, Britannica" },
+        ],
+      },
+    ),
+    "histoire", "12 — Empty/tiny/source sections",
+  );
 
-  // Scenario 10: Full scholarship with all fields
-  auditPayload(
+  // 13. Very long section content (overflow stress test)
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "La Révolution haïtienne : l'événement qui a changé le monde",
+        summary: "La Révolution haïtienne reste l'un des événements les plus importants de l'histoire mondiale.",
+        imageUrl: "https://img.test/rev.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Britannica", url: "https://britannica.com" }] },
+      }),
+      {
+        frTitle: "La Révolution haïtienne : l'événement qui a changé le monde",
+        frSummary: "La Révolution haïtienne reste l'un des événements les plus importants de l'histoire mondiale.",
+        frSections: [
+          { heading: "Les origines", content: "La révolte des esclaves de Saint-Domingue a commencé le 22 août 1791 lors de la cérémonie du Bois Caïman, un événement fondateur qui a rassemblé des milliers d'esclaves déterminés à briser les chaînes de l'oppression coloniale française qui durait depuis plus de deux siècles dans la colonie la plus riche des Caraïbes et du monde occidental." },
+          { heading: "Les batailles décisives", content: "Sous la direction de Toussaint Louverture puis de Jean-Jacques Dessalines, les combattants haïtiens ont affronté et vaincu successivement les armées françaises, espagnoles et britanniques, démontrant une capacité militaire et stratégique extraordinaire qui a surpris les puissances coloniales européennes habituées à dominer sans résistance les populations asservies des Amériques." },
+          { heading: "La proclamation", content: "Le 1er janvier 1804, à Gonaïves, Jean-Jacques Dessalines proclame solennellement l'indépendance d'Haïti, créant ainsi la première république noire libre au monde, un acte révolutionnaire d'une portée historique immense qui a définitivement remis en question le système esclavagiste international et l'idéologie de la supériorité raciale sur laquelle reposait l'ordre colonial européen." },
+          { heading: "L'impact mondial", content: "La Révolution haïtienne a eu des conséquences géopolitiques majeures, notamment la vente de la Louisiane par Napoléon aux États-Unis, l'inspiration des mouvements d'indépendance en Amérique latine menés par Simón Bolívar qui a reçu le soutien direct du président haïtien Alexandre Pétion, et l'accélération du mouvement abolitionniste mondial qui a conduit à l'abolition de l'esclavage dans les empires coloniaux européens au cours du XIXe siècle." },
+        ],
+      },
+    ),
+    "histoire", "13 — Very long sections (overflow test)",
+  );
+
+  // ────────────────────────────────────────────────────────────────────────
+  // SCHOLARSHIP  (6 scenarios)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 14. Full scholarship (all fields)
+  audit(
     buildScholarshipCarousel(
-      makeItem({
+      mk({
         title: "Bourse Chevening du gouvernement britannique pour les étudiants haïtiens",
-        summary: "La bourse Chevening offre un financement complet pour un master d'un an au Royaume-Uni, couvrant les frais de scolarité, le logement et les frais de voyage.",
-        category: "scholarship",
-        deadline: "2026-11-01",
-        geoTag: "HT",
-        imageUrl: "https://example.com/chevening.jpg",
+        summary: "La bourse Chevening offre un financement complet pour un master d'un an au Royaume-Uni.",
+        category: "scholarship", deadline: "2026-11-01", geoTag: "HT",
+        imageUrl: "https://img.test/chev.jpg",
         opportunity: {
           deadline: "2026-11-01",
           eligibility: [
             "Être citoyen d'un pays éligible (incluant Haïti)",
             "Avoir au moins 2 ans d'expérience professionnelle",
             "Avoir un diplôme de licence (baccalauréat + 4 ans)",
-            "Maîtriser l'anglais (niveau IELTS 6.5 minimum)",
+            "Maîtriser l'anglais (IELTS 6.5 minimum)",
             "S'engager à retourner dans son pays après les études",
           ],
           coverage: "Frais de scolarité + logement + voyage + allocation mensuelle",
@@ -518,17 +608,16 @@ function runAll() {
         htSummary: "Bous pou yon mastè yon ane nan Wayòm Ini a.",
       },
     ),
-    "scholarship", "Full scholarship (all fields)",
+    "scholarship", "14 — Full scholarship",
   );
 
-  // Scenario 11: Scholarship with English eligibility (should be filtered)
-  auditPayload(
+  // 15. English eligibility (French fallback expected)
+  audit(
     buildScholarshipCarousel(
-      makeItem({
+      mk({
         title: "Bourse de la Banque Mondiale pour les pays en développement",
         summary: "Programme de bourses pour étudiants des pays en développement souhaitant poursuivre un master.",
-        category: "scholarship",
-        deadline: "2026-04-15",
+        category: "scholarship", deadline: "2026-04-15",
         opportunity: {
           deadline: "2026-04-15",
           eligibility: [
@@ -542,49 +631,99 @@ function runAll() {
         },
       }),
     ),
-    "scholarship", "English eligibility (French fallback)",
+    "scholarship", "15 — English eligibility",
   );
 
-  // Scenario 12: Scholarship with many eligibility items (overflow test)
-  auditPayload(
+  // 16. 8 eligibility items (multi-slide split)
+  audit(
     buildScholarshipCarousel(
-      makeItem({
+      mk({
         title: "Programme de bourses universitaires",
-        summary: "Programme offrant des bourses complètes.",
-        category: "scholarship",
-        deadline: "2026-06-30",
+        summary: "Programme offrant des bourses complètes aux meilleurs étudiants.",
+        category: "scholarship", deadline: "2026-06-30",
         opportunity: {
           deadline: "2026-06-30",
           eligibility: [
             "Être âgé de 18 à 30 ans",
             "Avoir un diplôme de licence",
-            "Maîtriser le français",
-            "Avoir une expérience de bénévolat",
-            "Fournir deux lettres de recommandation",
-            "Soumettre un projet de recherche",
-            "Avoir un GPA minimum de 3.0",
+            "Maîtriser le français couramment",
+            "Avoir une expérience de bénévolat significative",
+            "Fournir deux lettres de recommandation de professeurs",
+            "Soumettre un projet de recherche détaillé",
+            "Avoir un GPA minimum de 3.0 sur 4.0",
             "Être en bonne santé physique et mentale",
           ],
-          coverage: "Frais de scolarité complets",
+          coverage: "Frais de scolarité complets + allocation de vie",
         },
       }),
     ),
-    "scholarship", "8 eligibility items (multi-slide split)",
+    "scholarship", "16 — 8 eligibility (split)",
   );
 
-  // ════════════════════════════════════════════════════════════════════════
-  // OPPORTUNITY FORMATTER
-  // ════════════════════════════════════════════════════════════════════════
+  // 17. Very long title
+  audit(
+    buildScholarshipCarousel(
+      mk({
+        title: "Programme de bourses d'excellence du gouvernement français en partenariat avec l'Agence Universitaire de la Francophonie pour les étudiants haïtiens poursuivant des études de master en sciences, technologie, ingénierie et mathématiques",
+        summary: "Bourse complète pour master STEM en France.",
+        category: "scholarship", deadline: "2026-09-15",
+        opportunity: {
+          deadline: "2026-09-15",
+          eligibility: ["Être haïtien", "Avoir une licence en STEM"],
+          coverage: "Frais complets + allocation",
+        },
+      }),
+    ),
+    "scholarship", "17 — Very long title",
+  );
 
-  // Scenario 13: Full opportunity
-  auditPayload(
+  // 18. No deadline, minimal fields
+  audit(
+    buildScholarshipCarousel(
+      mk({
+        title: "Bourse d'études disponible",
+        summary: "Nouvelle bourse d'études pour les jeunes haïtiens motivés et talentueux.",
+        category: "scholarship",
+        opportunity: { eligibility: ["Être haïtien"] },
+      }),
+    ),
+    "scholarship", "18 — No deadline, minimal",
+  );
+
+  // 19. 5 long eligibility items (pixel overflow test)
+  audit(
+    buildScholarshipCarousel(
+      mk({
+        title: "Bourse complète pour études supérieures",
+        summary: "Programme de bourses offrant un financement complet pour les étudiants les plus méritants.",
+        category: "scholarship", deadline: "2026-12-01",
+        opportunity: {
+          deadline: "2026-12-01",
+          eligibility: [
+            "Les candidats doivent être titulaires d'un diplôme de licence ou équivalent délivré par une université reconnue internationalement dans le domaine d'études visé",
+            "Les postulants doivent justifier d'au moins trois années d'expérience professionnelle pertinente dans un secteur en lien direct avec le programme de master choisi",
+            "Une maîtrise avérée de la langue française est exigée, attestée par un certificat officiel de type DELF B2 ou TCF niveau 4 minimum obtenu dans les deux dernières années",
+            "Les candidats doivent fournir un projet de recherche détaillé d'au moins cinq pages décrivant leurs objectifs académiques et leur plan de carrière après l'obtention du diplôme",
+            "Un engagement formel de retour dans le pays d'origine pour au moins deux ans après la fin des études est requis, attesté par une lettre signée par le candidat",
+          ],
+          coverage: "Frais de scolarité + logement + transport",
+        },
+      }),
+    ),
+    "scholarship", "19 — 5 long eligibility (overflow test)",
+  );
+
+  // ────────────────────────────────────────────────────────────────────────
+  // OPPORTUNITY  (4 scenarios)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 20. Full opportunity
+  audit(
     buildOpportunityCarousel(
-      makeItem({
+      mk({
         title: "Programme de stages à la Commission Européenne pour jeunes diplômés haïtiens",
-        summary: "La Commission Européenne offre des stages rémunérés de 5 mois à Bruxelles pour les jeunes diplômés du monde entier.",
-        category: "opportunity",
-        deadline: "2026-08-31",
-        geoTag: "HT",
+        summary: "La Commission Européenne offre des stages rémunérés de 5 mois à Bruxelles.",
+        category: "opportunity", deadline: "2026-08-31", geoTag: "HT",
         opportunity: {
           deadline: "2026-08-31",
           eligibility: [
@@ -603,272 +742,315 @@ function runAll() {
         htSummary: "Estaj 5 mwa nan Brisèl pou jèn diplome yo.",
       },
     ),
-    "opportunity", "Full opportunity (EU traineeships)",
+    "opportunity", "20 — Full opportunity (EU)",
   );
 
-  // Scenario 14: Opportunity with no eligibility/howToApply
-  auditPayload(
+  // 21. Minimal opportunity (no eligibility/apply)
+  audit(
     buildOpportunityCarousel(
-      makeItem({
+      mk({
         title: "Conférence internationale sur l'éducation en Haïti",
-        summary: "Une conférence internationale sur l'avenir de l'éducation en Haïti aura lieu le mois prochain à Port-au-Prince.",
+        summary: "Une conférence internationale sur l'avenir de l'éducation en Haïti aura lieu le mois prochain.",
         category: "opportunity",
         opportunity: {},
       }),
     ),
-    "opportunity", "Minimal opportunity (no eligibility/apply)",
+    "opportunity", "21 — Minimal (no elig/apply)",
   );
 
-  // ════════════════════════════════════════════════════════════════════════
-  // UTILITY FORMATTER
-  // ════════════════════════════════════════════════════════════════════════
+  // 22. English howToApply + long eligibility
+  audit(
+    buildOpportunityCarousel(
+      mk({
+        title: "Programme de formation professionnelle au Canada",
+        summary: "Formation de 6 mois au Canada pour les jeunes professionnels haïtiens dans le domaine de la technologie.",
+        category: "opportunity", deadline: "2026-07-15",
+        opportunity: {
+          deadline: "2026-07-15",
+          eligibility: [
+            "Être âgé de 21 à 35 ans et être titulaire d'un diplôme universitaire en informatique ou dans un domaine connexe",
+            "Avoir au moins deux années d'expérience professionnelle dans le secteur technologique avec des références vérifiables",
+            "Démontrer une maîtrise fonctionnelle de l'anglais par un score IELTS de 6.0 minimum ou équivalent reconnu",
+            "Présenter un plan de carrière détaillé expliquant comment cette formation contribuera au développement technologique en Haïti",
+          ],
+          howToApply: "You must submit your application online through the official portal and include all required documents",
+          officialLink: "https://canada.ca/training",
+        },
+      }),
+    ),
+    "opportunity", "22 — EN howToApply + long elig",
+  );
 
-  // Scenario 15: Utility with extracted facts
-  auditPayload(
+  // 23. Very long coverage text (data slide stress)
+  audit(
+    buildOpportunityCarousel(
+      mk({
+        title: "Bourse complète du gouvernement japonais",
+        summary: "Le gouvernement japonais offre une bourse complète pour études au Japon.",
+        category: "opportunity", deadline: "2026-05-01",
+        opportunity: {
+          deadline: "2026-05-01",
+          eligibility: ["Être haïtien", "Avoir moins de 35 ans"],
+          coverage: "Frais de scolarité complets + allocation mensuelle de 143 000 yens + billet d'avion aller-retour + logement universitaire gratuit + assurance maladie",
+          howToApply: "Postulez à l'ambassade du Japon en Haïti",
+          officialLink: "https://www.studyinjapan.go.jp",
+        },
+      }),
+    ),
+    "opportunity", "23 — Long coverage (data slide)",
+  );
+
+  // ────────────────────────────────────────────────────────────────────────
+  // UTILITY  (4 scenarios)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 24. Full utility with facts
+  audit(
     buildUtilityCarousel(
-      makeItem({
+      mk({
         title: "Guide : Comment postuler à Campus France depuis Haïti",
         summary: "Guide complet des étapes pour postuler aux universités françaises via Campus France depuis Haïti.",
         category: "resource",
         utilityMeta: {
-          series: "StudyAbroad",
-          utilityType: "study_abroad",
-          citations: [{ label: "Campus France", url: "https://www.campusfrance.org" }],
+          series: "StudyAbroad", utilityType: "study_abroad",
+          citations: [{ label: "Campus France", url: "https://campusfrance.org" }],
           extractedFacts: {
             deadlines: [
               { label: "Inscription Campus France", dateISO: "2026-03-15", sourceUrl: "https://campusfrance.org" },
               { label: "Dépôt dossier DAP", dateISO: "2026-01-15", sourceUrl: "https://campusfrance.org" },
             ],
-            steps: [
-              "Créer un compte sur Études en France",
-              "Remplir le formulaire en ligne",
-              "Payer les frais de dossier (75 €)",
-              "Passer l'entretien pédagogique",
-            ],
-            requirements: [
-              "Diplôme de baccalauréat ou équivalent",
-              "Test de français (TCF/DELF B2 minimum)",
-            ],
-            notes: [
-              "L'entretien se fait à l'Espace Campus France de Port-au-Prince",
-              "Prévoir 4 à 6 mois pour le traitement du dossier",
-              "Le visa étudiant est demandé après l'acceptation",
-            ],
+            steps: ["Créer un compte sur Études en France", "Remplir le formulaire en ligne", "Payer les frais de dossier (75 €)", "Passer l'entretien pédagogique"],
+            requirements: ["Diplôme de baccalauréat ou équivalent", "Test de français (TCF/DELF B2 minimum)"],
+            notes: ["L'entretien se fait à l'Espace Campus France de Port-au-Prince", "Prévoir 4 à 6 mois pour le traitement du dossier", "Le visa étudiant est demandé après l'acceptation"],
           },
         },
       }),
     ),
-    "utility", "Full utility with extracted facts",
+    "utility", "24 — Full utility with facts",
   );
 
-  // Scenario 16: Utility with no facts (minimal)
-  auditPayload(
+  // 25. Minimal utility (no facts)
+  audit(
     buildUtilityCarousel(
-      makeItem({
+      mk({
         title: "Taux de change du jour — 12 mars 2026",
         summary: "USD/HTG: 132.50 | EUR/HTG: 143.20 | CAD/HTG: 95.80",
         category: "resource",
       }),
     ),
-    "utility", "Minimal utility (taux, no facts)",
+    "utility", "25 — Minimal (taux, no facts)",
   );
 
-  // ════════════════════════════════════════════════════════════════════════
-  // EDGE CASES
-  // ════════════════════════════════════════════════════════════════════════
+  // 26. Many facts (>5 bullets → split)
+  audit(
+    buildUtilityCarousel(
+      mk({
+        title: "Rentrée scolaire 2026 : dates et informations essentielles",
+        summary: "Tout ce qu'il faut savoir pour la rentrée scolaire en Haïti.",
+        category: "resource",
+        utilityMeta: {
+          series: "HaitiEducationCalendar", utilityType: "school_calendar",
+          citations: [{ label: "MENFP", url: "https://menfp.gouv.ht" }],
+          extractedFacts: {
+            deadlines: [
+              { label: "Rentrée scolaire", dateISO: "2026-09-02", sourceUrl: "https://menfp.gouv.ht" },
+              { label: "Inscriptions", dateISO: "2026-08-15", sourceUrl: "https://menfp.gouv.ht" },
+              { label: "Examens officiels", dateISO: "2026-06-10", sourceUrl: "https://menfp.gouv.ht" },
+            ],
+            requirements: ["Certificat de naissance", "Bulletin scolaire de l'année précédente", "Certificat médical à jour"],
+            steps: ["Vérifier les dates d'inscription", "Préparer les documents requis", "Se rendre à l'école choisie"],
+            notes: ["Les frais de scolarité varient selon les établissements", "Le transport scolaire n'est pas garanti"],
+          },
+        },
+      }),
+    ),
+    "utility", "26 — Many facts (split)",
+  );
 
-  // Scenario 17: News with scraping junk in extractedText
-  auditPayload(
+  // 27. Unicode/emoji in title
+  audit(
+    buildUtilityCarousel(
+      mk({
+        title: "🇭🇹 Jou Drapo — Fête du Drapeau haïtien 🇭🇹",
+        summary: "Le 18 mai, Haïti célèbre la création de son drapeau national bicolore bleu et rouge.",
+        category: "resource",
+      }),
+    ),
+    "utility", "27 — Unicode/emoji title",
+  );
+
+  // ────────────────────────────────────────────────────────────────────────
+  // CROSS-FORMATTER EDGE CASES  (3 scenarios)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 28. News — single-sentence summary identical to title
+  audit(
     buildNewsCarousel(
-      makeItem({
-        title: "Le gouvernement lance un programme de réforme éducative",
-        summary: "Le ministère de l'Éducation nationale a annoncé un vaste programme de réforme du système éducatif haïtien.",
-        extractedText: "Le gouvernement lance un programme de réforme éducative. Le ministère de l'Éducation a présenté son plan. Prévenez-moi de tous les nouveaux articles par e-mail. Enregistrer mon nom dans le navigateur pour mon prochain commentaire. Laisser un commentaire Annuler la réponse. Le programme vise à moderniser les écoles. Partager sur Facebook. Partager sur Twitter. Articles similaires. À lire aussi: Les universités haïtiennes en crise.",
+      mk({
+        title: "Haïti : le gouvernement annonce un couvre-feu à Port-au-Prince",
+        summary: "Le gouvernement a annoncé un couvre-feu à Port-au-Prince.",
         geoTag: "HT",
       }),
     ),
-    "news", "Scraping junk in extractedText",
+    "news", "28 — Summary restates title",
   );
 
-  // Scenario 18: News with empty summary and empty extractedText
-  auditPayload(
+  // 29. News — section heading restates cover heading
+  audit(
     buildNewsCarousel(
-      makeItem({
-        title: "Événement diplomatique à Port-au-Prince",
-        summary: "",
-        extractedText: "",
-      }),
-    ),
-    "news", "Empty summary + empty extractedText",
-  );
-
-  // Scenario 19: Histoire with empty sections content
-  auditPayload(
-    buildHistoireCarousel(
-      makeItem({
-        title: "Un fait historique important",
-        summary: "Un événement clé de l'histoire haïtienne.",
-        utilityMeta: {
-          series: "HaitiFactOfTheDay",
-          utilityType: "daily_fact",
-          citations: [],
-        },
+      mk({
+        title: "La BRH maintient le taux directeur à 12%",
+        summary: "La Banque de la République d'Haïti maintient son taux directeur inchangé.",
+        geoTag: "HT",
       }),
       {
-        frTitle: "Un fait historique important",
-        frSummary: "Un événement clé de l'histoire haïtienne.",
+        frTitle: "La BRH maintient le taux directeur à 12%",
+        frSummary: "La Banque de la République d'Haïti maintient son taux directeur inchangé.",
         frSections: [
-          { heading: "L'histoire", content: "Short." }, // too short, should be filtered
-          { heading: "Contexte", content: "" }, // empty
-          { heading: "Sources", content: "Wikipedia, Britannica" }, // source section, should be filtered
+          { heading: "La BRH maintient le taux directeur", content: "La Banque de la République d'Haïti a annoncé le maintien de son taux directeur à 12%, conformément aux attentes du marché." },
+          { heading: "Contexte économique", content: "L'inflation a ralenti au cours du dernier trimestre, passant de 25% à 22%, permettant à la banque centrale de maintenir sa politique monétaire stable." },
         ],
       },
     ),
-    "histoire", "Empty/tiny/source sections (edge case)",
+    "news", "29 — Section restates cover heading",
   );
 
-  // Scenario 20: Scholarship with very long title
-  auditPayload(
-    buildScholarshipCarousel(
-      makeItem({
-        title: "Programme de bourses d'excellence du gouvernement français en partenariat avec l'Agence Universitaire de la Francophonie pour les étudiants haïtiens poursuivant des études de master en sciences, technologie, ingénierie et mathématiques dans les universités françaises",
-        summary: "Bourse complète pour master STEM en France.",
-        category: "scholarship",
-        deadline: "2026-09-15",
-        opportunity: {
-          deadline: "2026-09-15",
-          eligibility: ["Être haïtien", "Avoir une licence en STEM"],
-          coverage: "Frais complets + allocation",
-        },
+  // 30. News — all-junk extractedText (should fall back cleanly to summary)
+  audit(
+    buildNewsCarousel(
+      mk({
+        title: "Nouveau centre de santé inauguré dans le Sud",
+        summary: "Un nouveau centre de santé communautaire a été inauguré dans le département du Sud d'Haïti grâce à un financement de l'UNICEF.",
+        extractedText: "Laisser un commentaire Annuler la réponse. Prévenez-moi de tous les nouveaux articles. Enregistrer mon nom dans le navigateur. Articles similaires. Partager sur Facebook. Partager sur Twitter. cookies politique de confidentialité.",
+        geoTag: "HT",
       }),
     ),
-    "scholarship", "Very long title (headline overflow test)",
+    "news", "30 — All-junk extractedText",
   );
 
   // ════════════════════════════════════════════════════════════════════════
   // REPORT
   // ════════════════════════════════════════════════════════════════════════
+
   console.log("\n═══════════════════════════════════════════════════════════════");
-  console.log(`  RESULTS: ${passedTests}/${totalTests} scenarios clean`);
+  console.log(`  RESULTS: ${passed}/${total} scenarios clean`);
   console.log("═══════════════════════════════════════════════════════════════\n");
 
+  const crits = issues.filter((i) => i.severity === "🔴 CRITICAL");
+  const warns = issues.filter((i) => i.severity === "🟠 WARNING");
+  const infos = issues.filter((i) => i.severity === "🟡 INFO");
+
   if (issues.length === 0) {
-    console.log("✅ All scenarios passed — no issues found!\n");
+    console.log("✅ All scenarios passed — no issues!\n");
   } else {
-    const criticals = issues.filter((i) => i.severity === "🔴 CRITICAL");
-    const warnings = issues.filter((i) => i.severity === "🟠 WARNING");
-    const infos = issues.filter((i) => i.severity === "🟡 INFO");
-
-    if (criticals.length > 0) {
-      console.log(`\n🔴 CRITICAL ISSUES (${criticals.length}):`);
+    if (crits.length) {
+      console.log(`\n🔴 CRITICAL (${crits.length}):`);
       console.log("─".repeat(60));
-      for (const i of criticals) {
-        console.log(`\n  [${i.formatter}] ${i.scenario}`);
-        console.log(`  ${i.message}`);
-      }
+      for (const i of crits) console.log(`\n  [${i.formatter}] ${i.scenario}\n  ${i.message}`);
     }
-
-    if (warnings.length > 0) {
-      console.log(`\n🟠 WARNINGS (${warnings.length}):`);
+    if (warns.length) {
+      console.log(`\n🟠 WARNING (${warns.length}):`);
       console.log("─".repeat(60));
-      for (const i of warnings) {
-        console.log(`\n  [${i.formatter}] ${i.scenario}`);
-        console.log(`  ${i.message}`);
-      }
+      for (const i of warns) console.log(`\n  [${i.formatter}] ${i.scenario}\n  ${i.message}`);
     }
-
-    if (infos.length > 0) {
+    if (infos.length) {
       console.log(`\n🟡 INFO (${infos.length}):`);
       console.log("─".repeat(60));
-      for (const i of infos) {
-        console.log(`\n  [${i.formatter}] ${i.scenario}`);
-        console.log(`  ${i.message}`);
-      }
+      for (const i of infos) console.log(`\n  [${i.formatter}] ${i.scenario}\n  ${i.message}`);
     }
-
     console.log("\n");
   }
 
   // ════════════════════════════════════════════════════════════════════════
-  // DETAILED OUTPUT DUMP — show what each formatter actually produces
+  // DETAILED SLIDE DUMP  (spot-check key scenarios)
   // ════════════════════════════════════════════════════════════════════════
+
   console.log("═══════════════════════════════════════════════════════════════");
   console.log("  DETAILED SLIDE OUTPUT (spot-check)");
   console.log("═══════════════════════════════════════════════════════════════\n");
 
-  // Dump the OEA/Haiti news scenario
-  const oea = buildNewsCarousel(
-    makeItem({
-      title: "L'OEA envoie une mission d'évaluation en Haïti",
-      summary: "L'OEA a décidé d'envoyer une mission en Haïti.",
-      geoTag: "HT",
-      extractedText: "L'OEA a décidé d'envoyer une mission en Haïti. La décision a été prise lors de la session extraordinaire. L'organisation veut évaluer la situation sécuritaire. Les membres ont voté à l'unanimité.",
+  // Dump histoire long-sections scenario
+  dump("histoire (long sections — #13)", buildHistoireCarousel(
+    mk({
+      title: "La Révolution haïtienne",
+      summary: "La Révolution haïtienne reste un événement majeur.",
+      imageUrl: "https://img.test/rev.jpg",
+      utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Britannica", url: "https://britannica.com" }] },
     }),
     {
-      frTitle: "L'OEA envoie une mission d'évaluation en Haïti",
-      frSummary: "L'OEA a décidé d'envoyer une mission d'évaluation en Haïti.",
+      frTitle: "La Révolution haïtienne",
+      frSummary: "La Révolution haïtienne reste un événement majeur.",
       frSections: [
-        { heading: "Ce qui s'est passé", content: "L'Organisation des États Américains a voté l'envoi d'une mission d'évaluation en Haïti lors d'une session extraordinaire de son conseil permanent." },
-        { heading: "Contexte", content: "Haïti fait face à une crise sécuritaire sans précédent, avec des gangs armés contrôlant une partie de Port-au-Prince." },
-        { heading: "Prochaines étapes", content: "La mission devrait arriver en Haïti dans les prochaines semaines et produire un rapport avec des recommandations." },
+        { heading: "Origines", content: "La révolte des esclaves de Saint-Domingue a commencé le 22 août 1791 lors de la cérémonie du Bois Caïman." },
+        { heading: "Batailles", content: "Sous la direction de Toussaint Louverture puis de Dessalines, les combattants ont vaincu les armées européennes." },
       ],
     },
-  );
-  dumpPayload("news (OEA/Haiti — sections)", oea);
+  ));
 
-  // Dump the repetitive-article news scenario
-  const repetitive = buildNewsCarousel(
-    makeItem({
-      title: "Le Premier Ministre rencontre le Secrétaire Général de l'ONU",
-      summary: "Le Premier Ministre haïtien a rencontré le Secrétaire Général de l'ONU pour discuter de la situation en Haïti.",
-      geoTag: "HT",
-      extractedText: "Le Premier Ministre haïtien a rencontré le Secrétaire Général des Nations Unies à New York. Lors de cette rencontre, le Premier Ministre a discuté de la situation sécuritaire en Haïti. Le chef du gouvernement haïtien a demandé une aide internationale renforcée pour faire face à la crise. Le Secrétaire Général de l'ONU a exprimé sa préoccupation concernant la situation en Haïti. Il a promis de mobiliser la communauté internationale pour aider Haïti. Le Premier Ministre a également sollicité un soutien pour les élections à venir.",
-    }),
-  );
-  dumpPayload("news (Repetitive article — no sections)", repetitive);
-
-  // Dump histoire
-  const hist = buildHistoireCarousel(
-    makeItem({
-      title: "Jean-Jacques Dessalines : le père fondateur",
-      summary: "Dessalines est le héros de l'indépendance haïtienne.",
-      imageUrl: "https://example.com/dessalines.jpg",
-      utilityMeta: {
-        series: "HaitiHistory",
-        utilityType: "history",
-        citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }],
+  // Dump scholarship 5-long-eligibility
+  dump("scholarship (5 long elig — #19)", buildScholarshipCarousel(
+    mk({
+      title: "Bourse complète pour études supérieures",
+      summary: "Programme de bourses offrant un financement complet.",
+      category: "scholarship", deadline: "2026-12-01",
+      opportunity: {
+        deadline: "2026-12-01",
+        eligibility: [
+          "Les candidats doivent être titulaires d'un diplôme de licence ou équivalent délivré par une université reconnue",
+          "Les postulants doivent justifier d'au moins trois années d'expérience professionnelle dans un secteur pertinent",
+          "Une maîtrise de la langue française est exigée, attestée par un certificat officiel DELF B2 ou TCF niveau 4",
+          "Les candidats doivent fournir un projet de recherche détaillé décrivant leurs objectifs académiques et professionnels",
+          "Un engagement de retour dans le pays d'origine pour au moins deux ans après les études est requis",
+        ],
+        coverage: "Frais complets",
       },
     }),
+  ));
+
+  // Dump news OEA/Haiti section scenario
+  dump("news (OEA sections — #1)", buildNewsCarousel(
+    mk({
+      title: "L'OEA envoie une mission en Haïti",
+      summary: "L'OEA a décidé d'envoyer une mission d'évaluation en Haïti.",
+      geoTag: "HT", imageUrl: "https://img.test/oea.jpg",
+    }),
     {
-      frTitle: "Jean-Jacques Dessalines : le père fondateur",
-      frSummary: "Dessalines est le héros de l'indépendance.",
+      frTitle: "L'OEA envoie une mission en Haïti",
+      frSummary: "L'OEA a décidé d'envoyer une mission d'évaluation en Haïti.",
       frSections: [
-        { heading: "L'histoire", content: "Né en esclavage vers 1758, Dessalines s'est élevé pour devenir le principal artisan de l'indépendance d'Haïti." },
-        { heading: "Contexte", content: "Saint-Domingue était la colonie la plus riche des Caraïbes, fondée sur l'esclavage." },
-        { heading: "L'indépendance", content: "Le 1er janvier 1804, Dessalines proclame l'indépendance d'Haïti à Gonaïves." },
+        { heading: "Ce qui s'est passé", content: "L'Organisation des États Américains a voté l'envoi d'une mission d'évaluation en Haïti lors d'une session extraordinaire." },
+        { heading: "Contexte", content: "Haïti fait face à une crise sécuritaire sans précédent, avec des gangs armés contrôlant une partie de Port-au-Prince." },
+        { heading: "Prochaines étapes", content: "La mission devrait arriver en Haïti dans les prochaines semaines et produire un rapport avec des recommandations concrètes." },
       ],
     },
-  );
-  dumpPayload("histoire (Dessalines — sections)", hist);
+  ));
 
-  return issues.filter((i) => i.severity === "🔴 CRITICAL").length > 0 ? 1 : 0;
+  return crits.length > 0 ? 1 : 0;
 }
 
-function dumpPayload(label: string, payload: IGFormattedPayload) {
+function dump(label: string, p: IGFormattedPayload) {
   console.log(`── ${label} ──`);
-  for (let i = 0; i < payload.slides.length; i++) {
-    const s = payload.slides[i]!;
-    console.log(`  Slide ${i + 1} [${s.layout}]:`);
-    if (s.heading) console.log(`    H: "${s.heading.slice(0, 100)}${s.heading.length > 100 ? '…' : ''}"`);
+  for (let i = 0; i < p.slides.length; i++) {
+    const s = p.slides[i]!;
+    const lay = s.layout ?? (i === 0 ? "headline" : "explanation");
+    console.log(`  Slide ${i + 1} [${lay}]:`);
+    if (s.heading) console.log(`    H: "${s.heading.slice(0, 100)}${s.heading.length > 100 ? "…" : ""}"`);
     if (s.bullets?.length) {
-      for (const b of s.bullets) {
-        console.log(`    • "${b.slice(0, 90)}${b.length > 90 ? '…' : ''}"`);
-      }
+      for (const b of s.bullets)
+        console.log(`    • "${b.slice(0, 90)}${b.length > 90 ? "…" : ""}"`);
     }
     if (s.statValue) console.log(`    STAT: ${s.statValue}`);
     if (s.footer) console.log(`    Footer: "${s.footer.slice(0, 80)}"`);
+
+    // Pixel estimate for explanation slides
+    if (lay === "explanation") {
+      const hp = s.heading ? explHeadPx(s.heading) : 0;
+      let bp = 0;
+      for (const b of s.bullets ?? []) bp += explBulletPx(b);
+      console.log(`    📐 ${Math.round(hp + bp)}px / ${EXPL_AVAIL}px (${Math.round((hp + bp) / EXPL_AVAIL * 100)}%)`);
+    }
   }
-  console.log(`  Caption (${payload.caption.length} chars): "${payload.caption.slice(0, 120)}…"\n`);
+  console.log(`  Caption: ${p.caption.length} chars\n`);
 }
 
 const exitCode = runAll();

@@ -70,6 +70,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     shortenText(summary, 400),
   ];
   if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
+  parts.push("", "#EdLightNews #Haïti #Ressources");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };

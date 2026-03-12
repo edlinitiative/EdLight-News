@@ -43,8 +43,9 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
 
   // ── Slide 3: Eligibility (separate bullets with checkmarks) ──
   if (item.opportunity?.eligibility?.length) {
-    const elig = ensureFrenchEligibility(item.opportunity.eligibility);
-    if (elig.length <= 5) {
+    const elig = ensureFrenchEligibility(item.opportunity.eligibility)
+      .map((b) => shortenText(b, 150));
+    if (elig.length <= 4) {
       slides.push({
         heading: "Qui peut postuler ?",
         bullets: elig,
@@ -82,18 +83,6 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // ── Data slide: coverage amount (if available) ──
-  if (item.opportunity?.coverage) {
-    slides.push({
-      heading: "Couverture",
-      bullets: [],
-      layout: "data",
-      statValue: item.opportunity.coverage,
-      statDescription: "Frais couverts par la bourse",
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
-  }
-
   // Ensure last slide has source
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
     slides[slides.length - 1]!.footer = buildSourceLine(item);
@@ -104,6 +93,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   if (bi?.htSummary) parts.push("", `🇭🇹 ${bi.htSummary}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
   if (item.opportunity?.coverage) parts.push(`Couverture — ${item.opportunity.coverage}`);
+  parts.push("", "#Bourse #Scholarship #EdLightNews #Haïti #Éducation");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };
