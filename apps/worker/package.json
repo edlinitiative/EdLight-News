@@ -37,7 +37,8 @@
     "enrich:history-sources": "tsx src/scripts/enrichHistorySourcesCli.ts",
     "ig:dry-run": "tsx src/scripts/igDryRun.ts",
     "ig:test-publish": "tsx src/scripts/igTestPublish.ts",
-    "ig:reset": "tsx src/scripts/resetIgQueue.ts"
+    "ig:reset": "tsx src/scripts/resetIgQueue.ts",
+    "ig:requeue-histoire": "tsx src/scripts/requeueHistoire.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",
