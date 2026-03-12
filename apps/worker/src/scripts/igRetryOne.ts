@@ -35,7 +35,7 @@ async function main() {
     const versions = await contentVersionsRepo.listByItemId(item.id);
     const fr = versions.find((v: any) => v.language === "fr");
     const ht = versions.find((v: any) => v.language === "ht");
-    if (fr) bi = { frTitle: fr.title, frSummary: fr.summary, htTitle: ht?.title, htSummary: ht?.summary };
+    if (fr) bi = { frTitle: fr.title, frSummary: fr.summary, htTitle: ht?.title, htSummary: ht?.summary, frSections: fr.sections as { heading: string; content: string }[] | undefined, frBody: fr.body || undefined };
   } catch { /* ignore */ }
 
   const formatted = formatForIG(pick.igType as any, item, bi ? { bi } : undefined);

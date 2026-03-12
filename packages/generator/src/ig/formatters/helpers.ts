@@ -64,6 +64,10 @@ export interface BilingualText {
   frSummary: string;
   htTitle?: string;
   htSummary?: string;
+  /** Structured body sections from FR content_version (richer IG slides) */
+  frSections?: { heading: string; content: string }[];
+  /** Full body text from FR content_version (fallback for sentence extraction) */
+  frBody?: string;
 }
 
 /**
