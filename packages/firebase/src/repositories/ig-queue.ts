@@ -123,16 +123,16 @@ export async function countPostedToday(): Promise<number> {
 
 /**
  * Returns all items posted or scheduled today (for type-diversity checks).
- * Only includes minimal fields: id, igType, status.
+ * Includes minimal fields: id, igType, status, targetPostDate.
  */
-export async function listPostedAndScheduledToday(): Promise<Pick<IGQueueItem, "id" | "igType" | "status">[]> {
+export async function listPostedAndScheduledToday(): Promise<Pick<IGQueueItem, "id" | "igType" | "status" | "targetPostDate">[]> {
   const { startTs, startISO, endISO } = haitiDayBounds();
 
   // Posted today (Haiti day)
   const postedSnap = await collection()
     .where("status", "==", "posted" satisfies IGQueueStatus)
     .where("updatedAt", ">=", startTs)
-    .select("igType", "status")
+    .select("igType", "status", "targetPostDate")
     .get();
 
   // Scheduled today (Haiti day)
@@ -140,13 +140,13 @@ export async function listPostedAndScheduledToday(): Promise<Pick<IGQueueItem, "
     .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
     .where("scheduledFor", ">=", startISO)
     .where("scheduledFor", "<", endISO)
-    .select("igType", "status")
+    .select("igType", "status", "targetPostDate")
     .get();
 
-  const results: Pick<IGQueueItem, "id" | "igType" | "status">[] = [];
+  const results: Pick<IGQueueItem, "id" | "igType" | "status" | "targetPostDate">[] = [];
   for (const doc of [...postedSnap.docs, ...scheduledSnap.docs]) {
     const data = doc.data();
-    results.push({ id: doc.id, igType: data.igType, status: data.status });
+    results.push({ id: doc.id, igType: data.igType, status: data.status, targetPostDate: data.targetPostDate });
   }
   return results;
 }

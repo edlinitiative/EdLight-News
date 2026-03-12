@@ -822,6 +822,7 @@ export const igQueueItemSchema = z.object({
   score: z.number().min(0).max(100),
   status: igQueueStatusSchema,
   scheduledFor: z.string().optional(),
+  targetPostDate: z.string().optional(),
   igPostId: z.string().optional(),
   reasons: z.array(z.string()),
   payload: igFormattedPayloadSchema.optional(),

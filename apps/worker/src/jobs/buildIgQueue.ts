@@ -12,6 +12,21 @@ import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
 
+/**
+ * Extract the target post date for a histoire item.
+ * Histoire canonicalUrls follow `edlight://histoire/YYYY-MM-DD`.
+ * Falls back to Haiti-time today if the pattern doesn't match.
+ */
+function extractHistoireDate(item: Item): string {
+  const match = item.canonicalUrl?.match(/edlight:\/\/histoire\/(\d{4}-\d{2}-\d{2})/);
+  if (match) return match[1];
+  // Fallback: Haiti time (UTC-5) today
+  const now = new Date();
+  const haitiOffset = -5 * 60;
+  const haitiMs = now.getTime() + (now.getTimezoneOffset() + haitiOffset) * 60_000;
+  return new Date(haitiMs).toISOString().slice(0, 10);
+}
+
 export interface BuildIgQueueResult {
   evaluated: number;
   queued: number;
@@ -142,6 +157,11 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           status: "queued" as IGQueueStatus,
           reasons: decision.reasons,
           payload,
+          // For histoire items, stamp the target post date so the scheduler
+          // ensures same-day posting (extracted from canonicalUrl or createdAt).
+          ...(decision.igType === "histoire" ? {
+            targetPostDate: extractHistoireDate(item),
+          } : {}),
         });
         result.queued++;
       } catch (err) {

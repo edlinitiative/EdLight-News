@@ -112,8 +112,10 @@ const SLOTS = [
  * Return the next available slot that isn't already taken.
  * `takenSlotISOs` contains ISO strings of slots already allocated this tick
  * (or by previously scheduled items).
+ * When `todayOnly` is true the search is limited to today's remaining slots
+ * (used for daily staples so they never spill into tomorrow).
  */
-function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
+function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = false): Date | null {
   const now = new Date();
   const haitiNow = toHaitiDate(now);
   const haitiHour = haitiNow.getHours();
@@ -124,7 +126,9 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   const haitiMonth = haitiNow.getMonth();
   const haitiDay = haitiNow.getDate();
 
-  for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
+  const maxDayOffset = todayOnly ? 0 : 1;
+
+  for (let dayOffset = 0; dayOffset <= maxDayOffset; dayOffset++) {
     for (const slot of SLOTS) {
       // If today, must be in the future
       if (dayOffset === 0) {
@@ -167,6 +171,11 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   }
 
   return null; // all slots taken
+}
+
+/** Return today's date in Haiti timezone as YYYY-MM-DD. */
+function getHaitiTodayISO(): string {
+  return toHaitiDate(new Date()).toISOString().slice(0, 10);
 }
 
 export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
@@ -246,11 +255,24 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   // Track items scheduled this tick so we don't double-pick from fresh[]
   const scheduledThisTick = new Set<string>();
 
+  // Today's Haiti date for date-aware staple checks
+  const haitiToday = getHaitiTodayISO();
+
   // ════════════════════════════════════════════════════════════════════
   // PHASE 1 — Schedule ALL missing daily staples in one pass
   // ════════════════════════════════════════════════════════════════════
   for (const stapleType of DAILY_STAPLES) {
-    if ((todayTypeCounts.get(stapleType) ?? 0) > 0) continue; // already covered
+    // Date-aware check: for types that carry a targetPostDate (e.g. histoire),
+    // only consider an item as "already covered" if its targetPostDate matches
+    // today. This prevents yesterday's spilled histoire from blocking today's.
+    const alreadyCovered = todayStatuses.some(
+      (s) =>
+        s.igType === stapleType &&
+        // If the scheduled item has a targetPostDate, it must match today;
+        // otherwise fall back to the old "any item of this type" logic.
+        (!s.targetPostDate || s.targetPostDate === haitiToday),
+    );
+    if (alreadyCovered) continue;
 
     const candidate = fresh.find(
       (q) => q.igType === stapleType && !scheduledThisTick.has(q.id),
@@ -258,10 +280,11 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     if (!candidate) continue; // no item of this type in queue
 
     // Staples always count — even if we're over the normal cap
-    // (they're guaranteed daily content)
-    const slot = getNextAvailableSlot(takenSlots);
+    // (they're guaranteed daily content).
+    // todayOnly=true → staples never spill into tomorrow's slots.
+    const slot = getNextAvailableSlot(takenSlots, /* todayOnly */ true);
     if (!slot) {
-      console.log(`[scheduleIgPost] no slot available for staple ${stapleType}`);
+      console.log(`[scheduleIgPost] no today-slot available for staple ${stapleType} — will retry next tick`);
       continue;
     }
 

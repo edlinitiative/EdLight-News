@@ -633,6 +633,9 @@ export interface IGQueueItem {
   score: number;
   status: IGQueueStatus;
   scheduledFor?: string; // ISO date-time
+  /** Target post date (YYYY-MM-DD, Haiti time). For histoire items this is
+   *  the date the content refers to — ensures same-day posting. */
+  targetPostDate?: string;
   igPostId?: string;
   reasons: string[];
   payload?: IGFormattedPayload;
