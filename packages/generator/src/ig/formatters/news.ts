@@ -2,9 +2,16 @@
  * IG Formatter – News carousel (Bloomberg/Litquidity style)
  *
  * Each slide = one story beat. The carousel tells the complete story.
- * Slide 1: Hook headline + summary
- * Slides 2-4: Key story beats (one point each, large text)
- * Last slide: Source/CTA
+ *
+ * Section-aware path (preferred — when Gemini sections available):
+ *   Slide 1: Hook headline
+ *   Slides 2-5: One per Gemini section (heading + body bullets)
+ *   Last slide: Source/CTA
+ *
+ * Legacy beat path (fallback — no sections):
+ *   Slide 1: Hook headline
+ *   Slides 2-4: Key story beats (deduplicated via Jaccard similarity)
+ *   Last slide: Source/CTA
  *
  * Every slide carries a backgroundImage so the renderer can show
  * full-bleed visuals. The igPublishNow pipeline fills missing images
@@ -53,6 +60,9 @@ export function isJunkSentence(sentence: string): boolean {
   );
 }
 
+/** Max content slides between cover and source (keeps carousels tight). */
+const MAX_NEWS_CONTENT_SLIDES = 4;
+
 export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
@@ -62,7 +72,6 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   const imageUrl = item.imageUrl ?? undefined;
 
   // ── Slide 1: Hero cover — big bold headline only (Bloomberg style) ──
-  // No subtitle bullet — the headline tells the story, CSS clamp handles overflow.
   slides.push({
     heading: shortenHeadline(title),
     bullets: [],
@@ -71,19 +80,23 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // ── Slides 2+: Story beats ──
-  // Prefer French-language beats. If extractedText is in English (common for
-  // English-language sources like Haitian Times), synthesize beats from the
-  // bilingual summary instead to avoid showing raw English fragments.
-  const beats = extractFrenchBeats(item, summary);
+  // ── Slides 2+: Story content ──
+  // Priority 1: Gemini-structured sections (each section = distinct slide)
+  // Priority 2: extractedText sentence beats (with dedup)
+  // Priority 3: summary sentence beats
+  const usedSections = buildSectionSlides(slides, bi, imageUrl);
 
-  for (const beat of beats) {
-    slides.push({
-      heading: beat,
-      bullets: [],  // No sub-bullets — the heading IS the point
-      layout: "headline",
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
+  if (!usedSections) {
+    // Fallback: parse beats from extractedText / summary
+    const beats = extractFrenchBeats(item, summary);
+    for (const beat of beats) {
+      slides.push({
+        heading: beat,
+        bullets: [],
+        layout: "headline",
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+    }
   }
 
   // ── Last slide: source attribution ──
@@ -91,12 +104,64 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     slides[slides.length - 1]!.footer = buildSourceLine(item);
   }
 
-  // ── Caption — bilingual (French primary, Kreyòl secondary) ──
+  // ── Caption — bilingual with section highlights when available ──
   const parts: string[] = [title, "", shortenText(summary, 400)];
+  if (usedSections && bi?.frSections) {
+    parts.push("");
+    for (const sec of bi.frSections.slice(0, MAX_NEWS_CONTENT_SLIDES)) {
+      const firstSentence = splitSentences(sec.content)[0];
+      if (firstSentence) parts.push(`📌 ${sec.heading}: ${shortenText(firstSentence, 120)}`);
+    }
+  }
   if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: truncateCaption(parts.join("\n")) };
+}
+
+/**
+ * Build content slides from Gemini-structured sections.
+ * Each section becomes its own slide with heading + body bullets.
+ * Returns true if sections were used, false to fall back to beats.
+ */
+function buildSectionSlides(
+  slides: IGSlide[],
+  bi: BilingualText | undefined,
+  imageUrl: string | undefined,
+): boolean {
+  if (!bi?.frSections || bi.frSections.length === 0) return false;
+
+  const sections = bi.frSections.slice(0, MAX_NEWS_CONTENT_SLIDES);
+
+  for (const sec of sections) {
+    // Split section content into readable bullets
+    const bullets = sectionToBullets(sec.content);
+    slides.push({
+      heading: sec.heading,
+      bullets,
+      layout: "headline",
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  }
+  return true;
+}
+
+/** Max bullets per section slide. */
+const NEWS_MAX_BULLETS = 3;
+/** Max chars per bullet. */
+const NEWS_MAX_BULLET_CHARS = 180;
+
+/** Split section content into digestible bullets for a news slide. */
+function sectionToBullets(content: string): string[] {
+  // Try paragraph split
+  let parts = content.split(/\n{2,}/).map((p) => p.trim()).filter((p) => p.length >= 10);
+  // If one big paragraph, split by sentences
+  if (parts.length <= 1) {
+    parts = splitSentences(content).filter((s) => s.length >= 15 && !isJunkSentence(s));
+  }
+  return parts
+    .slice(0, NEWS_MAX_BULLETS)
+    .map((b) => b.length > NEWS_MAX_BULLET_CHARS ? capBeatLength(b, NEWS_MAX_BULLET_CHARS) : b);
 }
 
 // ── French language detection ──────────────────────────────────────────────
@@ -235,7 +300,7 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
       .filter((s) => !isJunkSentence(s));
 
     if (sentences.length >= 2) {
-      return sentences.slice(0, 3).map((b) => capBeatLength(b));
+      return dedupBeats(sentences.slice(0, 4)).slice(0, 3).map((b) => capBeatLength(b));
     }
     // Single long summary → cap it
     if (frSummary.length > 60) {
@@ -246,13 +311,47 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
   return [];
 }
 
+// ── Similarity helpers ──────────────────────────────────────────────────────
+
+/** French stop-words to ignore when computing similarity. */
+const STOP_WORDS = new Set([
+  "le", "la", "les", "de", "des", "du", "un", "une", "et", "en",
+  "est", "sont", "dans", "pour", "par", "avec", "sur", "qui", "que",
+  "ce", "cette", "au", "aux", "se", "ne", "pas", "a", "à", "été",
+  "il", "elle", "ils", "ont", "son", "sa", "ses", "leurs", "leur",
+  "mais", "ou", "où", "aussi", "plus", "très", "tout", "tous",
+  "the", "of", "and", "to", "in", "is", "for", "that", "on", "was",
+]);
+
+/** Extract meaningful content words (lowercase, no stop-words, no short words). */
+function contentWords(text: string): Set<string> {
+  const words = text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").split(/\s+/);
+  return new Set(words.filter((w) => w.length > 2 && !STOP_WORDS.has(w)));
+}
+
+/** Jaccard similarity between two texts' content words (0 = unrelated, 1 = identical). */
+function jaccardSimilarity(a: string, b: string): number {
+  const setA = contentWords(a);
+  const setB = contentWords(b);
+  if (setA.size === 0 || setB.size === 0) return 0;
+  let intersection = 0;
+  for (const w of setA) { if (setB.has(w)) intersection++; }
+  return intersection / (setA.size + setB.size - intersection);
+}
+
+/** Threshold above which two sentences are considered "saying the same thing". */
+const SIMILARITY_THRESHOLD = 0.40;
+
 /**
- * Pick N sentences spread evenly across the text (not all from the beginning).
- * Prefers sentences that are already short enough to avoid truncation.
- * This gives a more balanced story arc with cleaner output.
+ * Pick N sentences spread evenly across the text, skipping any that are
+ * too similar (Jaccard > 0.40) to an already-picked beat.
+ * Prefers sentences short enough to avoid truncation.
  */
 function pickSpreadBeats(sentences: string[], n: number): string[] {
-  if (sentences.length <= n) return sentences;
+  if (sentences.length <= n) {
+    // Even when taking all, dedup adjacent near-duplicates
+    return dedupBeats(sentences);
+  }
 
   // Prefer sentences that won't need truncation
   const short = sentences.filter((s) => s.length <= MAX_BEAT_CHARS);
@@ -260,9 +359,42 @@ function pickSpreadBeats(sentences: string[], n: number): string[] {
 
   const step = Math.floor(pool.length / (n + 1));
   const picks: string[] = [];
-  for (let i = 0; i < n; i++) {
-    const idx = Math.min(step * (i + 1), pool.length - 1);
-    picks.push(pool[idx]!);
+
+  // Start from spread positions but allow sliding forward to skip dupes
+  for (let i = 0; i < n && picks.length < n; i++) {
+    const startIdx = Math.min(step * (i + 1), pool.length - 1);
+    // Try the ideal position first, then scan forward for a non-duplicate
+    let found = false;
+    for (let j = startIdx; j < pool.length && !found; j++) {
+      const candidate = pool[j]!;
+      const tooSimilar = picks.some((p) => jaccardSimilarity(p, candidate) > SIMILARITY_THRESHOLD);
+      if (!tooSimilar) {
+        picks.push(candidate);
+        found = true;
+      }
+    }
+    // If nothing forward worked, scan backward from startIdx
+    if (!found) {
+      for (let j = startIdx - 1; j >= 0 && !found; j--) {
+        const candidate = pool[j]!;
+        const tooSimilar = picks.some((p) => jaccardSimilarity(p, candidate) > SIMILARITY_THRESHOLD);
+        if (!tooSimilar) {
+          picks.push(candidate);
+          found = true;
+        }
+      }
+    }
   }
   return picks;
+}
+
+/** Remove near-duplicate sentences from a small array. */
+function dedupBeats(beats: string[]): string[] {
+  const result: string[] = [];
+  for (const b of beats) {
+    if (!result.some((r) => jaccardSimilarity(r, b) > SIMILARITY_THRESHOLD)) {
+      result.push(b);
+    }
+  }
+  return result;
 }
