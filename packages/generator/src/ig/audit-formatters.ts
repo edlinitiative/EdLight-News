@@ -1145,6 +1145,30 @@ function runAll() {
     "histoire", "38 — LLM path (**bold** paragraph headings, no ###)",
   );
 
+  // 39. Template path — 5 sections all with takeaways (tests slot reservation)
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "Cinq dates clés de l'histoire d'Haïti",
+        summary: "Cinq événements fondateurs de la nation haïtienne.",
+        imageUrl: "https://img.test/timeline.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }] },
+      }),
+      {
+        frTitle: "Cinq dates clés de l'histoire d'Haïti",
+        frSummary: "Cinq événements fondateurs de la nation haïtienne.",
+        frSections: [
+          { heading: "Bois Caïman (1791)", content: "La cérémonie vaudou du Bois Caïman a lancé la plus grande révolte d'esclaves réussie de l'histoire.\n\n💡 **Pour les étudiants :** Le Bois Caïman montre que la résistance spirituelle peut devenir un mouvement politique puissant.\n\n📚 Sources : [Wikipedia](https://fr.wikipedia.org)" },
+          { heading: "Bataille de Vertières (1803)", content: "Les forces haïtiennes sous Dessalines ont vaincu l'armée de Napoléon lors de cette bataille décisive.\n\n💡 **Pour les étudiants :** Vertières a prouvé que le courage peut triompher contre la force militaire supérieure.\n\n📚 Sources : [Britannica](https://britannica.com)" },
+          { heading: "Indépendance (1804)", content: "Le 1er janvier 1804, Haïti devient la première république noire indépendante au monde.\n\n💡 **Pour les étudiants :** L'indépendance d'Haïti a redéfini la notion de liberté universelle pour tous les peuples.\n\n📚 Sources : [UNESCO](https://whc.unesco.org)" },
+          { heading: "Code Rural (1826)", content: "Le Code Rural de Boyer a imposé un système de travail forcé qui a freiné le développement économique du pays.\n\n💡 **Pour les étudiants :** Le Code Rural montre comment l'indépendance politique ne garantit pas toujours la liberté économique.\n\n📚 Sources : [JSTOR](https://jstor.org)" },
+          { heading: "Occupation américaine (1915)", content: "Les États-Unis ont occupé Haïti pendant 19 ans, transformant ses institutions et son économie.\n\n💡 **Pour les étudiants :** L'occupation américaine illustre les dangers de l'ingérence étrangère dans la souveraineté nationale.\n\n📚 Sources : [Library of Congress](https://loc.gov)" },
+        ],
+      },
+    ),
+    "histoire", "39 — 5 sections all with 💡 takeaway (slot reservation test)",
+  );
+
   // ════════════════════════════════════════════════════════════════════════
   // REPORT
   // ════════════════════════════════════════════════════════════════════════
@@ -1335,6 +1359,27 @@ function runAll() {
           heading: "Toussaint Louverture (1743–1803)",
           content: "**L'ascension d'un ancien esclave** — Né en esclavage vers 1743, Toussaint a montré des talents militaires exceptionnels.\n\n**Le stratège militaire** — Il a unifié les forces rebelles, vaincu les armées espagnoles et britanniques.\n\n**La trahison de Napoléon** — En 1802, Napoléon a envoyé 40 000 soldats. Toussaint a été capturé et est mort au Fort de Joux.\n\n**Pourquoi cela compte** — Toussaint a prouvé qu'un ancien esclave pouvait surpasser les plus grands généraux européens.",
         },
+      ],
+    },
+  ));
+
+  // Dump #39 — 5 template sections with takeaways (slot reservation)
+  dump("histoire (5 sections + takeaways — #39)", buildHistoireCarousel(
+    mk({
+      title: "Cinq dates clés de l'histoire d'Haïti",
+      summary: "Cinq événements fondateurs de la nation haïtienne.",
+      imageUrl: "https://img.test/timeline.jpg",
+      utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }] },
+    }),
+    {
+      frTitle: "Cinq dates clés de l'histoire d'Haïti",
+      frSummary: "Cinq événements fondateurs de la nation haïtienne.",
+      frSections: [
+        { heading: "Bois Caïman (1791)", content: "La cérémonie vaudou du Bois Caïman a lancé la plus grande révolte d'esclaves réussie de l'histoire.\n\n💡 **Pour les étudiants :** Le Bois Caïman montre que la résistance spirituelle peut devenir un mouvement politique puissant.\n\n📚 Sources : [Wikipedia](https://fr.wikipedia.org)" },
+        { heading: "Bataille de Vertières (1803)", content: "Les forces haïtiennes sous Dessalines ont vaincu l'armée de Napoléon lors de cette bataille décisive.\n\n💡 **Pour les étudiants :** Vertières a prouvé que le courage peut triompher contre la force militaire supérieure.\n\n📚 Sources : [Britannica](https://britannica.com)" },
+        { heading: "Indépendance (1804)", content: "Le 1er janvier 1804, Haïti devient la première république noire indépendante au monde.\n\n💡 **Pour les étudiants :** L'indépendance d'Haïti a redéfini la notion de liberté universelle pour tous les peuples.\n\n📚 Sources : [UNESCO](https://whc.unesco.org)" },
+        { heading: "Code Rural (1826)", content: "Le Code Rural de Boyer a imposé un système de travail forcé qui a freiné le développement économique du pays.\n\n💡 **Pour les étudiants :** Le Code Rural montre comment l'indépendance politique ne garantit pas toujours la liberté économique.\n\n📚 Sources : [JSTOR](https://jstor.org)" },
+        { heading: "Occupation américaine (1915)", content: "Les États-Unis ont occupé Haïti pendant 19 ans, transformant ses institutions et son économie.\n\n💡 **Pour les étudiants :** L'occupation américaine illustre les dangers de l'ingérence étrangère dans la souveraineté nationale.\n\n📚 Sources : [Library of Congress](https://loc.gov)" },
       ],
     },
   ));

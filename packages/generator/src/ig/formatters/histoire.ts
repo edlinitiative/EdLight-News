@@ -115,21 +115,26 @@ function extractSubSections(content: string): SubSection[] | null {
  * Strips markdown, filters source lines, and respects pixel budget.
  */
 function sectionToBullets(content: string): string[] {
-  const cleaned = stripMarkdown(content);
+  // Filter source lines on RAW text (before markdown stripping) so
+  // emoji prefixes (📚) and link-list patterns still match reliably.
+  const preFiltered = content
+    .split(/\n{2,}/)
+    .filter((p) => !isSourceLine(p.trim()))
+    .join("\n\n");
+
+  const cleaned = stripMarkdown(preFiltered);
 
   // Try paragraph split first
   let paragraphs = cleaned
     .split(/\n{2,}/)
     .map((p) => p.trim())
     .filter((p) => p.length >= 10)
-    .filter((p) => !isSourceLine(p))
     .filter((p) => !isJunkSentence(p));
 
   // If only 1 big paragraph, split into sentences
   if (paragraphs.length <= 1) {
     paragraphs = splitSentences(cleaned)
-      .filter((s) => s.length >= 10 && !isJunkSentence(s))
-      .filter((s) => !isSourceLine(s));
+      .filter((s) => s.length >= 10 && !isJunkSentence(s));
   }
 
   return paragraphs
@@ -200,11 +205,25 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
       return true;
     });
 
-    // Collect any student takeaways found across sections (dedupe later)
+    // Collect any student takeaways found across all sections (dedupe later)
     const takeaways: string[] = [];
 
+    // Pre-scan for takeaways so we can reserve a slide slot
     for (const section of contentSections) {
-      if (slides.length - 1 >= MAX_CONTENT_SLIDES) break;
+      for (const p of section.content.split(/\n{2,}/)) {
+        if (!isTakeawayLine(p)) continue;
+        const cleaned = stripMarkdown(p).replace(/^pour les étudiants\s*:\s*/i, "").trim();
+        if (cleaned.length >= 20) takeaways.push(cleaned);
+      }
+    }
+
+    // Reserve 1 content slot for the takeaway slide when we have takeaways
+    const contentCap = takeaways.length > 0
+      ? MAX_CONTENT_SLIDES - 1
+      : MAX_CONTENT_SLIDES;
+
+    for (const section of contentSections) {
+      if (slides.length - 1 >= contentCap) break;
 
       // ── Extract student_takeaway lines before bullet-ising ──────────
       const paragraphs = section.content.split(/\n{2,}/);
@@ -212,18 +231,13 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
       const contentParas = paragraphs.filter((p) => !isTakeawayLine(p) && !isSourceLine(p));
       const cleanedContent = contentParas.join("\n\n");
 
-      for (const t of takeawayParas) {
-        const cleaned = stripMarkdown(t).replace(/^pour les étudiants\s*:\s*/i, "").trim();
-        if (cleaned.length >= 20) takeaways.push(cleaned);
-      }
-
       // ── Try parsing LLM sub-sections from long content ──────────────
       const subs = cleanedContent.length > 400 ? extractSubSections(cleanedContent) : null;
 
       if (subs && subs.length >= 2) {
         // LLM body with multiple sub-sections → each becomes its own slide
         for (const sub of subs) {
-          if (slides.length - 1 >= MAX_CONTENT_SLIDES) break;
+          if (slides.length - 1 >= contentCap) break;
           // Skip "Questions pour la discussion" on IG (works better in caption)
           if (/questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading)) continue;
           const bullets = sectionToBullets(sub.content);
