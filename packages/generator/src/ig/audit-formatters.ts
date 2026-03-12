@@ -928,6 +928,144 @@ function runAll() {
     "news", "30 — All-junk extractedText",
   );
 
+  // ────────────────────────────────────────────────────────────────────────
+  // WORST-CASE STRESS TESTS  (validate fixes cover ALL real-world data)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 31. Histoire — 5 sections with max-length content (tests 3-bullet cap)
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "Les origines du mouvement noiriste en Haïti et son influence sur la politique caribéenne moderne",
+        summary: "Le mouvement noiriste a profondément transformé la politique haïtienne depuis les années 1930.",
+        imageUrl: "https://img.test/noirisme.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Le Nouvelliste", url: "https://lenouvelliste.com" }] },
+      }),
+      {
+        frTitle: "Le mouvement noiriste en Haïti",
+        frSummary: "Le mouvement noiriste a profondément transformé la politique haïtienne.",
+        frSections: [
+          { heading: "Les origines intellectuelles du mouvement", content: "Le mouvement noiriste trouve ses racines dans les écrits de Jean Price-Mars, notamment son ouvrage majeur Ainsi parla l'Oncle publié en 1928. Ce texte fondateur a profondément remis en question l'aliénation culturelle de l'élite haïtienne et a encouragé un retour aux traditions africaines et au vodou comme expressions culturelles légitimes du peuple haïtien." },
+          { heading: "L'ascension politique et ses conséquences", content: "François Duvalier a instrumentalisé l'idéologie noiriste pour consolider son pouvoir politique à partir de 1957. En se présentant comme le champion de la majorité noire face à l'élite mulâtre, il a transformé un mouvement intellectuel en un outil de domination politique qui a conduit à l'une des dictatures les plus brutales de l'hémisphère occidental." },
+          { heading: "L'héritage contemporain dans la Caraïbe", content: "L'influence du noirisme dépasse les frontières haïtiennes et continue d'alimenter les débats sur l'identité raciale dans l'ensemble de la Caraïbe francophone. Les travaux d'Aimé Césaire et de Frantz Fanon, bien que distincts, partagent des préoccupations similaires avec le mouvement haïtien sur la négritude et la décolonisation mentale." },
+          { heading: "Critiques et réévaluations académiques", content: "Les historiens contemporains portent un regard plus nuancé sur le mouvement noiriste, reconnaissant à la fois sa contribution à la valorisation de la culture africaine en Haïti et les dérives autoritaires auxquelles il a conduit. Le débat reste vif dans les universités haïtiennes entre ceux qui voient dans le noirisme un mouvement de libération et ceux qui le considèrent comme un instrument de division sociale et politique." },
+          { heading: "Sources et références historiques", content: "Price-Mars Jean, Ainsi parla l'Oncle, 1928. Nicholls David, From Dessalines to Duvalier: Race, Colour and National Independence in Haiti, 1979." },
+        ],
+      },
+    ),
+    "histoire", "31 — 5 long sections (stress test 3-bullet cap)",
+  );
+
+  // 32. Utility — 9 long mixed bullets (tests split at 4 + truncation)
+  audit(
+    buildUtilityCarousel(
+      mk({
+        title: "Guide complet de la rentrée scolaire 2026-2027 en Haïti",
+        summary: "Toutes les informations essentielles pour préparer la rentrée scolaire en Haïti.",
+        category: "resource",
+        utilityMeta: {
+          series: "HaitiEducationCalendar", utilityType: "school_calendar",
+          citations: [{ label: "MENFP", url: "https://menfp.gouv.ht" }],
+          extractedFacts: {
+            deadlines: [
+              { label: "Rentrée des classes dans les écoles fondamentales et secondaires publiques et privées", dateISO: "2026-09-07", sourceUrl: "https://menfp.gouv.ht" },
+              { label: "Date limite d'inscription tardive pour les élèves transférés d'un autre département", dateISO: "2026-09-21", sourceUrl: "https://menfp.gouv.ht" },
+              { label: "Début des examens officiels de 9ème année fondamentale dans tout le territoire national", dateISO: "2027-06-14", sourceUrl: "https://menfp.gouv.ht" },
+            ],
+            requirements: [
+              "Certificat de naissance original ou copie certifiée conforme délivrée par les autorités compétentes de la commune de résidence de l'élève, accompagné de deux photos d'identité récentes format passeport",
+              "Bulletin scolaire de l'année précédente portant le cachet et la signature du directeur de l'établissement scolaire fréquenté, avec relevé de notes complet pour chaque matière",
+              "Certificat médical de moins de trois mois attestant que l'enfant est en bonne santé et à jour de ses vaccinations obligatoires selon le calendrier du Ministère de la Santé Publique",
+            ],
+            steps: [
+              "Se rendre à l'école choisie avec l'ensemble des documents requis pendant la période d'inscription officielle fixée par le calendrier du MENFP pour l'année scolaire en cours",
+              "Remplir le formulaire d'inscription fourni par l'établissement et le soumettre au secrétariat avec les pièces justificatives complètes et les frais d'inscription correspondants",
+              "Attendre la confirmation d'admission par courrier ou affichage à l'école dans un délai de quinze jours ouvrables suivant la soumission du dossier complet",
+            ],
+            notes: [
+              "Les familles en situation de vulnérabilité économique peuvent bénéficier du programme de subvention scolaire du gouvernement haïtien qui prend en charge les frais de scolarité dans les écoles publiques fondamentales pour les enfants de 6 à 15 ans issus de milieux défavorisés",
+              "Le port de l'uniforme scolaire est obligatoire dans tous les établissements publics et privés du territoire national conformément à l'arrêté ministériel du MENFP publié en août 2024",
+              "Les parents d'élèves sont invités à participer aux réunions d'information organisées par les directions d'école avant la rentrée pour prendre connaissance du règlement intérieur",
+            ],
+          },
+        },
+      }),
+      {
+        frTitle: "Guide de la rentrée scolaire 2026-2027",
+        frSummary: "Toutes les informations pour préparer la rentrée en Haïti.",
+      },
+    ),
+    "utility", "32 — 9 long bullets + 3 long notes (stress test)",
+  );
+
+  // 33. Scholarship — very long howToApply text (tests truncation)
+  audit(
+    buildScholarshipCarousel(
+      mk({
+        title: "Bourse Fulbright pour études de master aux États-Unis",
+        summary: "Le programme Fulbright offre des bourses complètes pour des études de master dans les universités américaines.",
+        category: "scholarship", deadline: "2026-10-15",
+        opportunity: {
+          deadline: "2026-10-15",
+          eligibility: ["Être citoyen haïtien résidant en Haïti", "Détenir un diplôme de licence"],
+          coverage: "Frais de scolarité + allocation mensuelle",
+          howToApply: "Les candidats doivent d'abord créer un compte sur le portail officiel Fulbright à l'adresse apply.iie.org/fulbright, puis compléter le formulaire de candidature en ligne en incluant leur relevé de notes universitaire, trois lettres de recommandation de professeurs ou employeurs, un essai personnel de 800 mots décrivant leurs objectifs académiques et professionnels, un plan d'études détaillé pour le programme de master choisi, ainsi qu'un certificat de compétence en anglais (TOEFL iBT score minimum 80 ou IELTS 6.5). Les dossiers incomplets ne seront pas examinés par le comité de sélection. Les candidats présélectionnés seront convoqués pour un entretien en personne à l'ambassade des États-Unis à Port-au-Prince.",
+          officialLink: "https://apply.iie.org/fulbright",
+        },
+      }),
+    ),
+    "scholarship", "33 — Very long howToApply (stress test)",
+  );
+
+  // 34. Opportunity — long howToApply + 6 eligibility items
+  audit(
+    buildOpportunityCarousel(
+      mk({
+        title: "Programme de stages à l'Organisation des Nations Unies pour les jeunes professionnels haïtiens",
+        summary: "L'ONU recrute des stagiaires pour ses bureaux de New York et Genève.",
+        category: "opportunity", deadline: "2026-07-31", geoTag: "HT",
+        opportunity: {
+          deadline: "2026-07-31",
+          eligibility: [
+            "Être inscrit dans un programme de master ou de doctorat dans une université reconnue internationalement",
+            "Maîtriser couramment au moins deux des six langues officielles des Nations Unies dont obligatoirement l'anglais ou le français",
+            "N'avoir aucun lien de parenté directe avec un employé actuel du système des Nations Unies à quelque niveau que ce soit",
+            "Posséder une assurance médicale couvrant la durée complète du stage dans le pays d'affectation choisi par le candidat",
+            "Avoir obtenu une moyenne cumulative d'au moins 3.0 sur 4.0 ou l'équivalent dans le système de notation de l'université fréquentée",
+            "Être disponible à temps plein pour une période minimale de deux mois consécutifs dans les bureaux de l'ONU",
+          ],
+          howToApply: "Rendez-vous sur careers.un.org, créez votre profil Inspira, puis recherchez les offres de stage correspondant à votre domaine d'études. Soumettez votre candidature en ligne avec votre CV, lettre de motivation, relevés de notes et deux lettres de recommandation académiques avant la date limite indiquée dans l'offre. Les candidats retenus seront contactés par le département concerné pour un entretien téléphonique ou vidéo.",
+          officialLink: "https://careers.un.org/",
+        },
+      }),
+      {
+        frTitle: "Stages à l'ONU pour jeunes Haïtiens",
+        frSummary: "L'ONU recrute des stagiaires pour New York et Genève.",
+      },
+    ),
+    "opportunity", "34 — Long howToApply + 6 eligibility",
+  );
+
+  // 35. News — very long section heading from AI
+  audit(
+    buildNewsCarousel(
+      mk({
+        title: "Crise alimentaire dans le Nord-Ouest",
+        summary: "Une crise alimentaire frappe le département du Nord-Ouest d'Haïti.",
+        geoTag: "HT", imageUrl: "https://img.test/famine.jpg",
+      }),
+      {
+        frTitle: "Crise alimentaire dans le Nord-Ouest d'Haïti",
+        frSummary: "Une crise alimentaire sévère affecte les populations du département du Nord-Ouest.",
+        frSections: [
+          { heading: "Ce qui se passe actuellement dans le département du Nord-Ouest d'Haïti selon les dernières données du Programme Alimentaire Mondial", content: "Le PAM a classé le département du Nord-Ouest en phase 4 de l'IPC, signalant une urgence alimentaire." },
+          { heading: "Contexte", content: "Les récoltes ont été détruites par les intempéries successives de la saison cyclonique 2025." },
+        ],
+      },
+    ),
+    "news", "35 — Very long section heading from AI",
+  );
+
   // ════════════════════════════════════════════════════════════════════════
   // REPORT
   // ════════════════════════════════════════════════════════════════════════
@@ -1023,6 +1161,36 @@ function runAll() {
         { heading: "Prochaines étapes", content: "La mission devrait arriver en Haïti dans les prochaines semaines et produire un rapport avec des recommandations concrètes." },
       ],
     },
+  ));
+
+  // Dump utility stress test
+  dump("utility (9 long bullets — #32)", buildUtilityCarousel(
+    mk({
+      title: "Guide complet de la rentrée scolaire 2026-2027 en Haïti",
+      summary: "Toutes les informations essentielles pour préparer la rentrée scolaire en Haïti.",
+      category: "resource",
+      utilityMeta: {
+        series: "HaitiEducationCalendar", utilityType: "school_calendar",
+        citations: [{ label: "MENFP", url: "https://menfp.gouv.ht" }],
+        extractedFacts: {
+          deadlines: [
+            { label: "Rentrée des classes publiques et privées", dateISO: "2026-09-07", sourceUrl: "https://menfp.gouv.ht" },
+            { label: "Inscription tardive départementale", dateISO: "2026-09-21", sourceUrl: "https://menfp.gouv.ht" },
+          ],
+          requirements: [
+            "Certificat de naissance original ou copie certifiée conforme délivrée par les autorités compétentes de la commune de résidence de l'élève, accompagné de deux photos d'identité format passeport",
+            "Bulletin scolaire de l'année précédente portant le cachet et la signature du directeur de l'établissement scolaire fréquenté avec relevé de notes complet",
+          ],
+          steps: [
+            "Se rendre à l'école choisie avec l'ensemble des documents requis pendant la période d'inscription officielle fixée par le calendrier du MENFP pour l'année en cours",
+          ],
+          notes: [
+            "Les familles vulnérables peuvent bénéficier du programme de subvention scolaire du gouvernement haïtien prenant en charge les frais de scolarité dans les écoles publiques fondamentales",
+          ],
+        },
+      },
+    }),
+    { frTitle: "Guide de la rentrée scolaire 2026-2027", frSummary: "Toutes les informations pour la rentrée." },
   ));
 
   return crits.length > 0 ? 1 : 0;

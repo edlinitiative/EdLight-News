@@ -66,7 +66,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   // ── Slide 4: How to apply (link first, then deadline last) ──
   const applyBullets: string[] = [];
   if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
-  if (item.opportunity?.howToApply) applyBullets.push(ensureFrenchHowToApply(item.opportunity.howToApply));
+  if (item.opportunity?.howToApply) applyBullets.push(shortenText(ensureFrenchHowToApply(item.opportunity.howToApply), 250));
   if (deadlineStr) applyBullets.push(`Date limite: ${formatDeadline(deadlineStr)}`);
   if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
 

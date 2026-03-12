@@ -30,17 +30,17 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     }
     if (facts.requirements?.length) {
       for (const r of facts.requirements.slice(0, 3)) {
-        bullets.push(r);
+        bullets.push(shortenText(r, 150));
       }
     }
     if (facts.steps?.length) {
       for (const s of facts.steps.slice(0, 3)) {
-        bullets.push(s);
+        bullets.push(shortenText(s, 150));
       }
     }
     if (bullets.length > 0) {
-      // Cap at 5 bullets per slide to avoid overflow; split if needed
-      if (bullets.length <= 5) {
+      // Cap at 4 bullets per slide to stay within 925px pixel budget
+      if (bullets.length <= 4) {
         slides.push({ heading: "Infos pratiques", bullets, layout: "explanation" });
       } else {
         slides.push({ heading: "Infos pratiques", bullets: bullets.slice(0, 4), layout: "explanation" });
@@ -53,7 +53,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
   if (facts?.notes?.length) {
     slides.push({
       heading: "À retenir",
-      bullets: facts.notes.slice(0, 4),
+      bullets: facts.notes.slice(0, 3).map((n) => shortenText(n, 150)),
       layout: "explanation",
       footer: buildSourceLine(item),
     });

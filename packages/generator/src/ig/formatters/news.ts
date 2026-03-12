@@ -138,7 +138,7 @@ function buildSectionSlides(
     // Split section content into readable bullets
     const bullets = sectionToBullets(sec.content);
     slides.push({
-      heading: sec.heading,
+      heading: shortenHeadline(sec.heading, 8),
       bullets,
       layout: "headline",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),

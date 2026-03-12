@@ -24,8 +24,8 @@ import { isJunkSentence, cleanExtractedText, splitSentences } from "./news.js";
 /** Max content slides (excluding cover + source). Keeps carousels digestible. */
 const MAX_CONTENT_SLIDES = 5;
 
-/** Max bullets per explanation slide — avoids overflow on 1350px canvas. */
-const MAX_BULLETS_PER_SLIDE = 4;
+/** Max bullets per explanation slide — 3×200ch + heading stays under 925px budget. */
+const MAX_BULLETS_PER_SLIDE = 3;
 
 /** Max chars per bullet — keeps text readable at 34px body font. */
 const MAX_BULLET_CHARS = 200;
