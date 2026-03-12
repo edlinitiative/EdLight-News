@@ -30,21 +30,106 @@ const MAX_BULLETS_PER_SLIDE = 3;
 /** Max chars per bullet — keeps text readable at 34px body font. */
 const MAX_BULLET_CHARS = 200;
 
+// ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
+
 /**
- * Split a section's content into digestible bullets.
- * Prefers paragraph breaks, then sentence splitting, then hard truncation.
+ * Strip markdown formatting that's invisible on IG slides:
+ * **bold** → bold, [text](url) → text, emoji prefixes, etc.
+ */
+function stripMarkdown(text: string): string {
+  return text
+    // [text](url) → text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // **bold** or __bold__ → plain
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    // *italic* → plain
+    .replace(/\*([^*]+)\*/g, "$1")
+    // ### headers → plain text
+    .replace(/^#{1,4}\s*/gm, "")
+    // Leading emoji + colon labels (💡 Pour les étudiants : → Pour les étudiants :)
+    .replace(/^(?:📚|💡|📌|🎉|📜)\s*/gmu, "")
+    // Clean multiple spaces
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** Lines matching these patterns are source-attribution noise, not content. */
+function isSourceLine(line: string): boolean {
+  const lower = line.toLowerCase().trim();
+  return (
+    lower.startsWith("sources") ||
+    lower.startsWith("📚") ||
+    lower.startsWith("source :") ||
+    lower.startsWith("source:") ||
+    /^\[.+\]\(.+\)(\s*·\s*\[.+\]\(.+\))*$/.test(lower)  // pure link list
+  );
+}
+
+/** Lines matching these are student-takeaway hooks — extract separately. */
+function isTakeawayLine(line: string): boolean {
+  return /💡|pour les étudiants|pourquoi c'est important/i.test(line);
+}
+
+// ── Sub-section parser (for LLM-generated rich bodies) ──────────────────────
+
+interface SubSection {
+  heading: string;
+  content: string;
+}
+
+/**
+ * Parse markdown sub-sections from a long body text.
+ * Handles:  **Heading**\n\nParagraph  and  ### Heading\n\nParagraph
+ * Returns individual sub-sections that can become their own IG slides.
+ */
+function extractSubSections(content: string): SubSection[] | null {
+  // Try ### headings first (LLM often uses these)
+  const h3Parts = content.split(/^###\s+/m).filter((p) => p.trim().length > 0);
+  if (h3Parts.length >= 2) {
+    return h3Parts.map((part) => {
+      const lines = part.split("\n");
+      const heading = stripMarkdown(lines[0]?.trim() ?? "");
+      const body = lines.slice(1).join("\n").trim();
+      return { heading, content: body };
+    }).filter((s) => s.content.length >= 20);
+  }
+
+  // Try **Bold Heading** at start of paragraph
+  const boldParts = content.split(/\n{2,}(?=\*\*[^*]+\*\*)/);
+  if (boldParts.length >= 2) {
+    return boldParts.map((part) => {
+      const match = part.match(/^\*\*([^*]+)\*\*\s*[—–:\-]?\s*([\s\S]*)/);
+      if (match) return { heading: match[1]!.trim(), content: match[2]!.trim() };
+      return { heading: "", content: part.trim() };
+    }).filter((s) => s.content.length >= 20 && s.heading.length > 0);
+  }
+
+  return null;
+}
+
+// ── Bullet builder (with markdown cleanup + filtering) ──────────────────────
+
+/**
+ * Split a section's content into digestible, clean bullets for IG slides.
+ * Strips markdown, filters source lines, and respects pixel budget.
  */
 function sectionToBullets(content: string): string[] {
+  const cleaned = stripMarkdown(content);
+
   // Try paragraph split first
-  let paragraphs = content
+  let paragraphs = cleaned
     .split(/\n{2,}/)
     .map((p) => p.trim())
-    .filter((p) => p.length >= 10);
+    .filter((p) => p.length >= 10)
+    .filter((p) => !isSourceLine(p))
+    .filter((p) => !isJunkSentence(p));
 
   // If only 1 big paragraph, split into sentences
   if (paragraphs.length <= 1) {
-    paragraphs = splitSentences(content)
-      .filter((s) => s.length >= 10 && !isJunkSentence(s));
+    paragraphs = splitSentences(cleaned)
+      .filter((s) => s.length >= 10 && !isJunkSentence(s))
+      .filter((s) => !isSourceLine(s));
   }
 
   return paragraphs
@@ -95,24 +180,82 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
   // ══════════════════════════════════════════════════════════════════════
 
   if (sections && sections.length > 0) {
-    // ── Rich path: Gemini-generated sections ──────────────────────────
-    // Each section (L'histoire, Contexte, Pourquoi ça compte, Parcours, etc.)
-    // becomes its own slide with the section heading + content as bullets.
+    // ── Rich path: structured sections from historyPublisher ──────────
+    //
+    // Content arrives in 2 flavours:
+    //
+    // A) Template path — each almanac entry is 1 section whose content
+    //    concatenates summary + 💡 student_takeaway + 📚 source links.
+    //    We split these apart so the takeaway gets its own featured slide.
+    //
+    // B) LLM-rewrite path — the primary event is a single section whose
+    //    content is a 400-600 word markdown body with **sub-headings**.
+    //    We parse sub-sections so "Pourquoi cela compte" and discussion
+    //    questions become their own slides instead of getting truncated.
 
-    // Filter out near-empty sections and "Sources" section (handled separately)
+    // Filter out empty / "Sources" sections
     const contentSections = sections.filter((s) => {
       if (!s.content || s.content.trim().length < 20) return false;
       if (/^sources?$/i.test(s.heading.trim())) return false;
       return true;
     });
 
-    for (const section of contentSections.slice(0, MAX_CONTENT_SLIDES)) {
-      const bullets = sectionToBullets(section.content);
-      if (bullets.length === 0) continue;
+    // Collect any student takeaways found across sections (dedupe later)
+    const takeaways: string[] = [];
 
+    for (const section of contentSections) {
+      if (slides.length - 1 >= MAX_CONTENT_SLIDES) break;
+
+      // ── Extract student_takeaway lines before bullet-ising ──────────
+      const paragraphs = section.content.split(/\n{2,}/);
+      const takeawayParas = paragraphs.filter((p) => isTakeawayLine(p));
+      const contentParas = paragraphs.filter((p) => !isTakeawayLine(p) && !isSourceLine(p));
+      const cleanedContent = contentParas.join("\n\n");
+
+      for (const t of takeawayParas) {
+        const cleaned = stripMarkdown(t).replace(/^pour les étudiants\s*:\s*/i, "").trim();
+        if (cleaned.length >= 20) takeaways.push(cleaned);
+      }
+
+      // ── Try parsing LLM sub-sections from long content ──────────────
+      const subs = cleanedContent.length > 400 ? extractSubSections(cleanedContent) : null;
+
+      if (subs && subs.length >= 2) {
+        // LLM body with multiple sub-sections → each becomes its own slide
+        for (const sub of subs) {
+          if (slides.length - 1 >= MAX_CONTENT_SLIDES) break;
+          // Skip "Questions pour la discussion" on IG (works better in caption)
+          if (/questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading)) continue;
+          const bullets = sectionToBullets(sub.content);
+          if (bullets.length === 0) continue;
+
+          slides.push({
+            heading: sectionHeading(sub.heading, slides.length - 1),
+            bullets,
+            layout: "explanation",
+            ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+          });
+        }
+      } else {
+        // Single section → standard bullet treatment
+        const bullets = sectionToBullets(cleanedContent);
+        if (bullets.length === 0) continue;
+
+        slides.push({
+          heading: sectionHeading(section.heading, slides.length - 1),
+          bullets,
+          layout: "explanation",
+          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+        });
+      }
+    }
+
+    // ── Featured "Pourquoi c'est important" slide from takeaways ──────
+    if (takeaways.length > 0 && slides.length - 1 < MAX_CONTENT_SLIDES) {
       slides.push({
-        heading: sectionHeading(section.heading, slides.length - 1),
-        bullets,
+        heading: "Pourquoi c'est important",
+        bullets: takeaways.slice(0, MAX_BULLETS_PER_SLIDE)
+          .map((t) => shortenText(t, MAX_BULLET_CHARS)),
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
@@ -120,7 +263,7 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
   } else {
     // ── Fallback path: extractedText / body / summary sentence splitting ─
     // Used for legacy items that don't have structured sections.
-    const rawText = item.extractedText ?? bodyText ?? "";
+    const rawText = stripMarkdown(item.extractedText ?? bodyText ?? "");
     let facts: string[] = [];
 
     if (rawText.length > 30) {
@@ -128,14 +271,16 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
       facts = splitSentences(cleaned)
         .filter((s) => s.length >= 20 && s.length <= 250)
         .filter((s) => !isJunkSentence(s))
+        .filter((s) => !isSourceLine(s))
         .slice(0, 6);
     }
 
     // Supplement with summary sentences if needed
     if (facts.length < 3 && summary) {
-      const summaryFacts = splitSentences(summary)
+      const summaryFacts = splitSentences(stripMarkdown(summary))
         .filter((s) => s.length >= 15 && s.length <= 250)
-        .filter((s) => !isJunkSentence(s));
+        .filter((s) => !isJunkSentence(s))
+        .filter((s) => !isSourceLine(s));
       for (const sf of summaryFacts) {
         if (!facts.includes(sf)) facts.push(sf);
         if (facts.length >= 6) break;
@@ -195,10 +340,10 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
       if (!section.content || section.content.trim().length < 20) continue;
       if (/^sources?$/i.test(section.heading.trim())) continue;
       // Take the first sentence of each section as a caption paragraph
-      const firstSentence = splitSentences(section.content)
-        .filter((s) => s.length >= 15 && !isJunkSentence(s))[0];
+      const firstSentence = splitSentences(stripMarkdown(section.content))
+        .filter((s) => s.length >= 15 && !isJunkSentence(s) && !isSourceLine(s))[0];
       if (firstSentence) {
-        captionParts.push(`📌 ${section.heading}`);
+        captionParts.push(`📌 ${stripMarkdown(section.heading)}`);
         captionParts.push(shortenText(firstSentence, 200));
         captionParts.push("");
       }

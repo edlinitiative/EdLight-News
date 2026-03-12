@@ -1066,6 +1066,85 @@ function runAll() {
     "news", "35 — Very long section heading from AI",
   );
 
+  // ────────────────────────────────────────────────────────────────────────
+  // HISTOIRE RICHNESS TESTS (validate takeaway extraction + LLM sub-sections)
+  // ────────────────────────────────────────────────────────────────────────
+
+  // 36. Template path — section content has inline 💡 takeaway + 📚 sources
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "L'indépendance d'Haïti : 1er janvier 1804",
+        summary: "Haïti devient la première république noire indépendante au monde.",
+        imageUrl: "https://img.test/independance.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }] },
+      }),
+      {
+        frTitle: "L'indépendance d'Haïti (1804)",
+        frSummary: "Haïti devient la première république noire indépendante.",
+        htSummary: "Ayiti vin premye repiblik nwa endepandan nan monn nan.",
+        frSections: [
+          {
+            heading: "L'indépendance d'Haïti (1804)",
+            content: "Le 1er janvier 1804, Jean-Jacques Dessalines proclame l'indépendance d'Haïti à Gonaïves, faisant du pays la première république noire indépendante au monde. Cet acte historique a mis fin à plus de trois siècles de colonisation française et au système esclavagiste le plus brutal des Amériques.\n\n💡 **Pour les étudiants :** L'indépendance d'Haïti a prouvé que la liberté est un droit universel, pas un privilège réservé à certains peuples. Cette victoire a inspiré des mouvements de libération dans toute l'Amérique latine et le monde.\n\n📚 Sources : [Wikipedia](https://fr.wikipedia.org/wiki/Haiti) · [Britannica](https://britannica.com/place/haiti)",
+          },
+          {
+            heading: "Bataille de Vertières (1803)",
+            content: "La bataille de Vertières du 18 novembre 1803 fut la victoire décisive des forces haïtiennes contre l'armée de Napoléon Bonaparte. Sous le commandement de Jean-Jacques Dessalines, les troupes haïtiennes ont vaincu le corps expéditionnaire français du général Rochambeau.\n\n💡 **Pour les étudiants :** Vertières montre que la détermination et le courage peuvent triompher contre une armée considérée comme invincible. C'est une leçon de résilience pour tous les Haïtiens.\n\n📚 Sources : [UNESCO](https://whc.unesco.org) · [Le Nouvelliste](https://lenouvelliste.com)",
+          },
+        ],
+      },
+    ),
+    "histoire", "36 — Template path (💡 takeaway + 📚 sources inline)",
+  );
+
+  // 37. LLM-rewrite path — section content has **bold** sub-headings + ### headers
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "La cérémonie du Bois Caïman : naissance de la révolution haïtienne",
+        summary: "La cérémonie vaudou du Bois Caïman en 1791 a lancé la révolution haïtienne.",
+        imageUrl: "https://img.test/bois-caiman.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Britannica", url: "https://britannica.com" }] },
+      }),
+      {
+        frTitle: "La cérémonie du Bois Caïman (1791)",
+        frSummary: "La cérémonie vaudou du Bois Caïman a lancé la révolution.",
+        htSummary: "Seremoni Bwa Kayiman an te kòmanse revolisyon ayisyen an.",
+        frSections: [
+          {
+            heading: "La cérémonie du Bois Caïman (1791)",
+            content: "### L'événement fondateur\n\nDans la nuit du 14 août 1791, des centaines d'esclaves se sont rassemblés secrètement dans une clairière du Bois Caïman, dans le nord de Saint-Domingue. Sous la direction du prêtre vaudou Dutty Boukman et de la prêtresse Cécile Fatiman, ils ont prêté serment de renverser le système esclavagiste.\n\n### Le contexte colonial\n\nSaint-Domingue était la colonie la plus riche de France, produisant la moitié du sucre et du café consommés en Europe. Ce système reposait sur l'exploitation brutale de plus de 500 000 esclaves africains qui travaillaient dans des conditions inhumaines sur les plantations.\n\n### Pourquoi cela compte\n\nLe Bois Caïman n'était pas simplement une révolte : c'était un acte de résistance spirituelle et politique qui a donné naissance à la plus grande révolution d'esclaves réussie de l'histoire. Son héritage continue d'inspirer les mouvements de libération dans le monde entier.\n\n### Questions pour la discussion\n\nPourquoi le vodou a-t-il joué un rôle si important dans l'organisation de la résistance des esclaves ? Comment le Bois Caïman a-t-il changé le cours de l'histoire mondiale ?",
+          },
+        ],
+      },
+    ),
+    "histoire", "37 — LLM path (### sub-sections + **Pourquoi cela compte**)",
+  );
+
+  // 38. LLM path with **bold** paragraph headings (no ### markers)
+  audit(
+    buildHistoireCarousel(
+      mk({
+        title: "Toussaint Louverture : le Napoléon noir des Caraïbes",
+        summary: "Toussaint Louverture, ancien esclave devenu général, a transformé Saint-Domingue.",
+        imageUrl: "https://img.test/toussaint.jpg",
+        utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Britannica", url: "https://britannica.com" }] },
+      }),
+      {
+        frTitle: "Toussaint Louverture : le Napoléon noir",
+        frSummary: "Toussaint Louverture a transformé Saint-Domingue en une puissance militaire.",
+        frSections: [
+          {
+            heading: "Toussaint Louverture (1743–1803)",
+            content: "**L'ascension d'un ancien esclave** — Né en esclavage vers 1743 sur la plantation Bréda, Toussaint a appris à lire et à monter à cheval. Affranchi vers l'âge de 33 ans, il a rapidement montré des talents militaires et diplomatiques exceptionnels.\n\n**Le stratège militaire** — En quelques années, Toussaint a unifié les forces rebelles de Saint-Domingue, vaincu les armées espagnoles et britanniques, et rédigé une constitution qui abolissait définitivement l'esclavage dans la colonie.\n\n**La trahison de Napoléon** — En 1802, Napoléon Bonaparte a envoyé une expédition de 40 000 soldats pour rétablir l'esclavage. Toussaint a été capturé par ruse et emprisonné au Fort de Joux dans le Jura, où il est mort le 7 avril 1803.\n\n**Pourquoi cela compte** — Toussaint a prouvé qu'un ancien esclave pouvait surpasser les plus grands généraux européens. Ses idées de liberté et d'égalité ont inspiré des générations de leaders anticoloniaux dans le monde entier.",
+          },
+        ],
+      },
+    ),
+    "histoire", "38 — LLM path (**bold** paragraph headings, no ###)",
+  );
+
   // ════════════════════════════════════════════════════════════════════════
   // REPORT
   // ════════════════════════════════════════════════════════════════════════
@@ -1191,6 +1270,73 @@ function runAll() {
       },
     }),
     { frTitle: "Guide de la rentrée scolaire 2026-2027", frSummary: "Toutes les informations pour la rentrée." },
+  ));
+
+  // ── New: histoire richness scenarios ──────────────────────────────────
+
+  // Dump #36 — Template path with inline takeaway + sources
+  dump("histoire (template 💡+📚 — #36)", buildHistoireCarousel(
+    mk({
+      title: "L'indépendance d'Haïti : 1er janvier 1804",
+      summary: "Haïti devient la première république noire indépendante au monde.",
+      imageUrl: "https://img.test/independance.jpg",
+      utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Wikipedia", url: "https://fr.wikipedia.org" }] },
+    }),
+    {
+      frTitle: "L'indépendance d'Haïti (1804)",
+      frSummary: "Haïti devient la première république noire indépendante.",
+      htSummary: "Ayiti vin premye repiblik nwa endepandan nan monn nan.",
+      frSections: [
+        {
+          heading: "L'indépendance d'Haïti (1804)",
+          content: "Le 1er janvier 1804, Jean-Jacques Dessalines proclame l'indépendance d'Haïti à Gonaïves, faisant du pays la première république noire indépendante au monde. Cet acte historique a mis fin à plus de trois siècles de colonisation française et au système esclavagiste le plus brutal des Amériques.\n\n💡 **Pour les étudiants :** L'indépendance d'Haïti a prouvé que la liberté est un droit universel, pas un privilège réservé à certains peuples. Cette victoire a inspiré des mouvements de libération dans toute l'Amérique latine et le monde.\n\n📚 Sources : [Wikipedia](https://fr.wikipedia.org/wiki/Haiti) · [Britannica](https://britannica.com/place/haiti)",
+        },
+        {
+          heading: "Bataille de Vertières (1803)",
+          content: "La bataille de Vertières du 18 novembre 1803 fut la victoire décisive des forces haïtiennes contre l'armée de Napoléon Bonaparte.\n\n💡 **Pour les étudiants :** Vertières montre que la détermination et le courage peuvent triompher contre une armée invincible.\n\n📚 Sources : [UNESCO](https://whc.unesco.org)",
+        },
+      ],
+    },
+  ));
+
+  // Dump #37 — LLM path with ### sub-sections
+  dump("histoire (LLM ### — #37)", buildHistoireCarousel(
+    mk({
+      title: "La cérémonie du Bois Caïman",
+      summary: "La cérémonie vaudou du Bois Caïman en 1791 a lancé la révolution haïtienne.",
+      imageUrl: "https://img.test/bois-caiman.jpg",
+      utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Britannica", url: "https://britannica.com" }] },
+    }),
+    {
+      frTitle: "La cérémonie du Bois Caïman (1791)",
+      frSummary: "La cérémonie vaudou du Bois Caïman a lancé la révolution.",
+      frSections: [
+        {
+          heading: "La cérémonie du Bois Caïman (1791)",
+          content: "### L'événement fondateur\n\nDans la nuit du 14 août 1791, des centaines d'esclaves se sont rassemblés dans le Bois Caïman.\n\n### Le contexte colonial\n\nSaint-Domingue était la colonie la plus riche de France, produisant la moitié du sucre et du café d'Europe.\n\n### Pourquoi cela compte\n\nLe Bois Caïman n'était pas simplement une révolte : c'était un acte de résistance spirituelle et politique.\n\n### Questions pour la discussion\n\nPourquoi le vodou a-t-il joué un rôle si important ?",
+        },
+      ],
+    },
+  ));
+
+  // Dump #38 — LLM path with **bold** paragraph headings
+  dump("histoire (LLM **bold** — #38)", buildHistoireCarousel(
+    mk({
+      title: "Toussaint Louverture : le Napoléon noir",
+      summary: "Toussaint Louverture, ancien esclave devenu général.",
+      imageUrl: "https://img.test/toussaint.jpg",
+      utilityMeta: { series: "HaitiHistory", utilityType: "history", citations: [{ label: "Britannica", url: "https://britannica.com" }] },
+    }),
+    {
+      frTitle: "Toussaint Louverture : le Napoléon noir",
+      frSummary: "Toussaint Louverture a transformé Saint-Domingue.",
+      frSections: [
+        {
+          heading: "Toussaint Louverture (1743–1803)",
+          content: "**L'ascension d'un ancien esclave** — Né en esclavage vers 1743, Toussaint a montré des talents militaires exceptionnels.\n\n**Le stratège militaire** — Il a unifié les forces rebelles, vaincu les armées espagnoles et britanniques.\n\n**La trahison de Napoléon** — En 1802, Napoléon a envoyé 40 000 soldats. Toussaint a été capturé et est mort au Fort de Joux.\n\n**Pourquoi cela compte** — Toussaint a prouvé qu'un ancien esclave pouvait surpasser les plus grands généraux européens.",
+        },
+      ],
+    },
   ));
 
   return crits.length > 0 ? 1 : 0;
