@@ -38,12 +38,20 @@ export function looksEnglish(text: string): boolean {
 /**
  * Filter an eligibility array: drop bullets that are clearly English
  * and replace with a single French fallback if all are English.
+ * Uses a stricter single-marker check per bullet (not the 2-hit looksEnglish
+ * threshold) because individual short eligibility bullets may only hit 1 marker.
  */
 export function ensureFrenchEligibility(bullets: string[]): string[] {
-  const french = bullets.filter((b) => !looksEnglish(b));
+  const french = bullets.filter((b) => !looksEnglishStrict(b));
   if (french.length > 0) return french;
   // All bullets were English — return a generic French note
   return ["Voir les critères d'éligibilité sur le site officiel"];
+}
+
+/** Stricter English detection for short text: 1 marker hit = English. */
+function looksEnglishStrict(text: string): boolean {
+  if (!text || text.length < 10) return false;
+  return EN_MARKERS.some((re) => re.test(text));
 }
 
 /**
@@ -147,13 +155,25 @@ export function shortenText(text: string, max: number): string {
 }
 
 /**
- * Shorten a headline to at most `maxWords` words.
- * Keeps the first N words and appends "…" if truncated.
+ * Shorten a headline to at most `maxWords` words AND `maxChars` characters.
+ * At 88px hero font on a 900px-usable canvas, ~90 chars ≈ 5 lines (the CSS clamp).
+ * Keeps the first N words within limits and appends "…" if truncated.
  */
-export function shortenHeadline(text: string, maxWords = 14): string {
-  const words = text.trim().split(/\s+/);
-  if (words.length <= maxWords) return text.trim();
-  return words.slice(0, maxWords).join(" ") + "…";
+export function shortenHeadline(text: string, maxWords = 14, maxChars = 90): string {
+  const trimmed = text.trim();
+  const words = trimmed.split(/\s+/);
+
+  // Word limit first
+  let result = words.length <= maxWords ? trimmed : words.slice(0, maxWords).join(" ") + "…";
+
+  // Then character limit (break at word boundary)
+  if (result.length > maxChars) {
+    const cut = result.slice(0, maxChars);
+    const lastSpace = cut.lastIndexOf(" ");
+    result = (lastSpace > maxChars * 0.4 ? cut.slice(0, lastSpace) : cut.trimEnd()) + "…";
+  }
+
+  return result;
 }
 
 // Known news/media domains — "Postulez" doesn't make sense for these

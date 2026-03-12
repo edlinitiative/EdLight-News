@@ -19,7 +19,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
-  // Slide 2: Practical info
+  // Slide 2+: Practical info (split across slides if many facts)
   const facts = item.utilityMeta?.extractedFacts;
   if (facts) {
     const bullets: string[] = [];
@@ -39,7 +39,13 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
       }
     }
     if (bullets.length > 0) {
-      slides.push({ heading: "Infos pratiques", bullets, layout: "explanation" });
+      // Cap at 5 bullets per slide to avoid overflow; split if needed
+      if (bullets.length <= 5) {
+        slides.push({ heading: "Infos pratiques", bullets, layout: "explanation" });
+      } else {
+        slides.push({ heading: "Infos pratiques", bullets: bullets.slice(0, 4), layout: "explanation" });
+        slides.push({ heading: "Autres détails", bullets: bullets.slice(4, 8), layout: "explanation" });
+      }
     }
   }
 

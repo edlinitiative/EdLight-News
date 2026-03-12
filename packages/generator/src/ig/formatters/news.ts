@@ -282,6 +282,8 @@ function capBeatLength(text: string, max = MAX_BEAT_CHARS): string {
  * cleanly on a headline slide without being visually clipped.
  */
 function extractFrenchBeats(item: Item, frSummary: string): string[] {
+  const title = item.title;
+
   // Try extractedText first (most detailed)
   if (item.extractedText && looksLikeFrench(item.extractedText)) {
     const cleaned = cleanExtractedText(item.extractedText);
@@ -290,7 +292,9 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
       .filter((s) => !isJunkSentence(s));
 
     const picks = pickSpreadBeats(sentences, 3);
-    if (picks.length > 0) return picks.map((b) => capBeatLength(b));
+    // Drop any beat that's too similar to the cover headline
+    const distinct = picks.filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
+    if (distinct.length > 0) return distinct.map((b) => capBeatLength(b));
   }
 
   // Fallback: synthesize beats from the French summary
@@ -300,11 +304,18 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
       .filter((s) => !isJunkSentence(s));
 
     if (sentences.length >= 2) {
-      return dedupBeats(sentences.slice(0, 4)).slice(0, 3).map((b) => capBeatLength(b));
+      // Dedup among beats AND against the title
+      const deduped = dedupBeats(sentences.slice(0, 4))
+        .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
+      return deduped.slice(0, 3).map((b) => capBeatLength(b));
     }
-    // Single long summary → cap it
+    // Single long summary → cap at inner-slide-friendly length (≤ ~4 lines)
     if (frSummary.length > 60) {
-      return [capBeatLength(frSummary)];
+      const capped = capBeatLength(frSummary, 160);
+      // Skip if it just restates the title
+      if (jaccardSimilarity(capped, title) <= SIMILARITY_THRESHOLD) {
+        return [capped];
+      }
     }
   }
 

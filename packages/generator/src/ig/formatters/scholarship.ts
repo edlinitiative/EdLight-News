@@ -27,7 +27,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
   }
   slides.push({
-    heading: shortenHeadline(title, 20),
+    heading: shortenHeadline(title, 15),
     bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [],
     layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
