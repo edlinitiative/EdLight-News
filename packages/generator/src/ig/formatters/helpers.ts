@@ -156,21 +156,51 @@ export function shortenText(text: string, max: number): string {
 
 /**
  * Shorten a headline to at most `maxWords` words AND `maxChars` characters.
- * At 88px hero font on a 900px-usable canvas, ~90 chars ≈ 5 lines (the CSS clamp).
- * Keeps the first N words within limits and appends "…" if truncated.
+ * At 88px hero font with CSS clamp 7, ~130 chars fit comfortably.
+ * Prefers cutting at clause boundaries (comma, semicolon, colon, dash) to
+ * avoid mid-phrase "…" that looks incomplete.
  */
-export function shortenHeadline(text: string, maxWords = 14, maxChars = 90): string {
+export function shortenHeadline(text: string, maxWords = 18, maxChars = 130): string {
   const trimmed = text.trim();
   const words = trimmed.split(/\s+/);
 
   // Word limit first
-  let result = words.length <= maxWords ? trimmed : words.slice(0, maxWords).join(" ") + "…";
+  let result = words.length <= maxWords ? trimmed : words.slice(0, maxWords).join(" ");
+  const wordTruncated = words.length > maxWords;
 
-  // Then character limit (break at word boundary)
+  // Then character limit — prefer clause boundary over mid-word cut
   if (result.length > maxChars) {
     const cut = result.slice(0, maxChars);
+    // Try clause boundary (comma, semicolon, colon, dash)
+    const clauseBreak = Math.max(
+      cut.lastIndexOf(", "),
+      cut.lastIndexOf("; "),
+      cut.lastIndexOf(": "),
+      cut.lastIndexOf(" – "),
+      cut.lastIndexOf(" — "),
+    );
+    if (clauseBreak > maxChars * 0.5) {
+      return cut.slice(0, clauseBreak).replace(/[,;:\s]+$/, "");
+    }
     const lastSpace = cut.lastIndexOf(" ");
-    result = (lastSpace > maxChars * 0.4 ? cut.slice(0, lastSpace) : cut.trimEnd()) + "…";
+    result = lastSpace > maxChars * 0.4 ? cut.slice(0, lastSpace) : cut.trimEnd();
+    return result + "…";
+  }
+
+  // If we only word-truncated and it fits in maxChars, try to end cleanly
+  if (wordTruncated) {
+    // Try to end at a clause boundary within the result
+    const clauseBreak = Math.max(
+      result.lastIndexOf(", "),
+      result.lastIndexOf("; "),
+      result.lastIndexOf(": "),
+      result.lastIndexOf(" – "),
+      result.lastIndexOf(" — "),
+    );
+    if (clauseBreak > result.length * 0.6) {
+      return result.slice(0, clauseBreak).replace(/[,;:\s]+$/, "");
+    }
+    return result + "…";
   }
 
   return result;

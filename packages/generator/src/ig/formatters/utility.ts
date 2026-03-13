@@ -21,6 +21,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
 
   // Slide 2+: Practical info (split across slides if many facts)
   const facts = item.utilityMeta?.extractedFacts;
+  const imageUrl = item.imageUrl ?? undefined;
   if (facts) {
     const bullets: string[] = [];
     if (facts.deadlines?.length) {
@@ -41,10 +42,10 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     if (bullets.length > 0) {
       // Cap at 4 bullets per slide to stay within 925px pixel budget
       if (bullets.length <= 4) {
-        slides.push({ heading: "Infos pratiques", bullets, layout: "explanation" });
+        slides.push({ heading: "Infos pratiques", bullets, layout: "explanation", ...(imageUrl ? { backgroundImage: imageUrl } : {}) });
       } else {
-        slides.push({ heading: "Infos pratiques", bullets: bullets.slice(0, 4), layout: "explanation" });
-        slides.push({ heading: "Autres détails", bullets: bullets.slice(4, 8), layout: "explanation" });
+        slides.push({ heading: "Infos pratiques", bullets: bullets.slice(0, 4), layout: "explanation", ...(imageUrl ? { backgroundImage: imageUrl } : {}) });
+        slides.push({ heading: "Autres détails", bullets: bullets.slice(4, 8), layout: "explanation", ...(imageUrl ? { backgroundImage: imageUrl } : {}) });
       }
     }
   }
@@ -56,6 +57,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
       bullets: facts.notes.slice(0, 3).map((n) => shortenText(n, 150)),
       layout: "explanation",
       footer: buildSourceLine(item),
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
 

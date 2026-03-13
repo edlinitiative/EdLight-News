@@ -6,7 +6,7 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { decideIG, applyDedupePenalty } from "./selection.js";
+import { decideIG, applyDedupePenalty, isRoundupTitle } from "./selection.js";
 import type { Item, QualityFlags } from "@edlight-news/types";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -31,6 +31,7 @@ function makeItem(overrides: Partial<Item> = {}): Item {
       lowConfidence: false,
       reasons: [],
     },
+    imageUrl: "https://example.com/hero.jpg",
     citations: [{ sourceName: "Example University", sourceUrl: "https://example.edu/scholarship" }],
     createdAt: NOW_TS,
     updatedAt: NOW_TS,
@@ -74,7 +75,7 @@ describe("decideIG", () => {
   });
 
   it("assigns base score of 70 for scholarships", () => {
-    const item = makeItem({ audienceFitScore: 0 });
+    const item = makeItem({ audienceFitScore: 0.35 });
     const decision = decideIG(item);
     assert.ok(decision.igPriorityScore >= 70, `Expected >= 70, got ${decision.igPriorityScore}`);
   });
@@ -121,6 +122,7 @@ describe("decideIG", () => {
       category: "news",
       title: "Political debate continues",
       summary: "Government officials discuss policy changes.",
+      extractedText: Array(250).fill("debate").join(" "),
       audienceFitScore: 0.2,
     });
     const decision = decideIG(item);
@@ -133,6 +135,7 @@ describe("decideIG", () => {
       category: "news",
       title: "Université d'État announce examen baccalauréat schedule",
       summary: "Les étudiants doivent s'inscrire pour les examens de l'université.",
+      extractedText: Array(250).fill("éducation université examen étudiant").join(" "),
       audienceFitScore: 0.7,
       deadline: null,
       opportunity: undefined,
@@ -244,5 +247,115 @@ describe("applyDedupePenalty", () => {
     };
     const result = applyDedupePenalty(decision, new Set(["group-1"]), "group-1");
     assert.equal(result.igPriorityScore, 0);
+  });
+});
+
+// ── Roundup blocklist tests ─────────────────────────────────────────────
+
+describe("isRoundupTitle", () => {
+  it("blocks 'Actualités Haïti' roundup titles", () => {
+    assert.equal(isRoundupTitle("Actualités Haïti"), true);
+    assert.equal(isRoundupTitle("Actualités Haiti — 13 mars 2026"), true);
+    assert.equal(isRoundupTitle("actualites haiti du jour"), true);
+  });
+
+  it("blocks 'Résumé de l'actualité' titles", () => {
+    assert.equal(isRoundupTitle("Résumé de l'actualité du 12 mars"), true);
+    assert.equal(isRoundupTitle("Résumé des nouvelles — semaine 10"), true);
+    assert.equal(isRoundupTitle("Resume du jour"), true);
+  });
+
+  it("blocks 'Les nouvelles du jour' and similar", () => {
+    assert.equal(isRoundupTitle("Les nouvelles du jour"), true);
+    assert.equal(isRoundupTitle("Les nouvelles en bref — 13 mars"), true);
+  });
+
+  it("blocks 'Revue de presse' and 'Tour d'horizon'", () => {
+    assert.equal(isRoundupTitle("Revue de presse — mars 2026"), true);
+    assert.equal(isRoundupTitle("Tour d'horizon de la semaine"), true);
+  });
+
+  it("blocks 'Haïti en bref'", () => {
+    assert.equal(isRoundupTitle("Haïti en bref — 13 mars 2026"), true);
+    assert.equal(isRoundupTitle("Haiti actualités — ce qu'il faut savoir"), true);
+  });
+
+  it("blocks 'Flash info' and 'Points saillants'", () => {
+    assert.equal(isRoundupTitle("Flash info du 12 mars 2026"), true);
+    assert.equal(isRoundupTitle("Points saillants de la semaine"), true);
+  });
+
+  it("blocks 'Nouvelles du [weekday]' Juno7 pattern", () => {
+    assert.equal(isRoundupTitle("Nouvelles du lundi 10 mars"), true);
+    assert.equal(isRoundupTitle("Nouvelles du vendredi"), true);
+  });
+
+  it("blocks 'Ce qu'il faut retenir'", () => {
+    assert.equal(isRoundupTitle("Ce qu'il faut retenir de ce jeudi 13 mars"), true);
+  });
+
+  it("allows specific topic titles (not roundups)", () => {
+    assert.equal(isRoundupTitle("Le Fonds Canadien lance un programme de bourses"), false);
+    assert.equal(isRoundupTitle("Haïti : le gouvernement annonce des réformes éducatives"), false);
+    assert.equal(isRoundupTitle("Bourse UNESCO 2026 — appel à candidatures"), false);
+    assert.equal(isRoundupTitle("Enregistrement des partis politiques avant la date limite"), false);
+    assert.equal(isRoundupTitle("Taux du jour — BRH"), false);
+  });
+
+  it("handles empty / null title", () => {
+    assert.equal(isRoundupTitle(""), false);
+  });
+});
+
+describe("decideIG — roundup gate", () => {
+  it("rejects news article with roundup title", () => {
+    const item = makeItem({
+      category: "news",
+      title: "Actualités Haïti — 13 mars 2026",
+      summary: "Résumé des principales nouvelles du jour en Haïti incluant économie et politique.",
+      extractedText: Array(250).fill("mot").join(" "), // passes thin-content gate (200+ words)
+      audienceFitScore: 0.8,
+      deadline: null,
+      opportunity: undefined,
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igEligible, false);
+    assert.ok(decision.reasons.some((r) => r.includes("Roundup")));
+  });
+
+  it("allows news article with specific topic title", () => {
+    const item = makeItem({
+      category: "news",
+      title: "Le gouvernement haïtien lance un programme de bourses universitaires",
+      summary: "Le Ministère de l'Éducation annonce un nouveau programme de bourses pour les étudiants haïtiens.",
+      extractedText: Array(250).fill("mot").join(" "),
+      audienceFitScore: 0.8,
+      deadline: null,
+      opportunity: undefined,
+    });
+    const decision = decideIG(item);
+    // Should pass roundup gate (may fail other gates, but not the roundup one)
+    assert.ok(!decision.reasons.some((r) => r.includes("Roundup")));
+  });
+});
+
+describe("decideIG — imageConfidence boundary", () => {
+  it("rejects items with imageConfidence exactly 0.4 (screenshots)", () => {
+    const item = makeItem({
+      imageConfidence: 0.4,
+      imageUrl: "https://example.com/screenshot.png",
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igEligible, false);
+    assert.ok(decision.reasons.some((r) => r.includes("imageConfidence")));
+  });
+
+  it("accepts items with imageConfidence > 0.4", () => {
+    const item = makeItem({
+      imageConfidence: 0.5,
+      imageUrl: "https://example.com/photo.jpg",
+    });
+    const decision = decideIG(item);
+    assert.ok(!decision.reasons.some((r) => r.includes("imageConfidence")));
   });
 });

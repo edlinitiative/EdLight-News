@@ -11,6 +11,7 @@ import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generat
 import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
+import { generateContextualImage } from "../services/geminiImageGen.js";
 
 /**
  * Extract the target post date for a histoire item.
@@ -198,6 +199,25 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // Format the payload
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
         const payload = await formatForIG(decision.igType, item, opts);
+
+        // ── Gemini image fallback ───────────────────────────────────
+        // If any slide lacks a backgroundImage (low-confidence publisher image,
+        // unsafe source, or utility/histoire type), generate ONE Gemini image
+        // and propagate it to all slides that need it.
+        const slidesNeedingImage = payload.slides.filter((s) => !s.backgroundImage);
+        if (slidesNeedingImage.length > 0) {
+          try {
+            const generated = await generateContextualImage(item);
+            if (generated?.url) {
+              for (const slide of slidesNeedingImage) {
+                slide.backgroundImage = generated.url;
+              }
+              console.log(`[buildIgQueue] Gemini image filled ${slidesNeedingImage.length} slides for ${item.id}`);
+            }
+          } catch (err) {
+            console.warn(`[buildIgQueue] Gemini image fallback failed for ${item.id}:`, err instanceof Error ? err.message : err);
+          }
+        }
 
         // Insert as queued
         await igQueueRepo.createIGQueueItem({

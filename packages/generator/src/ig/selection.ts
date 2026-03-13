@@ -346,9 +346,23 @@ export function decideIG(item: Item): IGDecision {
     }
   }
 
+  // Roundup / aggregation gate: block news articles that are just daily
+  // roundups ("Actualités Haïti", "Résumé de l'actualité", etc.).
+  // These produce low-quality carousels because they lack editorial depth.
+  if (igType === "news" && isRoundupTitle(item.title)) {
+    return {
+      igEligible: false,
+      igType,
+      igPriorityScore: 0,
+      reasons: [`Roundup/aggregation article — title matches blocklist pattern`],
+    };
+  }
+
   // Low image confidence: non-branded types need a real hero image.
   // Images flagged as generic/stock/logo by the classifier are unusable on IG.
-  if (!BRANDED_IMAGE_TYPES.has(igType) && (item.imageConfidence ?? 1) < 0.4) {
+  // Screenshots (confidence 0.4) are also blocked — they contain text and
+  // look unprofessional as carousel backgrounds.
+  if (!BRANDED_IMAGE_TYPES.has(igType) && (item.imageConfidence ?? 1) <= 0.4) {
     return {
       igEligible: false,
       igType,
@@ -505,6 +519,37 @@ export function decideIG(item: Item): IGDecision {
     reasons,
     igExpiresAt,
   };
+}
+
+// ── Roundup / aggregation detection ────────────────────────────────────────
+
+const ROUNDUP_TITLE_PATTERNS = [
+  // "Actualités Haïti" / "Actualités du jour" / "Actualité en bref"
+  /actualit[ée]s?\s+(ha[iï]ti|du\s+jour|en\s+bref|de\s+la\s+semaine)/i,
+  // "Résumé de l'actualité" / "Résumé des nouvelles"
+  /r[ée]sum[ée]\s+(de\s+l[''\u2019]?actualit|des\s+nouvelles|du\s+jour|hebdomadaire)/i,
+  // "Les nouvelles du jour" / "Les nouvelles en bref"
+  /les\s+nouvelles\s+(du\s+jour|en\s+bref|de\s+la\s+semaine)/i,
+  // "Tour d'horizon" / "Revue de presse"
+  /tour\s+d[''\u2019]horizon|revue\s+de\s+presse/i,
+  // "Haïti en bref" / "Haïti actualités"
+  /ha[iï]ti\s+(en\s+bref|actualit[ée]s?|nouvelles)/i,
+  // "Flash info" / "Points saillants"
+  /flash\s+info|points?\s+saillants?/i,
+  // "Nouvelles du [day]" (Juno7 pattern)
+  /nouvelles\s+du\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)/i,
+  // "Ce qu'il faut retenir" (daily recap)
+  /ce\s+qu[''\u2019]il\s+faut\s+retenir/i,
+];
+
+/**
+ * Returns true when the title matches known roundup/aggregation patterns.
+ * These articles summarize multiple unrelated stories and produce weak
+ * IG carousels without editorial depth.
+ */
+export function isRoundupTitle(title: string): boolean {
+  if (!title) return false;
+  return ROUNDUP_TITLE_PATTERNS.some((re) => re.test(title));
 }
 
 /**

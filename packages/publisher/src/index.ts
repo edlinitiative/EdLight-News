@@ -221,6 +221,54 @@ export async function publishIgPost(
   }
 }
 
+// ── Delete IG media ─────────────────────────────────────────────────────────
+
+export interface IGDeleteResult {
+  deleted: boolean;
+  igMediaId: string;
+  error?: string;
+}
+
+/**
+ * Delete a published Instagram post (or story) via the Graph API.
+ *
+ * Requires: IG_ACCESS_TOKEN with `instagram_content_publish` permission.
+ *
+ *   DELETE /{ig-media-id}
+ *
+ * Works on both graph.instagram.com and graph.facebook.com.
+ */
+export async function deleteIgPost(igMediaId: string): Promise<IGDeleteResult> {
+  const creds = getIGCredentials();
+  if (!creds) {
+    return { deleted: false, igMediaId, error: "IG credentials not configured" };
+  }
+
+  const { accessToken } = creds;
+  const apiHost = process.env.IG_API_HOST ?? "graph.instagram.com";
+
+  try {
+    const res = await fetch(
+      `https://${apiHost}/v21.0/${igMediaId}?access_token=${accessToken}`,
+      { method: "DELETE" },
+    );
+    const body = (await res.json()) as { success?: boolean; error?: { message: string } };
+
+    if (body.success) {
+      console.log(`[publisher] IG media deleted: ${igMediaId}`);
+      return { deleted: true, igMediaId };
+    }
+
+    const errMsg = body.error?.message ?? `HTTP ${res.status}`;
+    console.error(`[publisher] IG delete failed for ${igMediaId}: ${errMsg}`);
+    return { deleted: false, igMediaId, error: errMsg };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[publisher] IG delete error for ${igMediaId}: ${msg}`);
+    return { deleted: false, igMediaId, error: msg };
+  }
+}
+
 // ── Legacy API (kept for backwards compat) ──────────────────────────────────
 
 export async function publishToInstagram(

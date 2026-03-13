@@ -78,16 +78,10 @@ export async function formatForIG(
     if (options.overrideImageUrl) {
       payload.slides[0]!.backgroundImage = options.overrideImageUrl;
     }
-  } else if (
-    (igType === "scholarship" || igType === "opportunity") &&
-    payload.slides.length > 1
-  ) {
-    // Scholarship/opportunity publisher images consistently contain text/logos
-    // that clash with overlay text — strip inner slides by default, keep cover
-    for (let i = 1; i < payload.slides.length; i++) {
-      delete payload.slides[i]!.backgroundImage;
-    }
   }
+  // Note: we no longer strip inner-slide images for scholarship/opportunity.
+  // The per-type overlay system (OVERLAY_MEDIUM) in the renderer is now strong
+  // enough to keep text readable over publisher images on all slides.
 
   // ── Two-pass reviewer: fix English leaks, narrative coherence, emoji limits ──
   // Non-blocking: if the reviewer fails, we return the original payload.
