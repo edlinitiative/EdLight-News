@@ -21,14 +21,26 @@ export const MARGIN = {
 } as const;
 
 // ── Typography ─────────────────────────────────────────────────────────────
+//
+// Two-font system inspired by Bloomberg / Axios / Morning Brew:
+//   Headlines → DM Sans (geometric, optical sizing, Black 900 for impact)
+//   Body      → Inter (proven readability at small sizes)
 
-export const FONT_STACK =
+/** Headlines, pills, stats, brand marks */
+export const FONT_HEADLINE =
+  "'DM Sans', 'Noto Color Emoji', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+/** Body text, bullets, source lines, secondary UI */
+export const FONT_BODY =
   "'Inter', 'Noto Color Emoji', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+/** @deprecated Use FONT_HEADLINE or FONT_BODY instead */
+export const FONT_STACK = FONT_HEADLINE;
 
 export const GOOGLE_FONTS_LINK =
   `<link rel="preconnect" href="https://fonts.googleapis.com">` +
   `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` +
-  `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Color+Emoji&display=swap" rel="stylesheet">`;
+  `<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,700;9..40,800;9..40,900&family=Inter:wght@400;500;600;700&family=Noto+Color+Emoji&display=swap" rel="stylesheet">`;
 
 /** Font sizes in px – 3-level hierarchy. */
 export const TYPE = {

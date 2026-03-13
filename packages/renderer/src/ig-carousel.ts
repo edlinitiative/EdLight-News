@@ -14,7 +14,7 @@ import { join } from "node:path";
 import type { IGSlide, IGSlideLayout, IGFormattedPayload, IGQueueItem } from "@edlight-news/types";
 import { buildMemeSlideHTML } from "./ig-meme.js";
 import {
-  CANVAS, MARGIN, FONT_STACK, GOOGLE_FONTS_LINK, TYPE,
+  CANVAS, MARGIN, FONT_HEADLINE, FONT_BODY, FONT_STACK, GOOGLE_FONTS_LINK, TYPE,
   ACCENT, DARK, LABEL, OVERLAY, OVERLAY_BY_TYPE,
 } from "./design-tokens.js";
 
@@ -90,7 +90,7 @@ function bodyCss(dark: string, bgImage?: string): string {
     : dark;
   // image-rendering: -webkit-optimize-contrast sharpens scaled-up backgrounds
   const imgRendering = bgImage ? ` image-rendering: -webkit-optimize-contrast;` : "";
-  return `body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; background:${bg}; color:#fff; overflow:hidden; position:relative;${imgRendering} }`;
+  return `body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BODY}; background:${bg}; color:#fff; overflow:hidden; position:relative;${imgRendering} }`;
 }
 
 /**
@@ -112,11 +112,11 @@ function glowCss(accent: string): string {
 }
 
 function pillCss(accent: string): string {
-  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:12px 28px; border-radius:4px; }`;
+  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-family:${FONT_HEADLINE}; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:12px 28px; border-radius:4px; }`;
 }
 
 function brandHtml(accent: string, size = 18): string {
-  return `<span style="font-size:${size}px;font-weight:800;letter-spacing:2.5px;display:flex;align-items:center;gap:6px"><span style="color:rgba(255,255,255,0.85)">EDLIGHT</span><span style="color:${accent}">NEWS</span></span>`;
+  return `<span style="font-family:${FONT_HEADLINE};font-size:${size}px;font-weight:800;letter-spacing:2.5px;display:flex;align-items:center;gap:6px"><span style="color:rgba(255,255,255,0.85)">EDLIGHT</span><span style="color:${accent}">NEWS</span></span>`;
 }
 
 function topBrandHtml(accent: string): string {
@@ -124,7 +124,7 @@ function topBrandHtml(accent: string): string {
 }
 
 function topBrandCss(accent: string): string {
-  return `.top-brand { font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
+  return `.top-brand { font-family:${FONT_HEADLINE}; font-size:22px; font-weight:800; letter-spacing:3px; display:flex; align-items:center; gap:6px; }
 .top-brand .el { color:#fff; opacity:0.9; }
 .top-brand .nw { color:${accent}; }`;
 }
@@ -178,7 +178,7 @@ ${pillCss(accent)}
 ${isFirst ? topBrandCss(accent) : ""}
 .main { margin-top:auto; overflow:hidden; max-height:calc(100% - 80px); display:flex; flex-direction:column; justify-content:flex-end; }
 ${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; flex-shrink:0; }` : ""}
-.h { font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${hClamp}; -webkit-box-orient:vertical; flex-shrink:0; }
+.h { font-family:${FONT_HEADLINE}; font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${hClamp}; -webkit-box-orient:vertical; flex-shrink:0; }
 .bt { font-size:${TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.45; opacity:${isFirst ? 0.80 : 0.90}; text-shadow:0 1px 16px rgba(0,0,0,0.7); margin-bottom:8px; max-height:${isFirst ? 200 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 5 : 6}; -webkit-box-orient:vertical; flex-shrink:1; }
 ${bottomCss()}
 </style></head>
@@ -225,7 +225,7 @@ ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
-.h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
+.h { font-family:${FONT_HEADLINE}; font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
 .bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.92; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}88; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 8px rgba(0,0,0,0.6); }
 ${bottomCss()}
 </style></head>
@@ -269,9 +269,9 @@ ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .center { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:16px; }
-.stat { font-size:${TYPE.stat}px; font-weight:900; line-height:1; letter-spacing:-3px; color:${accent}; text-shadow:0 4px 60px rgba(0,0,0,0.5); }
+.stat { font-family:${FONT_HEADLINE}; font-size:${TYPE.stat}px; font-weight:900; line-height:1; letter-spacing:-3px; color:${accent}; text-shadow:0 4px 60px rgba(0,0,0,0.5); }
 .stat-desc { font-size:${TYPE.body}px; font-weight:500; opacity:0.7; max-width:80%; line-height:1.35; }
-.stat-heading { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
+.stat-heading { font-family:${FONT_HEADLINE}; font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
 ${bottomCss()}
 </style></head>
 <body>
@@ -308,7 +308,7 @@ function buildTauxCoverHTML(
 ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
-body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
+body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BODY}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
 ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.65); }` : ""}
 .glow { position:absolute; top:-200px; right:-100px; width:600px; height:600px; background:radial-gradient(circle, rgba(234,179,8,0.08) 0%, transparent 70%); }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
@@ -316,8 +316,8 @@ ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background
 ${pillCss(accent)}
 ${topBrandCss(accent)}
 .rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; }
-.rate-label { font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
-.rate-value { font-size:140px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
+.rate-label { font-family:${FONT_HEADLINE}; font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
+.rate-value { font-family:${FONT_HEADLINE}; font-size:140px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
 .rate-unit { font-size:30px; font-weight:500; opacity:0.40; margin-top:12px; letter-spacing:1.5px; }
 .meta { display:flex; justify-content:center; gap:40px; margin-top:36px; }
 .meta span { font-size:22px; opacity:0.55; font-weight:500; }
@@ -384,20 +384,20 @@ function buildTauxDetailHTML(
 ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
-body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
+body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BODY}; ${bgCss} color:#fff; overflow:hidden; position:relative; }
 ${slide.backgroundImage ? `.img-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.70); }` : ""}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px; }
 .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:36px; }
 ${pillCss(accent)}
-.h { font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.12; margin-bottom:48px; letter-spacing:-0.5px; }
+.h { font-family:${FONT_HEADLINE}; font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.12; margin-bottom:48px; letter-spacing:-0.5px; }
 .rows { flex:1; display:flex; flex-direction:column; justify-content:center; gap:0; }
 .row { padding:34px 0; border-bottom:1px solid rgba(255,255,255,0.08); }
 .row:last-child { border-bottom:none; }
-.row-label { font-size:26px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:${accent}; margin-bottom:16px; }
+.row-label { font-family:${FONT_HEADLINE}; font-size:26px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:${accent}; margin-bottom:16px; }
 .row-pair { display:flex; gap:60px; }
 .pair-col { display:flex; flex-direction:column; gap:6px; }
-.pair-head { font-size:20px; font-weight:600; letter-spacing:2px; opacity:0.50; text-transform:uppercase; }
-.pair-val { font-size:56px; font-weight:800; letter-spacing:-1px; line-height:1; }
+.pair-head { font-family:${FONT_HEADLINE}; font-size:20px; font-weight:600; letter-spacing:2px; opacity:0.50; text-transform:uppercase; }
+.pair-val { font-family:${FONT_HEADLINE}; font-size:56px; font-weight:800; letter-spacing:-1px; line-height:1; }
 ${bottomCss()}
 </style></head>
 <body>

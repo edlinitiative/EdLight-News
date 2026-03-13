@@ -15,8 +15,9 @@
  */
 
 import type { IGMemeSlide, IGMemePanel, IGMemeTemplate } from "@edlight-news/types";
-
-const FONT_STACK = "'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+import {
+  FONT_HEADLINE, FONT_BODY, GOOGLE_FONTS_LINK,
+} from "./design-tokens.js";
 
 function esc(s: string): string {
   return s
@@ -49,7 +50,7 @@ function baseCSS(accent: string, bg: string): string {
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   width:1080px; height:1350px;
-  font-family: ${FONT_STACK};
+  font-family: ${FONT_BODY};
   background: ${bg};
   color: #fff;
   overflow: hidden;
@@ -57,23 +58,26 @@ body {
 .accent { color: ${accent}; }
 .topic {
   position: absolute; top: 48px; left: 72px; right: 72px;
-  font-size: 20px; font-weight: 600; text-transform: uppercase;
+  font-family: ${FONT_HEADLINE}; font-size: 20px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 3px; opacity: 0.5;
 }
 .brand {
   position: absolute; bottom: 40px; right: 72px;
-  font-size: 16px; font-weight: 700; opacity: 0.25; letter-spacing: 2px;
+  font-family: ${FONT_HEADLINE}; font-size: 16px; font-weight: 700; opacity: 0.25; letter-spacing: 2px;
 }
 .brand b { color: ${accent}; font-weight: 700; }
 .emoji { font-size: 48px; }
 `;
 }
 
+/** Shared HTML head with Google Fonts preload for all meme templates. */
+const MEME_HEAD = `<!DOCTYPE html><html><head><meta charset="utf-8">\n${GOOGLE_FONTS_LINK}\n<style>`;
+
 // ── Template renderers ──────────────────────────────────────────────────────
 
 function renderDrake(meme: IGMemeSlide, accent: string, bg: string): string {
   const [reject, prefer] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .grid { display:grid; grid-template-rows:1fr 1fr; height:100%; }
 .row {
@@ -82,7 +86,7 @@ ${baseCSS(accent, bg)}
 .top-row { background: rgba(255,50,50,0.08); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .bot-row { background: rgba(50,255,100,0.08); }
 .icon { font-size:80px; flex-shrink:0; }
-.txt { font-size:36px; font-weight:600; line-height:1.3; }
+.txt { font-family:${FONT_HEADLINE}; font-size:36px; font-weight:600; line-height:1.3; }
 .reject .txt { opacity:0.5; text-decoration:line-through; }
 .prefer .txt { color:${accent}; }
 </style></head><body>
@@ -117,7 +121,7 @@ function renderExpandingBrain(meme: IGMemeSlide, accent: string, bg: string): st
     )
     .join("\n");
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .stack { display:flex; flex-direction:column; height:100%; padding:100px 72px 80px; justify-content:space-around; }
 .tier { display:flex; align-items:center; gap:32px; padding:16px 24px; border-left:3px solid ${accent}; margin-left:0; }
@@ -125,7 +129,7 @@ ${baseCSS(accent, bg)}
 .tier:nth-child(3) { margin-left:60px; }
 .tier:nth-child(4) { margin-left:90px; }
 .brain { font-size:48px; flex-shrink:0; }
-.txt { font-weight:600; line-height:1.3; }
+.txt { font-family:${FONT_HEADLINE}; font-weight:600; line-height:1.3; }
 </style></head><body>
 ${meme.topicLine ? `<div class="topic">${esc(meme.topicLine)}</div>` : ""}
 <div class="stack">${rows}</div>
@@ -135,11 +139,11 @@ ${meme.topicLine ? `<div class="topic">${esc(meme.topicLine)}</div>` : ""}
 
 function renderNobody(meme: IGMemeSlide, accent: string, bg: string): string {
   const [nobody, reaction] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .wrap { height:100%; display:flex; flex-direction:column; justify-content:center; padding:0 80px; gap:48px; }
 .line { font-size:32px; font-weight:500; opacity:0.35; }
-.react { font-size:42px; font-weight:700; color:${accent}; line-height:1.3; }
+.react { font-family:${FONT_HEADLINE}; font-size:42px; font-weight:700; color:${accent}; line-height:1.3; }
 .react-emoji { font-size:72px; display:block; margin-bottom:16px; }
 </style></head><body>
 ${meme.topicLine ? `<div class="topic">${esc(meme.topicLine)}</div>` : ""}
@@ -166,11 +170,11 @@ function renderStarterPack(meme: IGMemeSlide, accent: string, bg: string): strin
     )
     .join("\n");
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .title-bar {
   text-align:center; padding:72px 80px 24px;
-  font-size:36px; font-weight:700; color:${accent}; letter-spacing:-0.5px;
+  font-family:${FONT_HEADLINE}; font-size:36px; font-weight:700; color:${accent}; letter-spacing:-0.5px;
 }
 .grid {
   display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
@@ -192,7 +196,7 @@ ${baseCSS(accent, bg)}
 
 function renderTwoButtons(meme: IGMemeSlide, accent: string, bg: string): string {
   const [left, right] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .wrap { height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:48px; padding:100px 64px 80px; }
 .sweat { font-size:96px; }
@@ -205,7 +209,7 @@ ${baseCSS(accent, bg)}
 }
 .btn:hover { border-color:${accent}; }
 .btn-emoji { font-size:56px; }
-.btn-txt { font-size:28px; font-weight:600; line-height:1.3; }
+.btn-txt { font-family:${FONT_HEADLINE}; font-size:28px; font-weight:600; line-height:1.3; }
 </style></head><body>
 ${meme.topicLine ? `<div class="topic" style="text-align:center;">${esc(meme.topicLine)}</div>` : ""}
 <div class="wrap">
@@ -227,11 +231,11 @@ ${meme.topicLine ? `<div class="topic" style="text-align:center;">${esc(meme.top
 
 function renderTellMe(meme: IGMemeSlide, accent: string, bg: string): string {
   const [setup, punchline] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .wrap { height:100%; display:flex; flex-direction:column; justify-content:center; padding:0 80px; gap:64px; }
 .setup { font-size:30px; font-weight:500; opacity:0.5; line-height:1.4; font-style:italic; }
-.punch { font-size:44px; font-weight:700; color:${accent}; line-height:1.25; }
+.punch { font-family:${FONT_HEADLINE}; font-size:44px; font-weight:700; color:${accent}; line-height:1.25; }
 .punch-emoji { font-size:64px; display:block; margin-bottom:12px; }
 </style></head><body>
 ${meme.topicLine ? `<div class="topic">${esc(meme.topicLine)}</div>` : ""}
@@ -248,12 +252,12 @@ ${meme.topicLine ? `<div class="topic">${esc(meme.topicLine)}</div>` : ""}
 
 function renderDistracted(meme: IGMemeSlide, accent: string, bg: string): string {
   const [focus, distraction, ignored] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .wrap { height:100%; display:flex; flex-direction:column; justify-content:center; padding:0 72px; gap:24px; }
 .panel { display:flex; align-items:center; gap:28px; padding:28px 32px; border-radius:16px; }
 .panel-emoji { font-size:56px; flex-shrink:0; }
-.panel-txt { font-size:30px; font-weight:600; line-height:1.3; }
+.panel-txt { font-family:${FONT_HEADLINE}; font-size:30px; font-weight:600; line-height:1.3; }
 .focus { background:rgba(255,255,255,0.03); opacity:0.4; }
 .focus .panel-txt { text-decoration:line-through; }
 .distract { background:rgba(255,200,0,0.08); border:2px solid ${accent}; }
@@ -282,14 +286,14 @@ ${meme.topicLine ? `<div class="topic">${esc(meme.topicLine)}</div>` : ""}
 
 function renderComparison(meme: IGMemeSlide, accent: string, bg: string): string {
   const [left, right] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .cols { display:grid; grid-template-columns:1fr 1fr; height:100%; }
 .col { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:100px 48px 80px; gap:24px; }
 .col:first-child { border-right:1px solid rgba(255,255,255,0.06); }
 .col-label { font-size:16px; text-transform:uppercase; letter-spacing:3px; opacity:0.35; }
 .col-emoji { font-size:80px; }
-.col-txt { font-size:28px; font-weight:600; text-align:center; line-height:1.3; }
+.col-txt { font-family:${FONT_HEADLINE}; font-size:28px; font-weight:600; text-align:center; line-height:1.3; }
 .col:last-child .col-txt { color:${accent}; }
 </style></head><body>
 ${meme.topicLine ? `<div class="topic" style="text-align:center;">${esc(meme.topicLine)}</div>` : ""}
@@ -311,12 +315,12 @@ ${meme.topicLine ? `<div class="topic" style="text-align:center;">${esc(meme.top
 
 function renderReaction(meme: IGMemeSlide, accent: string, bg: string): string {
   const [headline, reaction] = meme.panels;
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `${MEME_HEAD}
 ${baseCSS(accent, bg)}
 .wrap { height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:100px 80px 80px; gap:56px; text-align:center; }
 .headline { font-size:28px; font-weight:500; line-height:1.4; opacity:0.6; max-width:800px; }
 .react-emoji { font-size:120px; }
-.react-txt { font-size:38px; font-weight:700; color:${accent}; line-height:1.25; max-width:700px; }
+.react-txt { font-family:${FONT_HEADLINE}; font-size:38px; font-weight:700; color:${accent}; line-height:1.25; max-width:700px; }
 </style></head><body>
 ${meme.topicLine ? `<div class="topic" style="text-align:center;">${esc(meme.topicLine)}</div>` : ""}
 <div class="wrap">

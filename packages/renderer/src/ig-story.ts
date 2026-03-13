@@ -20,15 +20,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { IGStorySlide, IGStoryPayload, IGStoryQueueItem } from "@edlight-news/types";
+import {
+  FONT_HEADLINE, FONT_BODY, GOOGLE_FONTS_LINK,
+} from "./design-tokens.js";
 
 // ── Design tokens ─────────────────────────────────────────────────────────
-
-const FONT_STACK =
-  "'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
-const GOOGLE_FONTS_LINK =
-  `<link rel="preconnect" href="https://fonts.googleapis.com">` +
-  `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` +
-  `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">`;
 
 const DEFAULT_ACCENT = "#14b8a6";
 const DEFAULT_DARK = "#060f0b";
@@ -80,7 +76,7 @@ ${GOOGLE_FONTS_LINK}
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   width:1080px; height:1920px;
-  font-family: ${FONT_STACK};
+  font-family: ${FONT_BODY};
   background: ${DEFAULT_DARK} ${slide.backgroundImage ? `url('${slide.backgroundImage}') center/cover no-repeat` : ""};
   color:#fff; overflow:hidden; position:relative;
 }
@@ -101,7 +97,7 @@ body {
   padding:${SAFE_TOP + 20}px 72px ${SAFE_BOTTOM + 20}px;
 }
 .date {
-  font-size:16px; font-weight:700; text-transform:uppercase;
+  font-family:${FONT_HEADLINE}; font-size:16px; font-weight:700; text-transform:uppercase;
   letter-spacing:5px; opacity:0.7; margin-bottom:24px;
 }
 .dot {
@@ -109,7 +105,7 @@ body {
   background:${accent}; border-radius:50%; margin-right:12px; vertical-align:middle;
 }
 .h {
-  font-size:68px; font-weight:900; line-height:1.05; letter-spacing:-1.5px;
+  font-family:${FONT_HEADLINE}; font-size:68px; font-weight:900; line-height:1.05; letter-spacing:-1.5px;
   text-shadow:0 4px 50px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.6);
   margin-bottom:28px;
 }
@@ -120,7 +116,7 @@ body {
   margin-bottom:8px;
 }
 .bm {
-  margin-top:40px; font-size:18px; font-weight:700;
+  margin-top:40px; font-family:${FONT_HEADLINE}; font-size:18px; font-weight:700;
   letter-spacing:3px; display:flex; align-items:center; gap:6px;
 }
 .bm .el { color:#fff; opacity:0.85; }
@@ -162,7 +158,7 @@ ${GOOGLE_FONTS_LINK}
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   width:1080px; height:1920px;
-  font-family: ${FONT_STACK};
+  font-family: ${FONT_BODY};
   background: linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a1628 100%);
   color:#fff; overflow:hidden; position:relative;
 }
@@ -173,9 +169,9 @@ body {
   padding:${SAFE_TOP + 40}px 72px ${SAFE_BOTTOM + 40}px;
   text-align:center;
 }
-.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:32px; }
-.rate-label { font-size:18px; font-weight:600; opacity:0.40; letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
-.rate { font-size:120px; font-weight:900; letter-spacing:-3px; color:${accent}; line-height:1; margin-bottom:8px; }
+.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:32px; }
+.rate-label { font-family:${FONT_HEADLINE}; font-size:18px; font-weight:600; opacity:0.40; letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
+.rate { font-family:${FONT_HEADLINE}; font-size:120px; font-weight:900; letter-spacing:-3px; color:${accent}; line-height:1; margin-bottom:8px; }
 .unit { font-size:24px; font-weight:500; opacity:0.35; letter-spacing:1.5px; margin-bottom:32px; }
 .date-line { font-size:16px; font-weight:600; opacity:0.50; letter-spacing:1px; margin-bottom:40px; }
 .mk { font-size:20px; font-weight:500; opacity:0.55; margin-bottom:12px; line-height:1.4; }
@@ -217,7 +213,7 @@ ${GOOGLE_FONTS_LINK}
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   width:1080px; height:1920px;
-  font-family: ${FONT_STACK};
+  font-family: ${FONT_BODY};
   background: radial-gradient(ellipse at 30% 20%, ${accent}0A 0%, transparent 60%), #060f0b;
   color:#fff; overflow:hidden; position:relative;
 }
@@ -227,10 +223,10 @@ body {
   display:flex; flex-direction:column; justify-content:center;
   padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
 }
-.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:36px; align-self:flex-start; }
-.h { font-size:48px; font-weight:900; line-height:1.10; letter-spacing:-0.5px; margin-bottom:40px; }
+.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:36px; align-self:flex-start; }
+.h { font-family:${FONT_HEADLINE}; font-size:48px; font-weight:900; line-height:1.10; letter-spacing:-0.5px; margin-bottom:40px; }
 .fact { display:flex; gap:20px; align-items:flex-start; margin-bottom:28px; }
-.fn { flex-shrink:0; width:36px; height:36px; background:${accent}22; color:${accent}; font-size:18px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:2px; }
+.fn { font-family:${FONT_HEADLINE}; flex-shrink:0; width:36px; height:36px; background:${accent}22; color:${accent}; font-size:18px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:2px; }
 .ft { font-size:22px; line-height:1.50; opacity:0.88; font-weight:400; }
 .bm { position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px; font-size:16px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:5px; }
 .bm .el { color:rgba(255,255,255,0.45); }
@@ -280,7 +276,7 @@ ${GOOGLE_FONTS_LINK}
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   width:1080px; height:1920px;
-  font-family: ${FONT_STACK};
+  font-family: ${FONT_BODY};
   /* Subtle radial gradient for depth instead of flat dark */
   background: radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.03) 0%, transparent 60%),
               radial-gradient(ellipse at 80% 80%, ${accent}08 0%, transparent 50%),
@@ -293,11 +289,11 @@ body {
   padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
 }
 .num {
-  font-size:120px; font-weight:900; color:${accent}; opacity:0.08;
+  font-family:${FONT_HEADLINE}; font-size:120px; font-weight:900; color:${accent}; opacity:0.08;
   line-height:0.85; margin-bottom:4px; letter-spacing:-4px;
 }
 .h {
-  font-size:46px; font-weight:800; line-height:1.15; letter-spacing:-0.5px;
+  font-family:${FONT_HEADLINE}; font-size:46px; font-weight:800; line-height:1.15; letter-spacing:-0.5px;
   margin-bottom:32px;
   overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical;
 }
@@ -349,7 +345,7 @@ ${GOOGLE_FONTS_LINK}
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   width:1080px; height:1920px;
-  font-family: ${FONT_STACK};
+  font-family: ${FONT_BODY};
   background: radial-gradient(ellipse at 50% 50%, ${accent}15 0%, transparent 70%),
               ${DEFAULT_DARK};
   color:#fff; overflow:hidden; position:relative;
@@ -357,7 +353,7 @@ body {
 }
 .c { text-align:center; padding:0 100px; }
 .logo {
-  font-size:42px; font-weight:900; letter-spacing:4px; margin-bottom:48px;
+  font-family:${FONT_HEADLINE}; font-size:42px; font-weight:900; letter-spacing:4px; margin-bottom:48px;
   display:flex; align-items:center; justify-content:center; gap:10px;
 }
 .logo .el { color:#fff; }
