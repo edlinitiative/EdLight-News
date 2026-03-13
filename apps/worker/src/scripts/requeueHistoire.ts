@@ -74,7 +74,7 @@ async function main() {
       }
 
       // Re-format through current formatter
-      const payload = formatForIG("histoire", item, bi ? { bi } : undefined);
+      const payload = await formatForIG("histoire", item, bi ? { bi } : undefined);
 
       // Update the queue entry
       await igQueueRepo.setPayload(qItem.id, payload);

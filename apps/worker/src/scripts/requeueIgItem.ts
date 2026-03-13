@@ -131,7 +131,7 @@ async function main() {
   }
 
   // 3. Format through current formatter
-  const payload = formatForIG(type, item, bi ? { bi } : undefined);
+  const payload = await formatForIG(type, item, bi ? { bi } : undefined);
   console.log(`  Slides: ${payload.slides.length}`);
   for (let i = 0; i < payload.slides.length; i++) {
     console.log(`    ${i + 1}: ${payload.slides[i]!.heading.substring(0, 75)}`);

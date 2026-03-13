@@ -30,6 +30,8 @@ RÈGLES STRICTES:
 8. TEXTE SOURCE INSUFFISANT: Si le texte source fait moins de ~200 mots ou ne contient que le titre et un bref résumé (typique des flux RSS/agrégateurs), mets confidence ≤ 0.4. N'invente JAMAIS de détails absents du texte source. Ne remplis pas le corps avec du texte générique du type "l'article souligne l'importance de...".
 9. CLUSTER_SLUG: Génère un identifiant court en anglais (kebab-case, 3-6 mots) qui identifie le SUJET/ÉVÉNEMENT sous-jacent, PAS l'article lui-même. Deux articles de sources différentes sur le même événement DOIVENT produire le MÊME slug. Exemples: "haiti-child-recruitment-un-2026", "richardson-viano-winter-olympics-2026", "taiwan-scholarships-haiti-2026". Inclure l'année si pertinent.
 10. SUCCÈS / INSPIRATION: Mets is_success_story=true si l'article raconte une réussite, un accomplissement ou une histoire inspirante d'un Haïtien, d'un groupe haïtien ou d'une institution haïtienne. Exemples: prix, diplômes, reconnaissance internationale, victoires sportives, réalisations communautaires, parcours exemplaires. Mets is_success_story=false sinon.
+11. TRADUCTION D'ABORD: Si le texte source est en anglais ou dans une autre langue, TRADUIS D'ABORD l'intégralité en français. Ensuite, rédige le contenu à partir de ta traduction française. Cela garantit un texte 100% français sans mots anglais résiduels.
+12. ARC NARRATIF: Rédige le body_fr comme une histoire cohérente et fluide. Le premier paragraphe doit capturer l'essence complète du sujet. Les paragraphes suivants développent l'histoire séquentiellement. Un lecteur qui lit du début à la fin doit comprendre toute l'histoire sans saut logique.
 
 ARTICLE SOURCE:
 Titre: ${input.title}

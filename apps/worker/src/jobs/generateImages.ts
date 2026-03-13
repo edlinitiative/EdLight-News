@@ -31,6 +31,10 @@ const IMAGE_BATCH_LIMIT = parseInt(
 /** Minimum publisher-image confidence to accept (0-1). */
 const PUBLISHER_CONFIDENCE_THRESHOLD = 0.6;
 
+/** Minimum pixel width for publisher images to be used as IG backgrounds.
+ *  IG carousel is 1080 px wide at 2× DPR, so < 800 looks blurry. */
+const MIN_PUBLISHER_WIDTH = 800;
+
 export interface ImagePipelineResult {
   publisher: number;
   wikidata: number;
@@ -112,6 +116,13 @@ async function processItemImage(
       if (picked.url && picked.confidence >= PUBLISHER_CONFIDENCE_THRESHOLD) {
         const downloaded = await downloadImage(picked.url);
         if (downloaded && downloaded.buffer.length > 5_000) {
+          // Reject low-resolution images that will look blurry on IG
+          if (downloaded.width && downloaded.width < MIN_PUBLISHER_WIDTH) {
+            console.warn(
+              `[images] publisher image too small for ${item.id}: ${downloaded.width}px wide (min ${MIN_PUBLISHER_WIDTH}px)`,
+            );
+            // Fall through to next strategy
+          } else {
           const ext = picked.url.includes(".png") ? "png" : "jpg";
           const storagePath = `images/items/${item.id}_publisher.${ext}`;
           const publicUrl = await uploadImageBuffer(
@@ -137,6 +148,7 @@ async function processItemImage(
           result.publisher++;
           console.log(`[images] publisher image for item ${item.id} (confidence=${picked.confidence.toFixed(2)})`);
           return true;
+          } // end resolution check else
         }
       }
     } catch (err) {

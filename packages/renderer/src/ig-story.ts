@@ -1,17 +1,20 @@
 /**
  * @edlight-news/renderer – IG Story asset generation
  *
- * Renders 1080×1920 (9:16) story frames for the daily summary story.
+ * Renders 1080×1920 (9:16) story frames for the daily morning briefing.
  * Each frame becomes a single image posted as an IG Story.
  *
+ * Frame types (v2 — Morning Briefing):
+ *  - taux:     Premium navy/gold financial rate card
+ *  - facts:    Green-accented "Le saviez-vous ?" card with all daily facts
+ *  - headline: Dark bg + accent bar + number badge (article summaries)
+ *  - cta:      Branded close with follow prompt (@edlight.news)
+ *
  * Design system:
- *  - IG safe zones respected: 270 px top (profile bar), 230 px bottom (reply)
- *  - Google Fonts Inter loaded for consistent premium typography
- *  - Cover frame: full-bleed photo + aggressive multi-stop overlay
- *  - Headline frames: subtle radial gradient bg + accent bar + number badge
- *  - CTA frame: branded close with follow prompt
+ *  - IG safe zones respected: 270 px top, 230 px bottom
+ *  - Google Fonts Inter for consistent premium typography
  *  - Progress dots on every frame for visual cohesion
- *  - Branding: "EDLIGHT NEWS" bottom-right on every frame
+ *  - Branding: "EDLIGHT NEWS" on every frame
  */
 
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -132,6 +135,116 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
   <div class="sub"><ul>${bulletsHtml}</ul></div>
   <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </div>
+</body></html>`;
+}
+
+// ── Taux frame (premium navy/gold financial card) ─────────────────────────
+
+function buildTauxFrameHTML(
+  slide: IGStorySlide,
+  dateLabel: string,
+  slideIndex: number,
+  totalSlides: number,
+): string {
+  const accent = "#eab308"; // gold
+  const rate = slide.heading; // e.g. "131.2589"
+  // bullets[0] = rate date label, rest are optional market bullets
+  const rateDate = slide.bullets[0] ?? dateLabel;
+  const marketBullets = slide.bullets.slice(1);
+  const marketHtml = marketBullets
+    .map((b) => `<div class="mk">${escapeHtml(b)}</div>`)
+    .join("\n");
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1920px;
+  font-family: ${FONT_STACK};
+  background: linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a1628 100%);
+  color:#fff; overflow:hidden; position:relative;
+}
+.glow { position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); width:700px; height:700px; background:radial-gradient(circle, rgba(234,179,8,0.06) 0%, transparent 70%); }
+.c {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  padding:${SAFE_TOP + 40}px 72px ${SAFE_BOTTOM + 40}px;
+  text-align:center;
+}
+.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:32px; }
+.rate-label { font-size:18px; font-weight:600; opacity:0.40; letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
+.rate { font-size:120px; font-weight:900; letter-spacing:-3px; color:${accent}; line-height:1; margin-bottom:8px; }
+.unit { font-size:24px; font-weight:500; opacity:0.35; letter-spacing:1.5px; margin-bottom:32px; }
+.date-line { font-size:16px; font-weight:600; opacity:0.50; letter-spacing:1px; margin-bottom:40px; }
+.mk { font-size:20px; font-weight:500; opacity:0.55; margin-bottom:12px; line-height:1.4; }
+.bm { position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px; font-size:16px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:5px; }
+.bm .el { color:rgba(255,255,255,0.45); }
+.bm .nw { color:${accent}; opacity:0.6; }
+</style></head>
+<body>
+<div class="glow"></div>
+${buildProgressDots(slideIndex, totalSlides, accent)}
+<div class="c">
+  <span class="pill">TAUX DU JOUR</span>
+  <div class="rate-label">TAUX DE RÉFÉRENCE BRH</div>
+  <div class="rate">${escapeHtml(rate)}</div>
+  <div class="unit">HTG / 1 USD</div>
+  <div class="date-line">${escapeHtml(rateDate)}</div>
+  ${marketHtml}
+</div>
+<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+</body></html>`;
+}
+
+// ── Facts frame (green-accented "Le saviez-vous ?" card) ──────────────────
+
+function buildFactsFrameHTML(
+  slide: IGStorySlide,
+  slideIndex: number,
+  totalSlides: number,
+): string {
+  const accent = slide.accent ?? "#34d399";
+  const factsHtml = slide.bullets
+    .map((f, i) => `<div class="fact"><span class="fn">${i + 1}</span><span class="ft">${escapeHtml(f)}</span></div>`)
+    .join("\n");
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1920px;
+  font-family: ${FONT_STACK};
+  background: radial-gradient(ellipse at 30% 20%, ${accent}0A 0%, transparent 60%), #060f0b;
+  color:#fff; overflow:hidden; position:relative;
+}
+.bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
+.c {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
+}
+.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:36px; align-self:flex-start; }
+.h { font-size:48px; font-weight:900; line-height:1.10; letter-spacing:-0.5px; margin-bottom:40px; }
+.fact { display:flex; gap:20px; align-items:flex-start; margin-bottom:28px; }
+.fn { flex-shrink:0; width:36px; height:36px; background:${accent}22; color:${accent}; font-size:18px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:2px; }
+.ft { font-size:22px; line-height:1.50; opacity:0.88; font-weight:400; }
+.bm { position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px; font-size:16px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:5px; }
+.bm .el { color:rgba(255,255,255,0.45); }
+.bm .nw { color:${accent}; opacity:0.6; }
+</style></head>
+<body>
+<div class="bar"></div>
+${buildProgressDots(slideIndex, totalSlides, accent)}
+<div class="c">
+  <span class="pill">LE SAVIEZ-VOUS ?</span>
+  <div class="h">${escapeHtml(slide.heading)}</div>
+  ${factsHtml}
+</div>
+<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
 </body></html>`;
 }
 
@@ -272,7 +385,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
   <div class="line"></div>
   <div class="msg">Suivez-nous pour les dernières<br>actualités éducation & bourses</div>
   <div class="msg2">🇭🇹 Swiv nou pou tout dènye nouvèl<br>sou edikasyon ak bous</div>
-  <div class="handle">@edlightnews</div>
+  <div class="handle">@edlight.news</div>
 </div>
 </body></html>`;
 }
@@ -282,12 +395,15 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
 /**
  * Build HTML for a single story frame.
  *
- * Frame 0           → cover (full-bleed image + overlay)
- * Frame 1 … N-2     → headline (dark bg + accent bar + number badge)
- * Frame N-1 (last)  → CTA ("Follow us" closing frame)
+ * Dispatch by `slide.frameType` (v2) with backward-compatible fallback:
+ *   "taux"     → financial rate card
+ *   "facts"    → daily facts card
+ *   "headline" → article summary card (dark bg + accent bar)
+ *   "cover"    → full-bleed image cover (legacy default for frame 0)
+ *   "cta"      → follow/close frame (auto-appended by asset generator)
  *
- * The `isCta` flag is set by the asset generator when it appends
- * the closing frame (which has no corresponding slide in the payload).
+ * Legacy slides without `frameType` fall back to positional logic:
+ *   Frame 0 → cover, Frame N-1 → CTA, others → headline
  */
 export function buildStorySlideHTML(
   slide: IGStorySlide,
@@ -296,9 +412,23 @@ export function buildStorySlideHTML(
   totalSlides: number,
   isCta = false,
 ): string {
-  if (isCta) {
+  // Explicit CTA flag (from asset generator) takes priority
+  if (isCta || slide.frameType === "cta") {
     return buildCtaFrameHTML(slide.accent ?? DEFAULT_ACCENT, slideIndex, totalSlides);
   }
+
+  // v2 frame types
+  if (slide.frameType === "taux") {
+    return buildTauxFrameHTML(slide, dateLabel, slideIndex, totalSlides);
+  }
+  if (slide.frameType === "facts") {
+    return buildFactsFrameHTML(slide, slideIndex, totalSlides);
+  }
+  if (slide.frameType === "headline") {
+    return buildHeadlineFrameHTML(slide, slideIndex, totalSlides);
+  }
+
+  // Legacy fallback: frame 0 = cover, rest = headline
   if (slideIndex === 0) {
     return buildCoverFrameHTML(slide, dateLabel, slideIndex, totalSlides);
   }

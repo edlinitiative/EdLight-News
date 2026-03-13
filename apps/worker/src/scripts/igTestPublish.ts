@@ -82,7 +82,7 @@ async function main() {
 
   // Step 1: Format content
   console.log("▶ Step 1: Formatting carousel slides...");
-  const payload: IGFormattedPayload = formatForIG("scholarship", mockItem as any);
+  const payload: IGFormattedPayload = await formatForIG("scholarship", mockItem as any);
   console.log(`  ✅ ${payload.slides.length} slides, caption ${payload.caption.length} chars\n`);
 
   // Step 2: Build queue item

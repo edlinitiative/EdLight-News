@@ -22,7 +22,7 @@ async function testItem(label: string, itemId: string) {
     if (fr) bi = { frTitle: fr.title, frSummary: fr.summary, htTitle: ht?.title, htSummary: ht?.summary };
   } catch { /* ignore */ }
 
-  const formatted = formatForIG("news", item, bi ? { bi } : undefined);
+  const formatted = await formatForIG("news", item, bi ? { bi } : undefined);
 
   console.log(`\n=== ${label} ===`);
   console.log(`Slides: ${formatted.slides.length}`);

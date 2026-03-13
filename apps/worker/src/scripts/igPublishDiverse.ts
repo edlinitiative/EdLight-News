@@ -94,7 +94,7 @@ async function publishOneManual(queueItem: any): Promise<boolean> {
   }
 
   // Format
-  const formatted = formatForIG(queueItem.igType as any, item, bi ? { bi } : undefined);
+  const formatted = await formatForIG(queueItem.igType as any, item, bi ? { bi } : undefined);
   console.log(`  Slides: ${formatted.slides.length}`);
   for (let i = 0; i < formatted.slides.length; i++) {
     console.log(`    ${i + 1}: ${formatted.slides[i]!.heading.substring(0, 75)}`);

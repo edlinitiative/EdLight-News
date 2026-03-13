@@ -1,5 +1,11 @@
 /**
  * IG Formatters barrel – selects the correct formatter by IGPostType.
+ *
+ * After formatting, runs the two-pass reviewer LLM to fix:
+ *  - English leaks → translate to French
+ *  - Narrative incoherence across slides
+ *  - Emoji excess (especially on histoire)
+ *  - Truncated first-slide headlines
  */
 
 import type { Item, IGPostType, IGFormattedPayload } from "@edlight-news/types";
@@ -9,6 +15,7 @@ import { buildOpportunityCarousel } from "./opportunity.js";
 import { buildNewsCarousel } from "./news.js";
 import { buildHistoireCarousel } from "./histoire.js";
 import { buildUtilityCarousel } from "./utility.js";
+import { reviewSlides } from "../review.js";
 
 /** Options controlling IG formatting behaviour. */
 export interface FormatIGOptions {
@@ -47,11 +54,11 @@ const FORMATTERS: Record<IGPostType, (item: Item, bi?: BilingualText) => IGForma
  * with the overrideImageUrl (free-licensed Commons image) or stripped entirely
  * so the renderer falls back to the branded gradient.
  */
-export function formatForIG(
+export async function formatForIG(
   igType: IGPostType,
   item: Item,
   opts?: FormatIGOptions | BilingualText,
-): IGFormattedPayload {
+): Promise<IGFormattedPayload> {
   // Backwards compat: opts can be a bare BilingualText (old call sites)
   const options: FormatIGOptions =
     opts && "frTitle" in opts ? { bi: opts } : (opts as FormatIGOptions) ?? {};
@@ -80,6 +87,18 @@ export function formatForIG(
     for (let i = 1; i < payload.slides.length; i++) {
       delete payload.slides[i]!.backgroundImage;
     }
+  }
+
+  // ── Two-pass reviewer: fix English leaks, narrative coherence, emoji limits ──
+  // Non-blocking: if the reviewer fails, we return the original payload.
+  try {
+    const reviewed = await reviewSlides(payload, igType);
+    if (reviewed.corrected) {
+      console.log(`[formatForIG] Reviewer corrected ${igType} post: ${reviewed.corrections.join("; ")}`);
+      return reviewed.payload;
+    }
+  } catch (err) {
+    console.warn(`[formatForIG] Reviewer error (non-fatal):`, err instanceof Error ? err.message : err);
   }
 
   return payload;

@@ -30,7 +30,7 @@ const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
   news: 48,          // 2 days — breaking/current events
   taux: 24,          // 1 day  — exchange rates are daily
   utility: 72,       // 3 days — fait-du-jour, study tips
-  histoire: 168,     // 7 days — historical content is evergreen-ish
+  histoire: 24,      // 1 day  — must match today's date
   opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
   scholarship: 336,  // 14 days — scholarships (capped by deadline)
 };
@@ -80,7 +80,9 @@ function toHaitiDate(date: Date): Date {
 function isQuietHour(date: Date): boolean {
   const haitiDate = toHaitiDate(date);
   const hour = haitiDate.getHours();
-  return hour >= 23 || hour < 7;
+  const minute = haitiDate.getMinutes();
+  // Quiet hours: 23:00–05:29 Haiti time (opens at 05:30 for morning posts)
+  return hour >= 23 || hour < 5 || (hour === 5 && minute < 30);
 }
 
 /**
@@ -95,17 +97,19 @@ function getHaitiOffsetHours(date: Date = new Date()): number {
   return Math.round(diffMs / (60 * 60 * 1000));
 }
 
-// 9 slots spread across the day (Haiti local time) — enough for 3 staples + 5 regular + 1 buffer
+// Pinned morning slots for daily staples, followed by general engagement slots.
+// First 3 are reserved for taux, daily_fact/utility, and histoire respectively.
 const SLOTS = [
-  { hour: 8, minute: 0 },    // Morning — early scrollers (staple slot)
-  { hour: 9, minute: 30 },    // Mid-morning (staple slot)
-  { hour: 10, minute: 30 },   // Late morning (staple slot)
-  { hour: 12, minute: 30 },   // Lunch break
-  { hour: 14, minute: 30 },   // Early afternoon
+  { hour: 6, minute: 30 },    // Pinned: taux du jour
+  { hour: 6, minute: 50 },    // Pinned: fait du jour / utility
+  { hour: 7, minute: 0 },     // Pinned: histoire
+  { hour: 8, minute: 30 },    // Morning — general slot
+  { hour: 10, minute: 0 },    // Mid-morning
+  { hour: 11, minute: 30 },   // Late morning
+  { hour: 14, minute: 0 },    // Early afternoon
   { hour: 16, minute: 0 },    // After school
-  { hour: 17, minute: 30 },   // After work
-  { hour: 19, minute: 0 },    // Evening prime time
-  { hour: 21, minute: 0 },    // Late evening
+  { hour: 18, minute: 0 },    // Evening
+  { hour: 20, minute: 0 },    // Late evening
 ];
 
 /**
@@ -260,7 +264,15 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
 
   // ════════════════════════════════════════════════════════════════════
   // PHASE 1 — Schedule ALL missing daily staples in one pass
+  //           with type-priority pinning to dedicated morning slots:
+  //           taux → 06:30, utility/daily_fact → 06:50, histoire → 07:00
   // ════════════════════════════════════════════════════════════════════
+  const STAPLE_SLOT_INDEX: Record<string, number> = {
+    taux: 0,       // 06:30
+    utility: 1,    // 06:50
+    histoire: 2,   // 07:00
+  };
+
   for (const stapleType of DAILY_STAPLES) {
     // Date-aware check: for types that carry a targetPostDate (e.g. histoire),
     // only consider an item as "already covered" if its targetPostDate matches
@@ -279,10 +291,38 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     );
     if (!candidate) continue; // no item of this type in queue
 
-    // Staples always count — even if we're over the normal cap
-    // (they're guaranteed daily content).
-    // todayOnly=true → staples never spill into tomorrow's slots.
-    const slot = getNextAvailableSlot(takenSlots, /* todayOnly */ true);
+    // Try the pinned slot first for this staple type
+    const pinnedIdx = STAPLE_SLOT_INDEX[stapleType];
+    let slot: Date | null = null;
+
+    if (pinnedIdx != null) {
+      // Build the pinned slot time for today
+      const pinnedSlotDef = SLOTS[pinnedIdx]!;
+      const offsetHours = getHaitiOffsetHours(new Date());
+      const haitiNow = toHaitiDate(new Date());
+      const pinnedDate = new Date(
+        Date.UTC(
+          haitiNow.getFullYear(),
+          haitiNow.getMonth(),
+          haitiNow.getDate(),
+          pinnedSlotDef.hour + offsetHours,
+          pinnedSlotDef.minute,
+          0, 0,
+        ),
+      );
+      const pinnedISO = pinnedDate.toISOString();
+
+      // Use the pinned slot if it's not taken and not in the past
+      if (!takenSlots.has(pinnedISO) && pinnedDate > new Date()) {
+        slot = pinnedDate;
+      }
+    }
+
+    // Fall back to generic slot finding if pinned slot unavailable
+    if (!slot) {
+      slot = getNextAvailableSlot(takenSlots, /* todayOnly */ true);
+    }
+
     if (!slot) {
       console.log(`[scheduleIgPost] no today-slot available for staple ${stapleType} — will retry next tick`);
       continue;

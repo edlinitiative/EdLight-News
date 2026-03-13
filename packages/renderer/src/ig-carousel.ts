@@ -88,7 +88,9 @@ function bodyCss(dark: string, bgImage?: string): string {
   const bg = bgImage
     ? `${dark} url('${bgImage}') center/cover no-repeat`
     : dark;
-  return `body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; background:${bg}; color:#fff; overflow:hidden; position:relative; }`;
+  // image-rendering: -webkit-optimize-contrast sharpens scaled-up backgrounds
+  const imgRendering = bgImage ? ` image-rendering: -webkit-optimize-contrast;` : "";
+  return `body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_STACK}; background:${bg}; color:#fff; overflow:hidden; position:relative;${imgRendering} }`;
 }
 
 function overlayCss(gradient: string): string {
@@ -157,7 +159,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
-${hasImage ? overlayCss((isFirst || igType === "news") ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
+${hasImage ? overlayCss((isFirst || igType === "news" || igType === "histoire") ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
@@ -203,7 +205,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
-${hasImage ? overlayCss(igType === "news" ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
+${hasImage ? overlayCss((igType === "news" || igType === "histoire") ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -244,7 +246,7 @@ ${GOOGLE_FONTS_LINK}
 <style>
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
-${hasImage ? overlayCss(igType === "news" ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
+${hasImage ? overlayCss((igType === "news" || igType === "histoire") ? OVERLAY.hero : OVERLAY.inner) : glowCss(accent)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }

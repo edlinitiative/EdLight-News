@@ -281,19 +281,17 @@ function getScheduledSlots(): ScheduledSlot[] {
     }
   }
 
-  // ── 06:30 slot: HaitiFactOfTheDay / HaitiHistory / HaitianOfTheWeek ─────
-  // Moved to early morning so items are queued before the first IG slot (08:00)
+  // ── 06:30 slot: HaitiFactOfTheDay + HaitiHistory + HaitianOfTheWeek ───────
+  // Both HaitiFactOfTheDay and HaitiHistory run daily (no more alternation).
+  // HaitianOfTheWeek still runs only on Saturday.
   if (hour >= 6 && hour < 9) {
     if (dow === 6) {
-      // Saturday → HaitianOfTheWeek
+      // Saturday → all three
       slots.push({ series: "HaitianOfTheWeek" });
-    } else if (dow % 2 === 0) {
-      // Even days → HaitiFactOfTheDay
-      slots.push({ series: "HaitiFactOfTheDay" });
-    } else {
-      // Odd days → HaitiHistory
-      slots.push({ series: "HaitiHistory" });
     }
+    // Every day → both fact and history
+    slots.push({ series: "HaitiFactOfTheDay" });
+    slots.push({ series: "HaitiHistory" });
   }
 
   return slots;

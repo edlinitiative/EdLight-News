@@ -15,7 +15,7 @@ const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
   news: 48,
   taux: 24,
   utility: 72,
-  histoire: 168,
+  histoire: 24,
   opportunity: 336,
   scholarship: 336,
 };

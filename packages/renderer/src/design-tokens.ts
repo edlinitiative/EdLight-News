@@ -86,14 +86,14 @@ export const OVERLAY = {
     rgba(0,0,0,0.80) 70%,
     rgba(0,0,0,0.97) 82%,
     rgba(0,0,0,0.99) 100%)`,
-  /** Inner slide overlay — dark enough for readable text over bright images */
+  /** Inner slide overlay — strengthened for reliably readable text over bright images */
   inner: `linear-gradient(180deg,
-    rgba(0,0,0,0.62) 0%,
-    rgba(0,0,0,0.58) 20%,
-    rgba(0,0,0,0.62) 50%,
-    rgba(0,0,0,0.72) 70%,
-    rgba(0,0,0,0.88) 85%,
-    rgba(0,0,0,0.96) 95%,
+    rgba(0,0,0,0.70) 0%,
+    rgba(0,0,0,0.65) 20%,
+    rgba(0,0,0,0.68) 50%,
+    rgba(0,0,0,0.78) 70%,
+    rgba(0,0,0,0.92) 85%,
+    rgba(0,0,0,0.97) 95%,
     rgba(0,0,0,0.99) 100%)`,
 
 } as const;

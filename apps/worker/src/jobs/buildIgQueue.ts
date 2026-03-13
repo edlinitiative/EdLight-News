@@ -45,6 +45,11 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
   };
 
   try {
+    // Compute today's Haiti date for histoire freshness checks
+    const nowMs = Date.now();
+    const haitiNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Port-au-Prince" }));
+    const haitiToday = haitiNow.toISOString().slice(0, 10);
+
     // Fetch recent items (last 72 hours)
     const recentItems = await itemsRepo.listRecentItems(500);
     const cutoff = new Date();
@@ -57,6 +62,46 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         : new Date();
       return createdAt >= cutoff;
     });
+
+    // ── Histoire date-freshness gate ───────────────────────────────────
+    // Only allow histoire items whose target date matches today.
+    // This prevents a March 10 histoire from posting on March 13.
+    const isHistoireItem = (i: Item) =>
+      i.canonicalUrl?.startsWith("edlight://histoire/") ||
+      i.utilityMeta?.series === "HaitiHistory";
+
+    const freshItems = items.filter((item) => {
+      if (isHistoireItem(item)) {
+        const targetDate = extractHistoireDate(item);
+        if (targetDate !== haitiToday) {
+          console.log(`[buildIgQueue] Skipping stale histoire item ${item.id} (target=${targetDate}, today=${haitiToday})`);
+          return false;
+        }
+      }
+      return true;
+    });
+
+    // ── Histoire dedup: pick richer item when both historyPublisher ────
+    // and HaitiHistory utility produce histoire items for the same day.
+    const histoireItems = freshItems.filter((i) => isHistoireItem(i));
+    const histoireRejects = new Set<string>();
+    if (histoireItems.length > 1) {
+      // Pick the richest one (most sections/citations)
+      const scored = histoireItems.map((i) => {
+        const sectionCount = (i as any).sections?.length ?? 0;
+        const citationCount = i.citations?.length ?? 0;
+        const bodyLen = (i as any).body?.length ?? (i as any).extractedText?.length ?? 0;
+        return { id: i.id, richness: sectionCount * 100 + citationCount * 50 + bodyLen };
+      });
+      scored.sort((a, b) => b.richness - a.richness);
+      // Keep the richest, reject the rest
+      for (let k = 1; k < scored.length; k++) {
+        histoireRejects.add(scored[k]!.id);
+      }
+      if (histoireRejects.size > 0) {
+        console.log(`[buildIgQueue] Histoire dedup: keeping ${scored[0]!.id}, rejecting ${[...histoireRejects].join(", ")}`);
+      }
+    }
 
     // Build set of recently posted dedupe group IDs
     const recentPosted = await igQueueRepo.listRecentPosted(3, 50);
@@ -71,7 +116,12 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     // Pre-load source cache for igImageSafe lookup
     const sourceCache = new Map<string, Source | null>();
 
-    for (const item of items) {
+    for (const item of freshItems) {
+      // Skip items rejected by histoire dedup
+      if (histoireRejects.has(item.id)) {
+        result.skipped++;
+        continue;
+      }
       result.evaluated++;
       try {
         // Check if already in queue
@@ -147,7 +197,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
 
         // Format the payload
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
-        const payload = formatForIG(decision.igType, item, opts);
+        const payload = await formatForIG(decision.igType, item, opts);
 
         // Insert as queued
         await igQueueRepo.createIGQueueItem({

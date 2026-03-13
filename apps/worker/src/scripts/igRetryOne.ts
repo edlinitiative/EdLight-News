@@ -38,7 +38,7 @@ async function main() {
     if (fr) bi = { frTitle: fr.title, frSummary: fr.summary, htTitle: ht?.title, htSummary: ht?.summary, frSections: fr.sections as { heading: string; content: string }[] | undefined, frBody: fr.body || undefined };
   } catch { /* ignore */ }
 
-  const formatted = formatForIG(pick.igType as any, item, bi ? { bi } : undefined);
+  const formatted = await formatForIG(pick.igType as any, item, bi ? { bi } : undefined);
   console.log(`Slides: ${formatted.slides.length}`);
 
   await igQueueRepo.setPayload(pick.id, formatted);

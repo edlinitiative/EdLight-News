@@ -482,7 +482,7 @@ async function main() {
     }
 
     // ── Step 2: Formatting ───────────────────────────────────────────────
-    const payload: IGFormattedPayload = formatForIG(decision.igType, item);
+    const payload: IGFormattedPayload = await formatForIG(decision.igType, item);
     console.log(`  ✅ Formatted: ${payload.slides.length} slides, caption ${payload.caption.length} chars`);
 
     // ── Step 3: Render HTML slides ───────────────────────────────────────

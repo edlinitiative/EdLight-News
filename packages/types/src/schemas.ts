@@ -850,10 +850,11 @@ export const igStorySlideSchema = z.object({
   bullets: z.array(z.string()),
   backgroundImage: z.string().optional(),
   accent: z.string().optional(),
+  frameType: z.enum(["cover", "taux", "facts", "headline", "cta"]).optional(),
 });
 
 export const igStoryPayloadSchema = z.object({
-  slides: z.array(igStorySlideSchema).min(1).max(6),
+  slides: z.array(igStorySlideSchema).min(1).max(8),
   dateLabel: z.string().min(1),
 });
 

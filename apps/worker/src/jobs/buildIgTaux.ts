@@ -46,7 +46,10 @@ function toHaitiDate(date: Date): Date {
 function isInTauxWindow(): boolean {
   const haiti = toHaitiDate(new Date());
   const hour = haiti.getHours();
-  return hour >= 7 && hour < 9; // 07:00–08:59 Haiti time
+  const minute = haiti.getMinutes();
+  // 05:30–08:29 Haiti time — opens early for 06:30 target post,
+  // with retries every 15 min in case BRH hasn't updated yet.
+  return (hour > 5 || (hour === 5 && minute >= 30)) && hour < 9;
 }
 
 // ── BRH scraper (self-contained, no Next.js dependency) ────────────────────
@@ -108,6 +111,45 @@ function parseRate(raw: string | undefined | null): number | undefined {
   const cleaned = raw.replace(/\s/g, "").replace(",", ".");
   const n = parseFloat(cleaned);
   return Number.isFinite(n) ? n : undefined;
+}
+
+// ── Date freshness validation ──────────────────────────────────────────────
+
+/** French month names used by BRH (e.g. "13 mars 2026"). */
+const FRENCH_MONTHS: Record<string, number> = {
+  janvier: 0, février: 1, mars: 2, avril: 3, mai: 4, juin: 5,
+  juillet: 6, août: 7, septembre: 8, octobre: 9, novembre: 10, décembre: 11,
+};
+
+/**
+ * Parse a BRH date string like "13 mars 2026" into YYYY-MM-DD.
+ * Returns null if unparseable.
+ */
+function parseBRHDate(dateStr: string): string | null {
+  const m = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+  if (!m) return null;
+  const day = parseInt(m[1]!, 10);
+  const monthName = m[2]!.toLowerCase();
+  const year = parseInt(m[3]!, 10);
+  const month = FRENCH_MONTHS[monthName];
+  if (month == null || !Number.isFinite(day) || !Number.isFinite(year)) return null;
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/**
+ * Check whether the BRH scraped date matches today in Haiti timezone.
+ * If BRH hasn't updated yet (still showing yesterday), we skip and
+ * let the next tick retry — never post stale rates.
+ */
+function isTauxFresh(taux: TauxBRH): boolean {
+  if (!taux.date) return false; // No date at all — can't verify
+  const brhDate = parseBRHDate(taux.date);
+  if (!brhDate) {
+    console.warn(`[buildIgTaux] Could not parse BRH date: "${taux.date}"`);
+    return false;
+  }
+  const todayStr = toHaitiDate(new Date()).toISOString().slice(0, 10);
+  return brhDate === todayStr;
 }
 
 // ── Carousel builder ───────────────────────────────────────────────────────
@@ -211,6 +253,12 @@ export async function buildIgTaux(): Promise<BuildIgTauxResult> {
   if (!taux) {
     console.warn("[buildIgTaux] Could not fetch BRH rates");
     return { queued: false, skipped: "brh-fetch-failed" };
+  }
+
+  // Date freshness: never post yesterday's rate as today's
+  if (!isTauxFresh(taux)) {
+    console.log(`[buildIgTaux] BRH date "${taux.date}" does not match today — will retry next tick`);
+    return { queued: false, skipped: "brh-date-stale" };
   }
 
   // Format carousel (async — resolves taux background image)
