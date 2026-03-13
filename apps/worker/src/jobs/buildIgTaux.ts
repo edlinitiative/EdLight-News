@@ -43,7 +43,8 @@ function toHaitiDate(date: Date): Date {
   return new Date(haitiStr);
 }
 
-function isInTauxWindow(): boolean {
+/** @internal exported for tests */
+export function isInTauxWindow(): boolean {
   const haiti = toHaitiDate(new Date());
   const hour = haiti.getHours();
   const minute = haiti.getMinutes();
@@ -115,8 +116,8 @@ function parseRate(raw: string | undefined | null): number | undefined {
 
 // ── Date freshness validation ──────────────────────────────────────────────
 
-/** French month names used by BRH (e.g. "13 mars 2026"). */
-const FRENCH_MONTHS: Record<string, number> = {
+/** French month names used by BRH (e.g. "13 mars 2026"). @internal exported for tests */
+export const FRENCH_MONTHS: Record<string, number> = {
   janvier: 0, février: 1, mars: 2, avril: 3, mai: 4, juin: 5,
   juillet: 6, août: 7, septembre: 8, octobre: 9, novembre: 10, décembre: 11,
 };
@@ -125,8 +126,9 @@ const FRENCH_MONTHS: Record<string, number> = {
  * Parse a BRH date string like "13 mars 2026" into YYYY-MM-DD.
  * Returns null if unparseable.
  */
-function parseBRHDate(dateStr: string): string | null {
-  const m = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+/** @internal exported for tests */
+export function parseBRHDate(dateStr: string): string | null {
+  const m = dateStr.match(/(\d{1,2})\s+(\p{L}+)\s+(\d{4})/u);
   if (!m) return null;
   const day = parseInt(m[1]!, 10);
   const monthName = m[2]!.toLowerCase();

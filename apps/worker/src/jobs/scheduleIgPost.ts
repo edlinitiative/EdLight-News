@@ -26,7 +26,8 @@ const HAITI_TZ = "America/Port-au-Prince";
 
 // ── Staleness TTLs per IG post type (hours) ─────────────────────────────────
 // News goes stale fast; scholarships with deadlines stay relevant longer.
-const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
+/** @internal exported for tests */
+export const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
   news: 48,          // 2 days — breaking/current events
   taux: 24,          // 1 day  — exchange rates are daily
   utility: 72,       // 3 days — fait-du-jour, study tips
@@ -37,7 +38,8 @@ const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
 
 // ── Per-type daily caps ─────────────────────────────────────────────────────
 // Prevent any single type from dominating the feed. undefined = no cap.
-const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
+/** @internal exported for tests */
+export const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
   scholarship: 2,
   opportunity: 2,
   taux: 1,
@@ -46,11 +48,21 @@ const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
 // ── Daily staples: types that MUST post every day ───────────────────────────
 // These are scheduled in bulk before any regular items.
 // Order matters — first gets the earliest morning slot.
-const DAILY_STAPLES: IGPostType[] = ["taux", "histoire", "utility"];
+/** @internal exported for tests */
+export const DAILY_STAPLES: IGPostType[] = ["taux", "histoire", "utility"];
 
 // ── Daily cap: 3 staples + 5 regular = 8 (10 for urgent) ───────────────────
-const DAILY_CAP_NORMAL = 8;
-const DAILY_CAP_URGENT = 10; // for items with score >= 90
+/** @internal exported for tests */
+export const DAILY_CAP_NORMAL = 8;
+/** @internal exported for tests */
+export const DAILY_CAP_URGENT = 10; // for items with score >= 90
+
+/** Maps staple types to their pinned slot index in SLOTS. @internal exported for tests */
+export const STAPLE_SLOT_INDEX: Record<string, number> = {
+  taux: 0,       // 06:30
+  utility: 1,    // 06:50
+  histoire: 2,   // 07:00
+};
 
 export interface ScheduleIgPostResult {
   scheduled: number;
@@ -58,8 +70,8 @@ export interface ScheduleIgPostResult {
   expired: number;
 }
 
-/** Check if an IG queue item is too old to post. */
-function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
+/** Check if an IG queue item is too old to post. @internal exported for tests */
+export function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
   const ttlHours = STALENESS_TTL_HOURS[item.igType] ?? 72;
   const createdMs =
     item.createdAt && typeof item.createdAt === "object" && "seconds" in item.createdAt
@@ -71,13 +83,15 @@ function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
   return Date.now() - createdMs > ttlHours * 60 * 60 * 1000;
 }
 
-function toHaitiDate(date: Date): Date {
+/** @internal exported for tests */
+export function toHaitiDate(date: Date): Date {
   // Convert UTC date to Haiti local time representation
   const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
   return new Date(haitiStr);
 }
 
-function isQuietHour(date: Date): boolean {
+/** @internal exported for tests */
+export function isQuietHour(date: Date): boolean {
   const haitiDate = toHaitiDate(date);
   const hour = haitiDate.getHours();
   const minute = haitiDate.getMinutes();
@@ -90,7 +104,8 @@ function isQuietHour(date: Date): boolean {
  * Haiti observes US Eastern time rules (EST = UTC-5, EDT = UTC-4).
  * Returns the offset in hours (positive = behind UTC, e.g. 4 for EDT, 5 for EST).
  */
-function getHaitiOffsetHours(date: Date = new Date()): number {
+/** @internal exported for tests */
+export function getHaitiOffsetHours(date: Date = new Date()): number {
   const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
   const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
   const diffMs = new Date(utcStr).getTime() - new Date(haitiStr).getTime();
@@ -99,7 +114,8 @@ function getHaitiOffsetHours(date: Date = new Date()): number {
 
 // Pinned morning slots for daily staples, followed by general engagement slots.
 // First 3 are reserved for taux, daily_fact/utility, and histoire respectively.
-const SLOTS = [
+/** @internal exported for tests */
+export const SLOTS = [
   { hour: 6, minute: 30 },    // Pinned: taux du jour
   { hour: 6, minute: 50 },    // Pinned: fait du jour / utility
   { hour: 7, minute: 0 },     // Pinned: histoire
@@ -119,7 +135,8 @@ const SLOTS = [
  * When `todayOnly` is true the search is limited to today's remaining slots
  * (used for daily staples so they never spill into tomorrow).
  */
-function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = false): Date | null {
+/** @internal exported for tests */
+export function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = false): Date | null {
   const now = new Date();
   const haitiNow = toHaitiDate(now);
   const haitiHour = haitiNow.getHours();
@@ -267,11 +284,6 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   //           with type-priority pinning to dedicated morning slots:
   //           taux → 06:30, utility/daily_fact → 06:50, histoire → 07:00
   // ════════════════════════════════════════════════════════════════════
-  const STAPLE_SLOT_INDEX: Record<string, number> = {
-    taux: 0,       // 06:30
-    utility: 1,    // 06:50
-    histoire: 2,   // 07:00
-  };
 
   for (const stapleType of DAILY_STAPLES) {
     // Date-aware check: for types that carry a targetPostDate (e.g. histoire),
