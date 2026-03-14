@@ -6,7 +6,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, ensureFrenchEligibility, ensureFrenchHowToApply, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, type BilingualText } from "./helpers.js";
 
 export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -74,21 +74,21 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     heading: "Comment postuler",
     bullets: applyBullets,
     layout: "explanation",
-    footer: buildSourceLine(item),
+    footer: buildSourceFooter(item),
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
   // Ensure last slide has source
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
-    slides[slides.length - 1]!.footer = buildSourceLine(item);
+    slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
 
   // ── Caption ──
-  const parts: string[] = [title, "", shortenText(summary, 300)];
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 250)}`);
+  const parts: string[] = [title, "", shortenCaptionText(summary, 300)];
+  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 250)}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
   parts.push("", "#Opportunité #EdLightNews #Haïti #Éducation #Carrière");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
-  return { slides, caption: truncateCaption(parts.join("\n")) };
+  return { slides, caption: finalizeCaption(parts.join("\n")) };
 }

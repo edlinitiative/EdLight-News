@@ -11,6 +11,7 @@
  */
 
 import type { Item } from "@edlight-news/types";
+import { detectPersonName } from "./wikidata.js";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -39,13 +40,31 @@ const MIN_WIDTH = 1200;
 
 function scoreImage(width: number, height: number, hasPeople: boolean): number {
   let s = 0;
-  if (width >= 3000) s += 3;           // High-res bonus
-  else if (width >= MIN_WIDTH) s += 5;  // Meets minimum
-  if (width < 1500) s -= 2;            // Low-res penalty
+  if (width >= 3200) s += 7;
+  else if (width >= 2400) s += 5;
+  else if (width >= 1800) s += 4;
+  else if (width >= MIN_WIDTH) s += 2;
+  else s -= 4;
+  if (width < 1500) s -= 2;
   if (hasPeople) s += 2;               // People boost engagement
   // Portrait or square orientation bonus for 4:5 IG
   if (height >= width * 0.9) s += 1;
+  if (width / Math.max(height, 1) > 2.1) s -= 2;
   return s;
+}
+
+function scoreQueryMatch(query: string, haystack: string): number {
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .map((term) => term.trim())
+    .filter((term) => term.length > 2);
+
+  if (terms.length === 0) return 0;
+
+  const lowerHaystack = haystack.toLowerCase();
+  const matches = terms.filter((term) => lowerHaystack.includes(term)).length;
+  return matches / terms.length;
 }
 
 // ── Unsplash search ────────────────────────────────────────────────────────
@@ -65,7 +84,7 @@ async function searchUnsplash(query: string, accessKey: string): Promise<ScoredI
     const url = new URL(`${UNSPLASH_API}/search/photos`);
     url.searchParams.set("query", query);
     url.searchParams.set("orientation", "portrait");
-    url.searchParams.set("per_page", "5");
+    url.searchParams.set("per_page", "8");
     url.searchParams.set("content_filter", "high"); // Safe content only
 
     const res = await fetch(url.toString(), {
@@ -96,13 +115,13 @@ async function searchUnsplash(query: string, accessKey: string): Promise<ScoredI
         : false;
 
       const s = scoreImage(photo.width, photo.height, hasPeople);
+      const queryScore = scoreQueryMatch(query, [photo.user.name, Object.keys(photo.topic_submissions ?? {}).join(" ")].join(" "));
 
-      if (!best || s > best.score) {
-        // Use 'regular' (1080w) for bandwidth, 'full' for max quality
+      if (!best || s + queryScore > best.score) {
         best = {
-          url: photo.urls.regular,
+          url: photo.urls.full,
           source: "unsplash",
-          score: s,
+          score: s + queryScore,
           width: photo.width,
           height: photo.height,
           author: photo.user.name,
@@ -134,6 +153,7 @@ type CommonsImageInfo = {
 
 type CommonsPage = {
   pageid?: number;
+  title?: string;
   imageinfo?: CommonsImageInfo[];
 };
 
@@ -182,7 +202,8 @@ async function searchCommons(query: string): Promise<ScoredImage | null> {
       if (!license || !ACCEPTABLE_LICENSES.has(license)) continue;
 
       const author = info.extmetadata?.Artist?.value?.replace(/<[^>]+>/g, "").trim();
-      const s = scoreImage(w, h, false);
+      const title = p.title ?? "";
+      const s = scoreImage(w, h, false) + scoreQueryMatch(query, `${title} ${author ?? ""}`);
 
       if (!best || s > best.score) {
         best = {
@@ -206,16 +227,30 @@ async function searchCommons(query: string): Promise<ScoredImage | null> {
 
 // ── Query building ─────────────────────────────────────────────────────────
 
-function buildSearchQuery(item: Item): string {
-  // Use first ~5 meaningful words from title
-  const words = (item.title ?? "")
+function buildSearchQueries(item: Item): string[] {
+  const titleWords = (item.title ?? "")
     .replace(/[^\p{L}\p{N}\s]/gu, "")
     .split(/\s+/)
     .filter((w) => w.length > 2)
-    .slice(0, 5);
+    .slice(0, 6);
 
+  const queries: string[] = [];
   const geoHint = item.geoTag === "HT" ? "Haiti" : "";
-  return [...words, geoHint].filter(Boolean).join(" ");
+  const personName = item.entity?.personName ?? detectPersonName(item.title ?? "", item.category);
+
+  if (personName) {
+    queries.push([personName, geoHint].filter(Boolean).join(" ").trim());
+    queries.push(personName);
+  }
+
+  const titleQuery = [...titleWords, geoHint].filter(Boolean).join(" ").trim();
+  if (titleQuery) queries.push(titleQuery);
+
+  if ((item.category === "scholarship" || item.category === "opportunity" || item.category === "bourses") && item.source?.name) {
+    queries.push(`${item.source.name} ${geoHint} education`);
+  }
+
+  return [...new Set(queries.filter((query) => query.length >= 4))].slice(0, 4);
 }
 
 // ── Main entry point ───────────────────────────────────────────────────────
@@ -232,42 +267,46 @@ export async function findEditorialImage(
   item: Item,
   minScore = 5,
 ): Promise<ScoredImage | null> {
-  const query = buildSearchQuery(item);
-  if (!query || query.length < 4) return null;
+  const queries = buildSearchQueries(item);
+  if (queries.length === 0) return null;
 
-  console.log(`[editorialImageSearch] Searching for "${query}"...`);
-
-  // 1. Try Unsplash
   const unsplashKey = process.env.Unsplash_ACCESS_KEY;
-  if (unsplashKey) {
-    const unsplashResult = await searchUnsplash(query, unsplashKey);
-    if (unsplashResult && unsplashResult.score >= minScore) {
-      console.log(
-        `[editorialImageSearch] ✅ Unsplash hit: ${unsplashResult.width}×${unsplashResult.height} ` +
-        `score=${unsplashResult.score} by ${unsplashResult.author}`,
-      );
+  let best: ScoredImage | null = null;
 
-      // Trigger download tracking per Unsplash API TOS
-      if (unsplashResult.downloadLocation) {
-        fetch(`${unsplashResult.downloadLocation}?client_id=${unsplashKey}`, {
-          method: "GET",
-        }).catch(() => {/* fire-and-forget per TOS */});
+  for (const query of queries) {
+    console.log(`[editorialImageSearch] Searching for "${query}"...`);
+
+    if (unsplashKey) {
+      const unsplashResult = await searchUnsplash(query, unsplashKey);
+      if (unsplashResult && (!best || unsplashResult.score > best.score)) {
+        best = unsplashResult;
       }
+      if (best && best.source === "unsplash" && best.score >= minScore + 1.5) {
+        break;
+      }
+    }
 
-      return unsplashResult;
+    const commonsResult = await searchCommons(query);
+    if (commonsResult && (!best || commonsResult.score > best.score)) {
+      best = commonsResult;
     }
   }
 
-  // 2. Try Wikimedia Commons
-  const commonsResult = await searchCommons(query);
-  if (commonsResult && commonsResult.score >= minScore) {
+  if (best && best.score >= minScore) {
     console.log(
-      `[editorialImageSearch] ✅ Commons hit: ${commonsResult.width}×${commonsResult.height} ` +
-      `score=${commonsResult.score} (${commonsResult.license})`,
+      `[editorialImageSearch] ✅ ${best.source} hit: ${best.width}×${best.height} ` +
+      `score=${best.score.toFixed(2)}${best.author ? ` by ${best.author}` : ""}`,
     );
-    return commonsResult;
+
+    if (best.source === "unsplash" && best.downloadLocation && unsplashKey) {
+      fetch(`${best.downloadLocation}?client_id=${unsplashKey}`, {
+        method: "GET",
+      }).catch(() => {/* fire-and-forget per TOS */});
+    }
+
+    return best;
   }
 
-  console.log(`[editorialImageSearch] ⚠️  No editorial image found for "${query}"`);
+  console.log(`[editorialImageSearch] ⚠️  No editorial image found for "${item.title.slice(0, 60)}"`);
   return null;
 }

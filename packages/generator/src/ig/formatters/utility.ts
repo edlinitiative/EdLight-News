@@ -3,7 +3,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText, formatDeadline, shortenHeadline, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenCaptionText, formatDeadline, shortenHeadline, type BilingualText } from "./helpers.js";
 
 export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -56,24 +56,24 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
       heading: "À retenir",
       bullets: facts.notes.slice(0, 3).map((n) => shortenText(n, 150)),
       layout: "explanation",
-      footer: buildSourceLine(item),
+      footer: buildSourceFooter(item),
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
 
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
-    slides[slides.length - 1]!.footer = buildSourceLine(item);
+    slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
 
   // Caption — bilingual
   const parts: string[] = [
     title,
     "",
-    shortenText(summary, 400),
+    shortenCaptionText(summary, 400),
   ];
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
+  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`);
   parts.push("", "#EdLightNews #Haïti #Ressources");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
-  return { slides, caption: truncateCaption(parts.join("\n")) };
+  return { slides, caption: finalizeCaption(parts.join("\n")) };
 }

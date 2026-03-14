@@ -17,6 +17,44 @@ import { buildHistoireCarousel } from "./histoire.js";
 import { buildUtilityCarousel } from "./utility.js";
 import { normalizePayloadForPublishing, reviewSlides } from "../review.js";
 
+const MIN_IG_BACKGROUND_SHORT_SIDE = 1080;
+const MAX_IG_BACKGROUND_ASPECT_RATIO = 2.1;
+
+/**
+ * Returns true when the item's existing `imageUrl` is sharp enough to be used
+ * as a full-bleed IG background without visibly stretching.
+ *
+ * Web/article images are often fine for cards but too soft for 4:5 IG renders,
+ * especially legacy branded cards (1200×630). When this returns false, the IG
+ * pipeline strips the background so downstream jobs can generate a sharper
+ * editorial/AI replacement instead of publishing a blurry slide.
+ */
+export function isItemImageUsableForIG(item: Item): boolean {
+  if (!item.imageUrl) return false;
+
+  const width = item.imageMeta?.width;
+  const height = item.imageMeta?.height;
+
+  // Legacy branded cards are landscape web assets and should not be stretched
+  // to fill portrait IG slides unless we explicitly know they were rendered at
+  // portrait-safe dimensions.
+  if (item.imageSource === "branded" && (!width || !height)) {
+    return false;
+  }
+
+  if (!width || !height) return true;
+
+  if (Math.min(width, height) < MIN_IG_BACKGROUND_SHORT_SIDE) {
+    return false;
+  }
+
+  if (width / Math.max(height, 1) > MAX_IG_BACKGROUND_ASPECT_RATIO) {
+    return false;
+  }
+
+  return true;
+}
+
 /** Options controlling IG formatting behaviour. */
 export interface FormatIGOptions {
   /** Bilingual text overrides from content_versions */
@@ -67,16 +105,19 @@ export async function formatForIG(
   const payload = formatter(item, options.bi);
 
   // Handle image safety
-  const igImageSafe = options.igImageSafe ?? true;
+  const igImageSafe = (options.igImageSafe ?? true) && isItemImageUsableForIG(item);
 
   if (!igImageSafe && payload.slides.length > 0) {
     // Source flagged as unsafe — strip ALL slides' images
     for (const slide of payload.slides) {
       delete slide.backgroundImage;
     }
-    // Optionally restore cover with a free-licensed alternative
+    // Restore all slides with the free-licensed alternative so every slide
+    // in the carousel uses the same image (avoids cover ≠ inner mismatch).
     if (options.overrideImageUrl) {
-      payload.slides[0]!.backgroundImage = options.overrideImageUrl;
+      for (const slide of payload.slides) {
+        slide.backgroundImage = options.overrideImageUrl;
+      }
     }
   }
   // Note: we no longer strip inner-slide images for scholarship/opportunity.

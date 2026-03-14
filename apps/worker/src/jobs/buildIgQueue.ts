@@ -200,22 +200,33 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
         const payload = await formatForIG(decision.igType, item, opts);
 
-        // ── Gemini image fallback ───────────────────────────────────
+        // ── Image consistency: every slide must use the same background ─
         // If any slide lacks a backgroundImage (low-confidence publisher image,
-        // unsafe source, or utility/histoire type), generate ONE Gemini image
-        // and propagate it to all slides that need it.
+        // unsafe source, or utility/histoire type), first try to reuse the
+        // cover's image (avoids cover ≠ inner mismatch); only call Gemini
+        // when NO slide has an image yet.
         const slidesNeedingImage = payload.slides.filter((s) => !s.backgroundImage);
         if (slidesNeedingImage.length > 0) {
-          try {
-            const generated = await generateContextualImage(item);
-            if (generated?.url) {
-              for (const slide of slidesNeedingImage) {
-                slide.backgroundImage = generated.url;
-              }
-              console.log(`[buildIgQueue] Gemini image filled ${slidesNeedingImage.length} slides for ${item.id}`);
+          const coverImage = payload.slides[0]?.backgroundImage;
+          if (coverImage) {
+            // Cover already has an image — propagate it to the rest
+            for (const slide of slidesNeedingImage) {
+              slide.backgroundImage = coverImage;
             }
-          } catch (err) {
-            console.warn(`[buildIgQueue] Gemini image fallback failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            console.log(`[buildIgQueue] Propagated cover image to ${slidesNeedingImage.length} slide(s) for ${item.id}`);
+          } else {
+            // No slides have an image — generate one and apply to all
+            try {
+              const generated = await generateContextualImage(item);
+              if (generated?.url) {
+                for (const slide of slidesNeedingImage) {
+                  slide.backgroundImage = generated.url;
+                }
+                console.log(`[buildIgQueue] Gemini image filled ${slidesNeedingImage.length} slides for ${item.id}`);
+              }
+            } catch (err) {
+              console.warn(`[buildIgQueue] Gemini image fallback failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            }
           }
         }
 

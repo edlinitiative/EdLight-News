@@ -32,8 +32,11 @@ const IMAGE_BATCH_LIMIT = parseInt(
 const PUBLISHER_CONFIDENCE_THRESHOLD = 0.6;
 
 /** Minimum pixel width for publisher images to be used as IG backgrounds.
- *  IG carousel is 1080 px wide at 2× DPR, so < 800 looks blurry. */
-const MIN_PUBLISHER_WIDTH = 800;
+ *  We require extra headroom above 1080px to survive crop/zoom cleanly. */
+const MIN_PUBLISHER_WIDTH = 1200;
+
+/** Minimum shorter side to avoid blurry crop/zoom when using cover backgrounds. */
+const MIN_PUBLISHER_SHORTEST_SIDE = 700;
 
 export interface ImagePipelineResult {
   publisher: number;
@@ -122,33 +125,41 @@ async function processItemImage(
               `[images] publisher image too small for ${item.id}: ${downloaded.width}px wide (min ${MIN_PUBLISHER_WIDTH}px)`,
             );
             // Fall through to next strategy
+          } else if (downloaded.width && downloaded.height && Math.min(downloaded.width, downloaded.height) < MIN_PUBLISHER_SHORTEST_SIDE) {
+            console.warn(
+              `[images] publisher image too narrow for ${item.id}: ${downloaded.width}×${downloaded.height} (min shortest side ${MIN_PUBLISHER_SHORTEST_SIDE}px)`,
+            );
+          } else if (downloaded.width && downloaded.height && downloaded.width / Math.max(downloaded.height, 1) > 2.4) {
+            console.warn(
+              `[images] publisher image too panoramic for ${item.id}: ${downloaded.width}×${downloaded.height}`,
+            );
           } else {
-          const ext = picked.url.includes(".png") ? "png" : "jpg";
-          const storagePath = `images/items/${item.id}_publisher.${ext}`;
-          const publicUrl = await uploadImageBuffer(
-            storagePath,
-            downloaded.buffer,
-            downloaded.contentType,
-          );
+            const ext = picked.url.includes(".png") ? "png" : "jpg";
+            const storagePath = `images/items/${item.id}_publisher.${ext}`;
+            const publicUrl = await uploadImageBuffer(
+              storagePath,
+              downloaded.buffer,
+              downloaded.contentType,
+            );
 
-          const meta: Record<string, unknown> = {
-            fetchedAt: new Date().toISOString(),
-            originalImageUrl: picked.url,
-          };
-          if (downloaded.width) meta.width = downloaded.width;
-          if (downloaded.height) meta.height = downloaded.height;
+            const meta: Record<string, unknown> = {
+              fetchedAt: new Date().toISOString(),
+              originalImageUrl: picked.url,
+            };
+            if (downloaded.width) meta.width = downloaded.width;
+            if (downloaded.height) meta.height = downloaded.height;
 
-          await itemsRepo.updateItem(item.id, {
-            imageUrl: publicUrl,
-            imageSource: "publisher" as ImageSource,
-            imageConfidence: picked.confidence,
-            imageMeta: meta as Item["imageMeta"],
-          });
+            await itemsRepo.updateItem(item.id, {
+              imageUrl: publicUrl,
+              imageSource: "publisher" as ImageSource,
+              imageConfidence: picked.confidence,
+              imageMeta: meta as Item["imageMeta"],
+            });
 
-          result.publisher++;
-          console.log(`[images] publisher image for item ${item.id} (confidence=${picked.confidence.toFixed(2)})`);
-          return true;
-          } // end resolution check else
+            result.publisher++;
+            console.log(`[images] publisher image for item ${item.id} (confidence=${picked.confidence.toFixed(2)})`);
+            return true;
+          }
         }
       }
     } catch (err) {
@@ -276,7 +287,7 @@ async function processItemImage(
   return false;
 }
 
-/** Download an image from a URL. Returns buffer + content type. */
+/** Download an image from a URL. Returns buffer + content type + dimensions when detectable. */
 async function downloadImage(
   url: string,
 ): Promise<{ buffer: Buffer; contentType: string; width?: number; height?: number } | null> {
@@ -293,16 +304,110 @@ async function downloadImage(
     if (!res.ok) return null;
 
     const contentType = res.headers.get("content-type") ?? "image/jpeg";
+    if (!contentType.startsWith("image/")) return null;
     const arrayBuf = await res.arrayBuffer();
     const buffer = Buffer.from(arrayBuf);
 
     // Reject tiny responses (likely error pages)
     if (buffer.length < 1_000) return null;
 
-    return { buffer, contentType };
+    const dims = detectImageDimensions(buffer, contentType, url);
+    return { buffer, contentType, ...dims };
   } catch {
     return null;
   }
+}
+
+function detectImageDimensions(
+  buffer: Buffer,
+  contentType: string,
+  url?: string,
+): { width?: number; height?: number } {
+  return readPngSize(buffer)
+    ?? readJpegSize(buffer)
+    ?? readWebpSize(buffer)
+    ?? readGifSize(buffer)
+    ?? inferSizeFromUrl(url)
+    ?? {};
+}
+
+function readPngSize(buffer: Buffer): { width: number; height: number } | null {
+  if (buffer.length < 24) return null;
+  if (buffer.readUInt32BE(0) !== 0x89504e47) return null;
+  return {
+    width: buffer.readUInt32BE(16),
+    height: buffer.readUInt32BE(20),
+  };
+}
+
+function readGifSize(buffer: Buffer): { width: number; height: number } | null {
+  if (buffer.length < 10) return null;
+  const signature = buffer.toString("ascii", 0, 6);
+  if (signature !== "GIF87a" && signature !== "GIF89a") return null;
+  return {
+    width: buffer.readUInt16LE(6),
+    height: buffer.readUInt16LE(8),
+  };
+}
+
+function readWebpSize(buffer: Buffer): { width: number; height: number } | null {
+  if (buffer.length < 30) return null;
+  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WEBP") {
+    return null;
+  }
+
+  const chunk = buffer.toString("ascii", 12, 16);
+  if (chunk === "VP8X") {
+    return {
+      width: 1 + buffer.readUIntLE(24, 3),
+      height: 1 + buffer.readUIntLE(27, 3),
+    };
+  }
+
+  return null;
+}
+
+function readJpegSize(buffer: Buffer): { width: number; height: number } | null {
+  if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return null;
+
+  let offset = 2;
+  while (offset + 9 < buffer.length) {
+    if (buffer[offset] !== 0xff) {
+      offset++;
+      continue;
+    }
+
+    const marker = buffer[offset + 1];
+    if (!marker) return null;
+
+    if (marker === 0xd9 || marker === 0xda) break;
+    const blockLength = buffer.readUInt16BE(offset + 2);
+    if (blockLength < 2) return null;
+
+    const isSof =
+      (marker >= 0xc0 && marker <= 0xc3) ||
+      (marker >= 0xc5 && marker <= 0xc7) ||
+      (marker >= 0xc9 && marker <= 0xcb) ||
+      (marker >= 0xcd && marker <= 0xcf);
+
+    if (isSof && offset + 8 < buffer.length) {
+      return {
+        height: buffer.readUInt16BE(offset + 5),
+        width: buffer.readUInt16BE(offset + 7),
+      };
+    }
+
+    offset += 2 + blockLength;
+  }
+
+  return null;
+}
+
+function inferSizeFromUrl(url?: string): { width?: number; height?: number } | null {
+  if (!url) return null;
+  const match = url.match(/(?:^|[^\d])(\d{3,4})[xX](\d{3,4})(?:[^\d]|$)/);
+  if (!match) return null;
+  return { width: Number(match[1]), height: Number(match[2]) };
 }
 
 /** Mark an item as having failed image processing so we don't retry forever. */

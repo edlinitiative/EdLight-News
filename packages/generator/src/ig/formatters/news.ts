@@ -19,7 +19,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText, shortenHeadline, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, type BilingualText } from "./helpers.js";
 
 // Patterns that indicate a sentence is scraping junk, not real content
 const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
@@ -101,23 +101,23 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
 
   // ── Last slide: source attribution ──
   if (slides.length > 0) {
-    slides[slides.length - 1]!.footer = buildSourceLine(item);
+    slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
 
   // ── Caption — bilingual with section highlights when available ──
-  const parts: string[] = [title, "", shortenText(summary, 400)];
+  const parts: string[] = [title, "", shortenCaptionText(summary, 320)];
   if (usedSections && bi?.frSections) {
     parts.push("");
     for (const sec of bi.frSections.slice(0, MAX_NEWS_CONTENT_SLIDES)) {
       const firstSentence = splitSentences(sec.content)[0];
-      if (firstSentence) parts.push(`📌 ${sec.heading}: ${shortenText(firstSentence, 120)}`);
+      if (firstSentence) parts.push(`📌 ${sec.heading}: ${shortenCaptionText(firstSentence, 120)}`);
     }
   }
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenText(bi.htSummary, 300)}`);
+  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`);
   parts.push("", "#ActuHaïti #HaitiNews #EdLightNews");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
-  return { slides, caption: truncateCaption(parts.join("\n")) };
+  return { slides, caption: finalizeCaption(parts.join("\n")) };
 }
 
 /**
@@ -140,7 +140,7 @@ function buildSectionSlides(
     slides.push({
       heading: shortenHeadline(sec.heading, 8),
       bullets,
-      layout: "headline",
+        layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }

@@ -7,6 +7,17 @@ import type { Item } from "@edlight-news/types";
 const MAX_CAPTION_LENGTH = 2200; // IG's actual limit
 const MIN_CAPTION_LENGTH = 600;
 
+const CAPTION_STOP_WORDS = new Set([
+  "le", "la", "les", "de", "des", "du", "un", "une", "et", "en",
+  "est", "sont", "dans", "pour", "par", "avec", "sur", "qui", "que",
+  "ce", "cette", "au", "aux", "se", "ne", "pas", "a", "à", "été",
+  "il", "elle", "ils", "ont", "son", "sa", "ses", "leurs", "leur",
+  "mais", "ou", "où", "aussi", "plus", "très", "tout", "tous",
+  "the", "of", "and", "to", "in", "is", "for", "that", "on", "was",
+]);
+
+const SENTENCE_BOUNDARY_RE = /[.!?](?=\s|$)/g;
+
 // ── English-detection for eligibility/howToApply safety net ─────────────────
 
 /** Common English function words that rarely appear in French. */
@@ -42,10 +53,9 @@ export function looksEnglish(text: string): boolean {
  * threshold) because individual short eligibility bullets may only hit 1 marker.
  */
 export function ensureFrenchEligibility(bullets: string[]): string[] {
-  const french = bullets.filter((b) => !looksEnglishStrict(b));
-  if (french.length > 0) return french;
-  // All bullets were English — return a generic French note
-  return ["Voir les critères d'éligibilité sur le site officiel"];
+  return bullets
+    .map((bullet) => translateOpportunityText(bullet))
+    .filter((bullet) => bullet.length > 0);
 }
 
 /** Stricter English detection for short text: 1 marker hit = English. */
@@ -59,8 +69,66 @@ function looksEnglishStrict(text: string): boolean {
  * with a generic French instruction.
  */
 export function ensureFrenchHowToApply(text: string): string {
-  if (looksEnglish(text)) return "Postulez via le site officiel (lien dans la bio)";
-  return text;
+  const translated = translateOpportunityText(text);
+  if (looksEnglishStrict(translated)) {
+    return `${translated} — voir le site officiel pour les détails.`;
+  }
+  return translated;
+}
+
+const OPPORTUNITY_TRANSLATION_RULES: Array<[RegExp, string]> = [
+  [/\bapplicants?\b/gi, "candidats"],
+  [/\bapplication form\b/gi, "formulaire de candidature"],
+  [/\bapply online\b/gi, "postulez en ligne"],
+  [/\bapply via\b/gi, "postulez via"],
+  [/\bapply through\b/gi, "postulez via"],
+  [/\bapply\b/gi, "postuler"],
+  [/\beligible\b/gi, "éligible"],
+  [/\beligibility\b/gi, "éligibilité"],
+  [/\bcitizens? of\b/gi, "ressortissants de"],
+  [/\bnationals? of\b/gi, "ressortissants de"],
+  [/\ball nationalities\b/gi, "toutes nationalités"],
+  [/\bopen to\b/gi, "ouvert à"],
+  [/\bmust be\b/gi, "doit être"],
+  [/\byou must\b/gi, "vous devez"],
+  [/\bmust have\b/gi, "doit avoir"],
+  [/\brequired\b/gi, "obligatoire"],
+  [/\brequirements?\b/gi, "critères"],
+  [/\bsubmit\b/gi, "soumettre"],
+  [/\bscholarship\b/gi, "bourse"],
+  [/\bfellowship\b/gi, "programme"],
+  [/\bfunding\b/gi, "financement"],
+  [/\bundergraduate\b/gi, "licence"],
+  [/\bgraduate\b/gi, "master"],
+  [/\bpostgraduate\b/gi, "cycle supérieur"],
+  [/\bdeadline\b/gi, "date limite"],
+  [/\bfor more information\b/gi, "pour plus d'informations"],
+  [/\bplease note\b/gi, "à noter"],
+  [/\bin order to\b/gi, "pour"],
+  [/\btuition fees\b/gi, "frais de scolarité"],
+  [/\bfull tuition\b/gi, "frais de scolarité complets"],
+  [/\bliving expenses\b/gi, "frais de vie"],
+  [/\bmonthly stipend\b/gi, "allocation mensuelle"],
+  [/\btravel costs\b/gi, "frais de voyage"],
+  [/\bhealth insurance\b/gi, "assurance santé"],
+];
+
+export function translateOpportunityText(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+
+  let translated = trimmed;
+  for (const [pattern, replacement] of OPPORTUNITY_TRANSLATION_RULES) {
+    translated = translated.replace(pattern, replacement);
+  }
+
+  translated = translated
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,;:.!?])/g, "$1")
+    .replace(/(^|[.!?]\s+)([a-zà-ÿ])/g, (_m, prefix: string, letter: string) => `${prefix}${letter.toUpperCase()}`)
+    .trim();
+
+  return translated;
 }
 
 /**
@@ -100,23 +168,80 @@ export function formatDeadline(isoDate: string): string {
 export function truncateCaption(caption: string): string {
   if (caption.length <= MAX_CAPTION_LENGTH) return caption;
 
-  // Try to cut at a sentence boundary (. ! ? followed by space/newline)
-  const cutZone = caption.slice(0, MAX_CAPTION_LENGTH - 3);
-  const lastSentenceEnd = Math.max(
-    cutZone.lastIndexOf(". "),
-    cutZone.lastIndexOf(".\n"),
-    cutZone.lastIndexOf("! "),
-    cutZone.lastIndexOf("!\n"),
-    cutZone.lastIndexOf("? "),
-    cutZone.lastIndexOf("?\n"),
-  );
+  return trimToCompleteThought(caption, MAX_CAPTION_LENGTH);
+}
 
-  // Use sentence boundary if it's in the latter half, otherwise word boundary
-  if (lastSentenceEnd > MAX_CAPTION_LENGTH * 0.5) {
-    return caption.slice(0, lastSentenceEnd + 1);
+/**
+ * Shorten caption prose while preserving a complete thought.
+ */
+export function shortenCaptionText(text: string, max: number): string {
+  const cleaned = normalizeCaptionWhitespace(text);
+  if (!cleaned) return "";
+  return trimToCompleteThought(cleaned, max);
+}
+
+/**
+ * Final cleanup pass for generated captions:
+ * - normalizes whitespace
+ * - removes repeated content blocks
+ * - repairs broken endings
+ * - truncates at a complete thought
+ */
+export function finalizeCaption(caption: string): string {
+  const rawBlocks = normalizeCaptionWhitespace(caption)
+    .split(/\n\s*\n/g)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+
+  const keptBlocks: string[] = [];
+  const proseBlocks: string[] = [];
+
+  for (const rawBlock of rawBlocks) {
+    const block = rawBlock
+      .split("\n")
+      .map((line) => line.trim().replace(/\s+/g, " "))
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+
+    if (!block) continue;
+
+    if (isCaptionMetaBlock(block)) {
+      keptBlocks.push(block);
+      continue;
+    }
+
+    const repaired = repairCaptionBlock(block);
+    if (!repaired) continue;
+
+    const duplicate = proseBlocks.some((prev) => areCaptionBlocksSimilar(prev, repaired));
+    if (duplicate) continue;
+
+    proseBlocks.push(repaired);
+    keptBlocks.push(repaired);
   }
-  const lastSpace = cutZone.lastIndexOf(" ");
-  return (lastSpace > MAX_CAPTION_LENGTH * 0.5 ? caption.slice(0, lastSpace) : cutZone) + "…";
+
+  return truncateCaption(keptBlocks.join("\n\n"));
+}
+
+/**
+ * Detect obvious caption issues that warrant a reviewer pass.
+ */
+export function hasCaptionQualityIssues(caption: string): boolean {
+  const blocks = normalizeCaptionWhitespace(caption)
+    .split(/\n\s*\n/g)
+    .map((block) => block.trim())
+    .filter((block) => block.length > 0);
+
+  const proseBlocks: string[] = [];
+  for (const block of blocks) {
+    if (isCaptionMetaBlock(block)) continue;
+    if (looksLikeBrokenCaptionBlock(block)) return true;
+    if (proseBlocks.some((prev) => areCaptionBlocksSimilar(prev, block))) return true;
+    proseBlocks.push(block);
+  }
+
+  return false;
 }
 
 /**
@@ -138,10 +263,20 @@ export function buildCTA(): string {
 /**
  * Build source attribution line from an Item.
  */
+export function buildSourceFooter(item: Item): string {
+  const sourceName = item.source?.name ?? item.citations?.[0]?.sourceName ?? "Source";
+  return `Source: ${sourceName}`;
+}
+
 export function buildSourceLine(item: Item): string {
   const sourceName = item.source?.name ?? item.citations?.[0]?.sourceName ?? "Source";
   const sourceUrl = item.source?.originalUrl ?? item.citations?.[0]?.sourceUrl ?? item.canonicalUrl;
-  return `Source: ${sourceName} (${sourceUrl})`;
+  try {
+    const domain = new URL(sourceUrl).hostname.replace(/^www\./, "");
+    return `Source: ${sourceName} — ${domain}`;
+  } catch {
+    return `Source: ${sourceName}`;
+  }
 }
 
 /**
@@ -231,4 +366,116 @@ export function humanizeUrl(url: string): string {
   } catch {
     return "Voir le lien dans la bio";
   }
+}
+
+function normalizeCaptionWhitespace(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function isCaptionMetaBlock(block: string): boolean {
+  const trimmed = block.trim();
+  return /^#/.test(trimmed)
+    || /^source:/i.test(trimmed)
+    || /lien dans la bio|lyen nan biyo/i.test(trimmed)
+    || /https?:\/\//i.test(trimmed);
+}
+
+function looksLikeBrokenCaptionBlock(block: string): boolean {
+  if (isCaptionMetaBlock(block)) return false;
+  const trimmed = block.trim();
+  if (!trimmed) return false;
+  if (/…$/.test(trimmed)) return true;
+  if (/[,:;–—-]$/.test(trimmed)) return true;
+  return !/[.!?](?:["')\]]+)?$/u.test(trimmed);
+}
+
+function repairCaptionBlock(block: string): string {
+  const trimmed = normalizeCaptionWhitespace(block);
+  if (!trimmed) return "";
+  if (isCaptionMetaBlock(trimmed)) return trimmed;
+  if (!looksLikeBrokenCaptionBlock(trimmed)) return trimmed;
+
+  const withoutEllipsis = trimmed.replace(/…+$/u, "").trim();
+  const lastBoundary = findLastSentenceBoundary(withoutEllipsis);
+  if (lastBoundary > withoutEllipsis.length * 0.45) {
+    return withoutEllipsis.slice(0, lastBoundary + 1).trim();
+  }
+
+  return withoutEllipsis.replace(/[,:;–—\-\s]+$/u, "").trim() + ".";
+}
+
+function trimToCompleteThought(text: string, max: number): string {
+  const cleaned = normalizeCaptionWhitespace(text);
+  if (cleaned.length <= max) return repairCaptionBlock(cleaned);
+
+  const chunk = cleaned.slice(0, max);
+  const lastSentenceBoundary = findLastSentenceBoundary(chunk);
+  if (lastSentenceBoundary > max * 0.45) {
+    return chunk.slice(0, lastSentenceBoundary + 1).trim();
+  }
+
+  const lastClauseBoundary = Math.max(
+    chunk.lastIndexOf(", "),
+    chunk.lastIndexOf("; "),
+    chunk.lastIndexOf(": "),
+    chunk.lastIndexOf(" – "),
+    chunk.lastIndexOf(" — "),
+  );
+  if (lastClauseBoundary > max * 0.4) {
+    return chunk.slice(0, lastClauseBoundary).replace(/[,:;–—\-\s]+$/u, "").trim() + ".";
+  }
+
+  const lastSpace = chunk.lastIndexOf(" ");
+  const fallback = (lastSpace > max * 0.5 ? chunk.slice(0, lastSpace) : chunk)
+    .replace(/[,:;–—\-\s]+$/u, "")
+    .trim();
+
+  return fallback + ".";
+}
+
+function findLastSentenceBoundary(text: string): number {
+  let last = -1;
+  for (const match of text.matchAll(SENTENCE_BOUNDARY_RE)) {
+    last = match.index ?? last;
+  }
+  return last;
+}
+
+function areCaptionBlocksSimilar(a: string, b: string): boolean {
+  const left = a.trim().toLowerCase();
+  const right = b.trim().toLowerCase();
+  if (!left || !right) return false;
+  if (left === right) return true;
+
+  const shorter = left.length <= right.length ? left : right;
+  const longer = left.length > right.length ? left : right;
+  if (shorter.length >= 30 && longer.includes(shorter)) return true;
+
+  return captionBlockSimilarity(left, right) >= 0.72;
+}
+
+function captionBlockSimilarity(a: string, b: string): number {
+  const setA = captionContentWords(a);
+  const setB = captionContentWords(b);
+  if (setA.size === 0 || setB.size === 0) return 0;
+
+  let intersection = 0;
+  for (const word of setA) {
+    if (setB.has(word)) intersection++;
+  }
+
+  return intersection / (setA.size + setB.size - intersection);
+}
+
+function captionContentWords(text: string): Set<string> {
+  const words = text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !CAPTION_STOP_WORDS.has(word));
+  return new Set(words);
 }

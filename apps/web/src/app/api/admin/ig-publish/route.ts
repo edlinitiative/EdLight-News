@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * The slides are stored at ig_posts/{queueItemId}/slide_N.png and each
  * file contains a Firebase download-token in its metadata.
  */
-async function getSlideUrls(queueItemId: string, slideCount: number): Promise<string[]> {
+async function getSlideUrls(queueItemId: string, slideCount: number, hasMemeSlide = false): Promise<string[]> {
   try {
     const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
     const bucket = getStorage(getApp()).bucket(bucketName);
@@ -25,6 +25,18 @@ async function getSlideUrls(queueItemId: string, slideCount: number): Promise<st
         expires: Date.now() + 60 * 60 * 1000, // 1 hour
       });
       urls.push(signedUrl);
+    }
+
+    if (hasMemeSlide) {
+      const memeFile = bucket.file(`ig_posts/${queueItemId}/slide_meme.png`);
+      const [exists] = await memeFile.exists();
+      if (exists) {
+        const [signedUrl] = await memeFile.getSignedUrl({
+          action: "read",
+          expires: Date.now() + 60 * 60 * 1000,
+        });
+        urls.push(signedUrl);
+      }
     }
 
     return urls;
@@ -65,8 +77,11 @@ export async function GET() {
     const toItem = async (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = doc.data();
       const contentSlideCount = data.payload?.slides?.length ?? 0;
-      const totalSlideCount = contentSlideCount;
-      const slideUrls = totalSlideCount > 0 ? await getSlideUrls(doc.id, totalSlideCount) : [];
+      const hasMemeSlide = !!data.payload?.memeSlide;
+      const totalSlideCount = contentSlideCount + (hasMemeSlide ? 1 : 0);
+      const slideUrls = totalSlideCount > 0
+        ? await getSlideUrls(doc.id, contentSlideCount, hasMemeSlide)
+        : [];
 
       return {
         id: doc.id,

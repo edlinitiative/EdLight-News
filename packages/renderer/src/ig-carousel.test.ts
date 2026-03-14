@@ -2,8 +2,8 @@
  * Tests for the IG carousel renderer.
  *
  * Validates:
- *  - Per-type overlay system (news/histoire get strongest overlays)
- *  - Inner-slide blur/tint for repeated backgrounds
+ *  - Per-type cover overlay system (news/histoire get strongest overlays)
+ *  - Inner-slide blur treatment for repeated backgrounds
  *  - Headline CSS clamp values match new wider budgets
  *  - All layouts produce valid HTML with correct dimensions
  */
@@ -67,11 +67,12 @@ describe("buildSlideHTML", () => {
     assert.ok(html.includes("linear-gradient"), "Should have gradient");
   });
 
-  it("inner slide with image gets blur CSS for visual differentiation", () => {
+  it("inner slide with image gets blur CSS without the extra dark overlay", () => {
     const slide = makeSlide({ backgroundImage: "https://example.com/img.jpg" });
     const html = buildSlideHTML(slide, "news", 1, 4);
     assert.ok(html.includes("blur(6px)"), "Inner slide with image should have blur");
     assert.ok(html.includes("brightness(0.7)"), "Inner slide should dim the blurred background");
+    assert.ok(!html.includes('<div class="overlay"></div>'), "Inner slide should not render the overlay div");
   });
 
   it("first slide does NOT get blur CSS", () => {
@@ -109,18 +110,18 @@ describe("buildSlideHTML", () => {
     }
   });
 
-  it("explanation layout also gets per-type overlay and blur", () => {
+  it("explanation layout keeps blur on inner image slides without an overlay", () => {
     const slide = makeSlide({ layout: "explanation", backgroundImage: "https://example.com/img.jpg" });
     const html = buildSlideHTML(slide, "opportunity", 2, 4);
-    assert.ok(html.includes("overlay"), "Explanation should have overlay");
     assert.ok(html.includes("blur(6px)"), "Explanation inner slide should have blur");
+    assert.ok(!html.includes('<div class="overlay"></div>'), "Explanation inner slide should not have overlay div");
   });
 
-  it("data layout gets per-type overlay", () => {
+  it("data layout keeps blur on inner image slides without an overlay", () => {
     const slide = makeSlide({ layout: "data", statValue: "250K", statDescription: "Coverage", backgroundImage: "https://example.com/img.jpg" });
     const html = buildSlideHTML(slide, "scholarship", 1, 3);
-    assert.ok(html.includes("overlay"), "Data slide should have overlay");
     assert.ok(html.includes("blur(6px)"), "Data inner slide should have blur");
+    assert.ok(!html.includes('<div class="overlay"></div>'), "Data inner slide should not have overlay div");
   });
 
   it("taux slides still use dedicated financial template", () => {

@@ -5,7 +5,7 @@
  * Runs as part of the /tick pipeline.
  */
 
-import { igQueueRepo, uploadCarouselSlides } from "@edlight-news/firebase";
+import { igQueueRepo, itemsRepo, uploadCarouselSlides } from "@edlight-news/firebase";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGPostType } from "@edlight-news/types";
@@ -13,6 +13,7 @@ import {
   validatePayloadForPublishing,
   type IGPublishIssue,
 } from "../services/igPublishValidation.js";
+import { generateContextualImage } from "../services/geminiImageGen.js";
 
 // Must match the TTLs in scheduleIgPost.ts
 const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
@@ -42,6 +43,40 @@ export interface ProcessIgScheduledResult {
   posted: number;
   dryRun: number;
   errors: number;
+}
+
+function isItemImageUsableForIG(item: Awaited<ReturnType<typeof itemsRepo.getItem>>): boolean {
+  if (!item?.imageUrl) return false;
+
+  const width = item.imageMeta?.width;
+  const height = item.imageMeta?.height;
+
+  if (item.imageSource === "branded" && (!width || !height)) {
+    return false;
+  }
+
+  if (!width || !height) return true;
+  if (Math.min(width, height) < 1080) return false;
+  if (width / Math.max(height, 1) > 2.1) return false;
+
+  return true;
+}
+
+function stripUnsafeSlideBackgrounds(
+  slidePayload: IGQueueItem["payload"],
+  itemImageUrl: string | undefined,
+): number {
+  if (!slidePayload || !itemImageUrl) return 0;
+
+  let stripped = 0;
+  for (const slide of slidePayload.slides) {
+    if (slide.backgroundImage === itemImageUrl) {
+      delete slide.backgroundImage;
+      stripped++;
+    }
+  }
+
+  return stripped;
 }
 
 export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
@@ -100,9 +135,51 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         }
 
         const validation = validatePayloadForPublishing(item.payload, item.igType);
+        const sourceItem = await itemsRepo.getItem(item.sourceContentId);
+        const publishPayload = validation.payload;
+
+        if (sourceItem?.imageUrl && !isItemImageUsableForIG(sourceItem)) {
+          const strippedSlides = stripUnsafeSlideBackgrounds(publishPayload, sourceItem.imageUrl);
+          if (strippedSlides > 0) {
+            console.log(
+              `[processIgScheduled] stripped ${strippedSlides} low-resolution background(s) for ${item.id}`,
+            );
+          }
+        }
+
+        const slidesNeedingImage = publishPayload.slides.filter((slide) => !slide.backgroundImage);
+        if (slidesNeedingImage.length > 0 && sourceItem) {
+          // Reuse the cover image when it already has one so all slides stay
+          // consistent (avoids cover ≠ inner image mismatch at render time).
+          const coverImage = publishPayload.slides[0]?.backgroundImage;
+          if (coverImage) {
+            for (const slide of slidesNeedingImage) {
+              slide.backgroundImage = coverImage;
+            }
+            console.log(
+              `[processIgScheduled] propagated cover image to ${slidesNeedingImage.length} slide(s) for ${item.id}`,
+            );
+          } else {
+            try {
+              const generated = await generateContextualImage(sourceItem);
+              if (generated?.url) {
+                for (const slide of slidesNeedingImage) {
+                  slide.backgroundImage = generated.url;
+                }
+                console.log(
+                  `[processIgScheduled] filled ${slidesNeedingImage.length} slide background(s) for ${item.id}`,
+                );
+              }
+            } catch (imageErr) {
+              const msg = imageErr instanceof Error ? imageErr.message : String(imageErr);
+              console.warn(`[processIgScheduled] contextual image fallback failed for ${item.id}: ${msg}`);
+            }
+          }
+        }
+
         if (validation.shouldHold) {
           await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
-            payload: validation.payload,
+            payload: publishPayload,
             reasons: [
               ...item.reasons,
               ...validation.issues.map((issue: IGPublishIssue) => `Quality hold: ${issue.message}`),
@@ -117,7 +194,7 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         }
 
         // Render assets
-        const assets = await generateCarouselAssets(item, validation.payload);
+        const assets = await generateCarouselAssets(item, publishPayload);
 
         // Upload rendered PNGs to Firebase Storage so the IG API can access them.
         // In dry-run mode (HTML files) we skip the upload and pass local paths.
@@ -137,7 +214,7 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         }
 
         // Publish (or dry-run)
-        const publishResult = await publishIgPost(item, validation.payload, slideUrls);
+        const publishResult = await publishIgPost(item, publishPayload, slideUrls);
 
         if (publishResult.posted) {
           await igQueueRepo.markPosted(item.id, publishResult.igPostId);

@@ -95,7 +95,7 @@ function bodyCss(dark: string, bgImage?: string): string {
 
 /**
  * Inner slides that reuse the cover’s background image get a subtle blur
- * to visually differentiate them and improve text readability.
+ * to visually differentiate them while staying closer to the original photo.
  */
 function innerBlurCss(isFirst: boolean, hasImage: boolean): string {
   if (isFirst || !hasImage) return "";
@@ -104,6 +104,18 @@ function innerBlurCss(isFirst: boolean, hasImage: boolean): string {
 
 function overlayCss(gradient: string): string {
   return `.overlay { position:absolute; inset:0; background:${gradient}; }`;
+}
+
+function imageLayerCss(hasImage: boolean, accent: string, overlayGradient?: string): string {
+  if (!hasImage) return glowCss(accent);
+  if (!overlayGradient) return "";
+  return overlayCss(overlayGradient);
+}
+
+function imageLayerHtml(hasImage: boolean, overlayGradient?: string): string {
+  if (!hasImage) return '<div class="bg-glow"></div><div class="accent-bar"></div>';
+  if (!overlayGradient) return "";
+  return '<div class="overlay"></div>';
 }
 
 function glowCss(accent: string): string {
@@ -162,7 +174,7 @@ function buildHeadlineHTML(
   const hClamp = isFirst ? (slide.heading.length > 60 ? 8 : 7) : slide.heading.length > 120 ? 8 : 6;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  const overlayGradient = isFirst ? overlays.cover : overlays.inner;
+  const overlayGradient = isFirst ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -171,7 +183,7 @@ ${GOOGLE_FONTS_LINK}
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
 ${innerBlurCss(isFirst, hasImage)}
-${hasImage ? overlayCss(overlayGradient) : glowCss(accent)}
+${imageLayerCss(hasImage, accent, overlayGradient)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
@@ -183,7 +195,7 @@ ${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border
 ${bottomCss()}
 </style></head>
 <body>
-${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div class="accent-bar"></div>'}
+${imageLayerHtml(hasImage, overlayGradient)}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
@@ -211,7 +223,7 @@ function buildExplanationHTML(
   const hasImage = !!slide.backgroundImage;
   const pad = `${MARGIN.top}px ${MARGIN.side}px 140px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  const overlayGradient = isFirst ? overlays.cover : overlays.inner;
+  const overlayGradient = isFirst ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -220,7 +232,7 @@ ${GOOGLE_FONTS_LINK}
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
 ${innerBlurCss(isFirst, hasImage)}
-${hasImage ? overlayCss(overlayGradient) : glowCss(accent)}
+${imageLayerCss(hasImage, accent, overlayGradient)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -230,7 +242,7 @@ ${pillCss(accent)}
 ${bottomCss()}
 </style></head>
 <body>
-${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div class="accent-bar"></div>'}
+${imageLayerHtml(hasImage, overlayGradient)}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
@@ -255,7 +267,7 @@ function buildDataHTML(
   const hasImage = !!slide.backgroundImage;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  const overlayGradient = isFirst ? overlays.cover : overlays.inner;
+  const overlayGradient = isFirst ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -264,7 +276,7 @@ ${GOOGLE_FONTS_LINK}
 ${resetCss()}
 ${bodyCss(dark, slide.backgroundImage)}
 ${innerBlurCss(isFirst, hasImage)}
-${hasImage ? overlayCss(overlayGradient) : glowCss(accent)}
+${imageLayerCss(hasImage, accent, overlayGradient)}
 ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
@@ -275,7 +287,7 @@ ${pillCss(accent)}
 ${bottomCss()}
 </style></head>
 <body>
-${hasImage ? '<div class="overlay"></div>' : '<div class="bg-glow"></div><div class="accent-bar"></div>'}
+${imageLayerHtml(hasImage, overlayGradient)}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
