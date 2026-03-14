@@ -15,7 +15,7 @@ import { buildOpportunityCarousel } from "./opportunity.js";
 import { buildNewsCarousel } from "./news.js";
 import { buildHistoireCarousel } from "./histoire.js";
 import { buildUtilityCarousel } from "./utility.js";
-import { reviewSlides } from "../review.js";
+import { normalizePayloadForPublishing, reviewSlides } from "../review.js";
 
 /** Options controlling IG formatting behaviour. */
 export interface FormatIGOptions {
@@ -86,16 +86,16 @@ export async function formatForIG(
   // ── Two-pass reviewer: fix English leaks, narrative coherence, emoji limits ──
   // Non-blocking: if the reviewer fails, we return the original payload.
   try {
-    const reviewed = await reviewSlides(payload, igType);
+    const reviewed = await reviewSlides(payload, igType, item);
     if (reviewed.corrected) {
       console.log(`[formatForIG] Reviewer corrected ${igType} post: ${reviewed.corrections.join("; ")}`);
-      return reviewed.payload;
+      return normalizePayloadForPublishing(reviewed.payload);
     }
   } catch (err) {
     console.warn(`[formatForIG] Reviewer error (non-fatal):`, err instanceof Error ? err.message : err);
   }
 
-  return payload;
+  return normalizePayloadForPublishing(payload);
 }
 
 export type { BilingualText } from "./helpers.js";

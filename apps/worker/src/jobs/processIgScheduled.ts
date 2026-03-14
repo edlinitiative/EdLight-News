@@ -9,6 +9,10 @@ import { igQueueRepo, uploadCarouselSlides } from "@edlight-news/firebase";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGPostType } from "@edlight-news/types";
+import {
+  validatePayloadForPublishing,
+  type IGPublishIssue,
+} from "../services/igPublishValidation.js";
 
 // Must match the TTLs in scheduleIgPost.ts
 const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
@@ -54,6 +58,10 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
     const now = new Date();
 
     for (const item of scheduled) {
+      if (item.status === "scheduled_ready_for_manual") {
+        continue;
+      }
+
       // Only process items that are due
       if (item.scheduledFor && new Date(item.scheduledFor) > now) {
         continue;
@@ -91,8 +99,25 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           continue;
         }
 
+        const validation = validatePayloadForPublishing(item.payload, item.igType);
+        if (validation.shouldHold) {
+          await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
+            payload: validation.payload,
+            reasons: [
+              ...item.reasons,
+              ...validation.issues.map((issue: IGPublishIssue) => `Quality hold: ${issue.message}`),
+            ],
+          });
+          console.warn(
+            `[processIgScheduled] item ${item.id} held for manual review: ${validation.issues
+              .map((issue: IGPublishIssue) => issue.message)
+              .join("; ")}`,
+          );
+          continue;
+        }
+
         // Render assets
-        const assets = await generateCarouselAssets(item, item.payload);
+        const assets = await generateCarouselAssets(item, validation.payload);
 
         // Upload rendered PNGs to Firebase Storage so the IG API can access them.
         // In dry-run mode (HTML files) we skip the upload and pass local paths.
@@ -101,12 +126,18 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           try {
             slideUrls = await uploadCarouselSlides(assets.slidePaths, item.id);
           } catch (uploadErr) {
-            console.warn(`[processIgScheduled] Storage upload failed, using local paths:`, uploadErr);
+            const uploadMsg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
+            console.warn(`[processIgScheduled] Storage upload failed for ${item.id}: ${uploadMsg}`);
+            await igQueueRepo.updateStatus(item.id, "scheduled", {
+              reasons: [...item.reasons, `Storage upload failed: ${uploadMsg}`],
+            });
+            result.errors++;
+            continue;
           }
         }
 
         // Publish (or dry-run)
-        const publishResult = await publishIgPost(item, item.payload, slideUrls);
+        const publishResult = await publishIgPost(item, validation.payload, slideUrls);
 
         if (publishResult.posted) {
           await igQueueRepo.markPosted(item.id, publishResult.igPostId);

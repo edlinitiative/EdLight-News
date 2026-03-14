@@ -7,7 +7,12 @@
 
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { countEmojis, needsReview } from "./review.js";
+import {
+  countEmojis,
+  needsReview,
+  normalizePayloadForPublishing,
+  validatePayloadForPublishing,
+} from "./review.js";
 import type { IGFormattedPayload } from "@edlight-news/types";
 
 // ── countEmojis ────────────────────────────────────────────────────────────
@@ -42,7 +47,7 @@ describe("countEmojis", () => {
 function makePayload(slides: { heading: string; bullets: string[] }[]): IGFormattedPayload {
   return {
     slides: slides.map((s) => ({ ...s, layout: "explanation" as const })),
-    caption: "Test caption",
+    caption: "Résumé propre.",
   };
 }
 
@@ -78,5 +83,85 @@ describe("needsReview", () => {
     const result = needsReview(payload, "histoire");
     // This might or might not trigger depending on similarity threshold
     assert.equal(typeof result, "boolean");
+  });
+
+  it("flags captions with broken sentence endings", () => {
+    const payload = makePayload([
+      { heading: "Actualité", bullets: ["Texte propre"] },
+    ]);
+    payload.caption = "Titre\n\nVoici un paragraphe qui se termine au milieu d'une idée…\n\n#EdLightNews";
+    assert.equal(needsReview(payload, "news"), true);
+  });
+
+  it("flags captions with repeated prose blocks", () => {
+    const payload = makePayload([
+      { heading: "Actualité", bullets: ["Texte propre"] },
+    ]);
+    payload.caption = "Titre\n\nLe ministère a confirmé l'ouverture des inscriptions pour 2026.\n\nLe ministère a confirmé l'ouverture des inscriptions pour 2026.\n\n#EdLightNews";
+    assert.equal(needsReview(payload, "news"), true);
+  });
+});
+
+describe("normalizePayloadForPublishing", () => {
+  it("trims whitespace, deduplicates bullets, and repairs caption endings", () => {
+    const payload: IGFormattedPayload = {
+      slides: [
+        {
+          heading: "  Titre principal  ",
+          bullets: ["  Point clé  ", "Point clé", "   ", "Autre point"],
+          layout: "explanation",
+        },
+      ],
+      caption: "Titre\n\nUne phrase qui se coupe au milieu…",
+    };
+
+    const normalized = normalizePayloadForPublishing(payload);
+
+    assert.deepEqual(normalized.slides[0]?.bullets, ["Point clé", "Autre point"]);
+    assert.equal(normalized.slides[0]?.heading, "Titre principal");
+    assert.equal(normalized.caption, "Titre.\n\nUne phrase qui se coupe au milieu.");
+  });
+});
+
+describe("validatePayloadForPublishing", () => {
+  it("holds payloads that are still too short or duplicated", () => {
+    const result = validatePayloadForPublishing(
+      {
+        slides: [
+          { heading: "Même idée", bullets: ["Texte identique"], layout: "explanation" },
+          { heading: "Même idée", bullets: ["Texte identique"], layout: "explanation" },
+        ],
+        caption: "Trop court.",
+      },
+      "news",
+    );
+
+    assert.equal(result.shouldHold, true);
+    assert.ok(result.issues.some((issue) => /trop courte/i.test(issue.message)));
+    assert.ok(result.issues.some((issue) => /trop similaire/i.test(issue.message)));
+  });
+
+  it("passes polished editorial captions", () => {
+    const result = validatePayloadForPublishing(
+      {
+        slides: [
+          {
+            heading: "L'État lance un nouveau programme",
+            bullets: ["Le ministère détaille le calendrier 2026 pour les inscriptions."],
+            layout: "headline",
+          },
+          {
+            heading: "Ce qu'il faut retenir",
+            bullets: ["Les premières démarches commencent en avril.", "Les candidats devront suivre les consignes officielles."],
+            layout: "explanation",
+          },
+        ],
+        caption: "Le ministère a présenté un nouveau programme pour 2026.\n\nLes premières démarches débutent en avril et les détails seront publiés progressivement.\n\nConsultez EdLight News pour suivre les prochaines annonces officielles.\n\n#EdLightNews #Haïti #Éducation",
+      },
+      "news",
+    );
+
+    assert.equal(result.shouldHold, false);
+    assert.equal(result.issues.length, 0);
   });
 });

@@ -13,7 +13,8 @@
  */
 
 import { callLLM, type LLMOptions } from "../client.js";
-import type { IGFormattedPayload, IGSlide, IGPostType } from "@edlight-news/types";
+import type { IGFormattedPayload, IGSlide, IGPostType, Item } from "@edlight-news/types";
+import { buildSourceLine, finalizeCaption, formatDeadline, hasCaptionQualityIssues } from "./formatters/helpers.js";
 
 // ── Configuration ──────────────────────────────────────────────────────────
 
@@ -64,6 +65,10 @@ export function needsReview(payload: IGFormattedPayload, igType: IGPostType): bo
     .flatMap((s) => [s.heading, ...s.bullets])
     .join(" ");
   if (hasEnglishMarkers(allText)) return true;
+  if (hasEnglishMarkers(payload.caption)) return true;
+
+  // Check caption quality: broken endings, repeated paragraphs, etc.
+  if (hasCaptionQualityIssues(payload.caption)) return true;
 
   // Check narrative coherence: if slides 2+ repeat slide 1's heading
   if (payload.slides.length >= 2) {
@@ -134,7 +139,9 @@ RÈGLES STRICTES — applique TOUTES ces corrections:
    - Les slides 2, 3, 4... doivent CONTINUER l'histoire séquentiellement.
    - En lisant slides 1→2→3→...→N, le lecteur doit comprendre une histoire fluide et complète.
    - La légende doit refléter le même arc narratif.
-   - Aucune slide ne doit répéter le contenu d'une autre.
+  - Aucune slide ne doit répéter le contenu d'une autre.
+  - La légende ne doit pas répéter la même information d'un paragraphe à l'autre.
+  - Aucun paragraphe de légende ne doit finir sur une phrase coupée, une ellipse ou une ponctuation suspendue.
 
 3. EMOJIS: Maximum ${maxEmoji} emojis au total dans TOUTES les slides combinées.${igType === "histoire" ? " L'histoire demande de la gravité — très peu d'emojis." : ""}
 
@@ -175,6 +182,17 @@ export interface ReviewResult {
   payload: IGFormattedPayload;
 }
 
+export interface IGPublishIssue {
+  severity: "error" | "warning";
+  message: string;
+}
+
+export interface IGPublishValidationResult {
+  payload: IGFormattedPayload;
+  issues: IGPublishIssue[];
+  shouldHold: boolean;
+}
+
 // ── Main reviewer function ─────────────────────────────────────────────────
 
 /**
@@ -189,16 +207,23 @@ export interface ReviewResult {
 export async function reviewSlides(
   payload: IGFormattedPayload,
   igType: IGPostType,
+  item?: Item,
 ): Promise<ReviewResult> {
+  const normalizedPayload = normalizePayloadForPublishing(payload);
+
   // Quick check — skip LLM call if everything looks clean
-  if (!needsReview(payload, igType)) {
-    return { corrected: false, corrections: [], payload };
+  if (!needsReview(normalizedPayload, igType)) {
+    return {
+      corrected: false,
+      corrections: [],
+      payload: item ? applyFactGuardrails(normalizedPayload, item, igType) : normalizedPayload,
+    };
   }
 
-  console.log(`[ig-review] Reviewing ${igType} post (${payload.slides.length} slides)...`);
+  console.log(`[ig-review] Reviewing ${igType} post (${normalizedPayload.slides.length} slides)...`);
 
   try {
-    const prompt = buildReviewerPrompt(payload, igType);
+    const prompt = buildReviewerPrompt(normalizedPayload, igType);
     const raw = await callLLM(prompt, getReviewerOptions());
 
     // Parse the LLM response
@@ -214,14 +239,18 @@ export async function reviewSlides(
       !parsed.slides?.length &&
       !parsed.caption
     ) {
-      return { corrected: false, corrections: [], payload };
+      return {
+        corrected: false,
+        corrections: [],
+        payload: item ? applyFactGuardrails(normalizedPayload, item, igType) : normalizedPayload,
+      };
     }
 
     // Apply corrections to a copy of the payload
     const corrected: IGFormattedPayload = {
-      ...payload,
-      slides: payload.slides.map((s) => ({ ...s, bullets: [...s.bullets] })),
-      caption: payload.caption,
+      ...normalizedPayload,
+      slides: normalizedPayload.slides.map((s) => ({ ...s, bullets: [...s.bullets] })),
+      caption: normalizedPayload.caption,
     };
 
     if (parsed.slides?.length) {
@@ -240,13 +269,182 @@ export async function reviewSlides(
     const corrections = parsed.corrections_made ?? [];
     console.log(`[ig-review] Applied ${corrections.length} correction(s):`, corrections);
 
-    return { corrected: true, corrections, payload: corrected };
+    return {
+      corrected: true,
+      corrections,
+      payload: item
+        ? applyFactGuardrails(normalizePayloadForPublishing(corrected), item, igType)
+        : normalizePayloadForPublishing(corrected),
+    };
   } catch (err) {
     // Reviewer failure is non-fatal — return original payload
     console.warn(
       `[ig-review] Review failed, using original payload:`,
       err instanceof Error ? err.message : err,
     );
-    return { corrected: false, corrections: [], payload };
+    return {
+      corrected: false,
+      corrections: [],
+      payload: item ? applyFactGuardrails(normalizedPayload, item, igType) : normalizedPayload,
+    };
   }
+}
+
+export function normalizePayloadForPublishing(payload: IGFormattedPayload): IGFormattedPayload {
+  const slides = payload.slides.map((slide) => normalizeSlide(slide));
+  return {
+    ...payload,
+    slides,
+    caption: finalizeCaption(payload.caption),
+  };
+}
+
+export function validatePayloadForPublishing(
+  payload: IGFormattedPayload,
+  igType: IGPostType,
+): IGPublishValidationResult {
+  const normalizedPayload = normalizePayloadForPublishing(payload);
+  const issues: IGPublishIssue[] = [];
+
+  if (normalizedPayload.slides.length === 0) {
+    issues.push({ severity: "error", message: "Aucune slide à publier." });
+  }
+
+  if (normalizedPayload.caption.length < 140) {
+    issues.push({
+      severity: "error",
+      message: "Légende trop courte pour un post Instagram éditorial.",
+    });
+  }
+
+  if (hasCaptionQualityIssues(normalizedPayload.caption)) {
+    issues.push({
+      severity: "error",
+      message: "La légende contient encore des répétitions ou une fin incomplète.",
+    });
+  }
+
+  if (needsReview(normalizedPayload, igType)) {
+    issues.push({
+      severity: "error",
+      message: "Le contenu présente encore des problèmes de langue ou de cohérence.",
+    });
+  }
+
+  for (let i = 0; i < normalizedPayload.slides.length; i++) {
+    const slide = normalizedPayload.slides[i]!;
+    if (!slide.heading.trim()) {
+      issues.push({ severity: "error", message: `Slide ${i + 1}: titre vide.` });
+    }
+
+    const bulletSet = new Set<string>();
+    for (const bullet of slide.bullets) {
+      if (!bullet.trim()) {
+        issues.push({ severity: "error", message: `Slide ${i + 1}: puce vide.` });
+        continue;
+      }
+      const key = bullet.toLowerCase();
+      if (bulletSet.has(key)) {
+        issues.push({ severity: "error", message: `Slide ${i + 1}: puces dupliquées.` });
+      }
+      bulletSet.add(key);
+    }
+  }
+
+  for (let i = 0; i < normalizedPayload.slides.length; i++) {
+    for (let j = i + 1; j < normalizedPayload.slides.length; j++) {
+      const left = slideText(normalizedPayload.slides[i]!);
+      const right = slideText(normalizedPayload.slides[j]!);
+      const similarityScore = similarity(left, right);
+      if (similarityScore >= 0.72) {
+        issues.push({
+          severity: "error",
+          message: `Slides ${i + 1} et ${j + 1}: contenu trop similaire.`,
+        });
+      }
+    }
+  }
+
+  return {
+    payload: normalizedPayload,
+    issues,
+    shouldHold: issues.some((issue) => issue.severity === "error"),
+  };
+}
+
+function applyFactGuardrails(
+  payload: IGFormattedPayload,
+  item: Item,
+  igType: IGPostType,
+): IGFormattedPayload {
+  const corrected: IGFormattedPayload = {
+    ...payload,
+    slides: payload.slides.map((slide) => ({ ...slide, bullets: [...slide.bullets] })),
+  };
+
+  const deadlineIso = item.deadline ?? item.opportunity?.deadline;
+  if ((igType === "scholarship" || igType === "opportunity") && deadlineIso) {
+    const deadlineText = formatDeadline(deadlineIso);
+    const captionDeadlineLine = `Date limite — ${deadlineText}`;
+
+    if (/Date limite/i.test(corrected.caption)) {
+      corrected.caption = corrected.caption.replace(/Date limite\s*[—:-].*/i, captionDeadlineLine);
+    } else {
+      corrected.caption = `${corrected.caption}\n\n${captionDeadlineLine}`;
+    }
+
+    for (const slide of corrected.slides) {
+      slide.bullets = slide.bullets.map((bullet) =>
+        /^Date limite\s*[:—-]/i.test(bullet)
+          ? `Date limite: ${deadlineText}`
+          : bullet,
+      );
+    }
+  }
+
+  if (igType === "scholarship" && item.opportunity?.coverage) {
+    const coverageLine = `Couverture — ${item.opportunity.coverage}`;
+    if (/Couverture/i.test(corrected.caption)) {
+      corrected.caption = corrected.caption.replace(/Couverture\s*[—:-].*/i, coverageLine);
+    } else {
+      corrected.caption = `${corrected.caption}\n${coverageLine}`;
+    }
+  }
+
+  const sourceLine = buildSourceLine(item);
+  if (!corrected.caption.toLowerCase().includes(sourceLine.toLowerCase())) {
+    corrected.caption = `${corrected.caption}\n\n${sourceLine}`;
+  }
+
+  corrected.caption = finalizeCaption(corrected.caption);
+  return normalizePayloadForPublishing(corrected);
+}
+
+function normalizeSlide(slide: IGSlide): IGSlide {
+  const bullets: string[] = [];
+  const seen = new Set<string>();
+
+  for (const bullet of slide.bullets) {
+    const normalizedBullet = normalizeLine(bullet);
+    if (!normalizedBullet) continue;
+    const key = normalizedBullet.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    bullets.push(normalizedBullet);
+  }
+
+  return {
+    ...slide,
+    heading: normalizeLine(slide.heading),
+    bullets,
+    ...(slide.footer ? { footer: normalizeLine(slide.footer) } : {}),
+  };
+}
+
+function normalizeLine(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function slideText(slide: IGSlide): string {
+  return [slide.heading, ...slide.bullets].join(" ").trim();
 }

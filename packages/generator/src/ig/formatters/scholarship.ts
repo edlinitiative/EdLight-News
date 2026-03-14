@@ -11,7 +11,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, formatDeadline, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, ensureFrenchEligibility, ensureFrenchHowToApply, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, type BilingualText } from "./helpers.js";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
@@ -79,22 +79,22 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     heading: "Comment postuler",
     bullets: applyBullets,
     layout: "explanation",
-    footer: buildSourceLine(item),
+    footer: buildSourceFooter(item),
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
   // Ensure last slide has source
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
-    slides[slides.length - 1]!.footer = buildSourceLine(item);
+    slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
 
   // ── Caption ──
-  const parts: string[] = [title, "", summary];
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${bi.htSummary}`);
+  const parts: string[] = [title, "", shortenCaptionText(summary, 340)];
+  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 280)}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
   if (item.opportunity?.coverage) parts.push(`Couverture — ${item.opportunity.coverage}`);
-  parts.push("", "#Bourse #Scholarship #EdLightNews #Haïti #Éducation");
+  parts.push("", "#Bourse #BoursesEtudes #EdLightNews #Haïti #Éducation");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
-  return { slides, caption: truncateCaption(parts.join("\n")) };
+  return { slides, caption: finalizeCaption(parts.join("\n")) };
 }

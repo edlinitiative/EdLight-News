@@ -55,7 +55,7 @@ export async function listQueuedByScore(limit = 20): Promise<IGQueueItem[]> {
 
 export async function listScheduled(limit = 10): Promise<IGQueueItem[]> {
   const snap = await collection()
-    .where("status", "in", ["scheduled", "scheduled_ready_for_manual"])
+    .where("status", "==", "scheduled" satisfies IGQueueStatus)
     .orderBy("scheduledFor", "asc")
     .limit(limit)
     .get();

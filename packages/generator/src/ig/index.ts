@@ -9,8 +9,14 @@ export { formatForIG } from "./formatters/index.js";
 export type { BilingualText, FormatIGOptions } from "./formatters/index.js";
 export { buildDailySummaryStory } from "./formatters/story.js";
 export type { StoryItemInput, StoryTauxInput, StoryFactsInput } from "./formatters/story.js";
-export { reviewSlides, needsReview, countEmojis } from "./review.js";
-export type { ReviewResult } from "./review.js";
+export {
+  reviewSlides,
+  needsReview,
+  countEmojis,
+  normalizePayloadForPublishing,
+  validatePayloadForPublishing,
+} from "./review.js";
+export type { ReviewResult, IGPublishIssue, IGPublishValidationResult } from "./review.js";
 export {
   buildScholarshipCarousel,
   buildOpportunityCarousel,
