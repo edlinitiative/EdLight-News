@@ -20,12 +20,8 @@ import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportun
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { buildOgMetadata } from "@/lib/og";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 300;
-
-export async function generateStaticParams() {
-  const articles = await contentVersionsRepo.listPublishedForWeb("fr", 100);
-  return articles.map((a: { id: string }) => ({ id: a.id }));
-}
 
 async function getArticle(id: string): Promise<ContentVersion | null> {
   return contentVersionsRepo.getContentVersion(id);

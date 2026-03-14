@@ -16,7 +16,8 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
 
 import { getDb } from "@edlight-news/firebase";
-import { isRoundupTitle } from "@edlight-news/generator/ig/selection";
+import { isRoundupTitle } from "@edlight-news/generator/ig/selection.js";
+import type { IGSlide } from "@edlight-news/types";
 
 const db = getDb();
 
@@ -44,11 +45,11 @@ async function auditIgQueue(): Promise<Issue[]> {
   for (const doc of docs) {
     const problems: string[] = [];
     const payload = doc.payload ?? {};
-    const slides: any[] = payload.slides ?? [];
-    const title = slides[0]?.headline ?? doc.itemTitle ?? "(no title)";
+    const slides: IGSlide[] = payload.slides ?? [];
+    const title = slides[0]?.heading ?? "(no title)";
     const igType = doc.igType ?? "unknown";
-    const scheduledAt = doc.scheduledAt
-      ? (doc.scheduledAt.toDate ? doc.scheduledAt.toDate() : new Date(doc.scheduledAt)).toISOString().slice(0, 16)
+    const scheduledAt = doc.scheduledFor
+      ? new Date(doc.scheduledFor).toISOString().slice(0, 16)
       : "not scheduled";
 
     // 1. Roundup check (news only)
@@ -57,9 +58,7 @@ async function auditIgQueue(): Promise<Issue[]> {
     }
 
     // 2. Missing background images on slides
-    const slidesWithoutBg = slides.filter(
-      (s: any, i: number) => !s.backgroundImage && !s.isCta
-    );
+    const slidesWithoutBg = slides.filter((slide) => !slide.backgroundImage);
     if (slidesWithoutBg.length > 0) {
       problems.push(`🖼️  ${slidesWithoutBg.length}/${slides.length} slides missing backgroundImage`);
     }
@@ -75,7 +74,7 @@ async function auditIgQueue(): Promise<Issue[]> {
 
     // 4. Headline truncation — check for mid-word "…"
     for (let i = 0; i < slides.length; i++) {
-      const h = slides[i]?.headline ?? "";
+      const h = slides[i]?.heading ?? "";
       if (h.includes("…") || h.includes("...")) {
         // Check if the "…" is mid-word (bad) vs end of clause (acceptable)
         const before = h.split(/[…\.]{3}/)[0]?.trim() ?? "";
@@ -83,7 +82,7 @@ async function auditIgQueue(): Promise<Issue[]> {
           problems.push(`✂️  Slide ${i + 1} headline truncated mid-phrase: "${h.slice(-40)}"`);
         }
       }
-      const body = slides[i]?.body ?? "";
+      const body = slides[i]?.bullets?.join(" ") ?? "";
       if (body.includes("…") || body.includes("...")) {
         const before = body.split(/[…\.]{3}/)[0]?.trim() ?? "";
         if (before && !before.match(/[,;:—–\-]$/)) {
@@ -135,7 +134,7 @@ async function auditStoryQueue(): Promise<Issue[]> {
   for (const doc of docs) {
     const problems: string[] = [];
     const payload = doc.payload ?? {};
-    const slides: any[] = payload.slides ?? [];
+    const slides: IGSlide[] = payload.slides ?? [];
     const title = `Story ${doc.dateKey ?? doc.id}`;
 
     if (slides.length === 0) {
