@@ -18,7 +18,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { truncateCaption, buildCTA, buildSourceLine, shortenText, shortenHeadline, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, type BilingualText } from "./helpers.js";
 import { isJunkSentence, cleanExtractedText, splitSentences } from "./news.js";
 
 /** Max content slides (excluding cover + source). Keeps carousels digestible. */
@@ -160,21 +160,13 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
   const imageUrl = item.imageUrl ?? undefined;
   const sections = bi?.frSections;
   const bodyText = bi?.frBody;
+  const coverBullets = buildHistoryCoverBullets(item, summary, sections);
 
   // ══════════════════════════════════════════════════════════════════════
-  // Slide 1 — Cover: punchy title + short teaser (never clips)
+  // Slide 1 — Cover: date-led history opener + one-line event summaries
   // ══════════════════════════════════════════════════════════════════════
-  // Only include a short teaser if the title alone doesn't tell the story.
-  // This prevents the last-line clipping issue on the cover.
-  const coverBullets: string[] = [];
-  if (summary && title.length < 80) {
-    // Short one-liner teaser — NOT the full summary
-    const teaser = shortenText(summary, 100);
-    if (teaser.length >= 20) coverBullets.push(teaser);
-  }
-
   slides.push({
-    heading: shortenHeadline(title, 12),
+    heading: formatHistoryCoverDate(item),
     bullets: coverBullets,
     layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
@@ -328,17 +320,18 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
   // Last slide — Source / CTA
   // ══════════════════════════════════════════════════════════════════════
   const sourceLine = buildSourceLine(item);
+  const sourceFooter = buildSourceFooter(item);
 
   // Ensure last content slide has the source footer
   if (slides.length > 1) {
-    slides[slides.length - 1]!.footer = sourceLine;
+    slides[slides.length - 1]!.footer = sourceFooter;
   } else {
     // Only cover exists — add a dedicated source slide
     slides.push({
       heading: "Source",
-      bullets: [sourceLine],
+      bullets: [sourceFooter],
       layout: "explanation",
-      footer: sourceLine,
+      footer: sourceFooter,
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
@@ -358,16 +351,16 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
         .filter((s) => s.length >= 15 && !isJunkSentence(s) && !isSourceLine(s))[0];
       if (firstSentence) {
         captionParts.push(`📌 ${stripMarkdown(section.heading)}`);
-        captionParts.push(shortenText(firstSentence, 200));
+        captionParts.push(shortenCaptionText(firstSentence, 200));
         captionParts.push("");
       }
     }
   } else {
-    captionParts.push(shortenText(summary, 400));
+    captionParts.push(shortenCaptionText(summary, 400));
     captionParts.push("");
   }
 
-  if (bi?.htSummary) captionParts.push(`🇭🇹 ${shortenText(bi.htSummary, 300)}`, "");
+  if (bi?.htSummary) captionParts.push(`🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`, "");
 
   // Hashtags — vary by series type
   const seriesType = item.utilityMeta?.series;
@@ -381,5 +374,75 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
 
   captionParts.push("", buildCTA(), "", sourceLine);
 
-  return { slides, caption: truncateCaption(captionParts.join("\n")) };
+  return { slides, caption: finalizeCaption(captionParts.join("\n")) };
+}
+
+function buildHistoryCoverBullets(
+  item: Item,
+  summary: string,
+  sections?: { heading: string; content: string }[],
+): string[] {
+  const lines = ["Dans l'histoire d'Haïti"];
+
+  const summaryLines = buildHistorySummaryLines(sections, summary);
+  for (const line of summaryLines) {
+    if (lines.length >= 4) break;
+    lines.push(line);
+  }
+
+  if (lines.length === 1 && item.title) {
+    lines.push(shortenText(item.title, 110));
+  }
+
+  return lines;
+}
+
+function buildHistorySummaryLines(
+  sections: { heading: string; content: string }[] | undefined,
+  fallbackSummary: string,
+): string[] {
+  const lines: string[] = [];
+  const seen = new Set<string>();
+
+  for (const section of sections ?? []) {
+    const firstSentence = splitSentences(stripMarkdown(section.content))
+      .filter((sentence) => sentence.length >= 18 && !isJunkSentence(sentence) && !isSourceLine(sentence))[0];
+    const candidate = shortenText(firstSentence ?? section.heading, 105);
+    const key = candidate.toLowerCase();
+    if (!candidate || seen.has(key)) continue;
+    seen.add(key);
+    lines.push(candidate);
+    if (lines.length >= 3) break;
+  }
+
+  if (lines.length === 0 && fallbackSummary) {
+    const summarySentences = splitSentences(stripMarkdown(fallbackSummary));
+    for (const sentence of summarySentences) {
+      const candidate = shortenText(sentence, 105);
+      const key = candidate.toLowerCase();
+      if (!candidate || seen.has(key)) continue;
+      seen.add(key);
+      lines.push(candidate);
+      if (lines.length >= 3) break;
+    }
+  }
+
+  return lines;
+}
+
+function formatHistoryCoverDate(item: Item): string {
+  const date = toItemDate(item);
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    timeZone: "America/Port-au-Prince",
+  }).format(date).toUpperCase();
+}
+
+function toItemDate(item: Item): Date {
+  const raw = item.publishedAt as { seconds?: number; _seconds?: number } | Date | null | undefined;
+  if (raw instanceof Date) return raw;
+  const seconds = raw?.seconds ?? raw?._seconds;
+  if (typeof seconds === "number") return new Date(seconds * 1000);
+  return new Date();
 }

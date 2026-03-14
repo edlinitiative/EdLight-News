@@ -38,15 +38,25 @@ describe("buildStorySlideHTML", () => {
 
   it("dispatches facts frameType to facts card", () => {
     const slide: IGStorySlide = {
-      heading: "Le saviez-vous ?",
+      heading: "Repères du jour",
       bullets: ["Fait 1", "Fait 2", "Fait 3"],
       accent: "#34d399",
       frameType: "facts",
     };
     const html = buildStorySlideHTML(slide, "13 mars 2026", 1, 5);
-    assert.ok(html.includes("LE SAVIEZ-VOUS"), "Should contain pill label");
+    assert.ok(html.includes("REPÈRES DU JOUR"), "Should contain pill label");
     assert.ok(html.includes("Fait 1"), "Should contain first fact");
     assert.ok(html.includes("Fait 3"), "Should contain third fact");
+  });
+
+  it("does not render story progress bars at the top", () => {
+    const slide: IGStorySlide = {
+      heading: "131.2589",
+      bullets: ["13 mars 2026"],
+      frameType: "taux",
+    };
+    const html = buildStorySlideHTML(slide, "13 mars 2026", 0, 5);
+    assert.ok(!html.includes("transition:width 0.2s"), "Should not render top progress markers");
   });
 
   it("dispatches headline frameType to article summary card", () => {

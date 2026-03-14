@@ -29,7 +29,7 @@ import {
 } from "@edlight-news/generator/ig/index.js";
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
 import { itemsRepo } from "@edlight-news/firebase";
-import type { IGStoryQueueStatus } from "@edlight-news/types";
+import type { IGStoryQueueStatus, Item } from "@edlight-news/types";
 
 // ── Haiti timezone ─────────────────────────────────────────────────────────
 const HAITI_TZ = "America/Port-au-Prince";
@@ -104,7 +104,8 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
         rate: coverSlide.heading,
         dateLabel: coverSlide.footer ?? dateKey,
         bullets: coverSlide.bullets.slice(0, 2),
-      };
+        backgroundImage: coverSlide.backgroundImage,
+      } as StoryTauxInput;
     }
 
     // ── Frame 2: Faits du jour ───────────────────────────────────────────
@@ -116,21 +117,28 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
 
     if (utilityIds.length > 0) {
       const factLines: string[] = [];
+      let factsBackgroundImage: string | undefined;
       for (const uid of utilityIds.slice(0, 5)) {
         try {
           const utilItem = await itemsRepo.getItem(uid);
           if (!utilItem) continue;
-          // Use the title as a compact fact line
-          const factTitle = utilItem.title;
-          if (factTitle && factTitle.length >= 10 && factTitle.length <= 120) {
-            factLines.push(factTitle);
+          if (!factsBackgroundImage && utilItem.imageUrl) {
+            factsBackgroundImage = utilItem.imageUrl;
+          }
+
+          const factLine = buildFactLine(utilItem);
+          if (factLine) {
+            factLines.push(factLine);
           }
         } catch {
           // skip
         }
       }
       if (factLines.length > 0) {
-        factsInput = { facts: factLines };
+        factsInput = {
+          facts: factLines,
+          backgroundImage: factsBackgroundImage,
+        } as StoryFactsInput;
       }
     }
 
@@ -224,4 +232,17 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
     console.error("[buildIgStory] Error:", err instanceof Error ? err.message : err);
     return { queued: false, skipped: `error: ${err instanceof Error ? err.message : String(err)}` };
   }
+}
+
+function buildFactLine(item: Item): string | null {
+  const candidate = item.summary && item.summary.length >= 24
+    ? item.summary
+    : item.title;
+  if (!candidate) return null;
+
+  return candidate
+    .replace(/\s+/g, " ")
+    .replace(/[📚💡📌🎉⏰🇭🇹]/gu, "")
+    .trim()
+    .slice(0, 140);
 }

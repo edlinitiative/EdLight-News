@@ -41,19 +41,12 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** Build small progress dots indicating current frame position. */
+/** Story progress bars are intentionally hidden for a cleaner editorial look. */
 function buildProgressDots(current: number, total: number, accent: string): string {
-  const dots: string[] = [];
-  for (let i = 0; i < total; i++) {
-    const active = i === current;
-    dots.push(
-      `<span style="display:inline-block;width:${active ? 28 : 10}px;height:4px;` +
-      `border-radius:2px;background:${active ? accent : "rgba(255,255,255,0.25)"};` +
-      `transition:width 0.2s;"></span>`,
-    );
-  }
-  return `<div style="display:flex;gap:5px;align-items:center;justify-content:center;` +
-    `position:absolute;top:${SAFE_TOP - 40}px;left:72px;right:72px;">${dots.join("")}</div>`;
+  void current;
+  void total;
+  void accent;
+  return "";
 }
 
 // ── Cover frame ───────────────────────────────────────────────────────────
@@ -144,6 +137,9 @@ function buildTauxFrameHTML(
 ): string {
   const accent = "#eab308"; // gold
   const rate = slide.heading; // e.g. "131.2589"
+  const bgCss = slide.backgroundImage
+    ? `background:#0a1628 url('${slide.backgroundImage}') center/cover no-repeat;`
+    : "background: linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a1628 100%);";
   // bullets[0] = rate date label, rest are optional market bullets
   const rateDate = slide.bullets[0] ?? dateLabel;
   const marketBullets = slide.bullets.slice(1);
@@ -159,17 +155,24 @@ ${GOOGLE_FONTS_LINK}
 body {
   width:1080px; height:1920px;
   font-family: ${FONT_BODY};
-  background: linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a1628 100%);
+  ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
-.glow { position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); width:700px; height:700px; background:radial-gradient(circle, rgba(234,179,8,0.06) 0%, transparent 70%); }
+.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,10,24,0.48) 0%, rgba(5,10,24,0.38) 30%, rgba(5,10,24,0.72) 75%, rgba(5,10,24,0.88) 100%); }
+.glow { position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); width:700px; height:700px; background:radial-gradient(circle, rgba(234,179,8,0.10) 0%, transparent 70%); }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center; align-items:center;
   padding:${SAFE_TOP + 40}px 72px ${SAFE_BOTTOM + 40}px;
   text-align:center;
 }
-.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:32px; }
+.card {
+  width:100%; max-width:820px; padding:54px 52px; border-radius:34px;
+  background:linear-gradient(180deg, rgba(7,18,35,0.78) 0%, rgba(7,18,35,0.88) 100%);
+  backdrop-filter:blur(10px); box-shadow:0 28px 80px rgba(0,0,0,0.26);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:999px; margin-bottom:28px; }
 .rate-label { font-family:${FONT_HEADLINE}; font-size:18px; font-weight:600; opacity:0.40; letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
 .rate { font-family:${FONT_HEADLINE}; font-size:120px; font-weight:900; letter-spacing:-3px; color:${accent}; line-height:1; margin-bottom:8px; }
 .unit { font-size:24px; font-weight:500; opacity:0.35; letter-spacing:1.5px; margin-bottom:32px; }
@@ -180,15 +183,18 @@ body {
 .bm .nw { color:${accent}; opacity:0.6; }
 </style></head>
 <body>
+${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="glow"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <span class="pill">TAUX DU JOUR</span>
-  <div class="rate-label">TAUX DE RÉFÉRENCE BRH</div>
-  <div class="rate">${escapeHtml(rate)}</div>
-  <div class="unit">HTG / 1 USD</div>
-  <div class="date-line">${escapeHtml(rateDate)}</div>
-  ${marketHtml}
+  <div class="card">
+    <span class="pill">TAUX DU JOUR</span>
+    <div class="rate-label">TAUX DE RÉFÉRENCE BRH</div>
+    <div class="rate">${escapeHtml(rate)}</div>
+    <div class="unit">HTG / 1 USD</div>
+    <div class="date-line">${escapeHtml(rateDate)}</div>
+    ${marketHtml}
+  </div>
 </div>
 <span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
 </body></html>`;
@@ -202,6 +208,9 @@ function buildFactsFrameHTML(
   totalSlides: number,
 ): string {
   const accent = slide.accent ?? "#34d399";
+  const bgCss = slide.backgroundImage
+    ? `background:#060f0b url('${slide.backgroundImage}') center/cover no-repeat;`
+    : `background: radial-gradient(ellipse at 30% 20%, ${accent}0A 0%, transparent 60%), #060f0b;`;
   const factsHtml = slide.bullets
     .map((f, i) => `<div class="fact"><span class="fn">${i + 1}</span><span class="ft">${escapeHtml(f)}</span></div>`)
     .join("\n");
@@ -214,29 +223,31 @@ ${GOOGLE_FONTS_LINK}
 body {
   width:1080px; height:1920px;
   font-family: ${FONT_BODY};
-  background: radial-gradient(ellipse at 30% 20%, ${accent}0A 0%, transparent 60%), #060f0b;
+  ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
+.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(4,13,11,0.38) 0%, rgba(4,13,11,0.58) 35%, rgba(4,13,11,0.82) 100%); }
 .bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center;
   padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
 }
-.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:4px; margin-bottom:36px; align-self:flex-start; }
-.h { font-family:${FONT_HEADLINE}; font-size:48px; font-weight:900; line-height:1.10; letter-spacing:-0.5px; margin-bottom:40px; }
+.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:999px; margin-bottom:24px; align-self:flex-start; }
+.h { font-family:${FONT_HEADLINE}; font-size:56px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:34px; max-width:760px; }
 .fact { display:flex; gap:20px; align-items:flex-start; margin-bottom:28px; }
 .fn { font-family:${FONT_HEADLINE}; flex-shrink:0; width:36px; height:36px; background:${accent}22; color:${accent}; font-size:18px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:2px; }
-.ft { font-size:22px; line-height:1.50; opacity:0.88; font-weight:400; }
+.ft { font-size:25px; line-height:1.56; opacity:0.92; font-weight:500; }
 .bm { position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px; font-size:16px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:5px; }
 .bm .el { color:rgba(255,255,255,0.45); }
 .bm .nw { color:${accent}; opacity:0.6; }
 </style></head>
 <body>
+${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <span class="pill">LE SAVIEZ-VOUS ?</span>
+  <span class="pill">REPÈRES DU JOUR</span>
   <div class="h">${escapeHtml(slide.heading)}</div>
   ${factsHtml}
 </div>
@@ -253,6 +264,11 @@ function buildHeadlineFrameHTML(
 ): string {
   const accent = slide.accent ?? DEFAULT_ACCENT;
   const dark = DEFAULT_DARK;
+  const bgCss = slide.backgroundImage
+    ? `background:${dark} url('${slide.backgroundImage}') center/cover no-repeat;`
+    : `background: radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.03) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, ${accent}08 0%, transparent 50%),
+              ${dark};`;
 
   // Split bullets into main content and source attribution
   const mainBullets: string[] = [];
@@ -277,29 +293,23 @@ ${GOOGLE_FONTS_LINK}
 body {
   width:1080px; height:1920px;
   font-family: ${FONT_BODY};
-  /* Subtle radial gradient for depth instead of flat dark */
-  background: radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.03) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, ${accent}08 0%, transparent 50%),
-              ${dark};
+  ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
+.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(4,10,18,0.30) 0%, rgba(4,10,18,0.46) 28%, rgba(4,10,18,0.78) 78%, rgba(4,10,18,0.90) 100%); }
 .bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
 .c {
   height:100%; display:flex; flex-direction:column; justify-content:center;
   padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
 }
-.num {
-  font-family:${FONT_HEADLINE}; font-size:120px; font-weight:900; color:${accent}; opacity:0.08;
-  line-height:0.85; margin-bottom:4px; letter-spacing:-4px;
-}
 .h {
-  font-family:${FONT_HEADLINE}; font-size:46px; font-weight:800; line-height:1.15; letter-spacing:-0.5px;
-  margin-bottom:32px;
-  overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical;
+  font-family:${FONT_HEADLINE}; font-size:52px; font-weight:900; line-height:1.10; letter-spacing:-0.8px;
+  margin-bottom:28px;
+  overflow:hidden; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
 }
 .bd ul { list-style:none; }
 .bd li {
-  font-size:24px; line-height:1.6; margin-bottom:18px; opacity:0.82;
+  font-size:28px; line-height:1.55; margin-bottom:18px; opacity:0.92;
   padding-left:32px; position:relative;
 }
 .bd li::before {
@@ -307,8 +317,8 @@ body {
   width:16px; height:2px; background:${accent}; opacity:0.5;
 }
 .src {
-  margin-top:24px; font-size:14px; font-weight:500;
-  opacity:0.3; letter-spacing:0.5px;
+  margin-top:24px; font-size:15px; font-weight:600;
+  opacity:0.45; letter-spacing:0.5px;
 }
 .bm {
   position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px;
@@ -319,10 +329,10 @@ body {
 .bm .nw { color:${accent}; opacity:0.6; }
 </style></head>
 <body>
+${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <div class="num">${slideIndex}</div>
   <div class="h">${escapeHtml(slide.heading)}</div>
   <div class="bd"><ul>${bulletsHtml}</ul></div>
   ${sourceText ? `<div class="src">${escapeHtml(sourceText)}</div>` : ""}

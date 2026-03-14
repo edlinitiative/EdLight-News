@@ -54,12 +54,16 @@ export interface StoryTauxInput {
   dateLabel: string;
   /** Optional buy/sell summary bullets */
   bullets?: string[];
+  /** Optional background image carried over from the taux post */
+  backgroundImage?: string;
 }
 
 /** Facts of the day data for the facts story frame. */
 export interface StoryFactsInput {
   /** Array of fact lines, each ≤100 chars */
   facts: string[];
+  /** Optional background image to make the facts frame more lively */
+  backgroundImage?: string;
 }
 
 /**
@@ -94,6 +98,7 @@ export function buildDailySummaryStory(
       heading: taux.rate,
       bullets: [taux.dateLabel, ...tauxBullets],
       accent: "#eab308",
+      backgroundImage: taux.backgroundImage,
       frameType: "taux",
     });
   }
@@ -101,9 +106,10 @@ export function buildDailySummaryStory(
   // ── Frame 2: Faits du jour ─────────────────────────────────────────────
   if (factsInput && factsInput.facts.length > 0) {
     slides.push({
-      heading: "Le saviez-vous ?",
+      heading: "Repères du jour",
       bullets: factsInput.facts.slice(0, 5),
       accent: "#34d399",
+      backgroundImage: factsInput.backgroundImage,
       frameType: "facts",
     });
   }
@@ -119,9 +125,9 @@ export function buildDailySummaryStory(
     const catLabel = CATEGORY_LABELS[cat] ?? "";
 
     // Tight bullets — max 2 for fast scanning
-    const bullets: string[] = [shortenText(summary, 140)];
+    const bullets: string[] = [shortenText(summary, 220)];
 
-    // Second bullet: prefer deadline for scholarships, else Kreyòl hint
+    // Second bullet: prefer deadline when available.
     if (item.deadline) {
       try {
         const dl = new Date(item.deadline);
@@ -130,14 +136,10 @@ export function buildDailySummaryStory(
           month: "long",
           year: "numeric",
         });
-        bullets.push(`⏰ Date limite: ${dlStr}`);
+        bullets.push(`Date limite : ${dlStr}`);
       } catch {
-        if (bi?.htSummary) {
-          bullets.push(`🇭🇹 ${shortenText(bi.htSummary, 100)}`);
-        }
+        // Ignore malformed deadline
       }
-    } else if (bi?.htSummary) {
-      bullets.push(`🇭🇹 ${shortenText(bi.htSummary, 100)}`);
     }
 
     // Source as a separate styled line
@@ -150,6 +152,7 @@ export function buildDailySummaryStory(
       heading: catLabel ? `${catLabel} — ${shortenText(title, 75)}` : shortenText(title, 85),
       bullets,
       accent: CATEGORY_ACCENTS[cat],
+      backgroundImage: item.imageUrl ?? undefined,
       frameType: "headline",
     });
   }
