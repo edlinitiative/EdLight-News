@@ -106,7 +106,7 @@ export function buildDailySummaryStory(
   // ── Frame 2: Faits du jour ─────────────────────────────────────────────
   if (factsInput && factsInput.facts.length > 0) {
     slides.push({
-      heading: "Repères du jour",
+      heading: "Le saviez-vous ?",
       bullets: factsInput.facts.slice(0, 5),
       accent: "#34d399",
       backgroundImage: factsInput.backgroundImage,
