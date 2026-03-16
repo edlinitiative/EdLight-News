@@ -32,6 +32,7 @@ RÈGLES STRICTES:
 10. SUCCÈS / INSPIRATION: Mets is_success_story=true si l'article raconte une réussite, un accomplissement ou une histoire inspirante d'un Haïtien, d'un groupe haïtien ou d'une institution haïtienne. Exemples: prix, diplômes, reconnaissance internationale, victoires sportives, réalisations communautaires, parcours exemplaires. Mets is_success_story=false sinon.
 11. TRADUCTION D'ABORD: Si le texte source est en anglais ou dans une autre langue, TRADUIS D'ABORD l'intégralité en français. Ensuite, rédige le contenu à partir de ta traduction française. Cela garantit un texte 100% français sans mots anglais résiduels.
 12. ARC NARRATIF: Rédige le body_fr comme une histoire cohérente et fluide. Le premier paragraphe doit capturer l'essence complète du sujet. Les paragraphes suivants développent l'histoire séquentiellement. Un lecteur qui lit du début à la fin doit comprendre toute l'histoire sans saut logique.
+13. LIMITES INSTAGRAM (IMPÉRATIF): summary_fr et summary_ht sont affichées en gros sur Instagram Stories. MAX 280 CARACTÈRES chacune. Exactement 2 phrases complètes qui se suffisent à elles-mêmes. Ne jamais couper une phrase à mi-chemin — si 280 caractères ne suffisent pas pour terminer la deuxième phrase, réduis-la ou n'écris qu'une seule phrase.
 
 ARTICLE SOURCE:
 Titre: ${input.title}
@@ -44,10 +45,10 @@ ${input.text.slice(0, 6000)}
 RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
 {
   "title_fr": "Titre en français (max 120 caractères)",
-  "summary_fr": "Résumé en français (2-3 phrases, max 300 caractères)",
+  "summary_fr": "Résumé en français (2 phrases max, max 280 caractères). Affiché en gros sur Instagram Stories — chaque phrase doit être complète et se suffire à elle-même.",
   "body_fr": "Corps de l'article en français (3-6 paragraphes, informatif et actionnable)",
   "title_ht": "Tit an kreyòl ayisyen (max 120 caractères)",
-  "summary_ht": "Rezime an kreyòl ayisyen (2-3 fraz, max 300 caractères)",
+  "summary_ht": "Rezime an kreyòl ayisyen (2 fraz max, max 280 caractères). Afiche sou Instagram Stories — chak fraz dwe konplè e sifizant pa tèt li.",
   "body_ht": "Kò atik la an kreyòl ayisyen (3-6 paragraf, enfòmatif e itil)",
   "confidence": 0.85,
   "haiti_relevant": true,

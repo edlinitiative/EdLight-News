@@ -142,6 +142,8 @@ function topBrandCss(accent: string): string {
 }
 
 function bottomBarHtml(footer: string | undefined, accent: string, showBrand: boolean): string {
+  // Don't render an empty bottom bar — the border-top line looks like sources even when empty.
+  if (!footer && !showBrand) return "";
   return `<div class="bottom">
     <span class="src">${footer ? escapeHtml(footer) : ""}</span>
     ${showBrand ? brandHtml(accent) : ""}
@@ -174,6 +176,7 @@ function buildHeadlineHTML(
   const hClamp = isFirst ? (slide.heading.length > 60 ? 8 : 7) : slide.heading.length > 120 ? 8 : 6;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
+  // Apply the cover overlay on first slide; inner slides use blur + text-shadow
   const overlayGradient = isFirst ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>
@@ -190,8 +193,8 @@ ${pillCss(accent)}
 ${isFirst ? topBrandCss(accent) : ""}
 .main { margin-top:auto; overflow:hidden; max-height:calc(100% - 80px); display:flex; flex-direction:column; justify-content:flex-end; }
 ${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; flex-shrink:0; }` : ""}
-.h { font-family:${FONT_HEADLINE}; font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.8), 0 1px 6px rgba(0,0,0,0.5); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${hClamp}; -webkit-box-orient:vertical; flex-shrink:0; }
-.bt { font-size:${TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.45; opacity:${isFirst ? 0.80 : 0.90}; text-shadow:0 1px 16px rgba(0,0,0,0.7); margin-bottom:8px; max-height:${isFirst ? 200 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 5 : 6}; -webkit-box-orient:vertical; flex-shrink:1; }
+.h { font-family:${FONT_HEADLINE}; font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.85), 0 1px 8px rgba(0,0,0,0.6); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${hClamp}; -webkit-box-orient:vertical; flex-shrink:0; }
+.bt { font-size:${isFirst ? 26 : TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.48; opacity:${isFirst ? 0.85 : 0.92}; text-shadow:0 1px 16px rgba(0,0,0,0.8); margin-bottom:8px; max-height:${isFirst ? 280 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 5 : 6}; -webkit-box-orient:vertical; flex-shrink:1; }
 ${bottomCss()}
 </style></head>
 <body>
@@ -223,6 +226,7 @@ function buildExplanationHTML(
   const hasImage = !!slide.backgroundImage;
   const pad = `${MARGIN.top}px ${MARGIN.side}px 140px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
+  // Inner slides rely on blur + text-shadow for contrast; overlay only on cover
   const overlayGradient = isFirst ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>
@@ -237,8 +241,8 @@ ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
-.h { font-family:${FONT_HEADLINE}; font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
-.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.92; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}88; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 8px rgba(0,0,0,0.6); }
+.h { font-family:${FONT_HEADLINE}; font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; text-shadow:0 2px 20px rgba(0,0,0,0.9); }
+.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.95; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}88; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 12px rgba(0,0,0,0.8); }
 ${bottomCss()}
 </style></head>
 <body>
@@ -267,6 +271,7 @@ function buildDataHTML(
   const hasImage = !!slide.backgroundImage;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
+  // Inner slides rely on blur + text-shadow for contrast; overlay only on cover
   const overlayGradient = isFirst ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>

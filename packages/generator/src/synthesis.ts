@@ -79,27 +79,31 @@ RÈGLES STRICTES:
 3. Identifie les faits CONFIRMÉS par 2+ sources vs les faits rapportés par une seule source.
 4. N'INVENTE JAMAIS d'information absente des sources.
 5. Sois concis, précis et utile pour un étudiant haïtien.
-6. Chaque section doit avoir un titre clair et un contenu informatif (1-3 paragraphes).
+6. Chaque section doit avoir un titre clair et un contenu informatif (2-3 phrases complètes).
 7. Le "what_changed" doit être null pour une nouvelle synthèse, ou une phrase décrivant les changements pour une mise à jour.
 8. Les tags doivent refléter le statut global:
    - "confirmed" = faits corroborés par 2+ sources
    - "unconfirmed" = rapporté par 1 seule source
    - "evolving" = situation en cours d'évolution
+9. LIMITES INSTAGRAM (IMPÉRATIF): Les sections sont affichées sur des slides Instagram.
+   - "heading" de chaque section : MAX 70 CARACTÈRES. Titre court, percutant, sans ponctuation finale.
+   - "content" de chaque section : MAX 500 CARACTÈRES. Exactement 2-3 phrases complètes. Chaque phrase doit avoir un sens complet — ne jamais couper une phrase à mi-chemin.
+   - "summary_fr" / "summary_ht" : MAX 300 CARACTÈRES. 2 phrases maximum. Elles sont affichées en gros sur stories Instagram.
 
 SOURCES:
 ${sourcesBlock}
 
 RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
 {
-  "title_fr": "Titre synthèse en français (max 150 caractères)",
-  "summary_fr": "Résumé en français (2-3 phrases, max 400 caractères)",
+  "title_fr": "Titre synthèse en français (max 120 caractères)",
+  "summary_fr": "Résumé en français (2 phrases max, max 300 caractères)",
   "sections_fr": [
-    { "heading": "Titre de section", "content": "Contenu (1-3 paragraphes, informatif)" }
+    { "heading": "Titre de section court (max 70 caractères)", "content": "2-3 phrases complètes (max 500 caractères)" }
   ],
-  "title_ht": "Tit sentèz an kreyòl ayisyen (max 150 caractères)",
-  "summary_ht": "Rezime an kreyòl ayisyen (2-3 fraz, max 400 caractères)",
+  "title_ht": "Tit sentèz an kreyòl ayisyen (max 120 caractères)",
+  "summary_ht": "Rezime an kreyòl ayisyen (2 fraz max, max 300 caractères)",
   "sections_ht": [
-    { "heading": "Tit seksyon", "content": "Kontni seksyon an (1-3 paragraf)" }
+    { "heading": "Tit seksyon kout (max 70 caractères)", "content": "2-3 fraz konplè (max 500 caractères)" }
   ],
   "what_changed": null,
   "confidence": 0.85,

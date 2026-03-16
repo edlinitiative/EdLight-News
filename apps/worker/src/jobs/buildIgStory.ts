@@ -117,14 +117,13 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
 
     if (utilityIds.length > 0) {
       const factLines: string[] = [];
-      let factsBackgroundImage: string | undefined;
       for (const uid of utilityIds.slice(0, 5)) {
         try {
           const utilItem = await itemsRepo.getItem(uid);
           if (!utilItem) continue;
-          if (!factsBackgroundImage && utilItem.imageUrl) {
-            factsBackgroundImage = utilItem.imageUrl;
-          }
+          // Note: we intentionally do NOT use utilItem.imageUrl for the facts background
+          // because utility/histoire images often don't visually relate to the "facts"
+          // being displayed. The styled green gradient background works better.
 
           const factLine = buildFactLine(utilItem);
           if (factLine) {
@@ -137,7 +136,7 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
       if (factLines.length > 0) {
         factsInput = {
           facts: factLines,
-          backgroundImage: factsBackgroundImage,
+          // No backgroundImage — the facts frame uses its own gradient background
         } as StoryFactsInput;
       }
     }
@@ -199,7 +198,7 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
           // Content versions unavailable — use raw item
         }
 
-        storyItems.push({ item, bi });
+        storyItems.push({ item, bi, igType: igItem.igType });
       } catch {
         // Skip items that can't be fetched
       }
@@ -240,9 +239,25 @@ function buildFactLine(item: Item): string | null {
     : item.title;
   if (!candidate) return null;
 
-  return candidate
+  const cleaned = candidate
     .replace(/\s+/g, " ")
     .replace(/[📚💡📌🎉⏰🇭🇹]/gu, "")
-    .trim()
-    .slice(0, 140);
+    .trim();
+
+  if (cleaned.length <= 220) return cleaned;
+
+  // Prefer ending at a sentence boundary so the fact feels complete
+  const slice = cleaned.slice(0, 220);
+  const sentenceEnd = Math.max(
+    slice.lastIndexOf(". "),
+    slice.lastIndexOf("! "),
+    slice.lastIndexOf("? "),
+  );
+  if (sentenceEnd > 80) {
+    return cleaned.slice(0, sentenceEnd + 1).trim();
+  }
+
+  // Fall back to word boundary
+  const lastSpace = slice.lastIndexOf(" ");
+  return (lastSpace > 80 ? slice.slice(0, lastSpace) : slice).trim();
 }

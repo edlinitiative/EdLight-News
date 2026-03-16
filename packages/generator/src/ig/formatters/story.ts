@@ -44,6 +44,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 export interface StoryItemInput {
   item: Item;
   bi?: BilingualText;
+  /** igType from the IG queue — overrides item.category for label/accent to prevent misclassification */
+  igType?: string;
 }
 
 /** Taux data passed from the worker to build the taux story frame. */
@@ -118,14 +120,16 @@ export function buildDailySummaryStory(
   const headlineCount = Math.min(items.length, 4);
 
   for (let i = 0; i < headlineCount; i++) {
-    const { item, bi } = items[i]!;
+    const { item, bi, igType } = items[i]!;
     const title = bi?.frTitle ?? item.title;
     const summary = bi?.frSummary ?? item.summary;
-    const cat = item.category ?? "news";
-    const catLabel = CATEGORY_LABELS[cat] ?? "";
+    // Prefer igType from the queue (correct, post-validated) over raw item.category
+    // which can be mis-classified (e.g. an arrest story tagged as "scholarship" by Gemini).
+    const cat = igType ?? item.category ?? "news";
+    const catLabel = CATEGORY_LABELS[cat] ?? CATEGORY_LABELS[item.category ?? "news"] ?? "";
 
-    // Tight bullets — max 2 for fast scanning
-    const bullets: string[] = [shortenText(summary, 220)];
+    // Bullets — enough text to convey the story's essence without feeling cut short
+    const bullets: string[] = [shortenText(summary, 320)];
 
     // Second bullet: prefer deadline when available.
     if (item.deadline) {

@@ -495,19 +495,20 @@ FAITS VÉRIFIÉS pour le ${monthDay} :
 ${entriesBlock}
 
 CONSIGNES :
-1. Pour CHAQUE fait ci-dessus, rédige un résumé narratif de 120 à 150 mots en FRANÇAIS.
+1. Pour CHAQUE fait ci-dessus, rédige un résumé narratif de 80 à 120 mots en FRANÇAIS.
 2. NE JAMAIS inventer de faits. Utilise UNIQUEMENT les informations fournies.
 3. Inclus l'année correcte de chaque événement.
-4. Donne aussi la version en KREYÒL AYISYEN.
+4. Chaque phrase doit être complète — ne jamais couper une phrase à mi-chemin.
+5. Donne aussi la version en KREYÒL AYISYEN.
 
 RÉPONDS en JSON valide :
 {
   "events": [
     {
       "title_fr": "Titre court",
-      "summary_fr": "Résumé 120-150 mots",
+      "summary_fr": "Résumé 80-120 mots (phrases complètes uniquement)",
       "title_ht": "Tit an kreyòl",
-      "summary_ht": "Rezime 120-150 mo",
+      "summary_ht": "Rezime 80-120 mo (fraz konplè sèlman)",
       "year_mentioned": 1804
     }
   ]

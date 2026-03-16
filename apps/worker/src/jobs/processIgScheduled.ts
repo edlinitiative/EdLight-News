@@ -149,10 +149,10 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
 
         const slidesNeedingImage = publishPayload.slides.filter((slide) => !slide.backgroundImage);
         if (slidesNeedingImage.length > 0 && sourceItem) {
-          // Reuse the cover image when it already has one so all slides stay
-          // consistent (avoids cover ≠ inner image mismatch at render time).
           const coverImage = publishPayload.slides[0]?.backgroundImage;
+
           if (coverImage) {
+            // Standard path: propagate cover image to any inner slides that need one.
             for (const slide of slidesNeedingImage) {
               slide.backgroundImage = coverImage;
             }
@@ -160,19 +160,39 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
               `[processIgScheduled] propagated cover image to ${slidesNeedingImage.length} slide(s) for ${item.id}`,
             );
           } else {
-            try {
-              const generated = await generateContextualImage(sourceItem);
-              if (generated?.url) {
-                for (const slide of slidesNeedingImage) {
-                  slide.backgroundImage = generated.url;
-                }
-                console.log(
-                  `[processIgScheduled] filled ${slidesNeedingImage.length} slide background(s) for ${item.id}`,
-                );
+            // Cover has no image. Check if inner (content) slides already have one.
+            // When the formatter intentionally left the cover empty (e.g. histoire,
+            // where the cover uses a clean branded gradient while content slides carry
+            // the contextual image), propagate the first content slide's image to the
+            // cover so all slides stay visually consistent \u2014 "use the rest's picture".
+            const firstContentImage = publishPayload.slides
+              .slice(1)
+              .find((s) => s.backgroundImage)?.backgroundImage;
+
+            if (firstContentImage) {
+              // Apply the content image to the cover and any other empty slides.
+              for (const slide of slidesNeedingImage) {
+                slide.backgroundImage = firstContentImage;
               }
-            } catch (imageErr) {
-              const msg = imageErr instanceof Error ? imageErr.message : String(imageErr);
-              console.warn(`[processIgScheduled] contextual image fallback failed for ${item.id}: ${msg}`);
+              console.log(
+                `[processIgScheduled] propagated content image to cover + ${slidesNeedingImage.length} slide(s) for ${item.id}`,
+              );
+            } else {
+              // No image anywhere \u2014 generate a contextual one for all empty slides.
+              try {
+                const generated = await generateContextualImage(sourceItem);
+                if (generated?.url) {
+                  for (const slide of slidesNeedingImage) {
+                    slide.backgroundImage = generated.url;
+                  }
+                  console.log(
+                    `[processIgScheduled] filled ${slidesNeedingImage.length} slide background(s) for ${item.id}`,
+                  );
+                }
+              } catch (imageErr) {
+                const msg = imageErr instanceof Error ? imageErr.message : String(imageErr);
+                console.warn(`[processIgScheduled] contextual image fallback failed for ${item.id}: ${msg}`);
+              }
             }
           }
         }

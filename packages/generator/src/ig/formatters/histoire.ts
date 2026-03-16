@@ -160,16 +160,22 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
   const imageUrl = item.imageUrl ?? undefined;
   const sections = bi?.frSections;
   const bodyText = bi?.frBody;
+  const coverDate = formatHistoryCoverDate(item);
   const coverBullets = buildHistoryCoverBullets(item, summary, sections);
 
   // ══════════════════════════════════════════════════════════════════════
-  // Slide 1 — Cover: date-led history opener + one-line event summaries
+  // Slide 1 — Cover: actual event title as headline, date as footer
+  // No backgroundImage on the cover — the clean dark branded gradient looks
+  // more editorial. processIgScheduled will propagate the contextual AI image
+  // (used for content slides) back to the cover, so all slides stay consistent.
   // ══════════════════════════════════════════════════════════════════════
   slides.push({
-    heading: formatHistoryCoverDate(item),
+    heading: shortenHeadline(title, 12, 100),
     bullets: coverBullets,
     layout: "headline",
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    footer: coverDate,  // date shown as the small attribution line, not as the headline
+    // No backgroundImage — kept intentionally empty so the branded dark gradient shows.
+    // Image will be applied consistently by processIgScheduled.
   });
 
   // ══════════════════════════════════════════════════════════════════════
@@ -382,16 +388,19 @@ function buildHistoryCoverBullets(
   summary: string,
   sections?: { heading: string; content: string }[],
 ): string[] {
-  const lines = ["Dans l'histoire d'Haïti"];
-
+  // Return 1-2 clean essence sentences that convey what the story is about.
+  // No boilerplate prefix like "Dans l'histoire d'Haïti" — the HISTOIRE pill
+  // label on the slide already provides that context.
   const summaryLines = buildHistorySummaryLines(sections, summary);
+  const lines: string[] = [];
+
   for (const line of summaryLines) {
-    if (lines.length >= 4) break;
+    if (lines.length >= 2) break;
     lines.push(line);
   }
 
-  if (lines.length === 1 && item.title) {
-    lines.push(shortenText(item.title, 110));
+  if (lines.length === 0 && item.title) {
+    lines.push(shortenText(item.title, 120));
   }
 
   return lines;

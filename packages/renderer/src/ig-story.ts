@@ -109,11 +109,11 @@ body {
   margin-bottom:8px;
 }
 .bm {
-  margin-top:40px; font-family:${FONT_HEADLINE}; font-size:18px; font-weight:700;
-  letter-spacing:3px; display:flex; align-items:center; gap:6px;
+  margin-top:40px; font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800;
+  letter-spacing:3.5px; display:flex; align-items:center; gap:8px;
 }
-.bm .el { color:#fff; opacity:0.85; }
-.bm .nw { color:${accent}; opacity:0.85; }
+.bm .el { color:rgba(255,255,255,0.72); }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
 <div class="overlay"></div>
@@ -178,9 +178,9 @@ body {
 .unit { font-size:24px; font-weight:500; opacity:0.35; letter-spacing:1.5px; margin-bottom:32px; }
 .date-line { font-size:16px; font-weight:600; opacity:0.50; letter-spacing:1px; margin-bottom:40px; }
 .mk { font-size:20px; font-weight:500; opacity:0.55; margin-bottom:12px; line-height:1.4; }
-.bm { position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px; font-size:16px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:5px; }
-.bm .el { color:rgba(255,255,255,0.45); }
-.bm .nw { color:${accent}; opacity:0.6; }
+.bm { position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0; font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px; display:flex; justify-content:center; align-items:center; gap:8px; }
+.bm .el { color:rgba(255,255,255,0.65); }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
 ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
@@ -196,7 +196,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
     ${marketHtml}
   </div>
 </div>
-<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+<div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
 
@@ -208,9 +208,12 @@ function buildFactsFrameHTML(
   totalSlides: number,
 ): string {
   const accent = slide.accent ?? "#34d399";
-  const bgCss = slide.backgroundImage
-    ? `background:#060f0b url('${slide.backgroundImage}') center/cover no-repeat;`
-    : `background: radial-gradient(ellipse at 30% 20%, ${accent}0A 0%, transparent 60%), #060f0b;`;
+  // Always use the styled gradient — a mismatched article image hurts the frame
+  // more than it helps. The rich dark gradient gives a premium editorial look.
+  const bgCss = `background:
+    radial-gradient(ellipse at 15% 15%, ${accent}18 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 85%, ${accent}0D 0%, transparent 50%),
+    #040e09;`;
   const factsHtml = slide.bullets
     .map((f, i) => `<div class="fact"><span class="fn">${i + 1}</span><span class="ft">${escapeHtml(f)}</span></div>`)
     .join("\n");
@@ -226,32 +229,33 @@ body {
   ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
-.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(4,13,11,0.38) 0%, rgba(4,13,11,0.58) 35%, rgba(4,13,11,0.82) 100%); }
-.bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
+.bar { position:absolute; left:0; top:0; bottom:0; width:6px; background:${accent}; }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center;
-  padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
+  padding:${SAFE_TOP + 20}px 80px ${SAFE_BOTTOM + 60}px 100px;
 }
-.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:999px; margin-bottom:24px; align-self:flex-start; }
-.h { font-family:${FONT_HEADLINE}; font-size:56px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:34px; max-width:760px; }
-.fact { display:flex; gap:20px; align-items:flex-start; margin-bottom:28px; }
-.fn { font-family:${FONT_HEADLINE}; flex-shrink:0; width:36px; height:36px; background:${accent}22; color:${accent}; font-size:18px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:2px; }
-.ft { font-size:25px; line-height:1.56; opacity:0.92; font-weight:500; }
-.bm { position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px; font-size:16px; font-weight:700; letter-spacing:2.5px; display:flex; align-items:center; gap:5px; }
-.bm .el { color:rgba(255,255,255,0.45); }
-.bm .nw { color:${accent}; opacity:0.6; }
+.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:17px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 22px; border-radius:6px; margin-bottom:18px; align-self:flex-start; }
+.h { font-family:${FONT_HEADLINE}; font-size:50px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:30px; color:#fff; }
+.fact { display:flex; gap:18px; align-items:flex-start; margin-bottom:22px; }
+.fn { font-family:${FONT_HEADLINE}; flex-shrink:0; width:32px; height:32px; background:${accent}28; color:${accent}; font-size:16px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:3px; }
+.ft { font-size:21px; line-height:1.58; opacity:0.90; font-weight:500; }
+.bm {
+  position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
+  display:flex; justify-content:center; align-items:center; gap:8px;
+  font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px;
+}
+.bm .el { color:rgba(255,255,255,0.72); }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
-${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 <div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <span class="pill">REPÈRES DU JOUR</span>
-  <div class="h">${escapeHtml(slide.heading)}</div>
+  <span class="pill">${escapeHtml(slide.heading.toUpperCase())}</span>
   ${factsHtml}
 </div>
-<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+<div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
 
@@ -296,37 +300,49 @@ body {
   ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
-.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(4,10,18,0.30) 0%, rgba(4,10,18,0.46) 28%, rgba(4,10,18,0.78) 78%, rgba(4,10,18,0.90) 100%); }
-.bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }
+/* Aggressive overlay for strong text contrast over any background image */
+.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg,
+  rgba(0,0,0,0.45) 0%,
+  rgba(0,0,0,0.30) 20%,
+  rgba(0,0,0,0.50) 50%,
+  rgba(0,0,0,0.82) 78%,
+  rgba(0,0,0,0.94) 100%); }
+.bar { position:absolute; left:0; top:0; bottom:0; width:6px; background:${accent}; }
+.cat {
+  font-family:${FONT_HEADLINE}; display:inline-block; background:${accent}; color:#000;
+  font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:3px;
+  padding:8px 20px; border-radius:4px; margin-bottom:22px; align-self:flex-start;
+}
 .c {
+  position:relative; z-index:1;
   height:100%; display:flex; flex-direction:column; justify-content:center;
-  padding:${SAFE_TOP + 40}px 80px ${SAFE_BOTTOM + 40}px 100px;
+  padding:${SAFE_TOP + 30}px 80px ${SAFE_BOTTOM + 70}px 100px;
 }
 .h {
   font-family:${FONT_HEADLINE}; font-size:52px; font-weight:900; line-height:1.10; letter-spacing:-0.8px;
-  margin-bottom:28px;
-  overflow:hidden; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical;
+  margin-bottom:24px; text-shadow:0 2px 20px rgba(0,0,0,0.8);
 }
 .bd ul { list-style:none; }
 .bd li {
-  font-size:28px; line-height:1.55; margin-bottom:18px; opacity:0.92;
-  padding-left:32px; position:relative;
+  font-size:24px; line-height:1.60; margin-bottom:16px; opacity:0.93;
+  padding-left:28px; position:relative;
+  text-shadow:0 1px 12px rgba(0,0,0,0.75);
 }
 .bd li::before {
-  content:''; position:absolute; left:0; top:12px;
-  width:16px; height:2px; background:${accent}; opacity:0.5;
+  content:''; position:absolute; left:0; top:11px;
+  width:14px; height:2px; background:${accent}; opacity:0.7;
 }
 .src {
-  margin-top:24px; font-size:15px; font-weight:600;
+  margin-top:20px; font-size:14px; font-weight:600;
   opacity:0.45; letter-spacing:0.5px;
 }
 .bm {
-  position:absolute; bottom:${SAFE_BOTTOM + 10}px; right:72px;
-  font-size:16px; font-weight:700; letter-spacing:2.5px;
-  display:flex; align-items:center; gap:5px;
+  position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
+  display:flex; justify-content:center; align-items:center; gap:8px;
+  font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px;
 }
-.bm .el { color:rgba(255,255,255,0.45); }
-.bm .nw { color:${accent}; opacity:0.6; }
+.bm .el { color:rgba(255,255,255,0.72); }
+.bm .nw { color:${accent}; }
 </style></head>
 <body>
 ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
@@ -337,7 +353,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
   <div class="bd"><ul>${bulletsHtml}</ul></div>
   ${sourceText ? `<div class="src">${escapeHtml(sourceText)}</div>` : ""}
 </div>
-<span class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></span>
+<div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
 
