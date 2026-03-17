@@ -56,6 +56,66 @@ function todayDateKey(): string {
   return `${y}-${m}-${d}`;
 }
 
+function isNonEmptyUrl(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+const STORY_IMAGE_MIN_SHORT_SIDE = 1080;
+const STORY_IMAGE_MAX_ASPECT_RATIO = 2.1;
+
+function isItemImageUsableForStory(item: Item): boolean {
+  if (!item.imageUrl) return false;
+
+  const width = item.imageMeta?.width;
+  const height = item.imageMeta?.height;
+
+  if (item.imageSource === "branded" && (!width || !height)) {
+    return false;
+  }
+
+  if (!width || !height) {
+    return true;
+  }
+
+  if (Math.min(width, height) < STORY_IMAGE_MIN_SHORT_SIDE) {
+    return false;
+  }
+
+  if (width / Math.max(height, 1) > STORY_IMAGE_MAX_ASPECT_RATIO) {
+    return false;
+  }
+
+  return true;
+}
+
+function pickPayloadBackgroundImage(queueItem: any): string | undefined {
+  const slides = Array.isArray(queueItem?.payload?.slides)
+    ? queueItem.payload.slides
+    : [];
+
+  for (const slide of slides) {
+    if (isNonEmptyUrl(slide?.backgroundImage)) {
+      return slide.backgroundImage;
+    }
+  }
+
+  return undefined;
+}
+
+function pickStoryBackgroundImage(
+  queueItem: any,
+  item?: Item,
+): string | undefined {
+  const payloadImage = pickPayloadBackgroundImage(queueItem);
+  if (payloadImage) return payloadImage;
+
+  if (item?.imageUrl && isItemImageUsableForStory(item)) {
+    return item.imageUrl;
+  }
+
+  return undefined;
+}
+
 // ── Result type ────────────────────────────────────────────────────────────
 export interface BuildIgStoryResult {
   queued: boolean;
@@ -111,19 +171,33 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
     // ── Frame 2: Faits du jour ───────────────────────────────────────────
     // Collect today's utility items (facts, histoire, etc.)
     let factsInput: StoryFactsInput | undefined;
-    const utilityIds = deduped
-      .filter((ig) => ig.igType === "histoire" || ig.igType === "utility")
-      .map((ig) => ig.sourceContentId);
+    const utilityItems = deduped.filter(
+      (ig) => ig.igType === "histoire" || ig.igType === "utility",
+    );
+    const utilityIds = utilityItems.map((ig) => ig.sourceContentId);
 
     if (utilityIds.length > 0) {
       const factLines: string[] = [];
+      let factsBackgroundImage =
+        utilityItems
+          .map((ig) => pickPayloadBackgroundImage(ig))
+          .find(isNonEmptyUrl) ??
+        topCandidatesImage(deduped);
+
       for (const uid of utilityIds.slice(0, 5)) {
         try {
           const utilItem = await itemsRepo.getItem(uid);
           if (!utilItem) continue;
-          // Note: we intentionally do NOT use utilItem.imageUrl for the facts background
-          // because utility/histoire images often don't visually relate to the "facts"
-          // being displayed. The styled green gradient background works better.
+          if (!factsBackgroundImage) {
+            const sourceQueueItem = utilityItems.find(
+              (ig) => ig.sourceContentId === uid,
+            );
+            factsBackgroundImage =
+              pickStoryBackgroundImage(sourceQueueItem, utilItem) ??
+              factsBackgroundImage;
+          }
+          // Prefer queue-carried imagery first; only fall back to the source item's
+          // own image when it is already sharp enough for IG use.
 
           const factLine = buildFactLine(utilItem);
           if (factLine) {
@@ -136,7 +210,9 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
       if (factLines.length > 0) {
         factsInput = {
           facts: factLines,
-          // No backgroundImage — the facts frame uses its own gradient background
+          ...(factsBackgroundImage
+            ? { backgroundImage: factsBackgroundImage }
+            : {}),
         } as StoryFactsInput;
       }
     }
@@ -198,7 +274,17 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
           // Content versions unavailable — use raw item
         }
 
-        storyItems.push({ item, bi, igType: igItem.igType });
+        const storyBackgroundImage = pickStoryBackgroundImage(igItem, item);
+        const storyItem =
+          storyBackgroundImage && storyBackgroundImage !== item.imageUrl
+            ? { ...item, imageUrl: storyBackgroundImage }
+            : item;
+
+        storyItems.push({
+          item: storyItem,
+          bi,
+          igType: igItem.igType,
+        });
       } catch {
         // Skip items that can't be fetched
       }
@@ -231,6 +317,14 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
     console.error("[buildIgStory] Error:", err instanceof Error ? err.message : err);
     return { queued: false, skipped: `error: ${err instanceof Error ? err.message : String(err)}` };
   }
+}
+
+function topCandidatesImage(items: any[]): string | undefined {
+  for (const item of items) {
+    const image = pickPayloadBackgroundImage(item);
+    if (image) return image;
+  }
+  return undefined;
 }
 
 function buildFactLine(item: Item): string | null {

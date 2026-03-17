@@ -130,6 +130,12 @@ async function publishOneManual(queueItem: any): Promise<boolean> {
     }
   }
 
+  if (!formatted.slides.some((slide: any) => slide.backgroundImage)) {
+    console.warn("  ✗ No premium background image resolved; refusing to publish imageless carousel");
+    await igQueueRepo.updateStatus(queueItem.id, "queued");
+    return false;
+  }
+
   // Render
   console.log("  Rendering...");
   const assets = await generateCarouselAssets(queueItem, formatted);

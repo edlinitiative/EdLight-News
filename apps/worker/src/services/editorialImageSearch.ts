@@ -235,16 +235,27 @@ function buildSearchQueries(item: Item): string[] {
     .slice(0, 6);
 
   const queries: string[] = [];
-  const geoHint = item.geoTag === "HT" ? "Haiti" : "";
+  const utilitySeries = item.utilityMeta?.series;
+  const isHistorySeries =
+    utilitySeries === "HaitiHistory" || utilitySeries === "HaitiFactOfTheDay";
+  const isProfileSeries = utilitySeries === "HaitianOfTheWeek";
+  const geoHint =
+    item.geoTag === "HT" || isHistorySeries || isProfileSeries ? "Haiti" : "";
   const personName = item.entity?.personName ?? detectPersonName(item.title ?? "", item.category);
 
   if (personName) {
     queries.push([personName, geoHint].filter(Boolean).join(" ").trim());
+    if (isProfileSeries) queries.push(`${personName} portrait ${geoHint}`.trim());
+    if (isHistorySeries) queries.push(`${personName} Haiti history`.trim());
     queries.push(personName);
   }
 
   const titleQuery = [...titleWords, geoHint].filter(Boolean).join(" ").trim();
   if (titleQuery) queries.push(titleQuery);
+
+  if (isHistorySeries && titleWords.length > 0) {
+    queries.push([...titleWords, "Haiti", "history"].join(" "));
+  }
 
   if ((item.category === "scholarship" || item.category === "opportunity" || item.category === "bourses") && item.source?.name) {
     queries.push(`${item.source.name} ${geoHint} education`);

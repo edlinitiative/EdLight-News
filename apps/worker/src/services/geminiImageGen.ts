@@ -29,7 +29,73 @@ export interface GeneratedImage {
 
 // ── Prompt engineering ─────────────────────────────────────────────────────
 
+function buildUtilitySeriesPrompt(item: Item): string | null {
+  const series = item.utilityMeta?.series;
+  const title = item.title ?? "";
+  const summary = item.summary ?? "";
+  const context = summary.slice(0, 260);
+
+  if (series === "HaitiHistory") {
+    return [
+      `Create a premium editorial illustration for a Haitian history feature.`,
+      ``,
+      `SUBJECT: "${title}"`,
+      `CONTEXT: ${context}`,
+      ``,
+      `ART DIRECTION:`,
+      `- Publication quality, like a New York Times Magazine or Bloomberg weekend feature illustration`,
+      `- Historically grounded Haitian setting, period-accurate clothing, architecture, and objects`,
+      `- Bold but refined composition, clear focal point, dignified mood`,
+      `- Rich contrast, warm Caribbean palette balanced with deep shadows`,
+      `- Portrait orientation 4:5, crisp details, clean edges, no blur`,
+      `- NO text, NO lettering, NO watermark, NO collage`,
+    ].join("\n");
+  }
+
+  if (series === "HaitiFactOfTheDay") {
+    return [
+      `Create a premium editorial image for a short educational fact about Haiti.`,
+      ``,
+      `FACT TITLE: "${title}"`,
+      `FACT CONTEXT: ${context}`,
+      ``,
+      `ART DIRECTION:`,
+      `- Refined magazine-style illustration or photo-illustration, not generic stock art`,
+      `- Show the specific Haitian subject clearly and immediately`,
+      `- If it is a person, create a dignified portrait with strong visual presence`,
+      `- If it is a place, monument, or object, frame it heroically with architectural detail`,
+      `- Deep contrast, premium color grading, polished publication-ready finish`,
+      `- Portrait orientation 4:5, ultra sharp, visually premium`,
+      `- NO text, NO letters, NO numbers, NO watermark`,
+    ].join("\n");
+  }
+
+  if (series === "HaitianOfTheWeek") {
+    return [
+      `Create a premium editorial portrait for a Haitian profile feature.`,
+      ``,
+      `SUBJECT: "${title}"`,
+      `PROFILE CONTEXT: ${context}`,
+      ``,
+      `ART DIRECTION:`,
+      `- Elegant portrait photography or portrait illustration suitable for a major magazine`,
+      `- Direct eye contact or confident three-quarter pose`,
+      `- Clean composition, strong light shaping, premium wardrobe and setting cues`,
+      `- Rich but restrained color grading with deep blacks and crisp highlights`,
+      `- Portrait orientation 4:5, publication-ready sharpness`,
+      `- NO text, NO letters, NO watermark`,
+    ].join("\n");
+  }
+
+  return null;
+}
+
 function buildImagePrompt(item: Item): string {
+  const utilitySeriesPrompt = buildUtilitySeriesPrompt(item);
+  if (utilitySeriesPrompt) {
+    return utilitySeriesPrompt;
+  }
+
   const title = item.title ?? "";
   const summary = item.summary ?? "";
   const geoTag = item.geoTag ?? "";
@@ -69,6 +135,20 @@ function buildImagePrompt(item: Item): string {
   ];
 
   return parts.filter(Boolean).join("\n");
+}
+
+function getEditorialMinScore(item: Item): number {
+  const series = item.utilityMeta?.series;
+
+  if (
+    series === "HaitiHistory" ||
+    series === "HaitiFactOfTheDay" ||
+    series === "HaitianOfTheWeek"
+  ) {
+    return 7;
+  }
+
+  return 5;
 }
 
 // ── Gemini image generation with model fallback chain ───────────────────────
@@ -261,7 +341,7 @@ export async function generateContextualImage(
   // Skip editorial search when a custom prompt is provided (caller wants AI art)
   if (!customPrompt) {
     try {
-      const editorial = await findEditorialImage(item);
+      const editorial = await findEditorialImage(item, getEditorialMinScore(item));
       if (editorial) {
         console.log(`[imagen3] Using editorial image from ${editorial.source} (score=${editorial.score})`);
         return { url: editorial.url, prompt: `editorial:${editorial.source}` };

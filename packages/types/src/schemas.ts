@@ -2,7 +2,9 @@ import { z } from "zod";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 /** ISO date string in YYYY-MM-DD format */
-const isoDateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected ISO date YYYY-MM-DD");
+const isoDateString = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected ISO date YYYY-MM-DD");
 
 /** Firestore Timestamp is validated as an object with seconds & nanoseconds */
 const timestampSchema = z.object({
@@ -33,7 +35,14 @@ const sourceSelectorsSchema = z.object({
 
 const geoTagSchema = z.enum(["HT", "Diaspora", "Global"]);
 
-const imageSourceSchema = z.enum(["publisher", "wikidata", "branded", "screenshot", "commons", "gemini_ai"]);
+const imageSourceSchema = z.enum([
+  "publisher",
+  "wikidata",
+  "branded",
+  "screenshot",
+  "commons",
+  "gemini_ai",
+]);
 
 const imageMetaSchema = z.object({
   width: z.number().positive().optional(),
@@ -108,9 +117,30 @@ export const utilitySeriesSchema = z.enum([
   "HaitianOfTheWeek",
   "HaitiEducationCalendar",
 ]);
-export const utilityTypeSchema = z.enum(["study_abroad", "career", "scholarship", "opportunity", "history", "daily_fact", "profile", "school_calendar"]);
-export const utilityAudienceSchema = z.enum(["lycee", "universite", "international"]);
-export const utilityRegionSchema = z.enum(["HT", "US", "CA", "FR", "DO", "RU", "Global"]);
+export const utilityTypeSchema = z.enum([
+  "study_abroad",
+  "career",
+  "scholarship",
+  "opportunity",
+  "history",
+  "daily_fact",
+  "profile",
+  "school_calendar",
+]);
+export const utilityAudienceSchema = z.enum([
+  "lycee",
+  "universite",
+  "international",
+]);
+export const utilityRegionSchema = z.enum([
+  "HT",
+  "US",
+  "CA",
+  "FR",
+  "DO",
+  "RU",
+  "Global",
+]);
 
 export const utilityCitationSchema = z.object({
   label: z.string().min(1),
@@ -118,11 +148,15 @@ export const utilityCitationSchema = z.object({
 });
 
 export const extractedFactsSchema = z.object({
-  deadlines: z.array(z.object({
-    label: z.string().min(1),
-    dateISO: isoDateString,
-    sourceUrl: z.string().url(),
-  })).optional(),
+  deadlines: z
+    .array(
+      z.object({
+        label: z.string().min(1),
+        dateISO: isoDateString,
+        sourceUrl: z.string().url(),
+      }),
+    )
+    .optional(),
   requirements: z.array(z.string()).optional(),
   steps: z.array(z.string()).optional(),
   eligibility: z.array(z.string()).optional(),
@@ -273,7 +307,20 @@ export const contentVersionSchema = z.object({
   body: z.string().min(1),
   status: z.enum(["draft", "review", "published"]),
   draftReason: z.string().optional(),
-  category: z.enum(["scholarship","opportunity","news","event","resource","local_news","bourses","concours","stages","programmes"]).optional(),
+  category: z
+    .enum([
+      "scholarship",
+      "opportunity",
+      "news",
+      "event",
+      "resource",
+      "local_news",
+      "bourses",
+      "concours",
+      "stages",
+      "programmes",
+    ])
+    .optional(),
   qualityFlags: qualityFlagsSchema.optional(),
   citations: z.array(citationSchema).min(1),
   // v2 fields
@@ -394,20 +441,38 @@ export type CreateRawItem = z.infer<typeof createRawItemSchema>;
 export type CreateItem = z.infer<typeof createItemSchema>;
 export type CreateContentVersion = z.infer<typeof createContentVersionSchema>;
 export type CreateAsset = z.infer<typeof createAssetSchema>;
-export type CreatePublishQueueEntry = z.infer<typeof createPublishQueueEntrySchema>;
+export type CreatePublishQueueEntry = z.infer<
+  typeof createPublishQueueEntrySchema
+>;
 export type CreateMetric = z.infer<typeof createMetricSchema>;
 export type CreateUtilitySource = z.infer<typeof createUtilitySourceSchema>;
-export type CreateUtilityQueueEntry = z.infer<typeof createUtilityQueueEntrySchema>;
+export type CreateUtilityQueueEntry = z.infer<
+  typeof createUtilityQueueEntrySchema
+>;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── Student Intelligence Platform — dataset schemas ─────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const datasetCountrySchema = z.enum([
-  "US", "CA", "FR", "UK", "DO", "MX", "CN", "RU", "HT", "Global",
+  "US",
+  "CA",
+  "FR",
+  "UK",
+  "DO",
+  "MX",
+  "CN",
+  "RU",
+  "HT",
+  "Global",
 ]);
 
-export const academicLevelSchema = z.enum(["bachelor", "master", "phd", "short_programs"]);
+export const academicLevelSchema = z.enum([
+  "bachelor",
+  "master",
+  "phd",
+  "short_programs",
+]);
 
 export const tuitionBandSchema = z.enum(["low", "medium", "high", "unknown"]);
 
@@ -455,12 +520,25 @@ export const universitySchema = z.object({
 
 export const scholarshipKindSchema = z.enum(["program", "directory"]);
 
-export const scholarshipHaitianEligibilitySchema = z.enum(["yes", "no", "unknown"]);
+export const scholarshipHaitianEligibilitySchema = z.enum([
+  "yes",
+  "no",
+  "unknown",
+]);
 
-export const scholarshipDeadlineAccuracySchema = z.enum(["exact", "month-only", "varies", "unknown"]);
+export const scholarshipDeadlineAccuracySchema = z.enum([
+  "exact",
+  "month-only",
+  "varies",
+  "unknown",
+]);
 
 export const scholarshipFundingTypeSchema = z.enum([
-  "full", "partial", "stipend", "tuition-only", "unknown",
+  "full",
+  "partial",
+  "stipend",
+  "tuition-only",
+  "unknown",
 ]);
 
 const scholarshipDeadlineSchema = z.object({
@@ -495,11 +573,22 @@ export const scholarshipSchema = z.object({
 // ── haiti_education_calendar ───────────────────────────────────────────────
 
 export const calendarEventTypeSchema = z.enum([
-  "rentree", "registration", "exam", "results", "admissions", "closure",
+  "rentree",
+  "registration",
+  "exam",
+  "results",
+  "admissions",
+  "closure",
 ]);
 
 export const calendarLevelSchema = z.enum([
-  "ns1", "ns2", "ns3", "ns4", "bac", "university", "general",
+  "ns1",
+  "ns2",
+  "ns3",
+  "ns4",
+  "bac",
+  "university",
+  "general",
 ]);
 
 export const haitiCalendarEventSchema = z.object({
@@ -522,7 +611,10 @@ export const haitiCalendarEventSchema = z.object({
 // ── pathways ───────────────────────────────────────────────────────────────
 
 export const pathwayGoalKeySchema = z.enum([
-  "study_abroad", "career", "scholarship", "haiti_calendar",
+  "study_abroad",
+  "career",
+  "scholarship",
+  "haiti_calendar",
 ]);
 
 const pathwayStepSchema = z.object({
@@ -549,8 +641,12 @@ export const pathwaySchema = z.object({
 // ── dataset_jobs ───────────────────────────────────────────────────────────
 
 export const datasetNameSchema = z.enum([
-  "universities", "scholarships", "haiti_calendar", "pathways",
-  "haiti_history_almanac", "haiti_holidays",
+  "universities",
+  "scholarships",
+  "haiti_calendar",
+  "pathways",
+  "haiti_history_almanac",
+  "haiti_holidays",
 ]);
 
 export const datasetJobSchema = z.object({
@@ -583,7 +679,12 @@ export const contributorProfileSchema = z.object({
 
 // ── drafts ─────────────────────────────────────────────────────────────────
 
-export const draftStatusSchema = z.enum(["draft", "submitted", "approved", "rejected"]);
+export const draftStatusSchema = z.enum([
+  "draft",
+  "submitted",
+  "approved",
+  "rejected",
+]);
 
 export const draftSchema = z.object({
   id: z.string().min(1),
@@ -647,11 +748,28 @@ export const createDraftSchema = draftSchema.omit({
 // ── haiti_history_almanac ──────────────────────────────────────────────────
 
 export const almanacConfidenceSchema = z.enum(["high", "medium"]);
-export const almanacCreatedBySchema = z.enum(["seed", "admin", "intern", "import"]);
+export const almanacCreatedBySchema = z.enum([
+  "seed",
+  "admin",
+  "intern",
+  "import",
+]);
 export const almanacTagSchema = z.enum([
-  "independence", "culture", "education", "politics", "science",
-  "military", "economy", "literature", "art", "religion",
-  "sports", "disaster", "diplomacy", "resistance", "revolution",
+  "independence",
+  "culture",
+  "education",
+  "politics",
+  "science",
+  "military",
+  "economy",
+  "literature",
+  "art",
+  "religion",
+  "sports",
+  "disaster",
+  "diplomacy",
+  "resistance",
+  "revolution",
 ]);
 
 export const haitiHistoryAlmanacEntrySchema = z.object({
@@ -662,15 +780,17 @@ export const haitiHistoryAlmanacEntrySchema = z.object({
   summary_fr: z.string().min(1),
   student_takeaway_fr: z.string().min(1),
   tags: z.array(almanacTagSchema).optional(),
-  illustration: z.object({
-    imageUrl: z.string().url(),
-    pageUrl: z.string().url(),
-    pageTitle: z.string().optional(),
-    provider: z.enum(["wikimedia_commons", "manual", "gemini_ai"]).optional(),
-    author: z.string().optional(),
-    license: z.string().optional(),
-    confidence: z.number().min(0).max(1).optional(),
-  }).optional(),
+  illustration: z
+    .object({
+      imageUrl: z.string().url(),
+      pageUrl: z.string().url(),
+      pageTitle: z.string().optional(),
+      provider: z.enum(["wikimedia_commons", "manual", "gemini_ai"]).optional(),
+      author: z.string().optional(),
+      license: z.string().optional(),
+      confidence: z.number().min(0).max(1).optional(),
+    })
+    .optional(),
   sources: z.array(datasetCitationSchema).min(1),
   confidence: almanacConfidenceSchema,
   createdBy: almanacCreatedBySchema,
@@ -678,13 +798,16 @@ export const haitiHistoryAlmanacEntrySchema = z.object({
   updatedAt: timestampSchema,
 });
 
-export const createHaitiHistoryAlmanacEntrySchema = haitiHistoryAlmanacEntrySchema.omit({
-  id: true,
-  verifiedAt: true,
-  updatedAt: true,
-});
+export const createHaitiHistoryAlmanacEntrySchema =
+  haitiHistoryAlmanacEntrySchema.omit({
+    id: true,
+    verifiedAt: true,
+    updatedAt: true,
+  });
 
-export type CreateHaitiHistoryAlmanacEntry = z.infer<typeof createHaitiHistoryAlmanacEntrySchema>;
+export type CreateHaitiHistoryAlmanacEntry = z.infer<
+  typeof createHaitiHistoryAlmanacEntrySchema
+>;
 
 // ── haiti_holidays ─────────────────────────────────────────────────────────
 
@@ -727,15 +850,29 @@ export const historyPublishLogSchema = z.object({
 // ── haiti_history_almanac_raw ───────────────────────────────────────────────
 
 export const almanacRawCategorySchema = z.enum([
-  "political", "education", "culture", "international",
-  "economy", "social", "science", "birth", "death",
+  "political",
+  "education",
+  "culture",
+  "international",
+  "economy",
+  "social",
+  "science",
+  "birth",
+  "death",
 ]);
 
 export const almanacRawSourceTypeSchema = z.enum([
-  "government", "academic", "institutional", "press", "reference",
+  "government",
+  "academic",
+  "institutional",
+  "press",
+  "reference",
 ]);
 
-export const almanacRawVerificationStatusSchema = z.enum(["unverified", "verified"]);
+export const almanacRawVerificationStatusSchema = z.enum([
+  "unverified",
+  "verified",
+]);
 
 export const almanacRawSourceSchema = z.object({
   name: z.string().min(1),
@@ -756,19 +893,35 @@ export const haitiHistoryAlmanacRawSchema = z.object({
   createdAt: timestampSchema,
 });
 
-export const createHaitiHistoryAlmanacRawSchema = haitiHistoryAlmanacRawSchema.omit({
-  id: true,
-  createdAt: true,
-});
+export const createHaitiHistoryAlmanacRawSchema =
+  haitiHistoryAlmanacRawSchema.omit({
+    id: true,
+    createdAt: true,
+  });
 
-export type CreateHaitiHistoryAlmanacRaw = z.infer<typeof createHaitiHistoryAlmanacRawSchema>;
+export type CreateHaitiHistoryAlmanacRaw = z.infer<
+  typeof createHaitiHistoryAlmanacRawSchema
+>;
 
 // ── Instagram pipeline schemas ─────────────────────────────────────────────
 
-export const igPostTypeSchema = z.enum(["scholarship", "opportunity", "news", "histoire", "utility", "taux"]);
+export const igPostTypeSchema = z.enum([
+  "scholarship",
+  "opportunity",
+  "news",
+  "histoire",
+  "utility",
+  "taux",
+]);
 
 export const igQueueStatusSchema = z.enum([
-  "queued", "scheduled", "rendering", "posted", "skipped", "expired", "scheduled_ready_for_manual",
+  "queued",
+  "scheduled",
+  "rendering",
+  "posted",
+  "skipped",
+  "expired",
+  "scheduled_ready_for_manual",
 ]);
 
 export const igDecisionSchema = z.object({
@@ -793,8 +946,15 @@ export const igSlideSchema = z.object({
 });
 
 export const igMemeTemplateSchema = z.enum([
-  "drake", "expanding-brain", "distracted", "starter-pack",
-  "two-buttons", "tell-me", "nobody", "reaction", "comparison",
+  "drake",
+  "expanding-brain",
+  "distracted",
+  "starter-pack",
+  "two-buttons",
+  "tell-me",
+  "nobody",
+  "reaction",
+  "comparison",
 ]);
 
 export const igMemePanelSchema = z.object({
@@ -842,12 +1002,20 @@ export type CreateIGQueueItem = z.infer<typeof createIGQueueItemSchema>;
 // ── IG Story schemas ───────────────────────────────────────────────────────
 
 export const igStoryQueueStatusSchema = z.enum([
-  "queued", "rendering", "posted", "skipped", "failed",
+  "queued",
+  "rendering",
+  "posted",
+  "skipped",
+  "failed",
 ]);
 
 export const igStorySlideSchema = z.object({
   heading: z.string().min(1),
   bullets: z.array(z.string()),
+  eyebrow: z.string().optional(),
+  subheading: z.string().optional(),
+  meta: z.array(z.string()).optional(),
+  footer: z.string().optional(),
   backgroundImage: z.string().optional(),
   accent: z.string().optional(),
   frameType: z.enum(["cover", "taux", "facts", "headline", "cta"]).optional(),
@@ -876,14 +1044,20 @@ export const createIGStoryQueueItemSchema = igStoryQueueItemSchema.omit({
   updatedAt: true,
 });
 
-export type CreateIGStoryQueueItem = z.infer<typeof createIGStoryQueueItemSchema>;
+export type CreateIGStoryQueueItem = z.infer<
+  typeof createIGStoryQueueItemSchema
+>;
 
 // ── Inferred create types for datasets ─────────────────────────────────────
 
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;
 export type CreateScholarship = z.infer<typeof createScholarshipSchema>;
-export type CreateHaitiCalendarEvent = z.infer<typeof createHaitiCalendarEventSchema>;
+export type CreateHaitiCalendarEvent = z.infer<
+  typeof createHaitiCalendarEventSchema
+>;
 export type CreatePathway = z.infer<typeof createPathwaySchema>;
 export type CreateDatasetJob = z.infer<typeof createDatasetJobSchema>;
-export type CreateContributorProfile = z.infer<typeof createContributorProfileSchema>;
+export type CreateContributorProfile = z.infer<
+  typeof createContributorProfileSchema
+>;
 export type CreateDraft = z.infer<typeof createDraftSchema>;

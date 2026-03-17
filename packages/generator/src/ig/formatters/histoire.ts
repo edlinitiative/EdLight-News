@@ -18,17 +18,26 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, type BilingualText } from "./helpers.js";
+import {
+  finalizeCaption,
+  buildCTA,
+  buildSourceFooter,
+  buildSourceLine,
+  shortenText,
+  shortenHeadline,
+  shortenCaptionText,
+  type BilingualText,
+} from "./helpers.js";
 import { isJunkSentence, cleanExtractedText, splitSentences } from "./news.js";
 
 /** Max content slides (excluding cover + source). Keeps carousels digestible. */
 const MAX_CONTENT_SLIDES = 5;
 
-/** Max bullets per explanation slide — 3×200ch + heading stays under 925px budget. */
-const MAX_BULLETS_PER_SLIDE = 3;
+/** Max bullets per history slide — tighter, cleaner pacing than dense 3-bullet cards. */
+const MAX_BULLETS_PER_SLIDE = 2;
 
-/** Max chars per bullet — keeps text readable at 34px body font. */
-const MAX_BULLET_CHARS = 200;
+/** Max chars per bullet — enough context without turning slides into paragraphs. */
+const MAX_BULLET_CHARS = 180;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
@@ -37,21 +46,23 @@ const MAX_BULLET_CHARS = 200;
  * **bold** → bold, [text](url) → text, emoji prefixes, etc.
  */
 function stripMarkdown(text: string): string {
-  return text
-    // [text](url) → text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    // **bold** or __bold__ → plain
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    // *italic* → plain
-    .replace(/\*([^*]+)\*/g, "$1")
-    // ### headers → plain text
-    .replace(/^#{1,4}\s*/gm, "")
-    // Leading emoji + colon labels (💡 Pour les étudiants : → Pour les étudiants :)
-    .replace(/^(?:📚|💡|📌|🎉|📜)\s*/gmu, "")
-    // Clean multiple spaces
-    .replace(/\s{2,}/g, " ")
-    .trim();
+  return (
+    text
+      // [text](url) → text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      // **bold** or __bold__ → plain
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/__([^_]+)__/g, "$1")
+      // *italic* → plain
+      .replace(/\*([^*]+)\*/g, "$1")
+      // ### headers → plain text
+      .replace(/^#{1,4}\s*/gm, "")
+      // Leading emoji + colon labels (💡 Pour les étudiants : → Pour les étudiants :)
+      .replace(/^(?:📚|💡|📌|🎉|📜)\s*/gmu, "")
+      // Clean multiple spaces
+      .replace(/\s{2,}/g, " ")
+      .trim()
+  );
 }
 
 /** Lines matching these patterns are source-attribution noise, not content. */
@@ -62,7 +73,7 @@ function isSourceLine(line: string): boolean {
     lower.startsWith("📚") ||
     lower.startsWith("source :") ||
     lower.startsWith("source:") ||
-    /^\[.+\]\(.+\)(\s*·\s*\[.+\]\(.+\))*$/.test(lower)  // pure link list
+    /^\[.+\]\(.+\)(\s*·\s*\[.+\]\(.+\))*$/.test(lower) // pure link list
   );
 }
 
@@ -87,22 +98,27 @@ function extractSubSections(content: string): SubSection[] | null {
   // Try ### headings first (LLM often uses these)
   const h3Parts = content.split(/^###\s+/m).filter((p) => p.trim().length > 0);
   if (h3Parts.length >= 2) {
-    return h3Parts.map((part) => {
-      const lines = part.split("\n");
-      const heading = stripMarkdown(lines[0]?.trim() ?? "");
-      const body = lines.slice(1).join("\n").trim();
-      return { heading, content: body };
-    }).filter((s) => s.content.length >= 20);
+    return h3Parts
+      .map((part) => {
+        const lines = part.split("\n");
+        const heading = stripMarkdown(lines[0]?.trim() ?? "");
+        const body = lines.slice(1).join("\n").trim();
+        return { heading, content: body };
+      })
+      .filter((s) => s.content.length >= 20);
   }
 
   // Try **Bold Heading** at start of paragraph
   const boldParts = content.split(/\n{2,}(?=\*\*[^*]+\*\*)/);
   if (boldParts.length >= 2) {
-    return boldParts.map((part) => {
-      const match = part.match(/^\*\*([^*]+)\*\*\s*[—–:\-]?\s*([\s\S]*)/);
-      if (match) return { heading: match[1]!.trim(), content: match[2]!.trim() };
-      return { heading: "", content: part.trim() };
-    }).filter((s) => s.content.length >= 20 && s.heading.length > 0);
+    return boldParts
+      .map((part) => {
+        const match = part.match(/^\*\*([^*]+)\*\*\s*[—–:\-]?\s*([\s\S]*)/);
+        if (match)
+          return { heading: match[1]!.trim(), content: match[2]!.trim() };
+        return { heading: "", content: part.trim() };
+      })
+      .filter((s) => s.content.length >= 20 && s.heading.length > 0);
   }
 
   return null;
@@ -133,8 +149,9 @@ function sectionToBullets(content: string): string[] {
 
   // If only 1 big paragraph, split into sentences
   if (paragraphs.length <= 1) {
-    paragraphs = splitSentences(cleaned)
-      .filter((s) => s.length >= 10 && !isJunkSentence(s));
+    paragraphs = splitSentences(cleaned).filter(
+      (s) => s.length >= 10 && !isJunkSentence(s),
+    );
   }
 
   return paragraphs
@@ -148,11 +165,69 @@ function sectionToBullets(content: string): string[] {
  */
 function sectionHeading(heading: string, index: number): string {
   if (heading && heading.length > 2) return shortenHeadline(heading, 8);
-  const fallbacks = ["Le saviez-vous ?", "Contexte", "Pour mieux comprendre", "En bref"];
+  const fallbacks = [
+    "Le saviez-vous ?",
+    "Contexte",
+    "Pour mieux comprendre",
+    "En bref",
+  ];
   return fallbacks[index] ?? `Partie ${index + 1}`;
 }
 
-export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
+function chooseHistoryLayout(
+  heading: string,
+  bullets: string[],
+  preferHeadline = false,
+): "headline" | "explanation" {
+  const totalChars = bullets.reduce((sum, bullet) => sum + bullet.length, 0);
+  const shortDeck = bullets.length === 1 && totalChars <= 200;
+  const compactBeat =
+    bullets.length === 2 &&
+    bullets.every((bullet) => bullet.length <= 108) &&
+    heading.length <= 56;
+  const takeawayBeat =
+    /pourquoi|retenir|héritage|impact|conséquence/i.test(heading) &&
+    bullets.length <= 2 &&
+    totalChars <= 220;
+
+  if (preferHeadline || shortDeck || compactBeat || takeawayBeat) {
+    return "headline";
+  }
+
+  return "explanation";
+}
+
+function pushHistorySlide(
+  slides: IGSlide[],
+  heading: string,
+  bullets: string[],
+  imageUrl: string | undefined,
+  options?: { preferHeadline?: boolean; footer?: string },
+): void {
+  const cleanHeading = heading.trim();
+  const cleanBullets = bullets
+    .map((bullet) => bullet.trim())
+    .filter((bullet) => bullet.length > 0);
+
+  if (!cleanHeading && cleanBullets.length === 0) return;
+
+  slides.push({
+    heading: cleanHeading,
+    bullets: cleanBullets,
+    layout: chooseHistoryLayout(
+      cleanHeading,
+      cleanBullets,
+      options?.preferHeadline,
+    ),
+    ...(options?.footer ? { footer: options.footer } : {}),
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
+}
+
+export function buildHistoireCarousel(
+  item: Item,
+  bi?: BilingualText,
+): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
   const title = bi?.frTitle ?? item.title;
@@ -173,7 +248,7 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
     heading: shortenHeadline(title, 12, 100),
     bullets: coverBullets,
     layout: "headline",
-    footer: coverDate,  // date shown as the small attribution line, not as the headline
+    footer: coverDate, // date shown as the small attribution line, not as the headline
     // No backgroundImage — kept intentionally empty so the branded dark gradient shows.
     // Image will be applied consistently by processIgScheduled.
   });
@@ -210,15 +285,16 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
     for (const section of contentSections) {
       for (const p of section.content.split(/\n{2,}/)) {
         if (!isTakeawayLine(p)) continue;
-        const cleaned = stripMarkdown(p).replace(/^pour les étudiants\s*:\s*/i, "").trim();
+        const cleaned = stripMarkdown(p)
+          .replace(/^pour les étudiants\s*:\s*/i, "")
+          .trim();
         if (cleaned.length >= 20) takeaways.push(cleaned);
       }
     }
 
     // Reserve 1 content slot for the takeaway slide when we have takeaways
-    const contentCap = takeaways.length > 0
-      ? MAX_CONTENT_SLIDES - 1
-      : MAX_CONTENT_SLIDES;
+    const contentCap =
+      takeaways.length > 0 ? MAX_CONTENT_SLIDES - 1 : MAX_CONTENT_SLIDES;
 
     for (const section of contentSections) {
       if (slides.length - 1 >= contentCap) break;
@@ -226,51 +302,63 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
       // ── Extract student_takeaway lines before bullet-ising ──────────
       const paragraphs = section.content.split(/\n{2,}/);
       const takeawayParas = paragraphs.filter((p) => isTakeawayLine(p));
-      const contentParas = paragraphs.filter((p) => !isTakeawayLine(p) && !isSourceLine(p));
+      const contentParas = paragraphs.filter(
+        (p) => !isTakeawayLine(p) && !isSourceLine(p),
+      );
       const cleanedContent = contentParas.join("\n\n");
 
       // ── Try parsing LLM sub-sections from long content ──────────────
-      const subs = cleanedContent.length > 400 ? extractSubSections(cleanedContent) : null;
+      const subs =
+        cleanedContent.length > 400 ? extractSubSections(cleanedContent) : null;
 
       if (subs && subs.length >= 2) {
         // LLM body with multiple sub-sections → each becomes its own slide
         for (const sub of subs) {
           if (slides.length - 1 >= contentCap) break;
           // Skip "Questions pour la discussion" on IG (works better in caption)
-          if (/questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading)) continue;
+          if (/questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading))
+            continue;
           const bullets = sectionToBullets(sub.content);
           if (bullets.length === 0) continue;
 
-          slides.push({
-            heading: sectionHeading(sub.heading, slides.length - 1),
+          pushHistorySlide(
+            slides,
+            sectionHeading(sub.heading, slides.length - 1),
             bullets,
-            layout: "explanation",
-            ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-          });
+            imageUrl,
+            {
+              preferHeadline:
+                /pourquoi cela compte|pourquoi c'est important/i.test(
+                  sub.heading,
+                ),
+            },
+          );
         }
       } else {
         // Single section → standard bullet treatment
         const bullets = sectionToBullets(cleanedContent);
         if (bullets.length === 0) continue;
 
-        slides.push({
-          heading: sectionHeading(section.heading, slides.length - 1),
+        pushHistorySlide(
+          slides,
+          sectionHeading(section.heading, slides.length - 1),
           bullets,
-          layout: "explanation",
-          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-        });
+          imageUrl,
+        );
       }
     }
 
     // ── Featured "Pourquoi c'est important" slide from takeaways ──────
     if (takeaways.length > 0 && slides.length - 1 < MAX_CONTENT_SLIDES) {
-      slides.push({
-        heading: "Pourquoi c'est important",
-        bullets: takeaways.slice(0, MAX_BULLETS_PER_SLIDE)
+      pushHistorySlide(
+        slides,
+        "Pourquoi c'est important",
+        takeaways
+          .slice(0, MAX_BULLETS_PER_SLIDE)
           .map((t) => shortenText(t, MAX_BULLET_CHARS)),
-        layout: "explanation",
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-      });
+        imageUrl,
+        { preferHeadline: takeaways.length === 1 },
+      );
     }
   } else {
     // ── Fallback path: extractedText / body / summary sentence splitting ─
@@ -305,18 +393,21 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
 
     // Split facts across 2-3 slides (3-4 bullets each) for readability
     if (facts.length > 0) {
-      const chunkSize = Math.min(MAX_BULLETS_PER_SLIDE, Math.ceil(facts.length / 2));
+      const chunkSize = Math.min(
+        MAX_BULLETS_PER_SLIDE,
+        Math.ceil(facts.length / 2),
+      );
       const headings = ["Le saviez-vous ?", "Pour mieux comprendre", "En bref"];
       let slideIdx = 0;
 
       for (let i = 0; i < facts.length && slideIdx < 3; i += chunkSize) {
         const chunk = facts.slice(i, i + chunkSize);
-        slides.push({
-          heading: headings[slideIdx] ?? `Partie ${slideIdx + 1}`,
-          bullets: chunk.map((f) => shortenText(f, MAX_BULLET_CHARS)),
-          layout: "explanation",
-          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-        });
+        pushHistorySlide(
+          slides,
+          headings[slideIdx] ?? `Partie ${slideIdx + 1}`,
+          chunk.map((f) => shortenText(f, MAX_BULLET_CHARS)),
+          imageUrl,
+        );
         slideIdx++;
       }
     }
@@ -347,26 +438,23 @@ export function buildHistoireCarousel(item: Item, bi?: BilingualText): IGFormatt
   // ══════════════════════════════════════════════════════════════════════
   const captionParts: string[] = [title, ""];
 
-  if (sections && sections.length > 0) {
-    // Build a richer caption with highlights from each section
-    for (const section of sections.slice(0, 4)) {
-      if (!section.content || section.content.trim().length < 20) continue;
-      if (/^sources?$/i.test(section.heading.trim())) continue;
-      // Take the first sentence of each section as a caption paragraph
-      const firstSentence = splitSentences(stripMarkdown(section.content))
-        .filter((s) => s.length >= 15 && !isJunkSentence(s) && !isSourceLine(s))[0];
-      if (firstSentence) {
-        captionParts.push(`📌 ${stripMarkdown(section.heading)}`);
-        captionParts.push(shortenCaptionText(firstSentence, 200));
-        captionParts.push("");
-      }
-    }
+  if (coverBullets.length > 0) {
+    captionParts.push(shortenCaptionText(coverBullets.join(" "), 240), "");
   } else {
-    captionParts.push(shortenCaptionText(summary, 400));
+    captionParts.push(shortenCaptionText(summary, 320), "");
+  }
+
+  for (const slide of slides.slice(1, 5)) {
+    if (!slide.heading || slide.heading === "Source") continue;
+    const lead = slide.bullets[0];
+    if (!lead) continue;
+    captionParts.push(`• ${slide.heading}`);
+    captionParts.push(shortenCaptionText(lead, 170));
     captionParts.push("");
   }
 
-  if (bi?.htSummary) captionParts.push(`🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`, "");
+  if (bi?.htSummary)
+    captionParts.push(`🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`, "");
 
   // Hashtags — vary by series type
   const seriesType = item.utilityMeta?.series;
@@ -392,10 +480,20 @@ function buildHistoryCoverBullets(
   // No boilerplate prefix like "Dans l'histoire d'Haïti" — the HISTOIRE pill
   // label on the slide already provides that context.
   const summaryLines = buildHistorySummaryLines(sections, summary);
+  const outlineLine = buildHistoryOutlineLine(sections);
   const lines: string[] = [];
 
-  for (const line of summaryLines) {
+  if (summaryLines[0]) {
+    lines.push(summaryLines[0]);
+  }
+
+  if (outlineLine && lines.length < 2) {
+    lines.push(outlineLine);
+  }
+
+  for (const line of summaryLines.slice(1)) {
     if (lines.length >= 2) break;
+    if (lines.includes(line)) continue;
     lines.push(line);
   }
 
@@ -406,6 +504,24 @@ function buildHistoryCoverBullets(
   return lines;
 }
 
+function buildHistoryOutlineLine(
+  sections: { heading: string; content: string }[] | undefined,
+): string | null {
+  const headings = (sections ?? [])
+    .map((section) =>
+      stripMarkdown(section.heading)
+        .replace(/^🎉\s*/u, "")
+        .replace(/\s*\((?:\d{3,4}|[\d–-]{5,9})\)\s*$/u, "")
+        .trim(),
+    )
+    .filter((heading) => heading.length >= 4 && !/^sources?$/i.test(heading))
+    .slice(0, 3);
+
+  if (headings.length < 2) return null;
+
+  return shortenText(`Repères : ${headings.join(" • ")}`, 105);
+}
+
 function buildHistorySummaryLines(
   sections: { heading: string; content: string }[] | undefined,
   fallbackSummary: string,
@@ -413,18 +529,7 @@ function buildHistorySummaryLines(
   const lines: string[] = [];
   const seen = new Set<string>();
 
-  for (const section of sections ?? []) {
-    const firstSentence = splitSentences(stripMarkdown(section.content))
-      .filter((sentence) => sentence.length >= 18 && !isJunkSentence(sentence) && !isSourceLine(sentence))[0];
-    const candidate = shortenText(firstSentence ?? section.heading, 105);
-    const key = candidate.toLowerCase();
-    if (!candidate || seen.has(key)) continue;
-    seen.add(key);
-    lines.push(candidate);
-    if (lines.length >= 3) break;
-  }
-
-  if (lines.length === 0 && fallbackSummary) {
+  if (fallbackSummary) {
     const summarySentences = splitSentences(stripMarkdown(fallbackSummary));
     for (const sentence of summarySentences) {
       const candidate = shortenText(sentence, 105);
@@ -436,6 +541,21 @@ function buildHistorySummaryLines(
     }
   }
 
+  for (const section of sections ?? []) {
+    const firstSentence = splitSentences(stripMarkdown(section.content)).filter(
+      (sentence) =>
+        sentence.length >= 18 &&
+        !isJunkSentence(sentence) &&
+        !isSourceLine(sentence),
+    )[0];
+    const candidate = shortenText(firstSentence ?? section.heading, 105);
+    const key = candidate.toLowerCase();
+    if (!candidate || seen.has(key)) continue;
+    seen.add(key);
+    lines.push(candidate);
+    if (lines.length >= 3) break;
+  }
+
   return lines;
 }
 
@@ -445,11 +565,17 @@ function formatHistoryCoverDate(item: Item): string {
     day: "numeric",
     month: "long",
     timeZone: "America/Port-au-Prince",
-  }).format(date).toUpperCase();
+  })
+    .format(date)
+    .toUpperCase();
 }
 
 function toItemDate(item: Item): Date {
-  const raw = item.publishedAt as { seconds?: number; _seconds?: number } | Date | null | undefined;
+  const raw = item.publishedAt as
+    | { seconds?: number; _seconds?: number }
+    | Date
+    | null
+    | undefined;
   if (raw instanceof Date) return raw;
   const seconds = raw?.seconds ?? raw?._seconds;
   if (typeof seconds === "number") return new Date(seconds * 1000);

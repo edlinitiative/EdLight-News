@@ -11,11 +11,26 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { IGSlide, IGSlideLayout, IGFormattedPayload, IGQueueItem } from "@edlight-news/types";
+import type {
+  IGSlide,
+  IGSlideLayout,
+  IGFormattedPayload,
+  IGQueueItem,
+} from "@edlight-news/types";
 import { buildMemeSlideHTML } from "./ig-meme.js";
 import {
-  CANVAS, MARGIN, FONT_HEADLINE, FONT_BODY, FONT_STACK, GOOGLE_FONTS_LINK, TYPE,
-  ACCENT, DARK, LABEL, OVERLAY, OVERLAY_BY_TYPE,
+  CANVAS,
+  MARGIN,
+  FONT_HEADLINE,
+  FONT_BODY,
+  FONT_STACK,
+  GOOGLE_FONTS_LINK,
+  TYPE,
+  ACCENT,
+  DARK,
+  LABEL,
+  OVERLAY,
+  OVERLAY_BY_TYPE,
 } from "./design-tokens.js";
 
 function escapeHtml(s: string): string {
@@ -89,7 +104,9 @@ function bodyCss(dark: string, bgImage?: string): string {
     ? `${dark} url('${bgImage}') center/cover no-repeat`
     : dark;
   // image-rendering: -webkit-optimize-contrast sharpens scaled-up backgrounds
-  const imgRendering = bgImage ? ` image-rendering: -webkit-optimize-contrast;` : "";
+  const imgRendering = bgImage
+    ? ` image-rendering: -webkit-optimize-contrast;`
+    : "";
   return `body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BODY}; background:${bg}; color:#fff; overflow:hidden; position:relative;${imgRendering} }`;
 }
 
@@ -106,14 +123,19 @@ function overlayCss(gradient: string): string {
   return `.overlay { position:absolute; inset:0; background:${gradient}; }`;
 }
 
-function imageLayerCss(hasImage: boolean, accent: string, overlayGradient?: string): string {
+function imageLayerCss(
+  hasImage: boolean,
+  accent: string,
+  overlayGradient?: string,
+): string {
   if (!hasImage) return glowCss(accent);
   if (!overlayGradient) return "";
   return overlayCss(overlayGradient);
 }
 
 function imageLayerHtml(hasImage: boolean, overlayGradient?: string): string {
-  if (!hasImage) return '<div class="bg-glow"></div><div class="accent-bar"></div>';
+  if (!hasImage)
+    return '<div class="bg-glow"></div><div class="accent-bar"></div>';
   if (!overlayGradient) return "";
   return '<div class="overlay"></div>';
 }
@@ -141,7 +163,11 @@ function topBrandCss(accent: string): string {
 .top-brand .nw { color:${accent}; }`;
 }
 
-function bottomBarHtml(footer: string | undefined, accent: string, showBrand: boolean): string {
+function bottomBarHtml(
+  footer: string | undefined,
+  accent: string,
+  showBrand: boolean,
+): string {
   // Don't render an empty bottom bar — the border-top line looks like sources even when empty.
   if (!footer && !showBrand) return "";
   return `<div class="bottom">
@@ -155,29 +181,76 @@ function bottomCss(): string {
 .src { font-size:${TYPE.source}px; opacity:0.3; max-width:60%; line-height:1.4; font-weight:400; }`;
 }
 
+function buildHistoryNarrativeHtml(
+  bullets: string[],
+  isFirst: boolean,
+): string {
+  const [lead, ...supporting] = bullets;
+  const parts: string[] = [];
+
+  if (lead) {
+    parts.push(
+      `<div class="history-lede${isFirst ? " history-lede-cover" : ""}">${escapeHtml(lead)}</div>`,
+    );
+  }
+
+  if (supporting.length > 0) {
+    parts.push(
+      `<div class="history-support">${supporting
+        .map(
+          (bullet) =>
+            `<div class="history-note"><span class="history-note-mark"></span><span class="history-note-copy">${escapeHtml(bullet)}</span></div>`,
+        )
+        .join("\n")}</div>`,
+    );
+  }
+
+  return parts.join("\n    ");
+}
+
 // ── HEADLINE layout ────────────────────────────────────────────────────────
 // Big bold title + optional one-liner. Used for covers and story beats.
 
 function buildHeadlineHTML(
-  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean, igType = "",
+  slide: IGSlide,
+  label: string,
+  accent: string,
+  dark: string,
+  isFirst: boolean,
+  igType = "",
 ): string {
-  const bodyText = slide.bullets
-    .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
-    .join("\n    ");
+  const isHistory = igType === "histoire";
   const hasImage = !!slide.backgroundImage;
+  const bodyText = isHistory
+    ? buildHistoryNarrativeHtml(slide.bullets, isFirst)
+    : slide.bullets
+      .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
+      .join("\n    ");
   // Responsive headline: scale down for longer text so it never clips
   const hSize = isFirst
-    ? slide.heading.length > 60 ? 64
-    : slide.heading.length > 40 ? 72
-    : TYPE.headlineHero
-    : slide.heading.length > 120 ? 48
-    : slide.heading.length > 80 ? 56
-    : TYPE.headlineInner;
-  const hClamp = isFirst ? (slide.heading.length > 60 ? 8 : 7) : slide.heading.length > 120 ? 8 : 6;
+    ? slide.heading.length > 60
+      ? 64
+      : slide.heading.length > 40
+        ? 72
+        : TYPE.headlineHero
+    : slide.heading.length > 120
+      ? 48
+      : slide.heading.length > 80
+        ? 56
+        : TYPE.headlineInner;
+  const hClamp = isFirst
+    ? slide.heading.length > 60
+      ? 8
+      : 7
+    : slide.heading.length > 120
+      ? 8
+      : 6;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  // Apply the cover overlay on first slide; inner slides use blur + text-shadow
-  const overlayGradient = isFirst ? overlays.cover : undefined;
+  const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
+  const mainClass = isHistory ? "main history-main" : "main";
+  const historyOpen = isHistory ? '<div class="history-card">' : "";
+  const historyClose = isHistory ? "</div>" : "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -192,9 +265,65 @@ ${pillCss(accent)}
 .top { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
 ${isFirst ? topBrandCss(accent) : ""}
 .main { margin-top:auto; overflow:hidden; max-height:calc(100% - 80px); display:flex; flex-direction:column; justify-content:flex-end; }
+${
+  isHistory
+    ? `.history-main { max-height:none; }
+.history-card {
+  padding:${isFirst ? "38px 38px 34px" : "34px 34px 30px"};
+  border-radius:32px;
+  background:linear-gradient(180deg, rgba(18,11,6,0.72) 0%, rgba(18,11,6,0.84) 100%);
+  border:1px solid rgba(245,158,11,0.18);
+  box-shadow:0 26px 70px rgba(0,0,0,0.24);
+  backdrop-filter:blur(16px);
+}`
+    : ""
+}
 ${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; flex-shrink:0; }` : ""}
 .h { font-family:${FONT_HEADLINE}; font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.85), 0 1px 8px rgba(0,0,0,0.6); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${hClamp}; -webkit-box-orient:vertical; flex-shrink:0; }
 .bt { font-size:${isFirst ? 26 : TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.48; opacity:${isFirst ? 0.85 : 0.92}; text-shadow:0 1px 16px rgba(0,0,0,0.8); margin-bottom:8px; max-height:${isFirst ? 280 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 5 : 6}; -webkit-box-orient:vertical; flex-shrink:1; }
+${
+  isHistory
+    ? `.history-lede {
+  font-size:${isFirst ? 28 : 26}px;
+  line-height:1.56;
+  font-weight:600;
+  opacity:0.96;
+  text-shadow:0 1px 16px rgba(0,0,0,0.78);
+}
+.history-lede-cover {
+  font-size:30px;
+}
+.history-support {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:18px;
+}
+.history-note {
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,0.10);
+}
+.history-note-mark {
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:${accent};
+  margin-top:11px;
+  flex-shrink:0;
+  box-shadow:0 0 0 5px ${accent}18;
+}
+.history-note-copy {
+  font-size:${isFirst ? 23 : 22}px;
+  line-height:1.54;
+  font-weight:500;
+  opacity:0.88;
+  text-shadow:0 1px 14px rgba(0,0,0,0.74);
+}`
+    : ""
+}
 ${bottomCss()}
 </style></head>
 <body>
@@ -204,11 +333,13 @@ ${imageLayerHtml(hasImage, overlayGradient)}
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
     ${isFirst ? topBrandHtml(accent) : ""}
   </div>
-  <div class="main">
+  <div class="${mainClass}">
+    ${historyOpen}
     ${isFirst ? '<div class="accent-rule"></div>' : ""}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bodyText}
     ${bottomBarHtml(slide.footer, accent, !isFirst)}
+    ${historyClose}
   </div>
 </div>
 </body></html>`;
@@ -218,16 +349,26 @@ ${imageLayerHtml(hasImage, overlayGradient)}
 // Medium headline + body bullets. Used for detail / eligibility / how-to slides.
 
 function buildExplanationHTML(
-  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean, igType = "",
+  slide: IGSlide,
+  label: string,
+  accent: string,
+  dark: string,
+  isFirst: boolean,
+  igType = "",
 ): string {
-  const bulletsHtml = slide.bullets
-    .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
-    .join("\n    ");
+  const isHistory = igType === "histoire";
   const hasImage = !!slide.backgroundImage;
+  const bulletsHtml = isHistory
+    ? buildHistoryNarrativeHtml(slide.bullets, false)
+    : slide.bullets
+      .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
+      .join("\n    ");
   const pad = `${MARGIN.top}px ${MARGIN.side}px 140px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  // Inner slides rely on blur + text-shadow for contrast; overlay only on cover
-  const overlayGradient = isFirst ? overlays.cover : undefined;
+  const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
+  const mainClass = isHistory ? "main history-main" : "main";
+  const historyOpen = isHistory ? '<div class="history-panel">' : "";
+  const historyClose = isHistory ? "</div>" : "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -241,8 +382,61 @@ ${pillCss(accent)}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
+${
+  isHistory
+    ? `.history-main { justify-content:flex-end; }
+.history-panel {
+  padding:36px 34px 26px;
+  border-radius:30px;
+  background:linear-gradient(180deg, rgba(18,11,6,0.72) 0%, rgba(18,11,6,0.84) 100%);
+  border:1px solid rgba(245,158,11,0.18);
+  box-shadow:0 26px 70px rgba(0,0,0,0.24);
+  backdrop-filter:blur(16px);
+}`
+    : ""
+}
 .h { font-family:${FONT_HEADLINE}; font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; text-shadow:0 2px 20px rgba(0,0,0,0.9); }
 .bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.95; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}88; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 12px rgba(0,0,0,0.8); }
+${
+  isHistory
+    ? `.history-lede {
+  font-size:30px;
+  line-height:1.56;
+  font-weight:600;
+  opacity:0.96;
+  margin-bottom:18px;
+  text-shadow:0 1px 14px rgba(0,0,0,0.82);
+}
+.history-support {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.history-note {
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,0.10);
+}
+.history-note-mark {
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:${accent};
+  margin-top:11px;
+  flex-shrink:0;
+  box-shadow:0 0 0 5px ${accent}16;
+}
+.history-note-copy {
+  font-size:24px;
+  line-height:1.56;
+  font-weight:500;
+  opacity:0.88;
+  text-shadow:0 1px 12px rgba(0,0,0,0.78);
+}`
+    : ""
+}
 ${bottomCss()}
 </style></head>
 <body>
@@ -251,9 +445,11 @@ ${imageLayerHtml(hasImage, overlayGradient)}
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
   </div>
-  <div class="main">
+  <div class="${mainClass}">
+    ${historyOpen}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bulletsHtml}
+    ${historyClose}
   </div>
   ${bottomBarHtml(slide.footer, accent, !isFirst)}
 </div>
@@ -264,15 +460,19 @@ ${imageLayerHtml(hasImage, overlayGradient)}
 // Giant stat number + description. Used for coverage amounts, percentages, etc.
 
 function buildDataHTML(
-  slide: IGSlide, label: string, accent: string, dark: string, isFirst: boolean, igType = "",
+  slide: IGSlide,
+  label: string,
+  accent: string,
+  dark: string,
+  isFirst: boolean,
+  igType = "",
 ): string {
   const stat = slide.statValue ?? slide.heading;
   const desc = slide.statDescription ?? (slide.bullets[0] || "");
   const hasImage = !!slide.backgroundImage;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  // Inner slides rely on blur + text-shadow for contrast; overlay only on cover
-  const overlayGradient = isFirst ? overlays.cover : undefined;
+  const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -310,7 +510,9 @@ ${imageLayerHtml(hasImage, overlayGradient)}
 // ── Taux du Jour: financial terminal cover (big rate number) ──────────────
 
 function buildTauxCoverHTML(
-  slide: IGSlide, accent: string, totalSlides: number,
+  slide: IGSlide,
+  accent: string,
+  totalSlides: number,
 ): string {
   const metaHtml = slide.bullets
     .map((b) => `<span>${escapeHtml(b)}</span>`)
@@ -365,13 +567,19 @@ ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
 // ── Taux du Jour: financial terminal detail (market rows) ─────────────────
 
 function buildTauxDetailHTML(
-  slide: IGSlide, accent: string, slideIndex: number, totalSlides: number,
+  slide: IGSlide,
+  accent: string,
+  slideIndex: number,
+  totalSlides: number,
 ): string {
   // Parse structured data from bullets for table display
   // Expected format: "Bancaire — Achat: 130.5000  |  Vente: 131.2000"
-  const rows: { label: string; buy?: string; sell?: string; plain?: string }[] = [];
+  const rows: { label: string; buy?: string; sell?: string; plain?: string }[] =
+    [];
   for (const b of slide.bullets) {
-    const m = b.match(/^(.+?)\s*[—–-]\s*Achat\s*:\s*([\d.,]+)\s*\|\s*Vente\s*:\s*([\d.,]+)/);
+    const m = b.match(
+      /^(.+?)\s*[—–-]\s*Achat\s*:\s*([\d.,]+)\s*\|\s*Vente\s*:\s*([\d.,]+)/,
+    );
     if (m) {
       rows.push({ label: m[1]!.trim(), buy: m[2]!.trim(), sell: m[3]!.trim() });
     } else {
@@ -379,18 +587,20 @@ function buildTauxDetailHTML(
     }
   }
 
-  const tableRows = rows.map((r) => {
-    if (r.buy && r.sell) {
-      return `<div class="row">
+  const tableRows = rows
+    .map((r) => {
+      if (r.buy && r.sell) {
+        return `<div class="row">
         <div class="row-label">${escapeHtml(r.label)}</div>
         <div class="row-pair">
           <div class="pair-col"><span class="pair-head">ACHAT</span><span class="pair-val">${escapeHtml(r.buy)}</span></div>
           <div class="pair-col"><span class="pair-head">VENTE</span><span class="pair-val">${escapeHtml(r.sell)}</span></div>
         </div>
       </div>`;
-    }
-    return `<div class="row"><div class="row-label">${escapeHtml(r.label)}</div></div>`;
-  }).join("\n    ");
+      }
+      return `<div class="row"><div class="row-label">${escapeHtml(r.label)}</div></div>`;
+    })
+    .join("\n    ");
 
   const bgCss = slide.backgroundImage
     ? `background: #0a1628 url('${slide.backgroundImage}') center/cover no-repeat;`
@@ -452,7 +662,11 @@ export async function generateCarouselAssets(
   mkdirSync(exportDir, { recursive: true });
 
   const payloadPath = join(exportDir, "payload.json");
-  writeFileSync(payloadPath, JSON.stringify({ queueItem, payload }, null, 2), "utf-8");
+  writeFileSync(
+    payloadPath,
+    JSON.stringify({ queueItem, payload }, null, 2),
+    "utf-8",
+  );
 
   const slidePaths: string[] = [];
   let mode: "rendered" | "dry-run" = "dry-run";
@@ -466,9 +680,15 @@ export async function generateCarouselAssets(
     for (let i = 0; i < payload.slides.length; i++) {
       const slide = payload.slides[i]!;
       const html = buildSlideHTML(slide, queueItem.igType, i, totalSlides);
-      const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2 });
+      const page = await browser.newPage({
+        viewport: { width: 1080, height: 1350 },
+        deviceScaleFactor: 2,
+      });
       try {
-        await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
+        await page.setContent(html, {
+          waitUntil: "networkidle",
+          timeout: 60_000,
+        });
         await page.evaluate("document.fonts.ready");
         const buffer = await page.screenshot({ type: "png", timeout: 60_000 });
         const pngPath = join(exportDir, `slide_${i + 1}.png`);
@@ -527,7 +747,12 @@ async function renderMemeSlideWithChromium(html: string): Promise<Buffer> {
     try {
       browser = await chromiumModule.launch({
         executablePath,
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+        ],
       });
       break;
     } catch {
@@ -536,11 +761,18 @@ async function renderMemeSlideWithChromium(html: string): Promise<Buffer> {
   }
   if (!browser) {
     browser = await chromiumModule.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+      ],
     });
   }
 
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({
+    viewport: { width: 1080, height: 1350 },
+    deviceScaleFactor: 2,
+  });
   try {
     await page.setContent(html, { waitUntil: "load", timeout: 60_000 });
     const buffer = await page.screenshot({ type: "png", timeout: 60_000 });

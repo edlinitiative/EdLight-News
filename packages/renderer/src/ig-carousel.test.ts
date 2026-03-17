@@ -29,10 +29,23 @@ function makeSlide(overrides: Partial<IGSlide> = {}): IGSlide {
 
 describe("OVERLAY_BY_TYPE", () => {
   it("has entries for all 6 IG types", () => {
-    for (const type of ["news", "histoire", "scholarship", "opportunity", "utility", "taux"]) {
+    for (const type of [
+      "news",
+      "histoire",
+      "scholarship",
+      "opportunity",
+      "utility",
+      "taux",
+    ]) {
       assert.ok(OVERLAY_BY_TYPE[type], `Missing OVERLAY_BY_TYPE.${type}`);
-      assert.ok(OVERLAY_BY_TYPE[type]!.cover, `Missing cover overlay for ${type}`);
-      assert.ok(OVERLAY_BY_TYPE[type]!.inner, `Missing inner overlay for ${type}`);
+      assert.ok(
+        OVERLAY_BY_TYPE[type]!.cover,
+        `Missing cover overlay for ${type}`,
+      );
+      assert.ok(
+        OVERLAY_BY_TYPE[type]!.inner,
+        `Missing inner overlay for ${type}`,
+      );
     }
   });
 
@@ -51,8 +64,14 @@ describe("OVERLAY_BY_TYPE", () => {
     const newsOpacity = parseFloat(newsMatch![1]!);
     const scholOpacity = parseFloat(scholMatch![1]!);
 
-    assert.ok(newsOpacity >= 0.50, `News 20% stop opacity (${newsOpacity}) should be >= 0.50`);
-    assert.ok(newsOpacity >= scholOpacity, `News overlay (${newsOpacity}) should be >= scholarship (${scholOpacity})`);
+    assert.ok(
+      newsOpacity >= 0.5,
+      `News 20% stop opacity (${newsOpacity}) should be >= 0.50`,
+    );
+    assert.ok(
+      newsOpacity >= scholOpacity,
+      `News overlay (${newsOpacity}) should be >= scholarship (${scholOpacity})`,
+    );
   });
 });
 
@@ -67,12 +86,21 @@ describe("buildSlideHTML", () => {
     assert.ok(html.includes("linear-gradient"), "Should have gradient");
   });
 
-  it("inner slide with image gets blur CSS without the extra dark overlay", () => {
+  it("inner slide with image gets blur CSS plus the stronger inner overlay", () => {
     const slide = makeSlide({ backgroundImage: "https://example.com/img.jpg" });
     const html = buildSlideHTML(slide, "news", 1, 4);
-    assert.ok(html.includes("blur(6px)"), "Inner slide with image should have blur");
-    assert.ok(html.includes("brightness(0.7)"), "Inner slide should dim the blurred background");
-    assert.ok(!html.includes('<div class="overlay"></div>'), "Inner slide should not render the overlay div");
+    assert.ok(
+      html.includes("blur(6px)"),
+      "Inner slide with image should have blur",
+    );
+    assert.ok(
+      html.includes("brightness(0.7)"),
+      "Inner slide should dim the blurred background",
+    );
+    assert.ok(
+      html.includes('<div class="overlay"></div>'),
+      "Inner slide should render the overlay div",
+    );
   });
 
   it("first slide does NOT get blur CSS", () => {
@@ -85,49 +113,123 @@ describe("buildSlideHTML", () => {
     const slide = makeSlide();
     const html = buildSlideHTML(slide, "scholarship", 1, 4);
     assert.ok(html.includes("bg-glow"), "Should have bg-glow");
-    assert.ok(!html.includes("blur(6px)"), "Should not have blur without image");
+    assert.ok(
+      !html.includes("blur(6px)"),
+      "Should not have blur without image",
+    );
     assert.ok(html.includes("accent-bar"), "Should have accent bar");
+  });
+
+  it("histoire headline slides use the dedicated history card treatment", () => {
+    const slide = makeSlide({
+      heading: "La bataille de Vertières",
+      bullets: ["Le moment décisif de 1803.", "La victoire ouvre la voie à l'indépendance."],
+    });
+    const html = buildSlideHTML(slide, "histoire", 1, 4);
+    assert.ok(
+      html.includes("history-card"),
+      "History headline slide should use history-card",
+    );
+    assert.ok(
+      html.includes("history-lede"),
+      "History headline slide should render a lead paragraph treatment",
+    );
   });
 
   it("headline clamp is 7 for first slide (was 5)", () => {
     const slide = makeSlide({ heading: "Short" });
     const html = buildSlideHTML(slide, "news", 0, 3);
-    assert.ok(html.includes("-webkit-line-clamp:7"), "First slide headline clamp should be 7");
+    assert.ok(
+      html.includes("-webkit-line-clamp:7"),
+      "First slide headline clamp should be 7",
+    );
   });
 
   it("body text clamp is 5 for first slide (was 3)", () => {
     const slide = makeSlide();
     const html = buildSlideHTML(slide, "news", 0, 3);
-    assert.ok(html.includes("-webkit-line-clamp:5"), "First slide body clamp should be 5");
+    assert.ok(
+      html.includes("-webkit-line-clamp:5"),
+      "First slide body clamp should be 5",
+    );
   });
 
   it("all slides have 1080×1350 dimensions", () => {
     const slide = makeSlide();
-    for (const [igType, idx] of [["news", 0], ["scholarship", 1], ["histoire", 2]] as const) {
+    for (const [igType, idx] of [
+      ["news", 0],
+      ["scholarship", 1],
+      ["histoire", 2],
+    ] as const) {
       const html = buildSlideHTML(slide, igType, idx, 4);
-      assert.ok(html.includes("1080px"), `${igType} slide should be 1080px wide`);
-      assert.ok(html.includes("1350px"), `${igType} slide should be 1350px tall`);
+      assert.ok(
+        html.includes("1080px"),
+        `${igType} slide should be 1080px wide`,
+      );
+      assert.ok(
+        html.includes("1350px"),
+        `${igType} slide should be 1350px tall`,
+      );
     }
   });
 
-  it("explanation layout keeps blur on inner image slides without an overlay", () => {
-    const slide = makeSlide({ layout: "explanation", backgroundImage: "https://example.com/img.jpg" });
+  it("explanation layout keeps blur on inner image slides with an overlay", () => {
+    const slide = makeSlide({
+      layout: "explanation",
+      backgroundImage: "https://example.com/img.jpg",
+    });
     const html = buildSlideHTML(slide, "opportunity", 2, 4);
-    assert.ok(html.includes("blur(6px)"), "Explanation inner slide should have blur");
-    assert.ok(!html.includes('<div class="overlay"></div>'), "Explanation inner slide should not have overlay div");
+    assert.ok(
+      html.includes("blur(6px)"),
+      "Explanation inner slide should have blur",
+    );
+    assert.ok(
+      html.includes('<div class="overlay"></div>'),
+      "Explanation inner slide should have overlay div",
+    );
   });
 
-  it("data layout keeps blur on inner image slides without an overlay", () => {
-    const slide = makeSlide({ layout: "data", statValue: "250K", statDescription: "Coverage", backgroundImage: "https://example.com/img.jpg" });
+  it("histoire explanation slides use the dedicated history panel treatment", () => {
+    const slide = makeSlide({
+      layout: "explanation",
+      bullets: ["Contexte", "Impact"],
+    });
+    const html = buildSlideHTML(slide, "histoire", 2, 4);
+    assert.ok(
+      html.includes("history-panel"),
+      "History explanation slide should use history-panel",
+    );
+    assert.ok(
+      html.includes("history-note-copy"),
+      "History explanation slide should render the support-note treatment",
+    );
+  });
+
+  it("data layout keeps blur on inner image slides with an overlay", () => {
+    const slide = makeSlide({
+      layout: "data",
+      statValue: "250K",
+      statDescription: "Coverage",
+      backgroundImage: "https://example.com/img.jpg",
+    });
     const html = buildSlideHTML(slide, "scholarship", 1, 3);
     assert.ok(html.includes("blur(6px)"), "Data inner slide should have blur");
-    assert.ok(!html.includes('<div class="overlay"></div>'), "Data inner slide should not have overlay div");
+    assert.ok(
+      html.includes('<div class="overlay"></div>'),
+      "Data inner slide should have overlay div",
+    );
   });
 
   it("taux slides still use dedicated financial template", () => {
-    const slide = makeSlide({ heading: "131.2589", bullets: ["13 mars 2026", "Achat: 130.50"] });
+    const slide = makeSlide({
+      heading: "131.2589",
+      bullets: ["13 mars 2026", "Achat: 130.50"],
+    });
     const html = buildSlideHTML(slide, "taux", 0, 2);
-    assert.ok(html.includes("TAUX DU JOUR"), "Taux should use financial template");
+    assert.ok(
+      html.includes("TAUX DU JOUR"),
+      "Taux should use financial template",
+    );
     assert.ok(html.includes("HTG / 1 USD"), "Taux should show currency unit");
   });
 });

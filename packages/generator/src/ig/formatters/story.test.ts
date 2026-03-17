@@ -34,11 +34,11 @@ function makeItem(overrides?: Partial<Item>): Item {
 
 describe("buildDailySummaryStory (v2)", () => {
   it("creates taux frame when taux data is provided", () => {
-    const result = buildDailySummaryStory(
-      [],
-      new Date("2026-03-13"),
-      { rate: "131.2589", dateLabel: "13 mars 2026", bullets: ["Achat: 130.50"] },
-    );
+    const result = buildDailySummaryStory([], new Date("2026-03-13"), {
+      rate: "131.2589",
+      dateLabel: "13 mars 2026",
+      bullets: ["Achat: 130.50"],
+    });
 
     assert.ok(result.slides.length >= 1);
     const tauxFrame = result.slides.find((s) => s.frameType === "taux");
@@ -52,24 +52,87 @@ describe("buildDailySummaryStory (v2)", () => {
       [],
       new Date("2026-03-13"),
       undefined,
-      { facts: ["Haïti a été le premier pays noir indépendant", "Le drapeau a été créé le 18 mai 1803"] },
+      {
+        facts: [
+          "Haïti a été le premier pays noir indépendant",
+          "Le drapeau a été créé le 18 mai 1803",
+        ],
+      },
     );
 
     const factsFrame = result.slides.find((s) => s.frameType === "facts");
     assert.ok(factsFrame, "Should have a facts frame");
-    assert.equal(factsFrame.heading, "Le saviez-vous ?");
+    assert.equal(factsFrame.heading, "Repères du jour");
+    assert.equal(factsFrame.eyebrow, "Ce matin");
     assert.equal(factsFrame.bullets.length, 2);
+  });
+
+  it("keeps a carried facts background image when one is provided", () => {
+    const result = buildDailySummaryStory(
+      [],
+      new Date("2026-03-13"),
+      undefined,
+      {
+        facts: ["Haïti a été le premier pays noir indépendant"],
+        backgroundImage: "https://example.com/facts.jpg",
+      },
+    );
+
+    const factsFrame = result.slides.find((s) => s.frameType === "facts");
+    assert.equal(
+      factsFrame?.backgroundImage,
+      "https://example.com/facts.jpg",
+    );
   });
 
   it("creates headline frames for bonus items", () => {
     const items = [
-      { item: makeItem({ title: "Bourse UNESCO 2026" }), bi: { frTitle: "Bourse UNESCO 2026", frSummary: "Postulez maintenant" } },
-      { item: makeItem({ id: "test-2", title: "Concours MENFP", category: "opportunity" as any }), bi: { frTitle: "Concours MENFP", frSummary: "Inscriptions ouvertes" } },
+      {
+        item: makeItem({ title: "Bourse UNESCO 2026" }),
+        bi: { frTitle: "Bourse UNESCO 2026", frSummary: "Postulez maintenant" },
+      },
+      {
+        item: makeItem({
+          id: "test-2",
+          title: "Concours MENFP",
+          category: "opportunity" as any,
+        }),
+        bi: { frTitle: "Concours MENFP", frSummary: "Inscriptions ouvertes" },
+      },
     ];
     const result = buildDailySummaryStory(items, new Date("2026-03-13"));
 
-    const headlineFrames = result.slides.filter((s) => s.frameType === "headline");
+    const headlineFrames = result.slides.filter(
+      (s) => s.frameType === "headline",
+    );
     assert.equal(headlineFrames.length, 2);
+    assert.equal(headlineFrames[0]?.eyebrow, "BOURSE");
+    assert.equal(headlineFrames[0]?.subheading, "Postulez maintenant.");
+  });
+
+  it("prefers carried queue imagery over the raw item image when available", () => {
+    const result = buildDailySummaryStory(
+      [
+        {
+          item: makeItem({
+            title: "Bourse UNESCO 2026",
+            imageUrl: "https://example.com/raw-item.jpg",
+          }),
+          bi: {
+            frTitle: "Bourse UNESCO 2026",
+            frSummary: "Postulez maintenant",
+          },
+          backgroundImage: "https://example.com/queue-image.jpg",
+        },
+      ],
+      new Date("2026-03-13"),
+    );
+
+    const headlineFrame = result.slides.find((s) => s.frameType === "headline");
+    assert.equal(
+      headlineFrame?.backgroundImage,
+      "https://example.com/queue-image.jpg",
+    );
   });
 
   it("limits bonus items to 4", () => {
@@ -78,13 +141,21 @@ describe("buildDailySummaryStory (v2)", () => {
     }));
     const result = buildDailySummaryStory(items, new Date("2026-03-13"));
 
-    const headlineFrames = result.slides.filter((s) => s.frameType === "headline");
-    assert.ok(headlineFrames.length <= 4, `Expected max 4, got ${headlineFrames.length}`);
+    const headlineFrames = result.slides.filter(
+      (s) => s.frameType === "headline",
+    );
+    assert.ok(
+      headlineFrames.length <= 4,
+      `Expected max 4, got ${headlineFrames.length}`,
+    );
   });
 
   it("includes all frame types in full story", () => {
     const items = [
-      { item: makeItem({ title: "Test Article" }), bi: { frTitle: "Article Test", frSummary: "Résumé test" } },
+      {
+        item: makeItem({ title: "Test Article" }),
+        bi: { frTitle: "Article Test", frSummary: "Résumé test" },
+      },
     ];
     const result = buildDailySummaryStory(
       items,
@@ -136,7 +207,39 @@ describe("buildDailySummaryStory (v2)", () => {
 
     const headlineFrame = result.slides.find((s) => s.frameType === "headline");
     assert.ok(headlineFrame);
-    const deadlineBullet = headlineFrame.bullets.find((b) => b.includes("Date limite"));
+    const deadlineBullet = headlineFrame.meta?.find((b) =>
+      b.includes("Date limite"),
+    );
     assert.ok(deadlineBullet, "Should include deadline bullet");
+  });
+
+  it("separates source attribution into footer instead of inline body copy", () => {
+    const result = buildDailySummaryStory(
+      [
+        {
+          item: makeItem({
+            title: "Réforme universitaire en Haïti",
+            source: {
+              name: "Le Nouvelliste",
+              originalUrl: "https://lenouvelliste.com/reforme",
+            } as any,
+          }),
+          bi: {
+            frTitle: "Réforme universitaire en Haïti",
+            frSummary:
+              "Le ministère annonce une série de changements pour l'année 2026.",
+          },
+        },
+      ],
+      new Date("2026-03-13"),
+    );
+
+    const headlineFrame = result.slides.find((s) => s.frameType === "headline");
+    assert.ok(headlineFrame);
+    assert.equal(headlineFrame.footer, "Source: Le Nouvelliste");
+    assert.ok(
+      !headlineFrame.bullets.some((bullet) => bullet.startsWith("Source:")),
+      "Source should not stay in bullets",
+    );
   });
 });

@@ -61,7 +61,12 @@ export interface RawItem {
 export type GeoTag = "HT" | "Diaspora" | "Global";
 
 /** How the article image was obtained */
-export type ImageSource = "publisher" | "wikidata" | "branded" | "screenshot" | "commons";
+export type ImageSource =
+  | "publisher"
+  | "wikidata"
+  | "branded"
+  | "screenshot"
+  | "commons";
 
 /** Metadata about the article image */
 export interface ImageMeta {
@@ -424,9 +429,21 @@ export interface Metric {
 export type AlmanacConfidence = "high" | "medium";
 export type AlmanacCreatedBy = "seed" | "admin" | "intern" | "import";
 export type AlmanacTag =
-  | "independence" | "culture" | "education" | "politics" | "science"
-  | "military" | "economy" | "literature" | "art" | "religion"
-  | "sports" | "disaster" | "diplomacy" | "resistance" | "revolution";
+  | "independence"
+  | "culture"
+  | "education"
+  | "politics"
+  | "science"
+  | "military"
+  | "economy"
+  | "literature"
+  | "art"
+  | "religion"
+  | "sports"
+  | "disaster"
+  | "diplomacy"
+  | "resistance"
+  | "revolution";
 
 export interface HaitiHistoryAlmanacEntry {
   id: string;
@@ -539,7 +556,13 @@ export interface HaitiHistoryAlmanacRaw {
 // ── Instagram pipeline types ────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-export type IGPostType = "scholarship" | "opportunity" | "news" | "histoire" | "utility" | "taux";
+export type IGPostType =
+  | "scholarship"
+  | "opportunity"
+  | "news"
+  | "histoire"
+  | "utility"
+  | "taux";
 
 export type IGQueueStatus =
   | "queued"
@@ -587,15 +610,15 @@ export interface IGSlide {
  * Each maps to a specific visual layout in the renderer.
  */
 export type IGMemeTemplate =
-  | "drake"           // Top: bad option, Bottom: good option (two-panel)
+  | "drake" // Top: bad option, Bottom: good option (two-panel)
   | "expanding-brain" // 3-4 tiers of increasing "enlightenment"
-  | "distracted"      // Distracted boyfriend: current / distraction / ignored
-  | "starter-pack"    // "X Starter Pack" — 4 relatable items
-  | "two-buttons"     // Anxious choice between two options
-  | "tell-me"         // "Tell me X without telling me X" + punchline
-  | "nobody"          // "Nobody: … / Haitian students: …"
-  | "reaction"        // Single reaction caption over a bold emoji/icon
-  | "comparison";     // Side-by-side "Expectation vs Reality"
+  | "distracted" // Distracted boyfriend: current / distraction / ignored
+  | "starter-pack" // "X Starter Pack" — 4 relatable items
+  | "two-buttons" // Anxious choice between two options
+  | "tell-me" // "Tell me X without telling me X" + punchline
+  | "nobody" // "Nobody: … / Haitian students: …"
+  | "reaction" // Single reaction caption over a bold emoji/icon
+  | "comparison"; // Side-by-side "Expectation vs Reality"
 
 /** A single panel/tier within a meme. */
 export interface IGMemePanel {
@@ -659,6 +682,14 @@ export interface IGStorySlide {
   heading: string;
   /** Supporting text lines */
   bullets: string[];
+  /** Optional small overline / category chip text */
+  eyebrow?: string;
+  /** Optional supporting dek shown as paragraph copy */
+  subheading?: string;
+  /** Optional compact metadata chips/rows */
+  meta?: string[];
+  /** Optional attribution/footer line */
+  footer?: string;
   /** Optional background image (cover frame) */
   backgroundImage?: string;
   /** Accent colour override for this frame */
@@ -693,7 +724,16 @@ export interface IGStoryQueueItem {
 // ── Shared enums for datasets ──────────────────────────────────────────────
 
 export type DatasetCountry =
-  | "US" | "CA" | "FR" | "UK" | "DO" | "MX" | "CN" | "RU" | "HT" | "Global";
+  | "US"
+  | "CA"
+  | "FR"
+  | "UK"
+  | "DO"
+  | "MX"
+  | "CN"
+  | "RU"
+  | "HT"
+  | "Global";
 
 export type AcademicLevel = "bachelor" | "master" | "phd" | "short_programs";
 
@@ -750,10 +790,18 @@ export type ScholarshipKind = "program" | "directory";
 export type ScholarshipHaitianEligibility = "yes" | "no" | "unknown";
 
 /** How precise the deadline information is */
-export type ScholarshipDeadlineAccuracy = "exact" | "month-only" | "varies" | "unknown";
+export type ScholarshipDeadlineAccuracy =
+  | "exact"
+  | "month-only"
+  | "varies"
+  | "unknown";
 
 export type ScholarshipFundingType =
-  | "full" | "partial" | "stipend" | "tuition-only" | "unknown";
+  | "full"
+  | "partial"
+  | "stipend"
+  | "tuition-only"
+  | "unknown";
 
 export interface ScholarshipDeadline {
   dateISO?: string;
@@ -790,10 +838,21 @@ export interface Scholarship {
 // ── Firestore collection: haiti_education_calendar ─────────────────────────
 
 export type CalendarEventType =
-  | "rentree" | "registration" | "exam" | "results" | "admissions" | "closure";
+  | "rentree"
+  | "registration"
+  | "exam"
+  | "results"
+  | "admissions"
+  | "closure";
 
 export type CalendarLevel =
-  | "ns1" | "ns2" | "ns3" | "ns4" | "bac" | "university" | "general";
+  | "ns1"
+  | "ns2"
+  | "ns3"
+  | "ns4"
+  | "bac"
+  | "university"
+  | "general";
 
 export interface HaitiCalendarEvent {
   id: string;
@@ -815,7 +874,10 @@ export interface HaitiCalendarEvent {
 // ── Firestore collection: pathways ─────────────────────────────────────────
 
 export type PathwayGoalKey =
-  | "study_abroad" | "career" | "scholarship" | "haiti_calendar";
+  | "study_abroad"
+  | "career"
+  | "scholarship"
+  | "haiti_calendar";
 
 export interface PathwayStep {
   title_fr: string;
@@ -841,8 +903,12 @@ export interface Pathway {
 // ── Firestore collection: dataset_jobs ─────────────────────────────────────
 
 export type DatasetName =
-  | "universities" | "scholarships" | "haiti_calendar" | "pathways"
-  | "haiti_history_almanac" | "haiti_holidays";
+  | "universities"
+  | "scholarships"
+  | "haiti_calendar"
+  | "pathways"
+  | "haiti_history_almanac"
+  | "haiti_holidays";
 
 export type DatasetJobStatus = "queued" | "processing" | "done" | "failed";
 

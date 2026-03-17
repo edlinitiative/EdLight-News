@@ -19,9 +19,15 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { IGStorySlide, IGStoryPayload, IGStoryQueueItem } from "@edlight-news/types";
+import type {
+  IGStorySlide,
+  IGStoryPayload,
+  IGStoryQueueItem,
+} from "@edlight-news/types";
 import {
-  FONT_HEADLINE, FONT_BODY, GOOGLE_FONTS_LINK,
+  FONT_HEADLINE,
+  FONT_BODY,
+  GOOGLE_FONTS_LINK,
 } from "./design-tokens.js";
 
 // ── Design tokens ─────────────────────────────────────────────────────────
@@ -30,8 +36,8 @@ const DEFAULT_ACCENT = "#14b8a6";
 const DEFAULT_DARK = "#060f0b";
 
 // IG safe zones (pixels on 1080×1920)
-const SAFE_TOP = 270;     // profile bar + story header
-const SAFE_BOTTOM = 230;  // reply field + navigation
+const SAFE_TOP = 270; // profile bar + story header
+const SAFE_BOTTOM = 230; // reply field + navigation
 
 function escapeHtml(s: string): string {
   return s
@@ -42,11 +48,120 @@ function escapeHtml(s: string): string {
 }
 
 /** Story progress bars are intentionally hidden for a cleaner editorial look. */
-function buildProgressDots(current: number, total: number, accent: string): string {
+function buildProgressDots(
+  current: number,
+  total: number,
+  accent: string,
+): string {
   void current;
   void total;
   void accent;
   return "";
+}
+
+interface StoryHeadlineContent {
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+  meta: string[];
+  footer: string;
+}
+
+interface StoryHeadlineMetrics {
+  eyebrowSize: number;
+  headingSize: number;
+  headingSpacing: number;
+  summarySize: number;
+  summarySpacing: number;
+  metaSize: number;
+  metaGap: number;
+  panelPaddingY: number;
+  panelPaddingX: number;
+}
+
+function resolveStoryHeadlineContent(
+  slide: IGStorySlide,
+): StoryHeadlineContent {
+  const legacyBullets: string[] = [];
+  let legacyFooter = "";
+
+  for (const bullet of slide.bullets) {
+    if (/^Source:/i.test(bullet)) {
+      legacyFooter = bullet;
+    } else {
+      legacyBullets.push(bullet);
+    }
+  }
+
+  const subheading = (slide.subheading ?? legacyBullets[0] ?? "").trim();
+  const meta = (slide.meta ?? legacyBullets.slice(subheading ? 1 : 0))
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return {
+    eyebrow: (slide.eyebrow ?? "À LA UNE").trim() || "À LA UNE",
+    heading: slide.heading,
+    subheading,
+    meta,
+    footer: (slide.footer ?? legacyFooter).trim(),
+  };
+}
+
+function getStoryHeadlineMetrics(
+  content: StoryHeadlineContent,
+): StoryHeadlineMetrics {
+  const density =
+    content.heading.length +
+    Math.round(content.subheading.length * 0.9) +
+    Math.round(content.meta.join(" ").length * 0.75);
+
+  if (
+    content.heading.length > 120 ||
+    content.subheading.length > 220 ||
+    density > 360
+  ) {
+    return {
+      eyebrowSize: 14,
+      headingSize: 46,
+      headingSpacing: 20,
+      summarySize: 22,
+      summarySpacing: 22,
+      metaSize: 16,
+      metaGap: 10,
+      panelPaddingY: 34,
+      panelPaddingX: 34,
+    };
+  }
+
+  if (
+    content.heading.length > 92 ||
+    content.subheading.length > 170 ||
+    density > 280
+  ) {
+    return {
+      eyebrowSize: 15,
+      headingSize: 54,
+      headingSpacing: 22,
+      summarySize: 23,
+      summarySpacing: 22,
+      metaSize: 17,
+      metaGap: 11,
+      panelPaddingY: 38,
+      panelPaddingX: 38,
+    };
+  }
+
+  return {
+    eyebrowSize: 16,
+    headingSize: 62,
+    headingSpacing: 24,
+    summarySize: 25,
+    summarySpacing: 24,
+    metaSize: 18,
+    metaGap: 12,
+    panelPaddingY: 42,
+    panelPaddingX: 42,
+  };
 }
 
 // ── Cover frame ───────────────────────────────────────────────────────────
@@ -208,14 +323,27 @@ function buildFactsFrameHTML(
   totalSlides: number,
 ): string {
   const accent = slide.accent ?? "#34d399";
-  // Always use the styled gradient — a mismatched article image hurts the frame
-  // more than it helps. The rich dark gradient gives a premium editorial look.
-  const bgCss = `background:
-    radial-gradient(ellipse at 15% 15%, ${accent}18 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 85%, ${accent}0D 0%, transparent 50%),
-    #040e09;`;
+  const eyebrow = slide.eyebrow ?? "CE MATIN";
+  const hasImage = !!slide.backgroundImage;
+  const longestFact = slide.bullets.reduce(
+    (max, fact) => Math.max(max, fact.length),
+    0,
+  );
+  const dense = slide.bullets.length >= 4 || longestFact > 120;
+  const titleSize = dense ? 44 : 50;
+  const factFont = dense ? 20 : 22;
+  const factGap = dense ? 18 : 22;
+  const bgCss = hasImage
+    ? `background:#040e09 url('${slide.backgroundImage}') center/cover no-repeat;`
+    : `background:
+        radial-gradient(ellipse at 15% 15%, ${accent}18 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 85%, ${accent}0D 0%, transparent 50%),
+        #040e09;`;
   const factsHtml = slide.bullets
-    .map((f, i) => `<div class="fact"><span class="fn">${i + 1}</span><span class="ft">${escapeHtml(f)}</span></div>`)
+    .map(
+      (f, i) =>
+        `<div class="fact"><span class="fn">${i + 1}</span><span class="ft">${escapeHtml(f)}</span></div>`,
+    )
     .join("\n");
 
   return `<!DOCTYPE html>
@@ -229,17 +357,49 @@ body {
   ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
+.img-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,
+    rgba(2,10,7,0.32) 0%,
+    rgba(2,10,7,0.16) 18%,
+    rgba(2,10,7,0.40) 44%,
+    rgba(2,10,7,0.78) 74%,
+    rgba(2,10,7,0.92) 100%);
+}
+.img-vignette {
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 18% 18%, ${accent}12 0%, transparent 34%),
+             radial-gradient(circle at 82% 82%, rgba(0,0,0,0.18) 0%, transparent 42%);
+}
 .bar { position:absolute; left:0; top:0; bottom:0; width:6px; background:${accent}; }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center;
   padding:${SAFE_TOP + 20}px 80px ${SAFE_BOTTOM + 60}px 100px;
 }
-.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:17px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 22px; border-radius:6px; margin-bottom:18px; align-self:flex-start; }
-.h { font-family:${FONT_HEADLINE}; font-size:50px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:30px; color:#fff; }
-.fact { display:flex; gap:18px; align-items:flex-start; margin-bottom:22px; }
+.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 20px; border-radius:999px; }
+.count {
+  font-family:${FONT_HEADLINE}; font-size:15px; font-weight:700; letter-spacing:2px;
+  color:rgba(255,255,255,0.74);
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,0.34);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.panel {
+  max-width: 860px;
+  padding:36px 36px 18px;
+  border-radius:34px;
+  background:linear-gradient(180deg, rgba(5,16,11,0.74) 0%, rgba(5,16,11,0.90) 100%);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 24px 70px rgba(0,0,0,0.24);
+  backdrop-filter:blur(16px);
+}
+.h { font-family:${FONT_HEADLINE}; font-size:${titleSize}px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:28px; color:#fff; }
+.fact { display:flex; gap:${factGap}px; align-items:flex-start; margin-bottom:${factGap}px; }
 .fn { font-family:${FONT_HEADLINE}; flex-shrink:0; width:32px; height:32px; background:${accent}28; color:${accent}; font-size:16px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:3px; }
-.ft { font-size:21px; line-height:1.58; opacity:0.90; font-weight:500; }
+.ft { font-size:${factFont}px; line-height:1.58; opacity:0.92; font-weight:500; }
 .bm {
   position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
   display:flex; justify-content:center; align-items:center; gap:8px;
@@ -249,11 +409,18 @@ body {
 .bm .nw { color:${accent}; }
 </style></head>
 <body>
+${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
 <div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <span class="pill">${escapeHtml(slide.heading.toUpperCase())}</span>
-  ${factsHtml}
+  <div class="top">
+    <span class="pill">${escapeHtml(eyebrow)}</span>
+    <div class="count">${slideIndex + 1}/${totalSlides}</div>
+  </div>
+  <div class="panel">
+    <div class="h">${escapeHtml(slide.heading)}</div>
+    ${factsHtml}
+  </div>
 </div>
 <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
@@ -268,25 +435,19 @@ function buildHeadlineFrameHTML(
 ): string {
   const accent = slide.accent ?? DEFAULT_ACCENT;
   const dark = DEFAULT_DARK;
-  const bgCss = slide.backgroundImage
+  const hasImage = !!slide.backgroundImage;
+  const content = resolveStoryHeadlineContent(slide);
+  const metrics = getStoryHeadlineMetrics(content);
+  const bgCss = hasImage
     ? `background:${dark} url('${slide.backgroundImage}') center/cover no-repeat;`
     : `background: radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.03) 0%, transparent 60%),
               radial-gradient(ellipse at 80% 80%, ${accent}08 0%, transparent 50%),
               ${dark};`;
-
-  // Split bullets into main content and source attribution
-  const mainBullets: string[] = [];
-  let sourceText = "";
-  for (const b of slide.bullets) {
-    if (b.startsWith("Source:")) {
-      sourceText = b;
-    } else {
-      mainBullets.push(b);
-    }
-  }
-
-  const bulletsHtml = mainBullets
-    .map((b) => `<li>${escapeHtml(b)}</li>`)
+  const panelBackground = hasImage
+    ? "linear-gradient(180deg, rgba(7,12,20,0.80) 0%, rgba(7,12,20,0.92) 100%)"
+    : "linear-gradient(180deg, rgba(7,12,20,0.76) 0%, rgba(7,12,20,0.88) 100%)";
+  const metaHtml = content.meta
+    .map((entry) => `<span class="chip">${escapeHtml(entry)}</span>`)
     .join("\n");
 
   return `<!DOCTYPE html>
@@ -302,39 +463,77 @@ body {
 }
 /* Aggressive overlay for strong text contrast over any background image */
 .img-overlay { position:absolute; inset:0; background:linear-gradient(180deg,
-  rgba(0,0,0,0.45) 0%,
-  rgba(0,0,0,0.30) 20%,
-  rgba(0,0,0,0.50) 50%,
-  rgba(0,0,0,0.82) 78%,
-  rgba(0,0,0,0.94) 100%); }
+  rgba(0,0,0,0.42) 0%,
+  rgba(0,0,0,0.22) 16%,
+  rgba(0,0,0,0.42) 40%,
+  rgba(0,0,0,0.72) 66%,
+  rgba(0,0,0,0.90) 84%,
+  rgba(0,0,0,0.96) 100%); }
+.img-vignette { position:absolute; inset:0; background:
+  radial-gradient(circle at 18% 18%, ${accent}10 0%, transparent 30%),
+  radial-gradient(circle at 82% 78%, rgba(255,255,255,0.04) 0%, transparent 34%); }
 .bar { position:absolute; left:0; top:0; bottom:0; width:6px; background:${accent}; }
-.cat {
-  font-family:${FONT_HEADLINE}; display:inline-block; background:${accent}; color:#000;
-  font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:3px;
-  padding:8px 20px; border-radius:4px; margin-bottom:22px; align-self:flex-start;
-}
 .c {
   position:relative; z-index:1;
-  height:100%; display:flex; flex-direction:column; justify-content:center;
-  padding:${SAFE_TOP + 30}px 80px ${SAFE_BOTTOM + 70}px 100px;
+  height:100%; display:flex; flex-direction:column; justify-content:flex-end;
+  padding:${SAFE_TOP + 24}px 76px ${SAFE_BOTTOM + 84}px 88px;
+}
+.top {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:18px;
+}
+.cat {
+  font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px;
+  color:${accent}; background:rgba(0,0,0,0.42);
+  border:1px solid rgba(255,255,255,0.10);
+  font-size:${metrics.eyebrowSize}px; font-weight:800; text-transform:uppercase; letter-spacing:3px;
+  padding:9px 18px; border-radius:999px;
+}
+.count {
+  font-family:${FONT_HEADLINE}; font-size:15px; font-weight:700; letter-spacing:2px;
+  color:rgba(255,255,255,0.68);
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,0.36);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.panel {
+  max-width: 900px;
+  padding:${metrics.panelPaddingY}px ${metrics.panelPaddingX}px;
+  border-radius:36px;
+  background:${panelBackground};
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 28px 80px rgba(0,0,0,0.26);
+  backdrop-filter:blur(18px);
+}
+.rule {
+  width:72px; height:4px; border-radius:999px; background:${accent};
+  margin-bottom:20px;
 }
 .h {
-  font-family:${FONT_HEADLINE}; font-size:52px; font-weight:900; line-height:1.10; letter-spacing:-0.8px;
-  margin-bottom:24px; text-shadow:0 2px 20px rgba(0,0,0,0.8);
+  font-family:${FONT_HEADLINE}; font-size:${metrics.headingSize}px; font-weight:900; line-height:1.03; letter-spacing:-1.1px;
+  margin-bottom:${metrics.headingSpacing}px; text-shadow:0 2px 20px rgba(0,0,0,0.8);
 }
-.bd ul { list-style:none; }
-.bd li {
-  font-size:24px; line-height:1.60; margin-bottom:16px; opacity:0.93;
-  padding-left:28px; position:relative;
-  text-shadow:0 1px 12px rgba(0,0,0,0.75);
+.dek {
+  font-size:${metrics.summarySize}px; line-height:1.60; opacity:0.95; font-weight:500;
+  margin-bottom:${content.meta.length > 0 ? metrics.summarySpacing : 0}px;
+  text-shadow:0 1px 12px rgba(0,0,0,0.72);
 }
-.bd li::before {
-  content:''; position:absolute; left:0; top:11px;
-  width:14px; height:2px; background:${accent}; opacity:0.7;
+.meta {
+  display:flex; flex-wrap:wrap; gap:${metrics.metaGap}px;
+  margin-top:${content.subheading ? 0 : 6}px;
+}
+.chip {
+  font-size:${metrics.metaSize}px; line-height:1.3; font-weight:600;
+  color:rgba(255,255,255,0.92);
+  padding:10px 16px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.08);
 }
 .src {
   margin-top:20px; font-size:14px; font-weight:600;
-  opacity:0.45; letter-spacing:0.5px;
+  opacity:0.52; letter-spacing:0.5px;
 }
 .bm {
   position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
@@ -345,13 +544,21 @@ body {
 .bm .nw { color:${accent}; }
 </style></head>
 <body>
-${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
+${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
 <div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <div class="h">${escapeHtml(slide.heading)}</div>
-  <div class="bd"><ul>${bulletsHtml}</ul></div>
-  ${sourceText ? `<div class="src">${escapeHtml(sourceText)}</div>` : ""}
+  <div class="top">
+    <div class="cat">${escapeHtml(content.eyebrow)}</div>
+    <div class="count">${slideIndex + 1}/${totalSlides}</div>
+  </div>
+  <div class="panel">
+    <div class="rule"></div>
+    <div class="h">${escapeHtml(content.heading)}</div>
+    ${content.subheading ? `<div class="dek">${escapeHtml(content.subheading)}</div>` : ""}
+    ${content.meta.length > 0 ? `<div class="meta">${metaHtml}</div>` : ""}
+    ${content.footer ? `<div class="src">${escapeHtml(content.footer)}</div>` : ""}
+  </div>
 </div>
 <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
@@ -436,7 +643,11 @@ export function buildStorySlideHTML(
 ): string {
   // Explicit CTA flag (from asset generator) takes priority
   if (isCta || slide.frameType === "cta") {
-    return buildCtaFrameHTML(slide.accent ?? DEFAULT_ACCENT, slideIndex, totalSlides);
+    return buildCtaFrameHTML(
+      slide.accent ?? DEFAULT_ACCENT,
+      slideIndex,
+      totalSlides,
+    );
   }
 
   // v2 frame types
@@ -490,7 +701,8 @@ export async function generateStoryAssets(
   const totalSlides = payload.slides.length + 1;
 
   // Determine dominant accent (from the first content slide, fallback to default)
-  const dominantAccent = payload.slides[1]?.accent ?? payload.slides[0]?.accent ?? DEFAULT_ACCENT;
+  const dominantAccent =
+    payload.slides[1]?.accent ?? payload.slides[0]?.accent ?? DEFAULT_ACCENT;
 
   try {
     const pw = await import("playwright-core");
@@ -523,7 +735,11 @@ export async function generateStoryAssets(
     }
     if (!browser) {
       browser = await chromiumModule.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+        ],
       });
     }
 
@@ -531,15 +747,30 @@ export async function generateStoryAssets(
       // Render content slides
       for (let i = 0; i < payload.slides.length; i++) {
         const slide = payload.slides[i]!;
-        const html = buildStorySlideHTML(slide, payload.dateLabel, i, totalSlides);
+        const html = buildStorySlideHTML(
+          slide,
+          payload.dateLabel,
+          i,
+          totalSlides,
+        );
         const pngPath = join(exportDir, `story_${i + 1}.png`);
         await renderFrameToFile(browser, html, pngPath);
         slidePaths.push(pngPath);
       }
 
       // Render CTA closing frame
-      const ctaSlide: IGStorySlide = { heading: "", bullets: [], accent: dominantAccent };
-      const ctaHtml = buildStorySlideHTML(ctaSlide, payload.dateLabel, totalSlides - 1, totalSlides, true);
+      const ctaSlide: IGStorySlide = {
+        heading: "",
+        bullets: [],
+        accent: dominantAccent,
+      };
+      const ctaHtml = buildStorySlideHTML(
+        ctaSlide,
+        payload.dateLabel,
+        totalSlides - 1,
+        totalSlides,
+        true,
+      );
       const ctaPath = join(exportDir, `story_cta.png`);
       await renderFrameToFile(browser, ctaHtml, ctaPath);
       slidePaths.push(ctaPath);
@@ -553,15 +784,30 @@ export async function generateStoryAssets(
 
     for (let i = 0; i < payload.slides.length; i++) {
       const slide = payload.slides[i]!;
-      const html = buildStorySlideHTML(slide, payload.dateLabel, i, totalSlides);
+      const html = buildStorySlideHTML(
+        slide,
+        payload.dateLabel,
+        i,
+        totalSlides,
+      );
       const htmlPath = join(exportDir, `story_${i + 1}.html`);
       writeFileSync(htmlPath, html, "utf-8");
       slidePaths.push(htmlPath);
     }
 
     // CTA dry-run
-    const ctaSlide: IGStorySlide = { heading: "", bullets: [], accent: dominantAccent };
-    const ctaHtml = buildStorySlideHTML(ctaSlide, payload.dateLabel, totalSlides - 1, totalSlides, true);
+    const ctaSlide: IGStorySlide = {
+      heading: "",
+      bullets: [],
+      accent: dominantAccent,
+    };
+    const ctaHtml = buildStorySlideHTML(
+      ctaSlide,
+      payload.dateLabel,
+      totalSlides - 1,
+      totalSlides,
+      true,
+    );
     const ctaPath = join(exportDir, `story_cta.html`);
     writeFileSync(ctaPath, ctaHtml, "utf-8");
     slidePaths.push(ctaPath);
@@ -579,7 +825,10 @@ async function renderFrameToFile(
   html: string,
   outPath: string,
 ): Promise<void> {
-  const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 2 });
+  const page = await browser.newPage({
+    viewport: { width: 1080, height: 1920 },
+    deviceScaleFactor: 2,
+  });
   try {
     await page.setContent(html, { waitUntil: "networkidle", timeout: 60_000 });
     // Extra font-loading safety: wait for document.fonts.ready
