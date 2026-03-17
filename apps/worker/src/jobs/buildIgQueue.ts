@@ -13,19 +13,64 @@ import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
 import { generateContextualImage } from "../services/geminiImageGen.js";
 
+const HAITI_TZ = "America/Port-au-Prince";
+const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
+
+function getHaitiDateKey(date: Date = new Date()): string {
+  const haiti = new Date(date.toLocaleString("en-US", { timeZone: HAITI_TZ }));
+  const year = haiti.getFullYear();
+  const month = String(haiti.getMonth() + 1).padStart(2, "0");
+  const day = String(haiti.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function dateFromTimestamp(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "object" && value !== null && "seconds" in value) {
+    return new Date((value as { seconds: number }).seconds * 1000);
+  }
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+function isHistoireItem(item: Item): boolean {
+  return (
+    item.canonicalUrl?.startsWith("edlight://histoire/") ||
+    item.utilityMeta?.series === "HaitiHistory"
+  );
+}
+
+function isDailyUtilityItem(item: Item): boolean {
+  const series = item.utilityMeta?.series ?? "";
+  return DAILY_UTILITY_SERIES.has(series);
+}
+
 /**
- * Extract the target post date for a histoire item.
- * Histoire canonicalUrls follow `edlight://histoire/YYYY-MM-DD`.
- * Falls back to Haiti-time today if the pattern doesn't match.
+ * Extract the target post date for daily date-bound IG items.
+ * Supports:
+ * - histoire: `edlight://histoire/YYYY-MM-DD`
+ * - daily utility: `edlight://utility/<series>/YYYY-MM-DD`
+ * - fallback to the Haiti-local createdAt day for legacy daily items
  */
-function extractHistoireDate(item: Item): string {
-  const match = item.canonicalUrl?.match(/edlight:\/\/histoire\/(\d{4}-\d{2}-\d{2})/);
-  if (match) return match[1];
-  // Fallback: Haiti time (UTC-5) today
-  const now = new Date();
-  const haitiOffset = -5 * 60;
-  const haitiMs = now.getTime() + (now.getTimezoneOffset() + haitiOffset) * 60_000;
-  return new Date(haitiMs).toISOString().slice(0, 10);
+export function extractTargetPostDate(item: Item): string | undefined {
+  const histoireMatch = item.canonicalUrl?.match(/edlight:\/\/histoire\/(\d{4}-\d{2}-\d{2})/);
+  if (histoireMatch) return histoireMatch[1];
+
+  const utilityMatch = item.canonicalUrl?.match(
+    /edlight:\/\/utility\/(?:HaitiHistory|HaitiFactOfTheDay)\/(\d{4}-\d{2}-\d{2})/,
+  );
+  if (utilityMatch) return utilityMatch[1];
+
+  if (isHistoireItem(item) || isDailyUtilityItem(item)) {
+    const createdAt = dateFromTimestamp(item.createdAt);
+    if (createdAt) return getHaitiDateKey(createdAt);
+  }
+
+  return undefined;
 }
 
 export interface BuildIgQueueResult {
@@ -47,9 +92,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
 
   try {
     // Compute today's Haiti date for histoire freshness checks
-    const nowMs = Date.now();
-    const haitiNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Port-au-Prince" }));
-    const haitiToday = haitiNow.toISOString().slice(0, 10);
+    const haitiToday = getHaitiDateKey();
 
     // Fetch recent items (last 72 hours)
     const recentItems = await itemsRepo.listRecentItems(500);
@@ -67,15 +110,12 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     // ── Histoire date-freshness gate ───────────────────────────────────
     // Only allow histoire items whose target date matches today.
     // This prevents a March 10 histoire from posting on March 13.
-    const isHistoireItem = (i: Item) =>
-      i.canonicalUrl?.startsWith("edlight://histoire/") ||
-      i.utilityMeta?.series === "HaitiHistory";
-
     const freshItems = items.filter((item) => {
-      if (isHistoireItem(item)) {
-        const targetDate = extractHistoireDate(item);
+      if (isHistoireItem(item) || isDailyUtilityItem(item)) {
+        const targetDate = extractTargetPostDate(item);
         if (targetDate !== haitiToday) {
-          console.log(`[buildIgQueue] Skipping stale histoire item ${item.id} (target=${targetDate}, today=${haitiToday})`);
+          const label = isHistoireItem(item) ? "histoire" : "daily utility";
+          console.log(`[buildIgQueue] Skipping stale ${label} item ${item.id} (target=${targetDate}, today=${haitiToday})`);
           return false;
         }
       }
@@ -231,6 +271,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         }
 
         // Insert as queued
+        const targetPostDate = extractTargetPostDate(item);
+
         await igQueueRepo.createIGQueueItem({
           sourceContentId: item.id,
           igType: decision.igType,
@@ -238,11 +280,11 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           status: "queued" as IGQueueStatus,
           reasons: decision.reasons,
           payload,
-          // For histoire items, stamp the target post date so the scheduler
-          // ensures same-day posting (extracted from canonicalUrl or createdAt).
-          ...(decision.igType === "histoire" ? {
-            targetPostDate: extractHistoireDate(item),
-          } : {}),
+          // Stamp a targetPostDate on date-bound daily items so the scheduler
+          // only uses them on the Haiti day they were generated for.
+          ...(targetPostDate
+            ? { targetPostDate }
+            : {}),
         });
         result.queued++;
       } catch (err) {

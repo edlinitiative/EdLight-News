@@ -77,6 +77,11 @@ const UTILITY_DEDUP_DAYS = 7;
 /** Longer dedup window for series that recycle the same generic topics */
 const RECURRING_SERIES_DEDUP_DAYS = 14;
 const RECURRING_SERIES: Set<string> = new Set(["HaitiHistory", "HaitiFactOfTheDay", "HaitianOfTheWeek"]);
+const DAILY_DATE_BOUND_SERIES = new Set<UtilitySeries>([
+  "HaitiHistory",
+  "HaitiFactOfTheDay",
+]);
+const WEEKLY_DATE_BOUND_SERIES = new Set<UtilitySeries>(["HaitianOfTheWeek"]);
 
 // ── Haiti timezone (dynamic DST: EST = UTC-5 Nov-Mar, EDT = UTC-4 Mar-Nov) ──
 const HAITI_TZ = "America/Port-au-Prince";
@@ -103,6 +108,52 @@ function getHaitiDayOfWeek(): number {
   // Adjust UTC date by Haiti offset to get local day
   const haitiTime = new Date(now.getTime() + getHaitiOffsetHours(now) * 3600000);
   return haitiTime.getUTCDay(); // 0=Sun, 1=Mon, …, 6=Sat
+}
+
+function getHaitiDateKey(date: Date = new Date()): string {
+  const haiti = new Date(date.toLocaleString("en-US", { timeZone: HAITI_TZ }));
+  const year = haiti.getFullYear();
+  const month = String(haiti.getMonth() + 1).padStart(2, "0");
+  const day = String(haiti.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getHaitiWeekKey(date: Date = new Date()): string {
+  const haiti = new Date(date.toLocaleString("en-US", { timeZone: HAITI_TZ }));
+  const day = (haiti.getDay() + 6) % 7; // Monday = 0
+  haiti.setDate(haiti.getDate() - day);
+  const year = haiti.getFullYear();
+  const month = String(haiti.getMonth() + 1).padStart(2, "0");
+  const monthDay = String(haiti.getDate()).padStart(2, "0");
+  return `${year}-${month}-${monthDay}`;
+}
+
+export function buildUtilityCanonicalUrl(
+  series: UtilitySeries,
+  sourceUrl: string,
+  date: Date = new Date(),
+): string {
+  if (DAILY_DATE_BOUND_SERIES.has(series)) {
+    return `edlight://utility/${series}/${getHaitiDateKey(date)}`;
+  }
+  if (WEEKLY_DATE_BOUND_SERIES.has(series)) {
+    return `edlight://utility/${series}/${getHaitiWeekKey(date)}`;
+  }
+  return sourceUrl;
+}
+
+export function buildUtilityDedupeGroupId(
+  series: UtilitySeries,
+  title: string,
+  date: Date = new Date(),
+): string {
+  if (DAILY_DATE_BOUND_SERIES.has(series)) {
+    return computeDedupeGroupId(`${series}|${getHaitiDateKey(date)}|${title}`);
+  }
+  if (WEEKLY_DATE_BOUND_SERIES.has(series)) {
+    return computeDedupeGroupId(`${series}|${getHaitiWeekKey(date)}|${title}`);
+  }
+  return computeDedupeGroupId(title);
 }
 
 // ── StudyAbroad country rotation ────────────────────────────────────────────
@@ -683,7 +734,10 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
         // ── Normal item creation (non-calendar or first calendar) ───────────
 
         // Compute semantic dedupeGroupId from the generated title
-        const dedupeGroupId = computeDedupeGroupId(output.title_fr);
+        const dedupeGroupId = buildUtilityDedupeGroupId(
+          job.series,
+          output.title_fr,
+        );
 
         // Pre-creation dedup: skip if a utility item with the same
         // dedupeGroupId already exists within the dedup window.
@@ -709,7 +763,7 @@ export async function runUtilityEngine(): Promise<UtilityEngineResult> {
           sourceId: "utility-engine",
           title: output.title_fr,
           summary: output.summary_fr,
-          canonicalUrl: packets[0]!.url,
+          canonicalUrl: buildUtilityCanonicalUrl(job.series, packets[0]!.url),
           category,
           deadline: nearestDeadline,
           evergreen: !nearestDeadline,

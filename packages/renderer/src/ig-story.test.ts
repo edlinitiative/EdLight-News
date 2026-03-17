@@ -26,6 +26,23 @@ describe("buildStorySlideHTML", () => {
     );
   });
 
+  it("CTA frame uses the premium editorial closing copy", () => {
+    const slide: IGStorySlide = { heading: "", bullets: [], accent: "#14b8a6" };
+    const html = buildStorySlideHTML(slide, "13 mars 2026", 5, 6, true);
+    assert.ok(
+      html.includes("Votre briefing étudiant, chaque matin."),
+      "CTA should use the new editorial headline",
+    );
+    assert.ok(
+      html.includes("Actualités"),
+      "CTA should surface the editorial content pillars",
+    );
+    assert.ok(
+      html.includes("En story chaque matin"),
+      "CTA should mention the daily story cadence",
+    );
+  });
+
   it("dispatches taux frameType to financial card", () => {
     const slide: IGStorySlide = {
       heading: "131.2589",

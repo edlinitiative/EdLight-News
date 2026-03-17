@@ -327,7 +327,9 @@ function topCandidatesImage(items: any[]): string | undefined {
   return undefined;
 }
 
-function buildFactLine(item: Item): string | null {
+const STORY_FACT_SOFT_LIMIT = 360;
+
+export function buildFactLine(item: Item): string | null {
   const candidate = item.summary && item.summary.length >= 24
     ? item.summary
     : item.title;
@@ -338,20 +340,20 @@ function buildFactLine(item: Item): string | null {
     .replace(/[📚💡📌🎉⏰🇭🇹]/gu, "")
     .trim();
 
-  if (cleaned.length <= 220) return cleaned;
+  if (cleaned.length <= STORY_FACT_SOFT_LIMIT) return cleaned;
 
   // Prefer ending at a sentence boundary so the fact feels complete
-  const slice = cleaned.slice(0, 220);
+  const slice = cleaned.slice(0, STORY_FACT_SOFT_LIMIT);
   const sentenceEnd = Math.max(
     slice.lastIndexOf(". "),
     slice.lastIndexOf("! "),
     slice.lastIndexOf("? "),
   );
-  if (sentenceEnd > 80) {
+  if (sentenceEnd > 140) {
     return cleaned.slice(0, sentenceEnd + 1).trim();
   }
 
   // Fall back to word boundary
   const lastSpace = slice.lastIndexOf(" ");
-  return (lastSpace > 80 ? slice.slice(0, lastSpace) : slice).trim();
+  return (lastSpace > 140 ? slice.slice(0, lastSpace) : slice).trim();
 }

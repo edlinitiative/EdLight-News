@@ -14,7 +14,7 @@
 
 import { callLLM, type LLMOptions } from "../client.js";
 import type { IGFormattedPayload, IGSlide, IGPostType, Item } from "@edlight-news/types";
-import { buildSourceLine, finalizeCaption, formatDeadline, hasCaptionQualityIssues } from "./formatters/helpers.js";
+import { buildSourceLine, ensureFrenchOpportunityCopy, finalizeCaption, formatDeadline, hasCaptionQualityIssues } from "./formatters/helpers.js";
 
 // ── Configuration ──────────────────────────────────────────────────────────
 
@@ -92,6 +92,10 @@ const EN_WORDS = [
   /\bdeveloping countr/i, /\ball nationalities\b/i,
   /\bthe following\b/i, /\bin order to\b/i, /\bplease note\b/i,
   /\bfor more information\b/i, /\bclick here\b/i,
+  /\bfull tuition\b/i, /\btuition\b/i, /\bstipend\b/i,
+  /\bletter of recommendation\b/i, /\bprofessional experience\b/i,
+  /\bcurrent employer\b/i, /\bstatement of purpose\b/i, /\btranscript\b/i,
+  /\bwebsite\b/i, /\bportal\b/i, /\bstudents?\b/i,
 ];
 
 function hasEnglishMarkers(text: string): boolean {
@@ -403,7 +407,10 @@ function applyFactGuardrails(
   }
 
   if (igType === "scholarship" && item.opportunity?.coverage) {
-    const coverageLine = `Couverture — ${item.opportunity.coverage}`;
+    const coverageLine = `Couverture — ${ensureFrenchOpportunityCopy(
+      item.opportunity.coverage,
+      "Financement disponible selon le programme",
+    )}`;
     if (/Couverture/i.test(corrected.caption)) {
       corrected.caption = corrected.caption.replace(/Couverture\s*[—:-].*/i, coverageLine);
     } else {

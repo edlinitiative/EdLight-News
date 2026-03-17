@@ -6,7 +6,8 @@
  * formats a carousel, and inserts it into the ig_queue with high priority.
  *
  * Self-gates:
- *  - Only runs between 07:00–09:00 Haiti time (targeting ~8 AM post)
+ *  - Opens at 05:30 Haiti time and keeps retrying through the same posting day
+ *    so late BRH updates or a slow tick don't cost us the whole day
  *  - Skips if a taux post already exists for today
  */
 
@@ -17,6 +18,9 @@ import { ensureTauxBackground } from "../services/geminiImageGen.js";
 // ── Haiti timezone ─────────────────────────────────────────────────────────
 const HAITI_TZ = "America/Port-au-Prince";
 const BRH_URL = "https://www.brh.ht/taux-du-jour/";
+const TAUX_WINDOW_START_HOUR = 5;
+const TAUX_WINDOW_START_MINUTE = 30;
+const TAUX_WINDOW_END_HOUR = 20;
 
 // ── BRH data shape ─────────────────────────────────────────────────────────
 interface TauxBRH {
@@ -43,14 +47,25 @@ function toHaitiDate(date: Date): Date {
   return new Date(haitiStr);
 }
 
+function getHaitiDateKey(date: Date = new Date()): string {
+  const haiti = toHaitiDate(date);
+  const year = haiti.getFullYear();
+  const month = String(haiti.getMonth() + 1).padStart(2, "0");
+  const day = String(haiti.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 /** @internal exported for tests */
-export function isInTauxWindow(): boolean {
-  const haiti = toHaitiDate(new Date());
+export function isInTauxWindow(date: Date = new Date()): boolean {
+  const haiti = toHaitiDate(date);
   const hour = haiti.getHours();
   const minute = haiti.getMinutes();
-  // 05:30–08:29 Haiti time — opens early for 06:30 target post,
-  // with retries every 15 min in case BRH hasn't updated yet.
-  return (hour > 5 || (hour === 5 && minute >= 30)) && hour < 9;
+  // 05:30–19:59 Haiti time — opens early for the 06:30 target post and
+  // keeps retrying until the last same-day scheduling slot.
+  const afterStart =
+    hour > TAUX_WINDOW_START_HOUR ||
+    (hour === TAUX_WINDOW_START_HOUR && minute >= TAUX_WINDOW_START_MINUTE);
+  return afterStart && hour < TAUX_WINDOW_END_HOUR;
 }
 
 // ── BRH scraper (self-contained, no Next.js dependency) ────────────────────
@@ -143,14 +158,14 @@ export function parseBRHDate(dateStr: string): string | null {
  * If BRH hasn't updated yet (still showing yesterday), we skip and
  * let the next tick retry — never post stale rates.
  */
-function isTauxFresh(taux: TauxBRH): boolean {
+function isTauxFresh(taux: TauxBRH, now: Date = new Date()): boolean {
   if (!taux.date) return false; // No date at all — can't verify
   const brhDate = parseBRHDate(taux.date);
   if (!brhDate) {
     console.warn(`[buildIgTaux] Could not parse BRH date: "${taux.date}"`);
     return false;
   }
-  const todayStr = toHaitiDate(new Date()).toISOString().slice(0, 10);
+  const todayStr = getHaitiDateKey(now);
   return brhDate === todayStr;
 }
 
@@ -227,13 +242,13 @@ async function formatTauxCarousel(taux: TauxBRH): Promise<IGFormattedPayload> {
 // ── Main job ───────────────────────────────────────────────────────────────
 
 export async function buildIgTaux(): Promise<BuildIgTauxResult> {
-  // Time-gate: only run in the 07–09 Haiti time window
+  // Time-gate: keep retrying during the Haiti posting day.
   if (!isInTauxWindow()) {
     return { queued: false, skipped: "outside-taux-window" };
   }
 
   // Daily-once gate: check if taux post already exists for today
-  const todayStr = toHaitiDate(new Date()).toISOString().slice(0, 10);
+  const todayStr = getHaitiDateKey();
   const recentTaux = await igQueueRepo.listRecentPosted(1, 20);
   const alreadyPostedToday = recentTaux.some(
     (p) => p.igType === "taux" && p.sourceContentId.startsWith("taux-") && p.sourceContentId.includes(todayStr),
@@ -272,6 +287,7 @@ export async function buildIgTaux(): Promise<BuildIgTauxResult> {
     igType: "taux",
     score: 95, // High priority — always posts first
     status: "queued" as IGQueueStatus,
+    targetPostDate: todayStr,
     reasons: [`Branded taux du jour post for ${taux.date ?? todayStr}`],
     payload,
   });

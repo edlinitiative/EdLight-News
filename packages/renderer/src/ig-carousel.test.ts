@@ -136,6 +136,22 @@ describe("buildSlideHTML", () => {
     );
   });
 
+  it("scholarship headline slides use the dedicated scholarship card treatment", () => {
+    const slide = makeSlide({
+      heading: "Bourse Chevening 2026",
+      bullets: ["Couverture — frais complets", "Haïti  ·  Date limite — 1 novembre 2026"],
+    });
+    const html = buildSlideHTML(slide, "scholarship", 0, 4);
+    assert.ok(
+      html.includes("scholarship-card"),
+      "Scholarship headline slide should use scholarship-card",
+    );
+    assert.ok(
+      html.includes("scholarship-meta-row"),
+      "Scholarship headline slide should render premium meta rows",
+    );
+  });
+
   it("headline clamp is 7 for first slide (was 5)", () => {
     const slide = makeSlide({ heading: "Short" });
     const html = buildSlideHTML(slide, "news", 0, 3);
@@ -202,6 +218,23 @@ describe("buildSlideHTML", () => {
     assert.ok(
       html.includes("history-note-copy"),
       "History explanation slide should render the support-note treatment",
+    );
+  });
+
+  it("scholarship explanation slides use the dedicated scholarship panel treatment", () => {
+    const slide = makeSlide({
+      layout: "explanation",
+      heading: "Qui peut postuler ?",
+      bullets: ["Être haïtien", "Avoir une licence"],
+    });
+    const html = buildSlideHTML(slide, "scholarship", 2, 4);
+    assert.ok(
+      html.includes("scholarship-panel"),
+      "Scholarship explanation slide should use scholarship-panel",
+    );
+    assert.ok(
+      html.includes("scholarship-point-copy"),
+      "Scholarship explanation slide should render scholarship point rows",
     );
   });
 

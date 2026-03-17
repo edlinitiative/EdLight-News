@@ -85,6 +85,32 @@ describe("buildDailySummaryStory (v2)", () => {
     );
   });
 
+  it("splits dense fact recaps across two story frames instead of overcrowding one card", () => {
+    const longFact =
+      "Le repère du jour garde maintenant une phrase complète et lisible pour éviter les coupures abruptes dans la story du matin.";
+    const result = buildDailySummaryStory(
+      [],
+      new Date("2026-03-13"),
+      undefined,
+      {
+        facts: [
+          `${longFact} Première version.`,
+          `${longFact} Deuxième version.`,
+          `${longFact} Troisième version.`,
+          `${longFact} Quatrième version.`,
+        ],
+      },
+    );
+
+    const factFrames = result.slides.filter((s) => s.frameType === "facts");
+    assert.equal(factFrames.length, 2);
+    assert.ok(
+      factFrames[0]!.bullets[0]!.includes("phrase complète"),
+      "First dense fact should remain readable",
+    );
+    assert.equal(factFrames[1]!.heading, "Ce qu'il faut retenir");
+  });
+
   it("creates headline frames for bonus items", () => {
     const items = [
       {

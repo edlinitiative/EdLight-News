@@ -11,24 +11,43 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
   const deadlineStr = item.deadline ?? item.opportunity?.deadline;
   const title = bi?.frTitle ?? item.title;
-  const summary = bi?.frSummary ?? item.summary;
+  const summary = ensureFrenchOpportunityCopy(
+    bi?.frSummary ?? item.summary,
+    "Programme de bourse à consulter sur le site officiel pour les détails complets.",
+  );
   const imageUrl = item.imageUrl ?? undefined;
+  const coverage = item.opportunity?.coverage
+    ? ensureFrenchOpportunityCopy(
+        item.opportunity.coverage,
+        "Financement disponible selon le programme",
+      )
+    : "";
+  const geoLabel =
+    item.geoTag
+      ? item.geoTag === "HT"
+        ? "Haïti"
+        : item.geoTag === "Diaspora"
+          ? "Diaspora"
+          : "International"
+      : "";
+  const deadlineLabel = deadlineStr
+    ? `Date limite — ${formatDeadline(deadlineStr)}`
+    : "";
 
   // ── Slide 1: Hero cover (generous headline limit to avoid 3-dots) ──
   const coverSub: string[] = [];
-  if (item.opportunity?.coverage) coverSub.push(item.opportunity.coverage);
-  if (item.geoTag) {
-    coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
-  }
+  if (coverage) coverSub.push(`Couverture — ${coverage}`);
+  const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
+  if (coverContext) coverSub.push(coverContext);
   slides.push({
     heading: shortenHeadline(title, 15),
-    bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [],
+    bullets: coverSub,
     layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
@@ -72,11 +91,11 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   const applyBullets: string[] = [];
   if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
   if (item.opportunity?.howToApply) applyBullets.push(shortenText(ensureFrenchHowToApply(item.opportunity.howToApply), 250));
-  if (deadlineStr) applyBullets.push(`Date limite: ${formatDeadline(deadlineStr)}`);
+  if (deadlineStr) applyBullets.push(`Date limite : ${formatDeadline(deadlineStr)}`);
   if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
 
   slides.push({
-    heading: "Comment postuler",
+    heading: "Candidature",
     bullets: applyBullets,
     layout: "explanation",
     footer: buildSourceFooter(item),
@@ -92,7 +111,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   const parts: string[] = [title, "", shortenCaptionText(summary, 340)];
   if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 280)}`);
   if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
-  if (item.opportunity?.coverage) parts.push(`Couverture — ${item.opportunity.coverage}`);
+  if (coverage) parts.push(`Couverture — ${coverage}`);
   parts.push("", "#Bourse #BoursesEtudes #EdLightNews #Haïti #Éducation");
   parts.push("", buildCTA(), "", buildSourceLine(item));
 

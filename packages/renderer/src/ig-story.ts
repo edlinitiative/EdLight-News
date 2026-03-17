@@ -79,6 +79,16 @@ interface StoryHeadlineMetrics {
   panelPaddingX: number;
 }
 
+interface StoryFactsMetrics {
+  titleSize: number;
+  factFont: number;
+  factGap: number;
+  panelPaddingY: number;
+  panelPaddingX: number;
+  numberSize: number;
+  numberRing: number;
+}
+
 function resolveStoryHeadlineContent(
   slide: IGStorySlide,
 ): StoryHeadlineContent {
@@ -161,6 +171,48 @@ function getStoryHeadlineMetrics(
     metaGap: 12,
     panelPaddingY: 42,
     panelPaddingX: 42,
+  };
+}
+
+function getStoryFactsMetrics(slide: IGStorySlide): StoryFactsMetrics {
+  const longestFact = slide.bullets.reduce(
+    (max, fact) => Math.max(max, fact.length),
+    0,
+  );
+  const totalChars = slide.bullets.reduce((sum, fact) => sum + fact.length, 0);
+
+  if (slide.bullets.length >= 3 || longestFact > 220 || totalChars > 720) {
+    return {
+      titleSize: 40,
+      factFont: 19,
+      factGap: 14,
+      panelPaddingY: 30,
+      panelPaddingX: 30,
+      numberSize: 15,
+      numberRing: 32,
+    };
+  }
+
+  if (slide.bullets.length >= 3 || longestFact > 140 || totalChars > 480) {
+    return {
+      titleSize: 44,
+      factFont: 20,
+      factGap: 16,
+      panelPaddingY: 34,
+      panelPaddingX: 34,
+      numberSize: 16,
+      numberRing: 34,
+    };
+  }
+
+  return {
+    titleSize: 50,
+    factFont: 22,
+    factGap: 20,
+    panelPaddingY: 38,
+    panelPaddingX: 36,
+    numberSize: 17,
+    numberRing: 36,
   };
 }
 
@@ -325,14 +377,7 @@ function buildFactsFrameHTML(
   const accent = slide.accent ?? "#34d399";
   const eyebrow = slide.eyebrow ?? "CE MATIN";
   const hasImage = !!slide.backgroundImage;
-  const longestFact = slide.bullets.reduce(
-    (max, fact) => Math.max(max, fact.length),
-    0,
-  );
-  const dense = slide.bullets.length >= 4 || longestFact > 120;
-  const titleSize = dense ? 44 : 50;
-  const factFont = dense ? 20 : 22;
-  const factGap = dense ? 18 : 22;
+  const metrics = getStoryFactsMetrics(slide);
   const bgCss = hasImage
     ? `background:#040e09 url('${slide.backgroundImage}') center/cover no-repeat;`
     : `background:
@@ -377,32 +422,48 @@ body {
   display:flex; flex-direction:column; justify-content:center;
   padding:${SAFE_TOP + 20}px 80px ${SAFE_BOTTOM + 60}px 100px;
 }
-.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
-.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 20px; border-radius:999px; }
-.count {
+	.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+	.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 20px; border-radius:999px; }
+	.count {
   font-family:${FONT_HEADLINE}; font-size:15px; font-weight:700; letter-spacing:2px;
   color:rgba(255,255,255,0.74);
   padding:8px 14px;
   border-radius:999px;
   background:rgba(0,0,0,0.34);
   border:1px solid rgba(255,255,255,0.08);
-}
-.panel {
-  max-width: 860px;
-  padding:36px 36px 18px;
-  border-radius:34px;
-  background:linear-gradient(180deg, rgba(5,16,11,0.74) 0%, rgba(5,16,11,0.90) 100%);
-  border:1px solid rgba(255,255,255,0.08);
-  box-shadow:0 24px 70px rgba(0,0,0,0.24);
-  backdrop-filter:blur(16px);
-}
-.h { font-family:${FONT_HEADLINE}; font-size:${titleSize}px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:28px; color:#fff; }
-.fact { display:flex; gap:${factGap}px; align-items:flex-start; margin-bottom:${factGap}px; }
-.fn { font-family:${FONT_HEADLINE}; flex-shrink:0; width:32px; height:32px; background:${accent}28; color:${accent}; font-size:16px; font-weight:800; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:3px; }
-.ft { font-size:${factFont}px; line-height:1.58; opacity:0.92; font-weight:500; }
-.bm {
-  position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
-  display:flex; justify-content:center; align-items:center; gap:8px;
+	}
+	.panel {
+	  max-width: 900px;
+	  padding:${metrics.panelPaddingY}px ${metrics.panelPaddingX}px ${metrics.panelPaddingY - 4}px;
+	  border-radius:36px;
+	  background:linear-gradient(180deg, rgba(5,16,11,0.76) 0%, rgba(5,16,11,0.92) 100%);
+	  border:1px solid rgba(255,255,255,0.08);
+	  box-shadow:0 28px 74px rgba(0,0,0,0.26);
+	  backdrop-filter:blur(18px);
+	}
+	.rule {
+	  width:72px; height:4px; border-radius:999px; background:${accent};
+	  margin-bottom:18px;
+	}
+	.h { font-family:${FONT_HEADLINE}; font-size:${metrics.titleSize}px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:22px; color:#fff; }
+	.fact {
+	  display:flex; gap:${metrics.factGap}px; align-items:flex-start;
+	  padding:${metrics.factGap}px 0;
+	}
+	.fact + .fact {
+	  border-top:1px solid rgba(255,255,255,0.08);
+	}
+	.fn {
+	  font-family:${FONT_HEADLINE}; flex-shrink:0;
+	  width:${metrics.numberRing}px; height:${metrics.numberRing}px;
+	  background:${accent}24; color:${accent}; font-size:${metrics.numberSize}px; font-weight:800;
+	  border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:4px;
+	  box-shadow:0 0 0 5px ${accent}12;
+	}
+	.ft { font-size:${metrics.factFont}px; line-height:1.6; opacity:0.94; font-weight:500; }
+	.bm {
+	  position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
+	  display:flex; justify-content:center; align-items:center; gap:8px;
   font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px;
 }
 .bm .el { color:rgba(255,255,255,0.72); }
@@ -412,16 +473,17 @@ body {
 ${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
 <div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
-<div class="c">
-  <div class="top">
-    <span class="pill">${escapeHtml(eyebrow)}</span>
-    <div class="count">${slideIndex + 1}/${totalSlides}</div>
-  </div>
-  <div class="panel">
-    <div class="h">${escapeHtml(slide.heading)}</div>
-    ${factsHtml}
-  </div>
-</div>
+	<div class="c">
+	  <div class="top">
+	    <span class="pill">${escapeHtml(eyebrow)}</span>
+	    <div class="count">${slideIndex + 1}/${totalSlides}</div>
+	  </div>
+	  <div class="panel">
+	    <div class="rule"></div>
+	    <div class="h">${escapeHtml(slide.heading)}</div>
+	    ${factsHtml}
+	  </div>
+	</div>
 <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
@@ -579,42 +641,135 @@ ${GOOGLE_FONTS_LINK}
 body {
   width:1080px; height:1920px;
   font-family: ${FONT_BODY};
-  background: radial-gradient(ellipse at 50% 50%, ${accent}15 0%, transparent 70%),
-              ${DEFAULT_DARK};
+  background:
+    radial-gradient(circle at 18% 20%, ${accent}18 0%, transparent 28%),
+    radial-gradient(circle at 82% 76%, rgba(255,255,255,0.05) 0%, transparent 34%),
+    linear-gradient(180deg, #08121e 0%, #071018 56%, #060f0b 100%);
   color:#fff; overflow:hidden; position:relative;
-  display:flex; align-items:center; justify-content:center;
 }
-.c { text-align:center; padding:0 100px; }
+.glow {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.34) 44%, rgba(0,0,0,0.58) 100%);
+}
+.c {
+  position:relative; z-index:1; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  padding:${SAFE_TOP - 20}px 86px ${SAFE_BOTTOM + 40}px;
+}
+.shell {
+  width:100%; max-width:860px;
+  padding:56px 52px 44px;
+  border-radius:40px;
+  background:linear-gradient(180deg, rgba(8,18,30,0.82) 0%, rgba(8,18,30,0.92) 100%);
+  border:1px solid rgba(255,255,255,0.09);
+  box-shadow:0 34px 90px rgba(0,0,0,0.26);
+  backdrop-filter:blur(18px);
+}
+.eyebrow {
+  display:inline-flex; align-items:center;
+  padding:10px 18px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);
+  color:${accent};
+  font-family:${FONT_HEADLINE};
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:26px;
+}
 .logo {
-  font-family:${FONT_HEADLINE}; font-size:42px; font-weight:900; letter-spacing:4px; margin-bottom:48px;
-  display:flex; align-items:center; justify-content:center; gap:10px;
+  font-family:${FONT_HEADLINE}; font-size:40px; font-weight:900; letter-spacing:4px; margin-bottom:18px;
+  display:flex; align-items:center; gap:10px;
 }
 .logo .el { color:#fff; }
 .logo .nw { color:${accent}; }
 .line {
-  width:60px; height:3px; background:${accent}; opacity:0.4;
-  margin:0 auto 48px; border-radius:2px;
+  width:72px; height:4px; background:${accent}; opacity:0.7;
+  margin:0 0 28px; border-radius:999px;
 }
-.msg {
-  font-size:28px; font-weight:500; line-height:1.6; opacity:0.7;
-  margin-bottom:16px;
+.headline {
+  font-family:${FONT_HEADLINE};
+  font-size:62px;
+  font-weight:900;
+  line-height:1.02;
+  letter-spacing:-1.2px;
+  margin-bottom:22px;
+  text-shadow:0 2px 24px rgba(0,0,0,0.42);
 }
-.msg2 {
-  font-size:24px; font-weight:400; line-height:1.6; opacity:0.45;
+.summary {
+  font-size:25px;
+  font-weight:500;
+  line-height:1.62;
+  opacity:0.88;
+  max-width:680px;
+  margin-bottom:28px;
+}
+.tags {
+  display:flex; flex-wrap:wrap; gap:12px;
+  margin-bottom:32px;
+}
+.tag {
+  padding:12px 18px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.08);
+  font-family:${FONT_HEADLINE};
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+.handle-row {
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  margin-bottom:18px;
 }
 .handle {
-  margin-top:48px; font-size:20px; font-weight:700;
-  color:${accent}; opacity:0.8; letter-spacing:1px;
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:16px 24px;
+  border-radius:999px;
+  background:${accent};
+  color:#04110c;
+  font-family:${FONT_HEADLINE};
+  font-size:22px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+.note {
+  font-size:17px;
+  font-weight:600;
+  letter-spacing:0.6px;
+  color:rgba(255,255,255,0.58);
+  text-transform:uppercase;
+}
+.kreyol {
+  font-size:21px;
+  line-height:1.58;
+  opacity:0.58;
 }
 </style></head>
 <body>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
+<div class="glow"></div>
 <div class="c">
-  <div class="logo"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
-  <div class="line"></div>
-  <div class="msg">Suivez-nous pour les dernières<br>actualités éducation & bourses</div>
-  <div class="msg2">🇭🇹 Swiv nou pou tout dènye nouvèl<br>sou edikasyon ak bous</div>
-  <div class="handle">@edlight.news</div>
+  <div class="shell">
+    <div class="eyebrow">Édition quotidienne</div>
+    <div class="logo"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
+    <div class="line"></div>
+    <div class="headline">Votre briefing étudiant, chaque matin.</div>
+    <div class="summary">Actualités, bourses et repères pensés pour les élèves et étudiants haïtiens.</div>
+    <div class="tags">
+      <span class="tag">Actualités</span>
+      <span class="tag">Bourses</span>
+      <span class="tag">Repères</span>
+    </div>
+    <div class="handle-row">
+      <div class="handle">@edlight.news</div>
+      <div class="note">En story chaque matin</div>
+    </div>
+    <div class="kreyol">Nouvèl, opòtinite ak repè pou elèv ak etidyan ayisyen, chak jou.</div>
+  </div>
 </div>
 </body></html>`;
 }

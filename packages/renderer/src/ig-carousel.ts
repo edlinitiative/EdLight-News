@@ -208,6 +208,30 @@ function buildHistoryNarrativeHtml(
   return parts.join("\n    ");
 }
 
+function buildScholarshipHeadlineHtml(
+  bullets: string[],
+): string {
+  if (bullets.length === 0) return "";
+
+  return `<div class="scholarship-meta">${bullets
+    .map(
+      (bullet) =>
+        `<div class="scholarship-meta-row"><span class="scholarship-meta-mark"></span><span class="scholarship-meta-copy">${escapeHtml(bullet)}</span></div>`,
+    )
+    .join("\n")}</div>`;
+}
+
+function buildScholarshipDetailHtml(
+  bullets: string[],
+): string {
+  return bullets
+    .map(
+      (bullet) =>
+        `<div class="scholarship-point"><span class="scholarship-point-mark"></span><span class="scholarship-point-copy">${escapeHtml(bullet)}</span></div>`,
+    )
+    .join("\n    ");
+}
+
 // ── HEADLINE layout ────────────────────────────────────────────────────────
 // Big bold title + optional one-liner. Used for covers and story beats.
 
@@ -220,9 +244,12 @@ function buildHeadlineHTML(
   igType = "",
 ): string {
   const isHistory = igType === "histoire";
+  const isScholarship = igType === "scholarship";
   const hasImage = !!slide.backgroundImage;
   const bodyText = isHistory
     ? buildHistoryNarrativeHtml(slide.bullets, isFirst)
+    : isScholarship
+      ? buildScholarshipHeadlineHtml(slide.bullets)
     : slide.bullets
       .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
       .join("\n    ");
@@ -248,9 +275,17 @@ function buildHeadlineHTML(
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
   const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
-  const mainClass = isHistory ? "main history-main" : "main";
-  const historyOpen = isHistory ? '<div class="history-card">' : "";
-  const historyClose = isHistory ? "</div>" : "";
+  const mainClass = isHistory
+    ? "main history-main"
+    : isScholarship
+      ? "main scholarship-main"
+      : "main";
+  const featureOpen = isHistory
+    ? '<div class="history-card">'
+    : isScholarship
+      ? '<div class="scholarship-card">'
+      : "";
+  const featureClose = isHistory || isScholarship ? "</div>" : "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -275,6 +310,50 @@ ${
   border:1px solid rgba(245,158,11,0.18);
   box-shadow:0 26px 70px rgba(0,0,0,0.24);
   backdrop-filter:blur(16px);
+}`
+    : ""
+}
+${
+  isScholarship
+    ? `.scholarship-main { max-height:none; }
+.scholarship-card {
+  padding:${isFirst ? "40px 38px 34px" : "34px 32px 28px"};
+  border-radius:32px;
+  background:linear-gradient(180deg, rgba(6,13,31,0.74) 0%, rgba(6,13,31,0.88) 100%);
+  border:1px solid rgba(96,165,250,0.20);
+  box-shadow:0 28px 72px rgba(0,0,0,0.24);
+  backdrop-filter:blur(18px);
+}
+.scholarship-meta {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:4px;
+}
+.scholarship-meta-row {
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding:14px 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.scholarship-meta-mark {
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:${accent};
+  margin-top:11px;
+  flex-shrink:0;
+  box-shadow:0 0 0 5px ${accent}18;
+}
+.scholarship-meta-copy {
+  font-size:${isFirst ? 22 : 21}px;
+  line-height:1.52;
+  font-weight:600;
+  opacity:0.92;
+  text-shadow:0 1px 14px rgba(0,0,0,0.72);
 }`
     : ""
 }
@@ -334,12 +413,12 @@ ${imageLayerHtml(hasImage, overlayGradient)}
     ${isFirst ? topBrandHtml(accent) : ""}
   </div>
   <div class="${mainClass}">
-    ${historyOpen}
+    ${featureOpen}
     ${isFirst ? '<div class="accent-rule"></div>' : ""}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bodyText}
     ${bottomBarHtml(slide.footer, accent, !isFirst)}
-    ${historyClose}
+    ${featureClose}
   </div>
 </div>
 </body></html>`;
@@ -357,18 +436,29 @@ function buildExplanationHTML(
   igType = "",
 ): string {
   const isHistory = igType === "histoire";
+  const isScholarship = igType === "scholarship";
   const hasImage = !!slide.backgroundImage;
   const bulletsHtml = isHistory
     ? buildHistoryNarrativeHtml(slide.bullets, false)
+    : isScholarship
+      ? buildScholarshipDetailHtml(slide.bullets)
     : slide.bullets
       .map((b) => `<div class="bt">${escapeHtml(b)}</div>`)
       .join("\n    ");
   const pad = `${MARGIN.top}px ${MARGIN.side}px 140px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
   const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
-  const mainClass = isHistory ? "main history-main" : "main";
-  const historyOpen = isHistory ? '<div class="history-panel">' : "";
-  const historyClose = isHistory ? "</div>" : "";
+  const mainClass = isHistory
+    ? "main history-main"
+    : isScholarship
+      ? "main scholarship-main"
+      : "main";
+  const featureOpen = isHistory
+    ? '<div class="history-panel">'
+    : isScholarship
+      ? '<div class="scholarship-panel">'
+      : "";
+  const featureClose = isHistory || isScholarship ? "</div>" : "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -392,6 +482,19 @@ ${
   border:1px solid rgba(245,158,11,0.18);
   box-shadow:0 26px 70px rgba(0,0,0,0.24);
   backdrop-filter:blur(16px);
+}`
+    : ""
+}
+${
+  isScholarship
+    ? `.scholarship-main { justify-content:flex-end; }
+.scholarship-panel {
+  padding:34px 32px 26px;
+  border-radius:30px;
+  background:linear-gradient(180deg, rgba(6,13,31,0.74) 0%, rgba(6,13,31,0.88) 100%);
+  border:1px solid rgba(96,165,250,0.18);
+  box-shadow:0 28px 72px rgba(0,0,0,0.24);
+  backdrop-filter:blur(18px);
 }`
     : ""
 }
@@ -437,6 +540,36 @@ ${
 }`
     : ""
 }
+${
+  isScholarship
+    ? `.scholarship-point {
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  margin-bottom:16px;
+  padding:18px 18px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+}
+.scholarship-point-mark {
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:${accent};
+  margin-top:11px;
+  flex-shrink:0;
+  box-shadow:0 0 0 5px ${accent}16;
+}
+.scholarship-point-copy {
+  font-size:24px;
+  line-height:1.56;
+  font-weight:500;
+  opacity:0.92;
+  text-shadow:0 1px 12px rgba(0,0,0,0.78);
+}`
+    : ""
+}
 ${bottomCss()}
 </style></head>
 <body>
@@ -446,10 +579,10 @@ ${imageLayerHtml(hasImage, overlayGradient)}
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
   </div>
   <div class="${mainClass}">
-    ${historyOpen}
+    ${featureOpen}
     <div class="h">${escapeHtml(slide.heading)}</div>
     ${bulletsHtml}
-    ${historyClose}
+    ${featureClose}
   </div>
   ${bottomBarHtml(slide.footer, accent, !isFirst)}
 </div>

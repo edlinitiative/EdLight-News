@@ -59,6 +59,13 @@ describe("needsReview", () => {
     assert.equal(needsReview(payload, "news"), true);
   });
 
+  it("flags short scholarship finance phrases that still contain English", () => {
+    const payload = makePayload([
+      { heading: "Couverture", bullets: ["Full tuition + monthly stipend"] },
+    ]);
+    assert.equal(needsReview(payload, "scholarship"), true);
+  });
+
   it("flags excessive emojis on histoire", () => {
     const payload = makePayload([
       { heading: "🔥🎉📚 Histoire 🇭🇹", bullets: ["Normal text"] },

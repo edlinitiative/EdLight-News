@@ -129,6 +129,8 @@ const EN = [
   /\bmust be\b/i, /\bshould be\b/i, /\bapplicants?\b/i, /\brequired\b/i,
   /\bsubmit\b/i, /\byou must\b/i, /\beligible\b/i, /\bcitizens? of\b/i,
   /\bopen to\b/i, /\bapplication form\b/i, /\bscholarship\b/i,
+  /\bfull tuition\b/i, /\bstipend\b/i, /\bprofessional experience\b/i,
+  /\bletter of recommendation\b/i, /\btranscript\b/i, /\bwebsite\b/i,
 ];
 
 function enLeak(t: string): boolean {

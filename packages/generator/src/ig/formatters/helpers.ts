@@ -30,7 +30,42 @@ const EN_MARKERS = [
   /\bscholarship\b/i, /\bfunding\b/i, /\bfellowship\b/i,
   /\bthe applicant\b/i, /\bopen to\b/i, /\bmust have\b/i,
   /\bdeveloping countr/i, /\ball nationalities\b/i,
+  /\bfull tuition\b/i, /\btuition\b/i, /\bstipend\b/i,
+  /\bprofessional experience\b/i, /\bletter of recommendation\b/i,
+  /\bcurrent employer\b/i, /\bstatement of purpose\b/i, /\btranscript\b/i,
+  /\bwebsite\b/i, /\bportal\b/i, /\bproof of\b/i, /\bresume\b/i,
+  /\bcurriculum vitae\b/i, /\bstudents?\b/i,
 ];
+
+const EN_FUNCTION_WORDS = new Set([
+  "the", "and", "for", "with", "from", "your", "their", "this", "that",
+  "these", "those", "through", "online", "current", "strong", "leadership",
+  "academic", "merit", "students", "student", "application", "details",
+]);
+
+const FR_FUNCTION_WORDS = new Set([
+  "le", "la", "les", "de", "des", "du", "un", "une", "pour", "avec",
+  "dans", "sur", "étudiants", "étudiant", "bourse", "programme", "officiel",
+  "détails", "candidature", "haïtien", "haïtiens",
+]);
+
+function englishFunctionWordScore(text: string): { en: number; fr: number } {
+  const words = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .match(/\b[a-z]{2,}\b/g) ?? [];
+
+  let en = 0;
+  let fr = 0;
+
+  for (const word of words) {
+    if (EN_FUNCTION_WORDS.has(word)) en++;
+    if (FR_FUNCTION_WORDS.has(word)) fr++;
+  }
+
+  return { en, fr };
+}
 
 /**
  * Returns true when the text is likely English rather than French.
@@ -43,7 +78,8 @@ export function looksEnglish(text: string): boolean {
     if (re.test(text)) hits++;
     if (hits >= 2) return true;
   }
-  return false;
+  const score = englishFunctionWordScore(text);
+  return score.en >= 3 && score.en > score.fr;
 }
 
 /**
@@ -53,15 +89,22 @@ export function looksEnglish(text: string): boolean {
  * threshold) because individual short eligibility bullets may only hit 1 marker.
  */
 export function ensureFrenchEligibility(bullets: string[]): string[] {
-  return bullets
+  const cleaned = bullets
     .map((bullet) => translateOpportunityText(bullet))
+    .filter((bullet) => !looksEnglishStrict(bullet) && !looksEnglish(bullet))
     .filter((bullet) => bullet.length > 0);
+
+  if (cleaned.length > 0) return cleaned;
+
+  return ["Voir les critères officiels sur le site de la bourse."];
 }
 
 /** Stricter English detection for short text: 1 marker hit = English. */
 function looksEnglishStrict(text: string): boolean {
   if (!text || text.length < 10) return false;
-  return EN_MARKERS.some((re) => re.test(text));
+  if (EN_MARKERS.some((re) => re.test(text))) return true;
+  const score = englishFunctionWordScore(text);
+  return score.en >= 2 && score.en > score.fr;
 }
 
 /**
@@ -70,8 +113,20 @@ function looksEnglishStrict(text: string): boolean {
  */
 export function ensureFrenchHowToApply(text: string): string {
   const translated = translateOpportunityText(text);
-  if (looksEnglishStrict(translated)) {
-    return `${translated} — voir le site officiel pour les détails.`;
+  if (looksEnglishStrict(translated) || looksEnglish(translated)) {
+    return "Consultez le site officiel pour connaître les étapes de candidature.";
+  }
+  return translated;
+}
+
+export function ensureFrenchOpportunityCopy(
+  text: string,
+  fallback: string,
+): string {
+  const translated = translateOpportunityText(text);
+  if (!translated) return fallback;
+  if (looksEnglishStrict(translated) || looksEnglish(translated)) {
+    return fallback;
   }
   return translated;
 }
@@ -100,15 +155,29 @@ const OPPORTUNITY_TRANSLATION_RULES: Array<[RegExp, string]> = [
   [/\bfunding\b/gi, "financement"],
   [/\bundergraduate\b/gi, "licence"],
   [/\bgraduate\b/gi, "master"],
+  [/\bstudents?\b/gi, "étudiants"],
   [/\bpostgraduate\b/gi, "cycle supérieur"],
   [/\bdeadline\b/gi, "date limite"],
   [/\bfor more information\b/gi, "pour plus d'informations"],
   [/\bplease note\b/gi, "à noter"],
   [/\bin order to\b/gi, "pour"],
+  [/\bthrough\b/gi, "via"],
+  [/\bwebsite\b/gi, "site officiel"],
+  [/\bportal\b/gi, "portail"],
+  [/\bprofessional experience\b/gi, "expérience professionnelle"],
+  [/\bletter of recommendation\b/gi, "lettre de recommandation"],
+  [/\bcurrent employer\b/gi, "employeur actuel"],
+  [/\bstatement of purpose\b/gi, "lettre de motivation"],
+  [/\btranscript\b/gi, "relevé de notes"],
+  [/\bproof of\b/gi, "preuve de"],
+  [/\bresume\b/gi, "CV"],
+  [/\bcurriculum vitae\b/gi, "CV"],
   [/\btuition fees\b/gi, "frais de scolarité"],
   [/\bfull tuition\b/gi, "frais de scolarité complets"],
+  [/\btuition\b/gi, "frais de scolarité"],
   [/\bliving expenses\b/gi, "frais de vie"],
   [/\bmonthly stipend\b/gi, "allocation mensuelle"],
+  [/\bstipend\b/gi, "allocation"],
   [/\btravel costs\b/gi, "frais de voyage"],
   [/\bhealth insurance\b/gi, "assurance santé"],
 ];

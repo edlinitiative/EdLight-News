@@ -196,7 +196,19 @@ export function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = fal
 
 /** Return today's date in Haiti timezone as YYYY-MM-DD. */
 function getHaitiTodayISO(): string {
-  return toHaitiDate(new Date()).toISOString().slice(0, 10);
+  const haiti = toHaitiDate(new Date());
+  const year = haiti.getFullYear();
+  const month = String(haiti.getMonth() + 1).padStart(2, "0");
+  const day = String(haiti.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** @internal exported for tests */
+export function matchesTargetPostDate(
+  item: { targetPostDate?: string },
+  haitiToday: string,
+): boolean {
+  return !item.targetPostDate || item.targetPostDate === haitiToday;
 }
 
 export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
@@ -292,14 +304,15 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     const alreadyCovered = todayStatuses.some(
       (s) =>
         s.igType === stapleType &&
-        // If the scheduled item has a targetPostDate, it must match today;
-        // otherwise fall back to the old "any item of this type" logic.
-        (!s.targetPostDate || s.targetPostDate === haitiToday),
+        matchesTargetPostDate(s, haitiToday),
     );
     if (alreadyCovered) continue;
 
     const candidate = fresh.find(
-      (q) => q.igType === stapleType && !scheduledThisTick.has(q.id),
+      (q) =>
+        q.igType === stapleType &&
+        !scheduledThisTick.has(q.id) &&
+        matchesTargetPostDate(q, haitiToday),
     );
     if (!candidate) continue; // no item of this type in queue
 
@@ -377,7 +390,10 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
 
   if (needsNewsDiversity) {
     regularItem = fresh.find(
-      (q) => q.igType === "news" && !scheduledThisTick.has(q.id),
+      (q) =>
+        q.igType === "news" &&
+        !scheduledThisTick.has(q.id) &&
+        matchesTargetPostDate(q, haitiToday),
     );
     if (regularItem) {
       console.log(
@@ -390,6 +406,7 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   if (!regularItem) {
     for (const candidate of fresh) {
       if (scheduledThisTick.has(candidate.id)) continue;
+      if (!matchesTargetPostDate(candidate, haitiToday)) continue;
       const cap = TYPE_DAILY_CAPS[candidate.igType];
       if (cap != null && (todayTypeCounts.get(candidate.igType) ?? 0) >= cap) {
         continue;
@@ -401,7 +418,9 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
 
   // Absolute fallback — pick the top-scoring item ignoring caps
   if (!regularItem) {
-    regularItem = fresh.find((f) => !scheduledThisTick.has(f.id));
+    regularItem = fresh.find(
+      (f) => !scheduledThisTick.has(f.id) && matchesTargetPostDate(f, haitiToday),
+    );
     if (regularItem) {
       console.log(
         `[scheduleIgPost] fallback: all types at cap, using top-score item ${regularItem.id} (type=${regularItem.igType})`,

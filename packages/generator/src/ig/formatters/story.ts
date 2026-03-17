@@ -68,13 +68,16 @@ export interface StoryTauxInput {
 
 /** Facts of the day data for the facts story frame. */
 export interface StoryFactsInput {
-  /** Array of fact lines, each ≤100 chars */
+  /** Array of fact lines for the daily fact/story recap frame(s) */
   facts: string[];
   /** Optional background image to make the facts frame more lively */
   backgroundImage?: string;
 }
 
-const STORY_MAX_FACTS = 4;
+const STORY_MAX_FACTS = 5;
+const STORY_MAX_FACT_FRAMES = 2;
+const STORY_MAX_FACTS_PER_FRAME = 3;
+const STORY_FACT_FRAME_CHAR_BUDGET = 420;
 const STORY_MAX_HEADLINES = 4;
 const STORY_HEADLINE_MAX_WORDS = 16;
 const STORY_HEADLINE_MAX_CHARS = 118;
@@ -117,6 +120,42 @@ function buildStoryMeta(item: Item): string[] {
   return meta;
 }
 
+function chunkStoryFacts(facts: string[]): string[][] {
+  const cleaned = facts
+    .map((fact) => fact.trim())
+    .filter((fact) => fact.length > 0)
+    .slice(0, STORY_MAX_FACTS);
+
+  if (cleaned.length === 0) return [];
+
+  const chunks: string[][] = [];
+  let current: string[] = [];
+  let currentChars = 0;
+
+  for (const fact of cleaned) {
+    const wouldOverflow =
+      current.length >= STORY_MAX_FACTS_PER_FRAME ||
+      (current.length > 0 &&
+        currentChars + fact.length > STORY_FACT_FRAME_CHAR_BUDGET);
+
+    if (wouldOverflow && chunks.length < STORY_MAX_FACT_FRAMES - 1) {
+      chunks.push(current);
+      current = [fact];
+      currentChars = fact.length;
+      continue;
+    }
+
+    current.push(fact);
+    currentChars += fact.length;
+  }
+
+  if (current.length > 0) {
+    chunks.push(current);
+  }
+
+  return chunks;
+}
+
 /**
  * Build the daily summary story payload (v2 — Morning Briefing).
  *
@@ -156,14 +195,17 @@ export function buildDailySummaryStory(
 
   // ── Frame 2: Faits du jour ─────────────────────────────────────────────
   if (factsInput && factsInput.facts.length > 0) {
-    slides.push({
-      heading: "Repères du jour",
-      bullets: factsInput.facts.slice(0, STORY_MAX_FACTS),
-      eyebrow: "Ce matin",
-      accent: "#34d399",
-      backgroundImage: factsInput.backgroundImage,
-      frameType: "facts",
-    });
+    const factChunks = chunkStoryFacts(factsInput.facts);
+    for (let i = 0; i < factChunks.length; i++) {
+      slides.push({
+        heading: i === 0 ? "Repères du jour" : "Ce qu'il faut retenir",
+        bullets: factChunks[i]!,
+        eyebrow: i === 0 ? "Ce matin" : "Suite",
+        accent: "#34d399",
+        backgroundImage: factsInput.backgroundImage,
+        frameType: "facts",
+      });
+    }
   }
 
   // ── Frames 3-6: Bonus headline items (max 4) ──────────────────────────

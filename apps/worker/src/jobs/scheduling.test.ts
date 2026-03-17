@@ -41,6 +41,7 @@ import {
 import {
   parseBRHDate,
   FRENCH_MONTHS,
+  isInTauxWindow,
 } from "./buildIgTaux.js";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -509,6 +510,15 @@ describe("Time window integration", () => {
     const tauxSlot = SLOTS[STAPLE_SLOT_INDEX["taux"]!]!;
     assert.equal(tauxSlot.hour, 6);
     assert.equal(tauxSlot.minute, 30);
+  });
+
+  it("taux window stays open for same-day catch-up retries", () => {
+    assert.equal(isInTauxWindow(haitiTime(12, 0)), true);
+    assert.equal(isInTauxWindow(haitiTime(19, 59)), true);
+  });
+
+  it("taux window closes once the last same-day slot is gone", () => {
+    assert.equal(isInTauxWindow(haitiTime(20, 0)), false);
   });
 
   it("utility slot (06:50) follows taux by 20 minutes", () => {
