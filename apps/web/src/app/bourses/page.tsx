@@ -17,6 +17,7 @@ import type { Metadata } from "next";
 import type { ContentLanguage, Scholarship } from "@edlight-news/types";
 import { Suspense } from "react";
 import { GraduationCap } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchScholarshipsForHaiti,
@@ -28,6 +29,7 @@ import { ParcoursTiles } from "@/components/bourses/ParcoursTiles";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 import { tsToISO as sharedTsToISO } from "@/lib/dates";
 import { buildOgMetadata } from "@/lib/og";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -89,6 +91,7 @@ export default async function BoursesPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
+  const l = (href: string) => withLangParam(href, lang);
 
   const hasActiveFilters = FILTER_PARAM_KEYS.some(
     (k) => searchParams[k] !== undefined,
@@ -109,31 +112,30 @@ export default async function BoursesPage({
 
   const serialized = allScholarships.map(serializeScholarship);
   const closingSerialized = closingSoon.map(serializeScholarship);
+  const countryCount = new Set(allScholarships.map((scholarship) => scholarship.country)).size;
 
   return (
     <div className="space-y-8">
-      {/* ─── Section 1: Header ─── */}
-      <header className="space-y-3 pt-2">
-        <div className="section-rule" />
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
-              <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              {fr ? "Bourses" : "Bous"}
-            </h1>
-            <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-              {fr
-                ? "Trouvez, comparez et suivez les bourses ouvertes aux étudiants haïtiens. Filtrez par pays, niveau ou type de financement."
-                : "Jwenn, konpare epi swiv bous ki ouvè pou etidyan ayisyen. Filtre pa peyi, nivo oswa kalite finansman."}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
-              {allScholarships.length} {fr ? "bourses" : "bous"}
-            </span>
-          </div>
-        </div>
-      </header>
+      <PageHero
+        variant="bourses"
+        eyebrow={fr ? "Base de données étudiante" : "Baz done etidyan"}
+        title={fr ? "Trouver une bourse sans se perdre." : "Jwenn yon bous san w pa pèdi."}
+        description={
+          fr
+            ? "Comparez les opportunités, filtrez par pays ou niveau, puis gardez un oeil sur les deadlines qui approchent."
+            : "Konpare okazyon yo, filtre pa peyi oswa nivo, epi kontinye suiv dat limit ki ap pwoche yo."
+        }
+        icon={<GraduationCap className="h-5 w-5" />}
+        actions={[
+          { href: l("/closing-soon"), label: fr ? "Voir les deadlines" : "Wè dat limit yo" },
+          { href: l("/parcours"), label: fr ? "Explorer les parcours" : "Eksplore pakou yo" },
+        ]}
+        stats={[
+          { value: String(allScholarships.length), label: fr ? "bourses" : "bous" },
+          { value: String(closingSoon.length), label: fr ? "closing soon" : "k ap fèmen" },
+          { value: String(countryCount), label: fr ? "pays" : "peyi" },
+        ]}
+      />
 
       {/* ─── Section 2: Deadline Board ─── */}
       {closingSerialized.length > 0 && (

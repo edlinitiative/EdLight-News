@@ -19,9 +19,10 @@ import { BrandedHero } from "@/components/BrandedHero";
 import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { buildOgMetadata } from "@/lib/og";
+import { PageLanguageSync } from "@/components/PageLanguageSync";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 300;
+const BASE_URL = "https://news.edlight.org";
 
 async function getArticle(id: string): Promise<ContentVersion | null> {
   return contentVersionsRepo.getContentVersion(id);
@@ -44,18 +45,44 @@ export async function generateMetadata({
     }
   } catch { /* ignore — OG will use default */ }
 
+  let siblings: Awaited<ReturnType<typeof contentVersionsRepo.listByItemId>> = [];
+  try {
+    siblings = await contentVersionsRepo.listByItemId(article.itemId);
+  } catch {
+    // fallback to current article only
+  }
+
+  const articleLang: ContentLanguage = article.language === "ht" ? "ht" : "fr";
+  const webSiblings = siblings.filter((s) => s.channel === "web");
+  const frVersion = articleLang === "fr"
+    ? article
+    : webSiblings.find((s) => s.language === "fr");
+  const htVersion = articleLang === "ht"
+    ? article
+    : webSiblings.find((s) => s.language === "ht");
+
   const title = `${article.title} — EdLight News`;
   const description = article.summary || article.body?.slice(0, 160) || "";
+  const metadata = buildOgMetadata({
+    title,
+    description,
+    path: `/news/${params.id}`,
+    lang: articleLang,
+    type: "article",
+    image: ogImage,
+  });
+
   return {
     title,
     description,
-    ...buildOgMetadata({
-      title,
-      description,
-      path: `/news/${params.id}`,
-      type: "article",
-      image: ogImage,
-    }),
+    ...metadata,
+    alternates: {
+      canonical: `${BASE_URL}/news/${params.id}`,
+      languages: {
+        ...(frVersion ? { fr: `${BASE_URL}/news/${frVersion.id}` } : {}),
+        ...(htVersion ? { ht: `${BASE_URL}/news/${htVersion.id}?lang=ht` } : {}),
+      },
+    },
   };
 }
 
@@ -636,7 +663,9 @@ export default async function ArticlePage({
   const article = await getArticle(params.id);
   if (!article) notFound();
 
-  const currentLang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
+  const currentLang: ContentLanguage =
+    searchParams.lang === "ht" || article.language === "ht" ? "ht" : "fr";
+  const shareUrl = `${BASE_URL}/news/${article.id}${currentLang === "ht" ? "?lang=ht" : ""}`;
 
   // Get parent item for v2 fields
   let item: Awaited<ReturnType<typeof itemsRepo.getItem>> = null;
@@ -810,6 +839,7 @@ export default async function ArticlePage({
 
   return (
     <article className="mx-auto max-w-3xl space-y-8">
+      <PageLanguageSync lang={currentLang} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -949,7 +979,7 @@ export default async function ArticlePage({
 
       {/* Share buttons */}
       <ShareButtons
-        url={`https://news.edlight.org/news/${article.id}`}
+        url={shareUrl}
         title={article.title}
         lang={currentLang}
       />

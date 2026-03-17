@@ -14,6 +14,7 @@ import type {
   Item,
 } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
+import { daysUntil, parseISODateSafe } from "@/lib/deadlines";
 
 /** EnrichedArticle ≡ FeedItem — one shared type across the whole app */
 export type EnrichedArticle = FeedItem;
@@ -330,9 +331,11 @@ export async function fetchCalendarData(
   const parentItem = calItem.itemId ? itemMap.get(calItem.itemId) : undefined;
   const rawDeadlines = parentItem?.utilityMeta?.extractedFacts?.deadlines ?? [];
 
-  const now = new Date();
   const upcoming = rawDeadlines
-    .filter((d) => d.dateISO && d.dateISO.length > 0 && new Date(d.dateISO) >= now)
+    .filter((d) => {
+      const date = parseISODateSafe(d.dateISO);
+      return date ? daysUntil(date) >= 0 : false;
+    })
     .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
 
   const recent = rawDeadlines

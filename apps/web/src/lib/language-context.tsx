@@ -25,26 +25,20 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLang] = useState<ContentLanguage>("fr");
+  const [language, setLang] = useState<ContentLanguage>(() => {
+    if (typeof window === "undefined") return "fr";
+    const urlLang = new URLSearchParams(window.location.search).get("lang");
+    return urlLang === "ht" ? "ht" : "fr";
+  });
 
-  // Hydrate from URL (?lang=) → localStorage → default "fr"
+  // Persist the last applied language for client-only surfaces.
   useEffect(() => {
     try {
-      const params = new URLSearchParams(window.location.search);
-      const urlLang = params.get("lang");
-      if (urlLang === "ht" || urlLang === "fr") {
-        setLang(urlLang);
-        localStorage.setItem(STORAGE_KEY, urlLang);
-        return;
-      }
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "ht" || stored === "fr") {
-        setLang(stored);
-      }
+      localStorage.setItem(STORAGE_KEY, language);
     } catch {
-      // SSR or localStorage unavailable — keep default
+      // localStorage unavailable — ignore
     }
-  }, []);
+  }, [language]);
 
   const toggle = useCallback(() => {
     setLang((prev) => {

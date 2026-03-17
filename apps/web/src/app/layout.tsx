@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Source_Serif_4, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
@@ -6,6 +7,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
+import { RouteLanguageSync } from "@/components/RouteLanguageSync";
 
 const serif = Source_Serif_4({
   subsets: ["latin", "latin-ext"],
@@ -66,6 +68,9 @@ export default function RootLayout({
       <body className="flex min-h-screen flex-col">
         <ThemeProvider>
           <LanguageProvider>
+            <Suspense fallback={null}>
+              <RouteLanguageSync />
+            </Suspense>
             <HtmlLangSync />
             <a
               href="#main-content"

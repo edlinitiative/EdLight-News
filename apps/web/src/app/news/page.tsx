@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Newspaper } from "lucide-react";
 import { NewsFeed } from "@/components/news-feed";
+import { PageHero } from "@/components/PageHero";
 import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
 import { fetchTauxBRH } from "@/lib/brh";
 import { fetchEnrichedArticles } from "@/lib/feed";
@@ -9,6 +10,7 @@ import { rankFeed } from "@/lib/ranking";
 import { getLangFromSearchParams } from "@/lib/content";
 import { Suspense } from "react";
 import { buildOgMetadata } from "@/lib/og";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -36,6 +38,7 @@ export default async function NewsPage({
   searchParams: { lang?: string; category?: string; mode?: string };
 }) {
   const language: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
+  const l = (href: string) => withLangParam(href, language);
 
   // Fetch BRH rates + enriched articles in parallel
   const [taux, enrichedRaw] = await Promise.all([
@@ -60,29 +63,53 @@ export default async function NewsPage({
   });
 
   const fr = language === "fr";
+  const synthesisCount = articles.filter((article) => article.itemType === "synthesis").length;
+  const haitiCount = articles.filter((article) => article.geoTag === "HT").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Daily exchange-rate widget (UI-only feature) */}
       <TauxDuJourWidget lang={language} data={taux} />
 
-      <header>
-        <div className="section-rule" />
-        <div className="mt-3 flex items-center justify-between">
-          <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-            <Newspaper className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            {fr ? "Actualités" : "Nouvèl"}
-          </h1>
-          <span className="text-xs text-stone-400 dark:text-stone-500">
-            {articles.length} {fr ? "articles" : "atik"}
-          </span>
+      <PageHero
+        variant="news"
+        eyebrow={fr ? "Fil éditorial EdLight" : "Fil editoryal EdLight"}
+        title={
+          fr
+            ? "Toute l'actualité utile aux étudiants haïtiens."
+            : "Tout nouvèl itil pou elèv ayisyen yo."
+        }
+        description={
+          fr
+            ? "Un fil éditorial trié pour l'utilité étudiante, avec synthèses, contexte local et mises à jour rapides."
+            : "Yon fil editoryal ki klase pou itilite etidyan yo, ak sentèz, kontèks lokal ak mizajou rapid."
+        }
+        icon={<Newspaper className="h-5 w-5" />}
+        actions={[
+          { href: l("/haiti"), label: fr ? "Voir Haïti" : "Gade Ayiti" },
+          { href: l("/succes"), label: fr ? "Succès & inspiration" : "Siksè & enspirasyon" },
+        ]}
+        stats={[
+          { value: String(articles.length), label: fr ? "articles" : "atik" },
+          { value: String(synthesisCount), label: fr ? "synthèses" : "sentèz" },
+          { value: String(haitiCount), label: fr ? "sujets Haïti" : "sijè Ayiti" },
+        ]}
+      >
+        <div className="flex flex-wrap gap-2 text-xs">
+          {[
+            fr ? "Vérifié et synthétisé" : "Verifye epi senteze",
+            fr ? "Classement étudiant d'abord" : "Klasman etidyan an premye",
+            fr ? "Sources multiples" : "Plizyè sous",
+          ].map((chip) => (
+            <span
+              key={chip}
+              className="rounded-full border border-stone-200/80 bg-white/75 px-3 py-1 font-medium text-stone-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-stone-300"
+            >
+              {chip}
+            </span>
+          ))}
         </div>
-        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Toute l'actualité éducative pour les étudiants haïtiens, vérifiée et synthétisée."
-            : "Tout nouvèl edikasyon pou elèv ayisyen yo, verifye epi senteze."}
-        </p>
-      </header>
+      </PageHero>
 
       <Suspense
         fallback={

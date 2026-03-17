@@ -25,6 +25,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const fr = lang === "fr";
+  const studentFocusedCount = articles.filter((a) => isStudentFocused(a)).length;
 
   // Reset visible count when filters change
   const handleFilterChange = useCallback((f: GeoFilter) => {
@@ -70,59 +71,74 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
 
   return (
     <div className="space-y-6">
-      {/* Controls row */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        {/* Geo toggle */}
-        {(
-          [
-            { key: "all" as const, fr: "Tout Haïti", ht: "Tout Ayiti" },
-            {
-              key: "students" as const,
-              fr: "Étudiants",
-              ht: "Etidyan",
-            },
-          ] as const
-        ).map((opt) => (
-          <button
-            key={opt.key}
-            onClick={() => handleFilterChange(opt.key)}
-            className={[
-              "rounded-md px-2.5 py-1 text-xs font-medium transition",
-              filter === opt.key
-                ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
-            ].join(" ")}
-          >
-            {fr ? opt.fr : opt.ht}
-          </button>
-        ))}
+      <div className="relative overflow-hidden rounded-[1.5rem] border border-sky-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.97),rgba(239,246,255,0.95),rgba(254,242,242,0.92))] p-4 shadow-sm dark:border-sky-900/30 dark:bg-[linear-gradient(135deg,rgba(10,20,32,0.94),rgba(11,29,44,0.92),rgba(42,18,24,0.9))] sm:p-5">
+        <div className="pointer-events-none absolute -right-10 top-0 h-32 w-32 rounded-full bg-sky-300/25 blur-3xl dark:bg-sky-500/15" />
+        <div className="pointer-events-none absolute bottom-0 left-10 h-24 w-24 rounded-full bg-red-300/20 blur-3xl dark:bg-red-500/10" />
+        <div className="relative z-10 flex flex-wrap items-center gap-4">
+          <div className="space-y-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-300">
+              {fr ? "Lecture locale" : "Lekti lokal"}
+            </p>
+            <p className="text-sm text-stone-600 dark:text-stone-300">
+              {sorted.length} {fr ? "articles haïtiens affichés" : "atik ayisyen ki parèt"}
+              {" · "}
+              {studentFocusedCount} {fr ? "pensés pour les étudiants" : "panse pou etidyan yo"}
+            </p>
+          </div>
 
-        <span className="mx-1 text-stone-300 dark:text-stone-600">|</span>
+          <div className="ml-auto flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  { key: "all" as const, fr: "Tout Haïti", ht: "Tout Ayiti" },
+                  {
+                    key: "students" as const,
+                    fr: "Étudiants",
+                    ht: "Etidyan",
+                  },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => handleFilterChange(opt.key)}
+                  className={[
+                    "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                    filter === opt.key
+                      ? "bg-red-600 text-white shadow-sm dark:bg-red-500"
+                      : "border border-sky-200/80 bg-white/85 text-sky-700 hover:bg-sky-50 dark:border-white/10 dark:bg-white/5 dark:text-sky-200 dark:hover:bg-white/10",
+                  ].join(" ")}
+                >
+                  {fr ? opt.fr : opt.ht}
+                </button>
+              ))}
+            </div>
 
-        {/* Sort toggle */}
-        {(["relevance", "latest"] as SortMode[]).map((opt) => (
-          <button
-            key={opt}
-            onClick={() => handleSortChange(opt)}
-            className={[
-              "rounded-md px-2.5 py-1 text-xs font-medium transition",
-              sort === opt
-                ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
-            ].join(" ")}
-          >
-            {opt === "relevance"
-              ? fr
-                ? "Pertinence"
-                : "Pètinans"
-              : fr
-                ? "Dernières"
-                : "Dènye"}
-          </button>
-        ))}
-        <span className="ml-auto text-xs text-stone-400 dark:text-stone-500">
-          {sorted.length} {fr ? "article(s)" : "atik"}
-        </span>
+            <div className="hidden h-8 w-px bg-sky-200/80 dark:bg-white/10 sm:block" />
+
+            <div className="flex flex-wrap gap-2">
+              {(["relevance", "latest"] as SortMode[]).map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => handleSortChange(opt)}
+                  className={[
+                    "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                    sort === opt
+                      ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
+                      : "border border-stone-200/80 bg-white/80 text-stone-600 hover:bg-stone-50 dark:border-white/10 dark:bg-white/5 dark:text-stone-300 dark:hover:bg-white/10",
+                  ].join(" ")}
+                >
+                  {opt === "relevance"
+                    ? fr
+                      ? "Pertinence"
+                      : "Pètinans"
+                    : fr
+                      ? "Dernières"
+                      : "Dènye"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Featured article */}

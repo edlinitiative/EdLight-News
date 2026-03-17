@@ -10,6 +10,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { CalendarDays, ExternalLink, Clock3, Globe2, FileText, ChevronRight } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
+import { PageHero } from "@/components/PageHero";
 import {
   fetchCalendarData,
   getLangFromSearchParams,
@@ -26,6 +27,8 @@ import { getCalendarAudience, type CalendarAudience } from "@/lib/calendarAudien
 import type { HaitiCalendarItem, IntlCalendarItem } from "@/components/calendar/types";
 import { tsToISONull } from "@/lib/dates";
 import { buildOgMetadata } from "@/lib/og";
+import { daysUntil, parseISODateSafe } from "@/lib/deadlines";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -98,6 +101,7 @@ export default async function CalendrierPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
+  const l = (href: string) => withLangParam(href, lang);
 
   // Data fetching — errors are caught gracefully
   let calendarData: Awaited<ReturnType<typeof fetchCalendarData>>;
@@ -151,9 +155,11 @@ export default async function CalendrierPage({
   }));
 
   // Legacy deadlines from utility articles
-  const now = new Date();
   const upcomingLegacy = calendarData.deadlines.filter(
-    (d) => d.dateISO && new Date(d.dateISO) >= now,
+    (d) => {
+      const date = parseISODateSafe(d.dateISO);
+      return date ? daysUntil(date) >= 0 : false;
+    },
   );
   const hasLegacy = upcomingLegacy.length > 0 || calendarData.item !== null;
   const hasAnyData =
@@ -161,18 +167,30 @@ export default async function CalendrierPage({
 
   return (
     <div className="space-y-10">
-      <header className="space-y-3">
-        <div className="section-rule" />
-        <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
-          <CalendarDays className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          {fr ? "Calendrier" : "Kalandriye"}
-        </h1>
-        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Examens haïtiens, inscriptions et dates limites de bourses internationales."
-            : "Egzamen ayisyen, enskripsyon ak dat limit bous entènasyonal."}
-        </p>
-      </header>
+      <PageHero
+        variant="calendar"
+        eyebrow={fr ? "Dates à ne pas manquer" : "Dat pou pa rate"}
+        title={
+          fr
+            ? "Examens, inscriptions et deadlines au même endroit."
+            : "Egzamen, enskripsyon ak dat limit yo nan yon sèl kote."
+        }
+        description={
+          fr
+            ? "Gardez une vue claire sur les échéances haïtiennes, les bourses internationales et les rappels qui structurent l'année."
+            : "Kenbe yon vizyon klè sou dat limit ayisyen yo, bous entènasyonal yo ak rapèl ki estriktire ane a."
+        }
+        icon={<CalendarDays className="h-5 w-5" />}
+        actions={[
+          { href: l("/closing-soon"), label: fr ? "Voir l'urgence" : "Wè ijan yo" },
+          { href: l("/bourses"), label: fr ? "Explorer les bourses" : "Eksplore bous yo" },
+        ]}
+        stats={[
+          { value: String(haitiItems.length), label: fr ? "événements HT" : "evènman HT" },
+          { value: String(intlItems.length), label: fr ? "deadlines intl." : "dat limit intl." },
+          { value: String(upcomingLegacy.length), label: fr ? "sources articles" : "sous atik" },
+        ]}
+      />
 
       {/* Main timeline dashboard */}
       <CalendarFilterTabs
@@ -225,7 +243,7 @@ export default async function CalendrierPage({
       {/* Back link */}
       <div className="pt-2">
         <Link
-          href={lang === "ht" ? "/?lang=ht" : "/"}
+          href={l("/")}
           className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 dark:hover:bg-blue-500/20"
         >
           {fr ? "← Retour à l'accueil" : "← Retounen lakay"}

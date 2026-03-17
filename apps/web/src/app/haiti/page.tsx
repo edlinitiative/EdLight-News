@@ -12,10 +12,12 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { MapPin } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
-import { getItemGeo } from "@/lib/itemGeo";
+import { getItemGeo, isStudentFocused } from "@/lib/itemGeo";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { HaitiFeed } from "@/components/HaitiFeed";
 import { buildOgMetadata } from "@/lib/og";
+import { PageHero } from "@/components/PageHero";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -43,6 +45,7 @@ export default async function HaitiPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
+  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -72,26 +75,31 @@ export default async function HaitiPage({
   const articles = ranked.filter((a) => !isTauxDuJourArticle(a));
 
   const fr = lang === "fr";
+  const studentFocusedCount = articles.filter((article) => isStudentFocused(article)).length;
+  const sourceCount = new Set(articles.map((article) => article.sourceName).filter(Boolean)).size;
 
   return (
-    <div className="space-y-6">
-      <header>
-        <div className="section-rule" />
-        <div className="mt-3 flex items-center justify-between">
-          <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-            <MapPin className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            {fr ? "Haïti" : "Ayiti"}
-          </h1>
-          <span className="text-xs text-stone-400 dark:text-stone-500">
-            {articles.length} {fr ? "articles" : "atik"}
-          </span>
-        </div>
-        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Nouvelles locales et actualités éducatives directement d'Haïti."
-            : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti."}
-        </p>
-      </header>
+    <div className="space-y-7">
+      <PageHero
+        variant="haiti"
+        eyebrow={fr ? "Edition locale" : "Edisyon lokal"}
+        title={fr ? "L'actualité étudiante vue depuis Haïti." : "Aktyalite etidyan an dirèk depi Ayiti."}
+        description={
+          fr
+            ? "Un flux resserré sur les annonces, examens, campus et nouvelles locales qui comptent vraiment pour les étudiants haïtiens."
+            : "Yon fil pi sere sou anons, egzamen, kanpis ak nouvèl lokal ki vrèman enpòtan pou elèv ayisyen yo."
+        }
+        icon={<MapPin className="h-5 w-5" />}
+        actions={[
+          { href: l("/news"), label: fr ? "Tout le fil" : "Tout fil la" },
+          { href: l("/calendrier"), label: fr ? "Voir le calendrier" : "Wè kalandriye a" },
+        ]}
+        stats={[
+          { value: String(articles.length), label: fr ? "articles" : "atik" },
+          { value: String(studentFocusedCount), label: fr ? "mode étudiants" : "mòd etidyan" },
+          { value: String(sourceCount), label: fr ? "sources" : "sous" },
+        ]}
+      />
 
       <HaitiFeed articles={articles} lang={lang} />
     </div>

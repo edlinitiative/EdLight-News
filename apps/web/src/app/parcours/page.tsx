@@ -7,12 +7,14 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
-import { MapPin, Compass, ArrowRight } from "lucide-react";
+import { Compass } from "lucide-react";
 import Link from "next/link";
+import { PageHero } from "@/components/PageHero";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
 import { CountryFlag } from "@/components/CountryFlag";
 import { buildOgMetadata } from "@/lib/og";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 900;
 
@@ -41,6 +43,7 @@ export default async function ParcoursPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
+  const l = (href: string) => withLangParam(href, lang);
 
   let pathways: Awaited<ReturnType<typeof fetchAllPathways>>;
   try {
@@ -50,20 +53,35 @@ export default async function ParcoursPage({
     pathways = [];
   }
 
+  const countryCount = new Set(pathways.map((pathway) => pathway.country).filter(Boolean)).size;
+  const stepCount = pathways.reduce((sum, pathway) => sum + pathway.steps.length, 0);
+
   return (
     <div className="space-y-8">
-      <header className="space-y-3">
-        <div className="section-rule" />
-        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-          <Compass className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          {fr ? "Parcours" : "Pakou"}
-        </h1>
-        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Guides étape par étape pour étudier à l'étranger depuis Haïti."
-            : "Gid etap pa etap pou etidye aletranje depi Ayiti."}
-        </p>
-      </header>
+      <PageHero
+        variant="pathways"
+        eyebrow={fr ? "Étudier à l'étranger, pas à pas" : "Etidye aletranje, etap pa etap"}
+        title={
+          fr
+            ? "Choisir un parcours avant de choisir une destination."
+            : "Chwazi yon pakou anvan w chwazi yon destinasyon."
+        }
+        description={
+          fr
+            ? "Des guides séquencés pour comprendre les étapes, le rythme et les décisions-clés avant de postuler."
+            : "Gid ki byen sekans pou konprann etap yo, ritm nan ak desizyon kle yo anvan w aplike."
+        }
+        icon={<Compass className="h-5 w-5" />}
+        actions={[
+          { href: l("/universites"), label: fr ? "Voir les universités" : "Wè inivèsite yo" },
+          { href: l("/bourses"), label: fr ? "Chercher une bourse" : "Chèche yon bous" },
+        ]}
+        stats={[
+          { value: String(pathways.length), label: fr ? "parcours" : "pakou" },
+          { value: String(countryCount), label: fr ? "pays" : "peyi" },
+          { value: String(stepCount), label: fr ? "étapes" : "etap" },
+        ]}
+      />
 
       {/* Pathway cards */}
       <div className="space-y-6">

@@ -13,11 +13,13 @@ import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Suspense } from "react";
 import { Briefcase } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -45,6 +47,7 @@ export default async function OpportunitesPage({
   searchParams: { lang?: string; [key: string]: string | string[] | undefined };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
+  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -86,31 +89,31 @@ export default async function OpportunitesPage({
   });
 
   const fr = lang === "fr";
+  const utilityCount = articles.filter((article) => article.itemType === "utility").length;
+  const deadlineCount = opportunityPool.filter((article) => Boolean(article.deadline)).length;
 
   return (
     <div className="space-y-8">
-      {/* ─── Section 1: Header ─── */}
-      <header className="space-y-3 pt-2">
-        <div className="section-rule" />
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
-              <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              {fr ? "Opportunités" : "Okazyon"}
-            </h1>
-            <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-              {fr
-                ? "Bourses, concours, stages et programmes pour étudiants haïtiens. Filtrez par type, deadline ou pertinence."
-                : "Bous, konkou, estaj ak pwogram pou elèv ayisyen. Filtre pa tip, dat limit oswa pètinans."}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
-              {articles.length} {fr ? "opportunités" : "okazyon"}
-            </span>
-          </div>
-        </div>
-      </header>
+      <PageHero
+        variant="opportunities"
+        eyebrow={fr ? "Concours, stages, programmes" : "Konkou, estaj, pwogram"}
+        title={fr ? "Les opportunités à saisir cette saison." : "Okazyon pou pwofite sezon sa a."}
+        description={
+          fr
+            ? "Un catalogue plus large que les bourses : concours, stages, programmes et appels utiles à filtrer selon votre objectif."
+            : "Yon katalòg ki pi laj pase bous yo: konkou, estaj, pwogram ak lòt apèl itil pou filtre selon objektif ou."
+        }
+        icon={<Briefcase className="h-5 w-5" />}
+        actions={[
+          { href: l("/bourses"), label: fr ? "Comparer avec les bourses" : "Konpare ak bous yo" },
+          { href: l("/ressources"), label: fr ? "Voir les ressources" : "Wè resous yo" },
+        ]}
+        stats={[
+          { value: String(articles.length), label: fr ? "opportunités" : "okazyon" },
+          { value: String(deadlineCount), label: fr ? "avec deadline" : "ak dat limit" },
+          { value: String(utilityCount), label: fr ? "formats radar" : "fòma radar" },
+        ]}
+      />
 
       {/* ─── Section 2: Catalogue (filters + cards) ─── */}
       <section className="pb-8">

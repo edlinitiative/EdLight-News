@@ -4,6 +4,7 @@
  */
 
 import type { ContentLanguage, ItemCategory } from "@edlight-news/types";
+import { parseDateInput } from "./dates";
 
 // ── Date formatting ─────────────────────────────────────────────────────────
 
@@ -19,7 +20,9 @@ export function formatDate(
   let date: Date;
   try {
     if (typeof value === "string") {
-      date = new Date(value);
+      const parsed = parseDateInput(value);
+      if (!parsed) return "";
+      date = parsed;
     } else if (typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
       date = value.toDate();
     } else if (typeof value === "object" && ("seconds" in value || "_seconds" in value)) {
@@ -139,6 +142,23 @@ export function extractDomain(url: string): string {
     return new URL(url).hostname.replace(/^www\./, "");
   } catch {
     return url;
+  }
+}
+
+export function withLangParam(href: string, lang: ContentLanguage): string {
+  if (!href.startsWith("/")) return href;
+
+  try {
+    const url = new URL(href, "https://news.edlight.org");
+    if (lang === "ht") {
+      url.searchParams.set("lang", "ht");
+    } else {
+      url.searchParams.delete("lang");
+    }
+    const search = url.searchParams.toString();
+    return `${url.pathname}${search ? `?${search}` : ""}${url.hash}`;
+  } catch {
+    return href;
   }
 }
 

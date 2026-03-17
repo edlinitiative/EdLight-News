@@ -5,6 +5,8 @@
 
 import type { ContentLanguage } from "@edlight-news/types";
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 // ── Month name arrays (1-indexed via leading empty string) ──────────────────
 
 export const MONTH_NAMES_FR = [
@@ -48,12 +50,27 @@ export function formatDateLocalized(
   lang: ContentLanguage,
 ): string {
   if (!iso) return "";
+  const parsed = parseDateInput(iso);
+  if (!parsed) return iso;
+
+  return parsed.toLocaleDateString(
+    lang === "fr" ? "fr-FR" : "fr-HT",
+    { day: "numeric", month: "long", year: "numeric" },
+  );
+}
+
+/**
+ * Parse either a full ISO datetime or a date-only string.
+ * Date-only inputs are treated as local calendar dates to avoid timezone drift.
+ */
+export function parseDateInput(value: string): Date | null {
   try {
-    return new Date(iso).toLocaleDateString(
-      lang === "fr" ? "fr-FR" : "fr-HT",
-      { day: "numeric", month: "long", year: "numeric" },
-    );
+    const parsed = DATE_ONLY_RE.test(value)
+      ? new Date(`${value}T00:00:00`)
+      : new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return parsed;
   } catch {
-    return iso;
+    return null;
   }
 }

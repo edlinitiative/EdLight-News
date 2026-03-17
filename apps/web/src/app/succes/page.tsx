@@ -9,10 +9,12 @@
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Award } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
 import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 import { buildOgMetadata } from "@/lib/og";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -40,6 +42,7 @@ export default async function SuccesPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
+  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -60,26 +63,35 @@ export default async function SuccesPage({
   });
 
   const fr = lang === "fr";
+  const profileCount = articles.filter((article) => article.itemType === "utility").length;
+  const storyCount = articles.length - profileCount;
 
   return (
-    <div className="space-y-6">
-      <header>
-        <div className="section-rule" />
-        <div className="mt-3 flex items-center justify-between">
-          <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-            <Award className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            {fr ? "Succès & Inspiration" : "Siksè & Enspirasyon"}
-          </h1>
-          <span className="text-xs text-stone-400 dark:text-stone-500">
-            {articles.length} {fr ? "articles" : "atik"}
-          </span>
-        </div>
-        <p className="mt-2 max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Des histoires de réussite qui inspirent la communauté haïtienne."
-            : "Istwa siksè ki enspire kominote ayisyèn nan."}
-        </p>
-      </header>
+    <div className="space-y-7">
+      <PageHero
+        variant="success"
+        eyebrow={fr ? "Portraits et trajectoires" : "Pòtrè ak trajè"}
+        title={
+          fr
+            ? "Les parcours qui élargissent l'horizon."
+            : "Pakou ki louvri plis pòt devan nou."
+        }
+        description={
+          fr
+            ? "Des histoires de réussite, de leadership et de persévérance pour montrer ce qui est possible dans la communauté haïtienne."
+            : "Istwa siksè, lidèchip ak pèseverans pou montre sa ki posib nan kominote ayisyèn nan."
+        }
+        icon={<Award className="h-5 w-5" />}
+        actions={[
+          { href: l("/news"), label: fr ? "Retour au fil" : "Retounen nan fil la" },
+          { href: l("/ressources"), label: fr ? "Voir les ressources" : "Wè resous yo" },
+        ]}
+        stats={[
+          { value: String(articles.length), label: fr ? "récits" : "istwa" },
+          { value: String(profileCount), label: fr ? "portraits" : "pòtrè" },
+          { value: String(storyCount), label: fr ? "articles" : "atik" },
+        ]}
+      />
 
       {articles.length > 0 ? (
         <SectionFeed

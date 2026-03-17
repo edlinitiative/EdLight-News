@@ -33,6 +33,7 @@ import { FiltersDrawer } from "@/app/bourses/_components/FiltersDrawer";
 import { ActiveFilterChips } from "@/app/bourses/_components/ActiveFilterChips";
 import type { FilterGroup } from "@/app/bourses/_components/FiltersDrawer";
 import type { ActiveFilter } from "@/app/bourses/_components/ActiveFilterChips";
+import { parseISODateSafe, daysUntil as daysUntilFromDate } from "@/lib/deadlines";
 
 export { FILTER_PARAM_KEYS };
 
@@ -118,11 +119,8 @@ const SORT_LABELS: Record<SortMode, { fr: string; ht: string }> = {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function daysUntil(dateISO: string): number {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const d = new Date(dateISO);
-  d.setHours(0, 0, 0, 0);
-  return Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const date = parseISODateSafe(dateISO);
+  return date ? daysUntilFromDate(date) : 9999;
 }
 
 function fundingFilterMatch(s: SerializedScholarship, key: string): boolean {

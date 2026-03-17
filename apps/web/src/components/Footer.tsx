@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
+import { withLangParam } from "@/lib/utils";
 
 const T = {
   tagline: {
@@ -58,6 +60,7 @@ const T = {
 
 export function Footer() {
   const { language: lang } = useLanguage();
+  const l = (href: string) => withLangParam(href, lang);
 
   return (
     <footer className="border-t border-stone-200 bg-stone-950 dark:border-stone-800 dark:bg-stone-950">
@@ -97,13 +100,13 @@ export function Footer() {
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
               {T.primaryLinks[lang].map((link) => (
-                <a
+                <Link
                   key={link.href}
-                  href={link.href}
+                  href={l(link.href)}
                   className="footer-link w-fit"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </nav>
           </div>
@@ -115,13 +118,13 @@ export function Footer() {
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
               {T.secondaryLinks[lang].map((link) => (
-                <a
+                <Link
                   key={link.href}
-                  href={link.href}
+                  href={l(link.href)}
                   className="footer-link w-fit"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </nav>
           </div>

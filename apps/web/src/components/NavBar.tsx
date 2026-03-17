@@ -7,6 +7,7 @@ import { Menu, X, TrendingUp } from "lucide-react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/language-context";
+import { withLangParam } from "@/lib/utils";
 
 interface NavLink {
   href: string;
@@ -101,6 +102,7 @@ export function NavBar() {
 
   const primaryLinks = NAV_LINKS.filter((l) => l.section === "primary");
   const secondaryLinks = NAV_LINKS.filter((l) => l.section === "secondary");
+  const l = (href: string) => withLangParam(href, language);
 
   return (
     <>
@@ -132,7 +134,7 @@ export function NavBar() {
       {/* ── Masthead ───────────────────────────────────────────────────── */}
       <div className="border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-          <Link href="/" className="group flex items-baseline gap-1">
+          <Link href={l("/")} className="group flex items-baseline gap-1">
             <span className="font-serif text-2xl font-black tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white sm:text-3xl">
               EdLight
             </span>
@@ -178,7 +180,7 @@ export function NavBar() {
           <div className="hidden flex-1 items-center gap-0 overflow-x-auto tab-scroll lg:flex">
             {/* Home link first */}
             <Link
-              href="/"
+              href={l("/")}
               className={[
                 "nav-link relative whitespace-nowrap px-3 py-2.5 text-[12px] font-medium transition-colors",
                 pathname === "/"
@@ -200,7 +202,7 @@ export function NavBar() {
               return (
                 <Link
                   key={link.href}
-                  href={link.href}
+                  href={l(link.href)}
                   className={[
                     "nav-link relative whitespace-nowrap px-3.5 py-2.5 text-[13px] font-semibold uppercase tracking-wide transition-colors",
                     active
@@ -225,7 +227,7 @@ export function NavBar() {
               return (
                 <Link
                   key={link.href}
-                  href={link.href}
+                  href={l(link.href)}
                   className={[
                     "nav-link relative whitespace-nowrap px-2.5 py-2.5 text-[12px] font-medium transition-colors",
                     active
@@ -263,7 +265,7 @@ export function NavBar() {
                   return (
                     <Link
                       key={link.href}
-                      href={link.href}
+                      href={l(link.href)}
                       onClick={() => setMobileOpen(false)}
                       className={[
                         "rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors",
@@ -286,7 +288,7 @@ export function NavBar() {
               </p>
               <nav className="mb-5 flex flex-col gap-0.5">
                 <Link
-                  href="/"
+                  href={l("/")}
                   onClick={() => setMobileOpen(false)}
                   className={[
                     "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
@@ -302,7 +304,7 @@ export function NavBar() {
                   return (
                     <Link
                       key={link.href}
-                      href={link.href}
+                      href={l(link.href)}
                       onClick={() => setMobileOpen(false)}
                       className={[
                         "rounded-lg px-4 py-2 text-sm font-medium transition-colors",

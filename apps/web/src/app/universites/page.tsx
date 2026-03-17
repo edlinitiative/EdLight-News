@@ -8,6 +8,7 @@
 import type { Metadata } from "next";
 import type { ContentLanguage, DatasetCountry } from "@edlight-news/types";
 import { School, DollarSign, Languages, Paperclip, CheckCircle, Globe2 } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchUniversitiesGrouped,
@@ -18,6 +19,7 @@ import { MetaBadges } from "@/components/MetaBadges";
 import { CountryFlag } from "@/components/CountryFlag";
 import Link from "next/link";
 import { buildOgMetadata } from "@/lib/og";
+import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 900;
 
@@ -47,6 +49,7 @@ export default async function UniversitesPage({
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
   const filterCountry = searchParams.country as DatasetCountry | undefined;
+  const l = (href: string) => withLangParam(href, lang);
 
   let grouped: Awaited<ReturnType<typeof fetchUniversitiesGrouped>>;
   try {
@@ -67,21 +70,36 @@ export default async function UniversitesPage({
 
   const totalCount = Object.values(grouped).reduce((s, arr) => s + arr.length, 0);
   const countryCount = Object.keys(grouped).length;
+  const haitianFriendlyCount = Object.values(grouped)
+    .flat()
+    .filter((uni) => uni.haitianFriendly).length;
 
   return (
     <div className="space-y-8">
-      <header className="space-y-3">
-        <div className="section-rule" />
-        <h1 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-          <School className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-          {fr ? "Universités" : "Inivèsite"}
-        </h1>
-        <p className="max-w-2xl text-sm text-stone-500 dark:text-stone-400">
-          {fr
-            ? `${totalCount} universités dans ${countryCount} pays — filtrées pour les étudiants haïtiens.`
-            : `${totalCount} inivèsite nan ${countryCount} peyi — filtre pou etidyan ayisyen yo.`}
-        </p>
-      </header>
+      <PageHero
+        variant="universities"
+        eyebrow={fr ? "Explorer les destinations" : "Eksplore destinasyon yo"}
+        title={
+          fr
+            ? "Comparer les universités avant d'ouvrir dix onglets."
+            : "Konpare inivèsite yo anvan ou louvri dis onglet."
+        }
+        description={
+          fr
+            ? "Un répertoire plus lisible pour repérer les campus, les coûts, les langues et les portes d'entrée les plus utiles aux étudiants haïtiens."
+            : "Yon repètwa ki pi klè pou remake kanpis yo, depans yo, lang yo ak pòt antre ki pi itil pou etidyan ayisyen yo."
+        }
+        icon={<School className="h-5 w-5" />}
+        actions={[
+          { href: l("/parcours"), label: fr ? "Voir les parcours" : "Wè pakou yo" },
+          { href: l("/bourses"), label: fr ? "Chercher une bourse" : "Chèche yon bous" },
+        ]}
+        stats={[
+          { value: String(totalCount), label: fr ? "universités" : "inivèsite" },
+          { value: String(countryCount), label: fr ? "pays" : "peyi" },
+          { value: String(haitianFriendlyCount), label: fr ? "accueil HT" : "akèy HT" },
+        ]}
+      />
 
       <section className="section-shell space-y-6">
           {/* Inline country filters */}
@@ -91,7 +109,7 @@ export default async function UniversitesPage({
               {fr ? "Pays" : "Peyi"}
             </span>
             <Link
-              href={`/universites?lang=${lang}`}
+              href={l("/universites")}
               className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                 !filterCountry
                   ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
@@ -105,7 +123,7 @@ export default async function UniversitesPage({
               return (
                 <Link
                   key={c}
-                  href={`/universites?lang=${lang}&country=${c}`}
+                  href={l(`/universites?country=${c}`)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                     filterCountry === c
                       ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
