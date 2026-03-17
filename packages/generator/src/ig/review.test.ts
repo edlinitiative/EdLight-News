@@ -148,6 +148,46 @@ describe("validatePayloadForPublishing", () => {
     assert.ok(result.issues.some((issue) => /trop similaire/i.test(issue.message)));
   });
 
+  it("holds cover-only editorial payloads outside the taux format", () => {
+    const result = validatePayloadForPublishing(
+      {
+        slides: [
+          {
+            heading: "Titre de couverture",
+            bullets: ["Un simple habillage sans vrai développement éditorial."],
+            layout: "headline",
+          },
+        ],
+        caption: "Résumé éditorial suffisamment long pour dépasser clairement le seuil minimal de validation Instagram, avec plusieurs phrases propres et cohérentes afin de tester uniquement la tolérance aux payloads trop minces sans autre facteur parasite.",
+      },
+      "news",
+    );
+
+    assert.equal(result.shouldHold, true);
+    assert.ok(
+      result.issues.some((issue) => /2 slides/i.test(issue.message)),
+      "Expected a thin-carousel hold",
+    );
+  });
+
+  it("still allows a compact taux payload when the editorial checks are otherwise clean", () => {
+    const result = validatePayloadForPublishing(
+      {
+        slides: [
+          {
+            heading: "131.2589",
+            bullets: ["17 mars 2026"],
+            layout: "headline",
+          },
+        ],
+        caption: "Taux BRH du jour.\n\nLe taux de référence du 17 mars 2026 s'établit à 131.2589 HTG pour 1 USD, avec les détails disponibles sur EdLight News.\n\n#TauxDuJour #BRH #EdLightNews",
+      },
+      "taux",
+    );
+
+    assert.equal(result.shouldHold, false);
+  });
+
   it("passes polished editorial captions", () => {
     const result = validatePayloadForPublishing(
       {

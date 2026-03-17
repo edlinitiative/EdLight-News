@@ -314,6 +314,13 @@ export function validatePayloadForPublishing(
     issues.push({ severity: "error", message: "Aucune slide à publier." });
   }
 
+  if (igType !== "taux" && normalizedPayload.slides.length < 2) {
+    issues.push({
+      severity: "error",
+      message: "Carrousel trop mince pour une publication éditoriale: au moins 2 slides sont requises.",
+    });
+  }
+
   if (normalizedPayload.caption.length < 140) {
     issues.push({
       severity: "error",

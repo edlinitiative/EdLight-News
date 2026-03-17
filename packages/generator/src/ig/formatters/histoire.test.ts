@@ -83,4 +83,25 @@ describe("buildHistoireCarousel", () => {
       /^Source:/,
     );
   });
+
+  it("builds the caption lead from the full summary instead of a shortened cover bullet", () => {
+    const result = buildHistoireCarousel(
+      makeItem({
+        title: "1er janvier 1804 – Haïti proclame son indépendance",
+        summary:
+          "Le 1er janvier 1804, Jean-Jacques Dessalines proclame l'indépendance d'Haïti à Gonaïves, faisant de la nation la première république noire libre au monde et le deuxième pays indépendant des Amériques.",
+        extractedText:
+          "La cérémonie a eu lieu à la place d'Armes de Gonaïves. L'acte d'indépendance fut rédigé par Boisrond-Tonnerre.",
+      }),
+    );
+
+    assert.ok(
+      result.caption.includes("faisant de la nation la première république noire libre au monde"),
+      "Expected the caption to preserve the full summary thought",
+    );
+    assert.ok(
+      !result.caption.includes("faisant de la."),
+      "Expected the caption to avoid the broken shortened cover-bullet ending",
+    );
+  });
 });

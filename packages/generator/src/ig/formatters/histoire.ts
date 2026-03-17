@@ -437,11 +437,14 @@ export function buildHistoireCarousel(
   // Caption — rich, bilingual, section-aware
   // ══════════════════════════════════════════════════════════════════════
   const captionParts: string[] = [title, ""];
+  const captionLead = summary
+    ? shortenCaptionText(summary, 320)
+    : coverBullets.length > 0
+      ? shortenCaptionText(coverBullets.join(" "), 240)
+      : "";
 
-  if (coverBullets.length > 0) {
-    captionParts.push(shortenCaptionText(coverBullets.join(" "), 240), "");
-  } else {
-    captionParts.push(shortenCaptionText(summary, 320), "");
+  if (captionLead) {
+    captionParts.push(captionLead, "");
   }
 
   for (const slide of slides.slice(1, 5)) {
