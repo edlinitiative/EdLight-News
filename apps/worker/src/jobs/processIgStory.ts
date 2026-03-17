@@ -13,12 +13,32 @@ import { igStoryQueueRepo, uploadStorySlide } from "@edlight-news/firebase";
 import { generateStoryAssets } from "@edlight-news/renderer/ig-story.js";
 import { publishIgStory } from "@edlight-news/publisher";
 import type { IGStoryQueueItem } from "@edlight-news/types";
+import { validateStoryPayloadForPublishing } from "../services/igPublishValidation.js";
+import type { IGPublishIssue } from "@edlight-news/generator/ig/index.js";
 
 export interface ProcessIgStoryResult {
   processed: number;
   posted: number;
   dryRun: number;
   errors: number;
+}
+
+export const processIgStoryDeps = {
+  listQueuedStories: (limit: number) => igStoryQueueRepo.listByStatus("queued", limit),
+  updateStoryStatus: (
+    id: string,
+    status: IGStoryQueueItem["status"],
+    data?: Record<string, unknown>,
+  ) => igStoryQueueRepo.updateStatus(id, status, data),
+  validateStoryPayloadForPublishing,
+  generateStoryAssets,
+  uploadStorySlide,
+  publishIgStory,
+  sleep: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
+};
+
+function summarizeStoryValidationIssues(messages: string[]): string {
+  return messages.slice(0, 3).join(" | ");
 }
 
 export async function processIgStory(): Promise<ProcessIgStoryResult> {
@@ -30,7 +50,7 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
   };
 
   try {
-    const queued = await igStoryQueueRepo.listByStatus("queued", 5);
+    const queued = await processIgStoryDeps.listQueuedStories(5);
 
     for (const storyItem of queued) {
       result.processed++;
@@ -38,18 +58,38 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
       try {
         if (!storyItem.payload) {
           console.warn(`[processIgStory] item ${storyItem.id} has no payload, skipping`);
-          await igStoryQueueRepo.updateStatus(storyItem.id, "skipped", {
+          await processIgStoryDeps.updateStoryStatus(storyItem.id, "skipped", {
             error: "No payload at render time",
           });
           result.errors++;
           continue;
         }
 
+        const validation = processIgStoryDeps.validateStoryPayloadForPublishing(
+          storyItem.payload,
+        );
+        if (validation.shouldHold) {
+          const validationSummary = summarizeStoryValidationIssues(
+            validation.issues.map((issue: IGPublishIssue) => issue.message),
+          );
+          console.warn(
+            `[processIgStory] Validation hold for ${storyItem.id}: ${validationSummary}`,
+          );
+          await processIgStoryDeps.updateStoryStatus(storyItem.id, "failed", {
+            error: `Story validation failed: ${validationSummary}`,
+          });
+          result.errors++;
+          continue;
+        }
+
         // Mark as rendering
-        await igStoryQueueRepo.updateStatus(storyItem.id, "rendering");
+        await processIgStoryDeps.updateStoryStatus(storyItem.id, "rendering");
 
         // Render story frames
-        const assets = await generateStoryAssets(storyItem, storyItem.payload);
+        const assets = await processIgStoryDeps.generateStoryAssets(
+          storyItem,
+          validation.payload,
+        );
 
         if (assets.mode === "rendered") {
           // Upload & publish each frame as a separate Story
@@ -59,14 +99,17 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
           for (let i = 0; i < assets.slidePaths.length; i++) {
             try {
               // Upload frame to Firebase Storage
-              const publicUrl = await uploadStorySlide(
+              const publicUrl = await processIgStoryDeps.uploadStorySlide(
                 assets.slidePaths[i]!,
                 storyItem.id,
                 i,
               );
 
               // Publish to IG
-              const publishResult = await publishIgStory(publicUrl, storyItem.id);
+              const publishResult = await processIgStoryDeps.publishIgStory(
+                publicUrl,
+                storyItem.id,
+              );
 
               if (publishResult.posted) {
                 lastMediaId = publishResult.igMediaId;
@@ -81,7 +124,7 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
 
               // Brief pause between frames so IG processes them in order
               if (i < assets.slidePaths.length - 1) {
-                await new Promise((r) => setTimeout(r, 3000));
+                await processIgStoryDeps.sleep(3000);
               }
             } catch (err) {
               console.warn(`[processIgStory] Frame ${i + 1} error:`, err instanceof Error ? err.message : err);
@@ -90,15 +133,15 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
           }
 
           if (allPosted && lastMediaId) {
-            await igStoryQueueRepo.updateStatus(storyItem.id, "posted", {
+            await processIgStoryDeps.updateStoryStatus(storyItem.id, "posted", {
               igMediaId: lastMediaId,
             });
             result.posted++;
           } else if (result.dryRun > 0) {
             // Dry-run mode — mark as queued so it retries when creds are set
-            await igStoryQueueRepo.updateStatus(storyItem.id, "queued");
+            await processIgStoryDeps.updateStoryStatus(storyItem.id, "queued");
           } else {
-            await igStoryQueueRepo.updateStatus(storyItem.id, "failed", {
+            await processIgStoryDeps.updateStoryStatus(storyItem.id, "failed", {
               error: "Not all frames published successfully",
             });
             result.errors++;
@@ -106,13 +149,13 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
         } else {
           // Dry-run HTML mode — no IG credentials
           console.log(`[processIgStory] Dry-run: ${assets.slidePaths.length} frames → ${assets.exportDir}`);
-          await igStoryQueueRepo.updateStatus(storyItem.id, "queued");
+          await processIgStoryDeps.updateStoryStatus(storyItem.id, "queued");
           result.dryRun++;
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error(`[processIgStory] Error processing ${storyItem.id}:`, msg);
-        await igStoryQueueRepo.updateStatus(storyItem.id, "failed", { error: msg });
+        await processIgStoryDeps.updateStoryStatus(storyItem.id, "failed", { error: msg });
         result.errors++;
       }
     }

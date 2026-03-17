@@ -13,7 +13,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "node --import tsx --test src/normalize.test.ts src/ig/selection.test.ts src/ig/review.test.ts src/ig/meme.test.ts src/ig/formatters/index.test.ts src/ig/formatters/story.test.ts src/ig/formatters/histoire.test.ts src/ig/formatters/scholarship.test.ts src/postprocess/formatContentVersion.test.ts"
+    "test": "node --import tsx --test src/normalize.test.ts src/ig/selection.test.ts src/ig/review.test.ts src/ig/storyValidation.test.ts src/ig/meme.test.ts src/ig/formatters/index.test.ts src/ig/formatters/story.test.ts src/ig/formatters/histoire.test.ts src/ig/formatters/scholarship.test.ts src/postprocess/formatContentVersion.test.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

@@ -18,6 +18,11 @@ export {
 } from "./review.js";
 export type { ReviewResult, IGPublishIssue, IGPublishValidationResult } from "./review.js";
 export {
+  normalizeStoryPayloadForPublishing,
+  validateStoryPayloadForPublishing,
+} from "./storyValidation.js";
+export type { IGStoryPublishValidationResult } from "./storyValidation.js";
+export {
   buildScholarshipCarousel,
   buildOpportunityCarousel,
   buildNewsCarousel,
