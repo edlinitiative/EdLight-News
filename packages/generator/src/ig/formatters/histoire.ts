@@ -4,10 +4,9 @@
  * Designed for HaitiHistory, HaitiFactOfTheDay, HaitianOfTheWeek utility items.
  *
  * Story-arc structure (up to 7 slides):
- *   Slide 1 — Cover: bold title, short teaser line (no long body text)
- *   Slides 2-6 — Content: one slide per Gemini section (L'histoire,
- *                Contexte, Pourquoi ça compte, Parcours, etc.)
- *   Last slide — Source / CTA
+ *   Slide 1 — Cover: date-led "Histoire du Jour" + factual event labels
+ *   Slides 2-6 — Content: one slide per factual section / event
+ *   Last slide — Premium CTA + source
  *
  * When structured sections from ContentVersion are available (via bi.frSections),
  * each section becomes its own rich slide. This prevents the old problem of
@@ -20,7 +19,6 @@
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import {
   finalizeCaption,
-  buildCTA,
   buildSourceFooter,
   buildSourceLine,
   shortenText,
@@ -82,6 +80,18 @@ function isTakeawayLine(line: string): boolean {
   return /💡|pour les étudiants|pourquoi c'est important/i.test(line);
 }
 
+function isCommentaryHeading(heading: string): boolean {
+  return /pourquoi|importance|important|héritage|heritage|impact|conséquence|consequence|discussion|question|leçon|lesson/i.test(
+    stripMarkdown(heading),
+  );
+}
+
+function isGenericHistoryHeading(heading: string): boolean {
+  return /^(l['’]histoire|histoire du jour|contexte|chronologie|repères?|le saviez-vous|pour mieux comprendre|en bref|parcours|déroulement|les faits|sources?)$/i.test(
+    stripMarkdown(heading).trim(),
+  );
+}
+
 // ── Sub-section parser (for LLM-generated rich bodies) ──────────────────────
 
 interface SubSection {
@@ -135,7 +145,7 @@ function sectionToBullets(content: string): string[] {
   // emoji prefixes (📚) and link-list patterns still match reliably.
   const preFiltered = content
     .split(/\n{2,}/)
-    .filter((p) => !isSourceLine(p.trim()))
+    .filter((p) => !isSourceLine(p.trim()) && !isTakeawayLine(p.trim()))
     .join("\n\n");
 
   const cleaned = stripMarkdown(preFiltered);
@@ -235,20 +245,19 @@ export function buildHistoireCarousel(
   const imageUrl = item.imageUrl ?? undefined;
   const sections = bi?.frSections;
   const bodyText = bi?.frBody;
-  const coverDate = formatHistoryCoverDate(item);
+  const coverHeading = buildHistoryCoverHeading(item);
   const coverBullets = buildHistoryCoverBullets(item, summary, sections);
 
   // ══════════════════════════════════════════════════════════════════════
-  // Slide 1 — Cover: actual event title as headline, date as footer
+  // Slide 1 — Cover: date-led heading + factual event labels
   // No backgroundImage on the cover — the clean dark branded gradient looks
   // more editorial. processIgScheduled will propagate the contextual AI image
   // (used for content slides) back to the cover, so all slides stay consistent.
   // ══════════════════════════════════════════════════════════════════════
   slides.push({
-    heading: shortenHeadline(title, 12, 100),
+    heading: coverHeading,
     bullets: coverBullets,
     layout: "headline",
-    footer: coverDate, // date shown as the small attribution line, not as the headline
     // No backgroundImage — kept intentionally empty so the branded dark gradient shows.
     // Image will be applied consistently by processIgScheduled.
   });
@@ -275,33 +284,17 @@ export function buildHistoireCarousel(
     const contentSections = sections.filter((s) => {
       if (!s.content || s.content.trim().length < 20) return false;
       if (/^sources?$/i.test(s.heading.trim())) return false;
+      if (isCommentaryHeading(s.heading)) return false;
       return true;
     });
 
-    // Collect any student takeaways found across all sections (dedupe later)
-    const takeaways: string[] = [];
-
-    // Pre-scan for takeaways so we can reserve a slide slot
-    for (const section of contentSections) {
-      for (const p of section.content.split(/\n{2,}/)) {
-        if (!isTakeawayLine(p)) continue;
-        const cleaned = stripMarkdown(p)
-          .replace(/^pour les étudiants\s*:\s*/i, "")
-          .trim();
-        if (cleaned.length >= 20) takeaways.push(cleaned);
-      }
-    }
-
-    // Reserve 1 content slot for the takeaway slide when we have takeaways
-    const contentCap =
-      takeaways.length > 0 ? MAX_CONTENT_SLIDES - 1 : MAX_CONTENT_SLIDES;
+    const contentCap = MAX_CONTENT_SLIDES;
 
     for (const section of contentSections) {
       if (slides.length - 1 >= contentCap) break;
 
       // ── Extract student_takeaway lines before bullet-ising ──────────
       const paragraphs = section.content.split(/\n{2,}/);
-      const takeawayParas = paragraphs.filter((p) => isTakeawayLine(p));
       const contentParas = paragraphs.filter(
         (p) => !isTakeawayLine(p) && !isSourceLine(p),
       );
@@ -315,9 +308,12 @@ export function buildHistoireCarousel(
         // LLM body with multiple sub-sections → each becomes its own slide
         for (const sub of subs) {
           if (slides.length - 1 >= contentCap) break;
-          // Skip "Questions pour la discussion" on IG (works better in caption)
-          if (/questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading))
+          if (
+            /questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading) ||
+            isCommentaryHeading(sub.heading)
+          ) {
             continue;
+          }
           const bullets = sectionToBullets(sub.content);
           if (bullets.length === 0) continue;
 
@@ -326,12 +322,6 @@ export function buildHistoireCarousel(
             sectionHeading(sub.heading, slides.length - 1),
             bullets,
             imageUrl,
-            {
-              preferHeadline:
-                /pourquoi cela compte|pourquoi c'est important/i.test(
-                  sub.heading,
-                ),
-            },
           );
         }
       } else {
@@ -346,19 +336,6 @@ export function buildHistoireCarousel(
           imageUrl,
         );
       }
-    }
-
-    // ── Featured "Pourquoi c'est important" slide from takeaways ──────
-    if (takeaways.length > 0 && slides.length - 1 < MAX_CONTENT_SLIDES) {
-      pushHistorySlide(
-        slides,
-        "Pourquoi c'est important",
-        takeaways
-          .slice(0, MAX_BULLETS_PER_SLIDE)
-          .map((t) => shortenText(t, MAX_BULLET_CHARS)),
-        imageUrl,
-        { preferHeadline: takeaways.length === 1 },
-      );
     }
   } else {
     // ── Fallback path: extractedText / body / summary sentence splitting ─
@@ -414,24 +391,19 @@ export function buildHistoireCarousel(
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // Last slide — Source / CTA
+  // Last slide — Premium CTA + source
   // ══════════════════════════════════════════════════════════════════════
   const sourceLine = buildSourceLine(item);
   const sourceFooter = buildSourceFooter(item);
+  const premiumHistoryCTA = "Suivez EdLight News pour d'autres repères historiques.";
 
-  // Ensure last content slide has the source footer
-  if (slides.length > 1) {
-    slides[slides.length - 1]!.footer = sourceFooter;
-  } else {
-    // Only cover exists — add a dedicated source slide
-    slides.push({
-      heading: "Source",
-      bullets: [sourceFooter],
-      layout: "explanation",
-      footer: sourceFooter,
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
-  }
+  slides.push({
+    heading: "Pour aller plus loin",
+    bullets: [premiumHistoryCTA],
+    layout: "headline",
+    footer: sourceFooter,
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
 
   // ══════════════════════════════════════════════════════════════════════
   // Caption — rich, bilingual, section-aware
@@ -448,7 +420,13 @@ export function buildHistoireCarousel(
   }
 
   for (const slide of slides.slice(1, 5)) {
-    if (!slide.heading || slide.heading === "Source") continue;
+    if (
+      !slide.heading ||
+      slide.heading === "Source" ||
+      slide.heading === "Pour aller plus loin"
+    ) {
+      continue;
+    }
     const lead = slide.bullets[0];
     if (!lead) continue;
     captionParts.push(`• ${slide.heading}`);
@@ -469,7 +447,7 @@ export function buildHistoireCarousel(
     captionParts.push("#IstwaAyiti #HistoireHaïti #EdLightNews");
   }
 
-  captionParts.push("", buildCTA(), "", sourceLine);
+  captionParts.push("", premiumHistoryCTA, "", sourceLine);
 
   return { slides, caption: finalizeCaption(captionParts.join("\n")) };
 }
@@ -479,19 +457,14 @@ function buildHistoryCoverBullets(
   summary: string,
   sections?: { heading: string; content: string }[],
 ): string[] {
-  // Return 1-2 clean essence sentences that convey what the story is about.
-  // No boilerplate prefix like "Dans l'histoire d'Haïti" — the HISTOIRE pill
-  // label on the slide already provides that context.
+  const eventLines = buildHistoryEventLines(sections);
+  if (eventLines.length > 0) return eventLines;
+
   const summaryLines = buildHistorySummaryLines(sections, summary);
-  const outlineLine = buildHistoryOutlineLine(sections);
   const lines: string[] = [];
 
   if (summaryLines[0]) {
     lines.push(summaryLines[0]);
-  }
-
-  if (outlineLine && lines.length < 2) {
-    lines.push(outlineLine);
   }
 
   for (const line of summaryLines.slice(1)) {
@@ -507,22 +480,36 @@ function buildHistoryCoverBullets(
   return lines;
 }
 
-function buildHistoryOutlineLine(
+function buildHistoryEventLines(
   sections: { heading: string; content: string }[] | undefined,
-): string | null {
-  const headings = (sections ?? [])
-    .map((section) =>
-      stripMarkdown(section.heading)
-        .replace(/^🎉\s*/u, "")
-        .replace(/\s*\((?:\d{3,4}|[\d–-]{5,9})\)\s*$/u, "")
-        .trim(),
-    )
-    .filter((heading) => heading.length >= 4 && !/^sources?$/i.test(heading))
-    .slice(0, 3);
+): string[] {
+  const lines: string[] = [];
+  const seen = new Set<string>();
 
-  if (headings.length < 2) return null;
+  for (const section of sections ?? []) {
+    const heading = normalizeHistoryEventHeading(section.heading);
+    if (!heading) continue;
+    if (isGenericHistoryHeading(heading)) continue;
+    if (isCommentaryHeading(heading)) continue;
 
-  return shortenText(`Repères : ${headings.join(" • ")}`, 105);
+    const candidate = shortenText(heading, 110);
+    const key = candidate.toLowerCase();
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    lines.push(candidate);
+
+    if (lines.length >= MAX_BULLETS_PER_SLIDE) break;
+  }
+
+  return lines;
+}
+
+function normalizeHistoryEventHeading(heading: string): string {
+  return stripMarkdown(heading)
+    .replace(/^🎉\s*/u, "")
+    .replace(/\s*\((?:\d{3,4}|[\d–-]{5,9})\)\s*$/u, "")
+    .trim();
 }
 
 function buildHistorySummaryLines(
@@ -562,15 +549,22 @@ function buildHistorySummaryLines(
   return lines;
 }
 
-function formatHistoryCoverDate(item: Item): string {
+function buildHistoryCoverHeading(item: Item): string {
+  return `${formatHistoryHeadingDate(item)} - Histoire du Jour`;
+}
+
+function formatHistoryHeadingDate(item: Item): string {
   const date = toItemDate(item);
-  return new Intl.DateTimeFormat("fr-FR", {
+  const formatted = new Intl.DateTimeFormat("fr-FR", {
     day: "numeric",
     month: "long",
     timeZone: "America/Port-au-Prince",
-  })
-    .format(date)
-    .toUpperCase();
+  }).format(date);
+
+  return formatted.replace(
+    /^(\d+\s+)(\p{L})/u,
+    (_match, prefix: string, letter: string) => `${prefix}${letter.toUpperCase()}`,
+  );
 }
 
 function toItemDate(item: Item): Date {

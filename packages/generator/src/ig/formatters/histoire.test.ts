@@ -26,6 +26,39 @@ function makeItem(overrides: Partial<Item> = {}): Item {
 }
 
 describe("buildHistoireCarousel", () => {
+  it("uses a date-led Histoire du Jour cover with factual event bullets", () => {
+    const result = buildHistoireCarousel(
+      makeItem({
+        publishedAt: {
+          seconds: Date.parse("2026-04-24T12:00:00.000Z") / 1000,
+          nanoseconds: 0,
+        } as any,
+      }),
+      {
+        frTitle: "Repères du 24 avril",
+        frSummary: "Deux faits marquants de l'histoire haïtienne.",
+        frSections: [
+          {
+            heading: "Retrait stratégique de la Crête-à-Pierrot",
+            content:
+              "En 1802, les forces haïtiennes se retirent de la Crête-à-Pierrot après une résistance prolongée face à l'expédition française.",
+          },
+          {
+            heading: "Assassinat de Jean-Jacques Dessalines",
+            content:
+              "Le 17 octobre 1806, Jean-Jacques Dessalines est assassiné à Pont-Rouge dans un contexte de fortes rivalités politiques.",
+          },
+        ],
+      },
+    );
+
+    assert.equal(result.slides[0]!.heading, "24 Avril - Histoire du Jour");
+    assert.deepEqual(result.slides[0]!.bullets, [
+      "Retrait stratégique de la Crête-à-Pierrot",
+      "Assassinat de Jean-Jacques Dessalines",
+    ]);
+  });
+
   it("turns compact historical beats into headline slides instead of dense explanation cards", () => {
     const result = buildHistoireCarousel(makeItem(), {
       frTitle: "Cinq dates clés de l'histoire d'Haïti",
@@ -49,14 +82,14 @@ describe("buildHistoireCarousel", () => {
       ],
     });
 
-    const narrativeSlides = result.slides.slice(1);
+    const narrativeSlides = result.slides.slice(1, -1);
     assert.ok(
       narrativeSlides.some((slide) => slide.layout === "headline"),
       "Expected at least one compact history beat to render as a headline slide",
     );
   });
 
-  it("extracts a dedicated why-it-matters slide and keeps source attribution on the last slide", () => {
+  it("skips why-it-matters framing and ends on a premium closing slide", () => {
     const result = buildHistoireCarousel(
       makeItem({ title: "L'indépendance d'Haïti (1804)" }),
       {
@@ -73,14 +106,27 @@ describe("buildHistoireCarousel", () => {
     );
 
     assert.ok(
-      result.slides.some((slide) =>
+      !result.slides.some((slide) =>
         /Pourquoi c'est important/i.test(slide.heading),
       ),
-      "Expected a dedicated why-it-matters slide",
+      "Did not expect a dedicated why-it-matters slide",
     );
+    assert.equal(
+      result.slides[result.slides.length - 1]!.heading,
+      "Pour aller plus loin",
+    );
+    assert.deepEqual(result.slides[result.slides.length - 1]!.bullets, [
+      "Suivez EdLight News pour d'autres repères historiques.",
+    ]);
     assert.match(
       result.slides[result.slides.length - 1]!.footer ?? "",
       /^Source:/,
+    );
+    assert.ok(
+      result.caption.includes(
+        "Suivez EdLight News pour d'autres repères historiques.",
+      ),
+      "Expected the premium history CTA in the caption",
     );
   });
 
