@@ -40,7 +40,8 @@
     "ig:reset": "tsx src/scripts/resetIgQueue.ts",
     "ig:requeue-histoire": "tsx src/scripts/requeueHistoire.ts",
     "ig:refresh-captions": "tsx src/scripts/refreshIgCaptions.ts",
-    "ig:regen-editorial-bg": "tsx src/scripts/regenerateEditorialBg.ts"
+    "ig:regen-editorial-bg": "tsx src/scripts/regenerateEditorialBg.ts",
+    "ig:backfill-editorial-bg": "tsx src/scripts/backfillEditorialBg.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",
