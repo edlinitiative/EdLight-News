@@ -933,7 +933,7 @@ export const igDecisionSchema = z.object({
   igExpiresAt: z.string().optional(),
 });
 
-export const igSlideLayoutSchema = z.enum(["headline", "explanation", "data"]);
+export const igSlideLayoutSchema = z.enum(["headline", "explanation", "data", "cta"]);
 
 export const igSlideSchema = z.object({
   heading: z.string().min(1),
