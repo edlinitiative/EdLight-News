@@ -319,9 +319,10 @@ export function decideIG(item: Item): IGDecision {
   }
 
   // Image required — IG is a visual platform, skip items without images.
-  // Exception: histoire and utility types use branded images generated at
-  // render time, so they don't need a publisher imageUrl.
-  const BRANDED_IMAGE_TYPES: Set<IGPostType> = new Set(["histoire", "utility"]);
+  // Exception: histoire, utility, scholarship, and opportunity can render
+  // with the branded dark gradient when no publisher photo is available.
+  // Their formatters handle missing imageUrl gracefully (no backgroundImage).
+  const BRANDED_IMAGE_TYPES: Set<IGPostType> = new Set(["histoire", "utility", "scholarship", "opportunity"]);
   if (!item.imageUrl && !BRANDED_IMAGE_TYPES.has(igType)) {
     return {
       igEligible: false,
@@ -358,11 +359,12 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Low image confidence: non-branded types need a real hero image.
-  // Images flagged as generic/stock/logo by the classifier are unusable on IG.
-  // Screenshots (confidence 0.4) are also blocked — they contain text and
-  // look unprofessional as carousel backgrounds.
-  if (!BRANDED_IMAGE_TYPES.has(igType) && (item.imageConfidence ?? 1) <= 0.4) {
+  // Low image confidence: when an image is present, it must meet the bar.
+  // Images flagged as generic/stock/logo/screenshot (≤ 0.4) look unprofessional
+  // as carousel backgrounds. If there's NO image, branded types render with the
+  // dark gradient instead — that's fine, no confidence check needed.
+  const hasImage = !!item.imageUrl;
+  if (hasImage && (item.imageConfidence ?? 1) <= 0.4) {
     return {
       igEligible: false,
       igType,
