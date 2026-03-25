@@ -240,6 +240,45 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
         const payload = await formatForIG(decision.igType, item, opts);
 
+        // ── Histoire: per-event image resolution ──────────────────────────
+        // Each content slide represents a distinct historical event. Resolve a
+        // matching Wikimedia illustration per slide heading so, for example, the
+        // "Paix d'Amiens" slide gets a Paix d'Amiens image and the "Toussaint
+        // Louverture" slide gets a Toussaint portrait — not both the same image.
+        if (decision.igType === "histoire") {
+          try {
+            const { resolveHistoryIllustration } = await import(
+              "../services/historyIllustrationResolver.js"
+            );
+            // Skip the cover (index 0) and CTA slides — only content slides.
+            const contentSlides = payload.slides.filter(
+              (s, idx) => idx > 0 && s.layout !== "cta" && !!s.heading,
+            );
+            let resolvedCount = 0;
+            for (const slide of contentSlides) {
+              try {
+                const resolved = await resolveHistoryIllustration(slide.heading);
+                if (resolved?.imageUrl) {
+                  slide.backgroundImage = resolved.imageUrl;
+                  resolvedCount++;
+                }
+              } catch {
+                // Keep any existing backgroundImage on this slide
+              }
+            }
+            if (resolvedCount > 0) {
+              console.log(
+                `[buildIgQueue] Resolved ${resolvedCount} per-event image(s) for histoire item ${item.id}`,
+              );
+            }
+          } catch (err) {
+            console.warn(
+              `[buildIgQueue] histoire per-event image resolution failed for ${item.id}:`,
+              err instanceof Error ? err.message : err,
+            );
+          }
+        }
+
         // ── Opportunity & utility: always use the single branded background ──
         // Both post types share one consistent Gemini-generated background
         // instead of random article images.

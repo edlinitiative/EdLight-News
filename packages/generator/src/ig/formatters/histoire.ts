@@ -177,6 +177,30 @@ function sectionToBullets(content: string): string[] {
 }
 
 /**
+ * Extract the first historical year (1600–2029) from section content.
+ * Used to anchor event headings in time on both slides and captions.
+ */
+function extractYearFromContent(content: string): string | null {
+  const match = content.match(/\b(1[6-9]\d{2}|20[0-2]\d)\b/);
+  return match ? match[1]! : null;
+}
+
+/**
+ * Normalize a caption title, replacing numeric date patterns (e.g. "25/03")
+ * with French month names (e.g. "25 mars").
+ */
+function normalizeHistoireCaptionDate(title: string): string {
+  const MONTHS_FR = [
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+  ];
+  return title.replace(/\b(\d{1,2})\/(\d{2})\b/g, (_m, day: string, month: string) => {
+    const mo = MONTHS_FR[parseInt(month, 10) - 1];
+    return mo ? `${parseInt(day, 10)} ${mo}` : _m;
+  });
+}
+
+/**
  * Pick an appropriate heading for the section slide.
  * Uses the Gemini section heading when available, with friendly fallback.
  */
@@ -336,9 +360,21 @@ export function buildHistoireCarousel(
         const bullets = sectionToBullets(cleanedContent);
         if (bullets.length === 0) continue;
 
+        // Add year prefix to specific event headings so each content slide
+        // (and the corresponding caption bullet) clearly anchors the event in time.
+        const resolvedHeading = sectionHeading(section.heading, slides.length - 1);
+        const headingYear =
+          !isGenericHistoryHeading(resolvedHeading) &&
+          !/\b1[0-9]{3}\b/.test(resolvedHeading)
+            ? extractYearFromContent(cleanedContent)
+            : null;
+        const headingWithYear = headingYear
+          ? `${headingYear} — ${resolvedHeading}`
+          : resolvedHeading;
+
         pushHistorySlide(
           slides,
-          sectionHeading(section.heading, slides.length - 1),
+          headingWithYear,
           bullets,
           imageUrl,
         );
@@ -415,7 +451,9 @@ export function buildHistoireCarousel(
   // ══════════════════════════════════════════════════════════════════════
   // Caption — rich, bilingual, section-aware
   // ══════════════════════════════════════════════════════════════════════
-  const captionParts: string[] = [title, ""];
+  // Normalize numeric date patterns in the title ("25/03" → "25 mars").
+  const captionTitle = normalizeHistoireCaptionDate(title);
+  const captionParts: string[] = [captionTitle, ""];
   const captionLead = summary
     ? shortenCaptionText(summary, 320)
     : coverBullets.length > 0
@@ -499,8 +537,18 @@ function buildHistoryEventLines(
     if (isGenericHistoryHeading(heading)) continue;
     if (isCommentaryHeading(heading)) continue;
 
-    const candidate = shortenText(heading, 110);
-    const key = candidate.toLowerCase();
+    // Prepend year from section content when not already present in the heading
+    // so cover bullets clearly anchor events in time (e.g. "1802 — Paix d'Amiens").
+    let labelledHeading = heading;
+    if (!/\b1[0-9]{3}\b/.test(heading)) {
+      const year = extractYearFromContent(section.content);
+      if (year) {
+        labelledHeading = `${year} — ${heading}`;
+      }
+    }
+
+    const candidate = shortenText(labelledHeading, 115);
+    const key = heading.toLowerCase(); // dedupe by base heading, not the year prefix
     if (seen.has(key)) continue;
 
     seen.add(key);

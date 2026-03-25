@@ -445,34 +445,35 @@ body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BO
 }
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:80px ${MARGIN.side}px 72px; }
 .top-brand {
-  display:flex; align-items:center; gap:8px;
-  font-family:${FONT_HEADLINE}; font-size:22px; font-weight:800; letter-spacing:4px;
+  display:flex; align-items:center; gap:10px;
+  font-family:${FONT_HEADLINE}; font-size:26px; font-weight:900; letter-spacing:4px;
 }
-.top-brand .el { color:rgba(255,255,255,0.88); }
+.top-brand .el { color:rgba(255,255,255,0.92); }
 .top-brand .nw { color:${accent}; }
-.top-rule { width:56px; height:3px; background:${accent}; border-radius:2px; margin-top:14px; }
+.top-rule { width:72px; height:4px; background:${accent}; border-radius:2px; margin-top:16px; }
 .center {
   flex:1; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; text-align:center; gap:28px;
+  align-items:center; justify-content:center; text-align:center; gap:36px;
 }
 .cta-h {
-  font-family:${FONT_HEADLINE}; font-size:78px; font-weight:900;
-  line-height:1.04; letter-spacing:-2px;
-  text-shadow:0 4px 48px rgba(0,0,0,0.85), 0 2px 12px rgba(0,0,0,0.6);
-  max-width:860px;
+  font-family:${FONT_HEADLINE}; font-size:90px; font-weight:900;
+  line-height:1.02; letter-spacing:-3px;
+  text-shadow:0 4px 64px rgba(0,0,0,0.95), 0 2px 16px rgba(0,0,0,0.75);
+  max-width:880px;
 }
 .cta-sub {
-  font-size:32px; font-weight:500; opacity:0.70;
-  letter-spacing:0.3px;
-  text-shadow:0 2px 24px rgba(0,0,0,0.7);
+  font-size:36px; font-weight:700; opacity:0.90;
+  letter-spacing:0.5px;
+  text-shadow:0 2px 28px rgba(0,0,0,0.85);
 }
-.divider { width:52px; height:3px; background:${accent}; border-radius:2px; }
+.divider { width:72px; height:4px; background:${accent}; border-radius:2px; }
 .handle {
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; gap:10px;
   background:${accent}; color:#000;
-  font-family:${FONT_HEADLINE}; font-size:22px; font-weight:800;
-  letter-spacing:2.5px; text-transform:uppercase;
-  padding:14px 36px; border-radius:6px;
+  font-family:${FONT_HEADLINE}; font-size:26px; font-weight:900;
+  letter-spacing:3px; text-transform:uppercase;
+  padding:20px 52px; border-radius:10px;
+  box-shadow:0 10px 40px ${accent}66;
 }
 .src { text-align:center; font-size:15px; opacity:0.25; font-weight:400; }
 </style></head>
