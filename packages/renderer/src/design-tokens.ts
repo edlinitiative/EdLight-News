@@ -151,10 +151,32 @@ const OVERLAY_STANDARD: OverlayPair = {
     rgba(0,0,0,0.92) 100%)`,
 };
 
+/** Histoire — editorial photo-forward; transparent middle lets the background image breathe */
+const OVERLAY_HISTOIRE: OverlayPair = {
+  cover: `linear-gradient(180deg,
+    rgba(0,0,0,0.58) 0%,
+    rgba(0,0,0,0.30) 15%,
+    rgba(0,0,0,0.10) 35%,
+    rgba(0,0,0,0.08) 50%,
+    rgba(0,0,0,0.42) 65%,
+    rgba(0,0,0,0.78) 80%,
+    rgba(0,0,0,0.93) 90%,
+    rgba(0,0,0,0.97) 100%)`,
+  inner: `linear-gradient(180deg,
+    rgba(0,0,0,0.52) 0%,
+    rgba(0,0,0,0.24) 15%,
+    rgba(0,0,0,0.08) 35%,
+    rgba(0,0,0,0.06) 50%,
+    rgba(0,0,0,0.38) 65%,
+    rgba(0,0,0,0.76) 80%,
+    rgba(0,0,0,0.90) 90%,
+    rgba(0,0,0,0.96) 100%)`,
+};
+
 /** Per-type overlay lookup. Defaults to OVERLAY_STANDARD. */
 export const OVERLAY_BY_TYPE: Record<string, OverlayPair> = {
   news:        OVERLAY_TEXT_HEAVY,
-  histoire:    OVERLAY_TEXT_HEAVY,
+  histoire:    OVERLAY_HISTOIRE,
   scholarship: OVERLAY_MEDIUM,
   opportunity: OVERLAY_MEDIUM,
   utility:     OVERLAY_STANDARD,

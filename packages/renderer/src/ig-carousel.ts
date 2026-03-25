@@ -283,11 +283,11 @@ function buildHeadlineHTML(
       ? "main scholarship-main"
       : "main";
   const featureOpen = isHistory
-    ? '<div class="history-card">'
+    ? ""
     : isScholarship
       ? '<div class="scholarship-card">'
       : "";
-  const featureClose = isHistory || isScholarship ? "</div>" : "";
+  const featureClose = isScholarship ? "</div>" : "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -304,15 +304,8 @@ ${isFirst ? topBrandCss(accent) : ""}
 .main { margin-top:auto; overflow:hidden; max-height:calc(100% - 80px); display:flex; flex-direction:column; justify-content:flex-end; }
 ${
   isHistory
-    ? `.history-main { max-height:none; }
-.history-card {
-  padding:${isFirst ? "38px 38px 34px" : "34px 34px 30px"};
-  border-radius:32px;
-  background:linear-gradient(180deg, rgba(18,11,6,0.72) 0%, rgba(18,11,6,0.84) 100%);
-  border:1px solid rgba(245,158,11,0.18);
-  box-shadow:0 26px 70px rgba(0,0,0,0.24);
-  backdrop-filter:blur(16px);
-}`
+    ? `.history-main { overflow:visible; max-height:none; }
+.history-main .h { overflow:visible; display:block; }`
     : ""
 }
 ${
@@ -366,10 +359,11 @@ ${
   isHistory
     ? `.history-lede {
   font-size:${isFirst ? 28 : 26}px;
-  line-height:1.56;
-  font-weight:600;
-  opacity:0.96;
-  text-shadow:0 1px 16px rgba(0,0,0,0.78);
+  line-height:1.54;
+  font-weight:700;
+  opacity:0.97;
+  margin-bottom:20px;
+  text-shadow:0 2px 32px rgba(0,0,0,0.97), 0 1px 8px rgba(0,0,0,0.85);
 }
 .history-lede-cover {
   font-size:30px;
@@ -378,30 +372,24 @@ ${
   display:flex;
   flex-direction:column;
   gap:14px;
-  margin-top:18px;
+  margin-top:4px;
 }
 .history-note {
   display:flex;
   gap:14px;
   align-items:flex-start;
-  padding-top:14px;
-  border-top:1px solid rgba(255,255,255,0.10);
+  padding-left:18px;
+  border-left:4px solid ${accent}cc;
 }
 .history-note-mark {
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  background:${accent};
-  margin-top:11px;
-  flex-shrink:0;
-  box-shadow:0 0 0 5px ${accent}18;
+  display:none;
 }
 .history-note-copy {
-  font-size:${isFirst ? 23 : 22}px;
+  font-size:${isFirst ? 22 : 21}px;
   line-height:1.54;
   font-weight:500;
-  opacity:0.88;
-  text-shadow:0 1px 14px rgba(0,0,0,0.74);
+  opacity:0.93;
+  text-shadow:0 2px 28px rgba(0,0,0,0.97), 0 1px 6px rgba(0,0,0,0.85);
 }`
     : ""
 }
@@ -536,11 +524,11 @@ function buildExplanationHTML(
       ? "main scholarship-main"
       : "main";
   const featureOpen = isHistory
-    ? '<div class="history-panel">'
+    ? ""
     : isScholarship
       ? '<div class="scholarship-panel">'
       : "";
-  const featureClose = isHistory || isScholarship ? "</div>" : "";
+  const featureClose = isScholarship ? "</div>" : "";
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -556,15 +544,8 @@ ${pillCss(accent)}
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
 ${
   isHistory
-    ? `.history-main { justify-content:flex-end; }
-.history-panel {
-  padding:36px 34px 26px;
-  border-radius:30px;
-  background:linear-gradient(180deg, rgba(18,11,6,0.72) 0%, rgba(18,11,6,0.84) 100%);
-  border:1px solid rgba(245,158,11,0.18);
-  box-shadow:0 26px 70px rgba(0,0,0,0.24);
-  backdrop-filter:blur(16px);
-}`
+    ? `.history-main { justify-content:flex-end; overflow:visible; }
+.history-main .h { overflow:visible; display:block; }`
     : ""
 }
 ${
@@ -585,40 +566,35 @@ ${
 ${
   isHistory
     ? `.history-lede {
-  font-size:30px;
-  line-height:1.56;
-  font-weight:600;
-  opacity:0.96;
-  margin-bottom:18px;
-  text-shadow:0 1px 14px rgba(0,0,0,0.82);
+  font-size:26px;
+  line-height:1.54;
+  font-weight:700;
+  opacity:0.97;
+  margin-bottom:20px;
+  text-shadow:0 2px 32px rgba(0,0,0,0.97), 0 1px 8px rgba(0,0,0,0.85);
 }
 .history-support {
   display:flex;
   flex-direction:column;
-  gap:16px;
+  gap:14px;
+  margin-top:4px;
 }
 .history-note {
   display:flex;
   gap:14px;
   align-items:flex-start;
-  padding-top:16px;
-  border-top:1px solid rgba(255,255,255,0.10);
+  padding-left:18px;
+  border-left:4px solid ${accent}cc;
 }
 .history-note-mark {
-  width:10px;
-  height:10px;
-  border-radius:999px;
-  background:${accent};
-  margin-top:11px;
-  flex-shrink:0;
-  box-shadow:0 0 0 5px ${accent}16;
+  display:none;
 }
 .history-note-copy {
-  font-size:24px;
-  line-height:1.56;
+  font-size:21px;
+  line-height:1.54;
   font-weight:500;
-  opacity:0.88;
-  text-shadow:0 1px 12px rgba(0,0,0,0.78);
+  opacity:0.93;
+  text-shadow:0 2px 28px rgba(0,0,0,0.97), 0 1px 6px rgba(0,0,0,0.85);
 }`
     : ""
 }

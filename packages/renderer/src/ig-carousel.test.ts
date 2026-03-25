@@ -94,7 +94,7 @@ describe("buildSlideHTML", () => {
       "Inner slide with image should have blur",
     );
     assert.ok(
-      html.includes("brightness(0.7)"),
+      html.includes("brightness(0.88)"),
       "Inner slide should dim the blurred background",
     );
     assert.ok(
@@ -120,19 +120,23 @@ describe("buildSlideHTML", () => {
     assert.ok(html.includes("accent-bar"), "Should have accent bar");
   });
 
-  it("histoire headline slides use the dedicated history card treatment", () => {
+  it("histoire headline slides use the dedicated history text treatment (no glassmorphism card)", () => {
     const slide = makeSlide({
       heading: "La bataille de Vertières",
       bullets: ["Le moment décisif de 1803.", "La victoire ouvre la voie à l'indépendance."],
     });
     const html = buildSlideHTML(slide, "histoire", 1, 4);
     assert.ok(
-      html.includes("history-card"),
-      "History headline slide should use history-card",
+      !html.includes("backdrop-filter"),
+      "History headline slide should not use glassmorphism",
     );
     assert.ok(
       html.includes("history-lede"),
       "History headline slide should render a lead paragraph treatment",
+    );
+    assert.ok(
+      html.includes("history-note-copy"),
+      "History headline slide should render support notes",
     );
   });
 
@@ -205,15 +209,15 @@ describe("buildSlideHTML", () => {
     );
   });
 
-  it("histoire explanation slides use the dedicated history panel treatment", () => {
+  it("histoire explanation slides use the dedicated history text treatment (no glassmorphism panel)", () => {
     const slide = makeSlide({
       layout: "explanation",
       bullets: ["Contexte", "Impact"],
     });
     const html = buildSlideHTML(slide, "histoire", 2, 4);
     assert.ok(
-      html.includes("history-panel"),
-      "History explanation slide should use history-panel",
+      !html.includes("backdrop-filter"),
+      "History explanation slide should not use glassmorphism",
     );
     assert.ok(
       html.includes("history-note-copy"),
