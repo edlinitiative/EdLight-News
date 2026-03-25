@@ -6,9 +6,12 @@
  * Faithfully reproduces the Playwright renderer's design system:
  *  - Cover slides: full-bleed background image + gradient overlay
  *  - Content slides: dark bg + accent left bar + em-dash bullets
+ *
+ * IGSlideFrame — pixel-perfect iframe preview using the actual renderer.
+ * Used in the modal for exact fidelity with the final Instagram output.
  */
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // ── Design tokens (mirroring packages/renderer/src/ig-carousel.ts) ──────────
@@ -46,7 +49,9 @@ export interface SlideData {
   heading: string;
   bullets: string[];
   footer?: string | null;
-  backgroundImage?: string;
+  backgroundImage?: string | null;
+  layout?: string | null;
+  meta?: string[] | null;
 }
 
 // ── Cover slide ──────────────────────────────────────────────────────────────
@@ -268,3 +273,151 @@ export function IGPostPreview({ igType, slides, caption }: IGPostPreviewProps) {
 }
 
 export default IGPostPreview;
+
+// ── IGSlideFrame: pixel-perfect iframe preview using the actual renderer ──────
+//
+// Calls /api/admin/ig-slide-html (server-side buildSlideHTML) and renders the
+// result in a sandboxed iframe scaled to fit its container. Gives 100% fidelity
+// with the final Instagram output — same fonts, layout templates, overlays, etc.
+
+export interface IGSlideFrameProps {
+  igType: string;
+  slides: SlideData[];
+}
+
+export function IGSlideFrame({ igType, slides }: IGSlideFrameProps) {
+  const [htmls, setHtmls] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [current, setCurrent] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  // Fetch all slide HTMLs from the real renderer
+  useEffect(() => {
+    if (!slides.length) { setLoading(false); return; }
+    setLoading(true);
+    setError(null);
+    fetch("/api/admin/ig-slide-html", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ igType, slides, totalSlides: slides.length }),
+    })
+      .then((r) => r.json())
+      .then((data: { htmls?: string[]; error?: string }) => {
+        if (data.error) throw new Error(data.error);
+        setHtmls(data.htmls ?? []);
+      })
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Render failed"))
+      .finally(() => setLoading(false));
+  }, [igType, slides]);
+
+  // Compute scale: iframe is 1080px wide, container is dynamic
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / 1080);
+    });
+    obs.observe(el);
+    // Set immediately
+    const w = el.clientWidth;
+    if (w > 0) setScale(w / 1080);
+    return () => obs.disconnect();
+  }, []);
+
+  const totalSlides = slides.length;
+  const prev = () => setCurrent((c) => Math.max(0, c - 1));
+  const next = () => setCurrent((c) => Math.min(totalSlides - 1, c + 1));
+
+  // Container maintains 4:5 aspect ratio (1080×1350 = 4:5)
+  const containerStyle: React.CSSProperties = {
+    position: "relative",
+    width: "100%",
+    paddingTop: "125%", // 1350/1080 = 1.25
+    overflow: "hidden",
+    borderRadius: "8px",
+    background: "#111",
+  };
+
+  const iframeStyle: React.CSSProperties = {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 1080,
+    height: 1350,
+    border: "none",
+    transform: `scale(${scale})`,
+    transformOrigin: "top left",
+  };
+
+  if (loading) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !htmls.length) {
+    // Fallback to CSS preview on error
+    return <IGPostPreview igType={igType} slides={slides} />;
+  }
+
+  return (
+    <div>
+      <div ref={containerRef} style={containerStyle}>
+        <iframe
+          key={current}
+          srcDoc={htmls[current]}
+          style={iframeStyle}
+          sandbox="allow-same-origin"
+          title={`Slide ${current + 1}`}
+        />
+        {/* Navigation arrows */}
+        {totalSlides > 1 && (
+          <>
+            {current > 0 && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); prev(); }}
+                style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", zIndex: 10 }}
+                className="rounded-full bg-black/50 p-2 text-white/90 transition hover:bg-black/75"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
+            {current < totalSlides - 1 && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); next(); }}
+                style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", zIndex: 10 }}
+                className="rounded-full bg-black/50 p-2 text-white/90 transition hover:bg-black/75"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+      {/* Dot pagination */}
+      {totalSlides > 1 && (
+        <div className="mt-2 flex justify-center gap-1.5">
+          {Array.from({ length: totalSlides }, (_, i) => (
+            <button
+              type="button"
+              key={i}
+              onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+              className={`h-1.5 rounded-full transition-all ${
+                i === current ? "w-4 bg-white" : "w-1.5 bg-white/30"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

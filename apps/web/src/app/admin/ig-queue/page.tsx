@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X } from "lucide-react";
-import { IGPostPreview } from "@/components/IGSlidePreview";
+import { IGPostPreview, IGSlideFrame } from "@/components/IGSlidePreview";
 import type { SlideData } from "@/components/IGSlidePreview";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ function PostModal({ entry, onClose }: { entry: IGQueueEntry; onClose: () => voi
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
       onClick={onClose}
     >
       <div
@@ -149,8 +149,8 @@ function PostModal({ entry, onClose }: { entry: IGQueueEntry; onClose: () => voi
           </div>
         </div>
 
-        {/* Slide preview — full-width 1:1 IG proportions */}
-        <IGPostPreview igType={entry.igType} slides={entry.slides} />
+        {/* Slide preview — pixel-perfect using the actual renderer */}
+        <IGSlideFrame igType={entry.igType} slides={entry.slides} />
 
         {/* Caption */}
         {entry.caption && (

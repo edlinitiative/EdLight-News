@@ -13,6 +13,7 @@
   "dependencies": {
     "@edlight-news/firebase": "workspace:*",
     "@edlight-news/generator": "workspace:*",
+    "@edlight-news/renderer": "workspace:^",
     "@edlight-news/types": "workspace:*",
     "firebase-admin": "^12.1.0",
     "flag-icons": "^7.5.0",

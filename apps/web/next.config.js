@@ -11,6 +11,16 @@ const FIREBASE_EXTERNALS = [
   "google-auth-library",
 ];
 
+// Playwright and its transitive deps must be kept external — they rely on
+// native binaries and Node.js built-ins that webpack cannot bundle.
+const PLAYWRIGHT_EXTERNALS = [
+  "playwright-core",
+  "playwright",
+  "chromium-bidi",
+  "electron",
+  "@edlight-news/renderer",
+];
+
 const nextConfig = {
   // Allow images from Firebase Storage, Wikimedia Commons, and common publisher CDNs
   images: {
@@ -41,7 +51,10 @@ const nextConfig = {
   experimental: {
     // Belt-and-suspenders: also list firebase-admin packages here so Next.js
     // marks them external through its own mechanism.
-    serverComponentsExternalPackages: FIREBASE_EXTERNALS,
+    serverComponentsExternalPackages: [
+      ...FIREBASE_EXTERNALS,
+      ...PLAYWRIGHT_EXTERNALS,
+    ],
   },
   webpack(config, { isServer }) {
     // When Next.js transpiles workspace packages from TypeScript source,
@@ -71,6 +84,9 @@ const nextConfig = {
         ({ request }, callback) => {
           if (
             FIREBASE_EXTERNALS.some(
+              (pkg) => request === pkg || request.startsWith(pkg + "/")
+            ) ||
+            PLAYWRIGHT_EXTERNALS.some(
               (pkg) => request === pkg || request.startsWith(pkg + "/")
             )
           ) {

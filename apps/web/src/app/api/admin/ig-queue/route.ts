@@ -9,11 +9,13 @@ function docToItem(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   const data = doc.data();
 
   const slides = (data.payload?.slides ?? []).map(
-    (s: { heading?: string; bullets?: string[]; footer?: string; backgroundImage?: string }) => ({
+    (s: { heading?: string; bullets?: string[]; footer?: string; backgroundImage?: string; layout?: string; meta?: string[] }) => ({
       heading: s.heading ?? "",
       bullets: s.bullets ?? [],
       footer: s.footer ?? null,
       backgroundImage: s.backgroundImage ?? null,
+      layout: s.layout ?? null,
+      meta: s.meta ?? null,
     }),
   );
 
