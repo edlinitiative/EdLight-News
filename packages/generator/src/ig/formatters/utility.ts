@@ -19,15 +19,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
-  // Slide 2: Summary / intro
-  slides.push({
-    heading: "En bref",
-    bullets: [shortenText(summary, 300)],
-    layout: "explanation",
-    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
-  });
-
-  // Slide 3+: Practical info (split across slides if many facts)
+  // Slide 2+: Practical info (split across slides if many facts)
   const facts = item.utilityMeta?.extractedFacts;
   const imageUrl = item.imageUrl ?? undefined;
   if (facts) {
