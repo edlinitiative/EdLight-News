@@ -11,15 +11,23 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
   const title = bi?.frTitle ?? item.title;
   const summary = bi?.frSummary ?? item.summary;
 
-  // Slide 1: Cover
+  // Slide 1: Cover — title only (Bloomberg style, mirrors news)
   slides.push({
     heading: shortenHeadline(title),
-    bullets: [shortenText(summary, 180)],
+    bullets: [],
     layout: "headline",
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
   });
 
-  // Slide 2+: Practical info (split across slides if many facts)
+  // Slide 2: Summary / intro
+  slides.push({
+    heading: "En bref",
+    bullets: [shortenText(summary, 300)],
+    layout: "explanation",
+    ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
+  });
+
+  // Slide 3+: Practical info (split across slides if many facts)
   const facts = item.utilityMeta?.extractedFacts;
   const imageUrl = item.imageUrl ?? undefined;
   if (facts) {

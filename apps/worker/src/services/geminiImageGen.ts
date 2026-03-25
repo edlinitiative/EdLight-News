@@ -421,16 +421,17 @@ export async function ensureOpportunityBackground(forceRegenerate = false): Prom
 
     console.log("[opp-bg] Generating one-time opportunity background image...");
     const prompt = [
-      "Ultra high resolution abstract dark background for a professional career and opportunity social media post, at least 1080 pixels wide, extremely sharp details:",
-      "- Very dark near-black base (#0f0d08) with subtle warm amber/gold (#fbbf24) accent undertones",
-      "- Abstract flowing shapes evoking upward movement, growth, horizons, or open pathways",
-      "- Smooth organic gradients, faint soft-focus bokeh orbs, no sharp edges or hard lines",
-      "- Extremely subtle — text overlaid on it must remain fully readable",
-      "- NO text, NO people, NO recognizable logos or objects — purely atmospheric",
-      "- Portrait orientation 4:5 (1080×1350), premium editorial / career-media aesthetic",
-      "- Cinematic depth of field, slight film grain, professional media wallpaper quality",
-      "- Evokes ambition and opportunity — reminiscent of premium LinkedIn or Forbes editorial backgrounds",
-      "- Must look like a high-end career media wallpaper, not AI-generated",
+      "Photorealistic ultra high-resolution dark abstract background for a premium social media post, 1080×1350px portrait (4:5):",
+      "- Deep near-black background (#0a0a0f), almost zero luminosity — darkness is the foundation",
+      "- Single dramatic light source: a cool-to-warm gradient beam cutting diagonally from top-right, like a spotlight through fog — subtle, not bright",
+      "- Extremely fine lens flare bokeh: 3-4 soft out-of-focus orbs, barely visible, deep amber (#c8860a) and ivory white",
+      "- Smooth cinematic film grain texture across the entire image — like a 35mm long-exposure shot",
+      "- Faint architectural geometry in the deep background: blurred pillars or steps suggestion, almost invisible — evokes academic prestige",
+      "- Zero text, zero people, zero logos, zero charts — purely atmospheric and abstract",
+      "- The lower two-thirds must be near-pitch-black for bright white text overlay readability",
+      "- Aesthetic reference: NYT Magazine editorial cover background, Monocle magazine, Wallpaper* magazine dark spreads",
+      "- Premium, understated, serious — suitable for educational and career content",
+      "- Must not look AI-generated; must look like a professional photography studio composite",
     ].join("\n");
 
     const url = await generateCustomImage(prompt, OPPORTUNITY_BG_PATH);

@@ -15,23 +15,27 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   const summary = bi?.frSummary ?? item.summary;
   const imageUrl = item.imageUrl ?? undefined;
 
-  // ── Slide 1: Hero cover (generous headline limit to avoid 3-dots) ──
-  const coverSub: string[] = [];
-  if (item.opportunity?.coverage) coverSub.push(item.opportunity.coverage);
-  if (item.geoTag) {
-    coverSub.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
-  }
+  // ── Slide 1: Hero cover — bold title only (Bloomberg style, mirrors news) ──
   slides.push({
     heading: shortenHeadline(title, 15),
-    bullets: coverSub.length > 0 ? [coverSub.join("  ·  ")] : [],
+    bullets: [],
     layout: "headline",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
   // ── Slide 2: About — what is this opportunity ──
+  // Include coverage/geo context as first bullet if available
+  const aboutBullets: string[] = [];
+  const coverMeta: string[] = [];
+  if (item.opportunity?.coverage) coverMeta.push(item.opportunity.coverage);
+  if (item.geoTag) {
+    coverMeta.push(item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International");
+  }
+  if (coverMeta.length > 0) aboutBullets.push(coverMeta.join("  ·  "));
+  aboutBullets.push(shortenText(summary, 300));
   slides.push({
     heading: "De quoi s'agit-il ?",
-    bullets: [shortenText(summary, 350)],
+    bullets: aboutBullets,
     layout: "explanation",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });

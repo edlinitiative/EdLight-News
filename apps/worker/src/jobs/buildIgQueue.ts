@@ -240,20 +240,20 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
         const payload = await formatForIG(decision.igType, item, opts);
 
-        // ── Opportunity: always use the single branded background ─────────
-        // Like taux du jour, all opportunity slides share one consistent
-        // Gemini-generated background instead of random article images.
-        if (decision.igType === "opportunity") {
+        // ── Opportunity & utility: always use the single branded background ──
+        // Both post types share one consistent Gemini-generated background
+        // instead of random article images.
+        if (decision.igType === "opportunity" || decision.igType === "utility") {
           try {
             const oppBg = await ensureOpportunityBackground();
             if (oppBg) {
               for (const slide of payload.slides) {
                 slide.backgroundImage = oppBg;
               }
-              console.log(`[buildIgQueue] Applied branded opportunity background for ${item.id}`);
+              console.log(`[buildIgQueue] Applied branded background for ${decision.igType} ${item.id}`);
             }
           } catch (err) {
-            console.warn(`[buildIgQueue] opportunity background fetch failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            console.warn(`[buildIgQueue] branded background fetch failed for ${item.id}:`, err instanceof Error ? err.message : err);
           }
         }
 

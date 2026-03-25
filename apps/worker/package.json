@@ -39,7 +39,8 @@
     "ig:test-publish": "tsx src/scripts/igTestPublish.ts",
     "ig:reset": "tsx src/scripts/resetIgQueue.ts",
     "ig:requeue-histoire": "tsx src/scripts/requeueHistoire.ts",
-    "ig:refresh-captions": "tsx src/scripts/refreshIgCaptions.ts"
+    "ig:refresh-captions": "tsx src/scripts/refreshIgCaptions.ts",
+    "ig:regen-editorial-bg": "tsx src/scripts/regenerateEditorialBg.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",
