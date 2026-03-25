@@ -1,10 +1,12 @@
 /**
  * Image generation for IG posts & editorial illustrations.
  *
- * Uses Google's Gemini 3.1 Flash Image (Nano Banana 2) as primary model
- * for high-quality editorial visuals with advanced reasoning/thinking.
- * Falls back to Gemini 2.5 Flash Image → Gemini 2.0 Flash.
+ * Uses Google's Gemini 2.5 Flash Image as primary model ($0.039/image).
+ * Falls back to Gemini 2.0 Flash (deprecated, may stop working soon).
  * Produces 4:5 portrait images (1080×1350) for IG carousels.
+ *
+ * ⚠️ gemini-3.1-flash-image-preview was removed because Google bills it
+ * at Pro-tier rates ($0.067+/image) despite the "flash" name.
  *
  * Designed for one-off or batch use — NOT called on every tick.
  */
@@ -190,56 +192,8 @@ async function callImagen3(prompt: string): Promise<Buffer | null> {
   }
 
   try {
-    // Primary: Gemini 3.1 Flash Image (Nano Banana 2) — advanced reasoning/thinking
-    // Produces higher-fidelity images by reasoning through composition before rendering
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(IMAGE_GEN_TIMEOUT_MS),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseModalities: ["IMAGE"],
-            imageConfig: {
-              aspectRatio: "4:5",
-            },
-          },
-        }),
-      },
-    );
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "");
-      console.error("[imagen] Gemini 3.1 Flash Image error:", res.status, errText.slice(0, 200));
-      console.log("[imagen] Trying Gemini 2.5 Flash fallback...");
-      return callGemini25Fallback(prompt, apiKey);
-    }
-
-    const data = (await res.json()) as GeminiImageResponse;
-    const buffer = extractImageBuffer(data);
-
-    if (!buffer) {
-      console.warn("[imagen] No image in 3.1 response, trying 2.5 fallback...");
-      return callGemini25Fallback(prompt, apiKey);
-    }
-
-    console.log("[imagen] ✓ Gemini 3.1 Flash Image generated successfully");
-    return buffer;
-  } catch (err) {
-    console.error("[imagen] Error:", err instanceof Error ? err.message : err);
-    const key = getApiKey();
-    if (key) return callGemini25Fallback(prompt, key);
-    return null;
-  }
-}
-
-/**
- * Fallback 1: Gemini 2.5 Flash Image (Nano Banana) — fast, reliable
- */
-async function callGemini25Fallback(prompt: string, apiKey: string): Promise<Buffer | null> {
-  try {
+    // Primary: Gemini 2.5 Flash Image — cheapest image model ($0.039/image)
+    // (gemini-3.1-flash-image-preview was billed at Pro rates, ~$0.067+/image)
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
       {
@@ -259,8 +213,9 @@ async function callGemini25Fallback(prompt: string, apiKey: string): Promise<Buf
     );
 
     if (!res.ok) {
-      console.error("[imagen] Gemini 2.5 Flash fallback error:", res.status);
-      console.log("[imagen] Trying Gemini 2.0 Flash last-resort fallback...");
+      const errText = await res.text().catch(() => "");
+      console.error("[imagen] Gemini 2.5 Flash Image error:", res.status, errText.slice(0, 200));
+      console.log("[imagen] Trying Gemini 2.0 Flash fallback...");
       return callGemini20Fallback(prompt, apiKey);
     }
 
@@ -272,16 +227,19 @@ async function callGemini25Fallback(prompt: string, apiKey: string): Promise<Buf
       return callGemini20Fallback(prompt, apiKey);
     }
 
-    console.log("[imagen] ✓ Gemini 2.5 Flash Image fallback succeeded");
+    console.log("[imagen] ✓ Gemini 2.5 Flash Image generated successfully");
     return buffer;
   } catch (err) {
-    console.error("[imagen] Gemini 2.5 fallback error:", err instanceof Error ? err.message : err);
-    return callGemini20Fallback(prompt, apiKey);
+    console.error("[imagen] Error:", err instanceof Error ? err.message : err);
+    const key = getApiKey();
+    if (key) return callGemini20Fallback(prompt, key);
+    return null;
   }
 }
 
 /**
- * Fallback 2 (last resort): Gemini 2.0 Flash image generation
+ * Fallback (last resort): Gemini 2.0 Flash image generation
+ * NOTE: gemini-2.0-flash-exp is also deprecated — may stop working soon.
  */
 async function callGemini20Fallback(prompt: string, apiKey: string): Promise<Buffer | null> {
   try {

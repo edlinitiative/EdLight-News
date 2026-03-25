@@ -67,7 +67,10 @@ export async function callGemini(prompt: string): Promise<string> {
 async function callGeminiInternal(prompt: string, opts?: LLMOptions): Promise<string> {
   const ai = getGenAI();
   const model = ai.getGenerativeModel({
-    model: opts?.model ?? "gemini-2.0-flash",
+    // gemini-2.0-flash is DEPRECATED (shutdown 2026-06-01) and Google silently
+    // routes it through Pro-tier backends, billing at 20-30× the flash price.
+    // gemini-2.5-flash-lite is the cheapest non-deprecated model ($0.10/$0.40 per 1M).
+    model: opts?.model ?? "gemini-2.5-flash-lite",
     generationConfig: {
       temperature: opts?.temperature ?? 0.3,
       maxOutputTokens: opts?.maxOutputTokens ?? 4096,

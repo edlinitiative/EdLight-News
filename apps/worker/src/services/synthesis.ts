@@ -282,7 +282,7 @@ async function createOrUpdateSynthesis(
     sourceItemIds,
     sourceCount: sourceItemIds.length,
     publisherDomains,
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash-lite",
     promptVersion,
     validationPassed: validation.passed,
     lastSynthesizedAt: now,

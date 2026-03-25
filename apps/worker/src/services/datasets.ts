@@ -38,6 +38,9 @@ import {
 /** Maximum jobs to process per tick to avoid timeouts. */
 const MAX_JOBS_PER_TICK = 5;
 
+/** Maximum records to LLM-verify per dataset job to control Gemini API costs. */
+const MAX_VERIFY_PER_JOB = 10;
+
 /** Maximum attempts before a job is permanently failed. */
 const MAX_ATTEMPTS = 3;
 
@@ -257,7 +260,13 @@ async function refreshUniversities(_job: DatasetJob): Promise<void> {
   let updated = 0;
   let skipped = 0;
 
-  for (const uni of all) {
+  // Cap LLM-verify calls per job to control Gemini API costs
+  const batch = all.slice(0, MAX_VERIFY_PER_JOB);
+  if (all.length > MAX_VERIFY_PER_JOB) {
+    console.log(`[datasets] universities: verifying ${batch.length}/${all.length} records (capped at ${MAX_VERIFY_PER_JOB})`);
+  }
+
+  for (const uni of batch) {
     const html = await safeFetchHtml(uni.admissionsUrl, `university:${uni.name}`);
     if (!html) { skipped++; continue; }
 
@@ -348,7 +357,13 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
   let updated = 0;
   let skipped = 0;
 
-  for (const s of all) {
+  // Cap LLM-verify calls per job to control Gemini API costs
+  const batch = all.slice(0, MAX_VERIFY_PER_JOB);
+  if (all.length > MAX_VERIFY_PER_JOB) {
+    console.log(`[datasets] scholarships: verifying ${batch.length}/${all.length} records (capped at ${MAX_VERIFY_PER_JOB})`);
+  }
+
+  for (const s of batch) {
     const html = await safeFetchHtml(s.officialUrl, `scholarship:${s.name}`);
     if (!html) { skipped++; continue; }
 
@@ -494,7 +509,13 @@ async function refreshHaitiCalendar(_job: DatasetJob): Promise<void> {
   let updated = 0;
   let skipped = 0;
 
-  for (const evt of all) {
+  // Cap LLM-verify calls per job to control Gemini API costs
+  const batch = all.slice(0, MAX_VERIFY_PER_JOB);
+  if (all.length > MAX_VERIFY_PER_JOB) {
+    console.log(`[datasets] haiti_calendar: verifying ${batch.length}/${all.length} records (capped at ${MAX_VERIFY_PER_JOB})`);
+  }
+
+  for (const evt of batch) {
     const html = await safeFetchHtml(evt.officialUrl, `calendar:${evt.title}`);
     if (!html) { skipped++; continue; }
 

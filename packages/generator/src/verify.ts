@@ -18,7 +18,9 @@ import { z } from "zod";
 import { callGemini } from "./client.js";
 
 // ── Max HTML length sent to Gemini (tokens ≈ chars/4, keep well under 128k) ─
-const MAX_HTML_CHARS = 30_000;
+// Reduced from 30K to 15K — most relevant data is in the first 15K chars,
+// and this halves the per-call token cost for dataset verification.
+const MAX_HTML_CHARS = 15_000;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── Output schemas ──────────────────────────────────────────────────────────

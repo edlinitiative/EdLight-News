@@ -46,17 +46,19 @@ export async function POST(req: NextRequest) {
       `This is for a premium education technology platform. The image must look like a high-end stock photo. Only include text if explicitly requested in the prompt, otherwise no text at all.`,
     ].join(" ");
 
-    // Try Gemini 2.0 Flash with image generation
+    // Try Gemini 2.5 Flash Image (cheapest image model at $0.039/image)
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: fullPrompt }] }],
           generationConfig: {
-            responseModalities: ["IMAGE", "TEXT"],
-            maxOutputTokens: 4096,
+            responseModalities: ["IMAGE"],
+            imageConfig: {
+              aspectRatio: "4:5",
+            },
           },
         }),
       },
