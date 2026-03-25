@@ -227,12 +227,12 @@ export function IGPostPreview({ igType, slides, caption }: IGPostPreviewProps) {
         {totalSlides > 1 && (
           <>
             {current > 0 && (
-              <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white/80 transition hover:bg-black/70 hover:text-white">
+              <button type="button" onClick={(e) => { e.stopPropagation(); prev(); }} className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white/80 transition hover:bg-black/70 hover:text-white">
                 <ChevronLeft className="h-4 w-4" />
               </button>
             )}
             {current < totalSlides - 1 && (
-              <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white/80 transition hover:bg-black/70 hover:text-white">
+              <button type="button" onClick={(e) => { e.stopPropagation(); next(); }} className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white/80 transition hover:bg-black/70 hover:text-white">
                 <ChevronRight className="h-4 w-4" />
               </button>
             )}
@@ -242,7 +242,7 @@ export function IGPostPreview({ igType, slides, caption }: IGPostPreviewProps) {
       {totalSlides > 1 && (
         <div className="mt-2 flex justify-center gap-1.5">
           {Array.from({ length: totalSlides }, (_, i) => (
-            <button key={i} onClick={() => setCurrent(i)} className={`h-1.5 rounded-full transition-all ${i === current ? "w-4 bg-stone-700 dark:bg-white" : "w-1.5 bg-stone-300 dark:bg-stone-600"}`} />
+            <button type="button" key={i} onClick={(e) => { e.stopPropagation(); setCurrent(i); }} className={`h-1.5 rounded-full transition-all ${i === current ? "w-4 bg-stone-700 dark:bg-white" : "w-1.5 bg-stone-300 dark:bg-stone-600"}`} />
           ))}
         </div>
       )}

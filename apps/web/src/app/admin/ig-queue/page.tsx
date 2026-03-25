@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw } from "lucide-react";
+import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X } from "lucide-react";
 import { IGPostPreview } from "@/components/IGSlidePreview";
 import type { SlideData } from "@/components/IGSlidePreview";
 
@@ -108,9 +108,65 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+// ── Post modal ───────────────────────────────────────────────────────────────
+
+function PostModal({ entry, onClose }: { entry: IGQueueEntry; onClose: () => void }) {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[420px] overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-stone-950"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* IG-like header */}
+        <div className="flex items-center justify-between border-b border-stone-100 px-3 py-2.5 dark:border-stone-800">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 text-[10px] font-bold text-white">
+              EL
+            </div>
+            <div>
+              <p className="text-xs font-semibold leading-tight text-stone-900 dark:text-stone-100">edlight.haiti</p>
+              <p className="text-[10px] leading-tight text-stone-400">{entry.igType}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusBadge status={entry.status} />
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-800 dark:hover:text-stone-200"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Slide preview — full-width 1:1 IG proportions */}
+        <IGPostPreview igType={entry.igType} slides={entry.slides} />
+
+        {/* Caption */}
+        {entry.caption && (
+          <div className="max-h-40 overflow-y-auto border-t border-stone-100 px-3 py-2.5 dark:border-stone-800">
+            <span className="text-xs font-semibold text-stone-900 dark:text-stone-100">edlight.haiti </span>
+            <pre className="inline whitespace-pre-wrap font-sans text-xs leading-relaxed text-stone-600 dark:text-stone-400">{entry.caption}</pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Post card ────────────────────────────────────────────────────────────────
 
-function PostCard({ entry, onAction }: { entry: IGQueueEntry; onAction: (id: string, action: string) => void }) {
+function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: (id: string, action: string) => void; onOpen: (entry: IGQueueEntry) => void }) {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [busy, setBusy] = useState(false);
   const accentBorder = TYPE_ACCENTS[entry.igType] ?? "border-stone-300";
@@ -126,8 +182,8 @@ function PostCard({ entry, onAction }: { entry: IGQueueEntry; onAction: (id: str
 
   return (
     <div className={`overflow-hidden rounded-xl border-t-4 ${accentBorder} bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900`}>
-      {/* Visual preview */}
-      <div className="p-3">
+      {/* Visual preview — click to open IG modal */}
+      <div className="cursor-pointer p-3" onClick={() => onOpen(entry)}>
         <IGPostPreview
           igType={entry.igType}
           slides={entry.slides}
@@ -252,6 +308,7 @@ export default function IGQueuePage() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<IGQueueEntry | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -290,10 +347,11 @@ export default function IGQueuePage() {
 
   const filtered = entries.filter((e) => {
     const statusMatch =
-      statusFilter === "all" ||
-      (statusFilter === "scheduled"
-        ? e.status === "scheduled" || e.status === "scheduled_ready_for_manual"
-        : e.status === statusFilter);
+      statusFilter === "all"
+        ? e.status !== "skipped"
+        : (statusFilter === "scheduled"
+          ? e.status === "scheduled" || e.status === "scheduled_ready_for_manual"
+          : e.status === statusFilter);
     const typeMatch = typeFilter === "all" || e.igType === typeFilter;
     return statusMatch && typeMatch;
   });
@@ -378,9 +436,13 @@ export default function IGQueuePage() {
       {!loading && filtered.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((entry) => (
-            <PostCard key={entry.id} entry={entry} onAction={performAction} />
+            <PostCard key={entry.id} entry={entry} onAction={performAction} onOpen={setSelectedEntry} />
           ))}
         </div>
+      )}
+
+      {selectedEntry && (
+        <PostModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />
       )}
     </section>
   );
