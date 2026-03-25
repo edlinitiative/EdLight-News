@@ -31,6 +31,13 @@ import { isJunkSentence, cleanExtractedText, splitSentences } from "./news.js";
 /** Max content slides (excluding cover + source). Keeps carousels digestible. */
 const MAX_CONTENT_SLIDES = 5;
 
+/**
+ * Background image for the premium closing CTA slide.
+ * The Citadelle Laferrière — the iconic symbol of Haitian sovereignty.
+ */
+const HISTOIRE_CTA_IMAGE =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+
 /** Max bullets per history slide — tighter, cleaner pacing than dense 3-bullet cards. */
 const MAX_BULLETS_PER_SLIDE = 2;
 
@@ -391,18 +398,18 @@ export function buildHistoireCarousel(
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // Last slide — Premium CTA + source
+  // Last slide — Premium cinematic CTA (Citadelle background, Litquidity-style)
   // ══════════════════════════════════════════════════════════════════════
   const sourceLine = buildSourceLine(item);
   const sourceFooter = buildSourceFooter(item);
   const premiumHistoryCTA = "Suivez EdLight News pour d'autres repères historiques.";
 
   slides.push({
-    heading: "Pour aller plus loin",
-    bullets: [premiumHistoryCTA],
-    layout: "headline",
+    heading: "Suivez-nous pour plus de repères historiques",
+    bullets: ["L'histoire d'Haïti, chaque jour."],
+    layout: "cta",
     footer: sourceFooter,
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    backgroundImage: HISTOIRE_CTA_IMAGE,
   });
 
   // ══════════════════════════════════════════════════════════════════════
@@ -423,7 +430,7 @@ export function buildHistoireCarousel(
     if (
       !slide.heading ||
       slide.heading === "Source" ||
-      slide.heading === "Pour aller plus loin"
+      slide.layout === "cta"
     ) {
       continue;
     }
@@ -508,7 +515,6 @@ function buildHistoryEventLines(
 function normalizeHistoryEventHeading(heading: string): string {
   return stripMarkdown(heading)
     .replace(/^🎉\s*/u, "")
-    .replace(/\s*\((?:\d{3,4}|[\d–-]{5,9})\)\s*$/u, "")
     .trim();
 }
 

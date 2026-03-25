@@ -104,13 +104,13 @@ const OVERLAY_TEXT_HEAVY: OverlayPair = {
     rgba(0,0,0,0.97) 82%,
     rgba(0,0,0,0.99) 100%)`,
   inner: `linear-gradient(180deg,
-    rgba(0,0,0,0.82) 0%,
-    rgba(0,0,0,0.76) 15%,
-    rgba(0,0,0,0.74) 40%,
-    rgba(0,0,0,0.84) 65%,
-    rgba(0,0,0,0.95) 85%,
-    rgba(0,0,0,0.98) 95%,
-    rgba(0,0,0,0.99) 100%)`,
+    rgba(0,0,0,0.52) 0%,
+    rgba(0,0,0,0.36) 18%,
+    rgba(0,0,0,0.32) 42%,
+    rgba(0,0,0,0.58) 65%,
+    rgba(0,0,0,0.80) 82%,
+    rgba(0,0,0,0.90) 92%,
+    rgba(0,0,0,0.95) 100%)`,
 };
 
 /** Scholarship / opportunity — medium text density; balanced overlays */
@@ -123,13 +123,13 @@ const OVERLAY_MEDIUM: OverlayPair = {
     rgba(0,0,0,0.97) 82%,
     rgba(0,0,0,0.99) 100%)`,
   inner: `linear-gradient(180deg,
-    rgba(0,0,0,0.78) 0%,
-    rgba(0,0,0,0.72) 20%,
-    rgba(0,0,0,0.70) 45%,
-    rgba(0,0,0,0.82) 70%,
-    rgba(0,0,0,0.95) 85%,
-    rgba(0,0,0,0.98) 95%,
-    rgba(0,0,0,0.99) 100%)`,
+    rgba(0,0,0,0.46) 0%,
+    rgba(0,0,0,0.30) 20%,
+    rgba(0,0,0,0.30) 45%,
+    rgba(0,0,0,0.52) 70%,
+    rgba(0,0,0,0.76) 85%,
+    rgba(0,0,0,0.88) 93%,
+    rgba(0,0,0,0.93) 100%)`,
 };
 
 /** Utility / taux — rarely has full-bleed photos; standard overlays */
@@ -142,13 +142,13 @@ const OVERLAY_STANDARD: OverlayPair = {
     rgba(0,0,0,0.97) 82%,
     rgba(0,0,0,0.99) 100%)`,
   inner: `linear-gradient(180deg,
-    rgba(0,0,0,0.76) 0%,
-    rgba(0,0,0,0.70) 20%,
-    rgba(0,0,0,0.72) 50%,
-    rgba(0,0,0,0.82) 70%,
-    rgba(0,0,0,0.94) 85%,
-    rgba(0,0,0,0.98) 95%,
-    rgba(0,0,0,0.99) 100%)`,
+    rgba(0,0,0,0.46) 0%,
+    rgba(0,0,0,0.30) 20%,
+    rgba(0,0,0,0.32) 50%,
+    rgba(0,0,0,0.52) 70%,
+    rgba(0,0,0,0.74) 85%,
+    rgba(0,0,0,0.86) 93%,
+    rgba(0,0,0,0.92) 100%)`,
 };
 
 /** Per-type overlay lookup. Defaults to OVERLAY_STANDARD. */

@@ -586,7 +586,7 @@ export interface IGDecision {
 }
 
 /** Slide layout hint for the renderer. */
-export type IGSlideLayout = "headline" | "explanation" | "data";
+export type IGSlideLayout = "headline" | "explanation" | "data" | "cta";
 
 /** A single carousel slide for IG. */
 export interface IGSlide {

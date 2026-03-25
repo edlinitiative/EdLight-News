@@ -5,7 +5,11 @@ on:
     branches: [main]
     paths:
       - "apps/worker/**"
-      - "packages/**"
+      - "packages/firebase/**"
+      - "packages/generator/**"
+      - "packages/renderer/**"
+      - "packages/scraper/**"
+      - "packages/types/**"
       - "tsconfig.base.json"
       - "infra/firebase/firestore.indexes.json"
       - ".github/workflows/deploy-worker.yml"
@@ -99,7 +103,7 @@ jobs:
             --max-instances=1
             --memory=1Gi
             --cpu=1
-            --timeout=3600
+            --timeout=900
             --no-allow-unauthenticated
             --service-account=firebase-adminsdk-fbsvc@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
           env_vars: |
@@ -109,8 +113,9 @@ jobs:
             IG_ACCESS_TOKEN=${{ secrets.IG_ACCESS_TOKEN }}
             IG_USER_ID=${{ secrets.IG_USER_ID }}
             IG_API_HOST=${{ secrets.IG_API_HOST }}
-            PROCESS_BATCH_LIMIT=15
-            IMAGE_BATCH_LIMIT=5
+            PROCESS_BATCH_LIMIT=10
+            GENERATE_BATCH_LIMIT=3
+            IMAGE_BATCH_LIMIT=2
 
       - name: Get service URL
         id: service_url
@@ -123,30 +128,30 @@ jobs:
 
       - name: Upsert Cloud Scheduler job
         run: |
-          # ⚠️  SCHEDULING: Cloud Scheduler fires at :15 and :45 ONLY.
-          # GitHub Actions pipeline.yml fires at :00 and :30 (runs directly in GHA runner).
-          # Together they give ~15-min effective cadence at ZERO cost.
-          # DO NOT change this to */15 — that would overlap with GHA and double work+cost.
+          # ⚠️  SCHEDULING: Cloud Scheduler fires at :30 every 2 hours (12 ticks/day).
+          # GitHub Actions pipeline.yml fires at :00 every 2 hours (12 ticks/day).
+          # Together they give ~1-hour effective cadence — 24 ticks/day total.
+          # Changing this back to */30 cost ~$700/month in Cloud Run + Gemini fees.
           TICK_URL="${{ steps.service_url.outputs.url }}/tick"
           SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
           if gcloud scheduler jobs describe edlight-news-pipeline \
                --location=${{ env.REGION }} --quiet 2>/dev/null; then
             gcloud scheduler jobs update http edlight-news-pipeline \
               --location=${{ env.REGION }} \
-              --schedule="15,45 * * * *" \
+              --schedule="30 */2 * * *" \
               --uri="$TICK_URL" \
               --http-method=POST \
               --oidc-service-account-email="$SA" \
-              --attempt-deadline=1800s \
+              --attempt-deadline=900s \
               --quiet
           else
             gcloud scheduler jobs create http edlight-news-pipeline \
               --location=${{ env.REGION }} \
-              --schedule="15,45 * * * *" \
+              --schedule="30 */2 * * *" \
               --uri="$TICK_URL" \
               --http-method=POST \
               --oidc-service-account-email="$SA" \
-              --attempt-deadline=1800s \
+              --attempt-deadline=900s \
               --quiet
           fi
 

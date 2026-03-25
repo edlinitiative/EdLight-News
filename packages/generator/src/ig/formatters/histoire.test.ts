@@ -113,11 +113,12 @@ describe("buildHistoireCarousel", () => {
     );
     assert.equal(
       result.slides[result.slides.length - 1]!.heading,
-      "Pour aller plus loin",
+      "Suivez-nous pour plus de repères historiques",
     );
     assert.deepEqual(result.slides[result.slides.length - 1]!.bullets, [
-      "Suivez EdLight News pour d'autres repères historiques.",
+      "L'histoire d'Haïti, chaque jour.",
     ]);
+    assert.equal(result.slides[result.slides.length - 1]!.layout, "cta");
     assert.match(
       result.slides[result.slides.length - 1]!.footer ?? "",
       /^Source:/,

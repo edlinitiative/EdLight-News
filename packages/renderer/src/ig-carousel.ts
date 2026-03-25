@@ -87,6 +87,8 @@ export function buildSlideHTML(
       return buildDataHTML(slide, label, accent, dark, isFirst, igType);
     case "explanation":
       return buildExplanationHTML(slide, label, accent, dark, isFirst, igType);
+    case "cta":
+      return buildHistoryCTAHtml(slide, accent);
     case "headline":
     default:
       return buildHeadlineHTML(slide, label, accent, dark, isFirst, igType);
@@ -116,7 +118,7 @@ function bodyCss(dark: string, bgImage?: string): string {
  */
 function innerBlurCss(isFirst: boolean, hasImage: boolean): string {
   if (isFirst || !hasImage) return "";
-  return `body::before { content:''; position:absolute; inset:-20px; background:inherit; background-size:cover; filter:blur(6px) brightness(0.7); z-index:0; }`;
+  return `body::before { content:''; position:absolute; inset:-20px; background:inherit; background-size:cover; filter:blur(6px) brightness(0.88); z-index:0; }`;
 }
 
 function overlayCss(gradient: string): string {
@@ -420,6 +422,86 @@ ${imageLayerHtml(hasImage, overlayGradient)}
     ${bottomBarHtml(slide.footer, accent, !isFirst)}
     ${featureClose}
   </div>
+</div>
+</body></html>`;
+}
+
+// ── CTA layout ────────────────────────────────────────────────────────────
+// Premium cinematic closing slide — full-bleed background, centered brand + follow CTA.
+// Used as the last slide of histoire carousels (Litquidity-inspired).
+
+function buildHistoryCTAHtml(slide: IGSlide, accent: string): string {
+  const ctaHeadline = escapeHtml(slide.heading);
+  const tagline = escapeHtml(slide.bullets[0] ?? "");
+  const footer = slide.footer ? escapeHtml(slide.footer) : "";
+  const hasBg = !!slide.backgroundImage;
+  const bgCss = hasBg
+    ? `#120b06 url('${slide.backgroundImage}') center/cover no-repeat`
+    : `#120b06`;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+${resetCss()}
+body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BODY}; background:${bgCss}; color:#fff; overflow:hidden; position:relative; }
+.overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(
+    180deg,
+    rgba(18,11,6,0.82) 0%,
+    rgba(18,11,6,0.32) 38%,
+    rgba(18,11,6,0.48) 64%,
+    rgba(18,11,6,0.95) 100%
+  );
+}
+.c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:80px ${MARGIN.side}px 72px; }
+.top-brand {
+  display:flex; align-items:center; gap:8px;
+  font-family:${FONT_HEADLINE}; font-size:22px; font-weight:800; letter-spacing:4px;
+}
+.top-brand .el { color:rgba(255,255,255,0.88); }
+.top-brand .nw { color:${accent}; }
+.top-rule { width:56px; height:3px; background:${accent}; border-radius:2px; margin-top:14px; }
+.center {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center; gap:28px;
+}
+.cta-h {
+  font-family:${FONT_HEADLINE}; font-size:78px; font-weight:900;
+  line-height:1.04; letter-spacing:-2px;
+  text-shadow:0 4px 48px rgba(0,0,0,0.85), 0 2px 12px rgba(0,0,0,0.6);
+  max-width:860px;
+}
+.cta-sub {
+  font-size:32px; font-weight:500; opacity:0.70;
+  letter-spacing:0.3px;
+  text-shadow:0 2px 24px rgba(0,0,0,0.7);
+}
+.divider { width:52px; height:3px; background:${accent}; border-radius:2px; }
+.handle {
+  display:inline-flex; align-items:center; gap:8px;
+  background:${accent}; color:#000;
+  font-family:${FONT_HEADLINE}; font-size:22px; font-weight:800;
+  letter-spacing:2.5px; text-transform:uppercase;
+  padding:14px 36px; border-radius:6px;
+}
+.src { text-align:center; font-size:15px; opacity:0.25; font-weight:400; }
+</style></head>
+<body>
+<div class="overlay"></div>
+<div class="c">
+  <div>
+    <div class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
+    <div class="top-rule"></div>
+  </div>
+  <div class="center">
+    <div class="cta-h">${ctaHeadline}</div>
+    <div class="divider"></div>
+    <div class="cta-sub">${tagline}</div>
+    <div class="handle">@EdLightNews</div>
+  </div>
+  ${footer ? `<div class="src">${footer}</div>` : "<span></span>"}
 </div>
 </body></html>`;
 }
