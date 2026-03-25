@@ -202,7 +202,7 @@ export default async function CalendrierPage({
       {/* Legacy article deadlines — collapsed by default to reduce noise */}
       {hasLegacy && (
         <details className="section-shell p-0">
-          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3.5 transition-colors hover:bg-stone-50/70 dark:hover:bg-stone-800/60">
+          <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between px-5 py-3.5 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800">
             <span className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 dark:text-stone-400">
               <FileText className="h-3.5 w-3.5" />
               {fr

@@ -50,10 +50,8 @@ export function SectionFeed({
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-stone-200 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96),rgba(241,245,249,0.94))] p-4 shadow-sm dark:border-stone-800 dark:bg-[linear-gradient(135deg,rgba(24,24,27,0.94),rgba(17,24,39,0.94),rgba(22,28,45,0.92))] sm:p-5">
-        <div className="pointer-events-none absolute -right-8 top-0 h-28 w-28 rounded-full bg-blue-300/20 blur-3xl dark:bg-blue-500/15" />
-        <div className="pointer-events-none absolute bottom-0 left-8 h-20 w-20 rounded-full bg-stone-300/20 blur-3xl dark:bg-stone-500/10" />
-        <div className="relative z-10 flex flex-wrap items-center gap-3">
+      <div className="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-5">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="space-y-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">
               {lang === "fr" ? "Sélection EdLight" : "Seleksyon EdLight"}
@@ -75,7 +73,7 @@ export function SectionFeed({
                   "rounded-full px-3 py-1.5 text-sm font-medium transition",
                   sort === opt
                     ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                    : "border border-stone-200 bg-white/80 text-stone-600 hover:bg-stone-50 dark:border-white/10 dark:bg-white/5 dark:text-stone-300 dark:hover:bg-white/10",
+                    : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
                 ].join(" ")}
               >
                 {opt === "relevance"

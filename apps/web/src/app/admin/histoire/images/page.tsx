@@ -237,7 +237,7 @@ function EntryImageCard({ entry, isEditing, onEdit, onUpdated }: EntryImageCardP
             </div>
           )}
           {hasIllustration && entry.illustration?.provider && (
-            <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
+            <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] text-white">
               {entry.illustration.provider === "manual" ? "📷 Manual" : "🌐 Wikimedia"}
             </span>
           )}

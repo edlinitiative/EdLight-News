@@ -60,7 +60,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
       </div>
 
       {/* Clean list rows */}
-      <div className="divide-y divide-stone-100 rounded-xl border border-stone-200/70 bg-white/80 dark:divide-stone-800 dark:border-stone-700/60 dark:bg-stone-900/50">
+      <div className="divide-y divide-stone-100 rounded-xl border border-stone-200 bg-white dark:divide-stone-800 dark:border-stone-700 dark:bg-stone-900">
         {items.map((item) => {
           const dateISO = getItemDateISO(item);
           const date = dateISO ? parseISODateSafe(dateISO) : null;
@@ -81,7 +81,7 @@ export function UrgentDeadlines({ items, lang }: Props) {
             <div
               key={item.id}
               className={[
-                "flex items-center gap-3 px-3.5 py-2.5 border-l-[3px] transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/40",
+                "flex items-center gap-3 px-3.5 py-2.5 border-l-[3px] transition-colors hover:bg-stone-50 dark:hover:bg-stone-800",
                 uc ? uc.bar : "border-l-stone-200 dark:border-l-stone-700",
               ].join(" ")}
             >

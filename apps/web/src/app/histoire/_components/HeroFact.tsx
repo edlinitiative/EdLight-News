@@ -80,7 +80,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
               {entry.year != null && (
                 <time
                   dateTime={toISODate(entry.monthDay, entry.year)}
-                  className="rounded-lg bg-white/90 px-2.5 py-1 text-sm font-extrabold tabular-nums text-stone-900 shadow-sm backdrop-blur-sm dark:bg-stone-900/80 dark:text-white"
+                  className="rounded-lg bg-white px-2.5 py-1 text-sm font-extrabold tabular-nums text-stone-900 shadow-sm dark:bg-stone-900 dark:text-white"
                 >
                   {entry.year}
                 </time>
@@ -88,7 +88,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
               {showDate && (
                 <time
                   dateTime={toISODate(entry.monthDay, entry.year)}
-                  className="rounded-lg bg-white/80 px-2 py-0.5 text-xs font-semibold text-stone-700 backdrop-blur-sm dark:bg-stone-900/70 dark:text-stone-200"
+                  className="rounded-lg bg-white px-2 py-0.5 text-xs font-semibold text-stone-700 dark:bg-stone-900 dark:text-stone-200"
                 >
                   {formatMonthDay(entry.monthDay, lang)}
                 </time>
@@ -98,7 +98,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
                 return (
                   <span
                     key={tag}
-                    className="rounded-full bg-white/80 px-2.5 py-0.5 text-[11px] font-semibold text-stone-800 backdrop-blur-sm dark:bg-stone-900/70 dark:text-stone-200"
+                    className="rounded-full bg-white px-2.5 py-0.5 text-[11px] font-semibold text-stone-800 dark:bg-stone-900 dark:text-stone-200"
                   >
                     {fr ? t?.fr : t?.ht}
                   </span>
@@ -109,7 +109,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
 
           {/* Wiki badge */}
           {isWikiImage && (
-            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white/80 backdrop-blur-sm">
+            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white/80">
               <Globe className="h-2.5 w-2.5" />
               Wikipedia
             </span>
@@ -164,7 +164,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
 
         {/* Takeaway callout */}
         {entry.student_takeaway_fr && (
-          <div className="flex gap-3 rounded-xl bg-amber-50/80 p-4 dark:bg-amber-900/20">
+          <div className="flex gap-3 rounded-xl bg-amber-50 p-4 dark:bg-amber-900/20">
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <div>
               <p className="text-xs font-bold text-amber-800 dark:text-amber-200">

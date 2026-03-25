@@ -19,7 +19,7 @@ interface EmptyStateProps {
 export function EmptyState({ lang, dateLabel, hint, onGoToday }: EmptyStateProps) {
   const fr = lang === "fr";
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-stone-200 bg-white/60 py-14 text-center dark:border-stone-700 dark:bg-stone-800/40">
+    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-stone-200 bg-white py-14 text-center dark:border-stone-700 dark:bg-stone-800">
       <BookOpen className="mb-3 h-10 w-10 text-stone-300 dark:text-stone-600" />
       {dateLabel && (
         <p className="mb-1 text-sm font-medium text-stone-500 dark:text-stone-400">

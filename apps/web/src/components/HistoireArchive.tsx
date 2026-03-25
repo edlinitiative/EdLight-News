@@ -204,7 +204,7 @@ export function HistoireArchive({
   // ── Render ──
 
   return (
-    <section className="space-y-7 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900/70 sm:p-7">
+    <section className="space-y-7 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-7">
       {/* ── Section heading ── */}
       <div className="text-center">
         <h2 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
@@ -218,7 +218,7 @@ export function HistoireArchive({
         </p>
       </div>
 
-      <div className="space-y-5 rounded-xl border border-stone-200 bg-stone-50/70 p-4 dark:border-stone-700 dark:bg-stone-800/60 sm:p-5">
+      <div className="space-y-5 rounded-xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800 sm:p-5">
         {/* ── View mode toggle ── */}
         <div className="flex justify-center">
           <div className="inline-flex rounded-xl border border-stone-200 bg-white p-1 shadow-sm dark:border-stone-700 dark:bg-stone-800">

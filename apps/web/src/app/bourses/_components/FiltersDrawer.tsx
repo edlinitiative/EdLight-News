@@ -58,7 +58,7 @@ export function FiltersDrawer({
     <>
       {/* ── Backdrop ── */}
       <div
-        className={`fixed inset-0 z-40 bg-black/25 backdrop-blur-sm transition-opacity duration-200 ${
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-200 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}

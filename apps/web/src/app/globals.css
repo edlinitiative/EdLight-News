@@ -101,12 +101,12 @@
     @apply border-stone-800 bg-stone-900;
   }
 
-  /* ── Glass panel ────────────────────────────────────────── */
+  /* ── Glass panel (now solid) ─────────────────────────────── */
   .glass-panel {
-    @apply rounded-xl border border-white/30 bg-white/80 p-4 backdrop-blur-2xl;
+    @apply rounded-xl border border-stone-200 bg-white p-4;
   }
   .dark .glass-panel {
-    @apply border-stone-800/50 bg-stone-950/80;
+    @apply border-stone-800 bg-stone-950;
   }
 
   /* ── Premium section (legacy alias) ─────────────────────── */

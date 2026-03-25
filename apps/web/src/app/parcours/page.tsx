@@ -94,7 +94,6 @@ export default async function ParcoursPage({
             >
               {/* Pathway header */}
               <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 p-6 dark:from-blue-900/20 dark:to-indigo-900/20">
-                <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full bg-white/40 blur-2xl dark:bg-blue-400/10" />
                 <div className="flex items-center gap-3">
                   {cl?.flag && <CountryFlag code={cl.flag} size="lg" />}
                   <div>
@@ -135,7 +134,7 @@ export default async function ParcoursPage({
 
               {/* Sources */}
               {p.sources && p.sources.length > 0 && (
-                <div className="border-t bg-stone-50/80 p-4 dark:border-stone-700/80 dark:bg-stone-900/20">
+                <div className="border-t bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900">
                   <p className="text-xs font-medium text-stone-400 dark:text-stone-500 uppercase">
                     {fr ? "Sources" : "Sous"}
                   </p>
@@ -146,7 +145,7 @@ export default async function ParcoursPage({
                         href={src.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rounded-full border border-stone-200/80 bg-white/80 px-2 py-1 text-xs text-blue-700 hover:border-blue-200 dark:border-stone-700/70 dark:bg-stone-900/40 dark:text-blue-400"
+                        className="rounded-full border border-stone-200 bg-white px-2 py-1 text-xs text-blue-700 hover:border-blue-200 dark:border-stone-700 dark:bg-stone-900 dark:text-blue-400"
                       >
                         {src.label ?? src.url}
                       </a>

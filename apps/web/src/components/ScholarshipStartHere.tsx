@@ -82,7 +82,7 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900/70 sm:p-6">
+    <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-6">
       <div className="relative z-10">
         <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-2xl">
           {fr ? "Par où commencer ?" : "Ki kote pou kòmanse ?"}

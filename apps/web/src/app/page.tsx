@@ -460,7 +460,7 @@ export default async function AccueilPage({
                   <Link
                     key={`hero-urgent-${item.id}`}
                     href={item.href}
-                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-2 text-sm font-medium text-stone-700 shadow-sm backdrop-blur transition-transform duration-200 hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-stone-200"
+                    className="inline-flex max-w-full items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
                   >
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${badgeStyle(status.badgeVariant)}`}>
                       {status.badgeLabel}
@@ -477,7 +477,7 @@ export default async function AccueilPage({
               ].map((chip) => (
                 <span
                   key={chip}
-                  className="rounded-full border border-white/70 bg-white/75 px-3 py-2 text-sm font-medium text-stone-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-stone-300"
+                  className="rounded-full border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
                 >
                   {chip}
                 </span>

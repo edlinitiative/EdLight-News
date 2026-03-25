@@ -105,7 +105,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
                     "rounded-full px-3 py-1.5 text-sm font-medium transition",
                     filter === opt.key
                       ? "bg-red-600 text-white shadow-sm dark:bg-red-500"
-                      : "border border-sky-200/80 bg-white/85 text-sky-700 hover:bg-sky-50 dark:border-white/10 dark:bg-white/5 dark:text-sky-200 dark:hover:bg-white/10",
+                      : "border border-sky-200 bg-white text-sky-700 hover:bg-sky-50 dark:border-sky-800 dark:bg-stone-800 dark:text-sky-200 dark:hover:bg-stone-700",
                   ].join(" ")}
                 >
                   {fr ? opt.fr : opt.ht}
@@ -113,7 +113,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
               ))}
             </div>
 
-            <div className="hidden h-8 w-px bg-sky-200/80 dark:bg-white/10 sm:block" />
+            <div className="hidden h-8 w-px bg-sky-200 dark:bg-stone-700 sm:block" />
 
             <div className="flex flex-wrap gap-2">
               {(["relevance", "latest"] as SortMode[]).map((opt) => (
@@ -124,7 +124,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
                     "rounded-full px-3 py-1.5 text-sm font-medium transition",
                     sort === opt
                       ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                      : "border border-stone-200/80 bg-white/80 text-stone-600 hover:bg-stone-50 dark:border-white/10 dark:bg-white/5 dark:text-stone-300 dark:hover:bg-white/10",
+                      : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
                   ].join(" ")}
                 >
                   {opt === "relevance"

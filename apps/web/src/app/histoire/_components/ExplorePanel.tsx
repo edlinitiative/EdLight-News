@@ -68,7 +68,7 @@ export function ExplorePanel({
   }, [activeRange]);
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-700/60 dark:bg-stone-800/60 sm:p-5">
+    <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-700 dark:bg-stone-800 sm:p-5">
       <div className="flex flex-col gap-3">
         {/* Header row */}
         <div className="flex items-center justify-between">

@@ -133,7 +133,7 @@ export function MiniMonthGrid({ items, lang }: Props) {
   return (
     <div
       aria-label={fr ? "Mini-calendrier" : "Mini-kalandriye"}
-      className="rounded-xl border border-stone-200/70 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-stone-700/60 dark:bg-stone-900/65"
+      className="rounded-xl border border-stone-200 bg-white p-3 shadow-sm dark:border-stone-700 dark:bg-stone-900"
     >
       {/* Navigation */}
       <div className="mb-2.5 flex items-center justify-between gap-1">

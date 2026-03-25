@@ -101,7 +101,7 @@ export function ThisWeek({ items, lang }: Props) {
       </div>
 
       {/* Vertical timeline */}
-      <div className="relative rounded-xl border border-stone-200/70 bg-white/70 p-4 pl-14 dark:border-stone-700/60 dark:bg-stone-900/50">
+      <div className="relative rounded-xl border border-stone-200 bg-white p-4 pl-14 dark:border-stone-700 dark:bg-stone-900">
         {/* Connecting line */}
         <div
           aria-hidden
@@ -159,7 +159,7 @@ export function ThisWeek({ items, lang }: Props) {
                     return (
                       <div
                         key={item.id}
-                        className="rounded-xl border border-stone-200/80 bg-white/85 px-3 py-2 shadow-sm transition-colors hover:border-blue-200 hover:bg-white dark:border-stone-700/70 dark:bg-stone-900/65 dark:hover:border-blue-500/30"
+                        className="rounded-xl border border-stone-200 bg-white px-3 py-2 shadow-sm transition-colors hover:border-blue-200 dark:border-stone-700 dark:bg-stone-900 dark:hover:border-blue-500/30"
                       >
                         <div className="flex items-start gap-2">
                           <span className="mt-0.5 flex shrink-0">{icon}</span>

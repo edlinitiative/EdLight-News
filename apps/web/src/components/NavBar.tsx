@@ -173,7 +173,7 @@ export function NavBar() {
       {/* ── Main navigation ────────────────────────────────────────────── */}
       <nav
         ref={navRef}
-        className="sticky top-0 z-50 border-b border-stone-200 bg-white/95 backdrop-blur-xl dark:border-stone-800 dark:bg-stone-950/95"
+        className="sticky top-0 z-50 border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950"
       >
         <div className="mx-auto flex h-11 max-w-6xl items-center gap-0 px-4 sm:px-6 lg:px-8">
           {/* Primary sections */}
@@ -250,7 +250,7 @@ export function NavBar() {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
           />
           <div ref={mobilePanelRef} className="absolute inset-y-0 right-0 top-[108px] w-80 border-l border-stone-200 bg-white shadow-float dark:border-stone-800 dark:bg-stone-950" role="dialog" aria-modal="true" aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}>

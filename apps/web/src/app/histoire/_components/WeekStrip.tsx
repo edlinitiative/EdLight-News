@@ -33,7 +33,7 @@ export function WeekStrip({
   const isOnToday = selectedDate === todayDate;
 
   return (
-    <div className="sticky top-14 z-40 -mx-4 border-b border-stone-200/60 bg-stone-50/80 px-4 py-3 backdrop-blur-xl dark:border-stone-700/40 dark:bg-[#0c0a09]/80 sm:-mx-6 sm:px-6">
+    <div className="sticky top-14 z-40 -mx-4 border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-[#0c0a09] sm:-mx-6 sm:px-6">
       <div className="flex items-center gap-2">
         {/* Day pills — scrollable on mobile, grid on desktop */}
         <div

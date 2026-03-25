@@ -78,11 +78,11 @@ function CollapsibleWeek({
   const fr = lang === "fr";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-stone-200/70 bg-white/70 shadow-sm dark:border-stone-700/60 dark:bg-stone-900/50">
+    <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/60"
+        className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
         aria-expanded={open}
       >
         <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ function CollapsibleWeek({
                 <div
                   key={item.id}
                   id={anchorId}
-                  className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-800/50"
+                  className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
                 >
                   {/* Day number */}
                   <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-stone-300 dark:text-stone-600">

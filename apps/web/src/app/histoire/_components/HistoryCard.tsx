@@ -83,7 +83,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
               />
             )}
             {isWikiImage && (
-              <span className="absolute bottom-1 right-1 flex items-center gap-0.5 rounded-full bg-black/50 px-1.5 py-0.5 text-[8px] font-medium text-white/80 backdrop-blur-sm">
+              <span className="absolute bottom-1 right-1 flex items-center gap-0.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[8px] font-medium text-white/80">
                 <Globe className="h-2 w-2" />
               </span>
             )}
@@ -151,7 +151,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
           <div className="space-y-3 border-t border-stone-100 px-3.5 pb-4 pt-3 dark:border-stone-700/50 sm:px-4">
             {/* Takeaway */}
             {entry.student_takeaway_fr && (
-              <div className="flex gap-2.5 rounded-lg bg-amber-50/80 p-3 dark:bg-amber-900/20">
+              <div className="flex gap-2.5 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                 <p className="text-xs leading-relaxed text-amber-900/80 dark:text-amber-200/70">
                   {entry.student_takeaway_fr}

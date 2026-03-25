@@ -39,7 +39,7 @@ export function CompactFiltersRow({
   fr,
 }: CompactFiltersRowProps) {
   return (
-    <div className="sticky top-16 z-20 rounded-2xl border border-stone-200/80 bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur-md dark:border-stone-700 dark:bg-stone-900/95">
+    <div className="sticky top-16 z-20 rounded-2xl border border-stone-200 bg-white px-3 py-2.5 shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-2">
         {/* Search — full width on mobile, flexible on desktop */}
         <div className="relative w-full min-w-0 sm:w-auto sm:flex-1 sm:min-w-[200px]">

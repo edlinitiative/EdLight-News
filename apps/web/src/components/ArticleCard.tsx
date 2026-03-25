@@ -133,7 +133,7 @@ export function ArticleCard({
             </div>
           )}
           {article.imageSource === "wikidata" && (
-            <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[11px] text-white/70 backdrop-blur-sm">
+            <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[11px] text-white/70">
               Wikimedia
             </span>
           )}

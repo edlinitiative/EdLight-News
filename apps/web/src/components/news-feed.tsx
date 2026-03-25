@@ -503,7 +503,7 @@ export function NewsFeed({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-              className="w-full rounded-lg border border-stone-200/80 bg-white/80 px-3 py-1.5 pl-8 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
+              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-1.5 pl-8 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
             />
             <svg
               className="absolute left-2.5 top-2 h-3.5 w-3.5 text-stone-400 dark:text-stone-500"
@@ -522,7 +522,7 @@ export function NewsFeed({
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="shrink-0 rounded-lg border border-stone-200/80 bg-white/80 px-2.5 py-1.5 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900/70 dark:text-stone-100"
+            className="shrink-0 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
           >
             {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
               <option key={opt} value={opt}>

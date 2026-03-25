@@ -309,7 +309,7 @@ function StructuredSections({
             key={i}
             className={
               isHistory
-                ? "relative rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800/80"
+                ? "relative rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800"
                 : ""
             }
           >
@@ -452,7 +452,7 @@ function SynthesisSourcesList({
   if (!sourceList || sourceList.length === 0) return null;
 
   return (
-    <section className="rounded-lg border bg-stone-50/50 p-5 dark:border-stone-700 dark:bg-stone-800/50">
+    <section className="rounded-lg border bg-stone-50 p-5 dark:border-stone-700 dark:bg-stone-800">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         <Newspaper className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr"
@@ -608,7 +608,7 @@ function UtilitySourceCitations({
   const cites = (article as any).sourceCitations as { name: string; url: string }[] | undefined;
   if (!cites || cites.length === 0) return null;
   return (
-    <section className="rounded-lg border bg-stone-50/50 p-5 dark:border-stone-700 dark:bg-stone-800/50">
+    <section className="rounded-lg border bg-stone-50 p-5 dark:border-stone-700 dark:bg-stone-800">
       <h2 className="mb-3 text-base font-semibold dark:text-white">
         <Paperclip className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Sources consultées" : "Sous konsilte"}
