@@ -11,7 +11,7 @@ import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generat
 import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
-import { generateContextualImage } from "../services/geminiImageGen.js";
+import { generateContextualImage, ensureOpportunityBackground } from "../services/geminiImageGen.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
@@ -239,6 +239,23 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // Format the payload
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
         const payload = await formatForIG(decision.igType, item, opts);
+
+        // ── Opportunity: always use the single branded background ─────────
+        // Like taux du jour, all opportunity slides share one consistent
+        // Gemini-generated background instead of random article images.
+        if (decision.igType === "opportunity") {
+          try {
+            const oppBg = await ensureOpportunityBackground();
+            if (oppBg) {
+              for (const slide of payload.slides) {
+                slide.backgroundImage = oppBg;
+              }
+              console.log(`[buildIgQueue] Applied branded opportunity background for ${item.id}`);
+            }
+          } catch (err) {
+            console.warn(`[buildIgQueue] opportunity background fetch failed for ${item.id}:`, err instanceof Error ? err.message : err);
+          }
+        }
 
         // ── Image consistency: every slide must use the same background ─
         // If any slide lacks a backgroundImage (low-confidence publisher image,

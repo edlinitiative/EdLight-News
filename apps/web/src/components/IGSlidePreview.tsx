@@ -63,7 +63,7 @@ function CoverSlide({
   return (
     <div
       style={{
-        width: "100%", aspectRatio: "1", fontFamily: FONT,
+        width: "100%", aspectRatio: "4/5", fontFamily: FONT,
         background: `${dark} url('${slide.backgroundImage}') center/cover no-repeat`,
         color: "#fff", overflow: "hidden", position: "relative", borderRadius: "8px",
       }}
@@ -126,11 +126,21 @@ function ContentSlide({
   const dark = TYPE_DARKS[igType] ?? "#060d1f";
   const label = TYPE_LABELS[igType] ?? "";
 
+  // For opportunity/scholarship/news/etc. add a subtle ambient glow in bottom-right
+  const glowStyle = {
+    position: "absolute" as const,
+    top: "-30%", right: "-20%",
+    width: "70%", height: "70%",
+    background: `radial-gradient(circle, ${accent}14 0%, transparent 70%)`,
+    pointerEvents: "none" as const,
+  };
+
   return (
     <div style={{
-      width: "100%", aspectRatio: "1", fontFamily: FONT,
+      width: "100%", aspectRatio: "4/5", fontFamily: FONT,
       background: dark, color: "#fff", overflow: "hidden", position: "relative", borderRadius: "8px",
     }}>
+      <div style={glowStyle} />
       <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 5, background: accent }} />
       <div style={{
         height: "100%", display: "flex", flexDirection: "column",
@@ -214,7 +224,7 @@ export function IGPostPreview({ igType, slides, caption }: IGPostPreviewProps) {
   // Nothing to render — show placeholder
   if (totalSlides === 0) {
     return (
-      <div className="flex aspect-square w-full items-center justify-center rounded-lg bg-stone-100 text-sm text-stone-400 dark:bg-stone-800">
+      <div className="flex w-full items-center justify-center rounded-lg bg-stone-100 text-sm text-stone-400 dark:bg-stone-800" style={{ aspectRatio: "4/5" }}>
         No slides yet
       </div>
     );

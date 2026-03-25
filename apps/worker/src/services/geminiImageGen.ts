@@ -388,6 +388,62 @@ export async function ensureTauxBackground(forceRegenerate = false): Promise<str
   return url;
 }
 
+// ── One-time opportunity background ───────────────────────────────────────
+
+const OPPORTUNITY_BG_PATH = "ig/assets/opportunity-background.png";
+
+/**
+ * Ensure the branded opportunity-post background image exists in Firebase Storage.
+ * Generates it exactly once via Gemini AI and reuses the same URL forever.
+ * Returns the public download URL.
+ */
+export async function ensureOpportunityBackground(forceRegenerate = false): Promise<string | null> {
+  try {
+    const { getApp } = await import("@edlight-news/firebase");
+    const { getStorage } = await import("firebase-admin/storage");
+    const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
+    const bucket = getStorage(getApp()).bucket(bucketName);
+    const file = bucket.file(OPPORTUNITY_BG_PATH);
+
+    if (!forceRegenerate) {
+      const [exists] = await file.exists();
+      if (exists) {
+        const [meta] = await file.getMetadata();
+        const token = (meta.metadata as Record<string, string> | undefined)?.firebaseStorageDownloadTokens;
+        if (token) {
+          const encoded = encodeURIComponent(OPPORTUNITY_BG_PATH);
+          const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encoded}?alt=media&token=${token}`;
+          console.log("[opp-bg] Reusing existing opportunity background");
+          return url;
+        }
+      }
+    }
+
+    console.log("[opp-bg] Generating one-time opportunity background image...");
+    const prompt = [
+      "Ultra high resolution abstract dark background for a professional career and opportunity social media post, at least 1080 pixels wide, extremely sharp details:",
+      "- Very dark near-black base (#0f0d08) with subtle warm amber/gold (#fbbf24) accent undertones",
+      "- Abstract flowing shapes evoking upward movement, growth, horizons, or open pathways",
+      "- Smooth organic gradients, faint soft-focus bokeh orbs, no sharp edges or hard lines",
+      "- Extremely subtle — text overlaid on it must remain fully readable",
+      "- NO text, NO people, NO recognizable logos or objects — purely atmospheric",
+      "- Portrait orientation 4:5 (1080×1350), premium editorial / career-media aesthetic",
+      "- Cinematic depth of field, slight film grain, professional media wallpaper quality",
+      "- Evokes ambition and opportunity — reminiscent of premium LinkedIn or Forbes editorial backgrounds",
+      "- Must look like a high-end career media wallpaper, not AI-generated",
+    ].join("\n");
+
+    const url = await generateCustomImage(prompt, OPPORTUNITY_BG_PATH);
+    if (url) {
+      console.log("[opp-bg] ✓ Opportunity background generated and stored permanently");
+    }
+    return url;
+  } catch (err) {
+    console.error("[opp-bg] Failed to ensure opportunity background:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
 /**
  * Generate a contextual image with a fully custom prompt (not tied to an item).
  * Useful for branded/generic images (maps, backgrounds, etc.).
