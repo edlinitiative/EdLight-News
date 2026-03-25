@@ -353,6 +353,21 @@ export function buildSourceLine(item: Item): string {
  */
 export function shortenText(text: string, max: number): string {
   if (text.length <= max) return text;
+
+  // Prefer ending at the last complete sentence inside the budget.
+  // Look for sentence-ending punctuation followed by a space and uppercase letter.
+  const window = text.slice(0, max);
+  const sentenceRe = /[.!?][)"'»]?\s/g;
+  let lastCut = -1;
+  let m: RegExpExecArray | null;
+  while ((m = sentenceRe.exec(window)) !== null) {
+    // Include the punctuation (and optional closing quote) but not the trailing space
+    const cutAt = m.index + m[0].trimEnd().length;
+    if (cutAt >= max * 0.45) lastCut = cutAt;
+  }
+  if (lastCut > 0) return text.slice(0, lastCut).trim();
+
+  // Fallback: word boundary + ellipsis
   const truncated = text.slice(0, max);
   const lastSpace = truncated.lastIndexOf(" ");
   return (lastSpace > max * 0.5 ? truncated.slice(0, lastSpace) : truncated) + "…";

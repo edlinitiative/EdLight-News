@@ -42,7 +42,7 @@ const HISTOIRE_CTA_IMAGE =
 const MAX_BULLETS_PER_SLIDE = 2;
 
 /** Max chars per bullet — enough context without turning slides into paragraphs. */
-const MAX_BULLET_CHARS = 180;
+const MAX_BULLET_CHARS = 140;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
