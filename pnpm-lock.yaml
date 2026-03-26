@@ -29,6 +29,9 @@ importers:
       '@edlight-news/generator':
         specifier: workspace:*
         version: link:../../packages/generator
+      '@edlight-news/renderer':
+        specifier: workspace:^
+        version: link:../../packages/renderer
       '@edlight-news/types':
         specifier: workspace:*
         version: link:../../packages/types
