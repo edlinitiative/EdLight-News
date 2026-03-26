@@ -15,31 +15,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface IGSlideData {
-  heading: string;
-  bullets: string[];
-  footer: string | null;
-}
-
-interface IGPublishEntry {
-  id: string;
-  sourceContentId: string;
-  igType: string;
-  score: number;
-  status: string;
-  scheduledFor: string | null;
-  caption: string | null;
-  slides: IGSlideData[];
-  slideUrls: string[];
-  slideCount: number;
-  dryRunPath: string | null;
-  igPostId: string | null;
-  reasons: string[];
-  createdAt: string | null;
-  updatedAt: string | null;
-}
+import type { IGPublishEntry } from "@/types/admin";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 

@@ -1,31 +1,10 @@
-"use client";
+import { getDb } from "@edlight-news/firebase";
+import { PipelineControl } from "./_PipelineControl";
+import type { AdminStats } from "@/types/admin";
 
-import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, XCircle } from "lucide-react";
+export const dynamic = "force-dynamic";
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface Stats {
-  items: { total: number; withImages: number };
-  contentVersions: { total: number; published: number; draft: number };
-  sources: { active: number };
-}
-
-interface TickResult {
-  ok: boolean;
-  timedOut?: boolean;
-  durationMs?: number;
-  error?: string;
-  results?: {
-    ingest: { new: number; skipped: number; errors: number };
-    process: { processed: number; skipped: number; errors: number };
-    generate: { generated: number; skipped: number; errors: number };
-    published: number;
-    images?: { generated: number; failed: number };
-  };
-}
-
-// ── Stat card ────────────────────────────────────────────────────────────────
+// ── Stat card ─────────────────────────────────────────────────────────────────
 
 function StatCard({
   label,
@@ -47,123 +26,49 @@ function StatCard({
   );
 }
 
-// ── Result panel ─────────────────────────────────────────────────────────────
+// ── Stats fetcher ─────────────────────────────────────────────────────────────
 
-function ResultRow({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-stone-500 dark:text-stone-400">{label}</span>
-      <span className="font-medium tabular-nums dark:text-white">{value}</span>
-    </div>
-  );
+async function fetchStats(): Promise<AdminStats> {
+  const db = getDb();
+  const [
+    itemsTotal,
+    itemsWithImages,
+    cvsTotal,
+    cvsPublished,
+    cvsDraft,
+    sourcesActive,
+  ] = await Promise.all([
+    db.collection("items").count().get(),
+    db.collection("items").where("imageSource", "in", ["publisher", "wikidata", "branded", "screenshot"]).count().get(),
+    db.collection("content_versions").count().get(),
+    db.collection("content_versions").where("status", "==", "published").count().get(),
+    db.collection("content_versions").where("status", "==", "draft").count().get(),
+    db.collection("sources").where("active", "==", true).count().get(),
+  ]);
+
+  return {
+    items: {
+      total: itemsTotal.data().count,
+      withImages: itemsWithImages.data().count,
+    },
+    contentVersions: {
+      total: cvsTotal.data().count,
+      published: cvsPublished.data().count,
+      draft: cvsDraft.data().count,
+    },
+    sources: {
+      active: sourcesActive.data().count,
+    },
+  };
 }
 
-function TickResultPanel({ result }: { result: TickResult }) {
-  const bg = result.ok
-    ? "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
-    : "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800";
-  const icon = result.ok
-    ? <CheckCircle className="inline-block h-5 w-5 text-green-600" />
-    : <XCircle className="inline-block h-5 w-5 text-red-600" />;
-  const heading = result.timedOut
-    ? "Pipeline triggered (still running)"
-    : result.ok
-      ? "Pipeline complete"
-      : "Pipeline error";
+// ── Page ──────────────────────────────────────────────────────────────────────
 
-  return (
-    <div className={`rounded-lg border p-5 space-y-3 ${bg}`}>
-      <div className="flex items-center justify-between">
-        <span className="font-semibold">
-          {icon} {heading}
-        </span>
-        {result.durationMs && (
-          <span className="text-xs text-stone-400">
-            {(result.durationMs / 1000).toFixed(1)}s
-          </span>
-        )}
-      </div>
-
-      {result.error && (
-        <p className="text-sm text-red-700 dark:text-red-400">{result.error}</p>
-      )}
-
-      {result.results && (
-        <div className="divide-y divide-stone-200 rounded-lg bg-white/60 px-4 py-2 dark:divide-stone-700 dark:bg-stone-800/60">
-          <div className="py-2">
-            <ResultRow label="Ingest — new raw items" value={result.results.ingest?.new ?? 0} />
-          </div>
-          <div className="py-2 space-y-1">
-            <ResultRow label="Process — items created/updated" value={result.results.process?.processed ?? 0} />
-            <ResultRow label="Process — skipped" value={result.results.process?.skipped ?? 0} />
-          </div>
-          <div className="py-2">
-            <ResultRow label="Generate — content versions" value={result.results.generate?.generated ?? 0} />
-          </div>
-          <div className="py-2">
-            <ResultRow label="Published" value={result.results.published ?? 0} />
-          </div>
-          {result.results.images && (
-            <div className="py-2 space-y-1">
-              <ResultRow label="Images — generated" value={result.results.images.generated} />
-              <ResultRow label="Images — failed" value={result.results.images.failed} />
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
-
-export default function AdminPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [statsError, setStatsError] = useState<string | null>(null);
-  const [running, setRunning] = useState(false);
-  const [tickResult, setTickResult] = useState<TickResult | null>(null);
-
-  const loadStats = useCallback(async () => {
-    setStatsError(null);
-    try {
-      const res = await fetch("/api/admin/stats");
-      if (res.status === 401) {
-        window.location.href = "/admin/login?from=/admin";
-        return;
-      }
-      const data = await res.json();
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to load stats");
-      setStats(data as Stats);
-    } catch (err) {
-      setStatsError(err instanceof Error ? err.message : "Failed to load stats");
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadStats();
-  }, [loadStats]);
-
-  async function runPipeline() {
-    setRunning(true);
-    setTickResult(null);
-    try {
-      const res = await fetch("/api/admin/tick", { method: "POST" });
-      if (res.status === 401) {
-        window.location.href = "/admin/login?from=/admin";
-        return;
-      }
-      const data = (await res.json()) as TickResult;
-      setTickResult(data);
-      if (data.ok) setTimeout(() => void loadStats(), 500);
-    } catch (err) {
-      setTickResult({ ok: false, error: err instanceof Error ? err.message : "Network error" });
-    } finally {
-      setRunning(false);
-    }
-  }
+export default async function AdminPage() {
+  const stats = await fetchStats();
 
   const imagesPct =
-    stats && stats.items.total > 0
+    stats.items.total > 0
       ? Math.round((stats.items.withImages / stats.items.total) * 100)
       : 0;
 
@@ -181,71 +86,31 @@ export default function AdminPage() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-400">
           Overview
         </h2>
-        {statsError ? (
-          <p className="text-sm text-red-600">{statsError}</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            <StatCard label="Active sources" value={stats?.sources.active ?? "—"} />
-            <StatCard label="Items" value={stats?.items.total ?? "—"} />
-            <StatCard
-              label="Published articles"
-              value={stats?.contentVersions.published ?? "—"}
-              sub="FR + HT combined"
-              color="bg-green-50 dark:bg-green-950/30"
-            />
-            <StatCard
-              label="Drafts"
-              value={stats?.contentVersions.draft ?? "—"}
-              sub="awaiting review"
-              color={(stats?.contentVersions.draft ?? 0) > 0 ? "bg-yellow-50 dark:bg-yellow-950/30" : "bg-white dark:bg-stone-800"}
-            />
-            <StatCard
-              label="With images"
-              value={stats ? `${stats.items.withImages} (${imagesPct}%)` : "—"}
-              sub={`of ${stats?.items.total ?? "?"} items`}
-            />
-          </div>
-        )}
-        <button
-          onClick={() => void loadStats()}
-          className="mt-2 text-xs text-stone-400 hover:text-stone-600"
-        >
-          ↻ Refresh stats
-        </button>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <StatCard label="Active sources" value={stats.sources.active} />
+          <StatCard label="Items" value={stats.items.total} />
+          <StatCard
+            label="Published articles"
+            value={stats.contentVersions.published}
+            sub="FR + HT combined"
+            color="bg-green-50 dark:bg-green-950/30"
+          />
+          <StatCard
+            label="Drafts"
+            value={stats.contentVersions.draft}
+            sub="awaiting review"
+            color={stats.contentVersions.draft > 0 ? "bg-yellow-50 dark:bg-yellow-950/30" : "bg-white dark:bg-stone-800"}
+          />
+          <StatCard
+            label="With images"
+            value={`${stats.items.withImages} (${imagesPct}%)`}
+            sub={`of ${stats.items.total} items`}
+          />
+        </div>
       </div>
 
-      {/* Pipeline trigger */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-400">
-          Pipeline
-        </h2>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => void runPipeline()}
-            disabled={running}
-            className="inline-flex items-center gap-2 rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
-          >
-            {running ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Running…
-              </>
-            ) : (
-              <>▶ Run Pipeline</>
-            )}
-          </button>
-          {running && (
-            <span className="text-sm text-stone-400">
-              This may take 1–3 minutes. Please wait.
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-stone-400">
-          Runs: ingest → process → generate (FR+HT) → publish drafts → generate images
-        </p>
-        {tickResult && <TickResultPanel result={tickResult} />}
-      </div>
+      {/* Pipeline trigger (client island) */}
+      <PipelineControl />
     </section>
   );
 }
-

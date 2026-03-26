@@ -3,35 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X } from "lucide-react";
 import { IGPostPreview, IGSlideFrame } from "@/components/IGSlidePreview";
-import type { SlideData } from "@/components/IGSlidePreview";
-
-// ── Types ────────────────────────────────────────────────────────────────────
-
-interface IGQueueEntry {
-  id: string;
-  sourceContentId: string;
-  igType: string;
-  score: number;
-  status: string;
-  scheduledFor: string | null;
-  reasons: string[];
-  caption: string | null;
-  slides: SlideData[];
-  slidesCount: number;
-  dryRunPath: string | null;
-  igPostId: string | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
-
-interface IGQueueCounts {
-  queued: number;
-  scheduled: number;
-  posted: number;
-  skipped: number;
-  rendering: number;
-  expired: number;
-}
+import type { IGQueueEntry, IGQueueCounts } from "@/types/admin";
 
 // ── Status badge colors ──────────────────────────────────────────────────────
 
