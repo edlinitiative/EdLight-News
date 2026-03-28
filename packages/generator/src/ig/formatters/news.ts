@@ -198,7 +198,7 @@ function sectionToBullets(content: string): string[] {
   }
   return parts
     .slice(0, NEWS_MAX_BULLETS)
-    .map((b) => b.length > NEWS_MAX_BULLET_CHARS ? capBeatLength(b, NEWS_MAX_BULLET_CHARS) : b);
+    .map((b) => cleanSlideText(b.length > NEWS_MAX_BULLET_CHARS ? capBeatLength(b, NEWS_MAX_BULLET_CHARS) : b));
 }
 
 // ── French language detection ──────────────────────────────────────────────
@@ -265,6 +265,11 @@ export function cleanExtractedText(text: string): string {
     .replace(/Sur le même sujet.*/gis, "")
     .replace(/À lire (aussi|également).*/gis, "")
     .replace(/Lire (aussi|la suite).*/gis, "")
+    // Strip editorial brackets: [texte] → texte, orphan ] or [ → nothing
+    .replace(/\[([^\[\]]{1,120})\]/g, "$1")
+    .replace(/\[\.\.\.[^\]]*\]?/g, "")
+    .replace(/\[[^\]]*$/g, "")
+    .replace(/[\[\]]/g, "")
     // Clean up multiple spaces / newlines
     .replace(/\s{2,}/g, " ")
     .replace(/\n{2,}/g, "\n")
@@ -321,17 +326,19 @@ function capBeatLength(text: string, max = MAX_BEAT_CHARS): string {
 function extractFrenchBeats(item: Item, frSummary: string): string[] {
   const title = item.title;
 
-  // Try extractedText first (most detailed)
+  // Try extractedText first (most detailed).
+  // Use first-N sentences only — spread-based picking tends to pull from
+  // related-article sidebar content that scrapers append at the end.
   if (item.extractedText && looksLikeFrench(item.extractedText)) {
     const cleaned = cleanExtractedText(item.extractedText);
     const sentences = splitSentences(cleaned)
       .filter((s) => s.length > 30 && s.length < 350)
       .filter((s) => !isJunkSentence(s));
 
-    const picks = pickSpreadBeats(sentences, 3);
-    // Drop any beat that's too similar to the cover headline
-    const distinct = picks.filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
-    if (distinct.length > 0) return distinct.map((b) => capBeatLength(b));
+    // Take from the beginning of the article, dedup, then drop title near-matches
+    const picks = dedupBeats(sentences.slice(0, 8)).slice(0, 3)
+      .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
+    if (picks.length > 0) return picks.map((b) => cleanSlideText(capBeatLength(b)));
   }
 
   // Fallback: synthesize beats from the French summary
@@ -344,11 +351,11 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
       // Dedup among beats AND against the title
       const deduped = dedupBeats(sentences.slice(0, 4))
         .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
-      return deduped.slice(0, 3).map((b) => capBeatLength(b));
+      return deduped.slice(0, 3).map((b) => cleanSlideText(capBeatLength(b)));
     }
     // Single long summary → cap at inner-slide-friendly length (≤ ~4 lines)
     if (frSummary.length > 60) {
-      const capped = capBeatLength(frSummary, 160);
+      const capped = cleanSlideText(capBeatLength(frSummary, 160));
       // Skip if it just restates the title
       if (jaccardSimilarity(capped, title) <= SIMILARITY_THRESHOLD) {
         return [capped];
