@@ -59,7 +59,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   // ── Slide 2: About — what is this scholarship ──
   slides.push({
     heading: "De quoi s'agit-il ?",
-    bullets: [shortenText(summary, 350)],
+    bullets: [shortenText(summary, 200)],
     layout: "explanation",
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });

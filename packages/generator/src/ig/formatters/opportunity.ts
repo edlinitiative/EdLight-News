@@ -43,7 +43,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   if (coverage) coverMeta.push(coverage);
   if (geoLabel) coverMeta.push(geoLabel);
   if (coverMeta.length > 0) aboutBullets.push(coverMeta.join("  ·  "));
-  aboutBullets.push(shortenText(summary, 300));
+  aboutBullets.push(shortenText(summary, 200));
   slides.push({
     heading: "De quoi s'agit-il ?",
     bullets: aboutBullets,

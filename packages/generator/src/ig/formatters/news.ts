@@ -59,6 +59,11 @@ const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
   /laisser un commentaire/i, /votre commentaire/i,
   /enregistrer mon nom/i, /mon prochain commentaire/i,
   /site web.*prochain/i,
+  // Publication metadata that leaks through scraping (RFI, Mediapart, etc.)
+  /^publié le\s*[:\-]/i, /^modifié le\s*[:\-]/i,
+  "temps de lecture",
+  /^\d+\s*min\s*(temps|de)/i,
+  /^\d+\/\d+\/\d{4}\s*[\-–]/,  // date stamps like "28/03/2026 -"
 ];
 
 export function isJunkSentence(sentence: string): boolean {
@@ -252,7 +257,7 @@ function looksLikeFrench(text: string): boolean {
 }
 
 /** Maximum characters for a single beat line on a headline slide. */
-const MAX_BEAT_CHARS = 200;
+const MAX_BEAT_CHARS = 120;
 
 /**
  * Common French abbreviations that should NOT trigger a sentence boundary.

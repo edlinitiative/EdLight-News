@@ -441,10 +441,15 @@ const NEWS_DOMAINS = [
  * Convert a raw URL into human-friendly text for IG slides.
  * e.g. "https://www.campusfrance.org/apply" → "Postulez sur campusfrance.org"
  * For news sites → "Plus d'infos sur juno7.ht"
+ * For Google News redirects → "Voir les détails" (real URL is buried in redirect)
  */
 export function humanizeUrl(url: string): string {
   try {
     const domain = new URL(url).hostname.replace(/^www\./, "");
+    // Google News redirect URLs look like news.google.com/articles/… — the actual
+    // destination URL is embedded in the redirect and we cannot follow it here.
+    // Return a neutral label rather than "Postulez sur news.google.com".
+    if (domain === "news.google.com") return "Voir les détails";
     const isNews = NEWS_DOMAINS.some((nd) => domain === nd || domain.endsWith("." + nd));
     return isNews
       ? `Plus d'infos sur ${domain}`

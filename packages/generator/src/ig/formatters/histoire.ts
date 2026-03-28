@@ -315,15 +315,15 @@ function buildHistoireNarrativeSlides(
 
   if (sentences.length === 0) return [];
 
-  // Group into paragraph slides: 2-3 sentences joined as one text block.
-  // No heading, no amber-bordered bullets — clean reading flow.
-  const PARA_SIZE = 3;
+  // Group into slides: MAX_BULLETS_PER_SLIDE sentences per slide, each sentence
+  // as its own bullet capped at MAX_BULLET_CHARS. This prevents joining 3 sentences
+  // into a single 300-400 char mega-bullet that overflows the slide.
   const paraSlides: IGSlide[] = [];
-  for (let i = 0; i < sentences.length; i += PARA_SIZE) {
-    const chunk = sentences.slice(i, i + PARA_SIZE);
+  for (let i = 0; i < sentences.length; i += MAX_BULLETS_PER_SLIDE) {
+    const chunk = sentences.slice(i, i + MAX_BULLETS_PER_SLIDE);
     paraSlides.push({
       heading: "",
-      bullets: [chunk.join(" ")],
+      bullets: chunk.map((s) => shortenText(s, MAX_BULLET_CHARS)),
       layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
