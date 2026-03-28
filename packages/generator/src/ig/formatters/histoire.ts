@@ -545,6 +545,12 @@ export function buildHistoireCarousel(
   const sourceFooter = buildSourceFooter(item);
   const premiumHistoryCTA = "Suivez EdLight News pour d'autres repères historiques.";
 
+  // Source attribution on the last content slide (before CTA), so attribution
+  // is visible even for users who don't read the caption.
+  if (slides.length > 1 && !slides[slides.length - 1]!.footer) {
+    slides[slides.length - 1]!.footer = sourceFooter;
+  }
+
   slides.push({
     heading: "Suivez-nous pour plus de repères historiques",
     bullets: ["L'histoire d'Haïti, chaque jour."],

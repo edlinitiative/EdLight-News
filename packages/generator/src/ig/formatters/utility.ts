@@ -5,6 +5,10 @@
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenCaptionText, formatDeadline, shortenHeadline, type BilingualText } from "./helpers.js";
 
+/** Background for the EdLight News CTA closing slide — Citadelle Laferrière. */
+const UTILITY_CTA_IMAGE =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+
 export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
@@ -64,6 +68,15 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
     slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
+
+  // ── Marketing CTA slide ──
+  slides.push({
+    heading: "Suivez EdLight News",
+    bullets: ["Ressources & infos pratiques, chaque semaine."],
+    layout: "cta",
+    backgroundImage: UTILITY_CTA_IMAGE,
+    footer: buildSourceLine(item),
+  });
 
   // Caption — bilingual
   const parts: string[] = [

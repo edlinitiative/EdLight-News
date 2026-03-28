@@ -86,20 +86,15 @@ describe("buildSlideHTML", () => {
     assert.ok(html.includes("linear-gradient"), "Should have gradient");
   });
 
-  it("inner slide with image gets blur CSS plus the stronger inner overlay", () => {
+  it("inner slides use the same cover overlay as the first slide (no blur)", () => {
     const slide = makeSlide({ backgroundImage: "https://example.com/img.jpg" });
     const html = buildSlideHTML(slide, "news", 1, 4);
-    assert.ok(
-      html.includes("blur(6px)"),
-      "Inner slide with image should have blur",
-    );
-    assert.ok(
-      html.includes("brightness(0.88)"),
-      "Inner slide should dim the blurred background",
-    );
+    // No blur — all slides render at full image sharpness (uniform design)
+    assert.ok(!html.includes("blur(6px)"), "Inner slides should not have blur — uniform design");
+    // The overlay div is still rendered to darken the image
     assert.ok(
       html.includes('<div class="overlay"></div>'),
-      "Inner slide should render the overlay div",
+      "Inner slide should still render the overlay div",
     );
   });
 
@@ -193,16 +188,14 @@ describe("buildSlideHTML", () => {
     }
   });
 
-  it("explanation layout keeps blur on inner image slides with an overlay", () => {
+  it("explanation layout renders overlay div on inner image slides (no blur)", () => {
     const slide = makeSlide({
       layout: "explanation",
       backgroundImage: "https://example.com/img.jpg",
     });
     const html = buildSlideHTML(slide, "opportunity", 2, 4);
-    assert.ok(
-      html.includes("blur(6px)"),
-      "Explanation inner slide should have blur",
-    );
+    // No blur — uniform cover overlay on all slides
+    assert.ok(!html.includes("blur(6px)"), "Explanation inner slide should not have blur — uniform design");
     assert.ok(
       html.includes('<div class="overlay"></div>'),
       "Explanation inner slide should have overlay div",
@@ -242,7 +235,7 @@ describe("buildSlideHTML", () => {
     );
   });
 
-  it("data layout keeps blur on inner image slides with an overlay", () => {
+  it("data layout renders overlay div on inner image slides (no blur)", () => {
     const slide = makeSlide({
       layout: "data",
       statValue: "250K",
@@ -250,7 +243,8 @@ describe("buildSlideHTML", () => {
       backgroundImage: "https://example.com/img.jpg",
     });
     const html = buildSlideHTML(slide, "scholarship", 1, 3);
-    assert.ok(html.includes("blur(6px)"), "Data inner slide should have blur");
+    // No blur — uniform cover overlay on all slides
+    assert.ok(!html.includes("blur(6px)"), "Data inner slide should not have blur — uniform design");
     assert.ok(
       html.includes('<div class="overlay"></div>'),
       "Data inner slide should have overlay div",

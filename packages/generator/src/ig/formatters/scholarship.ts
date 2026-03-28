@@ -95,7 +95,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   const applyBullets: string[] = [];
   if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
   if (item.opportunity?.howToApply) applyBullets.push(shortenText(ensureFrenchHowToApply(item.opportunity.howToApply), 250));
-  if (deadlineStr) applyBullets.push(`Date limite : ${formatDeadline(deadlineStr)}`);
+  if (deadlineStr) applyBullets.push(`Date limite — ${formatDeadline(deadlineStr)}`);
   if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
 
   slides.push({
