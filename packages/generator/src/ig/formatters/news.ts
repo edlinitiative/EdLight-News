@@ -54,6 +54,11 @@ const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
   // Sidebar / related article fragments
   /^[A-ZÀ-Ü][a-zà-ü]+ [A-ZÀ-Ü][a-zà-ü]+ (Politique|Économie|Sport|Culture|Société|Diplomatie|Justice)/,
   "diaspora", /^partager$/i,
+  // Blog comment form junk
+  /commentaire.*nom.*e-mail/i, /\* nom \*/i, /\* e-mail/i,
+  /laisser un commentaire/i, /votre commentaire/i,
+  /enregistrer mon nom/i, /mon prochain commentaire/i,
+  /site web.*prochain/i,
 ];
 
 export function isJunkSentence(sentence: string): boolean {
@@ -550,6 +555,10 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
  */
 export function cleanSlideText(text: string): string {
   let result = text.trim();
+
+  // Step 0: Strip orphan guillemets left at start/end when sbd splits
+  // inside French quoted speech (« sentence. » → two beats with «/» stranded)
+  result = result.replace(/^[»›]+\s*/, "").replace(/\s*[«‹]+$/, "").trim();
 
   // Step 1: Rewrite "X (Y)" → "X — Y"
   // Only rewrites parenthetical notes that add precision, not full sub-thoughts

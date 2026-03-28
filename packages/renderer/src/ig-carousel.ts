@@ -275,7 +275,8 @@ function buildHeadlineHTML(
       : 6;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
+  // Use cover overlay on every slide so all images look identical.
+  const overlayGradient = hasImage ? overlays.cover : undefined;
   const mainClass = isHistory
     ? "main history-main"
     : isScholarship
@@ -517,7 +518,8 @@ function buildExplanationHTML(
       .join("\n    ");
   const pad = `${MARGIN.top}px ${MARGIN.side}px 140px${!hasImage ? ` ${MARGIN.side + 10}px` : ""}`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
+  // Use cover overlay on every slide so all images look identical.
+  const overlayGradient = hasImage ? overlays.cover : undefined;
   const mainClass = isHistory
     ? "main history-main"
     : isScholarship
@@ -663,7 +665,8 @@ function buildDataHTML(
   const hasImage = !!slide.backgroundImage;
   const pad = `${MARGIN.top}px ${MARGIN.side}px ${MARGIN.bottom}px`;
   const overlays = OVERLAY_BY_TYPE[igType] ?? OVERLAY_BY_TYPE.utility!;
-  const overlayGradient = hasImage ? (isFirst ? overlays.cover : overlays.inner) : undefined;
+  // Use cover overlay on every slide so all images look identical.
+  const overlayGradient = hasImage ? overlays.cover : undefined;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
