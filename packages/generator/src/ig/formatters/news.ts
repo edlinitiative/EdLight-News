@@ -20,6 +20,10 @@
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, type BilingualText } from "./helpers.js";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const sbd = require("sbd") as { sentences(text: string, opts?: Record<string, unknown>): string[] };
 
 // Patterns that indicate a sentence is scraping junk, not real content
 const JUNK_BULLET_PATTERNS: (string | RegExp)[] = [
@@ -225,14 +229,29 @@ function looksLikeFrench(text: string): boolean {
 const MAX_BEAT_CHARS = 200;
 
 /**
- * Split text into complete sentences, keeping the ending punctuation.
- * E.g. "Hello world. Next one!" → ["Hello world.", "Next one!"]
+ * Common French abbreviations that should NOT trigger a sentence boundary.
+ * sbd already knows English ones (Mr, Mrs, Dr, Jr, etc.);
+ * we extend it with French-specific forms.
+ */
+const FRENCH_ABBREVIATIONS = [
+  "M", "Mme", "Mlle", "Mgr", "Dr", "Pr", "Me", "St", "Ste",
+  "vol", "vs", "etc", "env", "apr", "av", "cf", "ex", "id",
+  "ibid", "loc", "op", "pp", "sq", "art", "chap", "fig",
+];
+
+/**
+ * Split text into complete sentences using sbd (Sentence Boundary Detection).
+ * sbd uses an abbreviation dictionary so it correctly handles M., Dr., etc.
+ * rather than splitting on every period.
  */
 export function splitSentences(text: string): string[] {
-  // Match sentences that end with . ! or ? followed by space/EOL
-  const raw = text.match(/[^.!?]*[^.!?\s][^.!?]*[.!?]+/g);
-  if (!raw) return [];
-  return raw
+  if (!text || text.trim().length === 0) return [];
+  return sbd
+    .sentences(text, {
+      newline_boundaries: false,
+      sanitize: false, // we already clean text upstream
+      abbreviations: FRENCH_ABBREVIATIONS,
+    })
     .map((s) => s.trim().replace(/\s+/g, " "))
     .filter((s) => s.length > 0);
 }

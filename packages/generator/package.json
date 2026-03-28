@@ -18,9 +18,11 @@
   "dependencies": {
     "@edlight-news/types": "workspace:*",
     "@google/generative-ai": "^0.21.0",
+    "sbd": "^1.0.19",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/sbd": "^1.0.5",
     "typescript": "^5.4.5"
   }
 }
