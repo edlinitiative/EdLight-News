@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X, TrendingUp } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/language-context";
@@ -32,17 +32,6 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-function formatDate(lang: "fr" | "ht"): string {
-  const now = new Date();
-  const opts: Intl.DateTimeFormatOptions = {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  };
-  return now.toLocaleDateString(lang === "fr" ? "fr-FR" : "fr-HT", opts);
-}
-
 export function NavBar() {
   const pathname = usePathname();
   const { language } = useLanguage();
@@ -51,18 +40,15 @@ export function NavBar() {
   const mobilePanelRef = useRef<HTMLDivElement>(null);
   const fr = language === "fr";
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  // Focus trap for mobile menu
   useEffect(() => {
     if (!mobileOpen) return;
     const panel = mobilePanelRef.current;
@@ -92,7 +78,6 @@ export function NavBar() {
       }
     };
 
-    // Focus first element when menu opens
     const els = focusable();
     if (els.length) els[0]!.focus();
 
@@ -100,151 +85,64 @@ export function NavBar() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
+  const allLinks = NAV_LINKS;
   const primaryLinks = NAV_LINKS.filter((l) => l.section === "primary");
   const secondaryLinks = NAV_LINKS.filter((l) => l.section === "secondary");
   const l = (href: string) => withLangParam(href, language);
 
   return (
     <>
-      {/* ── Top edition bar ────────────────────────────────────────────── */}
-      <div className="hidden border-b border-stone-200 bg-stone-50 dark:border-stone-800 dark:bg-stone-950 sm:block">
-        <div className="mx-auto flex h-8 max-w-6xl items-center justify-between px-4 text-[11px] sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <span className="font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500">
-              {fr ? "Édition quotidienne" : "Edisyon chak jou"}
-            </span>
-            <span className="text-stone-300 dark:text-stone-700">|</span>
-            <time className="capitalize text-stone-500 dark:text-stone-400" suppressHydrationWarning>
-              {formatDate(language)}
-            </time>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 text-stone-500 dark:text-stone-400">
-              <TrendingUp className="h-3 w-3 text-blue-500" />
-              <span className="hidden sm:inline">{fr ? "Pour étudiants haïtiens" : "Pou elèv ayisyen yo"}</span>
-            </span>
-            <div className="flex items-center gap-1">
-              <LanguageToggle />
-              <DarkModeToggle />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Masthead ───────────────────────────────────────────────────── */}
-      <div className="border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
-          <Link href={l("/")} className="group flex items-baseline gap-1">
-            <span className="font-serif text-2xl font-black tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white sm:text-3xl">
+      {/* ── Single corporate header ───────────────────────────────── */}
+      <header
+        ref={navRef}
+        className="sticky top-0 z-50 border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950"
+      >
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+          {/* Brand */}
+          <Link href={l("/")} className="flex shrink-0 items-baseline gap-0.5">
+            <span className="text-lg font-extrabold tracking-tight text-stone-900 dark:text-white">
               EdLight
             </span>
-            <span className="font-serif text-2xl font-light tracking-tight text-blue-600 dark:text-blue-400 sm:text-3xl">
+            <span className="text-lg font-normal tracking-tight text-blue-600 dark:text-blue-400">
               News
             </span>
           </Link>
 
-          {/* Mobile controls */}
-          <div className="flex items-center gap-1 sm:hidden">
+          {/* Desktop nav */}
+          <nav className="hidden flex-1 items-center gap-1 overflow-x-auto tab-scroll lg:flex">
+            {allLinks.map((link) => {
+              const active = isActive(pathname, link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={l(link.href)}
+                  className={[
+                    "whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
+                    active
+                      ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
+                      : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
+                  ].join(" ")}
+                >
+                  {link.label[language]}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right controls */}
+          <div className="ml-auto flex items-center gap-1">
             <LanguageToggle />
             <DarkModeToggle />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800 lg:hidden"
               aria-label="Menu"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
-
-          {/* Desktop tagline */}
-          <div className="hidden items-center gap-3 sm:flex">
-            <div className="text-right">
-              <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-                {fr ? "Actualités éducatives" : "Nouvèl edikasyon"}
-              </p>
-              <p className="text-[11px] text-stone-400 dark:text-stone-600">
-                {fr ? "Bourses · Opportunités · Carrières" : "Bous · Okazyon · Karyè"}
-              </p>
-            </div>
-          </div>
         </div>
-      </div>
-
-      {/* ── Main navigation ────────────────────────────────────────────── */}
-      <nav
-        ref={navRef}
-        className="sticky top-0 z-50 border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950"
-      >
-        <div className="mx-auto flex h-11 max-w-6xl items-center gap-0 px-4 sm:px-6 lg:px-8">
-          {/* Primary sections */}
-          <div className="hidden flex-1 items-center gap-0 overflow-x-auto tab-scroll lg:flex">
-            {/* Home link first */}
-            <Link
-              href={l("/")}
-              className={[
-                "nav-link relative whitespace-nowrap px-3 py-2.5 text-[12px] font-medium transition-colors",
-                pathname === "/"
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300",
-              ].join(" ")}
-            >
-              {fr ? "Accueil" : "Akèy"}
-              {pathname === "/" && (
-                <span className="absolute inset-x-0 -bottom-px h-[2px] bg-blue-600 dark:bg-blue-400" />
-              )}
-            </Link>
-
-            {/* Divider */}
-            <span className="mx-1 h-4 w-px bg-stone-200 dark:bg-stone-700" />
-
-            {primaryLinks.map((link) => {
-              const active = isActive(pathname, link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={l(link.href)}
-                  className={[
-                    "nav-link relative whitespace-nowrap px-3.5 py-2.5 text-[13px] font-semibold uppercase tracking-wide transition-colors",
-                    active
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white",
-                  ].join(" ")}
-                >
-                  {link.label[language]}
-                  {active && (
-                    <span className="absolute inset-x-0 -bottom-px h-[2px] bg-blue-600 dark:bg-blue-400" />
-                  )}
-                </Link>
-              );
-            })}
-
-            {/* Divider */}
-            <span className="mx-1.5 h-4 w-px bg-stone-200 dark:bg-stone-700" />
-
-            {/* Secondary sections */}
-            {secondaryLinks.map((link) => {
-              const active = isActive(pathname, link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={l(link.href)}
-                  className={[
-                    "nav-link relative whitespace-nowrap px-2.5 py-2.5 text-[12px] font-medium transition-colors",
-                    active
-                      ? "text-stone-900 dark:text-white"
-                      : "text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300",
-                  ].join(" ")}
-                >
-                  {link.label[language]}
-                  {active && (
-                    <span className="absolute inset-x-0 -bottom-px h-[2px] bg-stone-900 dark:bg-white" />
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
+      </header>
 
       {/* Mobile menu overlay */}
       {mobileOpen && (
@@ -253,13 +151,18 @@ export function NavBar() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}
           />
-          <div ref={mobilePanelRef} className="absolute inset-y-0 right-0 top-[108px] w-80 border-l border-stone-200 bg-white shadow-float dark:border-stone-800 dark:bg-stone-950" role="dialog" aria-modal="true" aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}>
-            <div className="p-5">
-              {/* Primary nav */}
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+          <div
+            ref={mobilePanelRef}
+            className="absolute inset-y-0 right-0 top-14 w-72 border-l border-stone-200 bg-white shadow-xl dark:border-stone-800 dark:bg-stone-950"
+            role="dialog"
+            aria-modal="true"
+            aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}
+          >
+            <div className="p-4">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
                 {fr ? "Rubriques" : "Ribrik"}
               </p>
-              <nav className="mb-5 flex flex-col gap-0.5">
+              <nav className="mb-4 flex flex-col">
                 {primaryLinks.map((link) => {
                   const active = isActive(pathname, link.href);
                   return (
@@ -268,9 +171,9 @@ export function NavBar() {
                       href={l(link.href)}
                       onClick={() => setMobileOpen(false)}
                       className={[
-                        "rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors",
+                        "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                         active
-                          ? "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
+                          ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
                           : "text-stone-600 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
                       ].join(" ")}
                     >
@@ -280,18 +183,17 @@ export function NavBar() {
                 })}
               </nav>
 
-              <div className="mb-5 border-t border-stone-100 dark:border-stone-800" />
+              <div className="mb-4 border-t border-stone-100 dark:border-stone-800" />
 
-              {/* Secondary nav */}
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
                 {fr ? "Explorer" : "Eksplore"}
               </p>
-              <nav className="mb-5 flex flex-col gap-0.5">
+              <nav className="flex flex-col">
                 <Link
                   href={l("/")}
                   onClick={() => setMobileOpen(false)}
                   className={[
-                    "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                    "rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     pathname === "/"
                       ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
                       : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
@@ -307,7 +209,7 @@ export function NavBar() {
                       href={l(link.href)}
                       onClick={() => setMobileOpen(false)}
                       className={[
-                        "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                        "rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         active
                           ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
                           : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
@@ -318,16 +220,6 @@ export function NavBar() {
                   );
                 })}
               </nav>
-
-              {/* Edition line in mobile */}
-              <div className="rounded-lg bg-stone-50 p-3 dark:bg-stone-900">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-                  {fr ? "Édition" : "Edisyon"}
-                </p>
-                <p className="mt-1 text-xs capitalize text-stone-500 dark:text-stone-400" suppressHydrationWarning>
-                  {formatDate(language)}
-                </p>
-              </div>
             </div>
           </div>
         </div>

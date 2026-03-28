@@ -82,7 +82,7 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-6">
+    <section className="space-y-4 rounded-lg border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-6">
       <div className="relative z-10">
         <h2 className="text-xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-2xl">
           {fr ? "Par où commencer ?" : "Ki kote pou kòmanse ?"}
@@ -100,7 +100,7 @@ export function ScholarshipStartHere({ lang }: ScholarshipStartHereProps) {
             key={entry.country}
             type="button"
             onClick={() => navigate(entry.params)}
-            className="group flex flex-col items-start rounded-xl border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-stone-700 dark:bg-stone-800"
+            className="group flex flex-col items-start rounded-lg border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-stone-700 dark:bg-stone-800"
           >
             <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-300">
               {entry.code}

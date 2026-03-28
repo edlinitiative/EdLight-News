@@ -98,7 +98,7 @@ export function ClosingSoonTabs({
           {filtered.map((item) => (
             <div
               key={`${item.kind}-${item.id}`}
-              className="flex flex-col gap-3 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md dark:border-stone-700 dark:bg-stone-800 dark:hover:border-stone-600 sm:flex-row sm:items-center sm:gap-4"
+              className="flex flex-col gap-3 rounded-lg border border-stone-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-stone-700 dark:bg-stone-800 sm:flex-row sm:items-center sm:gap-4"
             >
               {/* Kind icon — hidden on mobile to save space */}
               <div

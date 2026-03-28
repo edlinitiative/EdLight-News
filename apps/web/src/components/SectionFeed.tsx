@@ -50,7 +50,7 @@ export function SectionFeed({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-5">
+      <div className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="space-y-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">
@@ -70,7 +70,7 @@ export function SectionFeed({
                 key={opt}
                 onClick={() => setSort(opt)}
                 className={[
-                  "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
                   sort === opt
                     ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
                     : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",

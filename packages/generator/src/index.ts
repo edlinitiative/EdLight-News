@@ -219,6 +219,7 @@ export function buildContentVersionPayloads(
   category?: ItemCategory;
   qualityFlags: QualityFlags;
   citations: { sourceName: string; sourceUrl: string }[];
+  narrative?: string | null;
 }> {
   // Determine status based on quality gates
   // Auto-publish when all gates pass; otherwise keep as draft with a reason
@@ -255,6 +256,7 @@ export function buildContentVersionPayloads(
       title: draft.title_fr,
       summary: draft.summary_fr,
       body: draft.body_fr,
+      ...(draft.ig_narrative ? { narrative: draft.ig_narrative } : {}),
     },
     {
       ...base,

@@ -213,6 +213,8 @@ export interface BilingualText {
   frSections?: { heading: string; content: string }[];
   /** Full body text from FR content_version (fallback for sentence extraction) */
   frBody?: string;
+  /** Continuous narrative (4-6 sentences) for IG carousel slides */
+  frNarrative?: string;
 }
 
 /**

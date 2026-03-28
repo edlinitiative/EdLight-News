@@ -113,12 +113,11 @@ function bodyCss(dark: string, bgImage?: string): string {
 }
 
 /**
- * Inner slides that reuse the cover’s background image get a subtle blur
- * to visually differentiate them while staying closer to the original photo.
+ * All slides render at full image quality — no blur applied so inner slides
+ * match the sharpness of the cover (per design spec).
  */
-function innerBlurCss(isFirst: boolean, hasImage: boolean): string {
-  if (isFirst || !hasImage) return "";
-  return `body::before { content:''; position:absolute; inset:-20px; background:inherit; background-size:cover; filter:blur(6px) brightness(0.88); z-index:0; }`;
+function innerBlurCss(_isFirst: boolean, _hasImage: boolean): string {
+  return "";
 }
 
 function overlayCss(gradient: string): string {
@@ -639,7 +638,7 @@ ${imageLayerHtml(hasImage, overlayGradient)}
   </div>
   <div class="${mainClass}">
     ${featureOpen}
-    <div class="h">${escapeHtml(slide.heading)}</div>
+    ${slide.heading ? `<div class="h">${escapeHtml(slide.heading)}</div>` : ""}
     ${bulletsHtml}
     ${featureClose}
   </div>

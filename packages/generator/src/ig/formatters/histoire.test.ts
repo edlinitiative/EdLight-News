@@ -26,7 +26,7 @@ function makeItem(overrides: Partial<Item> = {}): Item {
 }
 
 describe("buildHistoireCarousel", () => {
-  it("uses a date-led Histoire du Jour cover with factual event bullets", () => {
+  it("uses a date+year cover heading with the main event as a single bullet", () => {
     const result = buildHistoireCarousel(
       makeItem({
         publishedAt: {
@@ -52,14 +52,26 @@ describe("buildHistoireCarousel", () => {
       },
     );
 
-    assert.equal(result.slides[0]!.heading, "24 Avril - Histoire du Jour");
+    // Cover heading: "24 Avril" + year extracted from main event content ("1802")
+    assert.equal(result.slides[0]!.heading, "24 Avril 1802");
+    // Cover bullet: first sentence of the main event content (not a noun phrase)
     assert.deepEqual(result.slides[0]!.bullets, [
-      "Retrait stratégique de la Crête-à-Pierrot",
-      "Assassinat de Jean-Jacques Dessalines",
+      "En 1802, les forces haïtiennes se retirent de la Crête-à-Pierrot après une résistance prolongée face à l'expédition française.",
     ]);
+    // "Other facts" slide lists the second event before the CTA
+    const otherFactsSlide = result.slides.find(
+      (s) => s.heading.startsWith("Aussi le"),
+    );
+    assert.ok(otherFactsSlide, "Expected an 'other facts' slide");
+    assert.ok(
+      otherFactsSlide!.bullets.some((b) =>
+        b.includes("Dessalines est assassiné"),
+      ),
+      "Expected second event to appear in the other-facts slide as a sentence",
+    );
   });
 
-  it("turns compact historical beats into headline slides instead of dense explanation cards", () => {
+  it("synthesises a narrative arc from section content when frNarrative is absent", () => {
     const result = buildHistoireCarousel(makeItem(), {
       frTitle: "Cinq dates clés de l'histoire d'Haïti",
       frSummary: "Cinq événements fondateurs de la nation haïtienne.",
@@ -67,7 +79,7 @@ describe("buildHistoireCarousel", () => {
         {
           heading: "Bois Caïman (1791)",
           content:
-            "La cérémonie vaudou du Bois Caïman a lancé la plus grande révolte d'esclaves réussie de l'histoire.",
+            "La cérémonie vaudou du Bois Caïman a lancé la plus grande révolte d'esclaves réussie de l'histoire. Cette nuit du 14 août 1791 est considérée comme le point de départ de la révolution haïtienne.",
         },
         {
           heading: "Bataille de Vertières (1803)",
@@ -82,10 +94,14 @@ describe("buildHistoireCarousel", () => {
       ],
     });
 
-    const narrativeSlides = result.slides.slice(1, -1);
+    // Content slides (between cover and CTA) should exist and use explanation layout
+    const contentSlides = result.slides.slice(1, -1).filter(
+      (s) => !s.heading.startsWith("Aussi le"),
+    );
+    assert.ok(contentSlides.length > 0, "Expected at least one content slide");
     assert.ok(
-      narrativeSlides.some((slide) => slide.layout === "headline"),
-      "Expected at least one compact history beat to render as a headline slide",
+      contentSlides.every((s) => s.layout === "explanation"),
+      "Expected all narrative content slides to use explanation layout",
     );
   });
 
@@ -119,9 +135,10 @@ describe("buildHistoireCarousel", () => {
       "L'histoire d'Haïti, chaque jour.",
     ]);
     assert.equal(result.slides[result.slides.length - 1]!.layout, "cta");
-    assert.match(
-      result.slides[result.slides.length - 1]!.footer ?? "",
-      /^Source:/,
+    assert.equal(
+      result.slides[result.slides.length - 1]!.footer,
+      undefined,
+      "CTA slide should have no footer — source belongs in the caption only",
     );
     assert.ok(
       result.caption.includes(
@@ -129,6 +146,62 @@ describe("buildHistoireCarousel", () => {
       ),
       "Expected the premium history CTA in the caption",
     );
+  });
+
+  it("caption bullets are complete sentences, not bare noun-phrase headings", () => {
+    // Regression guard: section headings like "Nomination de Toussaint Louverture"
+    // are noun phrases and must NEVER appear as caption bullets — only the summary
+    // sentences from section content should be used.
+    const result = buildHistoireCarousel(makeItem(), {
+      frTitle: "Repères du 27 mars",
+      frSummary: "Trois moments clés de l'histoire haïtienne.",
+      frSections: [
+        {
+          heading: "Nomination de Toussaint Louverture",
+          content:
+            "En 1796, Toussaint Louverture fut nommé général en chef de l'armée par les commissaires français, consolidant son pouvoir sur la colonie.",
+        },
+        {
+          heading: "Retrait de la Crête-à-Pierrot",
+          content:
+            "En 1802, les troupes haïtiennes se retirèrent de la Crête-à-Pierrot après trois semaines de résistance face à l'armée napoléonienne.",
+        },
+      ],
+    });
+
+    const captionLines = result.caption.split("\n").filter((l) => l.startsWith("•"));
+
+    // Every bullet must end with sentence-closing punctuation.
+    for (const line of captionLines) {
+      assert.match(
+        line,
+        /[.!?»]$/,
+        `Caption bullet is not a complete sentence: "${line}"`,
+      );
+    }
+
+    // The bare noun phrases from headings must not appear verbatim as bullets.
+    assert.ok(
+      !result.caption.includes("• Nomination de Toussaint Louverture"),
+      'Bare heading "Nomination de Toussaint Louverture" must not appear as a caption bullet',
+    );
+    assert.ok(
+      !result.caption.includes("• Retrait de la Crête-à-Pierrot"),
+      'Bare heading "Retrait de la Crête-à-Pierrot" must not appear as a caption bullet',
+    );
+
+    // No bullet may contain a duplicate year prefix ("1796 — En 1796, ...").
+    for (const line of captionLines) {
+      const yearMatch = line.match(/^\u2022\s*(\d{4})\s*\u2014/);
+      if (yearMatch) {
+        const prefixYear = yearMatch[1]!;
+        const rest = line.slice(line.indexOf("\u2014") + 1);
+        assert.ok(
+          !rest.includes(prefixYear),
+          `Caption bullet has duplicate year "${prefixYear}": "${line}"`,
+        );
+      }
+    }
   });
 
   it("builds the caption lead from the full summary instead of a shortened cover bullet", () => {

@@ -260,7 +260,7 @@ export function DashboardTabs({ lang, panels }: DashboardTabsProps) {
         onTouchEnd={handleTouchEnd}
         style={{ touchAction: "pan-y" }}
         className={[
-          "relative overflow-hidden rounded-xl bg-stone-50/50 p-3 transition-all duration-200 ease-out dark:bg-stone-800/30 sm:p-4",
+          "relative overflow-hidden rounded-lg border border-stone-200 bg-white p-3 transition-all duration-200 ease-out dark:border-stone-800 dark:bg-stone-900 sm:p-4",
           isTransitioning
             ? "translate-y-1 opacity-0"
             : "translate-y-0 opacity-100",

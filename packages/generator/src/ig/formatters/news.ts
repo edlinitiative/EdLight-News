@@ -60,6 +60,10 @@ export function isJunkSentence(sentence: string): boolean {
   );
 }
 
+/** Background for the EdLight News CTA closing slide — Citadelle Laferrière. */
+const NEWS_CTA_IMAGE =
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+
 /** Max content slides between cover and source (keeps carousels tight). */
 const MAX_NEWS_CONTENT_SLIDES = 4;
 
@@ -81,21 +85,26 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   });
 
   // ── Slides 2+: Story content ──
-  // Priority 1: Gemini-structured sections (each section = distinct slide)
-  // Priority 2: extractedText sentence beats (with dedup)
-  // Priority 3: summary sentence beats
-  const usedSections = buildSectionSlides(slides, bi, imageUrl);
+  // Priority 1: Narrative-first (4-6 sentence arc split into 2-3 slides)
+  // Priority 2: Gemini-structured sections (each section = distinct slide)
+  // Priority 3: extractedText sentence beats (with dedup)
+  // Priority 4: summary sentence beats
+  const usedNarrative = buildNarrativeSlides(slides, bi, imageUrl);
 
-  if (!usedSections) {
-    // Fallback: parse beats from extractedText / summary
-    const beats = extractFrenchBeats(item, summary);
-    for (const beat of beats) {
-      slides.push({
-        heading: beat,
-        bullets: [],
-        layout: "headline",
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-      });
+  if (!usedNarrative) {
+    const usedSections = buildSectionSlides(slides, bi, imageUrl);
+
+    if (!usedSections) {
+      // Fallback: parse beats from extractedText / summary
+      const beats = extractFrenchBeats(item, summary);
+      for (const beat of beats) {
+        slides.push({
+          heading: beat,
+          bullets: [],
+          layout: "headline",
+          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+        });
+      }
     }
   }
 
@@ -104,9 +113,18 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
 
+  // ── Marketing CTA slide ──
+  slides.push({
+    heading: "Suivez EdLight News",
+    bullets: ["L'actu haïtienne, chaque jour."],
+    layout: "cta",
+    backgroundImage: NEWS_CTA_IMAGE,
+    footer: buildSourceLine(item),
+  });
+
   // ── Caption — bilingual with section highlights when available ──
   const parts: string[] = [title, "", shortenCaptionText(summary, 320)];
-  if (usedSections && bi?.frSections) {
+  if (!usedNarrative && bi?.frSections) {
     parts.push("");
     for (const sec of bi.frSections.slice(0, MAX_NEWS_CONTENT_SLIDES)) {
       const firstSentence = splitSentences(sec.content)[0];
@@ -118,6 +136,24 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   parts.push("", buildCTA(), "", buildSourceLine(item));
 
   return { slides, caption: finalizeCaption(parts.join("\n")) };
+}
+
+/**
+ * Build content slides from a continuous narrative string.
+ * Splits the narrative into 2-3 sentence groups, one slide per group.
+ * Each slide uses "explanation" layout (heading + bullets style).
+ * Returns true if narrative was used, false to fall back to sections/beats.
+ */
+function buildNarrativeSlides(
+  slides: IGSlide[],
+  bi: BilingualText | undefined,
+  imageUrl: string | undefined,
+): boolean {
+  if (!bi?.frNarrative || bi.frNarrative.trim().length === 0) return false;
+
+  const narrativeSlides = narrativeToSlides(bi.frNarrative, imageUrl);
+  slides.push(...narrativeSlides);
+  return true;
 }
 
 /**
@@ -408,5 +444,117 @@ function dedupBeats(beats: string[]): string[] {
       result.push(b);
     }
   }
+  return result;
+}
+
+// ── Narrative formatting ────────────────────────────────────────────────────
+
+/**
+ * Split a continuous narrative (4-6 sentences forming one arc) into
+ * multiple slides, each containing 2-3 sentences, respecting the ~350-char
+ * budget for explanation slides (heading + bullets).
+ *
+ * Each slide is an "explanation" layout with sentences grouped as bullets.
+ * Applies cleanSlideText() to remove parentheses/brackets per aesthetic rules.
+ */
+export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide[] {
+  const sentences = splitSentences(narrative.trim())
+    .filter((s) => s.length > 10)
+    .map((s) => cleanSlideText(s));
+
+  if (sentences.length === 0) return [];
+
+  const slides: IGSlide[] = [];
+  const SENTENCE_BUDGET = 350; // Target characters per explanation slide
+  const MAX_SENTS_PER_SLIDE = 3; // Never more than 3 sentences per slide
+
+  let currentGroup: string[] = [];
+  let currentLength = 0;
+
+  for (const sent of sentences) {
+    const sentLength = sent.length + 1; // +1 for space between bullets
+
+    // If adding this sentence would exceed budget or hit max count, flush current group
+    if (
+      currentGroup.length >= MAX_SENTS_PER_SLIDE ||
+      (currentGroup.length > 0 && currentLength + sentLength > SENTENCE_BUDGET)
+    ) {
+      // Push current group as a slide
+      if (currentGroup.length > 0) {
+        const heading = currentGroup[0]!;
+        const bullets = currentGroup.slice(1);
+        slides.push({
+          heading,
+          bullets,
+          layout: "explanation",
+          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+        });
+      }
+      currentGroup = [];
+      currentLength = 0;
+    }
+
+    currentGroup.push(sent);
+    currentLength += sentLength;
+  }
+
+  // Flush any remaining group
+  if (currentGroup.length > 0) {
+    const heading = currentGroup[0]!;
+    const bullets = currentGroup.slice(1);
+    slides.push({
+      heading,
+      bullets,
+      layout: "explanation",
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  }
+
+  return slides;
+}
+
+/**
+ * Clean slide text to meet aesthetic constraints:
+ * 1. Rewrite "X (Y)" → "X — Y" (preserve meaning, remove parentheses)
+ * 2. Strip "[...]" brackets entirely
+ * 3. Remove standalone parenthetical asides (e.g., "(selon la source)")
+ * 4. Trim leading/trailing whitespace
+ *
+ * This post-processor ensures slides look polished without awkward notation.
+ */
+export function cleanSlideText(text: string): string {
+  let result = text.trim();
+
+  // Step 1: Rewrite "X (Y)" → "X — Y"
+  // Only rewrites parenthetical notes that add precision, not full sub-thoughts
+  // Pattern: "something (detail)" where detail is short (< 50 chars)
+  result = result.replace(/([^()])\s*\(([^()]{1,50})\)/g, "$1 — $2");
+
+  // Step 2: Strip "[...]" brackets
+  result = result.replace(/\[([^\[\]]*)\]/g, (match, content) => {
+    // If it's a source citation like [source], remove it entirely
+    // If it has meaningful content, just remove the brackets
+    const trimmed = content.trim();
+    return trimmed.length > 0 && trimmed.toLowerCase() !== "source" ? trimmed : "";
+  });
+
+  // Step 3: Remove standalone parenthetical asides
+  // Pattern: sentence that's entirely in parentheses or starts with "(selon..."
+  result = result.replace(/\s*\([^()]*\)\s*/g, (match) => {
+    const content = match.trim();
+    // If it's a pure aside like "(selon la source)", remove entirely
+    // Otherwise keep the content without parens
+    if (/^\s*\([^()]*selon/.test(content) || /^\s*\([^()]*ndlr/.test(content)) {
+      return " ";
+    }
+    return " ";
+  });
+
+  // Step 4: Clean up extra whitespace
+  result = result
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.!?,;:])/g, "$1")
+    .trim();
+
   return result;
 }

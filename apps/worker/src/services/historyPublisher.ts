@@ -312,7 +312,7 @@ function buildFrenchBody(
     : `${dateLabel} — Histoire d'Haïti du jour`;
 
   const summary = entries.length > 0
-    ? entries[0]!.summary_fr.slice(0, 200)
+    ? firstCompleteSentence(entries[0]!.summary_fr, 200)
     : holidays.length > 0
       ? (holidays[0]!.description_fr ?? holidays[0]!.name_fr)
       : `Découvrez ce qui s'est passé un ${dateLabel} dans l'histoire d'Haïti.`;
@@ -375,6 +375,27 @@ const FR_HT_SUBS: [RegExp, string][] = [
   [/\bnotamment\b/gi, "sitou"],
   [/\baujourd'hui\b/gi, "jodi a"],
 ];
+
+/**
+ * Return the first complete sentence(s) from `text` up to `maxChars`.
+ * Falls back to a word-boundary cut if no sentence boundary is found.
+ */
+function firstCompleteSentence(text: string, maxChars: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxChars) return trimmed;
+  // Find the last sentence-ending punctuation within the limit.
+  const window = trimmed.slice(0, maxChars);
+  const lastEnd = Math.max(
+    window.lastIndexOf(". "),
+    window.lastIndexOf("! "),
+    window.lastIndexOf("? "),
+    window.lastIndexOf(".\n"),
+  );
+  if (lastEnd > 20) return trimmed.slice(0, lastEnd + 1).trim();
+  // No sentence boundary — cut at last word.
+  const lastSpace = window.lastIndexOf(" ");
+  return (lastSpace > 20 ? window.slice(0, lastSpace) : window).trim();
+}
 
 function lightCreoleAdapt(frenchText: string): string {
   let text = frenchText;
@@ -710,8 +731,8 @@ async function buildRawVerifiedContent(
   const frBody = frSections.map((s) => `## ${s.heading}\n\n${s.content}`).join("\n\n");
   const htBody = htSections.map((s) => `## ${s.heading}\n\n${s.content}`).join("\n\n");
 
-  const frSummary = primaryResult.body_fr.slice(0, 200);
-  const htSummary = primaryResult.body_ht.slice(0, 200);
+  const frSummary = firstCompleteSentence(primaryResult.body_fr, 200);
+  const htSummary = firstCompleteSentence(primaryResult.body_ht, 200);
 
   // Collect citations
   const citations: { sourceName: string; sourceUrl: string }[] = [];

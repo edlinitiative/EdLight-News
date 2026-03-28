@@ -70,8 +70,8 @@ export function Footer() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-baseline gap-1">
-                <span className="font-serif text-2xl font-black text-white">EdLight</span>
-                <span className="font-serif text-2xl font-light text-stone-500">News</span>
+                <span className="text-lg font-extrabold tracking-tight text-white">EdLight</span>
+                <span className="text-lg font-normal tracking-tight text-stone-500">News</span>
               </div>
               <p className="mt-1 text-xs uppercase tracking-widest text-stone-600">
                 {lang === "fr" ? "Actualités éducatives" : "Nouvèl edikasyon"} · {lang === "fr" ? "Bourses & Ressources" : "Bous & Resous"}

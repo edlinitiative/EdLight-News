@@ -39,7 +39,7 @@ export function CompactFiltersRow({
   fr,
 }: CompactFiltersRowProps) {
   return (
-    <div className="sticky top-16 z-20 rounded-2xl border border-stone-200 bg-white px-3 py-2.5 shadow-sm dark:border-stone-700 dark:bg-stone-900">
+    <div className="sticky top-16 z-20 rounded-lg border border-stone-200 bg-white px-3 py-2.5 shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-2">
         {/* Search — full width on mobile, flexible on desktop */}
         <div className="relative w-full min-w-0 sm:w-auto sm:flex-1 sm:min-w-[200px]">
@@ -49,7 +49,7 @@ export function CompactFiltersRow({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={fr ? "Rechercher…" : "Chèche…"}
-            className="w-full rounded-xl border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-8 text-sm text-stone-900 placeholder:text-stone-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder:text-stone-500 dark:focus:border-blue-600 dark:focus:ring-blue-800/40"
+            className="w-full rounded-lg border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-8 text-sm text-stone-900 placeholder:text-stone-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder:text-stone-500 dark:focus:border-blue-600 dark:focus:ring-blue-800/40"
           />
           {searchQuery && (
             <button
@@ -67,7 +67,7 @@ export function CompactFiltersRow({
         <select
           value={subcategoryFilter}
           onChange={(e) => onFilterChange("subcategory", e.target.value)}
-          className="h-8 appearance-none rounded-xl border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600"
+          className="h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600"
         >
           <option value="all">{fr ? "📋 Type" : "📋 Tip"}</option>
           {subcategoryOptions.map((o) => (
@@ -81,12 +81,12 @@ export function CompactFiltersRow({
         <button
           type="button"
           onClick={onOpenDrawer}
-          className="inline-flex h-8 items-center gap-1 rounded-xl border border-stone-200 bg-white px-2.5 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
           {fr ? "Filtres" : "Filtè"}
           {drawerFilterCount > 0 && (
-            <span className="ml-0.5 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+            <span className="ml-0.5 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
               {drawerFilterCount}
             </span>
           )}
@@ -96,7 +96,7 @@ export function CompactFiltersRow({
         <button
           type="button"
           onClick={onToggleSaved}
-          className={`inline-flex h-8 items-center gap-1 rounded-xl px-2.5 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+          className={`inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
             showSavedOnly
               ? "bg-blue-600 text-white shadow-sm hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
@@ -106,7 +106,7 @@ export function CompactFiltersRow({
           {fr ? "Suivis" : "Swivi"}
           {savedCount > 0 && (
             <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+              className={`rounded px-1.5 py-0.5 text-[10px] font-bold leading-none ${
                 showSavedOnly
                   ? "bg-white/20 text-white"
                   : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"

@@ -10,6 +10,7 @@ export const geminiWebDraftSchema = z.object({
   title_ht: z.string().min(1).max(200),
   summary_ht: z.string().min(1).max(500),
   body_ht: z.string().min(10),
+  ig_narrative: z.string().nullable().optional(),
   confidence: z.number().min(0).max(1),
   haiti_relevant: z.boolean(),
   /**

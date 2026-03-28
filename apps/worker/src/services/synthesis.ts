@@ -408,29 +408,35 @@ async function createOrUpdateSynthesis(
     );
 
     if (frCV) {
-      await contentVersionsRepo.updateContentVersion(frCV.id, {
+      const updateData: Record<string, unknown> = {
         title: output.title_fr,
         summary: output.summary_fr,
         body: bodyFr,
         sections: output.sections_fr,
         status,
-        ...(draftReason ? { draftReason } : {}),
         whatChanged: output.what_changed ?? undefined,
         synthesisTags: output.tags,
-      });
+      };
+      if (draftReason) updateData.draftReason = draftReason;
+      // @ts-ignore — ig_narrative may not be in the schema yet
+      if ((output as Record<string, unknown>).ig_narrative) {
+        updateData.narrative = (output as Record<string, unknown>).ig_narrative;
+      }
+      await contentVersionsRepo.updateContentVersion(frCV.id, updateData);
     }
 
     if (htCV) {
-      await contentVersionsRepo.updateContentVersion(htCV.id, {
+      const updateData: Record<string, unknown> = {
         title: output.title_ht,
         summary: output.summary_ht,
         body: bodyHt,
         sections: output.sections_ht,
         status,
-        ...(draftReason ? { draftReason } : {}),
         whatChanged: output.what_changed ?? undefined,
         synthesisTags: output.tags,
-      });
+      };
+      if (draftReason) updateData.draftReason = draftReason;
+      await contentVersionsRepo.updateContentVersion(htCV.id, updateData);
     }
 
     console.log(
@@ -471,6 +477,7 @@ async function createOrUpdateSynthesis(
     });
 
     // Create content_versions (FR + HT)
+    const narrative = (output as Record<string, unknown>).ig_narrative as string | null | undefined;
     const cvPayloads = [
       {
         channel: "web" as ContentChannel,
@@ -486,6 +493,7 @@ async function createOrUpdateSynthesis(
         sections: output.sections_fr,
         whatChanged: output.what_changed ?? undefined,
         synthesisTags: output.tags,
+        ...(narrative ? { narrative } : {}),
       },
       {
         channel: "web" as ContentChannel,

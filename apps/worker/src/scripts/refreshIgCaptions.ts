@@ -120,6 +120,7 @@ async function getBilingualText(itemId: string): Promise<BilingualText | undefin
       htSummary: ht?.summary,
       frSections: fr.sections as { heading: string; content: string }[] | undefined,
       frBody: fr.body || undefined,
+      frNarrative: fr.narrative ?? undefined,
     };
   } catch {
     return undefined;

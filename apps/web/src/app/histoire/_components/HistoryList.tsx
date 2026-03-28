@@ -71,7 +71,7 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
     <section className="space-y-4">
       {/* Section heading + filter pills */}
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="font-serif text-base font-bold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-lg">
+        <h3 className="text-base font-semibold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-lg">
           {fr ? "Aussi ce jour-là" : "Menm jou sa a tou"}
         </h3>
         <div className="flex flex-wrap items-center gap-1.5">

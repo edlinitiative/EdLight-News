@@ -103,7 +103,7 @@ export default async function NewsPage({
           ].map((chip) => (
             <span
               key={chip}
-              className="rounded-full border border-stone-200 bg-white px-3 py-1 font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+              className="rounded-md border border-stone-200 bg-white px-3 py-1 font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
             >
               {chip}
             </span>

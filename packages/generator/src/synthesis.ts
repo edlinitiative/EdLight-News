@@ -23,6 +23,7 @@ export const geminiSynthesisSchema = z.object({
   title_ht: z.string().min(1).max(200),
   summary_ht: z.string().min(1).max(500),
   sections_ht: z.array(synthesisSectionSchema).min(1),
+  ig_narrative: z.string().nullable().optional(),
   what_changed: z.string().nullable(),
   confidence: z.number().min(0).max(1),
   tags: z.array(z.enum(["confirmed", "unconfirmed", "evolving"])),
@@ -89,6 +90,7 @@ RÈGLES STRICTES:
    - "heading" de chaque section : MAX 70 CARACTÈRES. Titre court, percutant, sans ponctuation finale.
    - "content" de chaque section : MAX 500 CARACTÈRES. Exactement 2-3 phrases complètes. Chaque phrase doit avoir un sens complet — ne jamais couper une phrase à mi-chemin.
    - "summary_fr" / "summary_ht" : MAX 300 CARACTÈRES. 2 phrases maximum. Elles sont affichées en gros sur stories Instagram.
+10. IG_NARRATIVE (CARROUSEL INSTAGRAM): Écris ig_narrative comme 4–6 phrases en français qui forment un récit continu: phrase 1 = le fait central, phrase 2 = conséquence immédiate, phrase 3 = contexte, phrase 4+ = ce que ça signifie pour le lecteur. Chaque phrase doit s'enchaîner naturellement avec la suivante. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". Le texte doit pouvoir être coupé en 2–3 slides sans perte de sens.
 
 SOURCES:
 ${sourcesBlock}
@@ -105,6 +107,7 @@ RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
   "sections_ht": [
     { "heading": "Tit seksyon kout (max 70 caractères)", "content": "2-3 fraz konplè (max 500 caractères)" }
   ],
+  "ig_narrative": "4-6 phrases en français formant un arc continu, sans parenthèses ni crochets",
   "what_changed": null,
   "confidence": 0.85,
   "tags": ["confirmed"]

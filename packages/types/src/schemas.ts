@@ -328,6 +328,7 @@ export const contentVersionSchema = z.object({
   whatChanged: z.string().optional(),
   synthesisTags: z.array(z.string()).optional(),
   sourceCitations: z.array(sourceCitationSchema).optional(),
+  narrative: z.string().nullable().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });

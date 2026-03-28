@@ -141,17 +141,28 @@ RÈGLES STRICTES — applique TOUTES ces corrections:
 2. COHÉRENCE NARRATIVE:
    - La slide 1 doit capturer L'ESSENCE COMPLÈTE du sujet (pas un titre tronqué).
    - Les slides 2, 3, 4... doivent CONTINUER l'histoire séquentiellement.
+   - Les slides 2+ doivent s'ouvrir par une phrase de transition logique:
+     * "Concrètement..." ou "Concrètement, ..."
+     * "Mais il y a plus..." ou "Le verdict est..."
+     * "Ce qui a conduit à..." ou "À la suite de..."
+     * Toute phrase qui lie la slide au contexte précédent.
    - En lisant slides 1→2→3→...→N, le lecteur doit comprendre une histoire fluide et complète.
    - La légende doit refléter le même arc narratif.
-  - Aucune slide ne doit répéter le contenu d'une autre.
-  - La légende ne doit pas répéter la même information d'un paragraphe à l'autre.
-  - Aucun paragraphe de légende ne doit finir sur une phrase coupée, une ellipse ou une ponctuation suspendue.
+   - Aucune slide ne doit répéter le contenu d'une autre.
+   - La légende ne doit pas répéter la même information d'un paragraphe à l'autre.
+   - Aucun paragraphe de légende ne doit finir sur une phrase coupée, une ellipse ou une ponctuation suspendue.
 
 3. EMOJIS: Maximum ${maxEmoji} emojis au total dans TOUTES les slides combinées.${igType === "histoire" ? " L'histoire demande de la gravité — très peu d'emojis." : ""}
 
-4. PREMIER SLIDE: Le heading de la slide 0 doit être un titre complet et percutant qui résume le sujet. Jamais un titre coupé en plein milieu d'une phrase.
+4. ESTHÉTIQUE: PAS de parenthèses, PAS de crochets dans les slides.
+   - Reécris "X (détail)" en "X — détail"
+   - Supprime complètement "[...]"
+   - Évite les asides parenthétiques comme "(selon la source)"
+   - Les slides doivent être lisibles et épurées.
 
-5. NE CHANGE PAS la structure (nombre de slides, layout, backgroundImage). Corrige UNIQUEMENT heading, bullets, et caption.
+5. PREMIER SLIDE: Le heading de la slide 0 doit être un titre complet et percutant qui résume le sujet. Jamais un titre coupé en plein milieu d'une phrase.
+
+6. NE CHANGE PAS la structure (nombre de slides, layout, backgroundImage). Corrige UNIQUEMENT heading, bullets, et caption.
 
 SLIDES ACTUELLES:
 ${JSON.stringify(slidesJSON, null, 2)}

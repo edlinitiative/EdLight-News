@@ -164,7 +164,7 @@ export function ArticleCard({
         {/* Title */}
         <h3
           className={[
-            "font-serif font-bold leading-snug tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
+            "font-semibold leading-snug tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
             isFeatured ? "text-xl sm:text-2xl" : isCompact ? "text-sm line-clamp-2" : "text-base line-clamp-2",
           ].join(" ")}
         >

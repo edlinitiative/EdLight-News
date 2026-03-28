@@ -3,9 +3,10 @@
  *
  * Designed for HaitiHistory, HaitiFactOfTheDay, HaitianOfTheWeek utility items.
  *
- * Story-arc structure (up to 7 slides):
- *   Slide 1 — Cover: date-led "Histoire du Jour" + factual event labels
- *   Slides 2-6 — Content: one slide per factual section / event
+ * Story-arc structure (up to 8 slides):
+ *   Slide 1 — Cover: "27 Mars 1796" date+year + main event title as subtitle
+ *   Slides 2-6 — Content: narrative arc (frNarrative) OR first section only
+ *   Slide N-1 — Other facts: bullet list of additional events on the same date
  *   Last slide — Premium CTA + source
  *
  * When structured sections from ContentVersion are available (via bi.frSections),
@@ -26,7 +27,7 @@ import {
   shortenCaptionText,
   type BilingualText,
 } from "./helpers.js";
-import { isJunkSentence, cleanExtractedText, splitSentences } from "./news.js";
+import { isJunkSentence, cleanExtractedText, splitSentences, narrativeToSlides } from "./news.js";
 
 /** Max content slides (excluding cover + source). Keeps carousels digestible. */
 const MAX_CONTENT_SLIDES = 5;
@@ -265,6 +266,71 @@ function pushHistorySlide(
   });
 }
 
+/**
+ * Synthesise a continuous narrative arc from the first content section's body
+ * text and split it into explanation slides using narrativeToSlides().
+ *
+ * histoire items are produced by historyPublisher (not the news pipeline) so
+ * they never receive an explicit frNarrative. This function recreates the same
+ * result on-the-fly:
+ *   1. Strip markdown and noise (takeaway / source lines) from the section body.
+ *   2. Flatten any LLM sub-sections so we get one pool of text.
+ *   3. Sentence-split, filter junk, take the best 5 sentences.
+ *   4. Join and pass to narrativeToSlides() for consistent slide layout.
+ */
+function buildHistoireNarrativeSlides(
+  contentSections: { heading: string; content: string }[],
+  imageUrl: string | undefined,
+): IGSlide[] {
+  if (contentSections.length === 0) return [];
+
+  const mainSection = contentSections[0]!;
+
+  // Strip takeaway / source noise from paragraphs
+  const paragraphs = mainSection.content.split(/\n{2,}/);
+  const contentParas = paragraphs.filter(
+    (p) => !isTakeawayLine(p) && !isSourceLine(p),
+  );
+  const cleanedBody = contentParas.join(" ");
+
+  // Flatten LLM sub-sections if present so we get a single sentence pool
+  const subs = cleanedBody.length > 400 ? extractSubSections(cleanedBody) : null;
+  const rawText =
+    subs && subs.length >= 2
+      ? subs
+          .filter(
+            (s) =>
+              !isCommentaryHeading(s.heading) &&
+              !/questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(s.heading),
+          )
+          .map((s) => s.content)
+          .join(" ")
+      : cleanedBody;
+
+  const sentences = splitSentences(stripMarkdown(rawText))
+    .filter((s) => s.length >= 25 && s.length <= 180)
+    .filter((s) => !isJunkSentence(s))
+    .filter((s) => !isSourceLine(s))
+    .slice(0, 5);
+
+  if (sentences.length === 0) return [];
+
+  // Group into paragraph slides: 2-3 sentences joined as one text block.
+  // No heading, no amber-bordered bullets — clean reading flow.
+  const PARA_SIZE = 3;
+  const paraSlides: IGSlide[] = [];
+  for (let i = 0; i < sentences.length; i += PARA_SIZE) {
+    const chunk = sentences.slice(i, i + PARA_SIZE);
+    paraSlides.push({
+      heading: "",
+      bullets: [chunk.join(" ")],
+      layout: "explanation",
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  }
+  return paraSlides;
+}
+
 export function buildHistoireCarousel(
   item: Item,
   bi?: BilingualText,
@@ -276,78 +342,89 @@ export function buildHistoireCarousel(
   const imageUrl = item.imageUrl ?? undefined;
   const sections = bi?.frSections;
   const bodyText = bi?.frBody;
-  const coverHeading = buildHistoryCoverHeading(item);
-  const coverBullets = buildHistoryCoverBullets(item, summary, sections);
+
+  // Pre-filter content sections — needed for cover, content slides, and the other-facts slide.
+  const contentSections = (sections ?? []).filter((s) => {
+    if (!s.content || s.content.trim().length < 20) return false;
+    if (/^sources?$/i.test(s.heading.trim())) return false;
+    if (isCommentaryHeading(s.heading)) return false;
+    return true;
+  });
+
+  // Cover heading: formatted date ("27 Mars") + year from the main event ("1796").
+  const dateLabel = buildHistoryCoverHeading(item);
+  const mainEventYear =
+    contentSections.length > 0
+      ? extractYearFromContent(contentSections[0]!.content)
+      : null;
+  const coverHeading = mainEventYear ? `${dateLabel} ${mainEventYear}` : dateLabel;
+
+  // Cover bullet: first complete sentence of the main event's content.
+  // This is always the almanac's summary_fr — a real sentence, not a noun phrase.
+  const mainEventRawTitle =
+    contentSections.length > 0
+      ? normalizeHistoryEventHeading(contentSections[0]!.heading)
+      : (title ?? summary);
+  const mainEventFirstSentence =
+    contentSections.length > 0
+      ? splitSentences(
+          stripMarkdown(contentSections[0]!.content.split(/\n{2,}/)[0] ?? ""),
+        ).find((s) => s.length >= 20 && !isJunkSentence(s) && !isSourceLine(s))
+      : null;
+  const coverBullets = mainEventFirstSentence
+    ? [shortenText(mainEventFirstSentence, 160)]
+    : mainEventRawTitle
+      ? [shortenText(mainEventRawTitle, 120)]
+      : [];
 
   // ══════════════════════════════════════════════════════════════════════
-  // Slide 1 — Cover: date-led heading + factual event labels
-  // No backgroundImage on the cover — the clean dark branded gradient looks
-  // more editorial. processIgScheduled will propagate the contextual AI image
-  // (used for content slides) back to the cover, so all slides stay consistent.
+  // Slide 1 — Cover: date + year heading, main event title as subtitle, full-bleed image
   // ══════════════════════════════════════════════════════════════════════
   slides.push({
     heading: coverHeading,
     bullets: coverBullets,
     layout: "headline",
-    // No backgroundImage — kept intentionally empty so the branded dark gradient shows.
-    // Image will be applied consistently by processIgScheduled.
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
   // ══════════════════════════════════════════════════════════════════════
-  // Content slides — from structured sections (preferred) or fallback
+  // Content slides — narrative-first (frNarrative), then first section only
+  // ONE main fact per post: other events are summarised on the "other facts" slide.
   // ══════════════════════════════════════════════════════════════════════
 
-  if (sections && sections.length > 0) {
-    // ── Rich path: structured sections from historyPublisher ──────────
-    //
-    // Content arrives in 2 flavours:
-    //
-    // A) Template path — each almanac entry is 1 section whose content
-    //    concatenates summary + 💡 student_takeaway + 📚 source links.
-    //    We split these apart so the takeaway gets its own featured slide.
-    //
-    // B) LLM-rewrite path — the primary event is a single section whose
-    //    content is a 400-600 word markdown body with **sub-headings**.
-    //    We parse sub-sections so "Pourquoi cela compte" and discussion
-    //    questions become their own slides instead of getting truncated.
-
-    // Filter out empty / "Sources" sections
-    const contentSections = sections.filter((s) => {
-      if (!s.content || s.content.trim().length < 20) return false;
-      if (/^sources?$/i.test(s.heading.trim())) return false;
-      if (isCommentaryHeading(s.heading)) return false;
-      return true;
-    });
-
-    const contentCap = MAX_CONTENT_SLIDES;
-
-    for (const section of contentSections) {
-      if (slides.length - 1 >= contentCap) break;
-
-      // ── Extract student_takeaway lines before bullet-ising ──────────
-      const paragraphs = section.content.split(/\n{2,}/);
+  if (bi?.frNarrative && bi.frNarrative.trim().length > 0) {
+    // ── Priority 1: explicit narrative stored on the ContentVersion ──────
+    slides.push(...narrativeToSlides(bi.frNarrative, imageUrl));
+  } else if (contentSections.length > 0) {
+    // ── Priority 2: synthesise a narrative from the main section body ────
+    // histoire items are generated by historyPublisher (not the news
+    // pipeline) so frNarrative is never populated. We build it on-the-fly
+    // by sentence-splitting the first section's body, then feed those
+    // sentences into narrativeToSlides() — same visual result, no LLM call.
+    const synthesised = buildHistoireNarrativeSlides(contentSections, imageUrl);
+    if (synthesised.length > 0) {
+      slides.push(...synthesised);
+    } else {
+      // ── Priority 3: structured bullets from the first section ──────────
+      const mainSection = contentSections[0]!;
+      const paragraphs = mainSection.content.split(/\n{2,}/);
       const contentParas = paragraphs.filter(
         (p) => !isTakeawayLine(p) && !isSourceLine(p),
       );
       const cleanedContent = contentParas.join("\n\n");
 
-      // ── Try parsing LLM sub-sections from long content ──────────────
       const subs =
         cleanedContent.length > 400 ? extractSubSections(cleanedContent) : null;
 
       if (subs && subs.length >= 2) {
-        // LLM body with multiple sub-sections → each becomes its own slide
         for (const sub of subs) {
-          if (slides.length - 1 >= contentCap) break;
+          if (slides.length - 1 >= MAX_CONTENT_SLIDES) break;
           if (
             /questions?\s*(pour|de)\s*(la\s*)?discussion/i.test(sub.heading) ||
             isCommentaryHeading(sub.heading)
-          ) {
-            continue;
-          }
+          ) continue;
           const bullets = sectionToBullets(sub.content);
           if (bullets.length === 0) continue;
-
           pushHistorySlide(
             slides,
             sectionHeading(sub.heading, slides.length - 1),
@@ -356,32 +433,23 @@ export function buildHistoireCarousel(
           );
         }
       } else {
-        // Single section → standard bullet treatment
         const bullets = sectionToBullets(cleanedContent);
-        if (bullets.length === 0) continue;
-
-        // Add year prefix to specific event headings so each content slide
-        // (and the corresponding caption bullet) clearly anchors the event in time.
-        const resolvedHeading = sectionHeading(section.heading, slides.length - 1);
-        const headingYear =
-          !isGenericHistoryHeading(resolvedHeading) &&
-          !/\b1[0-9]{3}\b/.test(resolvedHeading)
-            ? extractYearFromContent(cleanedContent)
-            : null;
-        const headingWithYear = headingYear
-          ? `${headingYear} — ${resolvedHeading}`
-          : resolvedHeading;
-
-        pushHistorySlide(
-          slides,
-          headingWithYear,
-          bullets,
-          imageUrl,
-        );
+        if (bullets.length > 0) {
+          const resolvedHeading = sectionHeading(mainSection.heading, slides.length - 1);
+          const headingYear =
+            !isGenericHistoryHeading(resolvedHeading) &&
+            !/\b1[0-9]{3}\b/.test(resolvedHeading)
+              ? extractYearFromContent(cleanedContent)
+              : null;
+          const headingWithYear = headingYear
+            ? `${headingYear} — ${resolvedHeading}`
+            : resolvedHeading;
+          pushHistorySlide(slides, headingWithYear, bullets, imageUrl);
+        }
       }
     }
   } else {
-    // ── Fallback path: extractedText / body / summary sentence splitting ─
+    // ── Fallback: extractedText / body / summary sentence splitting ─────
     // Used for legacy items that don't have structured sections.
     const rawText = stripMarkdown(item.extractedText ?? bodyText ?? "");
     let facts: string[] = [];
@@ -395,7 +463,6 @@ export function buildHistoireCarousel(
         .slice(0, 6);
     }
 
-    // Supplement with summary sentences if needed
     if (facts.length < 3 && summary) {
       const summaryFacts = splitSentences(stripMarkdown(summary))
         .filter((s) => s.length >= 15 && s.length <= 250)
@@ -411,7 +478,6 @@ export function buildHistoireCarousel(
       facts = [shortenText(summary, 280)];
     }
 
-    // Split facts across 2-3 slides (3-4 bullets each) for readability
     if (facts.length > 0) {
       const chunkSize = Math.min(
         MAX_BULLETS_PER_SLIDE,
@@ -434,6 +500,45 @@ export function buildHistoireCarousel(
   }
 
   // ══════════════════════════════════════════════════════════════════════
+  // Second-to-last slide — Other events on this date (bullet summary)
+  // ══════════════════════════════════════════════════════════════════════
+  const otherSections = contentSections
+    .slice(1)
+    .filter((s) => !isGenericHistoryHeading(s.heading));
+
+  if (otherSections.length > 0) {
+    const otherBullets = otherSections
+      .slice(0, 3)
+      .map((s) => {
+        const firstSentence = splitSentences(
+          stripMarkdown(s.content.split(/\n{2,}/)[0] ?? ""),
+        ).find((sent) => sent.length >= 20 && !isJunkSentence(sent) && !isSourceLine(sent));
+        if (firstSentence) return shortenText(firstSentence, 130);
+        // Fallback to year-prefixed heading if content has no usable sentence.
+        const heading = normalizeHistoryEventHeading(s.heading);
+        if (!heading) return null;
+        const year = /\b1[0-9]{3}\b/.test(heading)
+          ? null
+          : extractYearFromContent(s.content);
+        return year
+          ? shortenText(`${year} — ${heading}`, 115)
+          : shortenText(heading, 115);
+      })
+      .filter((b): b is string => !!b);
+
+    if (otherBullets.length > 0) {
+      // Heading: "Aussi le 27 mars" — makes clear these are same calendar day, different years.
+      const dateLabel = buildHistoryCoverHeading(item); // e.g. "27 Mars"
+      slides.push({
+        heading: `Aussi le ${dateLabel}`,
+        bullets: otherBullets,
+        layout: "explanation",
+        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+      });
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
   // Last slide — Premium cinematic CTA (Citadelle background, Litquidity-style)
   // ══════════════════════════════════════════════════════════════════════
   const sourceLine = buildSourceLine(item);
@@ -444,7 +549,6 @@ export function buildHistoireCarousel(
     heading: "Suivez-nous pour plus de repères historiques",
     bullets: ["L'histoire d'Haïti, chaque jour."],
     layout: "cta",
-    footer: sourceFooter,
     backgroundImage: HISTOIRE_CTA_IMAGE,
   });
 
@@ -454,8 +558,23 @@ export function buildHistoireCarousel(
   // Normalize numeric date patterns in the title ("25/03" → "25 mars").
   const captionTitle = normalizeHistoireCaptionDate(title);
   const captionParts: string[] = [captionTitle, ""];
-  const captionLead = summary
-    ? shortenCaptionText(summary, 320)
+
+  // Prefer the stored summary, but fall back to the first clean sentence from
+  // section content for legacy items where summary was hard-sliced mid-sentence.
+  const rawSummary = summary ?? "";
+  const summaryIsBroken =
+    rawSummary.length > 0 && !/[.!?»]\s*$/.test(rawSummary.trimEnd());
+  const captionLeadSource: string = (() => {
+    if (rawSummary && !summaryIsBroken) return rawSummary;
+    // Derive from first section: take sentences until we have ≥80 chars or run out.
+    const sectionText = contentSections[0]?.content ?? "";
+    const sentences = splitSentences(stripMarkdown(sectionText))
+      .filter((s) => s.length >= 15 && !isJunkSentence(s) && !isSourceLine(s));
+    const lead = sentences.slice(0, 2).join(" ");
+    return lead || rawSummary; // last resort: use broken summary anyway
+  })();
+  const captionLead = captionLeadSource
+    ? shortenCaptionText(captionLeadSource, 320)
     : coverBullets.length > 0
       ? shortenCaptionText(coverBullets.join(" "), 240)
       : "";
@@ -464,19 +583,35 @@ export function buildHistoireCarousel(
     captionParts.push(captionLead, "");
   }
 
-  for (const slide of slides.slice(1, 5)) {
-    if (
-      !slide.heading ||
-      slide.heading === "Source" ||
-      slide.layout === "cta"
-    ) {
-      continue;
+  // Caption bullets — first complete sentence of each section (the almanac summary),
+  // prefixed with the year when not already present in the sentence.
+  if (contentSections.length > 0) {
+    const bullets: string[] = [];
+    for (const section of contentSections.slice(0, 4)) {
+      const heading = normalizeHistoryEventHeading(section.heading);
+      if (!heading || isGenericHistoryHeading(heading)) continue;
+
+      const firstSentence = splitSentences(
+        stripMarkdown(section.content.split(/\n{2,}/)[0] ?? ""),
+      ).find((s) => s.length >= 20 && !isJunkSentence(s) && !isSourceLine(s));
+
+      if (!firstSentence) continue;
+
+      // Prepend year only if the sentence contains no year at all.
+      // Uses the same pattern as the "other facts" slide builder.
+      const hasYear = /\b1[0-9]{3}\b/.test(firstSentence);
+      const year = hasYear ? null : extractYearFromContent(section.content);
+      const bullet = year
+        ? `${year} — ${firstSentence}`
+        : firstSentence;
+
+      // No truncation: firstSentence is already a single complete sentence from
+      // splitSentences(). finalizeCaption() enforces the 2200-char IG cap overall.
+      bullets.push(`• ${bullet}`);
     }
-    const lead = slide.bullets[0];
-    if (!lead) continue;
-    captionParts.push(`• ${slide.heading}`);
-    captionParts.push(shortenCaptionText(lead, 170));
-    captionParts.push("");
+    if (bullets.length > 0) {
+      captionParts.push(bullets.join("\n"), "");
+    }
   }
 
   if (bi?.htSummary)
@@ -604,7 +739,7 @@ function buildHistorySummaryLines(
 }
 
 function buildHistoryCoverHeading(item: Item): string {
-  return `${formatHistoryHeadingDate(item)} - Histoire du Jour`;
+  return formatHistoryHeadingDate(item);
 }
 
 function formatHistoryHeadingDate(item: Item): string {

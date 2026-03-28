@@ -204,7 +204,7 @@ export function HistoireArchive({
   // ── Render ──
 
   return (
-    <section className="space-y-7 rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-7">
+    <section className="space-y-7 rounded-lg border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-700 dark:bg-stone-900 sm:p-7">
       {/* ── Section heading ── */}
       <div className="text-center">
         <h2 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white sm:text-3xl">
@@ -218,10 +218,10 @@ export function HistoireArchive({
         </p>
       </div>
 
-      <div className="space-y-5 rounded-xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800 sm:p-5">
+      <div className="space-y-5 rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800 sm:p-5">
         {/* ── View mode toggle ── */}
         <div className="flex justify-center">
-          <div className="inline-flex rounded-xl border border-stone-200 bg-white p-1 shadow-sm dark:border-stone-700 dark:bg-stone-800">
+          <div className="inline-flex rounded-lg border border-stone-200 bg-white p-1 shadow-sm dark:border-stone-700 dark:bg-stone-800">
           <button
             onClick={() => setViewMode("week")}
             className={
@@ -288,7 +288,7 @@ export function HistoireArchive({
       {viewMode === "week" && (
         <>
           {/* Week navigation */}
-          <div className="flex items-center justify-center gap-4 rounded-xl border border-stone-200 bg-white px-3 py-2.5 dark:border-stone-700 dark:bg-stone-800">
+          <div className="flex items-center justify-center gap-4 rounded-lg border border-stone-200 bg-white px-3 py-2.5 dark:border-stone-700 dark:bg-stone-800">
             <button
               onClick={() => setWeekOffset((o) => o - 1)}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 shadow-sm transition hover:bg-stone-50 dark:hover:bg-stone-700 hover:text-blue-600"
@@ -350,11 +350,11 @@ export function HistoireArchive({
                 return (
                   <div
                     key={md}
-                    className="flex min-h-[17rem] flex-col rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="flex min-h-[17rem] flex-col rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     {/* Day header */}
                     <div className="flex items-center gap-3 border-b border-stone-100 dark:border-stone-700 px-4 py-3.5">
-                      <div className="flex h-11 w-11 flex-col items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                      <div className="flex h-11 w-11 flex-col items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                         <span className="text-base font-bold leading-tight">
                           {dl?.dayNumber}
                         </span>
@@ -388,7 +388,7 @@ export function HistoireArchive({
                       {mainFact ? (
                         <>
                           {/* Main fact */}
-                          <div className="rounded-xl border border-blue-100 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-900/20 p-3.5">
+                          <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-900/20 p-3.5">
                             <div className="mb-1 flex flex-wrap items-center gap-1.5">
                               {mainFact.year != null && (
                                 <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">
@@ -431,7 +431,7 @@ export function HistoireArchive({
 
                           {/* Secondary facts */}
                           {secondaryFacts.length > 0 && (
-                            <div className="rounded-xl border border-stone-100 bg-stone-50/70 p-3 dark:border-stone-700 dark:bg-stone-700/40">
+                            <div className="rounded-lg border border-stone-100 bg-stone-50/70 p-3 dark:border-stone-700 dark:bg-stone-700/40">
                               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
                                 {fr ? "Autres faits" : "Lòt reyalite"}
                               </p>
@@ -497,7 +497,7 @@ export function HistoireArchive({
                   key={mm}
                   onClick={() => setMonth(mm)}
                   className={
-                    "flex flex-col items-center rounded-xl px-2 py-3 text-center transition " +
+                    "flex flex-col items-center rounded-lg px-2 py-3 text-center transition " +
                     (isActive
                       ? "bg-stone-900 text-white shadow-md dark:bg-white dark:text-stone-900"
                       : "border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:border-stone-300 hover:bg-stone-50")
@@ -542,7 +542,7 @@ export function HistoireArchive({
                       return (
                         <div
                           key={h.id}
-                          className="flex items-center gap-4 rounded-xl border border-blue-100 dark:border-blue-800 bg-gradient-to-r from-blue-50 dark:from-blue-900/30 to-blue-50 dark:to-blue-900/30 px-5 py-4"
+                          className="flex items-center gap-4 rounded-lg border border-blue-100 dark:border-blue-800 bg-gradient-to-r from-blue-50 dark:from-blue-900/30 to-blue-50 dark:to-blue-900/30 px-5 py-4"
                         >
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 text-sm font-bold text-white shadow-sm">
                             {dd}
@@ -604,7 +604,7 @@ export function HistoireArchive({
                               </div>
 
                               {/* Entry card */}
-                              <div className="min-w-0 flex-1 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800 sm:p-5">
+                              <div className="min-w-0 flex-1 rounded-lg border border-stone-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-stone-700 dark:bg-stone-800 sm:p-5">
                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                   <h4 className="text-sm font-bold leading-snug text-stone-900 dark:text-white sm:text-base">
                                     {entry.title_fr}
@@ -644,7 +644,7 @@ export function HistoireArchive({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-xl border-2 border-dashed border-stone-200 dark:border-stone-700 py-10 text-center text-stone-400 dark:text-stone-500">
+                <div className="rounded-lg border-2 border-dashed border-stone-200 dark:border-stone-700 py-10 text-center text-stone-400 dark:text-stone-500">
                   <Calendar className="mx-auto mb-2 h-8 w-8" />
                   <p className="text-sm">
                     {fr

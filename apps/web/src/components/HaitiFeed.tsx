@@ -71,12 +71,10 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-[1.5rem] border border-sky-200/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.97),rgba(239,246,255,0.95),rgba(254,242,242,0.92))] p-4 shadow-sm dark:border-sky-900/30 dark:bg-[linear-gradient(135deg,rgba(10,20,32,0.94),rgba(11,29,44,0.92),rgba(42,18,24,0.9))] sm:p-5">
-        <div className="pointer-events-none absolute -right-10 top-0 h-32 w-32 rounded-full bg-sky-300/25 blur-3xl dark:bg-sky-500/15" />
-        <div className="pointer-events-none absolute bottom-0 left-10 h-24 w-24 rounded-full bg-red-300/20 blur-3xl dark:bg-red-500/10" />
-        <div className="relative z-10 flex flex-wrap items-center gap-4">
+      <div className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-5">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="space-y-1">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-sky-700 dark:text-sky-300">
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">
               {fr ? "Lecture locale" : "Lekti lokal"}
             </p>
             <p className="text-sm text-stone-600 dark:text-stone-300">
@@ -102,10 +100,10 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
                   key={opt.key}
                   onClick={() => handleFilterChange(opt.key)}
                   className={[
-                    "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition",
                     filter === opt.key
                       ? "bg-red-600 text-white shadow-sm dark:bg-red-500"
-                      : "border border-sky-200 bg-white text-sky-700 hover:bg-sky-50 dark:border-sky-800 dark:bg-stone-800 dark:text-sky-200 dark:hover:bg-stone-700",
+                      : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
                   ].join(" ")}
                 >
                   {fr ? opt.fr : opt.ht}
@@ -113,7 +111,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
               ))}
             </div>
 
-            <div className="hidden h-8 w-px bg-sky-200 dark:bg-stone-700 sm:block" />
+            <div className="hidden h-8 w-px bg-stone-200 dark:bg-stone-700 sm:block" />
 
             <div className="flex flex-wrap gap-2">
               {(["relevance", "latest"] as SortMode[]).map((opt) => (
@@ -121,7 +119,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
                   key={opt}
                   onClick={() => handleSortChange(opt)}
                   className={[
-                    "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition",
                     sort === opt
                       ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
                       : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
@@ -174,7 +172,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
         <div className="flex justify-center pt-2">
           <button
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="group flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-6 py-3 text-sm font-medium text-stone-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-stone-600"
+            className="group flex items-center gap-2 rounded-md border border-stone-200 bg-white px-6 py-3 text-sm font-medium text-stone-600 shadow-sm transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
           >
             {fr ? "Voir plus d\u2019articles" : "Wè plis atik"}
             <ChevronDown className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />

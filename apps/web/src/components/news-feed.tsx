@@ -150,7 +150,7 @@ function CategoryBadge({ article, lang }: { article: FeedItem; lang: ContentLang
     });
     const sc = SUBCAT_MAP[result.subcategory] ?? "autre";
     return (
-      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${SUBCAT_COLORS[sc]}`}>
+      <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${SUBCAT_COLORS[sc]}`}>
         {SUBCAT_LABELS[sc][lang]}
       </span>
     );
@@ -164,7 +164,7 @@ function CategoryBadge({ article, lang }: { article: FeedItem; lang: ContentLang
     : article.category;
   const color = CATEGORY_COLORS[displayCat] ?? "bg-stone-100 text-stone-600";
   return (
-    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
+    <span className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${color}`}>
       {categoryLabel(displayCat, lang)}
     </span>
   );
@@ -630,7 +630,7 @@ export function NewsFeed({
                       href={`/news/${a.id}?lang=${lang}`}
                       className="news-item-compact group"
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded font-serif text-sm font-bold text-stone-300 dark:text-stone-600">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-sm font-bold text-stone-300 dark:text-stone-600">
                         {i + 4}
                       </span>
                       <div className="min-w-0 flex-1">

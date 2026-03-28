@@ -374,6 +374,8 @@ export interface ContentVersion {
   synthesisTags?: string[];
   /** Source citations displayed at bottom of content (utility posts) */
   sourceCitations?: SourceCitation[];
+  /** Continuous narrative (4-6 sentences) for IG carousel slides */
+  narrative?: string | null;
 
   createdAt: Timestamp;
   updatedAt: Timestamp;
