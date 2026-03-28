@@ -148,21 +148,42 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
 }
 
 /**
- * Build content slides from a continuous narrative string.
- * Splits the narrative into 2-3 sentence groups, one slide per group.
- * Each slide uses "explanation" layout (heading + bullets style).
- * Returns true if narrative was used, false to fall back to sections/beats.
+ * Build content slides from a continuous narrative.
+ *
+ * Priority:
+ *   1. frNarrative — the LLM-written 4-6 sentence arc (best: structured arc)
+ *   2. frBody      — the LLM-written full article body (good: coherent, on-topic)
+ *   3. returns false → caller falls through to sections/beats
+ *
+ * Using frBody as a fallback means we almost never hit raw extractedText,
+ * which has no narrative structure and pulls from scraped sidebar junk.
  */
 function buildNarrativeSlides(
   slides: IGSlide[],
   bi: BilingualText | undefined,
   imageUrl: string | undefined,
 ): boolean {
-  if (!bi?.frNarrative || bi.frNarrative.trim().length === 0) return false;
+  // Path 1: explicit LLM narrative arc
+  const narrative = bi?.frNarrative?.trim();
+  if (narrative && narrative.length > 0) {
+    slides.push(...narrativeToSlides(narrative, imageUrl));
+    return true;
+  }
 
-  const narrativeSlides = narrativeToSlides(bi.frNarrative, imageUrl);
-  slides.push(...narrativeSlides);
-  return true;
+  // Path 2: LLM-written article body — take first 6 sentences
+  // The body is Gemini-generated: coherent, on-topic, no scraped junk.
+  const body = bi?.frBody?.trim();
+  if (body && body.length > 100) {
+    const sentences = splitSentences(body)
+      .filter((s) => s.length > 30 && !isJunkSentence(s))
+      .slice(0, 6);
+    if (sentences.length >= 2) {
+      slides.push(...narrativeToSlides(sentences.join(" "), imageUrl));
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
