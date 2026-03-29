@@ -469,7 +469,11 @@ export function decideIG(item: Item): IGDecision {
   let igExpiresAt: string | undefined;
   if (deadlineStr) {
     const days = daysUntil(deadlineStr);
-    if (days < 0) {
+    // Only block history/utility items when the deadline has actually passed for
+    // scholarships and opportunities. Histoire/utility items sometimes carry a
+    // deadline field for unrelated reasons (e.g. HaitiFactOfTheDay carrying a
+    // year-end relevance date that predates the post date).
+    if (days < 0 && (igType === "scholarship" || igType === "opportunity")) {
       return {
         igEligible: false,
         igType,

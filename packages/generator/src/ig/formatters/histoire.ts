@@ -318,11 +318,14 @@ function buildHistoireNarrativeSlides(
   // Group into slides: MAX_BULLETS_PER_SLIDE sentences per slide, each sentence
   // as its own bullet capped at MAX_BULLET_CHARS. This prevents joining 3 sentences
   // into a single 300-400 char mega-bullet that overflows the slide.
+  // Use the section heading for the first slide and fallbacks for subsequent ones
+  // so that heading is always non-empty (Zod schema requires heading: z.string().min(1)).
   const paraSlides: IGSlide[] = [];
   for (let i = 0; i < sentences.length; i += MAX_BULLETS_PER_SLIDE) {
     const chunk = sentences.slice(i, i + MAX_BULLETS_PER_SLIDE);
+    const slideIndex = Math.floor(i / MAX_BULLETS_PER_SLIDE);
     paraSlides.push({
-      heading: "",
+      heading: sectionHeading(mainSection.heading, slideIndex),
       bullets: chunk.map((s) => shortenText(s, MAX_BULLET_CHARS)),
       layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
