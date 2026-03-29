@@ -110,16 +110,19 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
 
     if (!usedSections) {
       // Fallback: parse beats from extractedText / summary
+      // Group into explanation slides for coherent reading
+      // (individual headline-only slides read as disconnected facts)
       const beats = extractFrenchBeats(item, summary);
-      for (const beat of beats) {
-        slides.push({
-          heading: beat,
-          bullets: [],
-          layout: "headline",
-          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-        });
+      if (beats.length > 0) {
+        slides.push(...narrativeToSlides(beats.join(" "), imageUrl));
       }
     }
+  }
+
+  // Keep carousel tight: cover (1) + at most MAX_NEWS_CONTENT_SLIDES content
+  const maxBeforeCTA = 1 + MAX_NEWS_CONTENT_SLIDES;
+  if (slides.length > maxBeforeCTA) {
+    slides.length = maxBeforeCTA;
   }
 
   // ── Last slide: source attribution ──
@@ -256,8 +259,8 @@ function looksLikeFrench(text: string): boolean {
   return hits >= 5;
 }
 
-/** Maximum characters for a single beat line on a headline slide. */
-const MAX_BEAT_CHARS = 120;
+/** Maximum characters for a beat (used as explanation bullet, not headline). */
+const MAX_BEAT_CHARS = 180;
 
 /**
  * Common French abbreviations that should NOT trigger a sentence boundary.
@@ -299,6 +302,16 @@ export function cleanExtractedText(text: string): string {
   return text
     // Strip HTML tags
     .replace(/<[^>]+>/g, " ")
+    // Strip RFI show/programme names prefixing article content
+    .replace(/Journal d'Haïti et des Amériques\s*/gi, "")
+    .replace(/Revue de presse des Amériques\s*/gi, "")
+    .replace(/Chronique des Amériques\s*/gi, "")
+    // Strip publication date/time metadata (RFI, France 24, etc.)
+    .replace(/Publié le\s*:?\s*\d+\/\d+\/\d{4}\s*[-–]\s*\d+:\d+\s*/gi, "")
+    .replace(/Modifié le\s*:?\s*\d+\/\d+\/\d{4}\s*[-–]\s*\d+:\d+\s*/gi, "")
+    .replace(/Écouter l'audio\s*/gi, "")
+    .replace(/Écouter\s*[-–]?\s*\d+:\d+\s*/gi, "")
+    .replace(/\d+ min(?:utes?)?\s*(?:d'écoute|de lecture)\s*/gi, "")
     // Remove ad tracker URLs (zoneid=, INSERT_RANDOM, etc.)
     .replace(/https?:\/\/ads\.[^\s]*/gi, "")
     .replace(/zoneid=[^\s]*/gi, "")
@@ -379,15 +392,20 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
   // Try extractedText first (most detailed).
   // Use first-N sentences only — spread-based picking tends to pull from
   // related-article sidebar content that scrapers append at the end.
+  // Limit to first 2500 chars to prevent roundup articles (RFI, France 24)
+  // from mixing content across different sub-stories.
   if (item.extractedText && looksLikeFrench(item.extractedText)) {
-    const cleaned = cleanExtractedText(item.extractedText);
+    const cleaned = cleanExtractedText(item.extractedText.slice(0, 2500));
     const sentences = splitSentences(cleaned)
       .filter((s) => s.length > 30 && s.length < 350)
       .filter((s) => !isJunkSentence(s));
 
     // Take from the beginning of the article, dedup, then drop title near-matches
+    // Also drop beats that start with the title (common in scraped article text)
+    const titleNorm = title.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim();
     const picks = dedupBeats(sentences.slice(0, 8)).slice(0, 3)
-      .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
+      .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD)
+      .filter((b) => !b.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim().startsWith(titleNorm));
     if (picks.length > 0) return picks.map((b) => cleanSlideText(capBeatLength(b)));
   }
 
@@ -582,9 +600,9 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
 export function cleanSlideText(text: string): string {
   let result = text.trim();
 
-  // Step 0: Strip orphan guillemets left at start/end when sbd splits
-  // inside French quoted speech (« sentence. » → two beats with «/» stranded)
-  result = result.replace(/^[»›]+\s*/, "").replace(/\s*[«‹]+$/, "").trim();
+  // Step 0: Strip orphan guillemets and brackets left at start/end when sbd
+  // splits inside French quoted speech (« sentence. » → two beats with «/» stranded)
+  result = result.replace(/^[\]»›]+\s*/, "").replace(/\s*[\[«‹]+$/, "").trim();
 
   // Step 1: Rewrite "X (Y)" → "X — Y"
   // Only rewrites parenthetical notes that add precision, not full sub-thoughts
