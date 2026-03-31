@@ -56,7 +56,7 @@ export function scoreRelevance(
 
 const TIER_TRUST: Record<ImageSourceTier, number> = {
   official: 20,
-  editorial: 16, // High trust but needs license
+  editorial: 19, // Reuters/AP/Getty — highest editorial quality
   archive: 14,
   stock: 8,
   fallback: 2,
@@ -128,8 +128,8 @@ export function scoreQuality(width: number, height: number): number {
 const LICENSE_SCORES: Record<LicenseStatus, number> = {
   safe_public_domain: 15,
   official_reusable: 14,
+  licensed_editorial: 14,       // Reuters/AP/Getty — best editorial quality
   cc_attribution: 12,
-  licensed_editorial: 6,        // Reduced but not blocked — flag for review
   unknown_do_not_publish: 0,    // ZERO — blocks auto-publishing
 };
 
