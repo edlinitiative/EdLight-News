@@ -77,11 +77,11 @@ async function main() {
 
   const htTitle = `${dateLabel} — Istwa Ayiti jodi a`;
   const htSections = sorted.map((e) => ({
-    heading: `${e.year ? e.year + " — " : ""}${e.title_ht || e.title_fr}`,
-    content: e.summary_ht || e.summary_fr || e.title_fr,
+    heading: `${e.year ? e.year + " — " : ""}${(e as any).name_ht || e.title_fr}`,
+    content: (e as any).description_ht || e.summary_fr || e.title_fr,
   }));
   const htBody = htSections.map((s) => `## ${s.heading}\n\n${s.content}`).join("\n\n");
-  const htSummary = sorted[0]?.summary_ht?.slice(0, 200) || frSummary;
+  const htSummary = ((sorted[0] as any)?.description_ht as string | undefined)?.slice(0, 200) || frSummary;
 
   // Collect citations
   const citations = sorted.flatMap((e) =>
