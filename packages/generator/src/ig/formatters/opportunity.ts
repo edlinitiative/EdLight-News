@@ -8,9 +8,9 @@
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
 
-/** Background for the EdLight News CTA closing slide — Citadelle Laferrière. */
+/** Background for the EdLight News CTA closing slide — view of Port-au-Prince, Haiti. */
 const OPPORTUNITY_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/View_of_Port-au-Prince_from_Hotel_Montana.jpg/1280px-View_of_Port-au-Prince_from_Hotel_Montana.jpg";
 
 export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];

@@ -74,9 +74,9 @@ export function isJunkSentence(sentence: string): boolean {
   );
 }
 
-/** Background for the EdLight News CTA closing slide — Citadelle Laferrière. */
+/** Background for the EdLight News CTA closing slide — Citadelle Laferrière (iconic Haitian landmark). */
 const NEWS_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Citadelle_Laferri%C3%A8re_Aerial_View.jpg/1280px-Citadelle_Laferri%C3%A8re_Aerial_View.jpg";
 
 /** Max content slides between cover and source (keeps carousels tight). */
 const MAX_NEWS_CONTENT_SLIDES = 4;
@@ -619,8 +619,21 @@ export function cleanSlideText(text: string): string {
   let result = text.trim();
 
   // Step 0: Strip orphan guillemets and brackets left at start/end when sbd
-  // splits inside French quoted speech (« sentence. » → two beats with «/» stranded)
-  result = result.replace(/^[\]»›]+\s*/, "").replace(/\s*[\[«‹]+$/, "").trim();
+  // splits inside French quoted speech (« sentence. » → two beats with «/» stranded).
+  // Only strip when the quote mark is truly orphaned (no matching pair in the text).
+  const hasOpeningGuillemet = result.includes("«") || result.includes("‹");
+  const hasClosingGuillemet = result.includes("»") || result.includes("›");
+  if (hasClosingGuillemet && !hasOpeningGuillemet) {
+    // Orphan closing » at the start — no opening « exists
+    result = result.replace(/^[\]»›]+\s*/, "").trim();
+  }
+  if (hasOpeningGuillemet && !hasClosingGuillemet) {
+    // Orphan opening « at the end — no closing » exists
+    result = result.replace(/\s*[\[«‹]+$/, "").trim();
+  }
+  // Always strip orphan brackets [ ] (these are never desired on slides)
+  if (result.startsWith("]")) result = result.replace(/^\]+\s*/, "").trim();
+  if (result.endsWith("[")) result = result.replace(/\s*\[+$/, "").trim();
 
   // Step 1: Rewrite "X (Y)" → "X — Y"
   // Only rewrites parenthetical notes that add precision, not full sub-thoughts

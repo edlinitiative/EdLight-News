@@ -34,16 +34,17 @@ const MAX_CONTENT_SLIDES = 5;
 
 /**
  * Background image for the premium closing CTA slide.
- * The Citadelle Laferrière — the iconic symbol of Haitian sovereignty.
+ * Sans-Souci Palace — another iconic Haitian historical landmark,
+ * distinct from the Citadelle used by news CTAs.
  */
 const HISTOIRE_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Sans-Souci_Palace_Haiti_%288070547181%29.jpg/1280px-Sans-Souci_Palace_Haiti_%288070547181%29.jpg";
 
 /** Max bullets per history slide — tighter, cleaner pacing than dense 3-bullet cards. */
 const MAX_BULLETS_PER_SLIDE = 2;
 
 /** Max chars per bullet — enough context without turning slides into paragraphs. */
-const MAX_BULLET_CHARS = 140;
+const MAX_BULLET_CHARS = 180;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
@@ -267,6 +268,35 @@ function pushHistorySlide(
 }
 
 /**
+ * Derive a short, unique heading from a sentence for a content slide.
+ * Extracts the year (if present) + first clause/fragment for a punchy label.
+ */
+function deriveSlideHeading(sentence: string, slideIndex: number): string {
+  const yearMatch = sentence.match(/\b(1[6-9]\d{2}|20[0-2]\d)\b/);
+  const year = yearMatch ? yearMatch[1] : null;
+
+  // Try clause boundary (before a comma, dash, or "qui/que/dont")
+  const clauseRe = /^(.{15,60}?)(?:[,;]\s|\s[—–]\s|\squi\s|\sque\s|\sdont\s)/;
+  const clauseMatch = sentence.match(clauseRe);
+  let fragment = clauseMatch
+    ? clauseMatch[1]!.trim().replace(/[,;:\s]+$/, "")
+    : null;
+
+  // Fallback: take first ~50 chars at a word boundary
+  if (!fragment) {
+    const cut = sentence.slice(0, 55);
+    const lastSpace = cut.lastIndexOf(" ");
+    fragment = (lastSpace > 25 ? cut.slice(0, lastSpace) : cut).trim().replace(/[,;:\s]+$/, "");
+  }
+
+  // If we have a year that isn't already in the fragment, prefix it
+  if (year && !fragment.includes(year)) {
+    return shortenHeadline(`${year} — ${fragment}`, 8);
+  }
+  return shortenHeadline(fragment, 8);
+}
+
+/**
  * Synthesise a continuous narrative arc from the first content section's body
  * text and split it into explanation slides using narrativeToSlides().
  *
@@ -318,14 +348,25 @@ function buildHistoireNarrativeSlides(
   // Group into slides: MAX_BULLETS_PER_SLIDE sentences per slide, each sentence
   // as its own bullet capped at MAX_BULLET_CHARS. This prevents joining 3 sentences
   // into a single 300-400 char mega-bullet that overflows the slide.
-  // Use the section heading for the first slide and fallbacks for subsequent ones
-  // so that heading is always non-empty (Zod schema requires heading: z.string().min(1)).
+  //
+  // Vary the heading per slide to avoid "Bataille de Santiago" repeating 3×.
+  // Slide 0 uses the section heading; subsequent slides derive a short heading
+  // from the first sentence of that chunk (year + key noun phrase).
   const paraSlides: IGSlide[] = [];
   for (let i = 0; i < sentences.length; i += MAX_BULLETS_PER_SLIDE) {
     const chunk = sentences.slice(i, i + MAX_BULLETS_PER_SLIDE);
     const slideIndex = Math.floor(i / MAX_BULLETS_PER_SLIDE);
+    let heading: string;
+    if (slideIndex === 0) {
+      heading = sectionHeading(mainSection.heading, 0);
+    } else {
+      // Derive a unique heading from the chunk's first sentence.
+      // Extract a year if present, then take the first clause.
+      const firstSent = chunk[0] ?? "";
+      heading = deriveSlideHeading(firstSent, slideIndex);
+    }
     paraSlides.push({
-      heading: sectionHeading(mainSection.heading, slideIndex),
+      heading,
       bullets: chunk.map((s) => shortenText(s, MAX_BULLET_CHARS)),
       layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),

@@ -351,7 +351,8 @@ export function buildSourceLine(item: Item): string {
 }
 
 /**
- * Shorten text to a maximum character length, breaking at word boundary.
+ * Shorten text to a maximum character length, breaking at sentence boundary.
+ * Strongly prefers complete sentences over mid-sentence truncation.
  */
 export function shortenText(text: string, max: number): string {
   if (text.length <= max) return text;
@@ -365,9 +366,24 @@ export function shortenText(text: string, max: number): string {
   while ((m = sentenceRe.exec(window)) !== null) {
     // Include the punctuation (and optional closing quote) but not the trailing space
     const cutAt = m.index + m[0].trimEnd().length;
-    if (cutAt >= max * 0.45) lastCut = cutAt;
+    // Accept sentence boundaries from 35% onwards (more aggressive than before)
+    if (cutAt >= max * 0.35) lastCut = cutAt;
   }
   if (lastCut > 0) return text.slice(0, lastCut).trim();
+
+  // Second chance: check if text ends with sentence punctuation just past the budget
+  // (i.e. the sentence is only slightly too long). If within 15% overshoot, allow it.
+  const slightOvershoot = text.slice(0, Math.floor(max * 1.15));
+  const overRe = /[.!?][)"'»]?\s/g;
+  let firstPastBudget: number | null = null;
+  while ((m = overRe.exec(slightOvershoot)) !== null) {
+    const cutAt = m.index + m[0].trimEnd().length;
+    if (cutAt > max && firstPastBudget === null) {
+      firstPastBudget = cutAt;
+      break;
+    }
+  }
+  if (firstPastBudget !== null) return text.slice(0, firstPastBudget).trim();
 
   // Fallback: word boundary + ellipsis
   const truncated = text.slice(0, max);

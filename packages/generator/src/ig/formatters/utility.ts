@@ -5,9 +5,9 @@
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenCaptionText, formatDeadline, shortenHeadline, type BilingualText } from "./helpers.js";
 
-/** Background for the EdLight News CTA closing slide — Citadelle Laferrière. */
+/** Background for the EdLight News CTA closing slide — Marché Central, Port-au-Prince. */
 const UTILITY_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Central_Market%2C_Port-au-Prince.jpg/1280px-Central_Market%2C_Port-au-Prince.jpg";
 
 export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];

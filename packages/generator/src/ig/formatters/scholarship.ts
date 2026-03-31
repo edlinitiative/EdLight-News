@@ -13,9 +13,9 @@
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
 
-/** Background for the EdLight News CTA closing slide — Citadelle Laferrière. */
+/** Background for the EdLight News CTA closing slide — Musée du Panthéon National Haïtien (MUPANAH). */
 const SCHOLARSHIP_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Citadelle_Laferriere.jpg/1080px-Citadelle_Laferriere.jpg";
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/MUPANAH_2018_-_Roof.jpg/1280px-MUPANAH_2018_-_Roof.jpg";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];
