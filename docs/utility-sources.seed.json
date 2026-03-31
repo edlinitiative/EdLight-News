@@ -260,7 +260,7 @@
     "region": ["HT"],
     "allowlistDomain": "alterpresse.org",
     "priority": 8,
-    "active": true
+    "active": false
   },
   {
     "label": "Wikipedia – Haïti",
