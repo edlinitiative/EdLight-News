@@ -54,7 +54,7 @@ function getHaitiOffsetHours(date: Date = new Date()): number {
 
 /** Only publish once per day — skip if log already says "published". */
 const PUBLISH_HOUR_MIN = 6;
-const PUBLISH_HOUR_MAX = 22;
+const PUBLISH_HOUR_MAX = 23;
 
 /** Maximum almanac entries to include in one daily post. */
 const MAX_ENTRIES_PER_POST = 3;
