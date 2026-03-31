@@ -14,6 +14,7 @@
 import { uploadImageBuffer } from "@edlight-news/firebase";
 import type { Item } from "@edlight-news/types";
 import { findEditorialImage } from "./editorialImageSearch.js";
+import { findTieredImage } from "./tieredImagePipeline.js";
 
 // Read lazily — dotenv may not have run yet when this module is imported
 function getApiKey(): string | undefined {
@@ -298,6 +299,21 @@ export async function generateContextualImage(
 ): Promise<GeneratedImage | null> {
   // Skip editorial search when a custom prompt is provided (caller wants AI art)
   if (!customPrompt) {
+    // Try the new tiered pipeline first (official → archive → stock)
+    try {
+      const tiered = await findTieredImage(item);
+      if (tiered) {
+        console.log(
+          `[imagen3] Using tiered image: ${tiered.source}/${tiered.tier} ` +
+          `score=${tiered.score.toFixed(1)} license=${tiered.licenseStatus}`,
+        );
+        return { url: tiered.url, prompt: `tiered:${tiered.source}:${tiered.tier}` };
+      }
+    } catch (err) {
+      console.warn("[imagen3] Tiered pipeline failed, trying legacy search:", err instanceof Error ? err.message : err);
+    }
+
+    // Legacy fallback: flat Unsplash → Commons search
     try {
       const editorial = await findEditorialImage(item, getEditorialMinScore(item));
       if (editorial) {
