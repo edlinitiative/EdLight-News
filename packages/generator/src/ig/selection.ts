@@ -147,6 +147,50 @@ function isOfficialSource(url: string): boolean {
   );
 }
 
+// ── English-content detection for language gate ────────────────────────────
+
+/** Common English function words / phrases that rarely appear in French text. */
+const EN_GATE_MARKERS = [
+  /\bthe\b/gi, /\band\b/gi, /\bfor\b/gi, /\bwith\b/gi,
+  /\bfrom\b/gi, /\bthis\b/gi, /\bthat\b/gi, /\bwere\b/gi,
+  /\bwas\b/gi, /\bhave\b/gi, /\bhas\b/gi, /\bbeen\b/gi,
+  /\btheir\b/gi, /\bwhich\b/gi, /\babout\b/gi, /\bwould\b/gi,
+  /\bcould\b/gi, /\bsaid\b/gi, /\bafter\b/gi, /\bbefore\b/gi,
+];
+
+/** French function words that signal the text is in French. */
+const FR_GATE_MARKERS = [
+  / le /gi, / la /gi, / les /gi, / des /gi, / du /gi,
+  / un /gi, / une /gi, / est /gi, / sont /gi, / dans /gi,
+  / pour /gi, / par /gi, / avec /gi, / sur /gi, / qui /gi,
+  / que /gi, / cette /gi, / selon /gi, / été /gi, / mais /gi,
+];
+
+/**
+ * Returns true when a text sample is predominantly English — meaning it
+ * should NOT be posted on a French IG account without translation.
+ * Uses word-frequency heuristic: count EN vs FR function words.
+ */
+function looksLikeEnglishContent(text: string): boolean {
+  if (!text || text.length < 80) return false;
+  const sample = ` ${text.slice(0, 800).toLowerCase()} `;
+
+  let enHits = 0;
+  for (const re of EN_GATE_MARKERS) {
+    const matches = sample.match(re);
+    if (matches) enHits += matches.length;
+  }
+
+  let frHits = 0;
+  for (const re of FR_GATE_MARKERS) {
+    const matches = sample.match(re);
+    if (matches) frHits += matches.length;
+  }
+
+  // Clearly English: many EN hits and significantly more than FR hits
+  return enHits >= 5 && enHits > frHits * 2;
+}
+
 function daysUntil(isoDate: string): number {
   const target = new Date(isoDate);
   const now = new Date();
@@ -319,10 +363,11 @@ export function decideIG(item: Item): IGDecision {
   }
 
   // Image required — IG is a visual platform, skip items without images.
-  // Exception: histoire, utility, scholarship, and opportunity can render
-  // with the branded dark gradient when no publisher photo is available.
-  // Their formatters handle missing imageUrl gracefully (no backgroundImage).
-  const BRANDED_IMAGE_TYPES: Set<IGPostType> = new Set(["histoire", "utility", "scholarship", "opportunity"]);
+  // Exception: histoire, utility, scholarship, opportunity, and news can
+  // render with the branded dark gradient when no publisher photo is available.
+  // Their formatters handle missing imageUrl gracefully (no backgroundImage
+  // key on slides). The downstream pipeline may also fill images via Gemini.
+  const BRANDED_IMAGE_TYPES: Set<IGPostType> = new Set(["histoire", "utility", "scholarship", "opportunity", "news"]);
   if (!item.imageUrl && !BRANDED_IMAGE_TYPES.has(igType)) {
     return {
       igEligible: false,
@@ -448,6 +493,22 @@ export function decideIG(item: Item): IGDecision {
     if (studentMarkers >= 2) reasons.push(`News: ${studentMarkers} student-relevance markers`);
     if (haitiMarkers >= 1) reasons.push(`News: ${haitiMarkers} Haiti-relevance markers`);
     if (isHaitiTagged) reasons.push(`News: Haiti geoTag`);
+  }
+
+  // ── Language gate: reject items whose content is clearly English ───────
+  // Without Gemini content_versions, raw English articles cannot be
+  // translated into French slides. The LLM reviewer normally catches
+  // English leaks, but when the LLM is unavailable we need a static gate.
+  if (igType === "news") {
+    const probe = `${item.title} ${(item.extractedText ?? item.summary ?? "").slice(0, 600)}`;
+    if (looksLikeEnglishContent(probe)) {
+      return {
+        igEligible: false,
+        igType,
+        igPriorityScore: 0,
+        reasons: ["English content without French translation — rejected for French IG account"],
+      };
+    }
   }
 
   // ── Priority scoring ───────────────────────────────────────────────────

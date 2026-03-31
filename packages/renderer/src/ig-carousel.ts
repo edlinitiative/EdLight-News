@@ -142,8 +142,20 @@ function imageLayerHtml(hasImage: boolean, overlayGradient?: string): string {
 }
 
 function glowCss(accent: string): string {
-  return `.bg-glow { position:absolute; inset:0; background: radial-gradient(ellipse at 20% 80%, ${accent}08 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, ${accent}06 0%, transparent 50%); }
-.accent-bar { position:absolute; left:0; top:0; bottom:0; width:5px; background:${accent}; }`;
+  return `.bg-glow {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 15% 85%, ${accent}12 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 15%, ${accent}0a 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%);
+}
+.accent-bar {
+  position:absolute; left:0; top:0; width:100%; height:100%;
+  background:
+    linear-gradient(135deg, ${accent}08 0%, transparent 40%),
+    linear-gradient(315deg, ${accent}06 0%, transparent 35%);
+  pointer-events:none;
+}`;
 }
 
 function pillCss(accent: string): string {

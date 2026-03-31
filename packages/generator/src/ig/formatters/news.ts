@@ -19,7 +19,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, type BilingualText } from "./helpers.js";
+import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, looksEnglish, type BilingualText } from "./helpers.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -86,6 +86,24 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
 
   const title = bi?.frTitle ?? item.title;
   const summary = bi?.frSummary ?? item.summary;
+
+  // ── English-language gate ──────────────────────────────────────────────
+  // Without Gemini content_versions, title/summary/extractedText may be raw
+  // English from the source. The LLM reviewer normally catches this, but when
+  // the LLM is unavailable we need a static heuristic to prevent English
+  // posts going live on a French-language IG account.
+  if (!bi?.frTitle) {
+    // No bilingual data — check the raw title + leading text for English
+    const probe = `${item.title} ${(item.extractedText ?? item.summary ?? "").slice(0, 500)}`;
+    if (looksEnglish(probe) && !looksLikeFrench(probe)) {
+      return {
+        slides: [],
+        caption: "",
+        _rejected: "English content without French translation",
+      } as IGFormattedPayload;
+    }
+  }
+
   const geoLabel = item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International";
   const imageUrl = item.imageUrl ?? undefined;
 
