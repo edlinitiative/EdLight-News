@@ -15,7 +15,7 @@ export function getGenAI(): GoogleGenerativeAI {
 
 // ── Provider-agnostic LLM interface ────────────────────────────────────────
 
-export type LLMProvider = "gemini" | "openai" | "anthropic" | "groq";
+export type LLMProvider = "gemini" | "openai" | "anthropic" | "groq" | "mistral" | "openrouter";
 
 export interface LLMOptions {
   /** Which provider to use. Defaults to LLM_PROVIDER env var, then "gemini". */
@@ -52,6 +52,10 @@ export async function callLLM(prompt: string, opts?: LLMOptions): Promise<string
       return callAnthropicInternal(prompt, opts);
     case "groq":
       return callGroqInternal(prompt, opts);
+    case "mistral":
+      return callMistralInternal(prompt, opts);
+    case "openrouter":
+      return callOpenRouterInternal(prompt, opts);
     default:
       throw new Error(`Unsupported LLM provider: ${provider}`);
   }
@@ -141,7 +145,7 @@ async function callGroqInternal(prompt: string, opts?: LLMOptions): Promise<stri
   if (!apiKey) throw new Error("Missing GROQ_API_KEY environment variable.");
 
   const body: Record<string, unknown> = {
-    model: opts?.model ?? "llama-3.1-70b-versatile",
+    model: opts?.model ?? "llama-3.3-70b-versatile",
     messages: [{ role: "user", content: prompt }],
     temperature: opts?.temperature ?? 0.3,
     max_tokens: opts?.maxOutputTokens ?? 4096,
@@ -156,6 +160,65 @@ async function callGroqInternal(prompt: string, opts?: LLMOptions): Promise<stri
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Groq API error: ${res.status} ${await res.text()}`);
+  const json = await res.json() as { choices: { message: { content: string } }[] };
+  return json.choices[0]?.message?.content ?? "";
+}
+
+// ── Mistral AI (pluggable — excellent for French) ──────────────────────────
+
+async function callMistralInternal(prompt: string, opts?: LLMOptions): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY;
+  if (!apiKey) throw new Error("Missing MISTRAL_API_KEY environment variable.");
+
+  const body: Record<string, unknown> = {
+    model: opts?.model ?? "mistral-small-latest",
+    messages: [{ role: "user", content: prompt }],
+    temperature: opts?.temperature ?? 0.3,
+    max_tokens: opts?.maxOutputTokens ?? 4096,
+  };
+  if (opts?.jsonMode !== false) {
+    body.response_format = { type: "json_object" };
+  }
+
+  const res = await fetch("https://api.mistral.ai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`Mistral API error: ${res.status} ${await res.text()}`);
+  const json = await res.json() as { choices: { message: { content: string } }[] };
+  return json.choices[0]?.message?.content ?? "";
+}
+
+// ── OpenRouter (pluggable — aggregator with free model variants) ───────────
+
+async function callOpenRouterInternal(prompt: string, opts?: LLMOptions): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("Missing OPENROUTER_API_KEY environment variable.");
+
+  const body: Record<string, unknown> = {
+    // Default to a free model; caller can override via opts.model.
+    // Append ":free" to any model slug for the zero-cost variant.
+    model: opts?.model ?? "meta-llama/llama-3.3-70b-instruct:free",
+    messages: [{ role: "user", content: prompt }],
+    temperature: opts?.temperature ?? 0.3,
+    max_tokens: opts?.maxOutputTokens ?? 4096,
+  };
+  if (opts?.jsonMode !== false) {
+    body.response_format = { type: "json_object" };
+  }
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "HTTP-Referer": "https://edlight.news",
+      "X-Title": "EdLight News",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`OpenRouter API error: ${res.status} ${await res.text()}`);
   const json = await res.json() as { choices: { message: { content: string } }[] };
   return json.choices[0]?.message?.content ?? "";
 }
