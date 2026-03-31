@@ -129,7 +129,7 @@ const LICENSE_SCORES: Record<LicenseStatus, number> = {
   safe_public_domain: 15,
   official_reusable: 14,
   cc_attribution: 12,
-  licensed_editorial: 0,        // ZERO — blocks auto-publishing
+  licensed_editorial: 6,        // Reduced but not blocked — flag for review
   unknown_do_not_publish: 0,    // ZERO — blocks auto-publishing
 };
 
@@ -170,7 +170,7 @@ export function computeImageScore(inputs: ScoreInputs): {
   const quality = scoreQuality(inputs.width, inputs.height);
   const licensing = scoreLicensing(inputs.licenseStatus);
 
-  // Licensing gate: if licensing is zero, the whole score collapses
+  // Licensing gate: only hard-block truly unknown sources
   const total = licensing === 0 ? 0 : (relevance + trust + recency + quality + licensing);
 
   return {
