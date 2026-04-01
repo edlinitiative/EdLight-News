@@ -3,7 +3,6 @@
  *
  * Publishes content to:
  *  1. Instagram (via Graph API — or dry-run mode)
- *  2. WhatsApp (via Cloud API — placeholder)
  *
  * Processes entries from the publish_queue collection.
  */
@@ -276,120 +275,6 @@ export async function publishToInstagram(
 ): Promise<void> {
   // Legacy — use publishIgPost() for the new IG pipeline
   throw new Error("publishToInstagram: use publishIgPost() instead");
-}
-
-// ── WhatsApp Cloud API ──────────────────────────────────────────────────────
-
-export interface WhatsAppPublishResult {
-  sent: boolean;
-  messageId?: string;
-  dryRun: boolean;
-  dryRunPayload?: unknown;
-  error?: string;
-}
-
-/**
- * Publish a news item to a WhatsApp channel via the Meta Cloud API.
- *
- * Requires the following env vars:
- *   WHATSAPP_ACCESS_TOKEN     — Meta Graph API token with
- *                               whatsapp_business_messaging permission
- *   WHATSAPP_PHONE_NUMBER_ID  — Sender phone number ID (from Meta Business)
- *   WHATSAPP_RECIPIENT        — Recipient phone number (international format, e.g. +50912345678)
- *                               or a WhatsApp channel phone number
- *
- * Falls back to dry-run mode (logs payload to /tmp/wa_exports/) when
- * credentials are not configured — safe for local development.
- *
- * Message format: image (if imageUrl provided) + text body with
- * headline, summary and a link. Uses WhatsApp "interactive" template-free
- * messaging (Cloud API free-form messages, 24-hour window).
- */
-export async function publishToWhatsApp(
-  entry: PublishQueueEntry & {
-    title?: string;
-    summary?: string;
-    imageUrl?: string | null;
-    url?: string;
-  },
-): Promise<WhatsAppPublishResult> {
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const recipient = process.env.WHATSAPP_RECIPIENT;
-
-  const isDryRun = !accessToken || !phoneNumberId || !recipient;
-
-  // Build the message body
-  const headline = entry.title ?? "(Titre non disponible)";
-  const summary = entry.summary ?? "";
-  const link = entry.url ?? "https://news.edlight.org";
-
-  const textBody = [headline, summary.length > 0 ? `\n${summary}` : "", `\n🔗 ${link}`]
-    .filter(Boolean)
-    .join("");
-
-  if (isDryRun) {
-    const exportDir = "/tmp/wa_exports";
-    mkdirSync(exportDir, { recursive: true });
-    const payload = {
-      messaging_product: "whatsapp",
-      to: recipient ?? "+UNKNOWN",
-      type: entry.imageUrl ? "image" : "text",
-      ...(entry.imageUrl
-        ? {
-            image: { link: entry.imageUrl, caption: textBody },
-          }
-        : {
-            text: { preview_url: true, body: textBody },
-          }),
-    };
-    const outPath = join(exportDir, `${entry.id}_${Date.now()}.json`);
-    writeFileSync(outPath, JSON.stringify(payload, null, 2));
-    console.log(`[WhatsApp] Dry-run — payload saved to ${outPath}`);
-    return { sent: false, dryRun: true, dryRunPayload: payload };
-  }
-
-  const WA_API = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
-
-  try {
-    const body = entry.imageUrl
-      ? {
-          messaging_product: "whatsapp",
-          to: recipient,
-          type: "image",
-          image: { link: entry.imageUrl, caption: textBody },
-        }
-      : {
-          messaging_product: "whatsapp",
-          to: recipient,
-          type: "text",
-          text: { preview_url: true, body: textBody },
-        };
-
-    const res = await fetch(WA_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("[WhatsApp] API error:", res.status, err);
-      return { sent: false, dryRun: false, error: `HTTP ${res.status}: ${err}` };
-    }
-
-    const data = (await res.json()) as { messages?: [{ id: string }] };
-    const messageId = data.messages?.[0]?.id;
-    console.log(`[WhatsApp] Sent — message_id=${messageId}`);
-    return { sent: true, dryRun: false, messageId };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[WhatsApp] publish error:", msg);
-    return { sent: false, dryRun: false, error: msg };
-  }
 }
 
 // ── IG Stories API ──────────────────────────────────────────────────────────
