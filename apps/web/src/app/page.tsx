@@ -409,86 +409,191 @@ export default async function AccueilPage({
     <div className="space-y-0">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-stone-950 py-10 sm:py-14">
-        {/* Decorative blobs */}
-        <div className="pointer-events-none absolute -top-20 left-1/3 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl" />
-        <div className="pointer-events-none absolute right-0 top-0 h-48 w-72 bg-gradient-to-bl from-blue-500/10 to-transparent" />
+      <section className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden">
+        {/* Background layers */}
+        <div className="absolute inset-0 bg-[#080d1a]" />
+        <div className="absolute inset-0 bg-dots-white" />
+        {/* Glows */}
+        <div className="pointer-events-none absolute -left-40 -top-20 h-[520px] w-[520px] rounded-full bg-blue-700/25 blur-[130px]" />
+        <div className="pointer-events-none absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-violet-700/20 blur-[110px]" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-48 w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-800/15 blur-[80px]" />
 
-        <div className="relative space-y-6">
-          {/* Eyebrow */}
-          <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <GraduationCap className="h-4 w-4 text-white" />
-            </span>
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-500">
-              EdLight News
-            </span>
-          </div>
+        <div className="relative px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid items-center gap-10 lg:grid-cols-[1fr_360px]">
 
-          {/* Headline */}
-          <div className="max-w-2xl">
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-              {fr ? (
-                <>
-                  Les <span className="text-blue-400">repères</span> pour étudier,{" "}
-                  <br className="hidden sm:block" />
-                  postuler et avancer.
-                </>
-              ) : (
-                <>
-                  Repè yo pou etidye,{" "}
-                  <br className="hidden sm:block" />
-                  <span className="text-blue-400">aplike</span> epi avanse.
-                </>
-              )}
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-stone-400 sm:text-base">
-              {fr
-                ? "Bourses, calendrier, parcours et actualités — centralisés pour les étudiants haïtiens."
-                : "Bous, kalandriye, pakou ak nouvèl — santralize pou elèv ayisyen yo."}
-            </p>
-          </div>
+              {/* ── Left column ── */}
+              <div className="space-y-8">
 
-          {/* CTA buttons */}
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={lq("/bourses")}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-            >
-              <DollarSign className="h-4 w-4" />
-              {fr ? "Voir les bourses" : "Gade bous yo"}
-            </Link>
-            <Link
-              href={lq("/calendrier")}
-              className="inline-flex items-center gap-2 rounded-lg border border-stone-700 bg-stone-900 px-5 py-2.5 text-sm font-semibold text-stone-200 transition-colors hover:bg-stone-800"
-            >
-              <CalendarDays className="h-4 w-4" />
-              {fr ? "Calendrier" : "Kalandriye"}
-            </Link>
-            <Link
-              href={lq("/news")}
-              className="inline-flex items-center gap-2 rounded-lg border border-stone-700 bg-stone-900 px-5 py-2.5 text-sm font-semibold text-stone-200 transition-colors hover:bg-stone-800"
-            >
-              {fr ? "Actualités" : "Nouvèl"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+                {/* Eyebrow */}
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20 ring-1 ring-inset ring-blue-500/30">
+                    <GraduationCap className="h-4 w-4 text-blue-400" />
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400/70">
+                    EdLight News
+                  </span>
+                  <span className="h-px w-8 bg-blue-500/25" />
+                </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-2 gap-4 border-t border-stone-800 pt-6 sm:grid-cols-4">
-            {[
-              { value: closingScholarships45.length, label: fr ? "bourses suivies" : "bous swivi" },
-              { value: upcomingEvents.length, label: fr ? "échéances à venir" : "dat limit k ap vini" },
-              { value: allPathways.length, label: fr ? "parcours guidés" : "pakou gide" },
-              { value: allUniversities.length, label: fr ? "universités" : "inivèsite" },
-            ].map((s) => (
-              <div key={s.label}>
-                <p className="text-2xl font-extrabold tabular-nums text-white sm:text-3xl">{s.value}</p>
-                <p className="mt-0.5 text-[11px] uppercase tracking-wider text-stone-500">{s.label}</p>
+                {/* Headline */}
+                <div>
+                  <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl">
+                    {fr ? (
+                      <>
+                        Les repères pour{" "}
+                        <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                          étudier
+                        </span>
+                        ,{" "}
+                        <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                          postuler
+                        </span>{" "}
+                        et avancer.
+                      </>
+                    ) : (
+                      <>
+                        Repè pou{" "}
+                        <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                          etidye
+                        </span>
+                        ,{" "}
+                        <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+                          aplike
+                        </span>{" "}
+                        epi avanse.
+                      </>
+                    )}
+                  </h1>
+                  <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-slate-400">
+                    {fr
+                      ? "Bourses, calendrier, parcours et actualités — centralisés pour les étudiants haïtiens."
+                      : "Bous, kalandriye, pakou ak nouvèl — santralize pou elèv ayisyen yo."}
+                  </p>
+                </div>
+
+                {/* CTA buttons */}
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={lq("/bourses")}
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-500"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    {fr ? "Voir les bourses" : "Gade bous yo"}
+                  </Link>
+                  <Link
+                    href={lq("/calendrier")}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    {fr ? "Calendrier" : "Kalandriye"}
+                  </Link>
+                  <Link
+                    href={lq("/news")}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                  >
+                    {fr ? "Actualités" : "Nouvèl"}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+
+                {/* Stats */}
+                <div className="flex flex-wrap gap-x-8 gap-y-5 border-t border-white/[0.07] pt-6">
+                  {[
+                    { value: closingScholarships45.length, label: fr ? "bourses suivies" : "bous swivi", color: "text-blue-400" },
+                    { value: upcomingEvents.length, label: fr ? "échéances à venir" : "dat limit k ap vini", color: "text-violet-400" },
+                    { value: allPathways.length, label: fr ? "parcours guidés" : "pakou gide", color: "text-emerald-400" },
+                    { value: allUniversities.length, label: fr ? "universités" : "inivèsite", color: "text-amber-400" },
+                  ].map((s) => (
+                    <div key={s.label} className="flex flex-col">
+                      <span className={`text-2xl font-extrabold tabular-nums leading-none ${s.color}`}>{s.value}</span>
+                      <span className="mt-1.5 text-[10px] font-medium uppercase tracking-widest text-slate-500">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+
+              {/* ── Right column — featured article card ── */}
+              {allArticlesFiltered[0] && (
+                <div className="hidden lg:flex lg:flex-col lg:gap-3">
+                  <Link
+                    href={lq(`/news/${allArticlesFiltered[0].id}`)}
+                    className="group block overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] transition hover:border-white/[0.15] hover:bg-white/[0.07]"
+                  >
+                    <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 via-violet-500 to-transparent" />
+                    <div className="space-y-4 p-6">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-md bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-300">
+                          {allArticlesFiltered[0].itemType === "synthesis" ? (fr ? "Dossier" : "Dosye") :
+                           allArticlesFiltered[0].itemType === "utility" ? (fr ? "Ressource" : "Resous") :
+                           fr ? "Actualité" : "Nouvèl"}
+                        </span>
+                        {allArticlesFiltered[0].publishedAt && (
+                          <span className="text-[11px] text-slate-500">
+                            {new Date(allArticlesFiltered[0].publishedAt).toLocaleDateString(
+                              fr ? "fr-FR" : "fr-HT",
+                              { day: "numeric", month: "short" },
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="line-clamp-4 text-[15px] font-bold leading-snug text-white/90 group-hover:text-white">
+                        {allArticlesFiltered[0].title}
+                      </h2>
+                      {allArticlesFiltered[0].summary && (
+                        <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">
+                          {allArticlesFiltered[0].summary}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
+                        <span className="truncate text-xs text-slate-600">
+                          {allArticlesFiltered[0].sourceName ?? ""}
+                        </span>
+                        <span className="ml-3 flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-400 group-hover:text-blue-300">
+                          {fr ? "Lire" : "Li"}{" "}
+                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+
+                  {allArticlesFiltered[1] && (
+                    <Link
+                      href={lq(`/news/${allArticlesFiltered[1].id}`)}
+                      className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:bg-white/[0.07]"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-sm font-medium leading-snug text-white/60 group-hover:text-white/90">
+                          {allArticlesFiltered[1].title}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[1].sourceName}</p>
+                      </div>
+                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-blue-400" />
+                    </Link>
+                  )}
+
+                  {allArticlesFiltered[2] && (
+                    <Link
+                      href={lq(`/news/${allArticlesFiltered[2].id}`)}
+                      className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:bg-white/[0.07]"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 text-sm font-medium leading-snug text-white/60 group-hover:text-white/90">
+                          {allArticlesFiltered[2].title}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[2].sourceName}</p>
+                      </div>
+                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-blue-400" />
+                    </Link>
+                  )}
+                </div>
+              )}
+
+            </div>
           </div>
         </div>
+        {/* Bottom edge */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/[0.06]" />
       </section>
 
       {/* ── URGENCY STRIP ────────────────────────────────────────────────── */}

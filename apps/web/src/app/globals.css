@@ -190,6 +190,11 @@
   .dark .bg-dots {
     background-image: radial-gradient(circle, rgb(68 64 60 / 0.2) 1px, transparent 1px);
   }
+  /* White-dot variant — for dark/navy hero backgrounds */
+  .bg-dots-white {
+    background-image: radial-gradient(circle, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
 
   /* ── Gradient text utility ──────────────────────────────── */
   .text-gradient {
