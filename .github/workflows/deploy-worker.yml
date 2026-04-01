@@ -113,6 +113,17 @@ jobs:
             IG_ACCESS_TOKEN=${{ secrets.IG_ACCESS_TOKEN }}
             IG_USER_ID=${{ secrets.IG_USER_ID }}
             IG_API_HOST=${{ secrets.IG_API_HOST }}
+            LLM_PROVIDER=gemini
+            MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
+            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            LLM_REVIEWER_PROVIDER=${{ secrets.LLM_REVIEWER_PROVIDER }}
+            LLM_REVIEWER_MODEL=${{ secrets.LLM_REVIEWER_MODEL }}
+            FLICKR_API_KEY=${{ secrets.FLICKR_API_KEY }}
+            BRAVE_SEARCH_API_KEY=${{ secrets.BRAVE_SEARCH_API_KEY }}
+            GOOGLE_CSE_API_KEY=${{ secrets.GOOGLE_CSE_API_KEY }}
+            GOOGLE_CSE_CX=${{ secrets.GOOGLE_CSE_CX }}
+            Unsplash_ACCESS_KEY=${{ secrets.UNSPLASH_ACCESS_KEY }}
             PROCESS_BATCH_LIMIT=10
             GENERATE_BATCH_LIMIT=3
             IMAGE_BATCH_LIMIT=2
