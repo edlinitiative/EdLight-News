@@ -1,37 +1,22 @@
 "use client";
 
 /**
- * useWikiImage — fetch a thumbnail from French Wikipedia for a search query.
+ * useWikiImage — fetch a thumbnail via the server-side /api/histoire/wiki-image
+ * proxy (which caches responses for 24 h via Next.js unstable_cache).
  *
- * Multi-query strategy for disambiguation:
- *   1. "{year} {title} Haïti" — most specific, avoids dad-vs-son / era mix-ups
- *   2. "{title} Haïti" — without year, still contextual
- *   3. "{title}" — bare fallback
+ * By going through the server route instead of fr.wikipedia.org directly:
+ *   - Wikipedia is only hit once per unique (title, year) pair globally, not
+ *     once per user / per card render.
+ *   - The module-level client cache prevents duplicate in-flight requests
+ *     within the same browser session.
  *
- * Results are cached in a module-level Map so repeated renders don't re-fetch.
- * Returns { url, loading }. `url` is null while loading or if no image is found.
+ * Returns { url, loading }. `url` is null while loading or if no image found.
  */
 
 import { useState, useEffect } from "react";
 
 const cache = new Map<string, string | null>();
 
-const WIKI_API =
-  "https://fr.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=480&format=json&origin=*&gsrsearch=";
-
-/** Try a single Wikipedia search query and return the thumbnail URL or null. */
-async function tryWikiSearch(query: string): Promise<string | null> {
-  const res = await fetch(WIKI_API + encodeURIComponent(query));
-  if (!res.ok) return null;
-  const data = await res.json();
-  const pages = data?.query?.pages;
-  if (!pages) return null;
-  const first = Object.values(pages)[0] as Record<string, unknown> | undefined;
-  const t = first?.thumbnail as { source?: string } | undefined;
-  return t?.source ?? null;
-}
-
-/** Build a cache key from query + year. */
 function cacheKey(query: string, year?: number | null): string {
   return year ? `${year}::${query}` : query;
 }
@@ -65,38 +50,31 @@ export function useWikiImage(
     let cancelled = false;
     setLoading(true);
 
-    (async () => {
-      try {
-        // Multi-query strategy: most specific → least specific
-        const candidates: string[] = [];
-        if (year) candidates.push(`${year} ${query} Haïti`);
-        candidates.push(`${query} Haïti`);
-        candidates.push(query);
+    const params = new URLSearchParams({ q: query });
+    if (year != null) params.set("year", String(year));
 
-        let thumb: string | null = null;
-        for (const q of candidates) {
-          thumb = await tryWikiSearch(q);
-          if (thumb) break;
-        }
-
-        cache.set(key, thumb);
+    fetch(`/api/histoire/wiki-image?${params.toString()}`)
+      .then((res) => (res.ok ? res.json() : { url: null }))
+      .then((data: { url: string | null }) => {
+        cache.set(key, data.url ?? null);
         if (!cancelled) {
-          setUrl(thumb);
+          setUrl(data.url ?? null);
           setLoading(false);
         }
-      } catch {
+      })
+      .catch(() => {
         cache.set(key, null);
         if (!cancelled) {
           setUrl(null);
           setLoading(false);
         }
-      }
-    })();
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [query, key]);
+  }, [query, key, year]);
 
   return { url, loading };
 }
+

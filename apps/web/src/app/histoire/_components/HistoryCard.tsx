@@ -38,7 +38,11 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
   const hasOwnIllustration = shouldShowIllustration(entry);
 
   // Fall back to Wikipedia image when no illustration exists
-  const wikiQuery = !hasOwnIllustration ? entry.title_fr : null;
+  const wikiQuery = !hasOwnIllustration
+    ? fr
+      ? entry.title_fr
+      : (entry.title_ht ?? entry.title_fr)
+    : null;
   const { url: wikiThumb } = useWikiImage(wikiQuery, entry.year);
 
   const imageUrl = hasOwnIllustration ? entry.illustration!.imageUrl : wikiThumb;
@@ -69,14 +73,14 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={imageUrl}
-                alt={`${fr ? "Illustration :" : "Illustration :"} ${entry.title_fr}`}
+                alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
                 className="h-full w-full object-cover transition group-hover:scale-[1.03]"
                 loading="lazy"
               />
             ) : (
               <Image
                 src={imageUrl}
-                alt={`${fr ? "Illustration :" : "Illustration :"} ${entry.title_fr}`}
+                alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
                 fill
                 sizes="144px"
                 className="object-cover transition group-hover:scale-[1.03]"
@@ -125,12 +129,12 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
 
           {/* Title — serif editorial */}
           <h3 className="headline-card line-clamp-2">
-            {entry.title_fr}
+            {fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}
           </h3>
 
           {/* Summary — 3 lines when collapsed */}
           <p className={`text-[13px] leading-relaxed text-stone-500 dark:text-stone-400 ${expanded ? "" : "line-clamp-3"}`}>
-            {entry.summary_fr}
+            {fr ? entry.summary_fr : (entry.summary_ht ?? entry.summary_fr)}
           </p>
 
           {/* Expand indicator */}
@@ -154,7 +158,9 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
               <div className="flex gap-2.5 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                 <p className="text-xs leading-relaxed text-amber-900/80 dark:text-amber-200/70">
-                  {entry.student_takeaway_fr}
+                  {fr
+                    ? entry.student_takeaway_fr
+                    : (entry.student_takeaway_ht ?? entry.student_takeaway_fr)}
                 </p>
               </div>
             )}

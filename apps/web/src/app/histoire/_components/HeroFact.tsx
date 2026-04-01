@@ -58,13 +58,13 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={imageUrl}
-              alt={`${fr ? "Illustration :" : "Illustration :"} ${entry.title_fr}`}
+              alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
               className="h-full w-full object-cover"
             />
           ) : (
             <Image
               src={imageUrl}
-              alt={`${fr ? "Illustration :" : "Illustration :"} ${entry.title_fr}`}
+              alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
               fill
               sizes="(max-width: 768px) 100vw, 960px"
               className="object-cover"
@@ -154,12 +154,12 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
 
         {/* Headline — uses serif editorial style */}
         <h2 className="headline-section">
-          {entry.title_fr}
+          {fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}
         </h2>
 
         {/* Full summary — no clamp */}
         <p className="text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
-          {entry.summary_fr}
+          {fr ? entry.summary_fr : (entry.summary_ht ?? entry.summary_fr)}
         </p>
 
         {/* Takeaway callout */}
@@ -171,7 +171,9 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
                 {fr ? "Pourquoi c\u2019est important" : "Poukisa sa enp\u00f2tan"}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-amber-900/80 dark:text-amber-200/70">
-                {entry.student_takeaway_fr}
+                {fr
+                  ? entry.student_takeaway_fr
+                  : (entry.student_takeaway_ht ?? entry.student_takeaway_fr)}
               </p>
             </div>
           </div>

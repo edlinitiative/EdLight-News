@@ -21,7 +21,8 @@ import {
 import { HistoireClient } from "./_components/HistoireClient";
 import { serializeEntry, serializeHoliday } from "./_components/shared";
 
-export const revalidate = 900;
+// Content changes once per day (~07:10 Haiti time); 3600 s is sufficient
+export const revalidate = 3600;
 
 export async function generateMetadata({
   searchParams,

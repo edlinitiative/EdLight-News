@@ -454,9 +454,15 @@ export interface HaitiHistoryAlmanacEntry {
   /** Optional year; null for recurring or unspecified */
   year?: number | null;
   title_fr: string;
+  /** Haitian Creole title — optional; falls back to title_fr when absent */
+  title_ht?: string;
   summary_fr: string;
+  /** Haitian Creole summary — optional; falls back to summary_fr when absent */
+  summary_ht?: string;
   /** 1-sentence student takeaway */
   student_takeaway_fr: string;
+  /** Haitian Creole takeaway — optional; falls back to student_takeaway_fr when absent */
+  student_takeaway_ht?: string;
   tags?: AlmanacTag[];
   /** Optional historical illustration (stored server-side). */
   illustration?: {
