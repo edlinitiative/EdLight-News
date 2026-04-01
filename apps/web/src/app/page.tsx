@@ -514,23 +514,24 @@ export default async function AccueilPage({
               </div>
 
               {/* ── Right column — featured article card ── */}
-              {allArticlesFiltered[0] && (
+              {/* Uses articles [3+] so top articles aren't duplicated in the news section below */}
+              {allArticlesFiltered[3] && (
                 <div className="hidden lg:flex lg:flex-col lg:gap-3">
                   <Link
-                    href={lq(`/news/${allArticlesFiltered[0].id}`)}
+                    href={lq(`/news/${allArticlesFiltered[3].id}`)}
                     className="group block overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] transition hover:border-white/[0.15] hover:bg-white/[0.07]"
                   >
                     <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 via-violet-500 to-transparent" />
                     <div className="space-y-4 p-6">
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center rounded-md bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-300">
-                          {allArticlesFiltered[0].itemType === "synthesis" ? (fr ? "Dossier" : "Dosye") :
-                           allArticlesFiltered[0].itemType === "utility" ? (fr ? "Ressource" : "Resous") :
+                          {allArticlesFiltered[3].itemType === "synthesis" ? (fr ? "Dossier" : "Dosye") :
+                           allArticlesFiltered[3].itemType === "utility" ? (fr ? "Ressource" : "Resous") :
                            fr ? "Actualité" : "Nouvèl"}
                         </span>
-                        {allArticlesFiltered[0].publishedAt && (
+                        {allArticlesFiltered[3].publishedAt && (
                           <span className="text-[11px] text-slate-500">
-                            {new Date(allArticlesFiltered[0].publishedAt).toLocaleDateString(
+                            {new Date(allArticlesFiltered[3].publishedAt).toLocaleDateString(
                               fr ? "fr-FR" : "fr-HT",
                               { day: "numeric", month: "short" },
                             )}
@@ -538,16 +539,16 @@ export default async function AccueilPage({
                         )}
                       </div>
                       <h2 className="line-clamp-4 text-[15px] font-bold leading-snug text-white/90 group-hover:text-white">
-                        {allArticlesFiltered[0].title}
+                        {allArticlesFiltered[3].title}
                       </h2>
-                      {allArticlesFiltered[0].summary && (
+                      {allArticlesFiltered[3].summary && (
                         <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">
-                          {allArticlesFiltered[0].summary}
+                          {allArticlesFiltered[3].summary}
                         </p>
                       )}
                       <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
                         <span className="truncate text-xs text-slate-600">
-                          {allArticlesFiltered[0].sourceName ?? ""}
+                          {allArticlesFiltered[3].sourceName ?? ""}
                         </span>
                         <span className="ml-3 flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-400 group-hover:text-blue-300">
                           {fr ? "Lire" : "Li"}{" "}
@@ -557,31 +558,31 @@ export default async function AccueilPage({
                     </div>
                   </Link>
 
-                  {allArticlesFiltered[1] && (
+                  {allArticlesFiltered[4] && (
                     <Link
-                      href={lq(`/news/${allArticlesFiltered[1].id}`)}
+                      href={lq(`/news/${allArticlesFiltered[4].id}`)}
                       className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:bg-white/[0.07]"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="line-clamp-2 text-sm font-medium leading-snug text-white/60 group-hover:text-white/90">
-                          {allArticlesFiltered[1].title}
+                          {allArticlesFiltered[4].title}
                         </p>
-                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[1].sourceName}</p>
+                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[4].sourceName}</p>
                       </div>
                       <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-blue-400" />
                     </Link>
                   )}
 
-                  {allArticlesFiltered[2] && (
+                  {allArticlesFiltered[5] && (
                     <Link
-                      href={lq(`/news/${allArticlesFiltered[2].id}`)}
+                      href={lq(`/news/${allArticlesFiltered[5].id}`)}
                       className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:bg-white/[0.07]"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="line-clamp-2 text-sm font-medium leading-snug text-white/60 group-hover:text-white/90">
-                          {allArticlesFiltered[2].title}
+                          {allArticlesFiltered[5].title}
                         </p>
-                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[2].sourceName}</p>
+                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[5].sourceName}</p>
                       </div>
                       <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-blue-400" />
                     </Link>

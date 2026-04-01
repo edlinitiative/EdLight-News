@@ -108,8 +108,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     // Compute today's Haiti date for histoire freshness checks
     const haitiToday = getHaitiDateKey();
 
-    // Fetch recent items (last 72 hours)
-    const recentItems = await itemsRepo.listRecentItems(500);
+    // Fetch recent items (last 72 hours) — capped at 150 to save Firestore quota
+    const recentItems = await itemsRepo.listRecentItems(150);
     const cutoff = new Date();
     cutoff.setHours(cutoff.getHours() - 72);
 

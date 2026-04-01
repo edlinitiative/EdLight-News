@@ -141,8 +141,11 @@ export async function updateContentVersion(
  * (no draftReason set). Called as a cleanup sweep after generate.
  */
 export async function publishEligibleDrafts(): Promise<number> {
+  // Cap at 50 per tick — unbounded query was the #1 Firestore read hog
+  // (read every draft ever created × 12 ticks/day).
   const snap = await collection()
     .where("status", "==", "draft" satisfies ContentStatus)
+    .limit(50)
     .get();
 
   const eligible = snap.docs.filter((d) => !d.data().draftReason);

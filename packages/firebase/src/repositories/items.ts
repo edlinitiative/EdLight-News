@@ -175,7 +175,7 @@ export async function findSynthesisByClusterId(
  */
 export async function listRecentSourceItems(
   sinceDaysAgo: number,
-  limit: number = 500,
+  limit: number = 150,
 ): Promise<Item[]> {
   const since = new Date();
   since.setDate(since.getDate() - sinceDaysAgo);
@@ -221,7 +221,7 @@ export async function listItemsNeedingImages(limit: number): Promise<Item[]> {
   const snap = await collection()
     .where("audienceFitScore", ">=", IMAGE_SCORE_THRESHOLD)
     .orderBy("audienceFitScore", "desc") // highest-value items first
-    .limit(limit * 30) // over-fetch to account for items that already have good images
+    .limit(limit * 8) // over-fetch to account for items that already have good images
     .get();
 
   const results: Item[] = [];

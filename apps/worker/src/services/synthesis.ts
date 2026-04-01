@@ -77,9 +77,10 @@ export interface SynthesisResult {
  *  - max audienceFitScore among items >= 0.75
  */
 async function selectClusters(): Promise<ClusterCandidate[]> {
+  // Reduced from 500 to 150 — saves ~350 Firestore reads per tick
   const recentItems = await itemsRepo.listRecentSourceItems(
     CLUSTER_WINDOW_DAYS,
-    500,
+    150,
   );
 
   // Group by dedupeGroupId
