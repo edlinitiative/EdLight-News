@@ -199,7 +199,7 @@ async function callOpenRouterInternal(prompt: string, opts?: LLMOptions): Promis
   const body: Record<string, unknown> = {
     // Default to a free model; caller can override via opts.model.
     // Append ":free" to any model slug for the zero-cost variant.
-    model: opts?.model ?? "meta-llama/llama-3.3-70b-instruct:free",
+    model: opts?.model ?? "qwen/qwen3.6-plus-preview:free",
     messages: [{ role: "user", content: prompt }],
     temperature: opts?.temperature ?? 0.3,
     max_tokens: opts?.maxOutputTokens ?? 4096,

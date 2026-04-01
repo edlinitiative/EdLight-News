@@ -159,7 +159,12 @@ describe("decideIG", () => {
       utilityMeta: {
         series: "HaitiHistory",
         utilityType: "history",
-        citations: [{ label: "Source", url: "https://example.com" }],
+        citations: [
+          {
+            label: "La Révolution Haïtienne de 1791 et l'Indépendance de 1804",
+            url: "https://britannica.com/topic/haitian-revolution",
+          },
+        ],
       },
       deadline: null,
       opportunity: undefined,
@@ -167,6 +172,27 @@ describe("decideIG", () => {
     const decision = decideIG(item);
     assert.equal(decision.igType, "histoire");
     assert.equal(decision.igEligible, true);
+  });
+
+  it("demotes HaitiHistory utility items with non-historical content to news", () => {
+    const item = makeItem({
+      category: "resource",
+      itemType: "utility",
+      utilityMeta: {
+        series: "HaitiHistory",
+        utilityType: "history",
+        citations: [
+          {
+            label: "Prix Théâtre RFI 2026 — appel à candidatures",
+            url: "https://alterpresse.org/article-2026",
+          },
+        ],
+      },
+      deadline: null,
+      opportunity: undefined,
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igType, "news");
   });
 
   it("adds official source bonus", () => {

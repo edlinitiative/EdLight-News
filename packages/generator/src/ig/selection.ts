@@ -199,6 +199,51 @@ function daysUntil(isoDate: string): number {
 
 // ── Map ItemCategory → IGPostType ──────────────────────────────────────────
 
+/**
+ * Safety guard for utility items scraped with series=HaitiHistory.
+ *
+ * The dedicated historyPublisher sets canonicalUrl = `edlight://histoire/...`
+ * and is always trusted. External RSS sources (e.g. Britannica, Stanford) may
+ * occasionally send contemporary articles instead of historical ones. This
+ * function checks that the item's content genuinely references a historical
+ * event (a year before 2020 or known Haitian history keywords) before routing
+ * it to the histoire formatter.
+ *
+ * Returns `true` (allow) when there is no content to check.
+ */
+function isHistoricalContent(item: Item): boolean {
+  // Trust historyPublisher items unconditionally.
+  if (item.canonicalUrl?.startsWith("edlight://histoire/")) return true;
+
+  const textParts: string[] = [];
+  if (item.title) textParts.push(item.title);
+
+  // Citation labels and URLs carry the source article titles and domain.
+  for (const c of item.utilityMeta?.citations ?? []) {
+    if (c.label) textParts.push(c.label);
+    if (c.url)   textParts.push(c.url);
+  }
+
+  // If no text to analyse, give the item benefit of the doubt.
+  if (textParts.length === 0) return true;
+
+  const combined = textParts.join(" ");
+
+  // Any 4-digit year before 2020 strongly signals historical content.
+  if (/\b(1[4-9]\d{2}|200[0-9]|201[0-9])\b/.test(combined)) return true;
+
+  // Well-known Haitian historical keywords are also sufficient.
+  const HISTORY_KEYWORDS = [
+    "révolution", "révolutionnaire", "indépendance", "fondation",
+    "esclavage", "esclave", "colonie", "colonial", "saint-domingue",
+    "toussaint", "dessalines", "pétion", "christophe", "louverture",
+    "bataille", "traité", "empire haïtien", "occupation américaine",
+    "duvalier", "abolition", "haïtian revolution", "haitian independence",
+  ];
+  const norm = normalizeText(combined);
+  return HISTORY_KEYWORDS.some((kw) => norm.includes(normalizeText(kw)));
+}
+
 function mapCategoryToIGType(item: Item): IGPostType | null {
   const cat = item.category;
   const itemType = item.itemType;
@@ -207,6 +252,12 @@ function mapCategoryToIGType(item: Item): IGPostType | null {
   // Utility items
   if (itemType === "utility") {
     if (series === "HaitiHistory" || series === "HaitiFactOfTheDay" || series === "HaitianOfTheWeek") {
+      // For HaitiHistory from the utility engine, verify content is genuinely
+      // historical before routing to the histoire formatter.
+      // HaitiFactOfTheDay and HaitianOfTheWeek are trusted as-is.
+      if (series === "HaitiHistory" && !isHistoricalContent(item)) {
+        return "news"; // Contemporary news mis-tagged as history → demote
+      }
       return "histoire";
     }
     return "utility";
