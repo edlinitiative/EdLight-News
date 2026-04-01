@@ -37,6 +37,27 @@ export async function findBySourceContentId(sourceContentId: string): Promise<IG
   return { id: doc.id, ...doc.data() } as IGQueueItem;
 }
 
+/**
+ * Fetch the set of sourceContentIds already present in the queue for entries
+ * created within the last `windowDays` days.
+ *
+ * Used by buildIgQueue to perform a SINGLE batch read instead of one
+ * findBySourceContentId call per item (saves ~500 reads per tick).
+ */
+export async function listSourceContentIdsSince(since: Date): Promise<Set<string>> {
+  const sinceTs = Timestamp.fromDate(since);
+  const snap = await collection()
+    .where("createdAt", ">=", sinceTs)
+    .select("sourceContentId")
+    .get();
+  const ids = new Set<string>();
+  for (const doc of snap.docs) {
+    const scid = doc.data().sourceContentId as string | undefined;
+    if (scid) ids.add(scid);
+  }
+  return ids;
+}
+
 export async function listByStatus(
   status: IGQueueStatus,
   limit = 50,

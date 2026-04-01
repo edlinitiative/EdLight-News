@@ -85,16 +85,23 @@ export function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
 
 /** @internal exported for tests */
 export function toHaitiDate(date: Date): Date {
-  // Convert UTC date to Haiti local time representation
-  const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
-  return new Date(haitiStr);
+  // Convert a UTC Date to a "fake" Date whose UTC clock shows Haiti local time.
+  // Uses Intl.DateTimeFormat parts to avoid the DST-ambiguous toLocaleString approach.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: HAITI_TZ,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((p) => p.type === type)!.value;
+  // Build an ISO string treated as UTC so getUTCHours() gives the Haiti hour.
+  return new Date(`${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}Z`);
 }
 
 /** @internal exported for tests */
 export function isQuietHour(date: Date): boolean {
   const haitiDate = toHaitiDate(date);
-  const hour = haitiDate.getHours();
-  const minute = haitiDate.getMinutes();
+  const hour = haitiDate.getUTCHours();
+  const minute = haitiDate.getUTCMinutes();
   // Quiet hours: 23:00–05:29 Haiti time (opens at 05:30 for morning posts)
   return hour >= 23 || hour < 5 || (hour === 5 && minute < 30);
 }
@@ -106,10 +113,17 @@ export function isQuietHour(date: Date): boolean {
  */
 /** @internal exported for tests */
 export function getHaitiOffsetHours(date: Date = new Date()): number {
-  const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
-  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
-  const diffMs = new Date(utcStr).getTime() - new Date(haitiStr).getTime();
-  return Math.round(diffMs / (60 * 60 * 1000));
+  // Use the Intl API to get the reliable Haiti hour, then diff vs UTC.
+  const haitiHour = parseInt(
+    new Intl.DateTimeFormat("en-CA", { timeZone: HAITI_TZ, hour: "2-digit", hour12: false }).format(date),
+    10,
+  );
+  const utcHour = date.getUTCHours();
+  // diff may wrap around midnight — normalise to -12..+12
+  let diff = utcHour - haitiHour;
+  if (diff > 12) diff -= 24;
+  if (diff < -12) diff += 24;
+  return diff;
 }
 
 // Pinned morning slots for daily staples, followed by general engagement slots.
@@ -139,13 +153,13 @@ export const SLOTS = [
 export function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = false): Date | null {
   const now = new Date();
   const haitiNow = toHaitiDate(now);
-  const haitiHour = haitiNow.getHours();
-  const haitiMinute = haitiNow.getMinutes();
+  const haitiHour = haitiNow.getUTCHours();
+  const haitiMinute = haitiNow.getUTCMinutes();
   const offsetHours = getHaitiOffsetHours(now);
 
-  const haitiYear = haitiNow.getFullYear();
-  const haitiMonth = haitiNow.getMonth();
-  const haitiDay = haitiNow.getDate();
+  const haitiYear = haitiNow.getUTCFullYear();
+  const haitiMonth = haitiNow.getUTCMonth();
+  const haitiDay = haitiNow.getUTCDate();
 
   const maxDayOffset = todayOnly ? 0 : 1;
 
@@ -197,9 +211,9 @@ export function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = fal
 /** Return today's date in Haiti timezone as YYYY-MM-DD. */
 function getHaitiTodayISO(): string {
   const haiti = toHaitiDate(new Date());
-  const year = haiti.getFullYear();
-  const month = String(haiti.getMonth() + 1).padStart(2, "0");
-  const day = String(haiti.getDate()).padStart(2, "0");
+  const year = haiti.getUTCFullYear();
+  const month = String(haiti.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(haiti.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -327,9 +341,9 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
       const haitiNow = toHaitiDate(new Date());
       const pinnedDate = new Date(
         Date.UTC(
-          haitiNow.getFullYear(),
-          haitiNow.getMonth(),
-          haitiNow.getDate(),
+          haitiNow.getUTCFullYear(),
+          haitiNow.getUTCMonth(),
+          haitiNow.getUTCDate(),
           pinnedSlotDef.hour + offsetHours,
           pinnedSlotDef.minute,
           0, 0,

@@ -4,6 +4,11 @@
  * Runs every 30 minutes (or via /tick).
  * Fetches recent content items (last 72h), runs IG selection,
  * and inserts/merges into ig_queue.
+ *
+ * Firestore-quota-aware design:
+ *  - Pre-loads existing sourceContentIds in ONE batch query (vs N individual reads)
+ *  - Skips writing "skipped" status entries to Firestore (memory-only tracking)
+ *  - Caps new items queued per run to MAX_NEW_ITEMS_PER_RUN
  */
 
 import { itemsRepo, igQueueRepo, contentVersionsRepo, sourcesRepo } from "@edlight-news/firebase";
@@ -15,6 +20,12 @@ import { generateContextualImage, ensureOpportunityBackground } from "../service
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
+
+/**
+ * Maximum number of NEW eligible items to queue per tick.
+ * Prevents quota exhaustion on the Gemini / Firestore free tiers.
+ */
+const MAX_NEW_ITEMS_PER_RUN = 20;
 
 function getHaitiDateKey(date: Date = new Date()): string {
   const haiti = new Date(date.toLocaleString("en-US", { timeZone: HAITI_TZ }));
@@ -154,10 +165,25 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
       recentGroupIds.add(posted.sourceContentId);
     }
 
+    // ── Batch pre-load existing ig_queue entries (saves ~500 reads/tick) ──
+    // One query for all queue entries created in the last 4 days instead of
+    // one findBySourceContentId call per item. Prevents Firestore quota exhaustion.
+    const queueWindowCutoff = new Date();
+    queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 4);
+    const existingSourceIds = await igQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
+
     // Pre-load source cache for igImageSafe lookup
     const sourceCache = new Map<string, Source | null>();
 
+    let newItemsQueuedThisRun = 0;
+
     for (const item of freshItems) {
+      // Stop after queuing MAX_NEW_ITEMS_PER_RUN new eligible items per tick
+      // to prevent runaway Gemini / Firestore quota consumption.
+      if (newItemsQueuedThisRun >= MAX_NEW_ITEMS_PER_RUN) {
+        break;
+      }
+
       // Skip items rejected by histoire dedup
       if (histoireRejects.has(item.id)) {
         result.skipped++;
@@ -165,9 +191,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
       }
       result.evaluated++;
       try {
-        // Check if already in queue
-        const existing = await igQueueRepo.findBySourceContentId(item.id);
-        if (existing) {
+        // Check if already in queue (uses batch pre-loaded set — no extra Firestore read)
+        if (existingSourceIds.has(item.id)) {
           result.alreadyExists++;
           continue;
         }
@@ -181,14 +206,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         }
 
         if (!decision.igEligible || !decision.igType) {
-          // Insert as skipped for transparency
-          await igQueueRepo.createIGQueueItem({
-            sourceContentId: item.id,
-            igType: decision.igType ?? "news",
-            score: decision.igPriorityScore,
-            status: "skipped" as IGQueueStatus,
-            reasons: decision.reasons,
-          });
+          // Do NOT write a "skipped" Firestore entry — that burns quota on every tick.
+          // The item will be re-evaluated next tick (still fast via the batch Set check).
           result.skipped++;
           continue;
         }
@@ -344,6 +363,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
             : {}),
         });
         result.queued++;
+        newItemsQueuedThisRun++;
       } catch (err) {
         console.warn(`[buildIgQueue] error processing item ${item.id}:`, err instanceof Error ? err.message : err);
         result.errors++;
