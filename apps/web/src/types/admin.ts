@@ -53,6 +53,7 @@ export interface IGQueueCounts {
   skipped: number;
   rendering: number;
   expired: number;
+  totalDocs: number;
 }
 
 // ── IG Publish ───────────────────────────────────────────────────────────────

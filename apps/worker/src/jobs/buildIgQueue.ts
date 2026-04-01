@@ -28,11 +28,14 @@ const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
 const MAX_NEW_ITEMS_PER_RUN = 20;
 
 function getHaitiDateKey(date: Date = new Date()): string {
-  const haiti = new Date(date.toLocaleString("en-US", { timeZone: HAITI_TZ }));
-  const year = haiti.getFullYear();
-  const month = String(haiti.getMonth() + 1).padStart(2, "0");
-  const day = String(haiti.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: HAITI_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
 function dateFromTimestamp(value: unknown): Date | null {

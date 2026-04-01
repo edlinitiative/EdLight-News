@@ -358,6 +358,26 @@ export default function IGQueuePage() {
         </div>
       )}
 
+      {/* Collection health indicator */}
+      {counts && (
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+          counts.totalDocs < 300
+            ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
+            : counts.totalDocs < 700
+            ? "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+            : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
+        }`}>
+          <span className="font-semibold">📊 Collection:</span>
+          <span className="tabular-nums font-bold">{counts.totalDocs} total docs</span>
+          <span className="text-stone-400">·</span>
+          <span>{
+            counts.totalDocs < 300 ? "Healthy ✓" :
+            counts.totalDocs < 700 ? "Growing — monitor ⚠️" :
+            "Overgrown — run igPurgeStaleQueue ✗"
+          }</span>
+        </div>
+      )}
+
       {/* Status filter tabs */}
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">

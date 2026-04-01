@@ -46,10 +46,15 @@ const HAITI_TZ = "America/Port-au-Prince";
  * Returns the offset in hours (negative = behind UTC, e.g. -4 for EDT, -5 for EST).
  */
 function getHaitiOffsetHours(date: Date = new Date()): number {
-  const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
-  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
-  const diffMs = new Date(haitiStr).getTime() - new Date(utcStr).getTime();
-  return Math.round(diffMs / (60 * 60 * 1000)); // -4 (EDT) or -5 (EST)
+  const haitiHour = parseInt(
+    new Intl.DateTimeFormat("en-CA", { timeZone: HAITI_TZ, hour: "2-digit", hour12: false }).format(date),
+    10,
+  );
+  const utcHour = date.getUTCHours();
+  let diff = haitiHour - utcHour; // negative = behind UTC (-4 for EDT)
+  if (diff > 12) diff -= 24;
+  if (diff < -12) diff += 24;
+  return diff;
 }
 
 /** Only publish once per day — skip if log already says "published". */

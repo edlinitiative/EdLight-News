@@ -100,13 +100,18 @@ export async function listRecentPosted(sinceDaysAgo = 1, limit = 10): Promise<IG
 /**
  * Compute the current UTC offset for Haiti dynamically.
  * Haiti observes US Eastern time rules (EST = UTC-5, EDT = UTC-4).
- * Returns the offset in hours (positive = behind UTC).
+ * Returns the offset in hours (positive = behind UTC, e.g. +4 for EDT, +5 for EST).
  */
 function getHaitiOffsetHours(date: Date = new Date()): number {
-  const haitiStr = date.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" });
-  const utcStr = date.toLocaleString("en-US", { timeZone: "UTC" });
-  const diffMs = new Date(utcStr).getTime() - new Date(haitiStr).getTime();
-  return Math.round(diffMs / (60 * 60 * 1000));
+  const haitiHour = parseInt(
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Port-au-Prince", hour: "2-digit", hour12: false }).format(date),
+    10,
+  );
+  const utcHour = date.getUTCHours();
+  let diff = utcHour - haitiHour; // positive = behind UTC (+4 for EDT)
+  if (diff > 12) diff -= 24;
+  if (diff < -12) diff += 24;
+  return diff;
 }
 
 /**
@@ -114,11 +119,16 @@ function getHaitiOffsetHours(date: Date = new Date()): number {
  * Uses dynamic offset calculation to handle both EST and EDT.
  */
 function haitiDayBounds(date: Date = new Date()): { startTs: Timestamp; endTs: Timestamp; startISO: string; endISO: string } {
-  const haitiStr = date.toLocaleString("en-US", { timeZone: "America/Port-au-Prince" });
-  const haitiDate = new Date(haitiStr);
-  const y = haitiDate.getFullYear();
-  const m = haitiDate.getMonth();
-  const d = haitiDate.getDate();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Port-au-Prince",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  const y = parseInt(get("year"), 10);
+  const m = parseInt(get("month"), 10) - 1;
+  const d = parseInt(get("day"), 10);
   const offsetHours = getHaitiOffsetHours(date);
   // Haiti midnight in UTC = Haiti midnight + offset hours
   const startUTC = new Date(Date.UTC(y, m, d, offsetHours, 0, 0, 0));

@@ -95,7 +95,16 @@ export async function GET() {
       expired: items.filter((i) => i.status === "expired").length,
     };
 
-    return NextResponse.json({ items, counts });
+    // Total doc count — 1 cheap read; used as a collection-health proxy in the UI
+    let totalDocs = items.length;
+    try {
+      const countSnap = await db.collection("ig_queue").count().get();
+      totalDocs = countSnap.data().count;
+    } catch {
+      // Non-critical — fall back to the in-view count
+    }
+
+    return NextResponse.json({ items, counts: { ...counts, totalDocs } });
   } catch (err) {
     console.error("[api/admin/ig-queue] GET error:", err);
     return NextResponse.json(
