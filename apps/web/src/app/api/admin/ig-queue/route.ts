@@ -159,14 +159,43 @@ export async function PATCH(req: NextRequest) {
 function getNextAvailableSlot(): string {
   const HAITI_TZ = "America/Port-au-Prince";
   const now = new Date();
-  const haitiStr = now.toLocaleString("en-US", { timeZone: HAITI_TZ });
-  const haitiNow = new Date(haitiStr);
+
+  // Use Intl.DateTimeFormat parts so DST transitions are handled by the platform
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: HAITI_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  const haitiNow = new Date(
+    `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`,
+  );
   const haitiHour = haitiNow.getHours();
   const haitiMinute = haitiNow.getMinutes();
 
-  const utcStr = now.toLocaleString("en-US", { timeZone: "UTC" });
-  const diffMs = new Date(utcStr).getTime() - new Date(haitiStr).getTime();
-  const offsetHours = Math.round(diffMs / (60 * 60 * 1000));
+  // Derive the current UTC offset from actual wall-clock difference
+  const utcParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+  const getU = (t: string) => utcParts.find((p) => p.type === t)!.value;
+  const utcNow = new Date(
+    `${getU("year")}-${getU("month")}-${getU("day")}T${getU("hour")}:${getU("minute")}:${getU("second")}`,
+  );
+  const offsetHours = Math.round(
+    (utcNow.getTime() - haitiNow.getTime()) / (60 * 60 * 1000),
+  );
 
   const SLOTS = [
     { hour: 8, minute: 0 },

@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     }
 
     // No image in response — return graceful fallback signal
-    return NextResponse.json({ error: "No image generated" }, { status: 204 });
+    return NextResponse.json({ error: "No image generated" }, { status: 503 });
   } catch (err) {
     console.error("[Gemini] Image generation failed:", err);
     return NextResponse.json({ error: "Generation failed" }, { status: 500 });

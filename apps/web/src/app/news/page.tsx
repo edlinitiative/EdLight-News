@@ -5,7 +5,7 @@ import { NewsFeed } from "@/components/news-feed";
 import { PageHero } from "@/components/PageHero";
 import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
 import { fetchTauxBRH } from "@/lib/brh";
-import { fetchEnrichedArticles } from "@/lib/feed";
+import { fetchEnrichedFeed } from "@/lib/content";
 import { rankFeed } from "@/lib/ranking";
 import { getLangFromSearchParams } from "@/lib/content";
 import { Suspense } from "react";
@@ -43,9 +43,9 @@ export default async function NewsPage({
   // Fetch BRH rates + enriched articles in parallel
   const [taux, enrichedRaw] = await Promise.all([
     fetchTauxBRH().catch(() => null),
-    fetchEnrichedArticles(language, 200).catch((err) => {
+    fetchEnrichedFeed(language, 200).catch((err) => {
       console.error("[EdLight] /news fetch failed:", err);
-      return [] as Awaited<ReturnType<typeof fetchEnrichedArticles>>;
+      return [] as Awaited<ReturnType<typeof fetchEnrichedFeed>>;
     }),
   ]);
   const enriched = enrichedRaw;

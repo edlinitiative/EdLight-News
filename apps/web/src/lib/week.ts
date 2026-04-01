@@ -1,9 +1,7 @@
 /**
  * Week-calculation helpers for the /histoire weekly view.
- * Haiti timezone (UTC−5, no DST).
+ * Haiti timezone: America/Port-au-Prince (UTC-5 winter, UTC-4 summer — follows US Eastern DST).
  */
-
-const HAITI_OFFSET_MS = 5 * 60 * 60 * 1000;
 
 const MONTH_NAMES_FR = [
   "janvier", "février", "mars", "avril", "mai", "juin",
@@ -36,9 +34,27 @@ export interface WeekBounds {
   dayLabels: { dayName: string; dayShort: string; dayNumber: number; monthShort: string; monthIndex: number }[];
 }
 
-/** Get Haiti local Date (as a UTC date shifted by −5 h). */
+/**
+ * Get the current date/time in the Haiti timezone (America/Port-au-Prince).
+ * Uses Intl.DateTimeFormat so DST transitions (UTC-5 ↔ UTC-4) are handled
+ * automatically by the platform — no hardcoded offset.
+ */
 function getHaitiNow(): Date {
-  return new Date(Date.now() - HAITI_OFFSET_MS);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Port-au-Prince",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  // Construct as a local-time string so getUTC* methods return Haiti values
+  return new Date(
+    `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`,
+  );
 }
 
 function capitalize(s: string): string {
