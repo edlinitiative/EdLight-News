@@ -119,8 +119,10 @@ export function BrandedHero({
         ) : (
           <span />
         )}
-        <span className="flex-shrink-0 text-xs font-bold tracking-wide text-white/30 sm:text-sm">
-          ED<span className="text-yellow-300/60">LIGHT</span>
+        <span className="flex-shrink-0 flex items-baseline gap-0.5">
+          <span className="text-xs font-black tracking-tight text-white/50">Ed</span>
+          <span className="text-xs font-black tracking-tight text-blue-300/60">Light</span>
+          <span className="ml-1 text-[9px] font-semibold uppercase tracking-[0.15em] text-white/25">News</span>
         </span>
       </div>
     </div>

@@ -20,6 +20,7 @@ import {
 } from "@/lib/datasets";
 import { HistoireClient } from "./_components/HistoireClient";
 import { serializeEntry, serializeHoliday } from "./_components/shared";
+import { PageHero } from "@/components/PageHero";
 
 // Content changes once per day (~07:10 Haiti time); 3600 s is sufficient
 export const revalidate = 3600;
@@ -66,24 +67,44 @@ export default async function HistoirePage({
     console.error("[EdLight] /histoire fetch failed:", err);
   }
 
+  const l = (href: string) => `${href}?lang=${lang}`;
+
   return (
-    <div className="pb-14">
-      {/* ─── Header ─────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6">
-        <div className="section-rule" />
-        <h1 className="headline-lead mt-3 flex items-center gap-2">
-          <Landmark className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-          {fr ? "Aujourd\u2019hui dans l\u2019histoire" : "Jodi a nan istwa"}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-stone-500 dark:text-stone-400 sm:text-base">
-          {fr
-            ? "Parcourez les événements historiques, fêtes et personnalités d\u2019Haïti, jour par jour."
-            : "Navige nan evènman istorik, fèt ak pèsonalite Ayiti, jou pa jou."}
-        </p>
-      </section>
+    <div className="space-y-10 pb-14">
+      {/* ─── Hero ────────────────────────────────────────────────── */}
+      <PageHero
+        variant="history"
+        eyebrow={fr ? "Éphéméride haïtienne" : "Efemerid ayisyèn"}
+        title={
+          fr
+            ? "Chaque jour porte une page de l\u2019histoire d\u2019Haïti."
+            : "Chak jou gen yon paj nan istwa Ayiti."
+        }
+        description={
+          fr
+            ? "Explorez les événements historiques, fêtes nationales et personnalités marquantes, jour par jour, mois par mois."
+            : "Eksplore evènman istorik, fèt nasyonal ak pèsonalite enpòtan yo, jou pa jou, mwa pa mwa."
+        }
+        icon={<Landmark className="h-5 w-5" />}
+        actions={[
+          { href: l("/haiti"), label: fr ? "Haïti en direct" : "Ayiti dirèk" },
+          { href: l("/news"), label: fr ? "Retour aux actualités" : "Retounen nan nouvèl" },
+        ]}
+        stats={[
+          {
+            value: monthEntries.length > 0 ? String(monthEntries.length) : "—",
+            label: fr ? "événements ce mois" : "evènman mwa sa",
+          },
+          {
+            value: allHolidays.length > 0 ? String(allHolidays.length) : "—",
+            label: fr ? "fêtes nationales" : "fèt nasyonal",
+          },
+          { value: "12", label: fr ? "mois explorés" : "mwa ekspore" },
+        ]}
+      />
 
       {/* ─── Interactive content ──────────────────────────────────── */}
-      <section className="mx-auto mt-6 max-w-6xl px-4 sm:px-6">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6">
         <HistoireClient
           todayMD={todayMD}
           monthEntries={monthEntries.map(serializeEntry)}
