@@ -840,6 +840,16 @@ export default async function ArticlePage({
   return (
     <article className="mx-auto max-w-3xl space-y-8">
       <PageLanguageSync lang={currentLang} />
+      {/* Breadcrumb back-link */}
+      <div className="-mb-2">
+        <Link
+          href={`/news?lang=${currentLang}`}
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-400 transition-colors hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          {currentLang === "fr" ? "Actualités" : "Nouvèl yo"}
+        </Link>
+      </div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -1021,17 +1031,23 @@ export default async function ArticlePage({
 
       {/* Switch language link */}
       {siblingVersion && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-          <p className="text-sm text-stone-600 dark:text-stone-300">
-            {article.language === "fr"
-              ? "Lire cet article en Kreyòl Ayisyen:"
-              : "Li atik sa a an Fransè:"}
-          </p>
+        <div className="flex items-start justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 dark:border-blue-900/40 dark:bg-blue-950/20">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400">
+              {article.language === "fr" ? "Disponible en Kreyòl" : "Disponib an Fransè"}
+            </p>
+            <Link
+              href={`/news/${siblingVersion.id}?lang=${otherLang}`}
+              className="mt-0.5 block text-sm font-medium text-stone-700 underline-offset-2 hover:underline dark:text-stone-200"
+            >
+              {siblingVersion.title}
+            </Link>
+          </div>
           <Link
             href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-            className="mt-1 inline-block font-medium text-blue-700 hover:underline dark:text-blue-400"
+            className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500"
           >
-            {siblingVersion.title} →
+            {article.language === "fr" ? "Lire →" : "Li →"}
           </Link>
         </div>
       )}
@@ -1090,14 +1106,20 @@ export default async function ArticlePage({
         />
       </div>
 
-      {/* Back link */}
-      <div className="pt-4">
+      {/* Bottom back-link */}
+      <div className="flex items-center justify-between border-t pt-5 dark:border-stone-800">
         <Link
           href={`/news?lang=${currentLang}`}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 transition-colors hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
+        </Link>
+        <Link
+          href={`/?lang=${currentLang}`}
+          className="text-xs text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+        >
+          EdLight News
         </Link>
       </div>
     </article>

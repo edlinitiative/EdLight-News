@@ -95,38 +95,72 @@ export function NavBar() {
       {/* ── Single corporate header ───────────────────────────────── */}
       <header
         ref={navRef}
-        className="sticky top-0 z-50 border-b border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950"
+        className="sticky top-0 z-50 border-b border-stone-200/70 bg-white/80 backdrop-blur-md dark:border-stone-800/60 dark:bg-stone-950/85"
       >
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-13 max-w-6xl items-center gap-5 px-4 sm:px-6 lg:px-8">
           {/* Brand */}
-          <Link href={l("/")} className="flex shrink-0 items-baseline gap-0.5">
-            <span className="text-lg font-extrabold tracking-tight text-stone-900 dark:text-white">
-              EdLight
+          <Link href={l("/")} className="flex shrink-0 items-baseline gap-0">
+            <span className="text-[17px] font-black tracking-tight text-stone-900 dark:text-white">
+              Ed
             </span>
-            <span className="text-lg font-normal tracking-tight text-blue-600 dark:text-blue-400">
+            <span className="text-[17px] font-black tracking-tight text-blue-600 dark:text-blue-400">
+              Light
+            </span>
+            <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500">
               News
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden flex-1 items-center gap-1 overflow-x-auto tab-scroll lg:flex">
-            {allLinks.map((link) => {
-              const active = isActive(pathname, link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={l(link.href)}
-                  className={[
-                    "whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors",
-                    active
-                      ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
-                      : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
-                  ].join(" ")}
-                >
-                  {link.label[language]}
-                </Link>
-              );
-            })}
+          {/* Desktop nav — primary links prominent, secondary links muted */}
+          <nav className="hidden flex-1 items-center overflow-x-auto tab-scroll lg:flex">
+            {/* Primary */}
+            <div className="flex items-center gap-0.5">
+              {primaryLinks.map((link) => {
+                const active = isActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={l(link.href)}
+                    className={[
+                      "relative whitespace-nowrap px-3 py-1.5 text-[13px] font-semibold transition-colors",
+                      active
+                        ? "text-stone-900 dark:text-white"
+                        : "text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white",
+                    ].join(" ")}
+                  >
+                    {link.label[language]}
+                    {active && (
+                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-blue-500" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+            {/* Divider */}
+            <div className="mx-2 h-4 w-px bg-stone-200 dark:bg-stone-700" />
+            {/* Secondary */}
+            <div className="flex items-center gap-0.5">
+              {secondaryLinks.map((link) => {
+                const active = isActive(pathname, link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={l(link.href)}
+                    className={[
+                      "relative whitespace-nowrap px-2.5 py-1.5 text-[12px] font-medium transition-colors",
+                      active
+                        ? "text-stone-700 dark:text-stone-200"
+                        : "text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300",
+                    ].join(" ")}
+                  >
+                    {link.label[language]}
+                    {active && (
+                      <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 rounded-full bg-stone-400 dark:bg-stone-500" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
 
           {/* Right controls */}
