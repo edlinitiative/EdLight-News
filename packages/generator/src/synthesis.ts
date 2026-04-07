@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod";
-import { callGemini } from "./client.js";
+import { callLLM } from "./client.js";
 import { editorialBlockForKey } from "./editorial-tone.js";
 
 // ── Gemini output schema for synthesis ──────────────────────────────────────
@@ -137,7 +137,7 @@ export async function generateSynthesisFromPacket(
 ): Promise<GenerateSynthesisResult | GenerateSynthesisError> {
   try {
     const prompt = buildSynthesisPrompt(packet);
-    const raw = await callGemini(prompt);
+    const raw = await callLLM(prompt);
 
     let parsed: unknown;
     try {

@@ -5,7 +5,7 @@
  * Validates output with zod. Enforces quality gates.
  */
 
-import { callGemini } from "./client.js";
+import { callLLM } from "./client.js";
 import { buildWebDraftPrompt } from "./prompts.js";
 import { geminiWebDraftSchema, type GeminiWebDraft } from "./schema.js";
 import type { ContentChannel, ContentLanguage, ContentStatus, ItemCategory, QualityFlags } from "@edlight-news/types";
@@ -165,7 +165,7 @@ export async function generateWebDraftFRHT(
 ): Promise<GenerateWebDraftResult | GenerateWebDraftError> {
   try {
     const prompt = buildWebDraftPrompt(input);
-    const raw = await callGemini(prompt);
+    const raw = await callLLM(prompt);
 
     // Parse JSON from response
     let parsed: unknown;

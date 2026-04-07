@@ -225,9 +225,22 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           } catch (uploadErr) {
             const uploadMsg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
             console.warn(`[processIgScheduled] Storage upload failed for ${item.id}: ${uploadMsg}`);
-            await igQueueRepo.updateStatus(item.id, "scheduled", {
-              reasons: [...item.reasons, `Storage upload failed: ${uploadMsg}`],
-            });
+            // Billing-disabled errors won't resolve on retry — hold for manual
+            // review instead of cycling back to "scheduled" every tick.
+            const isBillingError =
+              uploadMsg.includes("billing account") ||
+              uploadMsg.includes("delinquent") ||
+              uploadMsg.includes("billing is disabled") ||
+              uploadMsg.includes("Cloud billing is disabled");
+            if (isBillingError) {
+              await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
+                reasons: [...item.reasons, `Storage billing disabled — held for manual: ${uploadMsg}`],
+              });
+            } else {
+              await igQueueRepo.updateStatus(item.id, "scheduled", {
+                reasons: [...item.reasons, `Storage upload failed: ${uploadMsg}`],
+              });
+            }
             result.errors++;
             continue;
           }

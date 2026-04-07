@@ -15,7 +15,7 @@
  */
 
 import { z } from "zod";
-import { callGemini } from "./client.js";
+import { callLLM } from "./client.js";
 
 // ── Max HTML length sent to Gemini (tokens ≈ chars/4, keep well under 128k) ─
 // Reduced from 30K to 15K — most relevant data is in the first 15K chars,
@@ -212,7 +212,7 @@ async function runVerify<T>(
   label: string,
 ): Promise<VerifyResult<T>> {
   try {
-    const raw = await callGemini(prompt);
+    const raw = await callLLM(prompt);
 
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {

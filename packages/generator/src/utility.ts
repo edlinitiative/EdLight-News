@@ -6,7 +6,7 @@
  */
 
 import { z } from "zod";
-import { callGemini } from "./client.js";
+import { callLLM } from "./client.js";
 import type { UtilitySeries } from "@edlight-news/types";
 import { editorialBlockForSeries } from "./editorial-tone.js";
 
@@ -224,7 +224,7 @@ export async function generateUtilityFromPackets(
 ): Promise<GenerateUtilityResult | GenerateUtilityError> {
   try {
     const prompt = buildUtilityPrompt(input);
-    const raw = await callGemini(prompt);
+    const raw = await callLLM(prompt);
 
     let parsed: unknown;
     try {
