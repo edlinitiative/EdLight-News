@@ -80,6 +80,38 @@ export async function uploadCarouselSlides(
 }
 
 /**
+ * Delete all slide files for an IG queue item from Firebase Storage.
+ * Called after successful posting for ephemeral post types (news, taux)
+ * to keep storage usage low.
+ *
+ * @param queueItemId - IG queue item ID whose ig_posts/{id}/ folder to delete
+ */
+export async function deleteCarouselSlides(queueItemId: string): Promise<void> {
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
+  const bucket = getStorage(getApp()).bucket(bucketName);
+  const prefix = `ig_posts/${queueItemId}/`;
+  const [files] = await bucket.getFiles({ prefix });
+  if (files.length === 0) return;
+  await Promise.all(files.map((f) => f.delete()));
+  console.log(`[storage] Deleted ${files.length} slide(s) for ${queueItemId}`);
+}
+
+/**
+ * Delete all slide files for an IG story item from Firebase Storage.
+ *
+ * @param storyId - IG story queue item ID whose ig_stories/{id}/ folder to delete
+ */
+export async function deleteStorySlides(storyId: string): Promise<void> {
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
+  const bucket = getStorage(getApp()).bucket(bucketName);
+  const prefix = `ig_stories/${storyId}/`;
+  const [files] = await bucket.getFiles({ prefix });
+  if (files.length === 0) return;
+  await Promise.all(files.map((f) => f.delete()));
+  console.log(`[storage] Deleted ${files.length} story frame(s) for ${storyId}`);
+}
+
+/**
  * Upload a single story frame PNG to Firebase Storage and return its
  * public download URL.
  *

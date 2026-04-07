@@ -1,5 +1,5 @@
 export { getApp, getDb } from "./admin.js";
-export { uploadImageBuffer, uploadCarouselSlides, uploadStorySlide } from "./storage.js";
+export { uploadImageBuffer, uploadCarouselSlides, uploadStorySlide, deleteCarouselSlides, deleteStorySlides } from "./storage.js";
 export {
   sourcesRepo,
   rawItemsRepo,

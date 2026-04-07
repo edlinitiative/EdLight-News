@@ -5,7 +5,7 @@
  * Runs as part of the /tick pipeline.
  */
 
-import { igQueueRepo, itemsRepo, uploadCarouselSlides } from "@edlight-news/firebase";
+import { igQueueRepo, itemsRepo, uploadCarouselSlides, deleteCarouselSlides } from "@edlight-news/firebase";
 import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGPostType } from "@edlight-news/types";
@@ -17,13 +17,16 @@ import { generateContextualImage } from "../services/geminiImageGen.js";
 
 // Must match the TTLs in scheduleIgPost.ts
 const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
-  news: 48,
-  taux: 24,
+  news: 20,        // daily news — stale after ~1 posting cycle
+  taux: 6,         // exchange rate — only valid same-day
   utility: 72,
-  histoire: 24,
+  histoire: 20,    // fact of the day — stale next day
   opportunity: 336,
   scholarship: 336,
 };
+
+/** Post types whose Storage slides should be deleted after posting (ephemeral). */
+const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire"]);
 
 /** Check if an IG queue item is too old to post. */
 function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
@@ -252,6 +255,13 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         if (publishResult.posted) {
           await igQueueRepo.markPosted(item.id, publishResult.igPostId);
           result.posted++;
+          // Delete slide PNGs from Storage for ephemeral post types to keep
+          // storage lean. Scholarship/opportunity slides are kept (evergreen).
+          if (EPHEMERAL_IG_TYPES.has(item.igType) && assets.mode === "rendered") {
+            deleteCarouselSlides(item.id).catch((err) =>
+              console.warn(`[processIgScheduled] slide cleanup failed for ${item.id}:`, err),
+            );
+          }
         } else if (publishResult.dryRun) {
           await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
             dryRunPath: publishResult.dryRunPath,
