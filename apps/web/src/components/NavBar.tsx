@@ -49,7 +49,7 @@ export function NavBar() {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(withLangParam(`/news?search=${encodeURIComponent(searchQuery.trim())}`, language));
+      router.push(withLangParam(`/search?q=${encodeURIComponent(searchQuery.trim())}`, language));
       setSearchOpen(false);
       setSearchQuery("");
     }

@@ -13,6 +13,7 @@ import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { fetchScholarshipsClosingSoon } from "@/lib/datasets";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
+import { NewsletterForm } from "@/components/NewsletterForm";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { buildOgMetadata } from "@/lib/og";
 import {
@@ -256,6 +257,12 @@ export default async function AccueilPage({
   const moreEdu = educationArticles.slice(1, 4);
   const topBusiness = businessArticles[0] ?? null;
   const moreBusiness = businessArticles.slice(1, 4);
+
+  // Trending: top articles not yet shown anywhere
+  const shownIds = new Set([...heroIds, ...latestIds, ...editorsPicks.map((a) => a.id)]);
+  const trendingArticles = rankedFeed
+    .filter((a) => !shownIds.has(a.id) && !isOpportunity(a))
+    .slice(0, 5);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -836,33 +843,102 @@ export default async function AccueilPage({
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          6. STAY UPDATED MODULE
+          6. TRENDING THIS WEEK
+         ══════════════════════════════════════════════════════════════════════ */}
+      {trendingArticles.length > 0 && (
+        <section>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <SectionHeader
+              title={fr ? "À lire aussi" : "Li tou"}
+              href={lq("/news")}
+              linkLabel={fr ? "Voir tout" : "Wè tout"}
+            />
+            <div className="divide-y divide-stone-100 dark:divide-stone-800">
+              {trendingArticles.map((article, i) => (
+                <Link
+                  key={article.id}
+                  href={lq(`/news/${article.id}`)}
+                  className="group flex items-start gap-4 py-4 first:pt-0 last:pb-0"
+                >
+                  <span className="shrink-0 w-6 text-right text-lg font-black text-stone-200 dark:text-stone-700 leading-none mt-0.5">
+                    {i + 1}
+                  </span>
+                  {article.imageUrl && (
+                    <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
+                      <ImageWithFallback
+                        src={article.imageUrl}
+                        alt={article.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                      />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <CategoryBadge category={article.category} lang={lang} />
+                    <h3 className="text-sm font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-400">
+                      {article.title}
+                    </h3>
+                    <p className="text-xs text-stone-400">
+                      {article.publishedAt ? formatRelativeDate(article.publishedAt, lang) : article.sourceName}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          7. STAY UPDATED — Newsletter + Instagram
          ══════════════════════════════════════════════════════════════════════ */}
       <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-stone-50 py-12 dark:bg-stone-900/50">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-lg">
-              <Instagram className="h-6 w-6 text-white" />
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+
+            {/* ── Newsletter panel ── */}
+            <div className="flex flex-col gap-4">
+              <div>
+                <span className="inline-block rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                  {fr ? "Newsletter" : "Nyouzletè"}
+                </span>
+                <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white">
+                  {fr ? "Restez informé" : "Rete enfòme"}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-stone-500 dark:text-stone-400">
+                  {fr
+                    ? "Bourses, actualités et opportunités sélectionnées — directement dans votre boîte mail, gratuitement."
+                    : "Bous, nouvèl ak okazyon chwazi — dirèkteman nan bwat imèl ou, gratis."}
+                </p>
+              </div>
+              <NewsletterForm lang={lang} variant="homepage" />
             </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white">
-              {fr
-                ? "Suivez EdLight News sur Instagram"
-                : "Swiv EdLight News sou Instagram"}
-            </h2>
-            <p className="max-w-md text-sm leading-relaxed text-stone-500 dark:text-stone-400">
-              {fr
-                ? "Bourses, opportunités et actualités — directement dans votre fil Instagram."
-                : "Bous, okazyon ak nouvèl — dirèkteman nan fil Instagram ou."}
-            </p>
-            <a
-              href="https://www.instagram.com/edlightnews/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:opacity-90"
-            >
-              <Instagram className="h-4 w-4" />
-              @edlightnews
-            </a>
+
+            {/* ── Instagram panel ── */}
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-stone-200 bg-white p-8 text-center dark:border-stone-700 dark:bg-stone-900">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-lg">
+                <Instagram className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-extrabold tracking-tight text-stone-900 dark:text-white">
+                  {fr ? "Suivez-nous sur Instagram" : "Swiv nou sou Instagram"}
+                </h3>
+                <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
+                  {fr
+                    ? "Bourses et actualités en visuels — chaque jour."
+                    : "Bous ak nouvèl an vizyal — chak jou."}
+                </p>
+              </div>
+              <a
+                href="https://www.instagram.com/edlightnews/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:opacity-90"
+              >
+                <Instagram className="h-4 w-4" />
+                @edlightnews
+              </a>
+            </div>
+
           </div>
         </div>
       </section>

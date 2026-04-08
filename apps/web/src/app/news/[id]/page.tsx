@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
-import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle, Lightbulb, BookOpen, ArrowLeft } from "lucide-react";
+import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle, Lightbulb, BookOpen, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
 import type { ContentVersion, ContentLanguage, Item, ContentSection } from "@edlight-news/types";
 import {
@@ -20,6 +20,8 @@ import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportun
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { buildOgMetadata } from "@/lib/og";
 import { PageLanguageSync } from "@/components/PageLanguageSync";
+import { fetchEnrichedFeed } from "@/lib/content";
+import type { FeedItem } from "@/components/news-feed";
 
 export const revalidate = 300;
 const BASE_URL = "https://news.edlight.org";
@@ -651,6 +653,89 @@ function WhatChangedNote({
   );
 }
 
+function estimateReadingTime(body: string | null | undefined, sections: ContentSection[] | null | undefined): number {
+  let text = body ?? "";
+  if (sections?.length) {
+    text += " " + sections.map((s) => s.heading + " " + s.content).join(" ");
+  }
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
+
+function EdLightAttribution({ lang }: { lang: ContentLanguage }) {
+  const fr = lang === "fr";
+  return (
+    <div className="flex items-start gap-4 rounded-xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white font-black text-sm tracking-tight select-none">
+        EL
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-stone-900 dark:text-white">EdLight News</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
+          {fr
+            ? "Plateforme d\u2019information et d\u2019opportunit\u00e9s pour la jeunesse ha\u00eftienne et la diaspora. Synth\u00e8ses v\u00e9rifi\u00e9es, actualit\u00e9s et ressources publi\u00e9es quotidiennement."
+            : "Platf\u00f2m enf\u00f2masyon ak okazyon pou j\u00e8n ayisyen yo ak dyaspora a. Sent\u00e8z verifye, nouv\u00e8l ak resous pibliye chak jou."}
+        </p>
+        <Link
+          href={`/about?lang=${lang}`}
+          className="mt-1.5 inline-block text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {fr ? "En savoir plus \u2192" : "Aprann plis \u2192"}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function NextPrevNav({
+  prev,
+  next,
+  lang,
+}: {
+  prev: FeedItem | null;
+  next: FeedItem | null;
+  lang: ContentLanguage;
+}) {
+  if (!prev && !next) return null;
+  const fr = lang === "fr";
+  return (
+    <div className="grid grid-cols-2 gap-3 border-t pt-5 dark:border-stone-800">
+      <div>
+        {prev && (
+          <Link
+            href={`/news/${prev.id}?lang=${lang}`}
+            className="group flex flex-col gap-1 rounded-xl border border-stone-200 p-3 transition-shadow hover:shadow-sm dark:border-stone-700"
+          >
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+              <ChevronLeft className="h-3 w-3" />
+              {fr ? "Pr\u00e9c\u00e9dent" : "Anvan"}
+            </span>
+            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 group-hover:text-blue-700 dark:text-stone-100 dark:group-hover:text-blue-400">
+              {prev.title}
+            </span>
+          </Link>
+        )}
+      </div>
+      <div className="flex flex-col items-end">
+        {next && (
+          <Link
+            href={`/news/${next.id}?lang=${lang}`}
+            className="group flex w-full flex-col items-end gap-1 rounded-xl border border-stone-200 p-3 text-right transition-shadow hover:shadow-sm dark:border-stone-700"
+          >
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+              {fr ? "Suivant" : "Apre"}
+              <ChevronRight className="h-3 w-3" />
+            </span>
+            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 group-hover:text-blue-700 dark:text-stone-100 dark:group-hover:text-blue-400">
+              {next.title}
+            </span>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ───────────────────────────────────────────────────────────────
 
 export default async function ArticlePage({
@@ -712,6 +797,24 @@ export default async function ArticlePage({
   } catch (err) {
     // Firestore index may not exist yet — degrade gracefully
     console.warn("[news/[id]] Failed to fetch related articles:", err);
+  }
+
+  // Next/prev articles — fetch recent feed, pick 2 adjacent articles
+  let prevArticle: FeedItem | null = null;
+  let nextArticle: FeedItem | null = null;
+  try {
+    const recentFeed = await fetchEnrichedFeed(currentLang, 20);
+    const idx = recentFeed.findIndex((a) => a.itemId === article.itemId || a.id === article.id || a.id === article.itemId);
+    if (idx !== -1) {
+      prevArticle = recentFeed[idx - 1] ?? null;
+      nextArticle = recentFeed[idx + 1] ?? null;
+    } else {
+      // current not in top 20 — just offer 2 most recent
+      nextArticle = recentFeed[0] ?? null;
+      prevArticle = recentFeed[1] ?? null;
+    }
+  } catch {
+    // non-critical — degrade silently
   }
 
   // ── Pick best image across dedup group (same logic as ranking.ts) ──────
@@ -948,6 +1051,15 @@ export default async function ArticlePage({
             · {pubDate || createdDate}
           </span>
         )}
+        {/* Reading time */}
+        {(() => {
+          const mins = estimateReadingTime(article.body, article.sections);
+          return (
+            <span className="text-xs text-stone-400 dark:text-stone-500">
+              · {currentLang === "fr" ? `${mins} min` : `${mins} min li`}
+            </span>
+          );
+        })()}
       </div>
 
       {/* Title */}
@@ -1097,6 +1209,12 @@ export default async function ArticlePage({
               : "Dat limit pou konfime")}
         </p>
       )}
+
+      {/* EdLight News attribution */}
+      <EdLightAttribution lang={currentLang} />
+
+      {/* Next / Previous navigation */}
+      <NextPrevNav prev={prevArticle} next={nextArticle} lang={currentLang} />
 
       {/* Report issue button */}
       <div className="border-t pt-4 dark:border-stone-700">
