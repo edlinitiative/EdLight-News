@@ -188,29 +188,15 @@ Allow users to save articles to a personal reading list, persisted in `localStor
 
 ---
 
-### 3. Fix the Dry-Run Script to Use the Real Engine
+### 3. ~~Dry-Run Script~~ — Deleted ✅
 
-**Priority:** High
-**Effort:** Low
-**Impact:** Makes `ig:dry-run` actually test the full production path (Playwright PNG + overflow gate + fit-report)
+`apps/worker/src/scripts/igDryRun.ts` was deleted (commit after 1706024). It pre-dated the ig-engine rewrite, produced HTML stubs instead of real PNGs, and never called `renderWithIgEngine`. The full production path is already testable via:
 
-**Current state:**
-The production pipeline in `processIgScheduled.ts` is fully wired and correct:
+```bash
+pnpm --filter @edlight-news/worker ig:test-publish
 ```
-ig_queue → renderWithIgEngine() → Playwright PNG → Storage upload → IG publish
-```
-However, `apps/worker/src/scripts/igDryRun.ts` was written before the ig-engine rewrite. It still calls `buildSlideHtml` + `adaptLegacyPayload` directly and writes **HTML files** — it never calls `renderWithIgEngine`. This means running `ig:dry-run` does NOT exercise:
-- Playwright rendering (the actual PNGs)
-- The overflow gate (`isExportReady()`)
-- The fit-report, caption.txt, meta.json outputs
-- Language detection
-- Any of the 9 PRD gap fixes (commit 4a4da40)
 
-**What needs to change:**
-Rewrite `igDryRun.ts` Step 3 to call `renderWithIgEngine(mockQueueItem, payload)` instead of `buildSlideHtml` directly. The rendered PNGs + fit-reports will be written to `/tmp/ig_dry_run/<type>/`.
-
-**Files to touch:**
-- `apps/worker/src/scripts/igDryRun.ts` — replace `buildSlideHtml` call with `renderWithIgEngine`, print fit-report summary per entry
+`igTestPublish.ts` calls `renderWithIgEngine` → Playwright PNGs → Storage → IG publish. That's the real test.
 
 ---
 
@@ -304,9 +290,8 @@ Author detail pages at `/auteur/[slug]` showing bio, photo, and article history.
 - Firebase Admin credentials (server-only)
 - GEMINI_API_KEY — for AI image generation
 
-## Dry-run test
+## End-to-end test
 
 ```bash
-pnpm --filter @edlight-news/worker ig:dry-run
-pnpm --filter @edlight-news/worker ig:dry-run -- --type scholarship
+pnpm --filter @edlight-news/worker ig:test-publish
 ```

@@ -35,7 +35,6 @@
     "almanac:verify": "tsx src/scripts/runVerifyAlmanacCli.ts",
     "almanac:coverage": "tsx src/scripts/runCoverageStatsCli.ts",
     "enrich:history-sources": "tsx src/scripts/enrichHistorySourcesCli.ts",
-    "ig:dry-run": "tsx src/scripts/igDryRun.ts",
     "ig:test-publish": "tsx src/scripts/igTestPublish.ts",
     "ig:reset": "tsx src/scripts/resetIgQueue.ts",
     "ig:requeue-histoire": "tsx src/scripts/requeueHistoire.ts",
