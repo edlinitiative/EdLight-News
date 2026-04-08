@@ -296,6 +296,8 @@ const NEWS_LINK_DOMAINS = [
   "bbc.com", "reuters.com", "france24.com", "rfi.fr", "lemonde.fr",
   "nytimes.com", "theguardian.com", "aljazeera.com", "cnn.com",
   "apnews.com", "voanews.com",
+  // Google News RSS — redirect stubs, never a real application page
+  "news.google.com",
 ];
 
 function isNewsUrl(url: string): boolean {
@@ -345,10 +347,18 @@ function hasRealOpportunityFields(item: Item): boolean {
   // Content-based guard: if title+summary strongly signal news, downgrade
   if (looksLikeNewsContent(item)) return false;
 
+  // Thin-content guard: Google News RSS items have only title + 1-line summary.
+  // The LLM produces repetitive filler narratives on these. Require at least
+  // 80 words of usable text before treating this as a real opportunity for IG.
+  const bodyText = item.extractedText ?? item.summary ?? "";
+  const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 80) return false;
+
   // Eligibility is mandatory — the strongest signal for a real opportunity
   const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
   if (!hasEligibility) return false;
   // Plus at least one of: substantive howToApply or officialLink to a real application site
+  // (news.google.com RSS stubs now blocked via NEWS_LINK_DOMAINS → isNewsUrl)
   const hasHowToApply = !!(opp.howToApply && opp.howToApply.trim().length > 10);
   const hasOfficialLink = !!(
     opp.officialLink &&
