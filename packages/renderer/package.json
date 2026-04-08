@@ -8,7 +8,8 @@
     ".": "./dist/index.js",
     "./ig-carousel.js": "./dist/ig-carousel.js",
     "./ig-meme.js": "./dist/ig-meme.js",
-    "./ig-story.js": "./dist/ig-story.js"
+    "./ig-story.js": "./dist/ig-story.js",
+    "./ig-engine-render.js": "./dist/ig-engine/engine/renderWithIgEngine.js"
   },
   "scripts": {
     "build": "tsc",

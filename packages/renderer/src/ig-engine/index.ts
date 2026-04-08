@@ -89,6 +89,14 @@ export { buildExplainerSlide } from "./templates/ExplainerTemplate.js";
 export { buildQuoteStatSlide } from "./templates/QuoteStatTemplate.js";
 export { buildWeeklyRecapSlide } from "./templates/WeeklyRecapTemplate.js";
 
+// ── Legacy Adapter & Production Renderer ────────────────────────────────────
+
+export { adaptLegacyPayload, shouldUseIgEngine, resolveContentType } from "./engine/adaptLegacyPayload.js";
+export type { AdaptedPayload } from "./engine/adaptLegacyPayload.js";
+
+export { renderWithIgEngine } from "./engine/renderWithIgEngine.js";
+export type { CarouselAssetResult } from "./engine/renderWithIgEngine.js";
+
 // ── QA ────────────────────────────────────────────────────────────────────────
 
 export { generatePreviewSheet } from "./qa/generatePreviewSheet.js";

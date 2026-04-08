@@ -6,7 +6,7 @@
  */
 
 import { igQueueRepo, itemsRepo, uploadCarouselSlides, deleteCarouselSlides } from "@edlight-news/firebase";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGPostType } from "@edlight-news/types";
 import {
@@ -219,7 +219,7 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         }
 
         // Render assets
-        const assets = await generateCarouselAssets(item, publishPayload);
+        const assets = await renderWithIgEngine(item, publishPayload);
 
         // Upload rendered PNGs to Firebase Storage so the IG API can access them.
         // In dry-run mode (HTML files) we skip the upload and pass local paths.
