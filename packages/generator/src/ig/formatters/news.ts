@@ -19,7 +19,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, looksEnglish, type BilingualText } from "./helpers.js";
+import { buildCaption, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, looksEnglish, type BilingualText } from "./helpers.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -158,19 +158,25 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
   });
 
   // ── Caption — bilingual with section highlights when available ──
-  const parts: string[] = [title, "", shortenCaptionText(summary, 320)];
+  const sectionHighlights: string[] = [];
   if (!usedNarrative && bi?.frSections) {
-    parts.push("");
     for (const sec of bi.frSections.slice(0, MAX_NEWS_CONTENT_SLIDES)) {
       const firstSentence = splitSentences(sec.content)[0];
-      if (firstSentence) parts.push(`📌 ${sec.heading}: ${shortenCaptionText(firstSentence, 120)}`);
+      if (firstSentence) sectionHighlights.push(`📌 ${sec.heading}: ${shortenCaptionText(firstSentence, 120)}`);
     }
   }
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`);
-  parts.push("", "#ActuHaïti #HaitiNews #EdLightNews");
-  parts.push("", buildCTA(), "", buildSourceLine(item));
 
-  return { slides, caption: finalizeCaption(parts.join("\n")) };
+  return {
+    slides,
+    caption: buildCaption({
+      title,
+      summary,
+      htSummary: bi?.htSummary,
+      sourceLine: buildSourceLine(item),
+      extras: sectionHighlights,
+      hashtags: "#ActuHaïti #HaitiNews #EdLightNews",
+    }),
+  };
 }
 
 /**

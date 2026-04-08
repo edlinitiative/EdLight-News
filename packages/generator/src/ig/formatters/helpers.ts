@@ -351,6 +351,50 @@ export function buildSourceLine(item: Item): string {
 }
 
 /**
+ * Data contract for a standardised EdLight News Instagram caption.
+ * Follows MASTER_PROMPT Section 7 caption formula:
+ *   Hook → Context → Extras → Kreyòl → Hashtags → CTA → Source
+ */
+export interface CaptionData {
+  /** Primary hook — displayed first. Typically the French article/post title. */
+  title: string;
+  /** Main context summary. Capped at `summaryCap` chars (default 320). */
+  summary: string;
+  /** Optional Kreyòl translation shown after extras. */
+  htSummary?: string;
+  /** Source attribution line (e.g. "Source: Le Nouvelliste — lenouvelliste.com"). */
+  sourceLine: string;
+  /** Extra lines inserted between context and Kreyòl (deadline, coverage, section highlights…). */
+  extras?: string[];
+  /** Hashtag block (e.g. "#ActuHaïti #HaitiNews #EdLightNews"). */
+  hashtags: string;
+  /** Max chars for the summary block. Defaults to 320. */
+  summaryCap?: number;
+}
+
+/**
+ * Build a standardised Instagram caption following the EdLight News formula:
+ *   Hook → Context → Extras → Kreyòl → Hashtags → CTA → Source
+ *
+ * Replaces per-formatter ad-hoc caption assembly for consistent output.
+ * Matches MASTER_PROMPT Section 7 (Caption Formula).
+ */
+export function buildCaption(data: CaptionData): string {
+  const cap = data.summaryCap ?? 320;
+  const parts: string[] = [data.title, "", shortenCaptionText(data.summary, cap)];
+  const validExtras = (data.extras ?? []).filter(Boolean);
+  if (validExtras.length > 0) {
+    parts.push("", ...validExtras);
+  }
+  if (data.htSummary) {
+    parts.push("", `🇭🇹 ${shortenCaptionText(data.htSummary, 280)}`);
+  }
+  parts.push("", data.hashtags);
+  parts.push("", buildCTA(), "", data.sourceLine);
+  return finalizeCaption(parts.join("\n"));
+}
+
+/**
  * Shorten text to a maximum character length, breaking at sentence boundary.
  * Strongly prefers complete sentences over mid-sentence truncation.
  */
@@ -397,7 +441,7 @@ export function shortenText(text: string, max: number): string {
  * Prefers cutting at clause boundaries (comma, semicolon, colon, dash) to
  * avoid mid-phrase "…" that looks incomplete.
  */
-export function shortenHeadline(text: string, maxWords = 18, maxChars = 130): string {
+export function shortenHeadline(text: string, maxWords = 10, maxChars = 130): string {
   const trimmed = text.trim();
   const words = trimmed.split(/\s+/);
 

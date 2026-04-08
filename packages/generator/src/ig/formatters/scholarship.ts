@@ -11,7 +11,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
+import { buildCaption, formatDeadline, buildSourceFooter, buildSourceLine, humanizeUrl, shortenText, shortenHeadline, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
 import { narrativeToSlides } from "./news.js";
 
 /** Returns true only if the URL points to a real application page — not a Google News RSS wrapper or news article. */
@@ -62,7 +62,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
   if (coverContext) coverSub.push(coverContext);
   slides.push({
-    heading: shortenHeadline(title, 15),
+    heading: shortenHeadline(title, 10),
     bullets: coverSub,
     layout: "headline",
     // No backgroundImage — bourses use the branded dark gradient, not a scraped article photo
@@ -131,12 +131,20 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   });
 
   // ── Caption ──
-  const parts: string[] = [title, "", shortenCaptionText(summary, 340)];
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 280)}`);
-  if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
-  if (coverage) parts.push(`Couverture — ${coverage}`);
-  parts.push("", "#Bourse #BoursesEtudes #EdLightNews #Haïti #Éducation");
-  parts.push("", buildCTA(), "", buildSourceLine(item));
+  const extras: string[] = [];
+  if (deadlineStr) extras.push(`Date limite — ${formatDeadline(deadlineStr)}`);
+  if (coverage) extras.push(`Couverture — ${coverage}`);
 
-  return { slides, caption: finalizeCaption(parts.join("\n")) };
+  return {
+    slides,
+    caption: buildCaption({
+      title,
+      summary,
+      htSummary: bi?.htSummary,
+      sourceLine: buildSourceLine(item),
+      extras,
+      hashtags: "#Bourse #BoursesEtudes #EdLightNews #Haïti #Éducation",
+      summaryCap: 340,
+    }),
+  };
 }

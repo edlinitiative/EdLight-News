@@ -6,7 +6,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
+import { buildCaption, formatDeadline, buildSourceFooter, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
 import { narrativeToSlides } from "./news.js";
 
 /** Returns true only if the URL points to a real application page — not a Google News RSS wrapper or news article. */
@@ -41,7 +41,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   // ── Slide 1: Hero cover — title + geo/deadline context (mirrors scholarship) ──
   const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
   slides.push({
-    heading: shortenHeadline(title, 15),
+    heading: shortenHeadline(title, 10),
     bullets: coverContext ? [coverContext] : [],
     layout: "headline",
     // No backgroundImage — opportunities use the branded dark gradient
@@ -112,11 +112,16 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   });
 
   // ── Caption ──
-  const parts: string[] = [title, "", shortenCaptionText(summary, 300)];
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 250)}`);
-  if (deadlineStr) parts.push("", `Date limite — ${formatDeadline(deadlineStr)}`);
-  parts.push("", "#Opportunité #EdLightNews #Haïti #Éducation #Carrière");
-  parts.push("", buildCTA(), "", buildSourceLine(item));
-
-  return { slides, caption: finalizeCaption(parts.join("\n")) };
+  return {
+    slides,
+    caption: buildCaption({
+      title,
+      summary,
+      htSummary: bi?.htSummary,
+      sourceLine: buildSourceLine(item),
+      extras: deadlineStr ? [`Date limite — ${formatDeadline(deadlineStr)}`] : [],
+      hashtags: "#Opportunité #EdLightNews #Haïti #Éducation #Carrière",
+      summaryCap: 300,
+    }),
+  };
 }

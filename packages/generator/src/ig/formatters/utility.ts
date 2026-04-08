@@ -3,7 +3,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { finalizeCaption, buildCTA, buildSourceFooter, buildSourceLine, shortenText, shortenCaptionText, formatDeadline, shortenHeadline, type BilingualText } from "./helpers.js";
+import { buildCaption, buildSourceFooter, buildSourceLine, shortenText, formatDeadline, shortenHeadline, type BilingualText } from "./helpers.js";
 
 /** Background for the EdLight News CTA closing slide — Marché Central, Port-au-Prince. */
 const UTILITY_CTA_IMAGE =
@@ -78,15 +78,16 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     footer: buildSourceLine(item),
   });
 
-  // Caption — bilingual
-  const parts: string[] = [
-    title,
-    "",
-    shortenCaptionText(summary, 400),
-  ];
-  if (bi?.htSummary) parts.push("", `🇭🇹 ${shortenCaptionText(bi.htSummary, 300)}`);
-  parts.push("", "#EdLightNews #Haïti #Ressources");
-  parts.push("", buildCTA(), "", buildSourceLine(item));
-
-  return { slides, caption: finalizeCaption(parts.join("\n")) };
+  // Caption — bilingual, standardised formula
+  return {
+    slides,
+    caption: buildCaption({
+      title,
+      summary,
+      htSummary: bi?.htSummary,
+      sourceLine: buildSourceLine(item),
+      hashtags: "#EdLightNews #Haïti #Ressources",
+      summaryCap: 400,
+    }),
+  };
 }

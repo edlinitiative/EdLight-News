@@ -263,6 +263,20 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         const opts: FormatIGOptions = { bi, igImageSafe, overrideImageUrl };
         const payload = await formatForIG(decision.igType, item, opts);
 
+        // ── QA gate: reject formatter-flagged or malformed payloads ──────────
+        // Prevents English-rejected posts and empty/missing-headline items
+        // from consuming Gemini image quota and Firestore writes.
+        if ((payload as any)._rejected || payload.slides.length === 0) {
+          console.warn(`[buildIgQueue] Formatter rejected ${item.id}: ${(payload as any)._rejected ?? "empty payload"}`);
+          result.skipped++;
+          continue;
+        }
+        if ((payload.slides[0]?.heading ?? "").trim().length < 5) {
+          console.warn(`[buildIgQueue] QA gate: cover heading too short for ${item.id}`);
+          result.skipped++;
+          continue;
+        }
+
         // ── Histoire: per-event image resolution ──────────────────────────
         // Each content slide represents a distinct historical event. Resolve a
         // matching Wikimedia illustration per slide heading so, for example, the
@@ -302,14 +316,14 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           }
         }
 
-        // ── Opportunity & utility: always use the single branded background ──
-        // Both post types share one consistent Gemini-generated background
-        // instead of random article images.
-        if (decision.igType === "opportunity" || decision.igType === "utility") {
+        // ── Opportunity, utility & scholarship: apply branded dark background ──
+        // Content slides get one consistent Gemini-generated gradient; CTA slides
+        // keep their curated landmark images (MUPANAH, Port-au-Prince, etc.).
+        if (decision.igType === "opportunity" || decision.igType === "utility" || decision.igType === "scholarship") {
           try {
             const oppBg = await ensureOpportunityBackground();
             if (oppBg) {
-              for (const slide of payload.slides) {
+              for (const slide of payload.slides.filter((s) => s.layout !== "cta")) {
                 slide.backgroundImage = oppBg;
               }
               console.log(`[buildIgQueue] Applied branded background for ${decision.igType} ${item.id}`);
@@ -324,7 +338,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // unsafe source, or utility/histoire type), first try to reuse the
         // cover's image (avoids cover ≠ inner mismatch); only call Gemini
         // when NO slide has an image yet.
-        const slidesNeedingImage = payload.slides.filter((s) => !s.backgroundImage);
+        // CTA slides are excluded — they carry curated landmark images.
+        const slidesNeedingImage = payload.slides.filter((s) => !s.backgroundImage && s.layout !== "cta");
         if (slidesNeedingImage.length > 0) {
           const coverImage = payload.slides[0]?.backgroundImage;
           if (coverImage) {
