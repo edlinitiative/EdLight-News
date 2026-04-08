@@ -188,23 +188,29 @@ Allow users to save articles to a personal reading list, persisted in `localStor
 
 ---
 
-### 3. IG Pipeline Production Validation Run
+### 3. Fix the Dry-Run Script to Use the Real Engine
 
 **Priority:** High
-**Effort:** Very Low
-**Impact:** Confirm the new ig-engine renders correctly in production before next publish cycle
+**Effort:** Low
+**Impact:** Makes `ig:dry-run` actually test the full production path (Playwright PNG + overflow gate + fit-report)
 
-**What:**
-The ig-engine was fully rewritten and all PRD gaps were closed (commit 4a4da40), but no real post has been rendered through the new pipeline since the rewrite. A dry-run batch with QA review is needed before the next live publish.
+**Current state:**
+The production pipeline in `processIgScheduled.ts` is fully wired and correct:
+```
+ig_queue → renderWithIgEngine() → Playwright PNG → Storage upload → IG publish
+```
+However, `apps/worker/src/scripts/igDryRun.ts` was written before the ig-engine rewrite. It still calls `buildSlideHtml` + `adaptLegacyPayload` directly and writes **HTML files** — it never calls `renderWithIgEngine`. This means running `ig:dry-run` does NOT exercise:
+- Playwright rendering (the actual PNGs)
+- The overflow gate (`isExportReady()`)
+- The fit-report, caption.txt, meta.json outputs
+- Language detection
+- Any of the 9 PRD gap fixes (commit 4a4da40)
 
-**How:**
-1. Run `pnpm --filter @edlight-news/worker ig:dry-run` against the current queue
-2. Inspect the `fit-report.txt`, `caption.txt`, and `meta.json` outputs for 3–5 items (scholarship, news, opportunity types)
-3. Visually review the PNGs: check margins, text overflow, template selection, language detection
-4. If any template fails, fix before next scheduled publish cycle
-5. Optionally run `pnpm --filter @edlight-news/worker ig:dry-run -- --type scholarship` per type
+**What needs to change:**
+Rewrite `igDryRun.ts` Step 3 to call `renderWithIgEngine(mockQueueItem, payload)` instead of `buildSlideHtml` directly. The rendered PNGs + fit-reports will be written to `/tmp/ig_dry_run/<type>/`.
 
-**No code changes required** — this is a validation exercise, not a development task.
+**Files to touch:**
+- `apps/worker/src/scripts/igDryRun.ts` — replace `buildSlideHtml` call with `renderWithIgEngine`, print fit-report summary per entry
 
 ---
 
