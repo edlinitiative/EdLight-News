@@ -10,33 +10,81 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <>
+      {/* ── Full-bleed hero ─────────────────────────────────────── */}
+      <section className="w-full bg-gradient-to-br from-[#08142a] to-stone-950">
+        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          {/* Eyebrow */}
+          <div className="mb-5">
+            <span className="inline-block rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-300">
+              À propos
+            </span>
+          </div>
 
-      {/* ── Eyebrow ─────────────────────────────────────────────── */}
-      <div className="mb-3">
-        <span className="inline-block rounded bg-blue-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-          À propos
-        </span>
-      </div>
+          {/* Display headline */}
+          <h1
+            className="mb-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl md:text-7xl"
+            style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+          >
+            Informer.
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">
+              Ouvrir des portes.
+            </span>
+          </h1>
 
-      {/* ── Mission ─────────────────────────────────────────────── */}
-      <h1
-        className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-5xl"
-        style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
-      >
-        Informer. Ouvrir des portes.
-        <br />
-        Servir la jeunesse haïtienne.
-      </h1>
+          <p className="mb-8 max-w-2xl text-lg leading-relaxed text-stone-300 sm:text-xl">
+            Servir la jeunesse haïtienne — une information utile, fiable et accessible
+            pour les étudiants, les jeunes professionnels et la diaspora mondiale.
+          </p>
 
-      <p className="mb-8 text-lg leading-relaxed text-stone-600 dark:text-stone-300">
-        EdLight News est une plateforme éditoriale indépendante dédiée aux actualités, aux
-        explainers et aux opportunités pour les jeunes haïtiens, les étudiants et la
-        diaspora mondiale. Notre mission est simple&nbsp;: fournir une information utile,
-        fiable et accessible, dans un format qui respecte votre temps.
-      </p>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/news"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              <Newspaper className="h-4 w-4" />
+              Lire les actualités
+            </Link>
+            <a
+              href="https://www.instagram.com/edlightnews"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-stone-700 px-5 py-2.5 text-sm font-semibold text-stone-200 transition-colors hover:border-stone-500 hover:bg-stone-800"
+            >
+              <Instagram className="h-4 w-4" />
+              @edlightnews
+            </a>
+          </div>
+        </div>
 
-      <hr className="mb-10 border-stone-200 dark:border-stone-800" />
+        {/* Stats strip */}
+        <div className="border-t border-stone-800/80 bg-stone-900/40">
+          <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+            <dl className="grid grid-cols-3 gap-6 text-center">
+              {[
+                { value: "30 000+", label: "lecteurs actifs" },
+                { value: "2", label: "langues de publication" },
+                { value: "100 %", label: "indépendant" },
+              ].map((s) => (
+                <div key={s.label}>
+                  <dt
+                    className="text-3xl font-extrabold text-white sm:text-4xl"
+                    style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+                  >
+                    {s.value}
+                  </dt>
+                  <dd className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-stone-400">
+                    {s.label}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
 
       {/* ── Why it exists ───────────────────────────────────────── */}
       <section className="mb-10">
@@ -165,5 +213,6 @@ export default function AboutPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }

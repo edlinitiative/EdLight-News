@@ -1,10 +1,10 @@
 name: EdLight News Pipeline
 
 on:
-  # Run at :00 every 3 hours (8 runs/day). Cloud Scheduler fires at :30 every 2 hours.
-  # Together: ~1-hour cadence, max 20 ticks/day — reduced from 12/day GHA to save Firestore quota.
+  # Run every 15 minutes (96 ticks/day). Free for public repos — no quota cost.
+  # Cloud Run decommissioned April 2026: repo is public, GHA is now the sole runner.
   schedule:
-    - cron: "0 */3 * * *"
+    - cron: "*/15 * * * *"
   # Also allow manual trigger from GitHub Actions tab
   workflow_dispatch:
 
@@ -67,7 +67,7 @@ jobs:
           GOOGLE_CSE_API_KEY: ${{ secrets.GOOGLE_CSE_API_KEY }}
           GOOGLE_CSE_CX: ${{ secrets.GOOGLE_CSE_CX }}
           Unsplash_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          # Keep GHA ticks lightweight — Cloud Run (every 30 min) does the heavy lifting.
+          # Small batches + high frequency (every 15 min) = fast incremental processing.
           GENERATE_BATCH_LIMIT: "3"
           IMAGE_BATCH_LIMIT: "2"
           PROCESS_BATCH_LIMIT: "10"

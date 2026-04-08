@@ -5,7 +5,7 @@ Goal: Automated content factory for Haitian students. Outputs in French + Haitia
 ## App Architecture
 
 - **apps/web**: Next.js 14 (App Router), TypeScript, Tailwind, deployed on Vercel @ news.edlight.org
-- **apps/worker**: Node.js TypeScript service deployed on Cloud Run (24/7 automation)
+- **apps/worker**: Node.js TypeScript service run via GitHub Actions (every 15 min, free on public repo). Cloud Run decommissioned April 2026.
 
 ## Packages
 
@@ -289,6 +289,10 @@ Author detail pages at `/auteur/[slug]` showing bio, photo, and article history.
 - NEXT_PUBLIC_* — client-side config
 - Firebase Admin credentials (server-only)
 - GEMINI_API_KEY — for AI image generation
+
+## Pipeline scheduling
+
+GitHub Actions (`pipeline.yml`) is the sole runner — fires every 15 minutes on the public repo (free, no quota). Cloud Run + Cloud Scheduler were decommissioned in April 2026.
 
 ## End-to-end test
 
