@@ -8,27 +8,37 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
+    <>
+      {/* ── Full-bleed hero ─────────────────────────────────────── */}
+      <section className="w-full bg-gradient-to-br from-[#08142a] to-stone-950">
+        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+          {/* Eyebrow */}
+          <div className="mb-5">
+            <span className="inline-block rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-300">
+              Contact
+            </span>
+          </div>
 
-      {/* ── Eyebrow ─────────────────────────────────────────────── */}
-      <div className="mb-3">
-        <span className="inline-block rounded bg-stone-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-stone-600 dark:bg-stone-800 dark:text-stone-400">
-          Contact
-        </span>
-      </div>
+          {/* Display headline */}
+          <h1
+            className="mb-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl md:text-7xl"
+            style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+          >
+            Parlons-nous.
+            <br />
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">
+              On vous répond.
+            </span>
+          </h1>
 
-      <h1
-        className="mb-4 text-4xl font-extrabold leading-tight tracking-tight text-stone-900 dark:text-white"
-        style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
-      >
-        Contactez-nous
-      </h1>
-      <p className="mb-10 text-base leading-relaxed text-stone-600 dark:text-stone-300">
-        Nous lisons tous les messages et nous nous efforçons de répondre dans les
-        48 heures ouvrables.
-      </p>
+          <p className="max-w-xl text-lg leading-relaxed text-stone-300">
+            Nous lisons tous les messages et nous nous efforçons de répondre
+            dans les&nbsp;48&nbsp;heures ouvrables.
+          </p>
+        </div>
+      </section>
 
-      <hr className="mb-10 border-stone-200 dark:border-stone-800" />
+      <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
 
       {/* ── Contact channels ────────────────────────────────────── */}
       <div className="space-y-5 mb-12">
@@ -119,5 +129,6 @@ export default function ContactPage() {
         </p>
       </section>
     </main>
+    </>
   );
 }
