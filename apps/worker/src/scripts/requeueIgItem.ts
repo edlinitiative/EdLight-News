@@ -16,7 +16,7 @@ import {
   itemsRepo,
   contentVersionsRepo,
 } from "@edlight-news/firebase";
-import { formatForIG } from "@edlight-news/generator/ig/formatters/index.js";
+import { formatForIG, decideIG } from "@edlight-news/generator/ig/index.js";
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
 import type { IGPostType, Item } from "@edlight-news/types";
 
@@ -80,9 +80,15 @@ async function findLatestItem(type: IGPostType): Promise<Item | null> {
     );
   }
 
-  // For news/opportunity/scholarship, scan recent items and match by category
+  // For news/opportunity/scholarship, scan recent items — enforce quality gate
   const items = await itemsRepo.listRecentItems(100);
-  return items.find((i) => CATEGORY_MAP[i.category] === type) ?? null;
+  const candidates = items.filter((i) => CATEGORY_MAP[i.category] === type);
+  for (const candidate of candidates) {
+    const decision = decideIG(candidate);
+    if (decision.igEligible) return candidate;
+    console.log(`  ⚠️  Skipping ${candidate.id} (quality gate: ${decision.reasons.join("; ")})`);
+  }
+  return null;
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────

@@ -7,6 +7,17 @@
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { finalizeCaption, buildCTA, formatDeadline, buildSourceFooter, buildSourceLine, shortenText, humanizeUrl, shortenHeadline, shortenCaptionText, ensureFrenchEligibility, ensureFrenchHowToApply, ensureFrenchOpportunityCopy, type BilingualText } from "./helpers.js";
+import { narrativeToSlides } from "./news.js";
+
+/** Returns true only if the URL points to a real application page — not a Google News RSS wrapper or news article. */
+function isUsableApplyLink(url: string | undefined): boolean {
+  if (!url || url.trim().length < 10) return false;
+  try {
+    const hostname = new URL(url).hostname;
+    if (hostname === "news.google.com") return false;
+    return true;
+  } catch { return false; }
+}
 
 /** Background for the EdLight News CTA closing slide — view of Port-au-Prince, Haiti. */
 const OPPORTUNITY_CTA_IMAGE =
@@ -36,64 +47,61 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 
-  // ── Slide 2: About — what is this opportunity ──
-  // Include coverage/geo context as first bullet if available
-  const aboutBullets: string[] = [];
-  const coverMeta: string[] = [];
-  if (coverage) coverMeta.push(coverage);
-  if (geoLabel) coverMeta.push(geoLabel);
-  if (coverMeta.length > 0) aboutBullets.push(coverMeta.join("  ·  "));
-  aboutBullets.push(shortenText(summary, 200));
-  slides.push({
-    heading: "De quoi s'agit-il ?",
-    bullets: aboutBullets,
-    layout: "explanation",
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-  });
-
-  // ── Slide 3: Eligibility (separate bullets for readability) ──
-  if (item.opportunity?.eligibility?.length) {
-    const elig = ensureFrenchEligibility(item.opportunity.eligibility)
-      .map((b) => shortenText(b, 150));
-    if (elig.length <= 4) {
-      slides.push({
-        heading: "Qui peut postuler ?",
-        bullets: elig,
-        layout: "explanation",
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-      });
-    } else {
+  // ── Slides 2..N: Narrative-first, structured fallback ────────────────────
+  const frNarrative = (bi as any)?.frNarrative as string | undefined;
+  if (frNarrative && frNarrative.trim().length > 30) {
+    slides.push(...narrativeToSlides(frNarrative, imageUrl));
+  } else {
+    // Fallback: structured data — geoLabel intentionally omitted here (already on slide 1)
+    const aboutBullets: string[] = [];
+    if (coverage) aboutBullets.push(coverage);
+    aboutBullets.push(shortenText(summary, 200));
+    slides.push({
+      heading: "De quoi s'agit-il ?",
+      bullets: aboutBullets,
+      layout: "explanation",
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+    if (item.opportunity?.eligibility?.length) {
+      const elig = ensureFrenchEligibility(item.opportunity.eligibility)
+        .map((b) => shortenText(b, 150));
       slides.push({
         heading: "Qui peut postuler ?",
         bullets: elig.slice(0, 4),
         layout: "explanation",
         ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
-      slides.push({
-        heading: "Autres critères",
-        bullets: elig.slice(4, 8),
-        layout: "explanation",
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-      });
+      if (elig.length > 4) {
+        slides.push({
+          heading: "Autres critères",
+          bullets: elig.slice(4, 8),
+          layout: "explanation",
+          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+        });
+      }
     }
   }
 
-  // ── Slide 4: How to apply (link first, then deadline last) ──
+  // ── Apply slide: only when there is real actionable data ─────────────────
   const applyBullets: string[] = [];
-  if (item.opportunity?.officialLink) applyBullets.push(humanizeUrl(item.opportunity.officialLink));
-  if (item.opportunity?.howToApply) applyBullets.push(shortenText(ensureFrenchHowToApply(item.opportunity.howToApply), 250));
-  if (deadlineStr) applyBullets.push(`Date limite — ${formatDeadline(deadlineStr)}`);
-  if (applyBullets.length === 0) applyBullets.push("Voir le lien dans la bio pour postuler");
+  if (isUsableApplyLink(item.opportunity?.officialLink))
+    applyBullets.push(humanizeUrl(item.opportunity!.officialLink!));
+  if (item.opportunity?.howToApply && item.opportunity.howToApply.trim().length > 20)
+    applyBullets.push(shortenText(ensureFrenchHowToApply(item.opportunity.howToApply), 250));
+  if (deadlineStr)
+    applyBullets.push(`Date limite — ${formatDeadline(deadlineStr)}`);
 
-  slides.push({
-    heading: "Comment postuler",
-    bullets: applyBullets,
-    layout: "explanation",
-    footer: buildSourceFooter(item),
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-  });
+  if (applyBullets.length > 0) {
+    slides.push({
+      heading: "Comment postuler",
+      bullets: applyBullets,
+      layout: "explanation",
+      footer: buildSourceFooter(item),
+      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    });
+  }
 
-  // Ensure last slide has source
+  // Ensure last content slide has source
   if (slides.length > 0 && !slides[slides.length - 1]!.footer) {
     slides[slides.length - 1]!.footer = buildSourceFooter(item);
   }
