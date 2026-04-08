@@ -551,58 +551,67 @@ function dedupBeats(beats: string[]): string[] {
  * Applies cleanSlideText() to remove parentheses/brackets per aesthetic rules.
  */
 export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide[] {
-  const sentences = splitSentences(narrative.trim())
-    .filter((s) => s.length > 10)
-    .map((s) => cleanSlideText(s));
+  const MAX_SLIDE_CHARS = 600; // Safety cap: total chars per slide (heading + all bullets)
+  const MAX_SENT_CHARS = 220;  // Individual sentence cap — shortenText finds real boundary
 
+  const makeSlide = (sents: string[]): IGSlide => ({
+    heading: sents[0]!,
+    bullets: sents.slice(1),
+    layout: "explanation" as const,
+    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+  });
+
+  const processSents = (raw: string[]): string[] =>
+    raw
+      .filter((s) => s.length > 10)
+      .map((s) => {
+        const c = cleanSlideText(s);
+        return c.length > MAX_SENT_CHARS ? shortenText(c, MAX_SENT_CHARS) : c;
+      });
+
+  // ── Primary path: LLM used ||| to mark coherent slide boundaries ─────
+  if (narrative.includes("|||")) {
+    return narrative
+      .split("|||")
+      .map((group) => group.trim())
+      .filter((group) => group.length > 0)
+      .flatMap((group) => {
+        let sents = processSents(splitSentences(group));
+        if (sents.length === 0) return [];
+        // Safety: trim sentences from end if group exceeds char budget
+        while (sents.length > 1 && sents.join(" ").length > MAX_SLIDE_CHARS) {
+          sents = sents.slice(0, -1);
+        }
+        return [makeSlide(sents)];
+      });
+  }
+
+  // ── Fallback: mechanical splitting for old content without ||| ────────
+  const sentences = processSents(splitSentences(narrative.trim()));
   if (sentences.length === 0) return [];
 
   const slides: IGSlide[] = [];
-  const SENTENCE_BUDGET = 420; // Budget per slide: heading + 1 bullet comfortably fit
-  const MAX_SENTS_PER_SLIDE = 2; // Heading + 1 bullet max — prevents layout overflow clipping
+  const SENTENCE_BUDGET = 420;
+  const MAX_SENTS_PER_SLIDE = 2;
 
   let currentGroup: string[] = [];
   let currentLength = 0;
 
   for (const sent of sentences) {
-    const sentLength = sent.length + 1; // +1 for space between bullets
-
-    // If adding this sentence would exceed budget or hit max count, flush current group
+    const sentLength = sent.length + 1;
     if (
       currentGroup.length >= MAX_SENTS_PER_SLIDE ||
       (currentGroup.length > 0 && currentLength + sentLength > SENTENCE_BUDGET)
     ) {
-      // Push current group as a slide
-      if (currentGroup.length > 0) {
-        const heading = currentGroup[0]!;
-        const bullets = currentGroup.slice(1);
-        slides.push({
-          heading,
-          bullets,
-          layout: "explanation",
-          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-        });
-      }
+      if (currentGroup.length > 0) slides.push(makeSlide(currentGroup));
       currentGroup = [];
       currentLength = 0;
     }
-
     currentGroup.push(sent);
     currentLength += sentLength;
   }
 
-  // Flush any remaining group
-  if (currentGroup.length > 0) {
-    const heading = currentGroup[0]!;
-    const bullets = currentGroup.slice(1);
-    slides.push({
-      heading,
-      bullets,
-      layout: "explanation",
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
-    });
-  }
-
+  if (currentGroup.length > 0) slides.push(makeSlide(currentGroup));
   return slides;
 }
 
