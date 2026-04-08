@@ -6,6 +6,8 @@ import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
+import { AppSidebar } from "@/components/AppSidebar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
 import { RouteLanguageSync } from "@/components/RouteLanguageSync";
 
@@ -80,12 +82,18 @@ export default function RootLayout({
             </a>
 
             <NavBar />
+            <AppSidebar />
 
-            <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
-              {children}
-            </main>
+            <div className="flex flex-1 flex-col lg:pl-64">
+              <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-16 lg:px-8">
+                {children}
+              </main>
+              <div className="lg:pl-0">
+                <Footer />
+              </div>
+            </div>
 
-            <Footer />
+            <MobileBottomNav />
           </LanguageProvider>
         </ThemeProvider>
       </body>

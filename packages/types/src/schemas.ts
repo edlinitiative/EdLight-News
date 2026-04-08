@@ -913,6 +913,8 @@ export const igPostTypeSchema = z.enum([
   "histoire",
   "utility",
   "taux",
+  "breaking",
+  "stat",
 ]);
 
 export const igQueueStatusSchema = z.enum([

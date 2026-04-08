@@ -15,6 +15,8 @@ import { buildOpportunityCarousel } from "./opportunity.js";
 import { buildNewsCarousel } from "./news.js";
 import { buildHistoireCarousel } from "./histoire.js";
 import { buildUtilityCarousel } from "./utility.js";
+import { buildBreakingNewsPost } from "./breaking.js";
+import { buildStatCard } from "./stat.js";
 import { normalizePayloadForPublishing, reviewSlides } from "../review.js";
 
 const MIN_IG_BACKGROUND_SHORT_SIDE = 1080;
@@ -79,7 +81,9 @@ const FORMATTERS: Record<IGPostType, (item: Item, bi?: BilingualText) => IGForma
   news: buildNewsCarousel,
   histoire: buildHistoireCarousel,
   utility: buildUtilityCarousel,
-  taux: buildUtilityCarousel, // Taux posts are built by buildIgTaux job, not via formatForIG
+  taux: buildUtilityCarousel,    // Taux posts are built by buildIgTaux job, not via formatForIG
+  breaking: buildBreakingNewsPost, // T1 single-slide — auto-routed for thin news
+  stat: buildStatCard,             // T6 single-slide — manually triggered
 };
 
 /**
@@ -147,4 +151,6 @@ export {
   buildNewsCarousel,
   buildHistoireCarousel,
   buildUtilityCarousel,
+  buildBreakingNewsPost,
+  buildStatCard,
 };

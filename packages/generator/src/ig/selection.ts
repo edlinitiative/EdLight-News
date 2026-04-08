@@ -375,7 +375,8 @@ function hasRealOpportunityFields(item: Item): boolean {
 
 export function decideIG(item: Item): IGDecision {
   const reasons: string[] = [];
-  const igType = mapCategoryToIGType(item);
+  // `let` because thin news items may be re-routed to "breaking" below
+  let igType = mapCategoryToIGType(item);
 
   // No IG type mapping → ineligible
   if (!igType) {
@@ -441,18 +442,23 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Thin-content gate: news articles with very short body text produce
-  // generic carousels (e.g. Juno7 summary-only articles). Skip them.
+  // Thin-content gate: news articles with very short body text either get
+  // demoted to a breaking-news single-slide (80-199 words) or rejected (<80).
   if (igType === "news") {
     const bodyText = item.extractedText ?? item.summary ?? "";
     const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
-    if (wordCount < 200) {
+    if (wordCount < 80) {
       return {
         igEligible: false,
         igType,
         igPriorityScore: 0,
-        reasons: [`Thin content: ${wordCount} words (min 200 for news IG)`],
+        reasons: [`Thin content: ${wordCount} words (min 80)`],
       };
+    }
+    if (wordCount < 200) {
+      // Demote to Template 1 breaking-news single slide — better than rejection
+      igType = "breaking";
+      reasons.push(`Thin content (${wordCount} words): routed to breaking news format`);
     }
   }
 
@@ -584,7 +590,9 @@ export function decideIG(item: Item): IGDecision {
     taux: 60,
     histoire: 60,
     utility: 55,
+    breaking: 50, // timely but thin — just above news
     news: 45,
+    stat: 55,     // manually curated — treat like utility
   };
   let score = BASE_SCORES[igType];
   reasons.push(`Base score for ${igType}: ${score}`);

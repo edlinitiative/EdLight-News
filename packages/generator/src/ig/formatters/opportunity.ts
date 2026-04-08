@@ -79,6 +79,10 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     }
   }
 
+  // ── Cap content slides: MASTER_PROMPT T4 targets 3-4 slides total ──────────
+  // cover(1) + max 2 content = 3 slides before the apply slide.
+  if (slides.length > 3) slides.length = 3;
+
   // ── Apply slide: only when there is real actionable data ─────────────────
   const applyBullets: string[] = [];
   if (isUsableApplyLink(item.opportunity?.officialLink))

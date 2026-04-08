@@ -570,7 +570,11 @@ export type IGPostType =
   | "news"
   | "histoire"
   | "utility"
-  | "taux";
+  | "taux"
+  /** Single-slide breaking news (MASTER_PROMPT T1) — auto-routed for thin news (80-199 words) */
+  | "breaking"
+  /** Single-slide stat/quote card (MASTER_PROMPT T6) — manually triggered */
+  | "stat";
 
 export type IGQueueStatus =
   | "queued"

@@ -28,4 +28,6 @@ export {
   buildNewsCarousel,
   buildHistoireCarousel,
   buildUtilityCarousel,
+  buildBreakingNewsPost,
+  buildStatCard,
 } from "./formatters/index.js";

@@ -6,24 +6,19 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import {
   CalendarDays,
   GraduationCap,
-  Globe,
   Clock,
   Compass,
   Newspaper,
   DollarSign,
-  BookOpen,
   ArrowRight,
-  Briefcase,
   Award,
   ChevronRight,
 } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
-import { fetchEnrichedFeed, isSuccessArticle, getLangFromSearchParams } from "@/lib/content";
-import { rankAndDeduplicate } from "@/lib/ranking";
+import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { ArticleCard } from "@/components/ArticleCard";
 import {
   parseISODateSafe,
@@ -43,24 +38,12 @@ import {
   COUNTRY_LABELS,
   TUITION_LABELS,
 } from "@/lib/datasets";
-import { getCalendarGeo } from "@/lib/calendarGeo";
 import { CountryFlag } from "@/components/CountryFlag";
 import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
 import { fetchTauxBRH } from "@/lib/brh";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
-import dynamic from "next/dynamic";
 import { buildOgMetadata } from "@/lib/og";
 import { withLangParam } from "@/lib/utils";
-
-const DashboardTabs = dynamic(
-  () => import("@/components/DashboardTabs").then((m) => m.DashboardTabs),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="min-h-[28rem] animate-pulse rounded-lg bg-stone-100 dark:bg-stone-800" />
-    ),
-  },
-);
 
 export const revalidate = 300;
 
@@ -86,12 +69,27 @@ export async function generateMetadata({
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function SectionLabel({ icon, text }: { icon: ReactNode; text: string }) {
+function SectionHeader({
+  title,
+  href,
+  linkLabel,
+}: {
+  title: string;
+  href?: string;
+  linkLabel?: string;
+}) {
   return (
-    <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">
-      {icon}
-      {text}
-    </span>
+    <div className="mb-8 flex items-center gap-4">
+      <h2 className="shrink-0 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white">
+        {title}
+      </h2>
+      <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
+      {href && linkLabel && (
+        <Link href={href} className="shrink-0 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400">
+          {linkLabel}
+        </Link>
+      )}
+    </div>
   );
 }
 
@@ -140,12 +138,6 @@ export default async function AccueilPage({
   // Suppress "taux du jour" articles (the widget handles exchange rates)
   const allArticlesFiltered = allArticles.filter((a) => !isTauxDuJourArticle(a));
 
-  // Data prep (same logic as before)
-  const haitiEvents = upcomingEvents.slice(0, 3);
-  const intlScholarships = closingScholarships45.slice(0, 3);
-  const boursesClosing = closingScholarships30.slice(0, 6);
-  const pathways = allPathways.slice(0, 3);
-
   const unisByCountry = new Map<string, typeof allUniversities>();
   for (const u of allUniversities) {
     if (!unisByCountry.has(u.country)) unisByCountry.set(u.country, []);
@@ -161,13 +153,6 @@ export default async function AccueilPage({
     if (picked) rotatedUnis.push(picked);
     ci++;
   }
-
-  const succesPool = allArticles.filter(isSuccessArticle);
-  const succesArticles = rankAndDeduplicate(succesPool, {
-    audienceFitThreshold: 0.40,
-    publisherCap: 2,
-    topN: 6,
-  }).slice(0, 6);
 
   // Urgency items
   type UrgencyItem = {
@@ -195,215 +180,6 @@ export default async function AccueilPage({
   }
   urgencyItems.sort((a, b) => a.days - b.days);
   const topUrgent = urgencyItems.slice(0, 6);
-
-  const latestHistoryPost = allArticles.find(
-    (a) => a.itemType === "utility" && a.series === "HaitiHistory" && a.status === "published",
-  ) ?? null;
-
-  // ── Dashboard tab panels ──────────────────────────────────────────────────
-
-  const boursesPanel = (
-    <div className="space-y-4">
-      {boursesClosing.length > 0 ? (
-        <>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-stone-500 dark:text-stone-400">
-              {boursesClosing.length} {fr ? "bourses avec date limite imminente" : "bous ak dat limit ki pre"}
-            </p>
-            <Link href={lq("/bourses")} className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-              {fr ? "Toutes →" : "Tout →"}
-            </Link>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {boursesClosing.map((s) => {
-              const dl = s.deadline;
-              return (
-                <div key={s.id} className="card p-4">
-                  <h3 className="font-semibold text-stone-900 line-clamp-1 dark:text-white text-sm">{s.name}</h3>
-                  {s.eligibilitySummary && (
-                    <p className="mt-1.5 text-xs text-stone-500 line-clamp-2 dark:text-stone-400">{s.eligibilitySummary}</p>
-                  )}
-                  {(() => { const st = getDeadlineStatus(dl?.dateISO, lang); return (
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                      <span className={`badge ${badgeStyle(st.badgeVariant)}`}>
-                        <Clock className="h-3 w-3" />
-                        {formatDeadlineDateShort(dl?.dateISO, lang) ?? st.badgeLabel}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-stone-400 dark:text-stone-500">
-                        {COUNTRY_LABELS[s.country]?.flag && <CountryFlag code={COUNTRY_LABELS[s.country].flag} />} {fr ? COUNTRY_LABELS[s.country]?.fr : COUNTRY_LABELS[s.country]?.ht}
-                      </span>
-                      <span className="text-xs text-stone-400 dark:text-stone-500">{st.humanLine}</span>
-                    </div>
-                  ); })()}
-                  {s.howToApplyUrl && (
-                    <a href={s.howToApplyUrl} target="_blank" rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                      {fr ? "Postuler" : "Aplike"} <ArrowRight className="h-3 w-3" />
-                    </a>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      ) : (
-        <div className="py-12 text-center text-stone-400 dark:text-stone-500">
-          <DollarSign className="mx-auto mb-3 h-8 w-8 opacity-30" />
-          <p className="text-sm">{fr ? "Aucune bourse avec date limite imminente." : "Pa gen bous ak dat limit ki pre."}</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const calendrierPanel = (
-    <div className="space-y-4">
-      {(haitiEvents.length > 0 || intlScholarships.length > 0) ? (
-        <>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-stone-500 dark:text-stone-400">{fr ? "Prochaines échéances" : "Pwochen dat limit"}</p>
-            <Link href={lq("/calendrier")} className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-              {fr ? "Calendrier complet →" : "Kalandriye konplè →"}
-            </Link>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {haitiEvents.map((ev) => {
-              const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
-              const evGeo = getCalendarGeo(ev);
-              return (
-                <div key={ev.id} className="flex items-start gap-3 card p-3.5">
-                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-600 text-white">
-                    {dateObj ? (
-                      <>
-                        <span className="text-xs font-bold leading-tight">{dateObj.getDate()}</span>
-                        <span className="text-[9px] uppercase leading-tight">{dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}</span>
-                      </>
-                    ) : (
-                      <CalendarDays className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`badge text-[10px] ${evGeo === "Haiti" ? "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400" : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"}`}>
-                        {evGeo === "Haiti" ? (fr ? "Haïti" : "Ayiti") : "International"}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm font-medium text-stone-900 line-clamp-1 dark:text-white">{ev.title}</p>
-                    {ev.institution && <p className="text-xs text-stone-500 dark:text-stone-400">{ev.institution}</p>}
-                  </div>
-                </div>
-              );
-            })}
-            {intlScholarships.map((s) => {
-              const dl = s.deadline;
-              const dateObj = dl?.dateISO ? new Date(dl.dateISO + "T00:00:00") : null;
-              return (
-                <div key={s.id} className="flex items-start gap-3 card p-3.5">
-                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-500 text-white">
-                    {dateObj ? (
-                      <>
-                        <span className="text-xs font-bold leading-tight">{dateObj.getDate()}</span>
-                        <span className="text-[9px] uppercase leading-tight">{dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}</span>
-                      </>
-                    ) : (
-                      <Clock className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="badge text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-                      <Globe className="h-3 w-3" /> International
-                    </span>
-                    <p className="mt-1 text-sm font-medium text-stone-900 line-clamp-1 dark:text-white">{s.name}</p>
-                    {dl?.dateISO && (
-                      <p className="text-xs text-stone-500 dark:text-stone-400">
-                        {getDeadlineStatus(dl.dateISO, lang).humanLine}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      ) : (
-        <div className="py-12 text-center text-stone-400 dark:text-stone-500">
-          <CalendarDays className="mx-auto mb-3 h-8 w-8 opacity-30" />
-          <p className="text-sm">{fr ? "Aucun événement à venir." : "Pa gen evènman ki ap vini."}</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const parcoursPanel = pathways.length > 0 ? (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-stone-500 dark:text-stone-400">{pathways.length} {fr ? "parcours disponibles" : "pakou disponib"}</p>
-        <Link href={lq("/parcours")} className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">{fr ? "Tous →" : "Tout →"}</Link>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {pathways.map((pw) => (
-          <Link key={pw.id} href={lq("/parcours")} className="group card p-4">
-            <div className="flex items-center gap-2">
-              <Compass className="h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-              <h3 className="text-sm font-semibold text-stone-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-                {fr ? pw.title_fr : (pw.title_ht ?? pw.title_fr)}
-              </h3>
-            </div>
-            <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
-              {pw.steps.length} {fr ? "étapes" : "etap"}
-              {pw.country ? ` · ${fr ? COUNTRY_LABELS[pw.country]?.fr : COUNTRY_LABELS[pw.country]?.ht}` : ""}
-            </p>
-          </Link>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <div className="py-12 text-center text-stone-400 dark:text-stone-500">
-      <Compass className="mx-auto mb-3 h-8 w-8 opacity-30" />
-      <p className="text-sm">{fr ? "Aucun parcours disponible." : "Pa gen pakou disponib."}</p>
-    </div>
-  );
-
-  const histoirePanel = latestHistoryPost ? (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-stone-500 dark:text-stone-400">{fr ? "Dernière publication" : "Dènye piblikasyon"}</p>
-        <Link href={lq("/histoire")} className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">{fr ? "Explorer →" : "Eksplore →"}</Link>
-      </div>
-      <div className="card p-5">
-        <h3 className="text-lg font-semibold text-stone-900 dark:text-white">{latestHistoryPost.title}</h3>
-        <p className="mt-2 text-sm text-stone-500 line-clamp-3 dark:text-stone-400">
-          {latestHistoryPost.summary || latestHistoryPost.body?.slice(0, 300) || ""}
-        </p>
-        <Link href={lq(`/news/${latestHistoryPost.id}`)} className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400">
-          {fr ? "Lire" : "Li"} <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-    </div>
-  ) : (
-    <div className="py-12 text-center text-stone-400 dark:text-stone-500">
-      <BookOpen className="mx-auto mb-3 h-8 w-8 opacity-30" />
-      <p className="text-sm">{fr ? "Aucune histoire publiée récemment." : "Pa gen istwa pibliye dènyèman."}</p>
-    </div>
-  );
-
-  const nouvellesPanel = succesArticles.length > 0 ? (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-stone-500 dark:text-stone-400">{fr ? "Inspirations récentes" : "Enspirasyon resan"}</p>
-        <Link href={lq("/succes")} className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">{fr ? "Voir tout →" : "Wè tout →"}</Link>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {succesArticles.map((a) => (
-          <ArticleCard key={a.id} article={a} lang={lang} compact />
-        ))}
-      </div>
-    </div>
-  ) : (
-    <div className="py-12 text-center text-stone-400 dark:text-stone-500">
-      <Newspaper className="mx-auto mb-3 h-8 w-8 opacity-30" />
-      <p className="text-sm">{fr ? "Aucune nouvelle pour le moment." : "Pa gen nouvèl pou kounye a."}</p>
-    </div>
-  );
 
   return (
     <div className="space-y-0">
@@ -513,82 +289,78 @@ export default async function AccueilPage({
                 </div>
               </div>
 
-              {/* ── Right column — featured article card ── */}
-              {/* Uses articles [3+] so top articles aren't duplicated in the news section below */}
-              {allArticlesFiltered[3] && (
-                <div className="hidden lg:flex lg:flex-col lg:gap-3">
-                  <Link
-                    href={lq(`/news/${allArticlesFiltered[3].id}`)}
-                    className="group block overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04] transition hover:border-white/[0.15] hover:bg-white/[0.07]"
-                  >
-                    <div className="h-0.5 w-full bg-gradient-to-r from-blue-500 via-violet-500 to-transparent" />
-                    <div className="space-y-4 p-6">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center rounded-md bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-300">
-                          {allArticlesFiltered[3].itemType === "synthesis" ? (fr ? "Dossier" : "Dosye") :
-                           allArticlesFiltered[3].itemType === "utility" ? (fr ? "Ressource" : "Resous") :
-                           fr ? "Actualité" : "Nouvèl"}
-                        </span>
-                        {allArticlesFiltered[3].publishedAt && (
-                          <span className="text-[11px] text-slate-500">
-                            {new Date(allArticlesFiltered[3].publishedAt).toLocaleDateString(
-                              fr ? "fr-FR" : "fr-HT",
-                              { day: "numeric", month: "short" },
-                            )}
-                          </span>
-                        )}
-                      </div>
-                      <h2 className="line-clamp-4 text-[15px] font-bold leading-snug text-white/90 group-hover:text-white">
-                        {allArticlesFiltered[3].title}
-                      </h2>
-                      {allArticlesFiltered[3].summary && (
-                        <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">
-                          {allArticlesFiltered[3].summary}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between border-t border-white/[0.06] pt-3">
-                        <span className="truncate text-xs text-slate-600">
-                          {allArticlesFiltered[3].sourceName ?? ""}
-                        </span>
-                        <span className="ml-3 flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-400 group-hover:text-blue-300">
-                          {fr ? "Lire" : "Li"}{" "}
-                          <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                        </span>
-                      </div>
+              {/* ── Right column — live widgets ── */}
+              <div className="hidden lg:flex lg:flex-col lg:gap-4">
+                {/* Taux widget */}
+                <TauxDuJourWidget lang={lang} data={taux} />
+
+                {/* Upcoming deadlines */}
+                {topUrgent.length > 0 && (
+                  <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        {fr ? "Dates urgentes" : "Dat ijan"}
+                      </span>
+                      <Link href={lq("/closing-soon")} className="text-[10px] font-semibold text-blue-400 hover:text-blue-300">
+                        {fr ? "Voir tout" : "Wè tout"} →
+                      </Link>
                     </div>
-                  </Link>
+                    <div className="divide-y divide-white/[0.04]">
+                      {topUrgent.slice(0, 4).map((item) => {
+                        const status = getDeadlineStatus(item.dateISO, lang);
+                        return (
+                          <Link
+                            key={`hero-urgent-${item.id}`}
+                            href={item.href}
+                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.04]"
+                          >
+                            <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold ${badgeStyle(status.badgeVariant)}`}>
+                              {status.badgeLabel}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-xs text-slate-400">
+                              {item.title}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-                  {allArticlesFiltered[4] && (
-                    <Link
-                      href={lq(`/news/${allArticlesFiltered[4].id}`)}
-                      className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:bg-white/[0.07]"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-2 text-sm font-medium leading-snug text-white/60 group-hover:text-white/90">
-                          {allArticlesFiltered[4].title}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[4].sourceName}</p>
-                      </div>
-                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-blue-400" />
-                    </Link>
-                  )}
-
-                  {allArticlesFiltered[5] && (
-                    <Link
-                      href={lq(`/news/${allArticlesFiltered[5].id}`)}
-                      className="group flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] p-4 transition hover:bg-white/[0.07]"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-2 text-sm font-medium leading-snug text-white/60 group-hover:text-white/90">
-                          {allArticlesFiltered[5].title}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-600">{allArticlesFiltered[5].sourceName}</p>
-                      </div>
-                      <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 transition group-hover:text-blue-400" />
-                    </Link>
-                  )}
-                </div>
-              )}
+                {/* Upcoming events */}
+                {upcomingEvents.length > 0 && (
+                  <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        {fr ? "Prochains événements" : "Pwochen evènman"}
+                      </span>
+                      <Link href={lq("/calendrier")} className="text-[10px] font-semibold text-blue-400 hover:text-blue-300">
+                        {fr ? "Calendrier" : "Kalandriye"} →
+                      </Link>
+                    </div>
+                    <div className="divide-y divide-white/[0.04]">
+                      {upcomingEvents.slice(0, 3).map((ev) => {
+                        const dateObj = ev.dateISO ? new Date(ev.dateISO + "T00:00:00") : null;
+                        return (
+                          <div key={ev.id} className="flex items-center gap-3 px-4 py-2.5">
+                            <div className="flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-600/20 text-blue-300">
+                              {dateObj ? (
+                                <>
+                                  <span className="text-[10px] font-black leading-none">{dateObj.getDate()}</span>
+                                  <span className="text-[8px] uppercase leading-none">{dateObj.toLocaleDateString(fr ? "fr-FR" : "fr-HT", { month: "short" })}</span>
+                                </>
+                              ) : (
+                                <CalendarDays className="h-4 w-4" />
+                              )}
+                            </div>
+                            <p className="min-w-0 flex-1 truncate text-xs text-slate-400">{ev.title}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
 
             </div>
           </div>
@@ -641,25 +413,11 @@ export default async function AccueilPage({
 
         {/* ── NEWS + SIDEBAR ───────────────────────────────────────────────── */}
         <section>
-          <div className="mb-5 flex items-end justify-between gap-3">
-            <div className="space-y-1">
-              <SectionLabel
-                icon={<Newspaper className="h-3.5 w-3.5 text-blue-600" />}
-                text={fr ? "À la une" : "Premye paj"}
-              />
-              <p className="text-xs text-stone-500 dark:text-stone-400">
-                {fr
-                  ? "Le sujet principal et les articles à ne pas manquer."
-                  : "Sijè prensipal la ak atik pou pa manke."}
-              </p>
-            </div>
-            <Link
-              href={lq("/news")}
-              className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              {fr ? "Tout voir →" : "Wè tout →"}
-            </Link>
-          </div>
+          <SectionHeader
+            title={fr ? "À la une" : "Premye paj"}
+            href={lq("/news")}
+            linkLabel={fr ? "Tout voir →" : "Wè tout →"}
+          />
 
           {allArticlesFiltered.length > 0 ? (
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -679,8 +437,6 @@ export default async function AccueilPage({
 
               {/* Sidebar */}
               <aside className="space-y-4">
-                <TauxDuJourWidget lang={lang} data={taux} />
-
                 {allArticlesFiltered.length > 3 && (
                   <div className="overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
                     <div className="border-b border-stone-100 px-4 py-3 dark:border-stone-800">
@@ -741,201 +497,197 @@ export default async function AccueilPage({
           )}
         </section>
 
-        {/* ── DASHBOARD TABS ──────────────────────────────────────────────── */}
+        {/* ── TABLEAU DE BORD ─────────────────────────────────────────────── */}
         <section>
-          <Divider />
-          <div className="mb-5 mt-6 space-y-1">
-            <SectionLabel
-              icon={<Briefcase className="h-3.5 w-3.5 text-blue-600" />}
-              text={fr ? "Tableau de bord" : "Tablo"}
-            />
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              {fr
-                ? "Bourses, échéances, parcours et histoire — tout en un."
-                : "Bous, dat limit, pakou ak istwa — tout nan youn."}
-            </p>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900 sm:p-5">
-            <DashboardTabs
-              lang={lang}
-              panels={{
-                bourses: boursesPanel,
-                calendrier: calendrierPanel,
-                parcours: parcoursPanel,
-                histoire: histoirePanel,
-                nouvelles: nouvellesPanel,
-              }}
-            />
+          <SectionHeader
+            title={fr ? "Tableau de Bord" : "Tablo"}
+            href={lq("/bourses")}
+            linkLabel={fr ? "Consulter tout →" : "Wè tout →"}
+          />
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                href: lq("/bourses"),
+                Icon: DollarSign,
+                iconColor: "text-blue-600 dark:text-blue-400",
+                iconBg: "bg-blue-50 dark:bg-blue-950/30",
+                title: fr ? "Bourses" : "Bous",
+                desc: fr
+                  ? `Explorez ${closingScholarships45.length} bourses actives pour l'année académique.`
+                  : `Eksplore ${closingScholarships45.length} bous aktif pou ane akademik la.`,
+                cta: fr ? "Voir les opportunités" : "Wè okazyon yo",
+              },
+              {
+                href: lq("/calendrier"),
+                Icon: CalendarDays,
+                iconColor: "text-orange-600 dark:text-orange-400",
+                iconBg: "bg-orange-50 dark:bg-orange-950/30",
+                title: fr ? "Calendrier" : "Kalandriye",
+                desc: fr
+                  ? "Ne manquez jamais une date limite grâce à notre planning académique."
+                  : "Pa janm manke yon dat limit gras a planin akademik nou.",
+                cta: fr ? "Accéder à l'agenda" : "Antre nan ajanda",
+              },
+              {
+                href: lq("/parcours"),
+                Icon: Compass,
+                iconColor: "text-violet-600 dark:text-violet-400",
+                iconBg: "bg-violet-50 dark:bg-violet-950/30",
+                title: fr ? "Parcours" : "Pakou",
+                desc: fr
+                  ? "Tracez votre chemin avec nos guides d'orientation personnalisés."
+                  : "Trase chemen ou ak gid oryantasyon pèsonalize nou yo.",
+                cta: fr ? "Découvrir les voies" : "Dekouvri wout yo",
+              },
+            ].map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="group flex flex-col rounded-2xl border border-stone-200 bg-white p-8 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lift dark:border-stone-800 dark:bg-stone-900"
+              >
+                <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-xl ${card.iconBg}`}>
+                  <card.Icon className={`h-6 w-6 ${card.iconColor}`} />
+                </div>
+                <h3 className="mb-2 text-lg font-bold text-stone-900 dark:text-white">{card.title}</h3>
+                <p className="flex-1 text-sm leading-relaxed text-stone-500 dark:text-stone-400">{card.desc}</p>
+                <div className="mt-6 flex items-center gap-1.5 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  {card.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
 
         {/* ── UNIVERSITIES ────────────────────────────────────────────────── */}
         {rotatedUnis.length > 0 && (
           <section>
-            <Divider />
-            <div className="mb-5 mt-6 flex items-end justify-between gap-3">
-              <div className="space-y-1">
-                <SectionLabel
-                  icon={<GraduationCap className="h-3.5 w-3.5 text-blue-600" />}
-                  text={fr ? "Étudier à l'étranger" : "Etidye aletranje"}
-                />
-              </div>
-              <Link
-                href={lq("/universites")}
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-              >
-                {fr ? "Toutes les universités →" : "Tout inivèsite yo →"}
-              </Link>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {rotatedUnis.map((u) => (
-                <div key={u.id} className="card p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-stone-900 line-clamp-2 dark:text-white">
+            <SectionHeader
+              title={fr ? "Étudier à l'étranger" : "Etidye aletranje"}
+              href={lq("/universites")}
+              linkLabel={fr ? "Toutes les universités →" : "Tout inivèsite yo →"}
+            />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:[&>*:first-child]:col-span-2 lg:[&>*:first-child]:row-span-2">
+              {rotatedUnis.slice(0, 3).map((u, i) => (
+                <div
+                  key={u.id}
+                  className={[
+                    "group relative flex flex-col justify-end overflow-hidden rounded-3xl p-6",
+                    i === 0
+                      ? "min-h-[320px] bg-gradient-to-br from-stone-900 via-blue-950 to-stone-900"
+                      : "min-h-[160px] bg-gradient-to-br from-stone-800 to-stone-900",
+                  ].join(" ")}
+                >
+                  {/* Decorative glow */}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="relative">
+                    <div className="mb-2 flex items-center gap-2">
+                      {COUNTRY_LABELS[u.country]?.flag && (
+                        <CountryFlag code={COUNTRY_LABELS[u.country].flag} />
+                      )}
+                      {u.haitianFriendly && (
+                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                          ✓ {fr ? "Accueil HT" : "Akèy HT"}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className={[
+                      "font-extrabold leading-tight text-white",
+                      i === 0 ? "text-xl" : "text-base",
+                    ].join(" ")}>
                       {u.name}
                     </h3>
-                    {COUNTRY_LABELS[u.country]?.flag && (
-                      <span className="shrink-0">
-                        <CountryFlag code={COUNTRY_LABELS[u.country].flag} />
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {u.city && (
-                      <span className="badge bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300">
-                        {u.city}
-                      </span>
+                      <p className="mt-1 text-xs text-white/60">
+                        {u.city}{u.country ? `, ${fr ? COUNTRY_LABELS[u.country]?.fr : COUNTRY_LABELS[u.country]?.ht}` : ""}
+                      </p>
                     )}
-                    {u.haitianFriendly && (
-                      <span className="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
-                        ✓ {fr ? "Accueil HT" : "Akèy HT"}
-                      </span>
-                    )}
-                    {u.tuitionBand && (
-                      <span className="badge bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300">
-                        {fr ? TUITION_LABELS[u.tuitionBand]?.fr : TUITION_LABELS[u.tuitionBand]?.ht}
-                      </span>
+                    {u.admissionsUrl && (
+                      <a
+                        href={u.admissionsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-300 hover:text-blue-200"
+                      >
+                        {fr ? "Admissions" : "Admisyon"} <ArrowRight className="h-3 w-3" />
+                      </a>
                     )}
                   </div>
-                  {u.admissionsUrl && (
-                    <a
-                      href={u.admissionsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                    >
-                      {fr ? "Admissions" : "Admisyon"} <ArrowRight className="h-3 w-3" />
-                    </a>
-                  )}
                 </div>
               ))}
+              {/* CTA card — col-span-2 */}
+              <div className="relative overflow-hidden rounded-3xl bg-blue-600 p-8 sm:col-span-2">
+                <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+                <div className="relative">
+                  <h3 className="text-xl font-extrabold text-white">
+                    {fr ? "Trouvez votre destination." : "Jwenn destinasyon ou."}
+                  </h3>
+                  <p className="mt-2 text-sm text-blue-100">
+                    {fr
+                      ? "Comparez les universités qui correspondent à votre projet."
+                      : "Konpare inivèsite ki koresponn ak pwojè ou."}
+                  </p>
+                  <Link
+                    href={lq("/universites")}
+                    className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-bold text-blue-700 shadow-lg transition hover:-translate-y-0.5"
+                  >
+                    {fr ? `Explorer ${allUniversities.length}+ Profils` : `Eksplore ${allUniversities.length}+ Pwofil`}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </section>
         )}
 
         {/* ── QUICK NAV ────────────────────────────────────────────────────── */}
         <section>
-          <Divider />
-          <div className="mb-5 mt-6 space-y-1">
-            <SectionLabel
-              icon={<Compass className="h-3.5 w-3.5 text-blue-600" />}
-              text={fr ? "Explorer" : "Eksplore"}
-            />
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              {fr
-                ? "Entrez par besoin : bourses, universités, parcours ou actualités."
-                : "Antre pa bezwen: bous, inivèsite, pakou oswa nouvèl."}
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <SectionHeader
+            title={fr ? "Explorer" : "Eksplore"}
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 href: lq("/closing-soon"),
-                label: fr ? "Dates limites" : "Dat limit",
                 Icon: Clock,
-                desc: fr ? "Les prochains dossiers à traiter." : "Pwochen dosye pou trete.",
-                count: topUrgent.length,
-                color: "text-orange-600 dark:text-orange-400",
+                label: fr ? "Dates limites" : "Dat limit",
+                desc: fr ? "Ne manquez plus aucun appel à candidature." : "Pa janm manke yon apèl kandida.",
                 bg: "bg-orange-50 dark:bg-orange-950/20",
-                border: "border-orange-100 dark:border-orange-900/30",
+                iconColor: "text-orange-500",
               },
               {
                 href: lq("/bourses"),
-                label: fr ? "Bourses" : "Bous",
                 Icon: DollarSign,
-                desc: fr ? "Comparer les aides ouvertes." : "Konpare èd ki ouvè yo.",
-                count: closingScholarships45.length,
-                color: "text-emerald-600 dark:text-emerald-400",
-                bg: "bg-emerald-50 dark:bg-emerald-950/20",
-                border: "border-emerald-100 dark:border-emerald-900/30",
-              },
-              {
-                href: lq("/parcours"),
-                label: fr ? "Parcours" : "Pakou",
-                Icon: Compass,
-                desc: fr ? "Choisir un plan d'action." : "Chwazi yon plan aksyon.",
-                count: allPathways.length,
-                color: "text-violet-600 dark:text-violet-400",
-                bg: "bg-violet-50 dark:bg-violet-950/20",
-                border: "border-violet-100 dark:border-violet-900/30",
-              },
-              {
-                href: lq("/universites"),
-                label: fr ? "Universités" : "Inivèsite",
-                Icon: GraduationCap,
-                desc: fr ? "Repérer les campus accueillants." : "Repere kanpis ki akeyan yo.",
-                count: allUniversities.length,
-                color: "text-sky-600 dark:text-sky-400",
-                bg: "bg-sky-50 dark:bg-sky-950/20",
-                border: "border-sky-100 dark:border-sky-900/30",
+                label: fr ? "Bourses" : "Bous",
+                desc: fr ? "Aides financières et bourses d'excellence." : "Èd finansyè ak bous ekselans.",
+                bg: "bg-blue-50 dark:bg-blue-950/20",
+                iconColor: "text-blue-500",
               },
               {
                 href: lq("/succes"),
-                label: fr ? "Succès" : "Siksè",
                 Icon: Award,
-                desc: fr ? "Lire des parcours inspirants." : "Li pakou ki bay enspirasyon.",
-                count: succesArticles.length,
-                color: "text-amber-600 dark:text-amber-400",
-                bg: "bg-amber-50 dark:bg-amber-950/20",
-                border: "border-amber-100 dark:border-amber-900/30",
+                label: fr ? "Succès" : "Siksè",
+                desc: fr ? "Histoires inspirantes de nos lauréats." : "Istwa enspirantan de laurea nou yo.",
+                bg: "bg-violet-50 dark:bg-violet-950/20",
+                iconColor: "text-violet-500",
               },
               {
                 href: lq("/news"),
-                label: fr ? "Actualités" : "Nouvèl",
                 Icon: Newspaper,
-                desc: fr ? "Revenir au fil complet." : "Retounen sou fil konplè a.",
-                count: allArticlesFiltered.length,
-                color: "text-blue-600 dark:text-blue-400",
-                bg: "bg-blue-50 dark:bg-blue-950/20",
-                border: "border-blue-100 dark:border-blue-900/30",
+                label: fr ? "Conseils" : "Konsèy",
+                desc: fr ? "Astuces pour optimiser vos dossiers." : "Astwis pou optimize dosye ou yo.",
+                bg: "bg-stone-100 dark:bg-stone-800",
+                iconColor: "text-stone-600 dark:text-stone-400",
               },
-            ].map((item) => (
+            ].map((tile) => (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center gap-4 rounded-xl border ${item.border} ${item.bg} p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md`}
+                key={tile.href}
+                href={tile.href}
+                className={`group flex flex-col rounded-3xl p-8 transition-all hover:-translate-y-1 ${tile.bg}`}
               >
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm dark:bg-stone-900 ${item.color}`}
-                >
-                  <item.Icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-stone-900 dark:text-white">
-                      {item.label}
-                    </p>
-                    <span className="text-xs font-bold tabular-nums text-stone-400 dark:text-stone-500">
-                      {item.count}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 line-clamp-1 text-xs text-stone-500 dark:text-stone-400">
-                    {item.desc}
-                  </p>
-                </div>
-                <ArrowRight
-                  className={`h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 ${item.color}`}
-                />
+                <tile.Icon className={`mb-4 h-8 w-8 ${tile.iconColor}`} />
+                <h4 className="text-base font-bold text-stone-900 dark:text-white">{tile.label}</h4>
+                <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400">{tile.desc}</p>
               </Link>
             ))}
           </div>

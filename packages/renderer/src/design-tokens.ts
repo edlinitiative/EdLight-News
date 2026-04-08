@@ -67,6 +67,8 @@ export const ACCENT: Record<string, string> = {
   histoire:    "#f59e0b",
   utility:     "#34d399",
   taux:        "#eab308",
+  breaking:    "#f43f5e", // rose-red — urgent/flash
+  stat:        "#a855f7", // purple  — data/statistics
 };
 
 export const DARK: Record<string, string> = {
@@ -76,6 +78,8 @@ export const DARK: Record<string, string> = {
   histoire:    "#120b06",
   utility:     "#060f0b",
   taux:        "#0a1628",
+  breaking:    "#150408",
+  stat:        "#0f0514",
 };
 
 export const LABEL: Record<string, string> = {
@@ -85,6 +89,8 @@ export const LABEL: Record<string, string> = {
   histoire:    "HISTOIRE",
   utility:     "GUIDE",
   taux:        "TAUX DU JOUR",
+  breaking:    "FLASH",
+  stat:        "DONNÉES",
 };
 
 // ── Overlay gradients (per-type) ───────────────────────────────────────────
@@ -181,6 +187,8 @@ export const OVERLAY_BY_TYPE: Record<string, OverlayPair> = {
   opportunity: OVERLAY_MEDIUM,
   utility:     OVERLAY_STANDARD,
   taux:        OVERLAY_STANDARD,
+  breaking:    OVERLAY_TEXT_HEAVY, // single slide — needs strong contrast over image
+  stat:        OVERLAY_STANDARD,   // data layout rarely uses full-bleed photos
 };
 
 /** Legacy two-value OVERLAY for any code that still references it. */

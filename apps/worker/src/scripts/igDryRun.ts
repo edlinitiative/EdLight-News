@@ -299,6 +299,55 @@ const MOCK_ITEMS: Record<IGPostType, Item> = {
     createdAt: NOW_TS,
     updatedAt: NOW_TS,
   } as Item,
+
+  // T1 Breaking News — single-slide, used for thin urgent news (80-199 words)
+  breaking: {
+    id: "mock-breaking-1",
+    rawItemId: "raw-mock-breaking",
+    sourceId: "src-mock-breaking",
+    title: "FLASH : Un tremblement de terre de magnitude 4,7 frappe le Sud d'Haïti",
+    summary: "Une secousse de magnitude 4,7 a été enregistrée à 15 km de Les Cayes.",
+    extractedText:
+      "Une secousse de magnitude 4,7 a été enregistrée à 15 km de Les Cayes ce matin. " +
+      "Aucune victime signalée pour l'instant.",
+    canonicalUrl: "https://haitiantimes.com/2026/04/seisme-sud",
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1080&q=80",
+    category: "news",
+    geoTag: "HT",
+    deadline: null,
+    evergreen: false,
+    confidence: 0.9,
+    citations: [],
+    qualityFlags: { hasSourceUrl: true, needsReview: false, lowConfidence: false, reasons: [] },
+    source: { name: "Haitian Times", originalUrl: "https://haitiantimes.com/2026/04/seisme-sud" },
+    audienceFitScore: 0.85,
+    createdAt: NOW_TS,
+    updatedAt: NOW_TS,
+  } as Item,
+
+  // T6 Stat Card — single-slide, manually curated numeric fact
+  stat: {
+    id: "mock-stat-1",
+    rawItemId: "raw-mock-stat",
+    sourceId: "src-mock-stat",
+    title: "3,2 millions d'Haïtiens en situation d'insécurité alimentaire – ONU 2025",
+    summary:
+      "Selon le dernier rapport du PAM, 3,2 millions de personnes en Haïti " +
+      "font face à une insécurité alimentaire aiguë.",
+    canonicalUrl: "https://www.wfp.org/countries/haiti",
+    imageUrl: undefined,
+    category: "resource",
+    itemType: "utility",
+    deadline: null,
+    evergreen: false,
+    confidence: 0.95,
+    citations: [{ sourceName: "PAM / ONU", sourceUrl: "https://www.wfp.org/countries/haiti" }],
+    qualityFlags: { hasSourceUrl: true, needsReview: false, lowConfidence: false, reasons: [] },
+    source: { name: "PAM", originalUrl: "https://www.wfp.org/countries/haiti" },
+    audienceFitScore: 0.75,
+    createdAt: NOW_TS,
+    updatedAt: NOW_TS,
+  } as Item,
 };
 
 // ── Additional Haiti news mocks (political, security, economic) ───────────

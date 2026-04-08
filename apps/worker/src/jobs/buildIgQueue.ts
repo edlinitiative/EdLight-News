@@ -16,7 +16,7 @@ import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generat
 import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
-import { generateContextualImage, ensureOpportunityBackground } from "../services/geminiImageGen.js";
+import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
@@ -333,36 +333,9 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           }
         }
 
-        // ── Image consistency: every slide must use the same background ─
-        // If any slide lacks a backgroundImage (low-confidence publisher image,
-        // unsafe source, or utility/histoire type), first try to reuse the
-        // cover's image (avoids cover ≠ inner mismatch); only call Gemini
-        // when NO slide has an image yet.
-        // CTA slides are excluded — they carry curated landmark images.
-        const slidesNeedingImage = payload.slides.filter((s) => !s.backgroundImage && s.layout !== "cta");
-        if (slidesNeedingImage.length > 0) {
-          const coverImage = payload.slides[0]?.backgroundImage;
-          if (coverImage) {
-            // Cover already has an image — propagate it to the rest
-            for (const slide of slidesNeedingImage) {
-              slide.backgroundImage = coverImage;
-            }
-            console.log(`[buildIgQueue] Propagated cover image to ${slidesNeedingImage.length} slide(s) for ${item.id}`);
-          } else {
-            // No slides have an image — generate one and apply to all
-            try {
-              const generated = await generateContextualImage(item);
-              if (generated?.url) {
-                for (const slide of slidesNeedingImage) {
-                  slide.backgroundImage = generated.url;
-                }
-                console.log(`[buildIgQueue] Gemini image filled ${slidesNeedingImage.length} slides for ${item.id}`);
-              }
-            } catch (err) {
-              console.warn(`[buildIgQueue] Gemini image fallback failed for ${item.id}:`, err instanceof Error ? err.message : err);
-            }
-          }
-        }
+        // Image fill consolidated: processIgScheduled owns the canonical
+        // image propagation + Gemini fallback pass at render time.
+        // buildIgQueue only applies intentional per-type backgrounds above.
 
         // Insert as queued
         const targetPostDate = extractTargetPostDate(item);

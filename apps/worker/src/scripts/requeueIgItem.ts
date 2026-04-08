@@ -42,7 +42,7 @@ function parseArgs(): { type: IGPostType; id?: string } {
     process.exit(1);
   }
 
-  const valid: IGPostType[] = ["histoire", "news", "opportunity", "scholarship"];
+  const valid: IGPostType[] = ["histoire", "news", "opportunity", "scholarship", "breaking", "stat"];
   if (!valid.includes(type)) {
     console.error(`Invalid type "${type}". Must be one of: ${valid.join(", ")}`);
     process.exit(1);
@@ -80,8 +80,25 @@ async function findLatestItem(type: IGPostType): Promise<Item | null> {
     );
   }
 
-  // For news/opportunity/scholarship, scan recent items — enforce quality gate
+  if (type === "stat") {
+    // Stat cards should always be triggered with --id explicitly
+    console.warn("  ℹ️  No auto-selection for 'stat' — use --id=<itemId> to specify the item.");
+    return null;
+  }
+
   const items = await itemsRepo.listRecentItems(100);
+
+  if (type === "breaking") {
+    // Breaking items are thin news articles that decideIG demotes to 'breaking'
+    const newsCandidates = items.filter((i) => ["news", "local_news", "event"].includes(i.category));
+    for (const candidate of newsCandidates) {
+      const decision = decideIG(candidate);
+      if (decision.igEligible && decision.igType === "breaking") return candidate;
+    }
+    return null;
+  }
+
+  // For news/opportunity/scholarship: scan recent items — enforce quality gate
   const candidates = items.filter((i) => CATEGORY_MAP[i.category] === type);
   for (const candidate of candidates) {
     const decision = decideIG(candidate);
@@ -89,6 +106,34 @@ async function findLatestItem(type: IGPostType): Promise<Item | null> {
     console.log(`  ⚠️  Skipping ${candidate.id} (quality gate: ${decision.reasons.join("; ")})`);
   }
   return null;
+}
+
+// ── Synthetic narrative ────────────────────────────────────────────────────
+
+/**
+ * Generate a synthetic frNarrative from frBody when no stored narrative exists.
+ * Groups the first 6 well-formed sentences into 2-3 ||| -separated arc groups.
+ * This approximates the 4-act carousel arc without requiring a Gemini API call.
+ */
+function synthNarrative(body: string): string | undefined {
+  if (!body || body.length < 80) return undefined;
+  const sentences = body
+    .replace(/\n+/g, " ")
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(
+      (s) =>
+        s.length > 30 &&
+        !/^(Source|Voir|Lire|À lire|Sur le même|Publié|Modifié)/i.test(s),
+    )
+    .slice(0, 6);
+  if (sentences.length < 2) return undefined;
+  // Group 2 sentences per |||  arc group
+  const groups: string[] = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    groups.push(sentences.slice(i, i + 2).join(" "));
+  }
+  return groups.join("|||");
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
@@ -132,6 +177,16 @@ async function main() {
         frBody: fr.body || undefined,
         frNarrative: fr.narrative ?? undefined,
       };
+      // Gap-fill: items processed before the ||| narrative prompt update
+      // have no stored frNarrative. Synthesise a basic arc from frBody so
+      // the formatter uses the carousel path instead of the section fallback.
+      if (!bi.frNarrative && bi.frBody) {
+        const synthetic = synthNarrative(bi.frBody);
+        if (synthetic) {
+          bi.frNarrative = synthetic;
+          console.log(`  ℹ️  Synthesised frNarrative from frBody (no stored narrative)`);
+        }
+      }
     }
   } catch {
     /* ignore */

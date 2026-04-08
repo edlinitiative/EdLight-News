@@ -98,6 +98,11 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     }
   }
 
+  // ── Cap content slides: MASTER_PROMPT T4 targets 3-4 slides total ──────────
+  // cover(1) + max 2 content = 3 slides before the apply slide.
+  // With CTA the total stays at 4-5 — aligned with the template.
+  if (slides.length > 3) slides.length = 3;
+
   // ── Apply slide: only when there is real actionable data ─────────────────
   const applyBullets: string[] = [];
   if (isUsableApplyLink(item.opportunity?.officialLink))

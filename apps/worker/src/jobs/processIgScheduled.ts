@@ -23,10 +23,12 @@ const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
   histoire: 20,    // fact of the day — stale next day
   opportunity: 336,
   scholarship: 336,
+  breaking: 12,    // single-slide flash — stale within half a day
+  stat: 72,        // manually curated — treat like utility
 };
 
 /** Post types whose Storage slides should be deleted after posting (ephemeral). */
-const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire"]);
+const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire", "breaking"]);
 
 /** Check if an IG queue item is too old to post. */
 function isStale(item: { igType: IGPostType; createdAt: any }): boolean {

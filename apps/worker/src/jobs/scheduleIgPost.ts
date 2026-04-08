@@ -28,12 +28,14 @@ const HAITI_TZ = "America/Port-au-Prince";
 // News goes stale fast; scholarships with deadlines stay relevant longer.
 /** @internal exported for tests */
 export const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
-  news: 48,          // 2 days — breaking/current events
-  taux: 24,          // 1 day  — exchange rates are daily
-  utility: 72,       // 3 days — fait-du-jour, study tips
-  histoire: 24,      // 1 day  — must match today's date
+  news: 48,          // 2 days  — breaking/current events
+  taux: 24,          // 1 day   — exchange rates are daily
+  utility: 72,       // 3 days  — fait-du-jour, study tips
+  histoire: 24,      // 1 day   — must match today's date
   opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
   scholarship: 336,  // 14 days — scholarships (capped by deadline)
+  breaking: 12,      // 12 h    — single-slide flash item loses relevance fast
+  stat: 72,          // 3 days  — manually curated, treat like utility
 };
 
 // ── Per-type daily caps ─────────────────────────────────────────────────────
