@@ -418,6 +418,59 @@ export function validatePayloadForPublishing(
     }
   }
 
+  // PRD §7: Heading must be a short label (≤80 chars), not a prose sentence.
+  // Headings > 80 chars almost always mean narrativeToSlides put a full
+  // sentence in the heading field.
+  const DATA_MISSING_SLIDE_RE =
+    /\b(pas|non)\s+(disponible|détaillé|précisé|mentionné|indiqué|fourni|spécifié|inclus?|abordé)\b/i;
+
+  for (let i = 0; i < normalizedPayload.slides.length; i++) {
+    const slide = normalizedPayload.slides[i]!;
+    if (slide.layout !== "cta" && slide.heading.length > 80) {
+      issues.push({
+        severity: "error",
+        message: `Slide ${
+          i + 1
+        }: titre trop long (${
+          slide.heading.length
+        } chars, max 80). Le titre ne doit pas être une phrase complète.`,
+      });
+    }
+    if (
+      DATA_MISSING_SLIDE_RE.test(slide.heading) ||
+      slide.bullets.some((b) => DATA_MISSING_SLIDE_RE.test(b))
+    ) {
+      issues.push({
+        severity: "warning",
+        message: `Slide ${
+          i + 1
+        }: contient une admission que les données sont manquantes — à reformuler ou supprimer.`,
+      });
+    }
+  }
+
+  // Cross-slide bullet deduplication: same bullet text on two different slides.
+  const bulletIndex = new Map<string, number>();
+  for (let i = 0; i < normalizedPayload.slides.length; i++) {
+    for (const bullet of normalizedPayload.slides[i]!.bullets) {
+      const key = bullet.toLowerCase().trim();
+      if (key.length < 10) continue;
+      const seenOn = bulletIndex.get(key);
+      if (seenOn !== undefined && seenOn !== i) {
+        issues.push({
+          severity: "error",
+          message: `Slides ${
+            seenOn + 1
+          } et ${
+            i + 1
+          }: même puce dupliquée sur deux slides différentes.`,
+        });
+      } else {
+        bulletIndex.set(key, i);
+      }
+    }
+  }
+
   for (let i = 0; i < normalizedPayload.slides.length; i++) {
     for (let j = i + 1; j < normalizedPayload.slides.length; j++) {
       const left = slideText(normalizedPayload.slides[i]!);

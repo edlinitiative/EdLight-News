@@ -560,9 +560,21 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
   const MAX_SLIDE_CHARS = 600; // Safety cap: total chars per slide (heading + all bullets)
   const MAX_SENT_CHARS = 220;  // Individual sentence cap — shortenText finds real boundary
 
+  // PRD §9.1: Explanation slides use short editorial labels as headings.
+  // Putting a full sentence (100–220 chars) in the heading field overflows
+  // the slide layout and reads as prose, not a scannable carousel title.
+  // All sentences become bullets so no content is lost.
+  const NARRATIVE_LABELS = [
+    "Le contexte",
+    "Les faits",
+    "Ce qui s'est passé",
+    "À retenir",
+    "La suite",
+  ] as const;
+  let _narSlideIdx = 0;
   const makeSlide = (sents: string[]): IGSlide => ({
-    heading: sents[0]!,
-    bullets: sents.slice(1),
+    heading: NARRATIVE_LABELS[_narSlideIdx++ % NARRATIVE_LABELS.length]!,
+    bullets: sents,
     layout: "explanation" as const,
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });

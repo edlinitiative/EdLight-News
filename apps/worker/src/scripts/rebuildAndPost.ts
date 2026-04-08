@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
 
 import { igQueueRepo, itemsRepo, contentVersionsRepo } from "@edlight-news/firebase";
 import { formatForIG } from "@edlight-news/generator/ig/index.js";
+import { validatePayloadForPublishing } from "@edlight-news/generator/ig/review.js";
 import { processIgScheduled } from "../jobs/processIgScheduled.js";
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
 
@@ -68,6 +69,32 @@ async function main() {
     });
   });
   console.log("=====\n");
+
+  // ── Pre-publish quality gate ──────────────────────────────────────────
+  // Validate the reformatted payload BEFORE writing it to Firestore.
+  // Aborts on error-level issues so bad content is never published.
+  console.log("[rebuildAndPost] ===== QUALITY CHECK =====");
+  const { issues: qualityIssues, shouldHold } = validatePayloadForPublishing(
+    newPayload,
+    queueItem.igType,
+  );
+  if (qualityIssues.length === 0) {
+    console.log("  ✅ No quality issues.");
+  } else {
+    for (const issue of qualityIssues) {
+      const icon = issue.severity === "error" ? "❌" : "⚠️";
+      console.log(`  ${icon} [${issue.severity}] ${issue.message}`);
+    }
+  }
+  console.log("=====\n");
+  if (shouldHold) {
+    const errCount = qualityIssues.filter((q) => q.severity === "error").length;
+    console.error(
+      `[rebuildAndPost] Quality gate FAILED — ${errCount} error(s). Post aborted.\n` +
+      "  Fix the formatter and re-run.",
+    );
+    process.exit(1);
+  }
 
   // Persist the new payload and set status to scheduled (due now)
   await igQueueRepo.setPayload(queueItem.id, newPayload);

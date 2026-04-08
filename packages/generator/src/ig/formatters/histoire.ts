@@ -282,11 +282,14 @@ function deriveSlideHeading(sentence: string, slideIndex: number): string {
     ? clauseMatch[1]!.trim().replace(/[,;:\s]+$/, "")
     : null;
 
-  // Fallback: take first ~50 chars at a word boundary
+  // Fallback: no clause boundary found → use a short editorial label.
+  // Word-boundary truncation produces broken fragments like
+  // "Les domaines spécifiques de cette formation ne sont" which read
+  // as a mid-sentence cut, not a slide heading.
+  const FALLBACK_LABELS = ["En contexte", "La suite", "À retenir", "En bref"];
+  const fallbackLabel = FALLBACK_LABELS[slideIndex % FALLBACK_LABELS.length] ?? `Partie ${slideIndex + 1}`;
   if (!fragment) {
-    const cut = sentence.slice(0, 55);
-    const lastSpace = cut.lastIndexOf(" ");
-    fragment = (lastSpace > 25 ? cut.slice(0, lastSpace) : cut).trim().replace(/[,;:\s]+$/, "");
+    return year ? `${year} — ${fallbackLabel}` : fallbackLabel;
   }
 
   // If we have a year that isn't already in the fragment, prefix it
@@ -308,9 +311,26 @@ function deriveSlideHeading(sentence: string, slideIndex: number): string {
  *   3. Sentence-split, filter junk, take the best 5 sentences.
  *   4. Join and pass to narrativeToSlides() for consistent slide layout.
  */
+/** Returns true when ≥3 content words (len > 4) from sentence appear in coverText. */
+function overlapsCoverBullet(sentence: string, coverText: string): boolean {
+  const words = (t: string) =>
+    new Set(
+      t.toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, "")
+        .split(/\s+/)
+        .filter((w) => w.length > 4),
+    );
+  const sW = words(sentence);
+  const cW = words(coverText);
+  let overlap = 0;
+  for (const w of sW) if (cW.has(w)) overlap++;
+  return overlap >= 3;
+}
+
 function buildHistoireNarrativeSlides(
   contentSections: { heading: string; content: string }[],
   imageUrl: string | undefined,
+  coverBulletText?: string,
 ): IGSlide[] {
   if (contentSections.length === 0) return [];
 
@@ -337,10 +357,18 @@ function buildHistoireNarrativeSlides(
           .join(" ")
       : cleanedBody;
 
+  // Sentences that admit missing data must not appear on published slides.
+  const DATA_MISSING_RE =
+    /\b(pas|non)\s+(disponible|détaillé|précisé|mentionné|indiqué|fourni|spécifié|inclus?|abordé)\b/i;
+
   const sentences = splitSentences(stripMarkdown(rawText))
     .filter((s) => s.length >= 25 && s.length <= 180)
     .filter((s) => !isJunkSentence(s))
     .filter((s) => !isSourceLine(s))
+    .filter((s) => !DATA_MISSING_RE.test(s))
+    // Skip sentences that duplicate the cover bullet — prevents the same
+    // sentence appearing as slide 1 bullet AND slide 2 bullet 1.
+    .filter((s) => !coverBulletText || !overlapsCoverBullet(s, coverBulletText))
     .slice(0, 5);
 
   if (sentences.length === 0) return [];
@@ -445,7 +473,7 @@ export function buildHistoireCarousel(
     // pipeline) so frNarrative is never populated. We build it on-the-fly
     // by sentence-splitting the first section's body, then feed those
     // sentences into narrativeToSlides() — same visual result, no LLM call.
-    const synthesised = buildHistoireNarrativeSlides(contentSections, imageUrl);
+    const synthesised = buildHistoireNarrativeSlides(contentSections, imageUrl, coverBullets[0]);
     if (synthesised.length > 0) {
       slides.push(...synthesised);
     } else {
