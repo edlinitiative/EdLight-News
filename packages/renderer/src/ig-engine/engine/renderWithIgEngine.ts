@@ -9,9 +9,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { IGQueueItem, IGFormattedPayload } from "@edlight-news/types";
-import { buildPost } from "./buildSlides.js";
+import { buildPost, isExportReady } from "./buildSlides.js";
 import { renderPost } from "./renderSlides.js";
 import { adaptLegacyPayload } from "./adaptLegacyPayload.js";
+import { buildFitReport, formatFitReport } from "../qa/fitReport.js";
 
 // ── Result type ──────────────────────────────────────────────────────────────
 
@@ -19,6 +20,7 @@ export interface CarouselAssetResult {
   mode: "rendered" | "dry-run";
   slidePaths: string[];
   payloadPath: string;
+  fitReportPath: string;
   exportDir: string;
   /** Always "ig-engine" — legacy renderer has been removed. */
   renderedBy: "ig-engine";
@@ -53,6 +55,15 @@ export async function renderWithIgEngine(
     );
   }
 
+  if (!isExportReady(post)) {
+    const report = formatFitReport(buildFitReport(post));
+    console.error(`[ig-engine] ✗ overflow gate BLOCKED export for ${queueItem.id}\n${report}`);
+    throw new Error(
+      `[ig-engine] Export blocked for ${queueItem.id} — unresolved overflow in template "${post.templateId}". ` +
+      `Overflow fields: ${post.slides.filter(s => !s.validation.fitPassed).map((s, i) => `slide ${i+1}`).join(", ")}`,
+    );
+  }
+
   const rendered = await renderPost(post, contentType);
 
   const slidePaths: string[] = [];
@@ -62,10 +73,37 @@ export async function renderWithIgEngine(
     slidePaths.push(pngPath);
   }
 
+  // — Write caption.txt ———————————————————————————————————————
+  const captionLines: string[] = [caption.text];
+  if (caption.cta) captionLines.push("", caption.cta);
+  if (caption.hashtags.length) captionLines.push("", caption.hashtags.join(" "));
+  const captionPath = join(exportDir, "caption.txt");
+  writeFileSync(captionPath, captionLines.join("\n"), "utf-8");
+
+  // — Write meta.json ————————————————————————————————————————
+  const meta = {
+    templateId: post.templateId,
+    language: post.language,
+    topic: post.topic,
+    slideCount: post.slides.length,
+    slides: post.slides.map((s, i) => ({
+      slideNumber: i + 1,
+      fitPassed: s.validation.fitPassed,
+    })),
+  };
+  const metaPath = join(exportDir, "meta.json");
+  writeFileSync(metaPath, JSON.stringify(meta, null, 2), "utf-8");
+
+  // — Write fit-report.txt ———————————————————————————————————
+  const fitReport = buildFitReport(post);
+  const fitReportText = formatFitReport(fitReport);
+  const fitReportPath = join(exportDir, "fit-report.txt");
+  writeFileSync(fitReportPath, fitReportText, "utf-8");
+
   console.log(
     `[ig-engine] ✓ rendered ${slidePaths.length} slides for ${queueItem.id}` +
     ` (igType="${queueItem.igType}" → template="${post.templateId}")`,
   );
 
-  return { mode: "rendered", slidePaths, payloadPath, exportDir, renderedBy: "ig-engine" };
+  return { mode: "rendered", slidePaths, payloadPath, fitReportPath, exportDir, renderedBy: "ig-engine" };
 }
