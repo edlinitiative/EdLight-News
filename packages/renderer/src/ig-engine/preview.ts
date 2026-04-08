@@ -20,6 +20,7 @@ import type { ContentIntakeInput, SlideContent, PostCaption } from "./types/post
 // ── Sample content (Haiti education news, French) ─────────────────────────────
 
 const intake: ContentIntakeInput = {
+  contentTypeHint: "news-carousel",
   topic: "Le gouvernement haïtien annonce un plan pour l'éducation publique",
   sourceSummary:
     "Le Ministère de l'Éducation Nationale a présenté un plan quinquennal visant à scolariser " +

@@ -112,8 +112,12 @@ function buildDetailSlide(
   slideIndex: number,
   totalSlides: number,
 ): string {
-  const bullets = slide.body
-    ? slide.body.split(/\n|•/).map(s => s.trim()).filter(Boolean)
+  // Only treat as a bulleted list when the original body actually contains
+  // explicit separators (newline or bullet character). A single paragraph
+  // must fall through to the <p> path (clamp:8) to avoid 3-line truncation.
+  const hasBullets = slide.body ? /\n|•/.test(slide.body) : false;
+  const bullets = hasBullets
+    ? slide.body!.split(/\n|•/).map(s => s.trim()).filter(Boolean)
     : [];
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}

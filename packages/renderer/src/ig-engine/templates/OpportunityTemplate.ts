@@ -129,11 +129,13 @@ ${base(bg)}
     <p class="headline">${escapeHtml(slide.headline)}</p>
     <div class="divider"></div>
     <div class="bullets">
-      ${bullets.map(b => `
+      ${bullets.length
+        ? bullets.map(b => `
         <div style="display:flex;gap:18px;align-items:flex-start">
           <div style="width:10px;height:10px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:11px"></div>
           <span style="font-family:${fonts.body};font-size:30px;line-height:1.55;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${escapeHtml(b)}</span>
-        </div>`).join("")}
+        </div>`).join("")
+        : slide.body ? `<p style="font-family:${fonts.body};font-size:30px;line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
     </div>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
@@ -223,6 +225,9 @@ body { width:1080px;height:1350px;font-family:${fonts.body};background:${b};colo
 }
 
 function parseBullets(body: string): string[] {
+  // Only split into bullets when the body contains explicit separators.
+  // Plain paragraphs must fall through to the <p> path to avoid 3-line clamp.
+  if (!/\n|•/.test(body)) return [];
   return body.split(/\n|•/).map(s => s.trim()).filter(Boolean);
 }
 
