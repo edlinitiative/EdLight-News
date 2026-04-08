@@ -765,7 +765,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
       <span class="tag">Repères</span>
     </div>
     <div class="handle-row">
-      <div class="handle">@edlight.news</div>
+      <div class="handle">@edlightnews</div>
       <div class="note">En story chaque matin</div>
     </div>
     <div class="kreyol">Nouvèl, opòtinite ak repè pou elèv ak etidyan ayisyen, chak jou.</div>

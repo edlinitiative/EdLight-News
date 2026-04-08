@@ -18,7 +18,8 @@ export type TemplateId =
   | "opportunity-carousel"
   | "explainer-carousel"
   | "quote-stat-card"
-  | "weekly-recap-carousel";
+  | "weekly-recap-carousel"
+  | "taux-card";
 
 // ── Language & Status ─────────────────────────────────────────────────────────
 

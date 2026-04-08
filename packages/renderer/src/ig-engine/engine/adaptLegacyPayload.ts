@@ -25,7 +25,7 @@
  *   utility     → explainer-carousel
  *   breaking    → breaking-news-single
  *   stat        → quote-stat-card
- *   taux        → null  (bypass — kept on dedicated financial renderer)
+ *   taux        → taux-card  (premium navy/gold financial card)
  */
 
 import type { IGFormattedPayload, IGQueueItem, IGPostType, IGSlide } from "@edlight-news/types";
@@ -41,7 +41,7 @@ const IG_TYPE_TO_TEMPLATE: Partial<Record<IGPostType, TemplateId>> = {
   utility:     "explainer-carousel",
   breaking:    "breaking-news-single",
   stat:        "quote-stat-card",
-  taux:        "quote-stat-card",
+  taux:        "taux-card",
 };
 
 const IG_TYPE_TO_CATEGORY: Record<IGPostType, string> = {
@@ -59,7 +59,7 @@ const IG_TYPE_TO_CATEGORY: Record<IGPostType, string> = {
 
 /**
  * Returns true when the igType should be rendered by the new IG Engine.
- * Returns false for "taux" (dedicated financial terminal template).
+ * All igTypes now have a template mapping.
  */
 export function shouldUseIgEngine(igType: IGPostType): boolean {
   return igType in IG_TYPE_TO_TEMPLATE;

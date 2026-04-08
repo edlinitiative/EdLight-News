@@ -83,7 +83,7 @@ ${baseReset(bg, bodyBg)}
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-bottom:80px; }
-.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical; }
 .swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:12px; }
 </style></head><body>
 <div class="overlay"></div>
@@ -91,7 +91,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">1 / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
@@ -138,7 +137,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
@@ -180,7 +178,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="stat">${escapeHtml(slide.statValue ?? "—")}</p>
@@ -216,9 +213,8 @@ ${baseReset(bg)}
   <div class="wordmark"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
   <div class="rule"></div>
   <p class="cta-line">${escapeHtml(slide.body ?? "Suivez-nous pour toutes les bourses et opportunités éducatives.")}</p>
-  <p class="handle">@edlight.news</p>
+  <p class="handle">@edlightnews</p>
 </div>
-<span class="counter">${totalSlides} / ${totalSlides}</span>
 </body></html>`;
 }
 
@@ -234,5 +230,6 @@ function coverHeadlineSize(headline: string): number {
   const words = headline.trim().split(/\s+/).length;
   if (words <= 7) return 76;
   if (words <= 10) return 66;
-  return 56;
+  if (words <= 14) return 56;
+  return 46;
 }

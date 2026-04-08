@@ -82,7 +82,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">1 / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
@@ -122,7 +121,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
@@ -171,7 +169,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="label">Date limite</p>
@@ -208,7 +205,7 @@ ${base(bg)}
   <div class="wordmark"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
   <div class="rule"></div>
   <p class="cta">${escapeHtml(slide.body ?? "Toutes les bourses et opportunités pour étudiants haïtiens.")}</p>
-  <p class="handle">@edlight.news</p>
+  <p class="handle">@edlightnews</p>
 </div>
 <span class="badge">${totalSlides} / ${totalSlides}</span>
 </body></html>`;

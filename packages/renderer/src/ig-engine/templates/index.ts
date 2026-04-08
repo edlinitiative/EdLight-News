@@ -11,6 +11,7 @@ export { buildOpportunitySlide } from "./OpportunityTemplate.js";
 export { buildExplainerSlide } from "./ExplainerTemplate.js";
 export { buildQuoteStatSlide } from "./QuoteStatTemplate.js";
 export { buildWeeklyRecapSlide } from "./WeeklyRecapTemplate.js";
+export { buildTauxCarouselSlide } from "./TauxCarouselTemplate.js";
 
 import type { SlideContent, TemplateId } from "../types/post.js";
 import { buildBreakingNewsSlide } from "./BreakingNewsTemplate.js";
@@ -19,6 +20,7 @@ import { buildOpportunitySlide } from "./OpportunityTemplate.js";
 import { buildExplainerSlide } from "./ExplainerTemplate.js";
 import { buildQuoteStatSlide } from "./QuoteStatTemplate.js";
 import { buildWeeklyRecapSlide } from "./WeeklyRecapTemplate.js";
+import { buildTauxCarouselSlide } from "./TauxCarouselTemplate.js";
 
 /**
  * Build the HTML for a single slide using the correct template.
@@ -54,6 +56,9 @@ export function buildSlideHtml(
 
     case "weekly-recap-carousel":
       return buildWeeklyRecapSlide(slide, contentType, slideIndex, totalSlides);
+
+    case "taux-card":
+      return buildTauxCarouselSlide(slide, contentType, slideIndex, totalSlides);
 
     default: {
       // TypeScript exhaustiveness guard

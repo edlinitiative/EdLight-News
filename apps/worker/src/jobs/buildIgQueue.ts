@@ -236,6 +236,15 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           // Versions unavailable — formatter will fall back to raw item fields
         }
 
+        // Language gate: skip items without a French content_version.
+        // Without bi.frTitle the formatter falls back to item.title which may
+        // be in Haitian Creole, producing Creole slides on a French-language account.
+        if (!bi) {
+          console.log(`[buildIgQueue] Skipping ${item.id}: no FR content_version — would produce non-French slides`);
+          result.skipped++;
+          continue;
+        }
+
         // Look up source to check igImageSafe
         let igImageSafe = true;
         if (!sourceCache.has(item.sourceId)) {

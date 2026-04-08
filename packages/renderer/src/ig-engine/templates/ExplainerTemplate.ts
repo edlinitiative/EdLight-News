@@ -74,7 +74,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">1 / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="explainer-label">Comprendre</p>
@@ -114,7 +113,6 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    <span class="counter">${slideIndex + 1} / ${totalSlides}</span>
   </div>
   <div class="mid">
     <p class="concept-num">0${slideIndex}</p>
@@ -151,7 +149,7 @@ ${base(bg)}
   <div class="wordmark"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
   <div class="rule"></div>
   <p class="summary">${escapeHtml(slide.body ?? "Éducation, économie, politique — tout ce que vous devez comprendre.")}</p>
-  <p class="handle">@edlight.news</p>
+  <p class="handle">@edlightnews</p>
 </div>
 <span class="badge">${totalSlides} / ${totalSlides}</span>
 </body></html>`;

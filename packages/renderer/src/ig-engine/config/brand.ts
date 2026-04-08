@@ -10,7 +10,7 @@
 export const BRAND = {
   name: "EdLight News",
   wordmark: { left: "EDLIGHT", right: "NEWS" },
-  instagram: "@edlight.news",
+  instagram: "@edlightnews",
 
   colors: {
     primary: "#1e40af",

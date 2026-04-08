@@ -77,7 +77,7 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    ${totalSlides > 1 ? `<span class="counter">${slideIndex + 1} / ${totalSlides}</span>` : `<span class="counter">EDLIGHT NEWS</span>`}
+    <span class="counter">EDLIGHT NEWS</span>
   </div>
   <div class="mid">
     <p class="stat">${escapeHtml(slide.statValue ?? "")}</p>
@@ -119,7 +119,7 @@ ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
-    ${totalSlides > 1 ? `<span class="counter">${slideIndex + 1} / ${totalSlides}</span>` : `<span class="counter">EDLIGHT NEWS</span>`}
+    <span class="counter">EDLIGHT NEWS</span>
   </div>
   <div class="mid">
     <span class="open-quote">"</span>
