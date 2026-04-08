@@ -131,6 +131,157 @@ IG env vars:
 - Community submissions
 - Opinion / Insights section
 
+---
+
+## Roadmap — Next Steps (April 2026)
+
+Prioritized backlog. None of the below has been implemented yet.
+
+---
+
+### 1. Trending / Most-Read Module
+
+**Priority:** High
+**Effort:** Low
+**Impact:** Homepage engagement, repeat visits
+
+**What:**
+Track page views per article and surface the top-performing posts in a "Trending" block on the homepage and `/news` feed.
+
+**How:**
+- On each article page load, increment a Firestore counter on `items/{id}` using a lightweight server action or API route (not a full analytics SDK — keep it simple)
+- Add a `viewCount: number` field to the `Item` type in `packages/types/src/models.ts`
+- In `apps/web/src/lib/content.ts`, add a `fetchTrending(lang, limit)` function that queries Firestore ordered by `viewCount` descending
+- Render a `<TrendingSection>` server component on the homepage (below Latest News, above Opportunities) and in the `/news` sidebar
+- No auth required — anonymous increment is fine for v1
+
+**Files to touch:**
+- `packages/types/src/models.ts` — add `viewCount` field
+- `apps/web/src/app/news/[id]/page.tsx` — fire increment on load
+- `apps/web/src/lib/content.ts` — add `fetchTrending()`
+- `apps/web/src/app/page.tsx` — add `<TrendingSection>`
+- `apps/web/src/components/TrendingSection.tsx` — new component
+
+---
+
+### 2. User Bookmarks
+
+**Priority:** High
+**Effort:** Low–Medium
+**Impact:** Repeat visits, session depth, user retention
+
+**What:**
+Allow users to save articles to a personal reading list, persisted in `localStorage`. No login required for v1.
+
+**How:**
+- Store an array of article IDs in `localStorage` under key `edlight_bookmarks`
+- Add a `<BookmarkButton>` client component (heart/bookmark icon) to article cards and the article detail page header
+- Add a `/saved` page (`apps/web/src/app/saved/page.tsx`) that reads from localStorage and fetches the matching articles from Firestore
+- Hydration-safe: render nothing on SSR, populate on mount
+
+**Files to touch:**
+- `apps/web/src/components/BookmarkButton.tsx` — new client component
+- `apps/web/src/app/news/[id]/page.tsx` — add `<BookmarkButton>` to header
+- `apps/web/src/components/ArticleCard.tsx` — add bookmark toggle
+- `apps/web/src/app/saved/page.tsx` — new page
+- `apps/web/src/lib/bookmarks.ts` — localStorage helpers (getBookmarks, addBookmark, removeBookmark, isBookmarked)
+
+---
+
+### 3. IG Pipeline Production Validation Run
+
+**Priority:** High
+**Effort:** Very Low
+**Impact:** Confirm the new ig-engine renders correctly in production before next publish cycle
+
+**What:**
+The ig-engine was fully rewritten and all PRD gaps were closed (commit 4a4da40), but no real post has been rendered through the new pipeline since the rewrite. A dry-run batch with QA review is needed before the next live publish.
+
+**How:**
+1. Run `pnpm --filter @edlight-news/worker ig:dry-run` against the current queue
+2. Inspect the `fit-report.txt`, `caption.txt`, and `meta.json` outputs for 3–5 items (scholarship, news, opportunity types)
+3. Visually review the PNGs: check margins, text overflow, template selection, language detection
+4. If any template fails, fix before next scheduled publish cycle
+5. Optionally run `pnpm --filter @edlight-news/worker ig:dry-run -- --type scholarship` per type
+
+**No code changes required** — this is a validation exercise, not a development task.
+
+---
+
+### 4. WhatsApp Publishing
+
+**Priority:** Medium
+**Effort:** Medium
+**Impact:** Opens a new distribution channel for the same content already being generated
+
+**What:**
+The architecture doc (`docs/copilot.md`) lists WhatsApp as a target output channel alongside Instagram. `packages/publisher` exists but WhatsApp output has not been wired end-to-end or validated.
+
+**How:**
+- Audit `packages/publisher/src/index.ts` to confirm WhatsApp send logic exists or stub it
+- Wire a `wa_queue` Firestore collection (similar to `ig_queue`) with status flow: `queued → scheduled → sending → sent`
+- Add a worker job `processWaScheduled` in `apps/worker/src/jobs/`
+- WhatsApp Business API (Meta Graph): use the same token infrastructure as IG. Message format: text caption + image URL (from Storage)
+- Add admin UI tab for WA queue (mirror of `/admin/ig-queue`)
+
+**Files to touch:**
+- `packages/publisher/src/index.ts` — add `publishToWhatsApp()`
+- `packages/types/src/models.ts` — add `WaQueueItem` type
+- `apps/worker/src/jobs/processWaScheduled.ts` — new job
+- `apps/worker/src/index.ts` — register job in `/tick`
+- `apps/web/src/app/admin/wa-queue/` — new admin page
+
+---
+
+### 5. Opinion / Insights Section
+
+**Priority:** Medium
+**Effort:** Medium
+**Impact:** New content type, increases editorial depth and credibility
+
+**What:**
+A distinct content category (`/opinion`) for analysis, commentary, and perspective pieces. Visually differentiated from hard news — byline-prominent, pull-quote-forward layout.
+
+**How:**
+- Add `post_type: "opinion"` to the `PostType` union in `packages/types/src/models.ts`
+- Add `/opinion` route with its own feed page (`apps/web/src/app/opinion/page.tsx`)
+- In the article detail page, detect `post_type === "opinion"` and render an alternate header: larger author block, "Opinion" label, pull-quote component
+- Add "Opinion" to primary nav (or secondary nav under Explainers)
+- Generator: add a new opinion tone/prompt variant in `packages/generator/src/editorial-tone.ts`
+
+**Files to touch:**
+- `packages/types/src/models.ts` — add `"opinion"` to `PostType`
+- `apps/web/src/app/opinion/page.tsx` — new feed page
+- `apps/web/src/app/news/[id]/page.tsx` — opinion-specific layout branch
+- `apps/web/src/components/OpinionHeader.tsx` — new component
+- `apps/web/src/app/layout.tsx` — add Opinion to nav
+- `packages/generator/src/editorial-tone.ts` — opinion tone variant
+
+---
+
+### 6. Contributor Profiles
+
+**Priority:** Low–Medium
+**Effort:** Medium
+**Impact:** Credibility, trust, author discoverability
+
+**What:**
+Author detail pages at `/auteur/[slug]` showing bio, photo, and article history. Author names on article cards and detail pages become clickable links.
+
+**How:**
+- Add a `contributors` Firestore collection with fields: `slug`, `name`, `bio`, `photoUrl`, `role`, `socialLinks`
+- Add `authorSlug` field to `Item` type in `packages/types`
+- Create `apps/web/src/app/auteur/[slug]/page.tsx` — fetch contributor + all their articles
+- Update article cards and article detail headers to link author names to `/auteur/[slug]`
+- Add contributor management to the admin panel
+
+**Files to touch:**
+- `packages/types/src/models.ts` — add `Contributor` type, `authorSlug` to `Item`
+- `packages/firebase/src/repositories/` — add `ContributorRepository`
+- `apps/web/src/app/auteur/[slug]/page.tsx` — new page
+- `apps/web/src/components/AuthorBlock.tsx` — make author name a link
+- `apps/web/src/app/admin/contributors/` — new admin section
+
 ## Key Code Conventions
 
 - Server components for data fetching (Firestore reads)
