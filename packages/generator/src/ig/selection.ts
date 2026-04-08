@@ -357,15 +357,18 @@ function hasRealOpportunityFields(item: Item): boolean {
   // Eligibility is mandatory — the strongest signal for a real opportunity
   const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
   if (!hasEligibility) return false;
-  // Plus at least one of: substantive howToApply or officialLink to a real application site
-  // (news.google.com RSS stubs now blocked via NEWS_LINK_DOMAINS → isNewsUrl)
+  // At least one of: howToApply, officialLink, or a non-news canonicalUrl.
+  // Many real bourse articles don't embed a separate officialLink, but their
+  // canonicalUrl IS the scholarship info page — treat that as a valid link.
   const hasHowToApply = !!(opp.howToApply && opp.howToApply.trim().length > 10);
   const hasOfficialLink = !!(
     opp.officialLink &&
     opp.officialLink.trim().length > 5 &&
     !isNewsUrl(opp.officialLink)
   );
-  return hasHowToApply || hasOfficialLink;
+  const canonicalUrl = item.canonicalUrl ?? item.source?.originalUrl ?? "";
+  const hasCanonicalLink = canonicalUrl.length > 5 && !isNewsUrl(canonicalUrl);
+  return hasHowToApply || hasOfficialLink || hasCanonicalLink;
 }
 
 // ── Main selection function ────────────────────────────────────────────────

@@ -65,21 +65,20 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
     heading: shortenHeadline(title, 15),
     bullets: coverSub,
     layout: "headline",
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    // No backgroundImage — bourses use the branded dark gradient, not a scraped article photo
   });
 
   // ── Slides 2..N: Narrative-first, structured fallback ────────────────────
   const frNarrative = (bi as any)?.frNarrative as string | undefined;
   if (frNarrative && frNarrative.trim().length > 30) {
-    // LLM wrote grouped narrative — most informative path
-    slides.push(...narrativeToSlides(frNarrative, imageUrl));
+    // LLM wrote grouped narrative — most informative path (no website image passed)
+    slides.push(...narrativeToSlides(frNarrative, undefined));
   } else {
     // Fallback: structured data slides
     slides.push({
       heading: "De quoi s'agit-il ?",
       bullets: [shortenText(summary, 200)],
       layout: "explanation",
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
     if (item.opportunity?.eligibility?.length) {
       const elig = ensureFrenchEligibility(item.opportunity.eligibility)
@@ -88,14 +87,12 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
         heading: "Qui peut postuler ?",
         bullets: elig.slice(0, 4),
         layout: "explanation",
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
       if (elig.length > 4) {
         slides.push({
           heading: "Autres critères",
           bullets: elig.slice(4, 8),
           layout: "explanation",
-          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
         });
       }
     }
@@ -116,7 +113,6 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
       bullets: applyBullets,
       layout: "explanation",
       footer: buildSourceFooter(item),
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
 

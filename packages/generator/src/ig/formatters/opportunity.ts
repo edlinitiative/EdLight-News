@@ -44,13 +44,13 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
     heading: shortenHeadline(title, 15),
     bullets: coverContext ? [coverContext] : [],
     layout: "headline",
-    ...(imageUrl ? { backgroundImage: imageUrl } : {}),
+    // No backgroundImage — opportunities use the branded dark gradient
   });
 
   // ── Slides 2..N: Narrative-first, structured fallback ────────────────────
   const frNarrative = (bi as any)?.frNarrative as string | undefined;
   if (frNarrative && frNarrative.trim().length > 30) {
-    slides.push(...narrativeToSlides(frNarrative, imageUrl));
+    slides.push(...narrativeToSlides(frNarrative, undefined));
   } else {
     // Fallback: structured data — geoLabel intentionally omitted here (already on slide 1)
     const aboutBullets: string[] = [];
@@ -60,7 +60,6 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
       heading: "De quoi s'agit-il ?",
       bullets: aboutBullets,
       layout: "explanation",
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
     if (item.opportunity?.eligibility?.length) {
       const elig = ensureFrenchEligibility(item.opportunity.eligibility)
@@ -69,14 +68,12 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
         heading: "Qui peut postuler ?",
         bullets: elig.slice(0, 4),
         layout: "explanation",
-        ...(imageUrl ? { backgroundImage: imageUrl } : {}),
       });
       if (elig.length > 4) {
         slides.push({
           heading: "Autres critères",
           bullets: elig.slice(4, 8),
           layout: "explanation",
-          ...(imageUrl ? { backgroundImage: imageUrl } : {}),
         });
       }
     }
@@ -97,7 +94,6 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
       bullets: applyBullets,
       layout: "explanation",
       footer: buildSourceFooter(item),
-      ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
   }
 
