@@ -589,7 +589,7 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
 
   // ── Primary path: LLM used ||| to mark coherent slide boundaries ─────
   if (narrative.includes("|||")) {
-    return narrative
+    const rawSlides = narrative
       .split("|||")
       .map((group) => group.trim())
       .filter((group) => group.length > 0)
@@ -602,6 +602,24 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
         }
         return [makeSlide(sents)];
       });
+
+    // Post-process: merge lone contrast-opener slides back to previous slide.
+    // A slide whose sole bullet starts with "Mais / Cependant / Toutefois / Or,"
+    // is not self-contained — it reads as a mid-article fragment without context.
+    const CONTRAST_RE = /^(Mais|Cependant|Toutefois|Or,|Néanmoins|Pourtant|Malgré cela)\b/i;
+    const merged: IGSlide[] = [];
+    for (const slide of rawSlides) {
+      const isLoneContrast =
+        slide.bullets.length === 1 && CONTRAST_RE.test(slide.bullets[0]!);
+      const prev = merged[merged.length - 1];
+      if (isLoneContrast && prev) {
+        // Absorb the contrast bullet into the previous slide
+        prev.bullets.push(slide.bullets[0]!);
+      } else {
+        merged.push(slide);
+      }
+    }
+    return merged;
   }
 
   // ── Fallback: mechanical splitting for old content without ||| ────────
@@ -644,6 +662,31 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
  */
 export function cleanSlideText(text: string): string {
   let result = text.trim();
+
+  // Step –1: Strip mid-word trailing truncation.
+  // When a stored summary was hard-capped at a char count and "..." or "…"
+  // was appended, the last token is an incomplete word (e.g. "découvri...").
+  // Detect: letter immediately before "..." or "…" (no space in between).
+  // Fix: walk back to the last word boundary and close with ".".
+  const midWordEllipsisIdx = (() => {
+    const u = result.lastIndexOf("\u2026"); // …
+    const a = result.lastIndexOf("...");
+    const idx = Math.max(u, a);
+    if (idx < 0) return -1;
+    const charBefore = result[idx - 1];
+    // Only matches if immediately preceded by a letter (mid-word cut)
+    return charBefore && /[\p{L}\p{N}]/u.test(charBefore) ? idx : -1;
+  })();
+  if (midWordEllipsisIdx > 0) {
+    const beforeEllipsis = result.slice(0, midWordEllipsisIdx);
+    const lastSpace = beforeEllipsis.lastIndexOf(" ");
+    if (lastSpace > beforeEllipsis.length * 0.4) {
+      result = beforeEllipsis.slice(0, lastSpace).replace(/[,;:\s]+$/, "") + ".";
+    } else {
+      // No good word boundary — drop the whole trailing fragment
+      result = beforeEllipsis.replace(/[,;:\s]+$/, "") + ".";
+    }
+  }
 
   // Step 0: Strip orphan guillemets and brackets left at start/end when sbd
   // splits inside French quoted speech (« sentence. » → two beats with «/» stranded).

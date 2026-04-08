@@ -108,6 +108,13 @@ export function needsReview(payload: IGFormattedPayload, igType: IGPostType): bo
     .join(" ");
   if (hasAIFillerPhrases(slideText) || hasAIFillerPhrases(payload.caption)) return true;
 
+  // Check contrast-opener lone bullets — a slide whose only bullet starts with
+  // "Mais/Cependant/Toutefois" is a mid-article fragment with no context.
+  const CONTRAST_RE = /^(Mais|Cependant|Toutefois|Or,|Néanmoins|Pourtant|Malgré cela)\b/i;
+  for (const slide of payload.slides) {
+    if (slide.bullets.length === 1 && CONTRAST_RE.test(slide.bullets[0]!)) return true;
+  }
+
   return false;
 }
 

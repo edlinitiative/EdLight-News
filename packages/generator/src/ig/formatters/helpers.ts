@@ -432,7 +432,11 @@ export function shortenText(text: string, max: number): string {
   // Fallback: word boundary + ellipsis
   const truncated = text.slice(0, max);
   const lastSpace = truncated.lastIndexOf(" ");
-  return (lastSpace > max * 0.5 ? truncated.slice(0, lastSpace) : truncated) + "…";
+  let cutStr = lastSpace > max * 0.5 ? truncated.slice(0, lastSpace) : truncated;
+  // Strip orphan unclosed parenthetical opener, e.g. "(re" from "(re)découvrir".
+  // These appear when a compound-word parenthetical falls exactly at the cut point.
+  cutStr = cutStr.replace(/\s+\([^)]{0,30}$/, "").replace(/\([^)]{0,30}$/, "").trimEnd();
+  return cutStr + "…";
 }
 
 /**
