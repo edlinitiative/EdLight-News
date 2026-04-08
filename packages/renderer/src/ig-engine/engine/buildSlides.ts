@@ -99,7 +99,7 @@ export function buildPost(input: BuildSlidesInput): BuildSlidesResult {
     }
 
     // ── Step 4: pixel-level text measurement ────────────────────────────────
-    const measureResults = measureSlide(current, config);
+    const measureResults = measureSlide(current, config, intake.preferredLanguage);
     const measureFailed = measureResults.filter(r => !r.fits);
 
     if (measureFailed.length > 0) {
@@ -116,7 +116,7 @@ export function buildPost(input: BuildSlidesInput): BuildSlidesResult {
     }
 
     // ── Step 6: final measurement for metadata ──────────────────────────────
-    const finalMeasure = measureSlide(current, config);
+    const finalMeasure = measureSlide(current, config, intake.preferredLanguage);
     const finalFailed = finalMeasure.filter(r => !r.fits);
 
     if (finalFailed.length > 0) {

@@ -14,6 +14,7 @@
  */
 
 import type { IGEnginePost, SlideValidationMeta } from "../types/post.js";
+import { getTemplateConfig } from "../config/templateLimits.js";
 
 // ── Public types ──────────────────────────────────────────────────────────────
 
@@ -72,7 +73,7 @@ export function buildFitReport(post: IGEnginePost): FitReportSummary {
     fitPassed: slide.validation.fitPassed,
     overflowRisk: slide.validation.overflowRisk,
     rewriteCount: slide.validation.rewriteCount,
-    fieldReports: buildFieldReports(slide.validation),
+    fieldReports: buildFieldReports(slide.validation, post.templateId),
   }));
 
   const slidesPassed = slideReports.filter(s => s.fitPassed).length;
@@ -160,21 +161,26 @@ export function formatFitReport(report: FitReportSummary): string {
  * Build per-field reports from the slide's validation metadata.
  *
  * measuredLineCount is keyed by field name and contains the lines used.
- * We don't have the per-field maxLines here (that lives in templateLimits)
- * so we use a simple heuristic: > measured is a risk indicator based on
- * whether overflowRisk was flagged overall.
+ * Zone limits (maxLines) are looked up from the template config so
+ * fillPercent and status reflect real capacity.
  */
-function buildFieldReports(meta: SlideValidationMeta): FieldReport[] {
+function buildFieldReports(meta: SlideValidationMeta, templateId: string): FieldReport[] {
+  const config = getTemplateConfig(templateId);
+
   return Object.entries(meta.measuredLineCount).map(([field, linesUsed]) => {
-    // Without the exact maxLines per field we use a conservative sentinel
-    // so callers see the raw usage; the overall fitPassed flag is authoritative.
-    const maxLines = linesUsed; // will equal linesUsed when no overflow
-    const fillPercent = 100; // placeholder — actual overflow is in fitPassed
-    const status: FieldReport["status"] = meta.fitPassed
-      ? meta.overflowRisk
-        ? "risk"
-        : "pass"
-      : "fail";
+    // Look up actual maxLines from template zone config
+    const zone = config.zones[field as keyof typeof config.zones];
+    const maxLines = zone?.limits.maxLines ?? linesUsed;
+    const fillPercent = maxLines > 0 ? Math.round((linesUsed / maxLines) * 100) : 100;
+
+    let status: FieldReport["status"];
+    if (!meta.fitPassed) {
+      status = "fail";
+    } else if (meta.overflowRisk || fillPercent >= 85) {
+      status = "risk";
+    } else {
+      status = "pass";
+    }
 
     return { field, linesUsed, maxLines, fillPercent, status };
   });

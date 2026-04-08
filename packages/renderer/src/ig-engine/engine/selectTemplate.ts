@@ -74,7 +74,7 @@ export function selectTemplate(input: ContentIntakeInput): SelectionResult {
   }
 
   // 6. Weekly recap
-  if (cat === "recap" || topic.includes("semaine") || topic.includes("bilan")) {
+  if (cat === "recap" || topic.includes("semaine") || topic.includes("bilan") || topic.includes("semèn") || topic.includes("rezime")) {
     return { templateId: "weekly-recap-carousel", reason: "Weekly recap content detected" };
   }
 
@@ -108,17 +108,32 @@ function isOpportunityCategory(cat: string): boolean {
 }
 
 const EXPLAINER_KEYWORDS = [
+  // French
   "pourquoi",
   "comment",
   "analyse",
   "politique",
   "économie",
-  "policy",
   "explique",
   "comprendre",
   "civique",
   "technologie",
   "science",
+  // English
+  "policy",
+  "explain",
+  "understand",
+  "analysis",
+  // Haitian Creole
+  "poukisa",
+  "kijan",
+  "konprann",
+  "eksplike",
+  "politik",
+  "ekonomi",
+  "teknoloji",
+  "syans",
+  "sivik",
 ];
 
 function isExplainerContent(cat: string, summary: string, topic: string): boolean {
@@ -128,16 +143,27 @@ function isExplainerContent(cat: string, summary: string, topic: string): boolea
 }
 
 const STAT_KEYWORDS = [
+  // Universal
   "%",
+  // French
   "milliard",
   "million",
   "chiffre",
   "données",
-  "statistic",
   "rapport",
   "étude",
   "citation",
+  // English
+  "statistic",
   "quote",
+  "billion",
+  // Haitian Creole
+  "milya",
+  "chif",
+  "done",
+  "rapò",
+  "etid",
+  "sitasyon",
 ];
 
 function isStatContent(cat: string, summary: string, topic: string): boolean {

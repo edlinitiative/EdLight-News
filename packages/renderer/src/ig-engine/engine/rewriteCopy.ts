@@ -45,8 +45,17 @@ const FILLER_EN = [
 ];
 
 const FILLER_HT = [
+  // Discourse markers & connectors
   "menm", "nan tèt", "an plis", "sepandan", "kidonk", "poutèt sa",
-  "malgre tout", "pou tout sa",
+  "malgre tout", "pou tout sa", "antouka", "dayè", "finalman",
+  "anfèt", "vrèman", "tout bon vre", "natirèlman", "evidaman",
+  // Hedging & filler phrases
+  "fòk nou note ke", "li enpòtan pou note ke", "sa vle di ke",
+  "jan nou konnen", "selon espè yo", "nan kad sa a",
+  // Redundant intensifiers
+  "anpil anpil", "vrèman vre", "totalman", "konplètman",
+  // Transitional phrases
+  "nan menm lòd lide sa a", "pou sa ki konsène", "ann gade",
 ];
 
 // ── Public API ────────────────────────────────────────────────────────────────

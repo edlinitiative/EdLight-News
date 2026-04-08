@@ -36,6 +36,12 @@ export interface RenderedSlide {
   heightPx: number;
 }
 
+/** Options for controlling render quality. */
+export interface RenderOptions {
+  /** Device scale factor for retina rendering. Default: 1 (1080×1350). Set to 2 for 2160×2700. */
+  deviceScaleFactor?: 1 | 2;
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -51,6 +57,7 @@ export interface RenderedSlide {
 export async function renderPost(
   post: IGEnginePost,
   contentType: string,
+  options?: RenderOptions,
 ): Promise<RenderedSlide[]> {
   if (post.status === "failed") {
     throw new Error(
@@ -58,10 +65,11 @@ export async function renderPost(
     );
   }
 
+  const scaleFactor = options?.deviceScaleFactor ?? 1;
   const browser = await getBrowserInstance();
   const context = await browser.newContext({
     viewport: { width: CANVAS_W, height: CANVAS_H },
-    deviceScaleFactor: 1,
+    deviceScaleFactor: scaleFactor,
   });
 
   const results: RenderedSlide[] = [];
@@ -98,8 +106,8 @@ export async function renderPost(
         results.push({
           slideNumber: i + 1,
           png: Buffer.from(png),
-          widthPx: CANVAS_W,
-          heightPx: CANVAS_H,
+          widthPx: CANVAS_W * scaleFactor,
+          heightPx: CANVAS_H * scaleFactor,
         });
       } finally {
         await page.close();
@@ -130,11 +138,12 @@ export async function renderSingleSlide(
   contentType: string,
   slideIndex: number,
   totalSlides: number,
+  options?: RenderOptions,
 ): Promise<Buffer> {
   const browser = await getBrowserInstance();
   const context = await browser.newContext({
     viewport: { width: CANVAS_W, height: CANVAS_H },
-    deviceScaleFactor: 1,
+    deviceScaleFactor: options?.deviceScaleFactor ?? 1,
   });
 
   const page = await context.newPage();

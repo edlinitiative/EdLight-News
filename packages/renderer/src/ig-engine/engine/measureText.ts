@@ -22,24 +22,8 @@
  */
 
 import type { MeasureTextInput, MeasureTextResult, FitResult, SlideContent, TemplateConfig } from "../types/post.js";
-
-// ── Character width tables (em-relative) ──────────────────────────────────────
-//
-// Empirically derived average advance widths at 1 em for common Latin/French
-// character sets.  Used as: estimatedWidth = charWidth * fontSize.
-//
-// These are calibrated for:
-//   DM Sans 900 (headlines) — slightly narrower than a typical sans at weight 900
-//   Inter 400/500/700 (body) — standard proportional sans
-
-/** Average char width coefficient for DM Sans (weight 800–900) */
-const DM_SANS_AVG = 0.57;
-
-/** Average char width coefficient for Inter (weight 400–600) */
-const INTER_AVG = 0.53;
-
-/** Space width coefficient (slightly narrower than average char) */
-const SPACE_W = 0.26;
+import { getFontCoefficients } from "../config/fonts.js";
+import type { FontCoefficients } from "../config/fonts.js";
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
@@ -48,7 +32,7 @@ const SPACE_W = 0.26;
  *
  * Returns the number of lines used, the max allowed, and whether it fits.
  */
-export function measureText(input: MeasureTextInput): MeasureTextResult {
+export function measureText(input: MeasureTextInput, language?: string): MeasureTextResult {
   const {
     text,
     fontSize,
@@ -59,18 +43,16 @@ export function measureText(input: MeasureTextInput): MeasureTextResult {
     lineClamp,
   } = input;
 
-  const avgCoeff = fontFamily.toLowerCase().includes("dm")
-    ? DM_SANS_AVG
-    : INTER_AVG;
-
-  const avgCharWidth = fontSize * avgCoeff;
-  const spaceWidth = fontSize * SPACE_W;
+  const coeffs = getFontCoefficients(fontFamily);
+  const langScale = getLanguageScale(language);
+  const avgCharWidth = fontSize * coeffs.avg * langScale;
+  const spaceWidth = fontSize * coeffs.space;
   const lineHeightPx = fontSize * lineHeight;
   const maxLinesByHeight = Math.floor(boxHeight / lineHeightPx);
   const maxLines = lineClamp ?? maxLinesByHeight;
 
   // Estimate number of lines required (word-wrap simulation)
-  const linesUsed = estimateLines(text, fontSize, avgCharWidth, spaceWidth, boxWidth);
+  const linesUsed = estimateLines(text, coeffs, fontSize, langScale, boxWidth);
   const overflowLines = Math.max(0, linesUsed - maxLines);
   const overflowPx = overflowLines * lineHeightPx;
 
@@ -85,7 +67,7 @@ export function measureText(input: MeasureTextInput): MeasureTextResult {
 /**
  * Run measurement across all text fields in a slide and return FitResult[].
  */
-export function measureSlide(slide: SlideContent, config: TemplateConfig): FitResult[] {
+export function measureSlide(slide: SlideContent, config: TemplateConfig, language?: string): FitResult[] {
   const results: FitResult[] = [];
 
   const fields: Array<{ name: string; text: string | undefined; zone: keyof typeof config.zones }> = [
@@ -111,7 +93,7 @@ export function measureSlide(slide: SlideContent, config: TemplateConfig): FitRe
       boxHeight: zoneConfig.box.height,
       lineHeight: zoneConfig.lineHeight,
       lineClamp: zoneConfig.limits.maxLines,
-    });
+    }, language);
 
     results.push({
       field: name,
@@ -132,11 +114,13 @@ export function measureSlide(slide: SlideContent, config: TemplateConfig): FitRe
 
 function estimateLines(
   text: string,
-  _fontSize: number,
-  avgCharWidth: number,
-  spaceWidth: number,
+  coeffs: FontCoefficients,
+  fontSize: number,
+  langScale: number,
   boxWidth: number,
 ): number {
+  const spaceWidth = fontSize * coeffs.space;
+
   // Handle newlines in body text
   const paragraphs = text.split(/\n/);
   let totalLines = 0;
@@ -152,7 +136,7 @@ function estimateLines(
     let lines = 1;
 
     for (const word of words) {
-      const wordWidth = estimateWordWidth(word, avgCharWidth);
+      const wordWidth = estimateWordWidth(word, coeffs, fontSize) * langScale;
       if (lineWidth === 0) {
         lineWidth = wordWidth;
       } else if (lineWidth + spaceWidth + wordWidth <= boxWidth) {
@@ -169,17 +153,30 @@ function estimateLines(
   return totalLines;
 }
 
-/** Estimate the pixel width of a single word using average char widths. */
-function estimateWordWidth(word: string, avgCharWidth: number): number {
-  // Narrow characters (i, l, 1, :, ;, !, .) get 60% of average
+/** Estimate the pixel width of a single word using calibrated font coefficients. */
+function estimateWordWidth(word: string, coeffs: FontCoefficients, fontSize: number): number {
   const narrowRe = /[il1:;!.,'|]/g;
   const narrowCount = (word.match(narrowRe) ?? []).length;
-  // Wide characters (m, w, M, W) get 150% of average
   const wideRe = /[mwMW]/g;
   const wideCount = (word.match(wideRe) ?? []).length;
   const normalCount = word.length - narrowCount - wideCount;
 
-  return normalCount * avgCharWidth + narrowCount * avgCharWidth * 0.6 + wideCount * avgCharWidth * 1.5;
+  return normalCount * fontSize * coeffs.avg
+       + narrowCount * fontSize * coeffs.narrow
+       + wideCount   * fontSize * coeffs.wide;
+}
+
+/**
+ * Language-aware scaling factor for text measurement.
+ * French and Creole text averages ~3–5 % wider due to accented characters
+ * and longer average word length.
+ */
+function getLanguageScale(language?: string): number {
+  switch (language) {
+    case "fr": return 1.04;
+    case "ht": return 1.05;  // Creole uses even more accented chars
+    default:   return 1.0;   // English baseline
+  }
 }
 
 function buildAdjustmentHint(field: string, text: string, maxLines: number, linesUsed: number): string {

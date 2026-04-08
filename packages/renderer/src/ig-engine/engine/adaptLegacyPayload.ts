@@ -29,7 +29,7 @@
  */
 
 import type { IGFormattedPayload, IGQueueItem, IGPostType, IGSlide } from "@edlight-news/types";
-import type { ContentIntakeInput, SlideContent, PostCaption, TemplateId } from "../types/post.js";
+import type { ContentIntakeInput, SlideContent, PostCaption, TemplateId, PostLanguage } from "../types/post.js";
 
 // ── Routing tables ────────────────────────────────────────────────────────────
 
@@ -82,6 +82,60 @@ function bulletsToBody(bullets: string[]): string | undefined {
   if (bullets.length === 0) return undefined;
   if (bullets.length === 1) return bullets[0];
   return bullets.map(b => `• ${b.replace(/^[•\-]\s*/, "")}`).join("\n");
+}
+
+// ── Language detection ─────────────────────────────────────────────────────
+
+/** Haitian-Creole marker words (standalone, word-boundary matched). */
+const CREOLE_MARKERS = [
+  "nan", "pou", "ki", "ak", "pa", "te", "ap", "yo", "li",
+  "mwen", "nou", "anpil", "lè", "sa", "gen", "fè", "konsa", "tankou",
+  "ou",  // "you" in Creole – standalone only
+];
+
+/** Common English words for basic English detection. */
+const ENGLISH_MARKERS = [
+  "the", "is", "are", "was", "for", "with", "this", "that",
+];
+
+/**
+ * Heuristically detect whether content is Haitian Creole, English, or French
+ * by scanning slide text (headings + bullets) and the caption.
+ *
+ * Scoring:
+ *   – Count distinct Creole marker words found (word-boundary match).
+ *     If ≥ 3 → "ht"
+ *   – Count distinct English marker words found.
+ *     If ≥ 5 → "en"
+ *   – Otherwise default to French → "fr"
+ */
+function detectLanguage(slides: IGSlide[], caption: string): PostLanguage {
+  // Collect all textual content into a single lowercased string.
+  const parts: string[] = [];
+  for (const slide of slides) {
+    if (slide.heading) parts.push(slide.heading);
+    if (slide.bullets) parts.push(...slide.bullets);
+  }
+  parts.push(caption);
+  const text = parts.join(" ").toLowerCase();
+
+  // Count distinct Creole markers present.
+  let creoleHits = 0;
+  for (const marker of CREOLE_MARKERS) {
+    const re = new RegExp(`\\b${marker}\\b`, "i");
+    if (re.test(text)) creoleHits++;
+  }
+  if (creoleHits >= 3) return "ht";
+
+  // Count distinct English markers present.
+  let englishHits = 0;
+  for (const marker of ENGLISH_MARKERS) {
+    const re = new RegExp(`\\b${marker}\\b`, "i");
+    if (re.test(text)) englishHits++;
+  }
+  if (englishHits >= 5) return "en";
+
+  return "fr";
 }
 
 /**
@@ -199,7 +253,7 @@ export function adaptLegacyPayload(
     topic,
     sourceSummary:    topic,
     category:         contentType,
-    preferredLanguage: "fr",
+    preferredLanguage: detectLanguage(payload.slides, payload.caption),
     urgencyLevel:     igType === "breaking" ? "breaking" : "normal",
   };
 
