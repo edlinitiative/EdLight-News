@@ -22,6 +22,29 @@ const MAX_EMOJI_HISTOIRE = 2;
 const MAX_EMOJI_DEFAULT = 5;
 const REVIEWER_TEMPERATURE = 0.2; // Low temp for precise corrections
 
+// ── PRD §9.3: Tone / AI-filler detection ─────────────────────────────────────
+// Patterns that indicate weak editorial language: filler preambles, hedged
+// claims, or AI-sounding generic phrases. Their presence triggers a reviewer
+// pass to rewrite them into direct, factual statements.
+const AI_FILLER_RE: RegExp[] = [
+  /\bil est important de noter\b/i,
+  /\ben conclusion,?\s/i,
+  /\bil convient de souligner\b/i,
+  /\bcomme mentionné\b/i,
+  /\bdans le cadre de\b/i,
+  /\bforce est de constater\b/i,
+  /\bil va sans dire\b/i,
+  /\bcet article explore\b/i,
+  /\bdans cet article\b/i,
+  /\bnous allons voir\b/i,
+  /\bil est à noter que\b/i,
+  /\bà noter que\b/i,
+  /\bsemble indiquer que\b/i,
+  /\bpourrait potentiellement\b/i,
+  /\bcomme nous l['\u2019]avons vu\b/i,
+  /\bde toute évidence\b/i,
+];
+
 /** Use a dedicated reviewer provider if configured, else default. */
 function getReviewerOptions(): LLMOptions {
   const provider = process.env.LLM_REVIEWER_PROVIDER;
@@ -79,6 +102,12 @@ export function needsReview(payload: IGFormattedPayload, igType: IGPostType): bo
     }
   }
 
+  // Check tone: AI filler / weak editorial language (PRD §9.3)
+  const slideText = payload.slides
+    .flatMap((s) => [s.heading, ...s.bullets])
+    .join(" ");
+  if (hasAIFillerPhrases(slideText) || hasAIFillerPhrases(payload.caption)) return true;
+
   return false;
 }
 
@@ -105,6 +134,11 @@ function hasEnglishMarkers(text: string): boolean {
     if (hits >= 2) return true;
   }
   return false;
+}
+
+/** Returns true when text contains AI-filler / weak editorial language (PRD §9.3). */
+function hasAIFillerPhrases(text: string): boolean {
+  return AI_FILLER_RE.some((re) => re.test(text));
 }
 
 /** Jaccard similarity between two strings (word-level). */
@@ -163,6 +197,15 @@ RÈGLES STRICTES — applique TOUTES ces corrections:
 5. PREMIER SLIDE: Le heading de la slide 0 doit être un titre complet et percutant qui résume le sujet. Jamais un titre coupé en plein milieu d'une phrase.
 
 6. NE CHANGE PAS la structure (nombre de slides, layout, backgroundImage). Corrige UNIQUEMENT heading, bullets, et caption.
+
+7. TON ÉDITORIAL (PRD §9.3): Supprime les formulations creuses ou robotiques, remplace par des affirmations directes et factuelles:
+   - "il est important de noter que X" → écris directement X
+   - "il convient de souligner", "force est de constater", "il va sans dire" → reformule directement
+   - "en conclusion", "comme mentionné", "comme nous l'avons vu" → supprime le preamble
+   - "semble indiquer que", "pourrait potentiellement" → affirme ou précise le doute avec une source
+   - "cet article explore", "dans cet article", "dans ce post" → supprime, reformule
+   - "à noter que", "de toute évidence" → supprime
+   Si une slide ou la légende contient ces formulations, réécris-les.
 
 SLIDES ACTUELLES:
 ${JSON.stringify(slidesJSON, null, 2)}
@@ -325,7 +368,9 @@ export function validatePayloadForPublishing(
     issues.push({ severity: "error", message: "Aucune slide à publier." });
   }
 
-  if (igType !== "taux" && normalizedPayload.slides.length < 2) {
+  // Single-slide post types are valid (PRD §6.1 breaking, §6.5 stat, taux)
+  const SINGLE_SLIDE_TYPES = new Set<IGPostType>(["taux", "breaking", "stat"]);
+  if (!SINGLE_SLIDE_TYPES.has(igType) && normalizedPayload.slides.length < 2) {
     issues.push({
       severity: "error",
       message: "Carrousel trop mince pour une publication éditoriale: au moins 2 slides sont requises.",

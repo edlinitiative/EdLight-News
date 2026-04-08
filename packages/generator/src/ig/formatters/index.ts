@@ -22,6 +22,28 @@ import { normalizePayloadForPublishing, reviewSlides } from "../review.js";
 const MIN_IG_BACKGROUND_SHORT_SIDE = 1080;
 const MAX_IG_BACKGROUND_ASPECT_RATIO = 2.1;
 
+// ── PRD §8.6: Stock photo host blocklist ─────────────────────────────────────
+// Images served from these CDNs are typically generic/cheesy stock photos that
+// fail the editorial bar. Returning false lets the pipeline substitute a Gemini-
+// generated contextual image or a free-licensed Wikimedia alternative instead.
+const STOCK_PHOTO_HOSTS = new Set([
+  "shutterstock.com", "gettyimages.com", "istockphoto.com",
+  "depositphotos.com", "dreamstime.com", "123rf.com",
+  "bigstockphoto.com", "fotolia.com", "alamy.com",
+  "stock.adobe.com", "pond5.com", "canstockphoto.com",
+  "stocksy.com", "pexels.com",
+]);
+
+function isStockPhotoUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return STOCK_PHOTO_HOSTS.has(host) ||
+      [...STOCK_PHOTO_HOSTS].some((s) => host.endsWith(`.${s}`));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Returns true when the item's existing `imageUrl` is sharp enough to be used
  * as a full-bleed IG background without visibly stretching.
@@ -33,6 +55,9 @@ const MAX_IG_BACKGROUND_ASPECT_RATIO = 2.1;
  */
 export function isItemImageUsableForIG(item: Item): boolean {
   if (!item.imageUrl) return false;
+
+  // Block stock photo CDNs — generic imagery fails PRD §8.6 editorial bar
+  if (isStockPhotoUrl(item.imageUrl)) return false;
 
   const width = item.imageMeta?.width;
   const height = item.imageMeta?.height;
@@ -57,9 +82,13 @@ export function isItemImageUsableForIG(item: Item): boolean {
   return true;
 }
 
-/** Options controlling IG formatting behaviour. */
+/**
+ * Options controlling IG formatting behaviour.
+ * Maps to PRD §13 structured inputs — callers should provide as many fields
+ * as they know rather than relying on formatter defaults.
+ */
 export interface FormatIGOptions {
-  /** Bilingual text overrides from content_versions */
+  /** Bilingual text overrides from content_versions (FR + HT). */
   bi?: BilingualText;
   /**
    * Whether the source's publisher images are safe to embed in IG.
@@ -73,6 +102,20 @@ export interface FormatIGOptions {
    * items whose publisher image is unsafe).
    */
   overrideImageUrl?: string;
+  /**
+   * Hard cap on total slides in the final payload (PRD §13 — number of slides).
+   * CTA slides are preserved regardless of the cap; content slides are trimmed.
+   * When unset, each formatter applies its own type-specific default cap.
+   */
+  maxSlides?: number;
+  /**
+   * Audience targeting hint (PRD §13 — audience type).
+   * Influences hashtag selection and tone; defaults to "haiti".
+   * - "haiti"         → local + diaspora audience (default)
+   * - "diaspora"      → Haitian diaspora outside Haiti
+   * - "international" → global francophone audience
+   */
+  audienceHint?: "haiti" | "diaspora" | "international";
 }
 
 const FORMATTERS: Record<IGPostType, (item: Item, bi?: BilingualText) => IGFormattedPayload> = {
@@ -107,6 +150,16 @@ export async function formatForIG(
 
   const formatter = FORMATTERS[igType];
   const payload = formatter(item, options.bi);
+
+  // ── PRD §13: apply per-request slide count cap ───────────────────────────
+  // CTA slides (curated landmark images) are always preserved at the end;
+  // only content slides are trimmed.
+  if (options.maxSlides && payload.slides.length > options.maxSlides) {
+    const ctaSlides = payload.slides.filter((s) => s.layout === "cta");
+    const contentSlides = payload.slides.filter((s) => s.layout !== "cta");
+    const keepCount = Math.max(1, options.maxSlides - ctaSlides.length);
+    payload.slides = [...contentSlides.slice(0, keepCount), ...ctaSlides];
+  }
 
   // Handle image safety
   const igImageSafe = (options.igImageSafe ?? true) && isItemImageUsableForIG(item);

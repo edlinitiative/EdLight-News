@@ -553,6 +553,7 @@ ${bodyCss(dark, slide.backgroundImage)}
 ${innerBlurCss(isFirst, hasImage)}
 ${imageLayerCss(hasImage, accent, overlayGradient)}
 ${pillCss(accent)}
+${isFirst ? topBrandCss(accent) : ""}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .main { flex:1; display:flex; flex-direction:column; justify-content:center; padding:40px 0; }
@@ -649,6 +650,7 @@ ${imageLayerHtml(hasImage, overlayGradient)}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
+    ${isFirst ? topBrandHtml(accent) : ""}
   </div>
   <div class="${mainClass}">
     ${featureOpen}
@@ -689,6 +691,7 @@ ${bodyCss(dark, slide.backgroundImage)}
 ${innerBlurCss(isFirst, hasImage)}
 ${imageLayerCss(hasImage, accent, overlayGradient)}
 ${pillCss(accent)}
+${isFirst ? topBrandCss(accent) : ""}
 .c { position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:${pad}; }
 .top { display:flex; justify-content:space-between; align-items:center; }
 .center { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:16px; }
@@ -702,6 +705,7 @@ ${imageLayerHtml(hasImage, overlayGradient)}
 <div class="c">
   <div class="top">
     ${label ? `<span class="pill">${escapeHtml(label)}</span>` : "<span></span>"}
+    ${isFirst ? topBrandHtml(accent) : ""}
   </div>
   <div class="center">
     <div class="stat-heading">${escapeHtml(slide.heading)}</div>
