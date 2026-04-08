@@ -21,6 +21,7 @@ import {
   getBrandBackground,
   getBrandLabel,
   footerBarHtml,
+  premiumAtmosphereHtml,
 } from "../config/brand.js";
 
 const { fonts } = BRAND;
@@ -71,11 +72,8 @@ ${base(bg)}
 .rule { width:80px;height:5px;background:${accent};border-radius:2px; }
 .desc { font-family:${fonts.body};font-size:36px;font-weight:500;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
 .context { font-family:${fonts.body};font-size:26px;line-height:1.4;opacity:0.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-top:8px; }
-.glow { position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%, ${accent}14 0%, transparent 55%);pointer-events:none; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
 </style></head><body>
-<div class="glow"></div>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
@@ -116,11 +114,8 @@ ${base(bg)}
 .quote-text { font-family:${fonts.headline};font-size:${quoteSize}px;font-weight:700;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical; }
 .attribution { font-family:${fonts.body};font-size:26px;opacity:0.6;margin-top:8px; }
 .rule { width:60px;height:3px;background:${accent};border-radius:2px; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
-.glow { position:absolute;inset:0;background:radial-gradient(ellipse at 15% 85%, ${accent}12 0%, transparent 55%);pointer-events:none; }
 </style></head><body>
-<div class="glow"></div>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>

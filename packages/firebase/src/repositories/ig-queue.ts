@@ -231,10 +231,12 @@ export async function setScheduled(
 export async function markPosted(
   id: string,
   igPostId?: string,
+  extra?: Record<string, unknown>,
 ): Promise<void> {
   const update: Record<string, unknown> = {
     status: "posted" satisfies IGQueueStatus,
     updatedAt: FieldValue.serverTimestamp(),
+    ...extra,
   };
   if (igPostId) update.igPostId = igPostId;
   await collection().doc(id).update(update);

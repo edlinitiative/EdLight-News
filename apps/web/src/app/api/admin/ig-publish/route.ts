@@ -102,6 +102,7 @@ export async function GET() {
         slideCount: totalSlideCount,
         dryRunPath: data.dryRunPath ?? null,
         igPostId: data.igPostId ?? null,
+        renderedBy: data.renderedBy ?? null,
         reasons: data.reasons ?? [],
         createdAt: data.createdAt?._seconds
           ? new Date(data.createdAt._seconds * 1000).toISOString()

@@ -22,6 +22,7 @@ import {
   getBrandBackground,
   getBrandLabel,
   footerBarHtml,
+  premiumAtmosphereHtml,
 } from "../config/brand.js";
 
 const { fonts } = BRAND;
@@ -70,11 +71,8 @@ ${base(bg)}
 .count-badge { background:${accent};color:#000;font-family:${fonts.headline};font-size:32px;font-weight:900;padding:8px 20px;border-radius:4px; }
 .count-text { font-family:${fonts.body};font-size:26px;opacity:0.65; }
 .swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
-.glow { position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%, ${accent}12 0%, transparent 55%),radial-gradient(ellipse at 20% 80%, ${accent}0c 0%, transparent 50%);pointer-events:none; }
 </style></head><body>
-<div class="glow"></div>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
@@ -115,9 +113,8 @@ ${base(bg)}
 .headline { font-family:${fonts.headline};font-size:${recapStorySize(slide.headline)}px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
 .body { font-family:${fonts.body};font-size:30px;line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
 </style></head><body>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>

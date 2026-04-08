@@ -116,3 +116,23 @@ export function footerBarHtml(sourceLine: string | undefined, accent: string, fo
     : `<span></span>`;
   return `<div style="display:flex;justify-content:space-between;align-items:flex-end;padding-top:14px;border-top:1px solid rgba(255,255,255,0.10)">${src}${brandWordmarkHtml(accent)}</div>`;
 }
+
+/**
+ * Premium background atmosphere: SVG fractal-noise grain at 4 % opacity
+ * layered with a three-point radial mesh gradient using the slide's accent
+ * colour. Replaces the flat left-edge accent bar on all templates.
+ */
+export function premiumAtmosphereHtml(accent: string): string {
+  return (
+    // SVG fractal-noise grain — subtle film texture
+    `<svg style="position:absolute;inset:0;width:1080px;height:1350px;opacity:0.04;pointer-events:none">` +
+    `<filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/></filter>` +
+    `<rect width="100%" height="100%" filter="url(#grain)"/></svg>` +
+    // Mesh gradient — three-point accent bleed
+    `<div style="position:absolute;inset:0;pointer-events:none;background:` +
+    `radial-gradient(ellipse at 80% 15%, ${accent}26 0%, transparent 50%),` +
+    `radial-gradient(ellipse at 18% 80%, ${accent}1a 0%, transparent 45%),` +
+    `radial-gradient(ellipse at 52% 48%, ${accent}0d 0%, transparent 38%)` +
+    `"></div>`
+  );
+}

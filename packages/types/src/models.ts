@@ -675,6 +675,8 @@ export interface IGQueueItem {
   reasons: string[];
   payload?: IGFormattedPayload;
   dryRunPath?: string;
+  /** Which renderer produced the carousel assets ("ig-engine" or "legacy"). */
+  renderedBy?: "ig-engine" | "legacy";
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

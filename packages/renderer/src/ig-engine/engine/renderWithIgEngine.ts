@@ -28,6 +28,8 @@ export interface CarouselAssetResult {
   slidePaths: string[];
   payloadPath: string;
   exportDir: string;
+  /** Which renderer produced the assets. */
+  renderedBy: "ig-engine" | "legacy";
 }
 
 // ── Internal: lazy-load legacy renderer to avoid startup cost ─────────────────
@@ -37,7 +39,8 @@ async function legacyRender(
   payload: IGFormattedPayload,
 ): Promise<CarouselAssetResult> {
   const { generateCarouselAssets } = await import("../../ig-carousel.js");
-  return generateCarouselAssets(queueItem, payload);
+  const result = await generateCarouselAssets(queueItem, payload);
+  return { ...result, renderedBy: "legacy" as const };
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -95,7 +98,7 @@ export async function renderWithIgEngine(
       ` (igType="${queueItem.igType}" → template="${post.templateId}")`,
     );
 
-    return { mode: "rendered", slidePaths, payloadPath, exportDir };
+    return { mode: "rendered", slidePaths, payloadPath, exportDir, renderedBy: "ig-engine" };
 
   } catch (err) {
     // Fail-safe: never drop a production post due to engine errors.

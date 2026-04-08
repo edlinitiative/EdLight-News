@@ -130,6 +130,15 @@ function PostCard({
               <span className="text-xs tabular-nums text-stone-400">
                 Score: {entry.score}
               </span>
+              {entry.renderedBy && (
+                <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                  entry.renderedBy === "ig-engine"
+                    ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300"
+                    : "bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500"
+                }`}>
+                  {entry.renderedBy === "ig-engine" ? "✦ Premium" : "Legacy"}
+                </span>
+              )}
             </div>
             <p className="mt-0.5 truncate text-xs text-stone-500">
               {entry.caption ? entry.caption.slice(0, 100) + "…" : "No caption"}
@@ -333,6 +342,16 @@ function PostCard({
                     <span className="font-mono text-green-600">{entry.igPostId}</span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span className="text-stone-400">Renderer</span>
+                  <span className={`text-xs font-semibold ${
+                    entry.renderedBy === "ig-engine"
+                      ? "text-purple-600 dark:text-purple-400"
+                      : "text-stone-400"
+                  }`}>
+                    {entry.renderedBy === "ig-engine" ? "✦ Premium" : entry.renderedBy ?? "—"}
+                  </span>
+                </div>
               </div>
 
               {/* Actions */}

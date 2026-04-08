@@ -80,6 +80,20 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+function RendererBadge({ renderer }: { renderer: string | null }) {
+  if (!renderer) return null;
+  const isPremium = renderer === "ig-engine";
+  return (
+    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+      isPremium
+        ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300"
+        : "bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500"
+    }`}>
+      {isPremium ? "✦ Premium" : "Legacy"}
+    </span>
+  );
+}
+
 // ── Post modal ───────────────────────────────────────────────────────────────
 
 function PostModal({ entry, onClose }: { entry: IGQueueEntry; onClose: () => void }) {
@@ -168,6 +182,7 @@ function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: 
         <span className="text-xs font-medium text-stone-700 dark:text-stone-300">{entry.igType}</span>
         <ScoreBadge score={entry.score} />
         <StatusBadge status={entry.status} />
+        <RendererBadge renderer={entry.renderedBy} />
         {entry.igPostId && (
           <a
             href={`https://www.instagram.com/p/${entry.igPostId}/`}

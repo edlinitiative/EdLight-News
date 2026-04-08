@@ -42,6 +42,8 @@ export interface IGQueueEntry {
   slidesCount: number;
   dryRunPath: string | null;
   igPostId: string | null;
+  /** Which renderer produced the assets ("ig-engine" or "legacy"). */
+  renderedBy: "ig-engine" | "legacy" | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -77,6 +79,8 @@ export interface IGPublishEntry {
   slideCount: number;
   dryRunPath: string | null;
   igPostId: string | null;
+  /** Which renderer produced the assets ("ig-engine" or "legacy"). */
+  renderedBy: "ig-engine" | "legacy" | null;
   reasons: string[];
   createdAt: string | null;
   updatedAt: string | null;

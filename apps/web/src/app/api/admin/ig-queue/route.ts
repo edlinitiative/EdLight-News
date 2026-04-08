@@ -32,6 +32,7 @@ function docToItem(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     slidesCount: slides.length,
     dryRunPath: data.dryRunPath ?? null,
     igPostId: data.igPostId ?? null,
+    renderedBy: data.renderedBy ?? null,
     createdAt: data.createdAt?._seconds
       ? new Date(data.createdAt._seconds * 1000).toISOString()
       : null,

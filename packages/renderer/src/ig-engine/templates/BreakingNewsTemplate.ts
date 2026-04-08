@@ -24,6 +24,7 @@ import {
   getBrandBackground,
   getBrandLabel,
   footerBarHtml,
+  premiumAtmosphereHtml,
 } from "../config/brand.js";
 
 const { fonts } = BRAND;
@@ -49,7 +50,7 @@ export function buildBreakingNewsSlide(
 
   const overlayGradient = hasImage
     ? `linear-gradient(to bottom, ${bg}cc 0%, ${bg}44 30%, ${bg}88 70%, ${bg}ee 100%)`
-    : `radial-gradient(ellipse at 20% 80%, ${accent}14 0%, transparent 60%)`;
+    : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
   const headlineSize = resolveHeadlineFontSize(slide.headline);
 
@@ -117,14 +118,10 @@ body {
   -webkit-line-clamp:2;
   -webkit-box-orient:vertical;
 }
-.accent-bar {
-  position:absolute; left:0; top:0; bottom:0; width:6px;
-  background:${accent};
-}
 </style>
 </head><body>
 <div class="overlay"></div>
-<div class="accent-bar"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top-row">
     <span class="pill">${escapeHtml(label)}</span>

@@ -23,6 +23,7 @@ import {
   getBrandBackground,
   getBrandLabel,
   footerBarHtml,
+  premiumAtmosphereHtml,
 } from "../config/brand.js";
 
 const { fonts } = BRAND;
@@ -68,11 +69,8 @@ ${base(bg)}
 .headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical; }
 .deck { font-family:${fonts.body};font-size:30px;font-weight:400;line-height:1.5;opacity:0.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
 .slide-nav { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
-.glow { position:absolute;inset:0;background:radial-gradient(ellipse at 85% 15%, ${accent}10 0%, transparent 55%),radial-gradient(ellipse at 15% 85%, ${accent}0c 0%, transparent 50%);pointer-events:none; }
 </style></head><body>
-<div class="glow"></div>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
@@ -111,9 +109,8 @@ ${base(bg)}
 .headline { font-family:${fonts.headline};font-size:52px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
 .body { font-family:${fonts.body};font-size:32px;line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
 </style></head><body>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>

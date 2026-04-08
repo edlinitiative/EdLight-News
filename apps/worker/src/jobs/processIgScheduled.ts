@@ -240,10 +240,12 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
             if (isBillingError) {
               await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
                 reasons: [...item.reasons, `Storage billing disabled — held for manual: ${uploadMsg}`],
+                renderedBy: assets.renderedBy,
               });
             } else {
               await igQueueRepo.updateStatus(item.id, "scheduled", {
                 reasons: [...item.reasons, `Storage upload failed: ${uploadMsg}`],
+                renderedBy: assets.renderedBy,
               });
             }
             result.errors++;
@@ -255,7 +257,7 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         const publishResult = await publishIgPost(item, publishPayload, slideUrls);
 
         if (publishResult.posted) {
-          await igQueueRepo.markPosted(item.id, publishResult.igPostId);
+          await igQueueRepo.markPosted(item.id, publishResult.igPostId, { renderedBy: assets.renderedBy });
           result.posted++;
           // Delete slide PNGs from Storage for ephemeral post types to keep
           // storage lean. Scholarship/opportunity slides are kept (evergreen).
@@ -267,11 +269,13 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         } else if (publishResult.dryRun) {
           await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
             dryRunPath: publishResult.dryRunPath,
+            renderedBy: assets.renderedBy,
           });
           result.dryRun++;
         } else {
           await igQueueRepo.updateStatus(item.id, "scheduled", {
             reasons: [...item.reasons, `Publish error: ${publishResult.error}`],
+            renderedBy: assets.renderedBy,
           });
           result.errors++;
         }

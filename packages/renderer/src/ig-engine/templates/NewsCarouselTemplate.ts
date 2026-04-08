@@ -27,6 +27,7 @@ import {
   getBrandBackground,
   getBrandLabel,
   footerBarHtml,
+  premiumAtmosphereHtml,
 } from "../config/brand.js";
 
 const { fonts } = BRAND;
@@ -69,7 +70,7 @@ function buildCoverSlide(
   const bodyBg = hasImage ? `${bg} url('${slide.imageUrl}') center/cover no-repeat` : bg;
   const overlay = hasImage
     ? `linear-gradient(to bottom, ${bg}dd 0%, ${bg}55 35%, ${bg}99 65%, ${bg}f5 100%)`
-    : `radial-gradient(ellipse at 20% 80%, ${accent}18 0%, transparent 60%)`;
+    : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
   const hlSize = coverHeadlineSize(slide.headline);
 
@@ -81,13 +82,12 @@ ${baseReset(bg, bodyBg)}
 .top { display:flex;justify-content:space-between;align-items:flex-start; }
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
-.mid { flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:20px;padding-bottom:32px; }
+.mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-bottom:80px; }
 .headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical; }
 .swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:12px; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
 </style></head><body>
 <div class="overlay"></div>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
@@ -133,9 +133,8 @@ ${baseReset(bg)}
 .bullet { display:flex;gap:16px;align-items:flex-start;font-family:${fonts.body};font-size:32px;font-weight:400;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
 .bullet-dot { width:8px;height:8px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:12px; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
 </style></head><body>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
@@ -176,9 +175,8 @@ ${baseReset(bg)}
 .stat { font-family:${fonts.headline};font-size:140px;font-weight:900;line-height:1;letter-spacing:-4px;color:${accent};overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
 .desc { font-family:${fonts.body};font-size:36px;font-weight:500;line-height:1.4;opacity:0.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
 .rule { width:80px;height:4px;background:${accent};border-radius:2px; }
-.accent-line { position:absolute;left:0;top:0;bottom:0;width:5px;background:${accent}; }
 </style></head><body>
-<div class="accent-line"></div>
+${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
     <span class="pill">${escapeHtml(label)}</span>
