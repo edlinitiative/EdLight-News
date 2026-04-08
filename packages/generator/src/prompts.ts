@@ -33,7 +33,7 @@ RÈGLES STRICTES:
 11. TRADUCTION D'ABORD: Si le texte source est en anglais ou dans une autre langue, TRADUIS D'ABORD l'intégralité en français. Ensuite, rédige le contenu à partir de ta traduction française. Cela garantit un texte 100% français sans mots anglais résiduels.
 12. ARC NARRATIF: Rédige le body_fr comme une histoire cohérente et fluide. Le premier paragraphe doit capturer l'essence complète du sujet. Les paragraphes suivants développent l'histoire séquentiellement. Un lecteur qui lit du début à la fin doit comprendre toute l'histoire sans saut logique.
 13. LIMITES INSTAGRAM (IMPÉRATIF): summary_fr et summary_ht sont affichées en gros sur Instagram Stories. MAX 280 CARACTÈRES chacune. Exactement 2 phrases complètes qui se suffisent à elles-mêmes. Ne jamais couper une phrase à mi-chemin — si 280 caractères ne suffisent pas pour terminer la deuxième phrase, réduis-la ou n'écris qu'une seule phrase.
-14. IG_NARRATIVE (CARROUSEL INSTAGRAM): Écris ig_narrative comme 4–6 phrases en français qui forment un récit continu: phrase 1 = le fait central, phrase 2 = conséquence immédiate, phrase 3 = contexte, phrase 4+ = ce que ça signifie pour le lecteur. Chaque phrase doit s'enchaîner naturellement avec la suivante. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". LONGUEUR PAR PHRASE: MAX 200 CARACTÈRES chacune — préfère 2 phrases courtes et percutantes à 1 phrase longue. Une phrase = une idée, pas de virgules empilées. Le texte doit pouvoir être coupé en 2–3 slides sans perte de sens.
+14. IG_NARRATIVE (CARROUSEL INSTAGRAM — IMPÉRATIF): Écris ig_narrative comme 4–6 phrases en français qui forment un récit continu: phrase 1 = le fait central, phrase 2 = conséquence immédiate, phrase 3 = contexte, phrase 4+ = ce que ça signifie pour le lecteur. Chaque phrase doit s'enchaîner naturellement avec la suivante. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". LONGUEUR PAR PHRASE (RÈGLE ABSOLUE): MAX 200 CARACTÈRES par phrase, mesurés individuellement — pas de virgules empilées, pas de subordonnées en cascade. Une phrase = une idée = un seul verbe principal. Si une phrase dépasse 200 caractères, divise-la obligatoirement en deux phrases séparées. Exemple acceptable: "Le gouvernement a voté la loi le 7 avril." (42 car) + "Elle entre en vigueur dès juin 2026." (37 car). Exemple INTERDIT: "Le gouvernement a voté la loi le 7 avril, qui entrera en vigueur en juin 2026 après sa publication au Journal Officiel, bien que plusieurs partis d'opposition aient exprimé leurs réserves." (188 car — toléré) vs une phrase de 250+ car. Le texte doit pouvoir être coupé en 2–3 slides sans perte de sens.
 
 ARTICLE SOURCE:
 Titre: ${input.title}
@@ -51,7 +51,7 @@ RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
   "title_ht": "Tit an kreyòl ayisyen (max 120 caractères)",
   "summary_ht": "Rezime an kreyòl ayisyen (2 fraz max, max 280 caractères). Afiche sou Instagram Stories — chak fraz dwe konplè e sifizant pa tèt li.",
   "body_ht": "Kò atik la an kreyòl ayisyen (3-6 paragraf, enfòmatif e itil)",
-  "ig_narrative": "4-6 phrases en français, MAX 200 caractères par phrase, formant un arc continu, sans parenthèses ni crochets",
+  "ig_narrative": "4-6 phrases en français, CHAQUE phrase MAX 200 caractères (mesurée individuellement — si trop longue, divise en 2), formant un arc continu, sans parenthèses ni crochets",
   "confidence": 0.85,
   "haiti_relevant": true,
   "is_success_story": false,
