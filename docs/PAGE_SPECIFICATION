@@ -1,0 +1,862 @@
+# EdLight News Page-by-Page Specification
+
+## Purpose
+
+This document translates the EdLight News website PRD into a practical page-by-page product specification that Copilot or a developer can build from directly.
+
+The goal is to define:
+
+* what pages exist
+* what each page must do
+* what sections each page should contain
+* what content should appear in each section
+* what interactions matter
+* what should be prioritized in the MVP
+
+This should help prevent the site from becoming a generic blog and instead make it feel like a real media product.
+
+---
+
+# 1. Global Product Rules
+
+These rules apply across the entire website.
+
+## 1.1 Global Experience Principles
+
+* mobile-first layout
+* premium editorial look
+* fast-loading pages
+* strong typography and hierarchy
+* high-quality imagery
+* clear category labeling
+* easy scanning
+* clean whitespace
+* no cluttered sidebar-heavy layouts
+
+## 1.2 Global Navigation
+
+The primary navigation should include:
+
+* Home
+* Latest News
+* Opportunities
+* Haiti
+* World
+* Education
+* Business & Economy
+* Technology
+* Explainers
+* About
+
+Optional later additions:
+
+* Opinion / Insights
+* Newsletter
+* Search icon in header
+* language switcher
+
+## 1.3 Global Header
+
+The header should include:
+
+* EdLight News logo/wordmark
+* main navigation
+* search trigger
+* mobile menu trigger on small screens
+
+### Header Behavior
+
+* sticky on scroll, but slim and unobtrusive
+* should not take excessive vertical space on mobile
+* should remain readable and elegant
+
+## 1.4 Global Footer
+
+Footer should include:
+
+* EdLight News logo or wordmark
+* short description of the platform
+* key links
+* About
+* Editorial Standards
+* Contact
+* Privacy Policy
+* Terms
+* EdLight main site link
+* social links
+
+## 1.5 Global Content Card Rules
+
+All story cards across the site should follow a consistent system.
+
+Each card may include:
+
+* image/thumbnail
+* category label
+* headline
+* short summary or excerpt
+* date/time
+* optional tag or featured indicator
+
+### Card Rules
+
+* headline should be scannable
+* excerpt should be short
+* cards should not feel overdesigned
+* hover states on desktop should feel subtle and premium
+* spacing should remain clean on mobile
+
+---
+
+# 2. Page Inventory
+
+## MVP Pages
+
+1. Homepage
+2. Latest News Page
+3. Category Page
+4. Article Page
+5. Opportunities Hub
+6. Opportunity Detail Page
+7. Search Results Page
+8. About Page
+9. Editorial Standards Page
+10. Contact Page
+11. 404 / Not Found Page
+
+## Optional Soon After Launch
+
+12. Topic Tag Page
+13. Archive Page
+14. Newsletter Landing Page
+15. Author / Contributor Page
+16. Static campaign pages for major themes
+
+---
+
+# 3. Homepage Specification
+
+## Page Goal
+
+The homepage should immediately establish EdLight News as a living, modern, premium news platform. It should balance editorial credibility with fast discoverability.
+
+## Primary User Jobs
+
+* understand what EdLight News is
+* see the biggest current stories
+* quickly browse recent stories
+* find opportunities
+* discover featured or useful content
+* continue deeper into the site
+
+## Homepage Structure
+
+### 3.1 Hero Section
+
+This is the most important section on the homepage.
+
+#### Purpose
+
+* highlight top stories
+* create a premium first impression
+* communicate editorial quality instantly
+
+#### Required Layout
+
+* 1 dominant lead story
+* 2 to 4 secondary stories beside or beneath it
+* strong imagery
+* category labels
+* headline emphasis hierarchy
+
+#### Content Rules
+
+Lead story should include:
+
+* large image
+* category label
+* strong headline
+* short summary
+* date/time
+
+Secondary story cards should include:
+
+* image or thumbnail
+* category label
+* headline
+* optional date
+
+#### UX Notes
+
+* must feel dynamic, not like a generic blog list
+* must not be overcrowded
+* on mobile, lead story should come first and retain visual strength
+
+---
+
+### 3.2 Latest News Feed Preview
+
+#### Purpose
+
+Give users a quick way to see recent stories and move to the full Latest News page.
+
+#### Required Content
+
+* 4 to 8 recent story cards
+* image
+* category
+* headline
+* short excerpt
+* publish date
+* “View More” or “See All Latest” CTA
+
+#### UX Notes
+
+* should be easy to scan
+* should feel current and alive
+* date visibility matters here
+
+---
+
+### 3.3 Opportunities Spotlight
+
+#### Purpose
+
+Make opportunities a first-class content block on the homepage.
+
+#### Required Content
+
+* featured opportunity card
+* 3 to 6 additional opportunity cards
+* visible deadline
+* opportunity type label
+* short summary
+* CTA to Opportunities Hub
+
+#### UX Notes
+
+* this section should feel visually distinct from standard news
+* deadlines should be highly visible
+* cards should feel practical and useful
+
+---
+
+### 3.4 Editor’s Picks / Featured Reads
+
+#### Purpose
+
+Promote evergreen explainers, strong features, or important stories that should keep getting attention.
+
+#### Required Content
+
+* 3 to 5 featured article cards
+* clear section title
+* visual consistency with overall card system
+
+---
+
+### 3.5 Category Highlights
+
+#### Purpose
+
+Help users navigate the site through key editorial pillars.
+
+#### Suggested Categories
+
+* Haiti
+* Education
+* Technology
+* Business & Economy
+
+#### Required Content
+
+For each category block:
+
+* section title
+* top article
+* 2 to 4 secondary headlines
+* link to category page
+
+#### UX Notes
+
+* avoid making the homepage too long and repetitive
+* category blocks should be selective, not exhaustive
+
+---
+
+### 3.6 Stay Updated Module
+
+#### Purpose
+
+Give users a way to stay connected.
+
+#### MVP Option
+
+* simple CTA to follow EdLight News on Instagram or visit EdLight pages
+
+#### Later Option
+
+* newsletter email capture
+
+---
+
+### 3.7 Footer Transition
+
+The homepage should transition cleanly into the footer with enough whitespace and no abrupt ending.
+
+---
+
+# 4. Latest News Page Specification
+
+## Page Goal
+
+Provide a chronological or semi-curated stream of recent articles.
+
+## Primary User Jobs
+
+* browse the newest stories
+* scan quickly by category
+* access article pages efficiently
+
+## Required Structure
+
+### 4.1 Page Header
+
+* title: Latest News
+* short descriptor/subtitle
+
+### 4.2 Content Feed
+
+Each story listing should include:
+
+* image
+* category label
+* headline
+* short excerpt
+* publish date/time
+
+### 4.3 Pagination / Load More
+
+MVP can use either:
+
+* classic pagination
+* load more button
+
+Avoid infinite scroll at first if it complicates performance or UX.
+
+### 4.4 Optional Filter Controls
+
+Optional for near-term release:
+
+* category filter
+* date sorting
+
+---
+
+# 5. Category Page Specification
+
+## Page Goal
+
+Give each editorial category a strong destination page.
+
+## Applicable Categories
+
+* Haiti
+* World
+* Education
+* Business & Economy
+* Technology
+* Explainers
+* Opportunities (separate hub may be richer)
+
+## Required Structure
+
+### 5.1 Category Header
+
+* category title
+* optional one-line description
+* optional visual accent tied to category
+
+### 5.2 Featured Story Block
+
+* one featured article with image and summary
+
+### 5.3 Article Feed
+
+* category-specific article cards
+* headline, image, excerpt, date
+
+### 5.4 Optional Tag/Subtopic Row
+
+Possible future enhancement:
+
+* elections
+* scholarships
+* AI
+* careers
+* higher education
+* youth policy
+
+### UX Notes
+
+* category pages should feel curated, not empty
+* they should look distinct enough to feel meaningful
+
+---
+
+# 6. Article Page Specification
+
+## Page Goal
+
+Deliver a premium reading experience that feels credible, modern, and easy to consume.
+
+## Primary User Jobs
+
+* read the story clearly
+* understand why it matters
+* trust the presentation
+* move to related content
+
+## Required Structure
+
+### 6.1 Article Header
+
+Must include:
+
+* category label
+* headline
+* subheadline/dek if available
+* byline or EdLight News attribution
+* published date
+* updated date if relevant
+* hero image
+
+### 6.2 Article Metadata Row
+
+Can include:
+
+* reading time (optional)
+* author
+* date
+* share actions
+
+### 6.3 Article Body
+
+#### Requirements
+
+* readable line length
+* generous spacing
+* high-contrast text
+* paragraph rhythm that supports scanning
+* support for subheadings
+* support for bullet lists when appropriate
+* support for inline links
+* support for embedded images or quotes
+
+#### Typography Rules
+
+* should feel like a publication, not a note-taking app or blog builder template
+* avoid overly narrow column on desktop
+* avoid edge-to-edge text on mobile
+
+### 6.4 Inline Opportunity / Related Block (Optional Contextual)
+
+When relevant, allow insertion of:
+
+* related opportunity card
+* related explainer
+* related article
+
+This should be subtle and context-aware.
+
+### 6.5 Article Footer Block
+
+Must include:
+
+* tags/topics
+* related stories
+* related opportunities where relevant
+* previous/next story suggestion
+* share actions
+
+### 6.6 Sticky Elements
+
+Use sparingly.
+Avoid distracting sticky share bars or elements that cover content on mobile.
+
+---
+
+# 7. Opportunities Hub Specification
+
+## Page Goal
+
+Make opportunities easy to discover, scan, and act on.
+
+## Primary User Jobs
+
+* browse current opportunities
+* filter by need
+* find deadlines fast
+* click into details
+
+## Required Structure
+
+### 7.1 Opportunities Hub Header
+
+* title: Opportunities
+* subtitle explaining what this section contains
+
+### 7.2 Featured Opportunity Area
+
+* one featured opportunity or deadline-sensitive item
+* large card with deadline emphasis
+
+### 7.3 Filter / Sort Bar
+
+Recommended filters:
+
+* opportunity type
+* deadline
+* region
+* education level
+* field/industry
+
+MVP may start smaller with:
+
+* type
+* deadline status
+
+### 7.4 Opportunity Grid/List
+
+Each card should include:
+
+* title
+* type label
+* deadline
+* region/eligibility if relevant
+* short summary
+* CTA
+
+### 7.5 Deadline UX
+
+Deadline should be one of the most visually prominent fields.
+Use clear formatting, such as:
+
+* Closes April 30
+* Deadline in 5 days
+* Rolling applications
+
+### 7.6 Empty State
+
+If no opportunities match a filter:
+
+* explain clearly
+* suggest removing filters
+* provide related recent items
+
+---
+
+# 8. Opportunity Detail Page Specification
+
+## Page Goal
+
+Help users quickly understand whether an opportunity is relevant and how to act on it.
+
+## Required Structure
+
+### 8.1 Opportunity Header
+
+Must include:
+
+* title
+* type label
+* deadline
+* region/eligibility
+* hero image or visual marker
+* short summary
+
+### 8.2 Key Information Panel
+
+A high-utility section near the top containing:
+
+* deadline
+* eligibility
+* location/region
+* field
+* cost/free if relevant
+* official link / apply CTA
+
+### 8.3 Main Body
+
+Should include:
+
+* overview
+* who it is for
+* benefits
+* application steps
+* notes/tips if relevant
+* source/origin
+
+### 8.4 CTA Block
+
+Should clearly present:
+
+* Apply Now / Visit Official Page
+* Save deadline mentally through strong design emphasis
+
+### 8.5 Related Opportunities
+
+* 3 to 6 related listings
+
+### UX Notes
+
+* opportunity detail pages should feel more practical and action-oriented than news articles
+* avoid burying essential information inside long text blocks
+
+---
+
+# 9. Search Results Page Specification
+
+## Page Goal
+
+Help users quickly find relevant articles and opportunities.
+
+## Primary User Jobs
+
+* search for a topic
+* search for an opportunity
+* filter results
+
+## Required Structure
+
+### 9.1 Search Header
+
+* search input
+* results count
+* visible query text
+
+### 9.2 Results Tabs or Labels
+
+Recommended content distinction:
+
+* All
+* News
+* Opportunities
+
+MVP can also simply mix results with visible type labels.
+
+### 9.3 Results List
+
+Each result should include:
+
+* content type label
+* category or opportunity type
+* headline/title
+* excerpt
+* date or deadline
+* thumbnail when useful
+
+### 9.4 Empty State
+
+If no results:
+
+* suggest another keyword
+* suggest browsing categories or opportunities
+
+---
+
+# 10. About Page Specification
+
+## Page Goal
+
+Explain what EdLight News is and why it exists.
+
+## Required Structure
+
+### 10.1 Intro Section
+
+* short mission statement
+* what EdLight News covers
+
+### 10.2 Why It Exists
+
+* explain the platform’s focus on youth, Haiti, opportunities, and accessible information
+
+### 10.3 Connection to EdLight
+
+* explain relationship to the wider EdLight ecosystem without making the page overly promotional
+
+### 10.4 What Readers Can Expect
+
+* news
+* explainers
+* opportunities
+* useful content
+
+### 10.5 CTA
+
+* explore latest news
+* browse opportunities
+* follow on social
+
+---
+
+# 11. Editorial Standards Page Specification
+
+## Page Goal
+
+Build trust and communicate seriousness.
+
+## Required Structure
+
+### 11.1 Editorial Principles
+
+* accuracy
+* clarity
+* fairness
+* usefulness
+* responsibility
+
+### 11.2 Content Standards
+
+* how stories are selected
+* how opportunities are shared
+* correction/update approach
+* sourcing philosophy
+
+### 11.3 Tone and Presentation
+
+* no sensationalism
+* clarity first
+* concise writing
+
+### 11.4 Contact or Correction Channel
+
+* how to reach EdLight News for corrections or concerns
+
+This page does not need to be long, but it should feel real.
+
+---
+
+# 12. Contact Page Specification
+
+## Page Goal
+
+Provide a simple, professional way to reach the EdLight News team.
+
+## Required Structure
+
+* short intro
+* contact email or form
+* partnership / collaboration note if desired
+* social links
+
+Keep this page clean and low-friction.
+
+---
+
+# 13. 404 Page Specification
+
+## Page Goal
+
+Handle broken links gracefully while keeping users on the site.
+
+## Required Structure
+
+* clear message
+* CTA to homepage
+* CTA to latest news
+* CTA to opportunities
+
+Should feel on-brand, not default or forgotten.
+
+---
+
+# 14. Content Components Library
+
+These reusable components should exist across pages.
+
+## Required Components
+
+* hero story card
+* standard article card
+* compact headline list item
+* featured opportunity card
+* standard opportunity card
+* category label badge
+* section heading row
+* related story module
+* search result item
+* empty state block
+* CTA block
+
+A consistent component system will make the site feel much more premium.
+
+---
+
+# 15. Mobile Behavior Notes
+
+## Mobile Priorities
+
+* simplify hero layout without losing editorial feel
+* collapse navigation cleanly
+* maintain large enough tap targets
+* keep article text readable
+* make opportunities filters usable on small screens
+
+## Do Not
+
+* stack too many modules before the first useful story
+* allow giant menus to feel clumsy
+* let cards become cramped
+* make article pages feel endless and dense without structure
+
+---
+
+# 16. Page Priority for MVP Build Order
+
+## Recommended Build Sequence
+
+1. global layout and navigation
+2. homepage
+3. article page
+4. category page
+5. opportunities hub
+6. opportunity detail page
+7. latest news page
+8. search page
+9. about + editorial standards + contact
+10. 404 page
+
+This order ensures the product’s core value is visible early.
+
+---
+
+# 17. Content Requirements for Launch
+
+## Minimum Launch Content Recommendation
+
+Before launch, aim to have at least:
+
+* 12 to 20 news articles
+* 8 to 15 opportunities
+* 3 to 5 explainers or evergreen pieces
+* complete About page
+* complete Editorial Standards page
+
+The site should not launch looking empty.
+
+---
+
+# 18. Final Guidance for Copilot / Build Team
+
+When implementing this website:
+
+* prioritize hierarchy over decoration
+* prioritize scanability over cleverness
+* prioritize strong content blocks over too many modules
+* make opportunities feel like a core feature
+* keep visual identity premium and consistent
+* avoid generic blog defaults
+
+The website should feel like the start of a serious media platform, not just a section on an organization’s site.

@@ -1,0 +1,808 @@
+# Product Requirements Document (PRD)
+
+## EdLight News Website
+
+## 1. Document Overview
+
+### Purpose
+
+This PRD defines the product vision, requirements, structure, and functional expectations for the **EdLight News website**. The website should serve as the digital home for EdLight News: a modern, credible, visually polished, youth-oriented news and opportunity platform with strong relevance to Haiti and the broader global community.
+
+### Objective
+
+Build a news platform that feels trustworthy, premium, and fast, while remaining accessible to students, young professionals, and the Haitian diaspora. The platform should not feel like a basic blog. It should feel like a real media product with strong editorial identity, clean design, and a structure that can scale.
+
+---
+
+## 2. Product Summary
+
+EdLight News is intended to be more than a content feed. It should become a structured media platform that:
+
+* publishes news relevant to Haiti, education, global affairs, innovation, careers, and opportunities
+* surfaces scholarships, internships, fellowships, grants, and competitions
+* makes content visually engaging and easy to consume
+* builds trust through strong editorial presentation
+* supports EdLight’s broader ecosystem by informing, educating, and attracting young people
+
+The website should combine the clarity of a news publication, the accessibility of youth media, and the polish of a modern digital product.
+
+---
+
+## 3. Problem Statement
+
+Current low-quality or generic content platforms often suffer from the following issues:
+
+* they feel like simple blogs instead of real media products
+* homepage structure is weak or cluttered
+* articles are difficult to scan
+* opportunity content gets buried
+* visual identity is inconsistent
+* mobile experience is not strong enough
+* content discovery is poor
+* websites do not give users a reason to return regularly
+
+EdLight News needs a website that solves these issues by providing a premium, structured, fast, and editorially coherent experience.
+
+---
+
+## 4. Product Goals
+
+### Primary Goals
+
+* Establish EdLight News as a credible digital media brand
+* Create a premium and modern website experience
+* Make content easy to discover and consume
+* Highlight both news and opportunities effectively
+* Increase repeat visits and engagement
+* Support Instagram and social traffic with a strong destination website
+* Make the platform feel relevant to Haitian youth and the diaspora
+
+### Secondary Goals
+
+* Build SEO value over time
+* Create a strong archive of useful, searchable content
+* Position EdLight as a trusted source of information and opportunity
+* Create pathways into the broader EdLight ecosystem
+
+### Non-Goals
+
+* This PRD does not define a full native mobile app
+* This PRD does not define a paywall or subscription system for launch
+* This PRD does not define long-form investigative newsroom operations
+* This PRD does not cover full CMS engineering details beyond product requirements
+
+---
+
+## 5. Target Audience
+
+### Primary Audience
+
+* Haitian youth
+* high school and university students
+* young professionals
+* EdLight community members
+* opportunity seekers
+* social-first users who want quick and credible information
+
+### Secondary Audience
+
+* Haitian diaspora
+* educators and mentors
+* nonprofit partners
+* journalists and researchers looking for youth-relevant content
+* sponsors and institutions following EdLight’s work
+
+### Audience Needs
+
+Users need:
+
+* quick understanding of important news
+* access to real opportunities
+* a modern and trustworthy visual experience
+* mobile-friendly reading
+* clear categories and discovery
+* a reason to come back often
+
+---
+
+## 6. Product Principles
+
+### 6.1 Credibility First
+
+The site must feel reliable, factual, and structured. Nothing should feel sloppy, sensational, or unverified.
+
+### 6.2 Mobile First
+
+A large share of traffic will likely come from mobile and social. The mobile experience must not feel secondary.
+
+### 6.3 Visually Premium
+
+The platform should feel more like a polished publication than a student project or basic WordPress blog.
+
+### 6.4 Fast and Lightweight
+
+Users should be able to access content quickly even in lower-bandwidth conditions.
+
+### 6.5 Easy to Scan
+
+Articles, categories, and homepage sections should be designed for fast understanding.
+
+### 6.6 Opportunity as a Core Pillar
+
+Scholarships, internships, programs, and deadlines should be treated as a first-class content type, not an afterthought.
+
+### 6.7 Strong Identity
+
+The website should be recognizably EdLight News, with a clear editorial voice and visual system.
+
+---
+
+## 7. Core Use Cases
+
+### Reader Use Cases
+
+* Read top headlines relevant to Haiti and the world
+* Browse opportunities such as scholarships and internships
+* Read explainers on policy, business, science, and education
+* Search for specific topics or deadlines
+* Discover trending or editor-picked stories
+* Read article summaries quickly on mobile
+* Share articles easily
+* Explore related stories
+
+### Internal / Editorial Use Cases
+
+* Publish articles efficiently
+* tag content by category and topic
+* feature priority stories on the homepage
+* manage opportunity deadlines
+* highlight specific campaigns or themes
+* maintain a quality archive of content
+
+---
+
+## 8. Site Map / Information Architecture
+
+The site should be structured around clear editorial navigation.
+
+### Top-Level Navigation
+
+* Home
+* Latest News
+* Opportunities
+* Haiti
+* World
+* Education
+* Business & Economy
+* Technology
+* Explainers
+* Opinion or Insights (optional later)
+* About
+
+### Utility Navigation
+
+* Search
+* Newsletter or subscribe (if added)
+* Social links
+* Language switcher (if multilingual)
+
+### Footer Navigation
+
+* About EdLight News
+* Contact
+* Privacy Policy
+* Terms
+* Editorial Standards
+* Partner With Us
+* Follow EdLight / broader EdLight links
+
+---
+
+## 9. Homepage Requirements
+
+The homepage is the most important page. It should immediately communicate that EdLight News is a modern media platform.
+
+### Homepage Goals
+
+* surface the most important and relevant stories
+* provide strong editorial hierarchy
+* make the site look alive and current
+* balance breaking news, feature stories, and opportunities
+* encourage deeper browsing
+
+### Recommended Homepage Structure
+
+#### 9.1 Hero Section
+
+A premium top section featuring:
+
+* 1 main headline/story
+* 2 to 4 secondary stories
+* strong images
+* clean hierarchy
+* category labels
+
+The hero should feel dynamic and editorial, not like a generic blog grid.
+
+#### 9.2 Latest News Section
+
+A feed of recent stories with:
+
+* thumbnail image
+* category
+* headline
+* short summary
+* timestamp or date
+
+#### 9.3 Opportunities Section
+
+A dedicated section for:
+
+* scholarships
+* internships
+* fellowships
+* competitions
+* grants
+* application deadlines
+
+This section should be visually distinct and easy to scan.
+
+#### 9.4 Editor’s Picks / Featured Reads
+
+A curated row for stronger evergreen pieces, explainers, or important articles.
+
+#### 9.5 Topic Blocks
+
+Optional homepage modules for key categories such as:
+
+* Haiti
+* Education
+* Technology
+* Business
+
+#### 9.6 Newsletter / Stay Updated Module
+
+Optional module for email capture if implemented later.
+
+#### 9.7 Social / Instagram Integration
+
+A block that reinforces the connection between the website and EdLight News social presence, but without making the website feel dependent on Instagram.
+
+---
+
+## 10. Category Pages
+
+Each major category should have its own dedicated page.
+
+### Category Page Requirements
+
+* strong heading and visual identity
+* featured top story
+* article feed/grid below
+* filtering or sorting where relevant
+* pagination or infinite scroll depending on implementation
+* optional subtopics/tags
+
+### Priority Categories
+
+* Haiti
+* World
+* Education
+* Business & Economy
+* Technology
+* Opportunities
+* Explainers
+
+The category pages should help users feel the platform is deep, not shallow.
+
+---
+
+## 11. Article Page Requirements
+
+The article page is the product core after the homepage.
+
+### Primary Objectives
+
+* maximize readability
+* establish credibility
+* support content sharing
+* drive continued browsing
+
+### Article Header
+
+Must include:
+
+* headline
+* subheadline or dek (optional but recommended)
+* category label
+* author or EdLight News attribution
+* publish date
+* updated date if relevant
+* hero image
+
+### Article Body Requirements
+
+* clean typography
+* generous spacing
+* readable width
+* embedded media support
+* pull quotes or highlighted facts optional
+* subheadings for long pieces
+* links to related content when useful
+
+### Article Footer / Below Article
+
+Should include:
+
+* related stories
+* related opportunities where relevant
+* share options
+* tags/topics
+* author card or EdLight News attribution block
+* next/previous story suggestion
+
+### Reading Experience Principles
+
+* no clutter
+* no overly aggressive popups
+* no distracting design patterns
+* strong contrast and legibility
+* easy return to homepage/category flow
+
+---
+
+## 12. Opportunities Content Type
+
+This is a critical differentiator for EdLight News.
+
+### Why It Matters
+
+Many users will visit not only for news but for real opportunities. This content should be easier to discover than on traditional media sites.
+
+### Opportunity Card Requirements
+
+Each opportunity listing should show:
+
+* title
+* type (scholarship, internship, competition, etc.)
+* location or eligibility region if relevant
+* deadline
+* short summary
+* image or visual marker
+* CTA to learn more
+
+### Opportunity Detail Page Requirements
+
+Must include:
+
+* title
+* summary
+* eligibility
+* deadline
+* application link or instructions
+* benefits/value proposition
+* region/audience
+* source or origin
+* tags
+* related opportunities
+
+### Opportunity Sorting / Filtering
+
+Recommended filters:
+
+* deadline
+* opportunity type
+* region
+* education level
+* field/industry
+
+This section should feel practical and useful, not hidden inside the broader news archive.
+
+---
+
+## 13. Search and Discovery
+
+Search is essential if the archive grows.
+
+### Search Requirements
+
+Users should be able to search by:
+
+* keyword
+* category
+* topic/tag
+* opportunity type
+* deadline-related content
+
+### Discovery Features
+
+* trending stories
+* related stories
+* most read (optional)
+* recent opportunities
+* editor’s picks
+* topic tags
+
+Discovery should help users move naturally from one piece of content to another.
+
+---
+
+## 14. Visual Design Requirements
+
+### Design Direction
+
+The design should feel:
+
+* modern
+* editorial
+* premium
+* clean
+* youthful but credible
+* image-forward but not chaotic
+
+### Visual Inspiration Direction
+
+The product should lean closer to:
+
+* a modern digital publication
+* a clean editorial magazine
+* a premium youth media platform
+
+It should avoid:
+
+* generic template-blog look
+* overly academic layout
+* noisy ad-heavy media styling
+* overly corporate sterile look
+
+### Key Visual Characteristics
+
+* clean typography
+* strong hierarchy
+* high-quality imagery
+* cards that feel intentional
+* whitespace
+* subtle but confident brand use
+* fast scanability
+
+### Branding
+
+Use EdLight brand identity while giving News its own editorial flavor.
+
+Recommended approach:
+
+* retain EdLight colors as the base
+* add an editorial visual system for labels, cards, and headlines
+* make category labeling consistent
+* keep logo usage elegant, not oversized
+
+---
+
+## 15. Mobile Experience Requirements
+
+Mobile should not be a compressed version of desktop. It should be intentionally designed.
+
+### Mobile Requirements
+
+* homepage sections remain clear and prioritized
+* headlines remain readable
+* card spacing remains clean
+* article pages are highly legible
+* navigation is simple and fast
+* opportunities remain easy to browse
+* sticky elements should not obstruct reading
+
+### Mobile Success Criteria
+
+A user arriving from Instagram should immediately understand:
+
+* where they are
+* what the story is
+* how to keep browsing
+* how to find related opportunities or stories
+
+---
+
+## 16. Content Model Requirements
+
+The CMS/content model should support multiple content types.
+
+### Required Content Types
+
+* News article
+* Opportunity
+* Explainer
+* Recap / roundup
+* Feature article
+* Category page content
+* Static pages (About, Editorial Standards, Contact)
+
+### News Article Fields
+
+* title
+* slug
+* excerpt
+* hero image
+* category
+* tags
+* author
+* published date
+* updated date
+* body content
+* source references/internal notes
+* featured flag
+
+### Opportunity Fields
+
+* title
+* slug
+* excerpt
+* deadline
+* opportunity type
+* eligibility
+* location/region
+* application link
+* benefits
+* body content
+* featured flag
+
+### Shared Metadata
+
+* SEO title
+* SEO description
+* share image
+* canonical URL
+
+---
+
+## 17. Editorial Features
+
+### Recommended Editorial Features for Launch
+
+* featured stories
+* category labels
+* related stories
+* story summaries
+* author/date attribution
+* search
+* topic tagging
+* opportunity deadlines
+
+### Recommended Editorial Features for Later
+
+* editor’s note blocks
+* trending module
+* newsletter signup
+* multilingual publishing
+* saved articles/bookmarking
+* reading time
+* user accounts
+
+---
+
+## 18. SEO Requirements
+
+SEO should be built in from the start.
+
+### Requirements
+
+* clean URLs
+* article metadata
+* structured headlines and subheadings
+* social share metadata
+* category archives that can rank
+* canonical URLs
+* sitemap
+* fast page speed
+* proper indexation for opportunities and explainers
+
+### SEO Goals
+
+* rank for Haiti-related youth news queries
+* rank for scholarship/opportunity queries
+* build long-tail educational search presence
+* increase organic discovery over time
+
+---
+
+## 19. Performance Requirements
+
+Performance matters especially for global and Haiti-based audiences.
+
+### Requirements
+
+* fast page loads
+* optimized images
+* lightweight frontend behavior
+* graceful handling on slower internet
+* minimal blocking scripts
+* good Core Web Vitals targets
+
+### Product Standard
+
+The website should feel fast enough that users do not bounce before the content loads.
+
+---
+
+## 20. Trust and Credibility Features
+
+EdLight News needs visible signals of editorial seriousness.
+
+### Recommended Trust Features
+
+* About page explaining mission
+* Editorial standards page
+* clear attribution on articles
+* correction/update handling if needed
+* publication dates visible
+* source transparency where appropriate
+* clean, typo-free presentation
+
+### Why This Matters
+
+Without visible trust signals, the site may feel like an amateur content project even if the content itself is strong.
+
+---
+
+## 21. Social and Ecosystem Integration
+
+The site should connect well with EdLight’s broader ecosystem.
+
+### Integration Goals
+
+* capture traffic coming from Instagram
+* create pathways to EdLight programs where relevant
+* reinforce EdLight’s mission without making the news site feel promotional
+
+### Possible Integrations
+
+* links to EdLight main website
+* links to EdLight Code, Academy, or ESLP when contextually relevant
+* embedded social follow prompts
+* promotional modules used sparingly
+
+The site should still stand on its own as a media product.
+
+---
+
+## 22. Functional Requirements Summary
+
+### Must-Have for Launch
+
+* homepage with strong editorial hierarchy
+* article pages
+* category pages
+* opportunities hub
+* search
+* responsive mobile design
+* CMS-backed publishing
+* featured story capability
+* related stories
+* SEO metadata
+* About and editorial standards pages
+
+### Nice-to-Have Soon After Launch
+
+* newsletter signup
+* trending/most read modules
+* multilingual support
+* better filtering for opportunities
+* reading time
+* social embed blocks
+
+### Future Enhancements
+
+* personalized feeds
+* push notifications
+* user bookmarks
+* recommendation engine
+* contributor profiles
+* community submissions
+
+---
+
+## 23. Success Metrics
+
+### Traffic Metrics
+
+* total visits
+* returning visitors
+* page views per session
+* traffic from Instagram/social
+* traffic from search
+
+### Engagement Metrics
+
+* time on article
+* scroll depth
+* click-through to related stories
+* opportunity click-through rate
+* share rate
+* bounce rate
+
+### Content Performance Metrics
+
+* top categories by engagement
+* top article formats
+* top-performing opportunities
+* repeat visits to opportunity pages
+
+### Brand Metrics
+
+* increased credibility perception
+* stronger direct traffic over time
+* improved crossover into broader EdLight ecosystem
+
+---
+
+## 24. Risks and Failure Cases
+
+### Risks
+
+* website feels too much like a basic blog
+* homepage becomes cluttered
+* opportunities are not distinct enough
+* content quality becomes inconsistent
+* mobile reading experience is weak
+* visual design feels cheap
+* social traffic comes in but does not convert to deeper site usage
+
+### Failure Cases to Avoid
+
+* too many homepage modules competing for attention
+* oversized hero sections with weak hierarchy
+* article pages that feel dense or hard to scan
+* low-quality stock imagery
+* inconsistent category labeling
+* weak search and discovery
+* burying deadlines and practical information inside long prose
+
+---
+
+## 25. Recommended MVP Scope
+
+For version 1, focus on shipping a strong and elegant core.
+
+### MVP Should Include
+
+* premium homepage
+* latest news feed
+* opportunities hub
+* category pages
+* strong article template
+* search
+* responsive design
+* CMS workflow
+* About page
+* Editorial standards page
+* related stories
+
+### MVP Should Not Try to Do Everything
+
+Avoid overloading the first version with:
+
+* user accounts
+* complex personalization
+* too many interactive widgets
+* excessive homepage experimentation
+
+The first version should win on clarity, polish, and usefulness.
+
+---
+
+## 26. Recommended Next Deliverables
+
+After this PRD, the next documents that should be created are:
+
+1. sitemap / page-by-page specification
+2. wireframe brief for homepage, category page, article page, opportunity page
+3. CMS schema
+4. design system brief
+5. master prompt for Copilot to build the website
+6. launch content strategy for the first 30 to 50 posts
+
+---
+
+## 27. Final Product Requirement Statement
+
+The EdLight News website must be a premium, fast, mobile-first digital publication that combines credible news, useful opportunities, and strong editorial design for Haitian youth, the diaspora, and globally minded readers. It should feel modern, trustworthy, and purposeful, with clear structure, strong discovery, and an identity strong enough to stand as a flagship EdLight media product.

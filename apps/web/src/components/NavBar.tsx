@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/language-context";
@@ -15,16 +15,18 @@ interface NavLink {
   section?: "primary" | "secondary";
 }
 
+// Primary nav mirrors PRD §8 Top-Level Navigation
 const NAV_LINKS: NavLink[] = [
-  { href: "/news", label: { fr: "Actualités", ht: "Nouvèl" }, section: "primary" },
-  { href: "/bourses", label: { fr: "Bourses", ht: "Bous" }, section: "primary" },
-  { href: "/opportunites", label: { fr: "Opportunités", ht: "Okazyon" }, section: "primary" },
-  { href: "/haiti", label: { fr: "Haïti", ht: "Ayiti" }, section: "primary" },
-  { href: "/universites", label: { fr: "Universités", ht: "Inivèsite" }, section: "secondary" },
-  { href: "/calendrier", label: { fr: "Calendrier", ht: "Kalandriye" }, section: "secondary" },
-  { href: "/parcours", label: { fr: "Parcours", ht: "Pakou" }, section: "secondary" },
-  { href: "/histoire", label: { fr: "Histoire", ht: "Istwa" }, section: "secondary" },
-  { href: "/succes", label: { fr: "Succès", ht: "Siksè" }, section: "secondary" },
+  { href: "/news",        label: { fr: "Actualités",        ht: "Nouvèl"      }, section: "primary" },
+  { href: "/opportunites",label: { fr: "Opportunités",      ht: "Okazyon"     }, section: "primary" },
+  { href: "/haiti",       label: { fr: "Haïti",             ht: "Ayiti"       }, section: "primary" },
+  { href: "/world",       label: { fr: "Monde",             ht: "Mond"        }, section: "primary" },
+  { href: "/education",   label: { fr: "Éducation",         ht: "Edikasyon"   }, section: "primary" },
+  { href: "/business",    label: { fr: "Business",          ht: "Biznis"      }, section: "primary" },
+  { href: "/technology",  label: { fr: "Techno",            ht: "Teknoloji"   }, section: "primary" },
+  { href: "/explainers",  label: { fr: "Explainers",        ht: "Eksplike"    }, section: "secondary" },
+  { href: "/bourses",     label: { fr: "Bourses",           ht: "Bous"        }, section: "secondary" },
+  { href: "/about",       label: { fr: "À propos",          ht: "Sou nou"     }, section: "secondary" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -34,11 +36,24 @@ function isActive(pathname: string, href: string): boolean {
 
 export function NavBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { language } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navRef = useRef<HTMLElement>(null);
   const mobilePanelRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const fr = language === "fr";
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(withLangParam(`/news?search=${encodeURIComponent(searchQuery.trim())}`, language));
+      setSearchOpen(false);
+      setSearchQuery("");
+    }
+  };
 
   useEffect(() => {
     setMobileOpen(false);
@@ -92,14 +107,48 @@ export function NavBar() {
 
   return (
     <>
-      {/* ── Single corporate header ───────────────────────────────── */}
+      {/* ── Search overlay ────────────────────────────────────────── */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 pt-20 px-4" onClick={() => setSearchOpen(false)}>
+          <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white shadow-2xl dark:border-stone-700 dark:bg-stone-900 p-3">
+              <Search className="h-5 w-5 shrink-0 text-stone-400" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={fr ? "Rechercher des articles, opportunités…" : "Chèche atik, okazyon…"}
+                className="flex-1 bg-transparent text-base text-stone-900 placeholder-stone-400 outline-none dark:text-white"
+                autoFocus
+              />
+              {searchQuery && (
+                <button type="button" onClick={() => setSearchQuery("")} className="text-stone-400 hover:text-stone-600">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                {fr ? "Chercher" : "Chèche"}
+              </button>
+            </form>
+            <p className="mt-2 text-center text-xs text-stone-400">
+              {fr ? "Appuyez sur Échap pour fermer" : "Peze Esc pou fèmen"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Single sticky header ──────────────────────────────────── */}
       <header
         ref={navRef}
         className="sticky top-0 z-50 border-b border-stone-200/70 bg-white/80 backdrop-blur-md dark:border-stone-800/60 dark:bg-stone-950/85"
       >
         <div className="mx-auto flex h-13 max-w-6xl items-center gap-5 px-4 sm:px-6 lg:px-8">
-          {/* Brand */}
-          <Link href={l("/")} className="flex shrink-0 items-baseline gap-0">
+          {/* Brand — Home link */}
+          <Link href={l("/")} className="flex shrink-0 items-baseline gap-0 mr-1">
             <span className="text-[17px] font-black tracking-tight text-stone-900 dark:text-white">
               Ed
             </span>
@@ -165,6 +214,14 @@ export function NavBar() {
 
           {/* Right controls */}
           <div className="ml-auto flex items-center gap-1">
+            {/* Search trigger */}
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
+              aria-label={fr ? "Rechercher" : "Chèche"}
+            >
+              <Search className="h-4.5 w-4.5" />
+            </button>
             <LanguageToggle />
             <DarkModeToggle />
             <button
@@ -187,16 +244,43 @@ export function NavBar() {
           />
           <div
             ref={mobilePanelRef}
-            className="absolute inset-y-0 right-0 top-14 w-72 border-l border-stone-200 bg-white shadow-xl dark:border-stone-800 dark:bg-stone-950"
+            className="absolute inset-y-0 right-0 top-14 w-72 overflow-y-auto border-l border-stone-200 bg-white shadow-xl dark:border-stone-800 dark:bg-stone-950"
             role="dialog"
             aria-modal="true"
             aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}
           >
+            {/* Mobile search bar */}
+            <div className="border-b border-stone-100 p-3 dark:border-stone-800">
+              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-900">
+                <Search className="h-4 w-4 shrink-0 text-stone-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={fr ? "Rechercher…" : "Chèche…"}
+                  className="flex-1 bg-transparent text-sm text-stone-900 placeholder-stone-400 outline-none dark:text-white"
+                />
+              </form>
+            </div>
+
             <div className="p-4">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-                {fr ? "Rubriques" : "Ribrik"}
+                {fr ? "Navigation" : "Navigasyon"}
               </p>
-              <nav className="mb-4 flex flex-col">
+              {/* Home link */}
+              <Link
+                href={l("/")}
+                onClick={() => setMobileOpen(false)}
+                className={[
+                  "flex rounded-md px-3 py-2.5 text-sm font-semibold transition-colors",
+                  pathname === "/"
+                    ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
+                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
+                ].join(" ")}
+              >
+                {fr ? "Accueil" : "Akèy"}
+              </Link>
+              <nav className="mt-1 flex flex-col">
                 {primaryLinks.map((link) => {
                   const active = isActive(pathname, link.href);
                   return (
@@ -217,24 +301,12 @@ export function NavBar() {
                 })}
               </nav>
 
-              <div className="mb-4 border-t border-stone-100 dark:border-stone-800" />
+              <div className="my-3 border-t border-stone-100 dark:border-stone-800" />
 
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
-                {fr ? "Explorer" : "Eksplore"}
+                {fr ? "Plus" : "Plis"}
               </p>
               <nav className="flex flex-col">
-                <Link
-                  href={l("/")}
-                  onClick={() => setMobileOpen(false)}
-                  className={[
-                    "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === "/"
-                      ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
-                      : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
-                  ].join(" ")}
-                >
-                  {fr ? "Accueil" : "Akèy"}
-                </Link>
                 {secondaryLinks.map((link) => {
                   const active = isActive(pathname, link.href);
                   return (
