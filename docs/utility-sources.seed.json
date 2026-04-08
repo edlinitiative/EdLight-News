@@ -249,7 +249,8 @@
     "region": ["HT"],
     "allowlistDomain": "stanford.edu",
     "priority": 9,
-    "active": true
+    "active": false,
+    "_disabled_reason": "RSS feed produces only generic non-specific overviews with no dated facts — pure filler"
   },
   {
     "label": "AlterPresse – Haïti Actualités",
