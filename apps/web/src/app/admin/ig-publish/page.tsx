@@ -131,12 +131,8 @@ function PostCard({
                 Score: {entry.score}
               </span>
               {entry.renderedBy && (
-                <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-                  entry.renderedBy === "ig-engine"
-                    ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300"
-                    : "bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500"
-                }`}>
-                  {entry.renderedBy === "ig-engine" ? "✦ Premium" : "Legacy"}
+                <span className="inline-flex items-center rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300">
+                  ✦ Premium
                 </span>
               )}
             </div>
@@ -344,12 +340,8 @@ function PostCard({
                 )}
                 <div className="flex justify-between">
                   <span className="text-stone-400">Renderer</span>
-                  <span className={`text-xs font-semibold ${
-                    entry.renderedBy === "ig-engine"
-                      ? "text-purple-600 dark:text-purple-400"
-                      : "text-stone-400"
-                  }`}>
-                    {entry.renderedBy === "ig-engine" ? "✦ Premium" : entry.renderedBy ?? "—"}
+                  <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                    {entry.renderedBy ? "✦ Premium" : "—"}
                   </span>
                 </div>
               </div>

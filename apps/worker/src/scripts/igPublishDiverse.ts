@@ -16,7 +16,7 @@ import {
 } from "@edlight-news/firebase";
 import { formatForIG } from "@edlight-news/generator/ig/formatters/index.js";
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { generateContextualImage, ensureTauxBackground } from "../services/geminiImageGen.js";
 import { findEditorialImage } from "../services/editorialImageSearch.js";
 
@@ -179,7 +179,7 @@ async function publishFromPayload(queueItem: any): Promise<boolean> {
 async function renderAndPublish(queueItem: any, formatted: any): Promise<boolean> {
   // Render
   console.log("  Rendering...");
-  const assets = await generateCarouselAssets(queueItem, formatted);
+  const assets = await renderWithIgEngine(queueItem, formatted);
   console.log(`  Rendered ${assets.slidePaths.length} slides`);
 
   // Upload to storage

@@ -18,7 +18,7 @@ console.log(`  Loading .env from: ${envPath}`);
 dotenv.config({ path: envPath });
 
 import { formatForIG } from "@edlight-news/generator/ig/index.js";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { uploadCarouselSlides } from "@edlight-news/firebase";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGFormattedPayload, Item } from "@edlight-news/types";
@@ -102,7 +102,7 @@ async function main() {
   console.log("▶ Step 2: Rendering carousel slides with Playwright...");
   let assets;
   try {
-    assets = await generateCarouselAssets(queueItem, payload);
+    assets = await renderWithIgEngine(queueItem, payload);
   } catch (renderErr) {
     console.error("  Render error details:", renderErr);
     process.exit(1);

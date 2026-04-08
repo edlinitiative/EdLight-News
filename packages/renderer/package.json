@@ -9,6 +9,7 @@
     "./ig-carousel.js": "./dist/ig-carousel.js",
     "./ig-meme.js": "./dist/ig-meme.js",
     "./ig-story.js": "./dist/ig-story.js",
+    "./ig-engine.js": "./dist/ig-engine/index.js",
     "./ig-engine-render.js": "./dist/ig-engine/engine/renderWithIgEngine.js"
   },
   "scripts": {

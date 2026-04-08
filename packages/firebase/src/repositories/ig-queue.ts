@@ -290,3 +290,30 @@ export async function listAll(limit = 100): Promise<IGQueueItem[]> {
     .get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as IGQueueItem);
 }
+
+/**
+ * Delete ALL documents in the ig_queue collection.
+ * Processes in batches of 500 (Firestore max batch size).
+ * Returns the total number of documents deleted.
+ */
+export async function purgeAll(): Promise<number> {
+  const db = getDb();
+  let totalDeleted = 0;
+  const BATCH_SIZE = 500;
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const snap = await collection().limit(BATCH_SIZE).get();
+    if (snap.empty) break;
+
+    const batch = db.batch();
+    for (const doc of snap.docs) {
+      batch.delete(doc.ref);
+    }
+    await batch.commit();
+    totalDeleted += snap.size;
+    console.log(`[ig-queue] Purged batch of ${snap.size} docs (total: ${totalDeleted})`);
+  }
+
+  return totalDeleted;
+}

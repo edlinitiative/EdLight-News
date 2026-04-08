@@ -6,8 +6,8 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
-import { buildSlideHTML } from "@edlight-news/renderer/ig-carousel.js";
-import type { IGSlide } from "@edlight-news/types";
+import { buildSlideHtml, adaptLegacyPayload } from "@edlight-news/renderer/ig-engine.js";
+import type { IGSlide, IGPostType } from "@edlight-news/types";
 
 const OUT_DIR = "/tmp/ig_test";
 
@@ -143,7 +143,13 @@ async function main() {
   console.log(`Rendering ${sampleSlides.length} test slides...\n`);
 
   for (const s of sampleSlides) {
-    const html = buildSlideHTML(s.slide, s.igType, s.index, s.total);
+    // Adapt old IGSlide format to new engine types
+    const { intake, rawSlides, contentType } = adaptLegacyPayload(
+      { id: "test", sourceContentId: "", igType: s.igType as IGPostType, score: 0, status: "queued", reasons: [] } as any,
+      { slides: [s.slide], caption: "" },
+    );
+    const templateId = intake.contentTypeHint!;
+    const html = buildSlideHtml(templateId, rawSlides[0]!, contentType, s.index, s.total);
     const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 2 });
     try {
       await page.setContent(html, { waitUntil: "networkidle", timeout: 30_000 });

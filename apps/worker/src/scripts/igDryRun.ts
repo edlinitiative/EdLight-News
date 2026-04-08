@@ -19,7 +19,7 @@ import type {
   IGQueueItem,
 } from "@edlight-news/types";
 import { decideIG, formatForIG } from "@edlight-news/generator/ig/index.js";
-import { buildSlideHTML } from "@edlight-news/renderer/ig-carousel.js";
+import { buildSlideHtml, adaptLegacyPayload } from "@edlight-news/renderer/ig-engine.js";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -539,9 +539,15 @@ async function main() {
     mkdirSync(itemDir, { recursive: true });
 
     const slidePaths: string[] = [];
-    for (let i = 0; i < payload.slides.length; i++) {
-      const slide = payload.slides[i]!;
-      const html = buildSlideHTML(slide, igType, i, payload.slides.length);
+    // Adapt old-format payload to new engine types
+    const adapted = adaptLegacyPayload(
+      { id: `dry-run-${key}`, sourceContentId: item.id, igType: decision.igType, score: 0, status: "queued", reasons: [] } as any,
+      payload,
+    );
+    const templateId = adapted.intake.contentTypeHint!;
+    for (let i = 0; i < adapted.rawSlides.length; i++) {
+      const slide = adapted.rawSlides[i]!;
+      const html = buildSlideHtml(templateId, slide, adapted.contentType, i, payload.slides.length);
       const htmlPath = join(itemDir, `slide_${i + 1}.html`);
       writeFileSync(htmlPath, html, "utf-8");
       slidePaths.push(htmlPath);

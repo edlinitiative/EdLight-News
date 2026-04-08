@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
 
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { igQueueRepo, itemsRepo, uploadCarouselSlides } from "@edlight-news/firebase";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import { generateContextualImage } from "../services/geminiImageGen.js";
 
@@ -114,7 +114,7 @@ async function main() {
 
       // Render carousel
       console.log("  Rendering carousel...");
-      const assets = await generateCarouselAssets(item, item.payload);
+      const assets = await renderWithIgEngine(item, item.payload);
       console.log(`  Rendered ${assets.slidePaths.length} slides (mode=${assets.mode})`);
 
       // Upload slides to Firebase Storage

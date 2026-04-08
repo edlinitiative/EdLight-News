@@ -27,7 +27,7 @@ import {
   uploadCarouselSlides,
   uploadStorySlide,
 } from "@edlight-news/firebase";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { generateStoryAssets } from "@edlight-news/renderer/ig-story.js";
 import type { IGQueueItem, IGStoryQueueItem, IGQueueStatus, IGStoryQueueStatus } from "@edlight-news/types";
 
@@ -100,7 +100,7 @@ async function main() {
     }
 
     try {
-      const assets = await generateCarouselAssets(item, item.payload);
+      const assets = await renderWithIgEngine(item, item.payload);
       const slideCount = assets.slidePaths.length;
 
       if (DRY_RUN) {

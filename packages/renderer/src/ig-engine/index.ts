@@ -91,7 +91,7 @@ export { buildWeeklyRecapSlide } from "./templates/WeeklyRecapTemplate.js";
 
 // ── Legacy Adapter & Production Renderer ────────────────────────────────────
 
-export { adaptLegacyPayload, shouldUseIgEngine, resolveContentType } from "./engine/adaptLegacyPayload.js";
+export { adaptLegacyPayload, resolveContentType } from "./engine/adaptLegacyPayload.js";
 export type { AdaptedPayload } from "./engine/adaptLegacyPayload.js";
 
 export { renderWithIgEngine } from "./engine/renderWithIgEngine.js";

@@ -41,7 +41,7 @@ const IG_TYPE_TO_TEMPLATE: Partial<Record<IGPostType, TemplateId>> = {
   utility:     "explainer-carousel",
   breaking:    "breaking-news-single",
   stat:        "quote-stat-card",
-  // taux → deliberately absent → null → bypass
+  taux:        "quote-stat-card",
 };
 
 const IG_TYPE_TO_CATEGORY: Record<IGPostType, string> = {

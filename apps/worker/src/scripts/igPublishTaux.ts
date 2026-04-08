@@ -11,7 +11,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: path.resolve(process.cwd(), "../..", ".env") });
 
 import { igQueueRepo, uploadCarouselSlides } from "@edlight-news/firebase";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGFormattedPayload, IGSlide, IGQueueStatus } from "@edlight-news/types";
 
@@ -182,7 +182,7 @@ async function main() {
   // Step 3: Render
   console.log("\n--- Step 3: Render carousel ---");
   await igQueueRepo.updateStatus(queueItem.id, "rendering");
-  const assets = await generateCarouselAssets(queueItem, payload);
+  const assets = await renderWithIgEngine(queueItem, payload);
   console.log(`  Rendered ${assets.slidePaths.length} slides (mode=${assets.mode})`);
 
   // Step 4: Upload to Firebase Storage

@@ -11,7 +11,7 @@ import {
 } from "@edlight-news/firebase";
 import { formatForIG } from "@edlight-news/generator/ig/formatters/index.js";
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
-import { generateCarouselAssets } from "@edlight-news/renderer/ig-carousel.js";
+import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
 import { publishIgPost } from "@edlight-news/publisher";
 import type { IGQueueItem, IGQueueStatus, IGPostType, Item, IGFormattedPayload } from "@edlight-news/types";
 import { generateContextualImage } from "../services/geminiImageGen.js";
@@ -195,7 +195,7 @@ async function republishEntry(
   await ensureImages(item, payload, dryRun);
   await igQueueRepo.setPayload(queueItem.id, payload);
 
-  const assets = await generateCarouselAssets(queueItem, payload);
+  const assets = await renderWithIgEngine(queueItem, payload);
   const urls = await uploadCarouselSlides(assets.slidePaths, queueItem.id);
   const publishResult = await publishIgPost(queueItem, payload, urls);
 
@@ -267,7 +267,7 @@ async function createOrUpdateManualReplacement(
   };
 
   await ensureImages(item, payload, false);
-  const assets = await generateCarouselAssets(replacementItem, payload);
+  const assets = await renderWithIgEngine(replacementItem, payload);
   await uploadCarouselSlides(assets.slidePaths, replacementId);
 
   return replacementId;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X } from "lucide-react";
+import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X, Trash2 } from "lucide-react";
 import { IGPostPreview, IGSlideFrame } from "@/components/IGSlidePreview";
 import type { IGQueueEntry, IGQueueCounts } from "@/types/admin";
 
@@ -82,14 +82,9 @@ function CopyButton({ text }: { text: string }) {
 
 function RendererBadge({ renderer }: { renderer: string | null }) {
   if (!renderer) return null;
-  const isPremium = renderer === "ig-engine";
   return (
-    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-      isPremium
-        ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300"
-        : "bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500"
-    }`}>
-      {isPremium ? "✦ Premium" : "Legacy"}
+    <span className="inline-flex items-center rounded-full bg-gradient-to-r from-purple-100 to-pink-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-purple-700 dark:from-purple-900/30 dark:to-pink-900/30 dark:text-purple-300">
+      ✦ Premium
     </span>
   );
 }
@@ -296,6 +291,8 @@ export default function IGQueuePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<IGQueueEntry | null>(null);
+  const [purging, setPurging] = useState(false);
+  const [purgeConfirm, setPurgeConfirm] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -332,6 +329,22 @@ export default function IGQueuePage() {
     }
   }, [loadData]);
 
+  const handlePurge = useCallback(async () => {
+    setPurging(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/ig-queue/purge", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Purge failed");
+      setPurgeConfirm(false);
+      void loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Purge failed");
+    } finally {
+      setPurging(false);
+    }
+  }, [loadData]);
+
   const filtered = entries.filter((e) => {
     const statusMatch =
       statusFilter === "all"
@@ -352,13 +365,41 @@ export default function IGQueuePage() {
             Visual preview of the IG posting pipeline
           </p>
         </div>
-        <button
-          onClick={() => void loadData()}
-          className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-500 transition hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
-        >
-          <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {purgeConfirm ? (
+            <div className="flex items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 dark:border-red-700 dark:bg-red-900/20">
+              <span className="text-xs font-medium text-red-700 dark:text-red-300">Delete everything?</span>
+              <button
+                onClick={() => void handlePurge()}
+                disabled={purging}
+                className="rounded bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {purging ? "Purging…" : "Confirm"}
+              </button>
+              <button
+                onClick={() => setPurgeConfirm(false)}
+                className="text-xs text-red-400 transition hover:text-red-600"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setPurgeConfirm(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs text-red-500 transition hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
+            >
+              <Trash2 className="h-3 w-3" />
+              Purge All
+            </button>
+          )}
+          <button
+            onClick={() => void loadData()}
+            className="flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-500 transition hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800"
+          >
+            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Counts */}
