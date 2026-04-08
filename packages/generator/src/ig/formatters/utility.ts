@@ -35,12 +35,12 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
     }
     if (facts.requirements?.length) {
       for (const r of facts.requirements.slice(0, 3)) {
-        bullets.push(shortenText(r, 150));
+        bullets.push(shortenText(r, 220));
       }
     }
     if (facts.steps?.length) {
       for (const s of facts.steps.slice(0, 3)) {
-        bullets.push(shortenText(s, 150));
+        bullets.push(shortenText(s, 220));
       }
     }
     if (bullets.length > 0) {
@@ -58,7 +58,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
   if (facts?.notes?.length) {
     slides.push({
       heading: "À retenir",
-      bullets: facts.notes.slice(0, 3).map((n) => shortenText(n, 150)),
+      bullets: facts.notes.slice(0, 3).map((n) => shortenText(n, 220)),
       layout: "explanation",
       footer: buildSourceFooter(item),
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),

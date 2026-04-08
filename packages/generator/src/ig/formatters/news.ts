@@ -240,9 +240,9 @@ function buildSectionSlides(
 }
 
 /** Max bullets per section slide. */
-const NEWS_MAX_BULLETS = 3;
-/** Max chars per bullet. */
-const NEWS_MAX_BULLET_CHARS = 180;
+const NEWS_MAX_BULLETS = 2;
+/** Max chars per bullet — must fit 2 bullets within the ~920px layout budget. */
+const NEWS_MAX_BULLET_CHARS = 240;
 
 /** Split section content into digestible bullets for a news slide. */
 function sectionToBullets(content: string): string[] {
@@ -254,7 +254,7 @@ function sectionToBullets(content: string): string[] {
   }
   return parts
     .slice(0, NEWS_MAX_BULLETS)
-    .map((b) => cleanSlideText(b.length > NEWS_MAX_BULLET_CHARS ? capBeatLength(b, NEWS_MAX_BULLET_CHARS) : b));
+    .map((b) => cleanSlideText(b.length > NEWS_MAX_BULLET_CHARS ? shortenText(b, NEWS_MAX_BULLET_CHARS) : b));
 }
 
 // ── French language detection ──────────────────────────────────────────────
@@ -277,8 +277,8 @@ function looksLikeFrench(text: string): boolean {
   return hits >= 5;
 }
 
-/** Maximum characters for a beat (used as explanation bullet, not headline). */
-const MAX_BEAT_CHARS = 180;
+/** Maximum characters for a beat — must fit 2 bullets within the ~920px layout budget. */
+const MAX_BEAT_CHARS = 240;
 
 /**
  * Common French abbreviations that should NOT trigger a sentence boundary.
@@ -424,7 +424,7 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
     const picks = dedupBeats(sentences.slice(0, 8)).slice(0, 3)
       .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD)
       .filter((b) => !b.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim().startsWith(titleNorm));
-    if (picks.length > 0) return picks.map((b) => cleanSlideText(capBeatLength(b)));
+    if (picks.length > 0) return picks.slice(0, 2).map((b) => cleanSlideText(shortenText(b, MAX_BEAT_CHARS)));
   }
 
   // Fallback: synthesize beats from the French summary
@@ -437,11 +437,11 @@ function extractFrenchBeats(item: Item, frSummary: string): string[] {
       // Dedup among beats AND against the title
       const deduped = dedupBeats(sentences.slice(0, 4))
         .filter((b) => jaccardSimilarity(b, title) <= SIMILARITY_THRESHOLD);
-      return deduped.slice(0, 3).map((b) => cleanSlideText(capBeatLength(b)));
+      return deduped.slice(0, 2).map((b) => cleanSlideText(shortenText(b, MAX_BEAT_CHARS)));
     }
     // Single long summary → cap at inner-slide-friendly length (≤ ~4 lines)
     if (frSummary.length > 60) {
-      const capped = cleanSlideText(capBeatLength(frSummary, 160));
+      const capped = cleanSlideText(shortenText(frSummary, MAX_BEAT_CHARS));
       // Skip if it just restates the title
       if (jaccardSimilarity(capped, title) <= SIMILARITY_THRESHOLD) {
         return [capped];
@@ -558,8 +558,8 @@ export function narrativeToSlides(narrative: string, imageUrl?: string): IGSlide
   if (sentences.length === 0) return [];
 
   const slides: IGSlide[] = [];
-  const SENTENCE_BUDGET = 350; // Target characters per explanation slide
-  const MAX_SENTS_PER_SLIDE = 3; // Never more than 3 sentences per slide
+  const SENTENCE_BUDGET = 420; // Budget per slide: heading + 1 bullet comfortably fit
+  const MAX_SENTS_PER_SLIDE = 2; // Heading + 1 bullet max — prevents layout overflow clipping
 
   let currentGroup: string[] = [];
   let currentLength = 0;
