@@ -427,7 +427,11 @@ export function buildHistoireCarousel(
   const dateLabel = buildHistoryCoverHeading(item);
   const mainEventYear =
     contentSections.length > 0
-      ? extractYearFromContent(contentSections[0]!.content)
+      // Check the section heading first: the LLM often embeds the correct year in
+      // parentheses (e.g. "Promulgation … (1941)"). Falling back to the body text
+      // can pick up a different year mentioned in context (e.g. "1934" for the end
+      // of the US occupation) before the actual event year appears.
+      ? (extractYearFromContent(contentSections[0]!.heading) ?? extractYearFromContent(contentSections[0]!.content))
       : null;
   const coverHeading = mainEventYear ? `${dateLabel} ${mainEventYear}` : dateLabel;
 
@@ -447,7 +451,7 @@ export function buildHistoireCarousel(
 
   // Deck line (first bullet → supportLine): the main event's first sentence
   const deckLine = mainEventFirstSentence
-    ? shortenText(mainEventFirstSentence, 140)
+    ? shortenText(mainEventFirstSentence, 110)
     : mainEventRawTitle
       ? shortenText(mainEventRawTitle, 120)
       : "";

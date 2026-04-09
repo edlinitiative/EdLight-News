@@ -132,11 +132,12 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         headline: {
           box: { x: SIDE, y: 260, width: INNER_W, height: 324 },
           fontSize: 56, minFontSize: 46, fontFamily: "DM Sans", lineHeight: 1.08,
-          limits: { maxWords: 14, maxLines: 3 },
+          limits: { maxWords: 18, maxLines: 4 },
           dynamicFontSize: [
             { maxWords: 7,  size: 76 },
             { maxWords: 10, size: 66 },
             { maxWords: 14, size: 56 },
+            { maxWords: 18, size: 48 },
             { size: 46 },
           ],
         },

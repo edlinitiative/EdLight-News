@@ -109,7 +109,7 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
 
   // ── Slide 1: Hero cover — big bold headline only (Bloomberg style) ──
   slides.push({
-    heading: shortenHeadline(title, 14),
+    heading: shortenHeadline(title, 18),
     bullets: [],
     layout: "headline",
     footer: geoLabel,
