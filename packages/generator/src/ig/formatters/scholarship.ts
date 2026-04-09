@@ -27,7 +27,7 @@ function isUsableApplyLink(url: string | undefined): boolean {
 
 /** Background for the EdLight News CTA closing slide — Musée du Panthéon National Haïtien (MUPANAH). */
 const SCHOLARSHIP_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/MUPANAH_2018_-_Roof.jpg/1280px-MUPANAH_2018_-_Roof.jpg";
+  "https://firebasestorage.googleapis.com/v0/b/edlight-news.firebasestorage.app/o/ig_assets%2Fcta%2Fscholarship-cta.jpg?alt=media&token=502cfb2a-ab80-4214-a8f5-fb8b7893a5ed";
 
 export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];

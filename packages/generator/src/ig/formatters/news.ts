@@ -76,7 +76,7 @@ export function isJunkSentence(sentence: string): boolean {
 
 /** Background for the EdLight News CTA closing slide — Citadelle Laferrière (iconic Haitian landmark). */
 const NEWS_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Citadelle_Laferri%C3%A8re_Aerial_View.jpg/1280px-Citadelle_Laferri%C3%A8re_Aerial_View.jpg";
+  "https://firebasestorage.googleapis.com/v0/b/edlight-news.firebasestorage.app/o/ig_assets%2Fcta%2Fnews-cta.jpg?alt=media&token=af008501-a7f7-4feb-af4e-b0c5fd353e61";
 
 /** Max content slides between cover and source (keeps carousels tight). */
 const MAX_NEWS_CONTENT_SLIDES = 4;

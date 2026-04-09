@@ -38,7 +38,7 @@ const MAX_CONTENT_SLIDES = 5;
  * distinct from the Citadelle used by news CTAs.
  */
 const HISTOIRE_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Sans-Souci_Palace_Haiti_%288070547181%29.jpg/1280px-Sans-Souci_Palace_Haiti_%288070547181%29.jpg";
+  "https://firebasestorage.googleapis.com/v0/b/edlight-news.firebasestorage.app/o/ig_assets%2Fcta%2Fhistoire-cta.jpg?alt=media&token=c6b8f5c4-9933-41d9-89f6-cd40362b0c0a";
 
 /** Max bullets per history slide — tighter, cleaner pacing than dense 3-bullet cards. */
 const MAX_BULLETS_PER_SLIDE = 2;

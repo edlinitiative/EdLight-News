@@ -51,6 +51,47 @@ export async function uploadImageBuffer(
 }
 
 /**
+ * Return an existing Firebase Storage file's download URL by reading its
+ * stored `firebaseStorageDownloadTokens` custom metadata.  If the file does
+ * not yet exist, call {@link bufferFn} to produce the content, upload it,
+ * and return the resulting URL.
+ *
+ * This is intentionally idempotent: running it a second time for the same
+ * path returns the same URL as the first run without re-uploading.
+ *
+ * @param storagePath  - Object path within the bucket (e.g. "ig_assets/cta/news-cta.jpg")
+ * @param bufferFn     - Async factory that produces the file content (only
+ *                       called when the file is absent from Storage)
+ * @param contentType  - MIME type (default: "image/jpeg")
+ * @returns            - Stable token-based download URL
+ */
+export async function getOrUploadImageBuffer(
+  storagePath: string,
+  bufferFn: () => Promise<Buffer>,
+  contentType = "image/jpeg",
+): Promise<string> {
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET ?? undefined;
+  const bucket = getStorage(getApp()).bucket(bucketName);
+  const file = bucket.file(storagePath);
+
+  const [exists] = await file.exists();
+  if (exists) {
+    const [metadata] = await file.getMetadata();
+    const token: string | undefined =
+      metadata.metadata?.firebaseStorageDownloadTokens as string | undefined;
+    if (token) {
+      const encodedPath = encodeURIComponent(storagePath);
+      return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${token}`;
+    }
+    // Token missing in metadata — fall through to re-upload with a fresh token.
+    console.warn(`[storage] ${storagePath} exists but has no download token — re-uploading.`);
+  }
+
+  const buffer = await bufferFn();
+  return uploadImageBuffer(storagePath, buffer, contentType);
+}
+
+/**
  * Upload an array of local image files to Firebase Storage and return their
  * public download URLs.  Designed for IG carousel slides.
  *

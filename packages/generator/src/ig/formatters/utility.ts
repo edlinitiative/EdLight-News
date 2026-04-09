@@ -7,7 +7,7 @@ import { buildCaption, buildSourceFooter, buildSourceLine, shortenText, formatDe
 
 /** Background for the EdLight News CTA closing slide — Marché Central, Port-au-Prince. */
 const UTILITY_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Central_Market%2C_Port-au-Prince.jpg/1280px-Central_Market%2C_Port-au-Prince.jpg";
+  "https://firebasestorage.googleapis.com/v0/b/edlight-news.firebasestorage.app/o/ig_assets%2Fcta%2Futility-cta.jpg?alt=media&token=3f4ce456-27ba-4f16-9600-c4672aa7352e";
 
 export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];

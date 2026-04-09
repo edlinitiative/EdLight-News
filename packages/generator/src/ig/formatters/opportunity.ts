@@ -21,7 +21,7 @@ function isUsableApplyLink(url: string | undefined): boolean {
 
 /** Background for the EdLight News CTA closing slide — view of Port-au-Prince, Haiti. */
 const OPPORTUNITY_CTA_IMAGE =
-  "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/View_of_Port-au-Prince_from_Hotel_Montana.jpg/1280px-View_of_Port-au-Prince_from_Hotel_Montana.jpg";
+  "https://firebasestorage.googleapis.com/v0/b/edlight-news.firebasestorage.app/o/ig_assets%2Fcta%2Fopportunity-cta.jpg?alt=media&token=62443d10-7f77-4d40-949f-379d3e90fccc";
 
 export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGFormattedPayload {
   const slides: IGSlide[] = [];

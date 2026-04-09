@@ -76,6 +76,16 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     let historyResult: { published: boolean; skipped: boolean; reason: string; itemId?: string } = { published: false, skipped: false, reason: "not-run" };
     try {
       historyResult = await runHistoryDailyPublisher();
+      // Warn on actionable skips so they stand out in logs (not buried in the
+      // final summary object).  Normal skips (outside window, already done)
+      // are silently logged in the summary only.
+      const normalHistoireReasons = /^(Outside publish hours|Already published today)/;
+      if (historyResult.skipped && !normalHistoireReasons.test(historyResult.reason)) {
+        console.warn(`[tick] histoire SKIPPED — ${historyResult.reason}`);
+      } else if (!historyResult.published && !historyResult.skipped) {
+        // published:false AND skipped:false means a pipeline error (validation, LLM fail, etc.)
+        console.warn(`[tick] histoire FAILED (not published, not skipped) — ${historyResult.reason}`);
+      }
     } catch (err) {
       // History publisher is non-critical — log and continue
       console.warn("[tick] history publisher error:", err instanceof Error ? err.message : err);
@@ -86,6 +96,14 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     try {
       igResult.buildQueue = await buildIgQueue();
       igResult.taux = await buildIgTaux();
+      // Warn on actionable taux skip reasons so they appear as warnings in logs.
+      // brh-date-stale is expected early in the morning (BRH posts mid-day) but
+      // still worth surfacing so we know a retry tick is needed.
+      // brh-fetch-failed means a network error — always warn.
+      const actionableTauxSkips = new Set(["brh-date-stale", "brh-fetch-failed"]);
+      if (igResult.taux.skipped && actionableTauxSkips.has(igResult.taux.skipped)) {
+        console.warn(`[tick] taux SKIPPED — ${igResult.taux.skipped} (a later tick will retry)`);
+      }
       igResult.story = await buildIgStory();
       igResult.schedule = await scheduleIgPost();
       igResult.process = await processIgScheduled();
