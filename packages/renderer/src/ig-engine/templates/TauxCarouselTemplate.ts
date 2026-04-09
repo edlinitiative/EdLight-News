@@ -13,6 +13,8 @@
  */
 
 import type { SlideContent } from "../types/post.js";
+import { getTemplateConfig } from "../config/templateLimits.js";
+import { resolveZone } from "../types/post.js";
 import { GOOGLE_FONTS_LINK, escapeHtml } from "../config/brand.js";
 import { BRAND } from "../config/brand.js";
 
@@ -51,6 +53,10 @@ function buildTauxCoverSlide(slide: SlideContent): string {
     ? `background:${NAVY} url('${escapeHtml(slide.imageUrl!)}') center/cover no-repeat;`
     : `background:linear-gradient(180deg,${NAVY} 0%,${NAVY2} 55%,${NAVY} 100%);`;
 
+  const cfg      = getTemplateConfig("taux-card");
+  const rateZone = resolveZone(cfg, "headline", "cover")!;
+  const dateZone = resolveZone(cfg, "supportLine", "cover")!;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0;padding:0;box-sizing:border-box; }
@@ -62,10 +68,10 @@ body { width:1080px;height:1350px;font-family:${fonts.body};${bgCss}color:#fff;o
 .pill { display:inline-flex;align-items:center;background:${GOLD};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:12px 30px;border-radius:999px; }
 .mid { display:flex;flex-direction:column;align-items:center;gap:18px; }
 .rate-label { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.42;letter-spacing:4px;text-transform:uppercase; }
-.rate { font-family:${fonts.headline};font-size:124px;font-weight:900;letter-spacing:-4px;color:${GOLD};line-height:1; }
+.rate { font-family:${fonts.headline};font-size:${rateZone.fontSize}px;font-weight:900;letter-spacing:-4px;color:${GOLD};line-height:${rateZone.lineHeight}; }
 .unit { font-family:${fonts.headline};font-size:26px;font-weight:500;opacity:0.38;letter-spacing:2px; }
 .divider { width:70px;height:3px;background:${GOLD};border-radius:2px;opacity:0.55; }
-.date-note { font-family:${fonts.body};font-size:22px;font-weight:500;opacity:0.52;letter-spacing:1px; }
+.date-note { font-family:${fonts.body};font-size:${dateZone.fontSize}px;font-weight:500;opacity:0.52;letter-spacing:1px; }
 .bottom { width:100%;display:flex;flex-direction:column;align-items:center;gap:12px; }
 .wordmark { font-family:${fonts.headline};font-size:22px;font-weight:800;letter-spacing:4px;display:flex;gap:8px; }
 .wordmark .el { color:rgba(255,255,255,0.62); }
@@ -112,6 +118,10 @@ function buildTauxDetailSlide(slide: SlideContent): string {
     .map(line => `<div class="row">${escapeHtml(line)}</div>`)
     .join("\n");
 
+  const cfg       = getTemplateConfig("taux-card");
+  const titleZone = resolveZone(cfg, "headline", "detail")!;
+  const rowZone   = resolveZone(cfg, "body", "detail")!;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 * { margin:0;padding:0;box-sizing:border-box; }
@@ -122,10 +132,10 @@ body { width:1080px;height:1350px;font-family:${fonts.body};${bgCss}color:#fff;o
 .top { display:flex;justify-content:space-between;align-items:flex-start; }
 .pill { display:inline-flex;align-items:center;background:${GOLD};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:12px 28px;border-radius:999px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:32px; }
-.title { font-family:${fonts.headline};font-size:52px;font-weight:800;line-height:1.1;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+.title { font-family:${fonts.headline};font-size:${titleZone.fontSize}px;font-weight:800;line-height:${titleZone.lineHeight};letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${titleZone.limits.maxLines ?? 2};-webkit-box-orient:vertical; }
 .rule { width:70px;height:3px;background:${GOLD};border-radius:2px; }
 .rows { display:flex;flex-direction:column;gap:24px; }
-.row { font-family:${fonts.body};font-size:32px;font-weight:400;line-height:1.5;opacity:0.82;border-left:4px solid ${GOLD};padding-left:22px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+.row { font-family:${fonts.body};font-size:${rowZone.fontSize}px;font-weight:400;line-height:${rowZone.lineHeight};opacity:0.82;border-left:4px solid ${GOLD};padding-left:22px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${rowZone.limits.perBulletMaxLines ?? rowZone.limits.maxLines ?? 2};-webkit-box-orient:vertical; }
 .bottom { display:flex;justify-content:space-between;align-items:flex-end; }
 .wordmark { font-family:${fonts.headline};font-size:20px;font-weight:800;letter-spacing:4px;display:flex;gap:8px; }
 .wordmark .el { color:rgba(255,255,255,0.55); }

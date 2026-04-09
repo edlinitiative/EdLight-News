@@ -19,6 +19,8 @@
  */
 
 import type { SlideContent } from "../types/post.js";
+import { resolveZone, resolveEffectiveFontSize } from "../types/post.js";
+import { getTemplateConfig } from "../config/templateLimits.js";
 import {
   BRAND,
   GOOGLE_FONTS_LINK,
@@ -72,8 +74,13 @@ function buildCoverSlide(
     ? `linear-gradient(to bottom, ${bg}dd 0%, ${bg}55 35%, ${bg}99 65%, ${bg}f5 100%)`
     : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
-  const hlSize = coverHeadlineSize(slide.headline);
+  const cfg = getTemplateConfig("news-carousel");
+  const hlZone = resolveZone(cfg, "headline", "cover")!;
   const hasDeck = Boolean(slide.supportLine);
+  const hlSize = resolveEffectiveFontSize(hlZone, slide.headline);
+  const hlClamp = hasDeck ? Math.min(hlZone.limits.maxLines ?? 3, 3) : (hlZone.limits.maxLines ?? 6);
+  const deckZone = resolveZone(cfg, "supportLine", "cover")!;
+  const factZone = resolveZone(cfg, "body", "cover")!;
   const coverFacts = slide.body ? slide.body.split(/\n|•/).map(s => s.trim()).filter(Boolean) : [];
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
@@ -85,11 +92,11 @@ ${baseReset(bg, bodyBg)}
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-bottom:${hasDeck ? '40' : '80'}px; }
-.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hasDeck ? 3 : 6};-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:${hlZone.lineHeight};letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlClamp};-webkit-box-orient:vertical; }
 .deck-rule { width:72px;height:3px;background:${accent};border-radius:2px;margin:4px 0; }
-.deck { font-family:${fonts.body};font-size:34px;font-weight:500;line-height:1.4;opacity:0.88;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.deck { font-family:${fonts.body};font-size:${deckZone.fontSize}px;font-weight:500;line-height:${deckZone.lineHeight};opacity:0.88;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${deckZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .cover-facts { display:flex;flex-direction:column;gap:12px;margin-top:4px; }
-.cover-fact { display:flex;gap:14px;align-items:flex-start;font-family:${fonts.body};font-size:28px;font-weight:400;line-height:1.45;opacity:0.78;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+.cover-fact { display:flex;gap:14px;align-items:flex-start;font-family:${fonts.body};font-size:${factZone.fontSize}px;font-weight:400;line-height:${factZone.lineHeight};opacity:0.78;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${factZone.limits.perBulletMaxLines ?? 2};-webkit-box-orient:vertical; }
 .fact-dot { width:7px;height:7px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:11px; }
 .swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:12px; }
 </style></head><body>
@@ -121,6 +128,9 @@ function buildDetailSlide(
   slideIndex: number,
   totalSlides: number,
 ): string {
+  const cfg = getTemplateConfig("news-carousel");
+  const hlZone = resolveZone(cfg, "headline", "detail")!;
+  const bodyZone = resolveZone(cfg, "body", "detail")!;
   // Only treat as a bulleted list when the original body actually contains
   // explicit separators (newline or bullet character). A single paragraph
   // must fall through to the <p> path (clamp:8) to avoid 3-line truncation.
@@ -137,9 +147,9 @@ ${baseReset(bg)}
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px; }
-.headline { font-family:${fonts.headline};font-size:52px;font-weight:800;line-height:1.1;letter-spacing:-0.3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlZone.fontSize}px;font-weight:800;line-height:${hlZone.lineHeight};letter-spacing:-0.3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .body { display:flex;flex-direction:column;gap:16px; }
-.bullet { display:flex;gap:16px;align-items:flex-start;font-family:${fonts.body};font-size:32px;font-weight:400;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.bullet { display:flex;gap:16px;align-items:flex-start;font-family:${fonts.body};font-size:${bodyZone.fontSize}px;font-weight:400;line-height:${bodyZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical; }
 .bullet-dot { width:8px;height:8px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:12px; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
 </style></head><body>
@@ -153,8 +163,8 @@ ${premiumAtmosphereHtml(accent)}
     <div class="divider"></div>
     <div class="body">
       ${bullets.length
-        ? bullets.map(b => `<div style="display:flex;gap:16px;align-items:flex-start"><div class="bullet-dot"></div><span style="font-family:${fonts.body};font-size:32px;font-weight:400;line-height:1.5;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${escapeHtml(b)}</span></div>`).join("")
-        : slide.body ? `<p style="font-family:${fonts.body};font-size:32px;line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
+        ? bullets.map(b => `<div style="display:flex;gap:16px;align-items:flex-start"><div class="bullet-dot"></div><span style="font-family:${fonts.body};font-size:${bodyZone.fontSize}px;font-weight:400;line-height:${bodyZone.lineHeight};flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical">${escapeHtml(b)}</span></div>`).join("")
+        : slide.body ? `<p style="font-family:${fonts.body};font-size:${bodyZone.fontSize}px;line-height:${bodyZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.maxLines ?? 8};-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
     </div>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
@@ -172,6 +182,10 @@ function buildDataSlide(
   slideIndex: number,
   totalSlides: number,
 ): string {
+  const cfg = getTemplateConfig("news-carousel");
+  const statZone = resolveZone(cfg, "statValue", "data")!;
+  const statSize = resolveEffectiveFontSize(statZone, slide.statValue ?? "");
+  const descZone = resolveZone(cfg, "statDescription", "data")!;
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 ${baseReset(bg)}
@@ -180,8 +194,8 @@ ${baseReset(bg)}
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:24px; }
-.stat { font-family:${fonts.headline};font-size:140px;font-weight:900;line-height:1;letter-spacing:-4px;color:${accent};overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
-.desc { font-family:${fonts.body};font-size:36px;font-weight:500;line-height:1.4;opacity:0.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.stat { font-family:${fonts.headline};font-size:${statSize}px;font-weight:900;line-height:${statZone.lineHeight};letter-spacing:-4px;color:${accent};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${statZone.limits.maxLines ?? 2};-webkit-box-orient:vertical; }
+.desc { font-family:${fonts.body};font-size:${descZone.fontSize}px;font-weight:500;line-height:${descZone.lineHeight};opacity:0.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${descZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .rule { width:80px;height:4px;background:${accent};border-radius:2px; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
@@ -253,10 +267,3 @@ function baseReset(bg: string, bodyBg?: string): string {
 body { width:1080px;height:1350px;font-family:${fonts.body};background:${b};color:#fff;overflow:hidden;position:relative; }`;
 }
 
-function coverHeadlineSize(headline: string): number {
-  const words = headline.trim().split(/\s+/).length;
-  if (words <= 7) return 76;
-  if (words <= 10) return 66;
-  if (words <= 14) return 56;
-  return 46;
-}

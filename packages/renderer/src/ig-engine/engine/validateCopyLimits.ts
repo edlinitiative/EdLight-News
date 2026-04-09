@@ -11,6 +11,7 @@
  */
 
 import type { SlideContent, TemplateConfig, FitResult, ValidationResult } from "../types/post.js";
+import { resolveZone } from "../types/post.js";
 import { getTemplateConfig } from "../config/templateLimits.js";
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -24,16 +25,17 @@ export function validateSlide(
   templateId: string,
 ): ValidationResult {
   const config = getTemplateConfig(templateId);
+  const variant = slide.layoutVariant;
   const fitResults: FitResult[] = [];
   const warnings: string[] = [];
 
-  fitResults.push(...validateField("headline", slide.headline, config, templateId));
-  fitResults.push(...validateField("body", slide.body, config, templateId));
-  fitResults.push(...validateField("supportLine", slide.supportLine, config, templateId));
-  fitResults.push(...validateField("sourceLine", slide.sourceLine, config, templateId));
-  fitResults.push(...validateField("deadline", slide.deadline, config, templateId));
-  fitResults.push(...validateField("statValue", slide.statValue, config, templateId));
-  fitResults.push(...validateField("statDescription", slide.statDescription, config, templateId));
+  fitResults.push(...validateField("headline", slide.headline, config, templateId, variant));
+  fitResults.push(...validateField("body", slide.body, config, templateId, variant));
+  fitResults.push(...validateField("supportLine", slide.supportLine, config, templateId, variant));
+  fitResults.push(...validateField("sourceLine", slide.sourceLine, config, templateId, variant));
+  fitResults.push(...validateField("deadline", slide.deadline, config, templateId, variant));
+  fitResults.push(...validateField("statValue", slide.statValue, config, templateId, variant));
+  fitResults.push(...validateField("statDescription", slide.statDescription, config, templateId, variant));
 
   const failedFields = fitResults.filter(r => !r.fits);
   if (failedFields.length > 0) {
@@ -78,11 +80,12 @@ function validateField(
   text: string | undefined,
   config: TemplateConfig,
   templateId: string,
+  variant?: string,
 ): FitResult[] {
   if (text === undefined || text === "") return [];
 
   const zoneName = FIELD_ZONE_MAP[fieldName];
-  const zone = (config.zones as Record<string, { limits: { maxWords?: number; maxChars?: number; maxLines?: number }; fontSize: number; lineHeight: number }>)[zoneName];
+  const zone = resolveZone(config, zoneName, variant);
   if (!zone) return []; // Zone not defined for this template — field is not used
 
   const { limits } = zone;

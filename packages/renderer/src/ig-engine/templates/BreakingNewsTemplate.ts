@@ -16,6 +16,8 @@
  */
 
 import type { SlideContent } from "../types/post.js";
+import { getTemplateConfig } from "../config/templateLimits.js";
+import { resolveZone, resolveEffectiveFontSize } from "../types/post.js";
 import {
   BRAND,
   GOOGLE_FONTS_LINK,
@@ -52,7 +54,10 @@ export function buildBreakingNewsSlide(
     ? `linear-gradient(to bottom, ${bg}cc 0%, ${bg}44 30%, ${bg}88 70%, ${bg}ee 100%)`
     : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
-  const headlineSize = resolveHeadlineFontSize(slide.headline);
+  const cfg = getTemplateConfig("breaking-news-single");
+  const hlZone = resolveZone(cfg, "headline", "cover")!;
+  const suppZone = resolveZone(cfg, "supportLine", "cover")!;
+  const headlineSize = resolveEffectiveFontSize(hlZone, slide.headline);
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
@@ -98,24 +103,23 @@ body {
   font-family:${fonts.headline};
   font-size:${headlineSize}px;
   font-weight:900;
-  line-height:1.05;
+  line-height:${hlZone.lineHeight};
   letter-spacing:-1px;
   color:#fff;
-  /* Hard prevent any overflow — content must be rewritten instead */
   overflow:hidden;
   display:-webkit-box;
-  -webkit-line-clamp:6;
+  -webkit-line-clamp:${hlZone.limits.maxLines ?? 6};
   -webkit-box-orient:vertical;
 }
 .support {
   font-family:${fonts.body};
-  font-size:30px;
+  font-size:${suppZone.fontSize}px;
   font-weight:500;
-  line-height:1.4;
+  line-height:${suppZone.lineHeight};
   opacity:0.75;
   overflow:hidden;
   display:-webkit-box;
-  -webkit-line-clamp:2;
+  -webkit-line-clamp:${suppZone.limits.maxLines ?? 2};
   -webkit-box-orient:vertical;
 }
 </style>
@@ -136,13 +140,4 @@ ${premiumAtmosphereHtml(accent)}
 </body></html>`;
 }
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
 
-/** Scale headline font down for longer text to avoid overflow. */
-function resolveHeadlineFontSize(headline: string): number {
-  const words = headline.trim().split(/\s+/).length;
-  if (words <= 6) return 88;
-  if (words <= 9) return 80;
-  if (words <= 12) return 70;
-  return 60;
-}

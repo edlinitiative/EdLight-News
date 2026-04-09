@@ -65,7 +65,7 @@ export async function renderPost(
     );
   }
 
-  const scaleFactor = options?.deviceScaleFactor ?? 1;
+  const scaleFactor = options?.deviceScaleFactor ?? 2;
   const browser = await getBrowserInstance();
   const context = await browser.newContext({
     viewport: { width: CANVAS_W, height: CANVAS_H },
@@ -97,6 +97,29 @@ export async function renderPost(
       const page = await context.newPage();
       try {
         await page.setContent(html, { waitUntil: "networkidle" });
+
+        // Post-render DOM overflow detection — ground truth check.
+        // Finds any element whose content overflows its visible bounds.
+        const overflowFields = await page.evaluate(() => {
+          const overflowing: string[] = [];
+          // Check all elements with overflow:hidden or -webkit-line-clamp
+          document.querySelectorAll<HTMLElement>("*").forEach(el => {
+            const style = window.getComputedStyle(el);
+            if (style.overflow === "hidden" || style.webkitLineClamp !== "none") {
+              if (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2) {
+                const id = el.className || el.tagName.toLowerCase();
+                overflowing.push(id.toString().trim().slice(0, 40));
+              }
+            }
+          });
+          return [...new Set(overflowing)];
+        });
+
+        if (overflowFields.length > 0) {
+          console.warn(
+            `[renderSlides] ⚠ DOM overflow detected on slide ${i + 1}: ${overflowFields.join(", ")}`,
+          );
+        }
 
         const png = await page.screenshot({
           type: "png",
@@ -143,13 +166,32 @@ export async function renderSingleSlide(
   const browser = await getBrowserInstance();
   const context = await browser.newContext({
     viewport: { width: CANVAS_W, height: CANVAS_H },
-    deviceScaleFactor: options?.deviceScaleFactor ?? 1,
+    deviceScaleFactor: options?.deviceScaleFactor ?? 2,
   });
 
   const page = await context.newPage();
   try {
     const html = buildSlideHtml(templateId, slide, contentType, slideIndex, totalSlides);
     await page.setContent(html, { waitUntil: "networkidle" });
+
+    // Post-render DOM overflow detection
+    const overflowFields = await page.evaluate(() => {
+      const overflowing: string[] = [];
+      document.querySelectorAll<HTMLElement>("*").forEach(el => {
+        const style = window.getComputedStyle(el);
+        if (style.overflow === "hidden" || style.webkitLineClamp !== "none") {
+          if (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2) {
+            const id = el.className || el.tagName.toLowerCase();
+            overflowing.push(id.toString().trim().slice(0, 40));
+          }
+        }
+      });
+      return [...new Set(overflowing)];
+    });
+
+    if (overflowFields.length > 0) {
+      console.warn(`[renderSlides] ⚠ DOM overflow detected: ${overflowFields.join(", ")}`);
+    }
 
     const png = await page.screenshot({
       type: "png",

@@ -15,6 +15,8 @@
  */
 
 import type { SlideContent } from "../types/post.js";
+import { getTemplateConfig } from "../config/templateLimits.js";
+import { resolveZone, resolveEffectiveFontSize } from "../types/post.js";
 import {
   BRAND,
   GOOGLE_FONTS_LINK,
@@ -55,7 +57,10 @@ function buildExpCoverSlide(
   label: string,
   totalSlides: number,
 ): string {
-  const hlSize = expCoverSize(slide.headline);
+  const cfg = getTemplateConfig("explainer-carousel");
+  const hlZone = resolveZone(cfg, "headline", "cover")!;
+  const deckZone = resolveZone(cfg, "supportLine", "cover")!;
+  const hlSize = resolveEffectiveFontSize(hlZone, slide.headline);
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
@@ -66,8 +71,8 @@ ${base(bg)}
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px; }
 .explainer-label { font-family:${fonts.headline};font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:4px;opacity:0.45; }
-.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical; }
-.deck { font-family:${fonts.body};font-size:30px;font-weight:400;line-height:1.5;opacity:0.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:${hlZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 5};-webkit-box-orient:vertical; }
+.deck { font-family:${fonts.body};font-size:${deckZone.fontSize}px;font-weight:400;line-height:${deckZone.lineHeight};opacity:0.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${deckZone.limits.maxLines ?? 2};-webkit-box-orient:vertical; }
 .slide-nav { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
@@ -96,6 +101,9 @@ function buildExpConceptSlide(
   slideIndex: number,
   totalSlides: number,
 ): string {
+  const cfg = getTemplateConfig("explainer-carousel");
+  const hlZone = resolveZone(cfg, "headline", "detail")!;
+  const bodyZone = resolveZone(cfg, "body", "detail")!;
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 ${base(bg)}
@@ -105,9 +113,9 @@ ${base(bg)}
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:32px; }
 .concept-num { font-family:${fonts.headline};font-size:80px;font-weight:900;color:${accent};opacity:0.2;line-height:1;letter-spacing:-3px; }
-.headline { font-family:${fonts.headline};font-size:52px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlZone.fontSize}px;font-weight:800;line-height:${hlZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
-.body { font-family:${fonts.body};font-size:32px;line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:8;-webkit-box-orient:vertical; }
+.body { font-family:${fonts.body};font-size:${bodyZone.fontSize}px;line-height:${bodyZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.maxLines ?? 8};-webkit-box-orient:vertical; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
@@ -179,9 +187,3 @@ function base(bg: string): string {
 body { width:1080px;height:1350px;font-family:${fonts.body};background:${bg};color:#fff;overflow:hidden;position:relative; }`;
 }
 
-function expCoverSize(headline: string): number {
-  const words = headline.trim().split(/\s+/).length;
-  if (words <= 5) return 80;
-  if (words <= 8) return 70;
-  return 58;
-}

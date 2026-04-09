@@ -17,6 +17,8 @@
  */
 
 import type { SlideContent } from "../types/post.js";
+import { getTemplateConfig } from "../config/templateLimits.js";
+import { resolveZone, resolveEffectiveFontSize } from "../types/post.js";
 import {
   BRAND,
   GOOGLE_FONTS_LINK,
@@ -65,6 +67,10 @@ function buildOppCoverSlide(
     ? `linear-gradient(to bottom, ${bg}dd 0%, ${bg}44 35%, ${bg}aa 70%, ${bg}f8 100%)`
     : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
+  const cfg = getTemplateConfig("opportunity-carousel");
+  const hlZone = resolveZone(cfg, "headline", "cover")!;
+  const hlSize = resolveEffectiveFontSize(hlZone, slide.headline);
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 ${base(bg, bodyBg)}
@@ -74,7 +80,7 @@ ${base(bg, bodyBg)}
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px;padding-bottom:80px; }
-.headline { font-family:${fonts.headline};font-size:${oppCoverSize(slide.headline)}px;font-weight:900;line-height:1.08;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:${hlZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 4};-webkit-box-orient:vertical; }
 .swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
 </style></head><body>
 <div class="overlay"></div>
@@ -105,6 +111,10 @@ function buildOppDetailSlide(
 ): string {
   const bullets = parseBullets(slide.body ?? "");
 
+  const cfg = getTemplateConfig("opportunity-carousel");
+  const hlZone = resolveZone(cfg, "headline", "detail")!;
+  const bodyZone = resolveZone(cfg, "body", "detail")!;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 ${base(bg)}
@@ -113,7 +123,7 @@ ${base(bg)}
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px; }
-.headline { font-family:${fonts.headline};font-size:50px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.headline { font-family:${fonts.headline};font-size:${hlZone.fontSize}px;font-weight:800;line-height:${hlZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
 .bullets { display:flex;flex-direction:column;gap:18px; }
 </style></head><body>
@@ -130,9 +140,9 @@ ${premiumAtmosphereHtml(accent)}
         ? bullets.map(b => `
         <div style="display:flex;gap:18px;align-items:flex-start">
           <div style="width:10px;height:10px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:11px"></div>
-          <span style="font-family:${fonts.body};font-size:30px;line-height:1.55;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${escapeHtml(b)}</span>
+          <span style="font-family:${fonts.body};font-size:${bodyZone.fontSize}px;line-height:${bodyZone.lineHeight};flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical">${escapeHtml(b)}</span>
         </div>`).join("")
-        : slide.body ? `<p style="font-family:${fonts.body};font-size:30px;line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
+        : slide.body ? `<p style="font-family:${fonts.body};font-size:${bodyZone.fontSize}px;line-height:${bodyZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.maxLines ?? 7};-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
     </div>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
@@ -152,6 +162,10 @@ function buildDeadlineSlide(
 ): string {
   const deadline = slide.deadline ?? slide.headline;
 
+  const cfg = getTemplateConfig("opportunity-carousel");
+  const dlZone = resolveZone(cfg, "deadline", "deadline")!;
+  const noteZone = resolveZone(cfg, "body", "deadline")!;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 ${base(bg)}
@@ -161,8 +175,8 @@ ${base(bg)}
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:24px; }
 .label { font-family:${fonts.headline};font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:4px;opacity:0.5; }
-.deadline-val { font-family:${fonts.headline};font-size:72px;font-weight:900;line-height:1.05;color:${accent};overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
-.note { font-family:${fonts.body};font-size:28px;opacity:0.65;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.deadline-val { font-family:${fonts.headline};font-size:${dlZone.fontSize}px;font-weight:900;line-height:${dlZone.lineHeight};color:${accent};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${dlZone.limits.maxLines ?? 2};-webkit-box-orient:vertical; }
+.note { font-family:${fonts.body};font-size:${noteZone.fontSize}px;opacity:0.65;line-height:${noteZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${noteZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .rule { width:80px;height:4px;background:${accent};border-radius:2px; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
@@ -242,9 +256,3 @@ function parseBullets(body: string): string[] {
   return body.split(/\n|•/).map(s => s.trim()).filter(Boolean);
 }
 
-function oppCoverSize(headline: string): number {
-  const words = headline.trim().split(/\s+/).length;
-  if (words <= 6) return 80;
-  if (words <= 9) return 70;
-  return 58;
-}

@@ -16,6 +16,7 @@
 
 import type { SlideContent } from "../types/post.js";
 import { getTemplateConfig } from "../config/templateLimits.js";
+import { resolveZone } from "../types/post.js";
 import { validateSlide } from "./validateCopyLimits.js";
 import { measureSlide } from "./measureText.js";
 
@@ -113,14 +114,15 @@ export function rewriteSlideCopy(
       // Pass 1: shorten headline by removing dependent clauses
       case 1: {
         const cfg = getTemplateConfig(templateId);
-        current = applyHeadlineShorten(current, cfg.zones.headline.limits.maxWords ?? 16);
+        const hlZone = resolveZone(cfg, "headline", current.layoutVariant);
+        current = applyHeadlineShorten(current, hlZone?.limits.maxWords ?? 16);
         break;
       }
 
       // Pass 2: compress body, moving last sentence to caption
       case 2: {
         const cfg = getTemplateConfig(templateId);
-        const bodyZone = cfg.zones.body;
+        const bodyZone = resolveZone(cfg, "body", current.layoutVariant);
         const maxWords = bodyZone?.limits.maxWords ?? 40;
         const { slide: compressed, moved } = applyBodyCompress(current, maxWords);
         current = compressed;
@@ -131,7 +133,7 @@ export function rewriteSlideCopy(
       // Pass 3: hard word-count truncation (last resort)
       default: {
         const cfg = getTemplateConfig(templateId);
-        current = applyHardTruncate(current, cfg);
+        current = applyHardTruncate(current, cfg, current.layoutVariant);
         break;
       }
     }
@@ -235,16 +237,18 @@ function applyBodyCompress(
 function applyHardTruncate(
   slide: SlideContent,
   config: ReturnType<typeof getTemplateConfig>,
+  variant?: string,
 ): SlideContent {
   const result = { ...slide };
 
-  const hlMax = config.zones.headline.limits.maxWords;
+  const hlZone = resolveZone(config, "headline", variant);
+  const hlMax = hlZone?.limits.maxWords;
   if (hlMax != null) {
     const words = slide.headline.split(/\s+/).filter(Boolean);
     if (words.length > hlMax) result.headline = words.slice(0, hlMax).join(" ");
   }
 
-  const bodyZone = config.zones.body;
+  const bodyZone = resolveZone(config, "body", variant);
   const bodyMax = bodyZone?.limits.maxWords;
   const pbMax = bodyZone?.limits.perBulletMaxLines;
 
@@ -276,7 +280,7 @@ function applyHardTruncate(
     if (words.length > bodyMax) result.body = words.slice(0, bodyMax).join(" ");
   }
 
-  const slZone = config.zones.supportLine;
+  const slZone = resolveZone(config, "supportLine", variant);
   const slMax = slZone?.limits.maxWords;
   if (slMax != null && slide.supportLine) {
     const words = slide.supportLine.split(/\s+/).filter(Boolean);
@@ -284,7 +288,7 @@ function applyHardTruncate(
   }
 
   // sourceLine: truncate to maxChars (preferred) or maxWords
-  const srcZone = config.zones.sourceLine;
+  const srcZone = resolveZone(config, "sourceLine", variant);
   if (srcZone && slide.sourceLine) {
     const maxChars = srcZone.limits.maxChars;
     const srcMax = srcZone.limits.maxWords;

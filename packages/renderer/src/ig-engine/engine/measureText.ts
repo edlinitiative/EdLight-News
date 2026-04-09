@@ -22,6 +22,7 @@
  */
 
 import type { MeasureTextInput, MeasureTextResult, FitResult, SlideContent, TemplateConfig } from "../types/post.js";
+import { resolveZone, resolveEffectiveFontSize } from "../types/post.js";
 import { getFontCoefficients } from "../config/fonts.js";
 import type { FontCoefficients } from "../config/fonts.js";
 
@@ -70,7 +71,7 @@ export function measureText(input: MeasureTextInput, language?: string): Measure
 export function measureSlide(slide: SlideContent, config: TemplateConfig, language?: string): FitResult[] {
   const results: FitResult[] = [];
 
-  const fields: Array<{ name: string; text: string | undefined; zone: keyof typeof config.zones }> = [
+  const fields: Array<{ name: string; text: string | undefined; zone: string }> = [
     { name: "headline", text: slide.headline, zone: "headline" },
     { name: "body", text: slide.body, zone: "body" },
     { name: "supportLine", text: slide.supportLine, zone: "supportLine" },
@@ -82,12 +83,13 @@ export function measureSlide(slide: SlideContent, config: TemplateConfig, langua
 
   for (const { name, text, zone } of fields) {
     if (!text) continue;
-    const zoneConfig = config.zones[zone];
+    const zoneConfig = resolveZone(config, zone, slide.layoutVariant);
     if (!zoneConfig) continue;
 
+    const effectiveFontSize = resolveEffectiveFontSize(zoneConfig, text);
     const result = measureText({
       text,
-      fontSize: zoneConfig.fontSize,
+      fontSize: effectiveFontSize,
       fontFamily: zoneConfig.fontFamily,
       boxWidth: zoneConfig.box.width,
       boxHeight: zoneConfig.box.height,
@@ -116,9 +118,10 @@ export function measureSlide(slide: SlideContent, config: TemplateConfig, langua
         : zoneConfig.limits.perBulletMaxLines;
       const bulletTexts = text.split(/\n|•/).map(s => s.trim()).filter(Boolean);
       for (let bi = 0; bi < bulletTexts.length; bi++) {
+        const effectiveBulletFontSize = resolveEffectiveFontSize(zoneConfig, bulletTexts[bi]!);
         const bulletResult = measureText({
           text: bulletTexts[bi]!,
-          fontSize: zoneConfig.fontSize,
+          fontSize: effectiveBulletFontSize,
           fontFamily: zoneConfig.fontFamily,
           boxWidth: zoneConfig.box.width,
           boxHeight: zoneConfig.box.height,
