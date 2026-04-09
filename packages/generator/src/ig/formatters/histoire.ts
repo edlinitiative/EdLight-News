@@ -51,6 +51,8 @@ const MAX_BULLETS_PER_SLIDE = 2;
 const DETAIL_BULLET_CHARS = 160;
 /** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~90 safe chars. */
 const COVER_BULLET_CHARS = 90;
+/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~130 safe chars. */
+const DECK_LINE_CHARS = 130;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
@@ -457,9 +459,9 @@ export function buildHistoireCarousel(
 
   // Deck line (first bullet → supportLine): the main event's first sentence
   const deckLine = mainEventFirstSentence
-    ? shortenText(mainEventFirstSentence, 110)
+    ? shortenText(mainEventFirstSentence, DECK_LINE_CHARS)
     : mainEventRawTitle
-      ? shortenText(mainEventRawTitle, 120)
+      ? shortenText(mainEventRawTitle, DECK_LINE_CHARS)
       : "";
 
   // Summary facts (bullets 1+): additional key facts for a richer cover
