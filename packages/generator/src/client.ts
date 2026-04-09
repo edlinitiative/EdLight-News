@@ -34,36 +34,68 @@ function resolveProvider(opts?: LLMOptions): LLMProvider {
   return opts?.provider ?? (process.env.LLM_PROVIDER as LLMProvider) ?? "gemini";
 }
 
-/**
- * Provider-agnostic LLM call. Defaults to Gemini, but supports plugging
- * in other providers via LLM_PROVIDER env var or explicit option.
- * This abstraction lets you swap to free-tier LLMs for specific tasks
- * (e.g. the reviewer pass) without changing call sites.
- */
-export async function callLLM(prompt: string, opts?: LLMOptions): Promise<string> {
-  const provider = resolveProvider(opts);
+/** Ordered fallback chain — tried in this order after the primary provider fails. */
+const FALLBACK_CHAIN: LLMProvider[] = ["gemini", "mistral", "groq", "openrouter"];
 
+/** Returns true when the provider's API key is present in the environment. */
+function hasApiKey(provider: LLMProvider): boolean {
   switch (provider) {
-    case "gemini":
-      return callGeminiInternal(prompt, opts);
-    case "openai":
-      return callOpenAIInternal(prompt, opts);
-    case "anthropic":
-      return callAnthropicInternal(prompt, opts);
-    case "groq":
-      return callGroqInternal(prompt, opts);
-    case "mistral":
-      return callMistralInternal(prompt, opts);
-    case "openrouter":
-      return callOpenRouterInternal(prompt, opts);
-    default:
-      throw new Error(`Unsupported LLM provider: ${provider}`);
+    case "gemini":     return !!process.env.GEMINI_API_KEY;
+    case "openai":     return !!process.env.OPENAI_API_KEY;
+    case "anthropic":  return !!process.env.ANTHROPIC_API_KEY;
+    case "groq":       return !!process.env.GROQ_API_KEY;
+    case "mistral":    return !!process.env.MISTRAL_API_KEY;
+    case "openrouter": return !!process.env.OPENROUTER_API_KEY;
+    default:           return false;
   }
 }
 
-/** Backward-compatible alias — calls Gemini specifically. */
+/** Dispatch to a single provider's implementation. */
+async function callProvider(provider: LLMProvider, prompt: string, opts?: LLMOptions): Promise<string> {
+  switch (provider) {
+    case "gemini":     return callGeminiInternal(prompt, opts);
+    case "openai":     return callOpenAIInternal(prompt, opts);
+    case "anthropic":  return callAnthropicInternal(prompt, opts);
+    case "groq":       return callGroqInternal(prompt, opts);
+    case "mistral":    return callMistralInternal(prompt, opts);
+    case "openrouter": return callOpenRouterInternal(prompt, opts);
+    default:           throw new Error(`Unsupported LLM provider: ${provider}`);
+  }
+}
+
+/**
+ * Provider-agnostic LLM call with automatic fallback chain.
+ *
+ * Primary provider: opts.provider → LLM_PROVIDER env var → "gemini".
+ * On failure, cascades through FALLBACK_CHAIN (skipping the primary and any
+ * provider whose API key is not configured). Throws only when all available
+ * providers have been exhausted.
+ */
+export async function callLLM(prompt: string, opts?: LLMOptions): Promise<string> {
+  const primary = resolveProvider(opts);
+  // Build chain: primary first, then fallbacks (no duplicates)
+  const chain = [primary, ...FALLBACK_CHAIN.filter(p => p !== primary)];
+  // Skip providers with no API key — no point attempting them
+  const available = chain.filter(hasApiKey);
+  if (available.length === 0) {
+    throw new Error("No LLM providers have API keys configured. Set at least GEMINI_API_KEY.");
+  }
+
+  let lastError: Error | undefined;
+  for (const provider of available) {
+    try {
+      return await callProvider(provider, prompt, opts);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      console.warn(`[callLLM] provider=${provider} failed: ${lastError.message} — trying next`);
+    }
+  }
+  throw lastError ?? new Error("All LLM providers failed.");
+}
+
+/** Backward-compatible alias — routes through callLLM to benefit from the fallback chain. */
 export async function callGemini(prompt: string): Promise<string> {
-  return callGeminiInternal(prompt);
+  return callLLM(prompt);
 }
 
 // ── Gemini (default) ───────────────────────────────────────────────────────

@@ -24,7 +24,7 @@
  */
 
 import { z } from "zod";
-import { callGemini } from "./client.js";
+import { callLLM } from "./client.js";
 
 // ── Zod output schema ───────────────────────────────────────────────────────
 
@@ -210,7 +210,7 @@ export async function normalizeArticle(
 ): Promise<NormalizeArticleResult | NormalizeArticleError> {
   try {
     const prompt = buildNormalizePrompt(input);
-    const raw = await callGemini(prompt);
+    const raw = await callLLM(prompt);
 
     // Parse JSON from response
     let parsed: unknown;

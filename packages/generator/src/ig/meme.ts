@@ -13,7 +13,7 @@
  */
 
 import type { Item, IGMemeTemplate, IGMemeSlide, IGMemePanel } from "@edlight-news/types";
-import { callGemini } from "../client.js";
+import { callLLM } from "../client.js";
 
 // ── Template metadata (helps Gemini pick the right one) ────────────────────
 
@@ -214,7 +214,7 @@ export async function generateMemeSlide(
 ): Promise<GenerateMemeResult | GenerateMemeError> {
   try {
     const prompt = buildMemePrompt(item, igType);
-    const raw = await callGemini(prompt);
+    const raw = await callLLM(prompt);
 
     let parsed: unknown;
     try {

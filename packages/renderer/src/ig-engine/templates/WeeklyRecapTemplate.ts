@@ -137,25 +137,42 @@ function buildRecapCtaSlide(
   bg: string,
   totalSlides: number,
 ): string {
+  const hasImage = Boolean(slide.imageUrl);
+  const bodyBg = hasImage ? `${bg} url('${slide.imageUrl}') center/cover no-repeat` : bg;
+  const overlay = hasImage
+    ? `linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.92) 100%)`
+    : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
-${base(bg)}
-.canvas { position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:90px;gap:36px;text-align:center; }
-.wordmark { font-family:${fonts.headline};font-size:30px;font-weight:800;letter-spacing:4px;display:flex;gap:10px; }
-.wordmark .el { color:rgba(255,255,255,0.9); }
-.wordmark .nw { color:${accent}; }
-.rule { width:80px;height:3px;background:${accent};border-radius:2px; }
-.cta { font-family:${fonts.body};font-size:34px;font-weight:500;line-height:1.45;opacity:0.75;max-width:820px; }
-.handle { font-family:${fonts.headline};font-size:38px;font-weight:800;color:${accent}; }
-.badge { position:absolute;top:92px;right:90px;font-family:${fonts.headline};font-size:17px;opacity:0.25;letter-spacing:1px; }
+* { margin:0;padding:0;box-sizing:border-box; }
+body { width:1080px;height:1350px;font-family:${fonts.body};background:${bodyBg};color:#fff;overflow:hidden;position:relative; }
+${hasImage ? `.img-overlay { position:absolute;inset:0;background:${overlay};pointer-events:none; }` : ""}
+.canvas { position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:80px 90px; }
+.top-brand { display:flex;align-items:center;gap:10px;font-family:${fonts.headline};font-size:24px;font-weight:900;letter-spacing:4px; }
+.top-brand .el { color:rgba(255,255,255,0.88); }
+.top-brand .nw { color:${accent}; }
+.top-rule { width:56px;height:3px;background:${accent};border-radius:2px;margin-top:14px; }
+.center { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:32px; }
+.display-h { font-family:${fonts.headline};font-size:80px;font-weight:900;line-height:1.02;letter-spacing:-2px;text-shadow:0 4px 48px rgba(0,0,0,0.9),0 2px 16px rgba(0,0,0,0.7); }
+.rule { width:72px;height:4px;background:${accent};border-radius:2px; }
+.tagline { font-family:${fonts.body};font-size:34px;font-weight:500;line-height:1.45;opacity:0.88;max-width:820px;text-shadow:0 2px 24px rgba(0,0,0,0.7); }
+.handle { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:26px;font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:18px 48px;border-radius:8px;box-shadow:0 8px 32px ${accent}55; }
 </style></head><body>
+${hasImage ? `<div class="img-overlay"></div>` : ""}
 <div class="canvas">
-  <div class="wordmark"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
-  <div class="rule"></div>
-  <p class="cta">${escapeHtml(slide.body ?? "Chaque semaine, les informations les plus importantes pour les étudiants haïtiens.")}</p>
-  <p class="handle">@edlightnews</p>
+  <div>
+    <div class="top-brand"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
+    <div class="top-rule"></div>
+  </div>
+  <div class="center">
+    <p class="display-h">${escapeHtml(slide.headline ?? "Suivez EdLight News")}</p>
+    <div class="rule"></div>
+    <p class="tagline">${escapeHtml(slide.body ?? "Chaque semaine, les informations les plus importantes pour les étudiants haïtiens.")}</p>
+    <div class="handle">@edlightnews</div>
+  </div>
+  <span></span>
 </div>
-<span class="badge">${totalSlides} / ${totalSlides}</span>
 </body></html>`;
 }
 

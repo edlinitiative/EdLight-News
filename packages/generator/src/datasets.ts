@@ -9,7 +9,7 @@
  */
 
 import { z } from "zod";
-import { callGemini } from "./client.js";
+import { callLLM } from "./client.js";
 
 // ── Output schemas ──────────────────────────────────────────────────────────
 
@@ -115,7 +115,7 @@ export async function generateDatasetArticle(
   const systemPrompt = buildDatasetPrompt(input);
 
   try {
-    const raw = await callGemini(systemPrompt);
+    const raw = await callLLM(systemPrompt);
 
     // Try to parse the JSON
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
