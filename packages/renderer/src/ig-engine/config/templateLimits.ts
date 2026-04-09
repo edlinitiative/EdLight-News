@@ -118,7 +118,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       body: {
         box: { x: SIDE, y: 460, width: INNER_W, height: 690 },
         fontSize: 32, minFontSize: 26, fontFamily: "Inter", lineHeight: 1.5,
-        limits: { maxWords: 40, maxLines: 8, perBulletMaxLines: 3 },
+        limits: { maxWords: 40, maxLines: 8, perBulletMaxLines: 4 },
       },
       supportLine: {
         box: { x: SIDE, y: 480, width: INNER_W, height: 150 },
@@ -161,7 +161,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         body: {
           box: { x: SIDE, y: 460, width: INNER_W, height: 690 },
           fontSize: 32, minFontSize: 26, fontFamily: "Inter", lineHeight: 1.5,
-          limits: { maxWords: 40, maxLines: 8, perBulletMaxLines: 3 },
+          limits: { maxWords: 40, maxLines: 8, perBulletMaxLines: 4 },
         },
       },
       data: {
@@ -205,7 +205,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       body: {
         box: { x: SIDE, y: 430, width: INNER_W, height: 650 },
         fontSize: 30, minFontSize: 24, fontFamily: "Inter", lineHeight: 1.55,
-        limits: { maxWords: 30, maxLines: 7, perBulletMaxLines: 3 },
+        limits: { maxWords: 30, maxLines: 7, perBulletMaxLines: 4 },
       },
       deadline: {
         box: { x: SIDE, y: 440, width: INNER_W, height: 150 },
@@ -236,7 +236,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         body: {
           box: { x: SIDE, y: 430, width: INNER_W, height: 650 },
           fontSize: 30, minFontSize: 24, fontFamily: "Inter", lineHeight: 1.55,
-          limits: { maxWords: 30, maxLines: 7, perBulletMaxLines: 3 },
+          limits: { maxWords: 30, maxLines: 7, perBulletMaxLines: 4 },
         },
       },
       deadline: {
@@ -513,6 +513,22 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     },
   },
 };
+
+// ── Derived char-budget constants ─────────────────────────────────────────────
+// Formatters must cap bullet text to these values so the CSS line-clamp
+// acts as a safety net, not a routine truncation mechanism.
+//
+// Formula: (INNER_W / (fontSize × avgCharCoeff)) × safetyFactor × clampLines
+//   avgCharCoeff ≈ 0.52 for Inter.  safetyFactor ≈ 0.75 accounts for
+//   word-wrap overhead and long French compound words.
+
+/** Safe chars for detail body bullets: 32 px Inter, 900 px wide, 4-line clamp.
+ *  (900 / (32 × 0.52)) × 0.75 × 4 ≈ 163 — use 160 as working limit. */
+export const DETAIL_BULLET_CHARS = 160;
+
+/** Safe chars for cover body facts: 28 px Inter, 900 px wide, 2-line clamp.
+ *  (900 / (28 × 0.52)) × 0.75 × 2 ≈ 92 — use 90 as working limit. */
+export const COVER_BULLET_CHARS = 90;
 
 // ── Lookup helpers ────────────────────────────────────────────────────────────
 

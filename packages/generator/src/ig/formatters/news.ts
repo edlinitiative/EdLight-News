@@ -20,6 +20,10 @@
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
 import { buildCaption, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, looksEnglish, looksLikeCreole, type BilingualText } from "./helpers.js";
+
+// Char budget derived from zone config in @edlight-news/renderer templateLimits.ts.
+// 32 px Inter, 900 px wide, 4-line clamp → ~160 safe chars. Keep in sync.
+const DETAIL_BULLET_CHARS = 160;
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -255,8 +259,6 @@ function buildSectionSlides(
 
 /** Max bullets per section slide. */
 const NEWS_MAX_BULLETS = 2;
-/** Max chars per bullet — must fit within 3-line CSS clamp at 32px/900px. */
-const NEWS_MAX_BULLET_CHARS = 140;
 
 /** Split section content into digestible bullets for a news slide. */
 function sectionToBullets(content: string): string[] {
@@ -268,7 +270,7 @@ function sectionToBullets(content: string): string[] {
   }
   return parts
     .slice(0, NEWS_MAX_BULLETS)
-    .map((b) => cleanSlideText(b.length > NEWS_MAX_BULLET_CHARS ? shortenText(b, NEWS_MAX_BULLET_CHARS) : b));
+    .map((b) => cleanSlideText(b.length > DETAIL_BULLET_CHARS ? shortenText(b, DETAIL_BULLET_CHARS) : b));
 }
 
 // ── French language detection ──────────────────────────────────────────────

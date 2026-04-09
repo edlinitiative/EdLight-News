@@ -43,8 +43,14 @@ const HISTOIRE_CTA_IMAGE =
 /** Max bullets per history slide — tighter, cleaner pacing than dense 3-bullet cards. */
 const MAX_BULLETS_PER_SLIDE = 2;
 
-/** Max chars per bullet — must fit within 3-line CSS clamp at 32px/900px. */
-const MAX_BULLET_CHARS = 140;
+// Char budgets derived from zone configs in @edlight-news/renderer templateLimits.ts.
+// Formula: (INNER_W / (fontSize × 0.52)) × 0.75 safety × clampLines.
+// Keep in sync with perBulletMaxLines values in the template configs.
+
+/** Detail body bullets: 32 px Inter, 900 px, 4-line clamp → ~160 safe chars. */
+const DETAIL_BULLET_CHARS = 160;
+/** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~90 safe chars. */
+const COVER_BULLET_CHARS = 90;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
@@ -175,7 +181,7 @@ function sectionToBullets(content: string): string[] {
 
   return paragraphs
     .slice(0, MAX_BULLETS_PER_SLIDE)
-    .map((b) => shortenText(b, MAX_BULLET_CHARS));
+    .map((b) => shortenText(b, DETAIL_BULLET_CHARS));
 }
 
 /**
@@ -374,7 +380,7 @@ function buildHistoireNarrativeSlides(
   if (sentences.length === 0) return [];
 
   // Group into slides: MAX_BULLETS_PER_SLIDE sentences per slide, each sentence
-  // as its own bullet capped at MAX_BULLET_CHARS. This prevents joining 3 sentences
+  // as its own bullet capped at DETAIL_BULLET_CHARS. This prevents joining 3 sentences
   // into a single 300-400 char mega-bullet that overflows the slide.
   //
   // Vary the heading per slide to avoid "Bataille de Santiago" repeating 3×.
@@ -395,7 +401,7 @@ function buildHistoireNarrativeSlides(
     }
     paraSlides.push({
       heading,
-      bullets: chunk.map((s) => shortenText(s, MAX_BULLET_CHARS)),
+      bullets: chunk.map((s) => shortenText(s, DETAIL_BULLET_CHARS)),
       layout: "explanation",
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     });
@@ -581,7 +587,7 @@ export function buildHistoireCarousel(
         pushHistorySlide(
           slides,
           headings[slideIdx] ?? `Partie ${slideIdx + 1}`,
-          chunk.map((f) => shortenText(f, MAX_BULLET_CHARS)),
+          chunk.map((f) => shortenText(f, DETAIL_BULLET_CHARS)),
           imageUrl,
         );
         slideIdx++;
@@ -603,7 +609,7 @@ export function buildHistoireCarousel(
         const firstSentence = splitSentences(
           stripMarkdown(s.content.split(/\n{2,}/)[0] ?? ""),
         ).find((sent) => sent.length >= 20 && !isJunkSentence(sent) && !isSourceLine(sent));
-        if (firstSentence) return shortenText(firstSentence, 130);
+        if (firstSentence) return shortenText(firstSentence, DETAIL_BULLET_CHARS);
         // Fallback to year-prefixed heading if content has no usable sentence.
         const heading = normalizeHistoryEventHeading(s.heading);
         if (!heading) return null;
@@ -807,7 +813,7 @@ function buildHistorySummaryLines(
   if (fallbackSummary) {
     const summarySentences = splitSentences(stripMarkdown(fallbackSummary));
     for (const sentence of summarySentences) {
-      const candidate = shortenText(sentence, 150);
+      const candidate = shortenText(sentence, COVER_BULLET_CHARS);
       const key = candidate.toLowerCase();
       if (!candidate || seen.has(key)) continue;
       seen.add(key);
@@ -823,7 +829,7 @@ function buildHistorySummaryLines(
         !isJunkSentence(sentence) &&
         !isSourceLine(sentence),
     )[0];
-    const candidate = shortenText(firstSentence ?? section.heading, 150);
+    const candidate = shortenText(firstSentence ?? section.heading, COVER_BULLET_CHARS);
     const key = candidate.toLowerCase();
     if (!candidate || seen.has(key)) continue;
     seen.add(key);
