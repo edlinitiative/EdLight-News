@@ -443,9 +443,9 @@ export function shortenText(text: string, max: number): string {
   if (text.length <= max) return text;
 
   // Prefer ending at the last complete sentence inside the budget.
-  // Look for sentence-ending punctuation followed by a space and uppercase letter.
+  // Look for sentence-ending punctuation followed by a space (or end-of-string).
   const window = text.slice(0, max);
-  const sentenceRe = /[.!?][)"'»]?\s/g;
+  const sentenceRe = /[.!?][)"'»]?(?:\s|$)/g;
   let lastCut = -1;
   let m: RegExpExecArray | null;
   while ((m = sentenceRe.exec(window)) !== null) {
@@ -459,7 +459,7 @@ export function shortenText(text: string, max: number): string {
   // Second chance: check if text ends with sentence punctuation just past the budget
   // (i.e. the sentence is only slightly too long). If within 15% overshoot, allow it.
   const slightOvershoot = text.slice(0, Math.floor(max * 1.15));
-  const overRe = /[.!?][)"'»]?\s/g;
+  const overRe = /[.!?][)"'»]?(?:\s|$)/g;
   let firstPastBudget: number | null = null;
   while ((m = overRe.exec(slightOvershoot)) !== null) {
     const cutAt = m.index + m[0].trimEnd().length;
