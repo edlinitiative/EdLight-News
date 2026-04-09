@@ -179,7 +179,11 @@ function adaptSlide(slide: IGSlide, index: number): SlideContent {
   if (isCover) {
     // First bullet serves as the deck / support line on the cover
     supportLine = slide.bullets[0] ?? undefined;
-    // Remaining bullets (if any) are not surfaced on cover slides
+    // Remaining bullets become body text (summary facts) on the cover
+    const remaining = slide.bullets.slice(1);
+    if (remaining.length > 0) {
+      body = bulletsToBody(remaining);
+    }
   } else if (isData) {
     // Data slides: bullets provide supplementary description text
     body = bulletsToBody(slide.bullets);

@@ -73,6 +73,8 @@ function buildCoverSlide(
     : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
   const hlSize = coverHeadlineSize(slide.headline);
+  const hasDeck = Boolean(slide.supportLine);
+  const coverFacts = slide.body ? slide.body.split(/\n|•/).map(s => s.trim()).filter(Boolean) : [];
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
@@ -82,8 +84,13 @@ ${baseReset(bg, bodyBg)}
 .top { display:flex;justify-content:space-between;align-items:flex-start; }
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
-.mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-bottom:80px; }
-.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical; }
+.mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-bottom:${hasDeck ? '40' : '80'}px; }
+.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:1.08;letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hasDeck ? 3 : 6};-webkit-box-orient:vertical; }
+.deck-rule { width:72px;height:3px;background:${accent};border-radius:2px;margin:4px 0; }
+.deck { font-family:${fonts.body};font-size:34px;font-weight:500;line-height:1.4;opacity:0.88;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical; }
+.cover-facts { display:flex;flex-direction:column;gap:12px;margin-top:4px; }
+.cover-fact { display:flex;gap:14px;align-items:flex-start;font-family:${fonts.body};font-size:28px;font-weight:400;line-height:1.45;opacity:0.78;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical; }
+.fact-dot { width:7px;height:7px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:11px; }
 .swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:12px; }
 </style></head><body>
 <div class="overlay"></div>
@@ -94,6 +101,9 @@ ${premiumAtmosphereHtml(accent)}
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
+    ${hasDeck ? `<div class="deck-rule"></div>
+    <p class="deck">${escapeHtml(slide.supportLine!)}</p>` : ''}
+    ${coverFacts.length > 0 ? `<div class="cover-facts">${coverFacts.map(f => `<div class="cover-fact"><div class="fact-dot"></div><span style="flex:1">${escapeHtml(f)}</span></div>`).join('')}</div>` : ''}
     <p class="swipe">Glissez pour en savoir plus →</p>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}

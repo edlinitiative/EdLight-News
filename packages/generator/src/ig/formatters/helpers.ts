@@ -472,9 +472,11 @@ export function shortenHeadline(text: string, maxWords = 10, maxChars = 130): st
     return result + "…";
   }
 
-  // If we only word-truncated and it fits in maxChars, try to end cleanly
+  // If we only word-truncated and it fits in maxChars, try to end at a
+  // clause boundary for a cleaner cut. Never append "…" — the rendering
+  // pipeline's CSS line-clamp serves as the visual safety net if text
+  // still overflows, and the rewrite engine handles pixel-level fit.
   if (wordTruncated) {
-    // Try to end at a clause boundary within the result
     const clauseBreak = Math.max(
       result.lastIndexOf(", "),
       result.lastIndexOf("; "),
@@ -485,7 +487,8 @@ export function shortenHeadline(text: string, maxWords = 10, maxChars = 130): st
     if (clauseBreak > result.length * 0.6) {
       return result.slice(0, clauseBreak).replace(/[,;:\s]+$/, "");
     }
-    return result + "…";
+    // Return the word-trimmed result as-is — no ellipsis.
+    return result;
   }
 
   return result;
