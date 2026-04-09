@@ -34,11 +34,12 @@ export function buildBreakingNewsPost(item: Item, bi?: BilingualText): IGFormatt
         ? "Diaspora"
         : "International";
 
-  // Supporting one-liner: first 18 words of summary
+  // Supporting one-liner: first 10 words of summary
+  // (supportLine box is 900×110px at 30px — fits ~2 lines; keep margin)
   const words = summary.split(/\s+/).filter(Boolean);
   const supporting =
     words.length > 0
-      ? words.slice(0, 18).join(" ") + (words.length > 18 ? "…" : "")
+      ? words.slice(0, 10).join(" ") + (words.length > 10 ? "…" : "")
       : "";
 
   const slides: IGSlide[] = [

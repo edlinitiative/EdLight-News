@@ -43,8 +43,8 @@ const HISTOIRE_CTA_IMAGE =
 /** Max bullets per history slide — tighter, cleaner pacing than dense 3-bullet cards. */
 const MAX_BULLETS_PER_SLIDE = 2;
 
-/** Max chars per bullet — enough context without turning slides into paragraphs. */
-const MAX_BULLET_CHARS = 180;
+/** Max chars per bullet — must fit within 3-line CSS clamp at 32px/900px. */
+const MAX_BULLET_CHARS = 140;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
@@ -803,7 +803,7 @@ function buildHistorySummaryLines(
   if (fallbackSummary) {
     const summarySentences = splitSentences(stripMarkdown(fallbackSummary));
     for (const sentence of summarySentences) {
-      const candidate = shortenText(sentence, 105);
+      const candidate = shortenText(sentence, 150);
       const key = candidate.toLowerCase();
       if (!candidate || seen.has(key)) continue;
       seen.add(key);
@@ -819,7 +819,7 @@ function buildHistorySummaryLines(
         !isJunkSentence(sentence) &&
         !isSourceLine(sentence),
     )[0];
-    const candidate = shortenText(firstSentence ?? section.heading, 105);
+    const candidate = shortenText(firstSentence ?? section.heading, 150);
     const key = candidate.toLowerCase();
     if (!candidate || seen.has(key)) continue;
     seen.add(key);

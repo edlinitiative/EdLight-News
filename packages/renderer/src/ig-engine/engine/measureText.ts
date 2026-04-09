@@ -105,6 +105,38 @@ export function measureSlide(slide: SlideContent, config: TemplateConfig, langua
         ? undefined
         : buildAdjustmentHint(name, text, zoneConfig.limits.maxLines ?? result.maxLines, result.linesUsed),
     });
+
+    // Per-bullet measurement: CSS templates clamp each bullet individually
+    // (e.g. -webkit-line-clamp:3 per bullet, clamp:2 for cover facts).
+    // Measure each bullet separately so the rewrite engine can fix them.
+    if (name === "body" && zoneConfig.limits.perBulletMaxLines && text && /[•\n]/.test(text)) {
+      // Cover facts render at smaller font with tighter clamp (2 lines at 28px)
+      const bulletClamp = slide.layoutVariant === "cover"
+        ? Math.min(zoneConfig.limits.perBulletMaxLines, 2)
+        : zoneConfig.limits.perBulletMaxLines;
+      const bulletTexts = text.split(/\n|•/).map(s => s.trim()).filter(Boolean);
+      for (let bi = 0; bi < bulletTexts.length; bi++) {
+        const bulletResult = measureText({
+          text: bulletTexts[bi]!,
+          fontSize: zoneConfig.fontSize,
+          fontFamily: zoneConfig.fontFamily,
+          boxWidth: zoneConfig.box.width,
+          boxHeight: zoneConfig.box.height,
+          lineHeight: zoneConfig.lineHeight,
+          lineClamp: bulletClamp,
+        }, language);
+        results.push({
+          field: `body.bullet[${bi}]`,
+          fits: bulletResult.fits,
+          linesUsed: bulletResult.linesUsed,
+          maxLines: bulletResult.maxLines,
+          overflowPx: bulletResult.overflowPx,
+          recommendedAdjustment: bulletResult.fits
+            ? undefined
+            : buildAdjustmentHint(`body.bullet[${bi}]`, bulletTexts[bi]!, bulletClamp, bulletResult.linesUsed),
+        });
+      }
+    }
   }
 
   return results;

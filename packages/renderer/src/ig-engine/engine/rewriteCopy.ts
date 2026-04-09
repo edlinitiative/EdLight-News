@@ -81,11 +81,13 @@ export interface RewriteResult {
  * @param slide      The slide to rewrite.
  * @param templateId Template ID (for limit and zone lookup).
  * @param maxPasses  Max rewrite iterations before giving up (default: 4).
+ * @param language   Preferred language code (fr/ht/en) for accurate measurement.
  */
 export function rewriteSlideCopy(
   slide: SlideContent,
   templateId: string,
   maxPasses = 4,
+  language?: string,
 ): RewriteResult {
   let current: SlideContent = { ...slide };
   const overflowedToCaption: string[] = [];
@@ -95,7 +97,7 @@ export function rewriteSlideCopy(
     // Check if we already pass all constraints
     const validation = validateSlide(current, templateId);
     const config = getTemplateConfig(templateId);
-    const fitResults = measureSlide(current, config);
+    const fitResults = measureSlide(current, config, language);
     const measureFailed = fitResults.some(r => !r.fits);
 
     if (validation.passed && !measureFailed) break;
@@ -154,6 +156,7 @@ function applyFillerStrip(slide: SlideContent): SlideContent {
     headline: stripFiller(slide.headline),
     body: slide.body != null ? stripFiller(slide.body) : undefined,
     supportLine: slide.supportLine != null ? stripFiller(slide.supportLine) : undefined,
+    sourceLine: slide.sourceLine != null ? stripFiller(slide.sourceLine) : undefined,
   };
 }
 
@@ -243,7 +246,32 @@ function applyHardTruncate(
 
   const bodyZone = config.zones.body;
   const bodyMax = bodyZone?.limits.maxWords;
-  if (bodyMax != null && slide.body) {
+  const pbMax = bodyZone?.limits.perBulletMaxLines;
+
+  if (pbMax && slide.body && /[•\n]/.test(slide.body)) {
+    // Per-bullet truncation: cap each bullet to fit its CSS line-clamp.
+    // Cover facts use tighter clamp (2 lines) than detail bullets (3 lines).
+    const bulletClamp = slide.layoutVariant === "cover" ? Math.min(pbMax, 2) : pbMax;
+    // Conservative estimate: Inter avgWidthCoeff=0.53 × FR scale 1.04 ≈ 0.55,
+    // plus ~12% word-wrap overhead → use 0.62 for safe truncation target.
+    const charsPerLine = Math.floor((bodyZone!.box.width) / (bodyZone!.fontSize * 0.62));
+    const maxCharsPerBullet = charsPerLine * bulletClamp;
+    const parts = slide.body.split(/\n/);
+    const truncated = parts.map(part => {
+      const clean = part.replace(/^•\s*/, "").trim();
+      if (!clean || clean.length <= maxCharsPerBullet) return part;
+      const words = clean.split(/\s+/);
+      let built = "";
+      for (const w of words) {
+        const next = built ? built + " " + w : w;
+        if (next.length > maxCharsPerBullet - 1) break;
+        built = next;
+      }
+      const prefix = part.startsWith("•") ? "• " : "";
+      return prefix + built;
+    });
+    result.body = truncated.join("\n");
+  } else if (bodyMax != null && slide.body) {
     const words = slide.body.split(/\s+/).filter(Boolean);
     if (words.length > bodyMax) result.body = words.slice(0, bodyMax).join(" ");
   }
@@ -255,6 +283,20 @@ function applyHardTruncate(
     if (words.length > slMax) result.supportLine = words.slice(0, slMax).join(" ");
   }
 
+  // sourceLine: truncate to maxChars (preferred) or maxWords
+  const srcZone = config.zones.sourceLine;
+  if (srcZone && slide.sourceLine) {
+    const maxChars = srcZone.limits.maxChars;
+    const srcMax = srcZone.limits.maxWords;
+    if (maxChars != null && slide.sourceLine.length > maxChars) {
+      // Smart truncate: keep "Source: " prefix, trim name
+      result.sourceLine = slide.sourceLine.slice(0, maxChars - 1).replace(/[\s\-–—,;:]+$/, "") + "…";
+    } else if (srcMax != null) {
+      const words = slide.sourceLine.split(/\s+/).filter(Boolean);
+      if (words.length > srcMax) result.sourceLine = words.slice(0, srcMax).join(" ");
+    }
+  }
+
   return result;
 }
 
@@ -264,14 +306,15 @@ type FieldSnapshot = {
   headline: string;
   body?: string;
   supportLine?: string;
+  sourceLine?: string;
 };
 
 function snapshotFields(slide: SlideContent): FieldSnapshot {
-  return { headline: slide.headline, body: slide.body, supportLine: slide.supportLine };
+  return { headline: slide.headline, body: slide.body, supportLine: slide.supportLine, sourceLine: slide.sourceLine };
 }
 
 function hasChanged(a: FieldSnapshot, b: FieldSnapshot): boolean {
-  return a.headline !== b.headline || a.body !== b.body || a.supportLine !== b.supportLine;
+  return a.headline !== b.headline || a.body !== b.body || a.supportLine !== b.supportLine || a.sourceLine !== b.sourceLine;
 }
 
 function escapeRegex(str: string): string {

@@ -85,7 +85,7 @@ export function buildPost(input: BuildSlidesInput): BuildSlidesResult {
 
     if (!copyValidation.passed) {
       // ── Step 3: rewrite to fix copy limits ──────────────────────────────
-      const rw1 = rewriteSlideCopy(current, templateId);
+      const rw1 = rewriteSlideCopy(current, templateId, 4, intake.preferredLanguage);
       current = rw1.slide;
       rewriteCount += rw1.rewriteCount;
 
@@ -104,7 +104,7 @@ export function buildPost(input: BuildSlidesInput): BuildSlidesResult {
 
     if (measureFailed.length > 0) {
       // ── Step 5: rewrite to fix pixel overflow ─────────────────────────
-      const rw2 = rewriteSlideCopy(current, templateId, 4);
+      const rw2 = rewriteSlideCopy(current, templateId, 4, intake.preferredLanguage);
       current = rw2.slide;
       rewriteCount += rw2.rewriteCount;
 

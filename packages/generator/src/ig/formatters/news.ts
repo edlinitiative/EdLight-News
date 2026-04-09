@@ -19,7 +19,7 @@
  */
 
 import type { Item, IGFormattedPayload, IGSlide } from "@edlight-news/types";
-import { buildCaption, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, looksEnglish, type BilingualText } from "./helpers.js";
+import { buildCaption, buildSourceFooter, buildSourceLine, shortenText, shortenHeadline, shortenCaptionText, looksEnglish, looksLikeCreole, type BilingualText } from "./helpers.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -130,7 +130,7 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
       // Fallback: parse beats from extractedText / summary
       // Group into explanation slides for coherent reading
       // (individual headline-only slides read as disconnected facts)
-      const beats = extractFrenchBeats(item, summary);
+      const beats = extractFrenchBeats(item, summary, bi);
       if (beats.length > 0) {
         slides.push(...narrativeToSlides(beats.join(" "), imageUrl));
       }
@@ -196,16 +196,19 @@ function buildNarrativeSlides(
   imageUrl: string | undefined,
 ): boolean {
   // Path 1: explicit LLM narrative arc
+  // GUARD: The FR content_version may contain Creole text if the LLM
+  // copied from a Creole source. Check before trusting.
   const narrative = bi?.frNarrative?.trim();
-  if (narrative && narrative.length > 0) {
+  if (narrative && narrative.length > 0 && !looksLikeCreole(narrative)) {
     slides.push(...narrativeToSlides(narrative, imageUrl));
     return true;
   }
 
   // Path 2: LLM-written article body — take first 6 sentences
   // The body is Gemini-generated: coherent, on-topic, no scraped junk.
+  // GUARD: Reject if the body is actually Creole.
   const body = bi?.frBody?.trim();
-  if (body && body.length > 100) {
+  if (body && body.length > 100 && !looksLikeCreole(body)) {
     const sentences = splitSentences(body)
       .filter((s) => s.length > 30 && !isJunkSentence(s))
       .slice(0, 6);
@@ -230,6 +233,11 @@ function buildSectionSlides(
 ): boolean {
   if (!bi?.frSections || bi.frSections.length === 0) return false;
 
+  // GUARD: If the first section's content looks like Creole, skip all sections.
+  // This catches FR content_versions where the LLM copied Creole source text.
+  const probe = bi.frSections.map((s) => s.content).join(" ").slice(0, 800);
+  if (looksLikeCreole(probe)) return false;
+
   const sections = bi.frSections.slice(0, MAX_NEWS_CONTENT_SLIDES);
 
   for (const sec of sections) {
@@ -247,8 +255,8 @@ function buildSectionSlides(
 
 /** Max bullets per section slide. */
 const NEWS_MAX_BULLETS = 2;
-/** Max chars per bullet — must fit 2 bullets within the ~920px layout budget. */
-const NEWS_MAX_BULLET_CHARS = 240;
+/** Max chars per bullet — must fit within 3-line CSS clamp at 32px/900px. */
+const NEWS_MAX_BULLET_CHARS = 140;
 
 /** Split section content into digestible bullets for a news slide. */
 function sectionToBullets(content: string): string[] {
@@ -410,15 +418,18 @@ function capBeatLength(text: string, max = MAX_BEAT_CHARS): string {
  * Each beat is a complete sentence capped at ~160 chars so it renders
  * cleanly on a headline slide without being visually clipped.
  */
-function extractFrenchBeats(item: Item, frSummary: string): string[] {
+function extractFrenchBeats(item: Item, frSummary: string, bi?: BilingualText): string[] {
   const title = item.title;
 
   // Try extractedText first (most detailed).
-  // Use first-N sentences only — spread-based picking tends to pull from
-  // related-article sidebar content that scrapers append at the end.
+  // GUARD: When bilingual content (bi) exists, the LLM has already produced
+  // proper French text. Raw item.extractedText may be in Haitian Creole
+  // (which shares enough stop-words with French to pass looksLikeFrench).
+  // Only use extractedText when there is NO bilingual content available,
+  // AND the text passes both a French positive and Creole negative gate.
   // Limit to first 2500 chars to prevent roundup articles (RFI, France 24)
   // from mixing content across different sub-stories.
-  if (item.extractedText && looksLikeFrench(item.extractedText)) {
+  if (!bi && item.extractedText && looksLikeFrench(item.extractedText) && !looksLikeCreole(item.extractedText)) {
     const cleaned = cleanExtractedText(item.extractedText.slice(0, 2500));
     const sentences = splitSentences(cleaned)
       .filter((s) => s.length > 30 && s.length < 350)

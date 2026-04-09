@@ -34,6 +34,8 @@ export interface FieldLimits {
   minWords?: number;
   maxChars?: number;
   maxLines?: number;
+  /** Max lines per individual bullet when body contains bullet markers (•/\n). */
+  perBulletMaxLines?: number;
 }
 
 /** Rectangular region in canvas coordinates (pixels). */

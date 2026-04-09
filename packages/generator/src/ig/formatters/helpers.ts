@@ -82,6 +82,32 @@ export function looksEnglish(text: string): boolean {
   return score.en >= 3 && score.en > score.fr;
 }
 
+// ── Haitian Creole detection ───────────────────────────────────────────────
+
+/**
+ * Distinctive Haitian Creole function words that do NOT appear in French.
+ * Used as a negative gate to prevent Creole text from passing the
+ * looksLikeFrench() heuristic (French and Creole share many stop-words).
+ */
+const CREOLE_MARKERS = [
+  " nan ", " ak ", " yo ", " yon ", " mwen ", " anpil ",
+  " konsa ", " tankou ", " peyi ", " gouvènman ", " moun ",
+  " kap ", " gen ", " fè ", " lè ", " pou ", " sou ",
+  " pa ", " te ", " sa ",
+];
+
+/**
+ * Returns true when the text is likely Haitian Creole.
+ * Checks for distinctive Creole function words that are absent from French.
+ * Threshold: ≥3 marker hits in the first 800 chars.
+ */
+export function looksLikeCreole(text: string): boolean {
+  if (!text || text.length < 50) return false;
+  const sample = ` ${text.slice(0, 800).toLowerCase()} `;
+  const hits = CREOLE_MARKERS.filter((m) => sample.includes(m)).length;
+  return hits >= 3;
+}
+
 /**
  * Filter an eligibility array: drop bullets that are clearly English
  * and replace with a single French fallback if all are English.
@@ -333,10 +359,17 @@ export function buildCTA(): string {
 
 /**
  * Build source attribution line from an Item.
+ * Capped to fit the renderer's sourceLine template zone (≤55 chars, ≤8 words).
  */
 export function buildSourceFooter(item: Item): string {
   const sourceName = item.source?.name ?? item.citations?.[0]?.sourceName ?? "Source";
-  return `Source: ${sourceName}`;
+  const raw = `Source: ${sourceName}`;
+  // Template limit: 55 chars / 8 words. Cap source name so total fits.
+  if (raw.length <= 55) return raw;
+  // Truncate the source name portion to fit
+  const maxNameLen = 55 - "Source: ".length - 1; // leave room for "…"
+  const truncated = sourceName.slice(0, maxNameLen).replace(/[\s\-–—,;:]+$/, "");
+  return `Source: ${truncated}…`;
 }
 
 export function buildSourceLine(item: Item): string {
@@ -344,9 +377,17 @@ export function buildSourceLine(item: Item): string {
   const sourceUrl = item.source?.originalUrl ?? item.citations?.[0]?.sourceUrl ?? item.canonicalUrl;
   try {
     const domain = new URL(sourceUrl).hostname.replace(/^www\./, "");
-    return `Source: ${sourceName} — ${domain}`;
+    const raw = `Source: ${sourceName} — ${domain}`;
+    // Cap to 55 chars (sourceLine template limit)
+    if (raw.length <= 55) return raw;
+    // Try domain-only version first
+    const domainOnly = `Source: ${domain}`;
+    if (domainOnly.length <= 55) return domainOnly;
+    return domainOnly.slice(0, 54) + "…";
   } catch {
-    return `Source: ${sourceName}`;
+    const raw = `Source: ${sourceName}`;
+    if (raw.length <= 55) return raw;
+    return raw.slice(0, 54) + "…";
   }
 }
 

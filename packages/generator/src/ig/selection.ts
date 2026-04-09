@@ -252,11 +252,11 @@ function mapCategoryToIGType(item: Item): IGPostType | null {
   // Utility items
   if (itemType === "utility") {
     if (series === "HaitiHistory" || series === "HaitiFactOfTheDay" || series === "HaitianOfTheWeek") {
-      // For HaitiHistory from the utility engine, verify content is genuinely
-      // historical before routing to the histoire formatter.
-      // HaitiFactOfTheDay and HaitianOfTheWeek are trusted as-is.
-      if (series === "HaitiHistory" && !isHistoricalContent(item)) {
-        return "news"; // Contemporary news mis-tagged as history → demote
+      // All three history-related series must pass the isHistoricalContent
+      // gate. Without this, non-historical content (e.g. a quiz platform
+      // article) can be mis-routed to the histoire formatter.
+      if (!isHistoricalContent(item)) {
+        return "news"; // Contemporary content mis-tagged as history → demote
       }
       return "histoire";
     }
