@@ -62,7 +62,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
   if (coverContext) coverSub.push(coverContext);
   slides.push({
-    heading: shortenHeadline(title, 10),
+    heading: shortenHeadline(title, 14),
     bullets: coverSub,
     layout: "headline",
     // No backgroundImage — bourses use the branded dark gradient, not a scraped article photo

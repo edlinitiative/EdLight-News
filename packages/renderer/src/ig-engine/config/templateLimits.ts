@@ -74,9 +74,9 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         limits: { maxWords: 3, maxChars: 18 },
       },
       headline: {
-        box: { x: SIDE, y: 260, width: INNER_W, height: 300 },
-        fontSize: 60, minFontSize: 38, fontFamily: "DM Sans", lineHeight: 1.1,
-        limits: { maxWords: 12, maxLines: 4 },
+        box: { x: SIDE, y: 260, width: INNER_W, height: 380 },
+        fontSize: 56, minFontSize: 38, fontFamily: "DM Sans", lineHeight: 1.1,
+        limits: { maxWords: 14, maxLines: 5 },
       },
       body: {
         box: { x: SIDE, y: 600, width: INNER_W, height: 510 },
@@ -106,9 +106,9 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         limits: { maxWords: 3, maxChars: 18 },
       },
       headline: {
-        box: { x: SIDE, y: 240, width: INNER_W, height: 300 },
-        fontSize: 62, minFontSize: 40, fontFamily: "DM Sans", lineHeight: 1.1,
-        limits: { maxWords: 10, maxLines: 4 },
+        box: { x: SIDE, y: 240, width: INNER_W, height: 380 },
+        fontSize: 56, minFontSize: 38, fontFamily: "DM Sans", lineHeight: 1.1,
+        limits: { maxWords: 14, maxLines: 5 },
       },
       body: {
         box: { x: SIDE, y: 578, width: INNER_W, height: 370 },

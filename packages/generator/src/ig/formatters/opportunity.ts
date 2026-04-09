@@ -41,7 +41,7 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   // ── Slide 1: Hero cover — title + geo/deadline context (mirrors scholarship) ──
   const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
   slides.push({
-    heading: shortenHeadline(title, 10),
+    heading: shortenHeadline(title, 14),
     bullets: coverContext ? [coverContext] : [],
     layout: "headline",
     // No backgroundImage — opportunities use the branded dark gradient

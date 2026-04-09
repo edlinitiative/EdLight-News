@@ -17,7 +17,7 @@ export function buildUtilityCarousel(item: Item, bi?: BilingualText): IGFormatte
 
   // Slide 1: Cover — title only (Bloomberg style, mirrors news)
   slides.push({
-    heading: shortenHeadline(title),
+    heading: shortenHeadline(title, 14),
     bullets: [],
     layout: "headline",
     ...(item.imageUrl ? { backgroundImage: item.imageUrl } : {}),
