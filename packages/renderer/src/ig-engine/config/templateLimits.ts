@@ -118,7 +118,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       body: {
         box: { x: SIDE, y: 460, width: INNER_W, height: 690 },
         fontSize: 32, minFontSize: 26, fontFamily: "Inter", lineHeight: 1.5,
-        limits: { maxWords: 40, maxLines: 8, perBulletMaxLines: 4 },
+        // 2 bullets × 4 lines × ~7.5 words/line ≈ 60 words
+        limits: { maxWords: 60, maxLines: 8, perBulletMaxLines: 4 },
       },
       supportLine: {
         box: { x: SIDE, y: 480, width: INNER_W, height: 150 },
@@ -161,7 +162,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         body: {
           box: { x: SIDE, y: 460, width: INNER_W, height: 690 },
           fontSize: 32, minFontSize: 26, fontFamily: "Inter", lineHeight: 1.5,
-          limits: { maxWords: 40, maxLines: 8, perBulletMaxLines: 4 },
+          // 2 bullets × 4 lines × ~7.5 words/line ≈ 60 words
+          limits: { maxWords: 60, maxLines: 8, perBulletMaxLines: 4 },
         },
       },
       data: {
@@ -205,7 +207,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       body: {
         box: { x: SIDE, y: 430, width: INNER_W, height: 650 },
         fontSize: 30, minFontSize: 24, fontFamily: "Inter", lineHeight: 1.55,
-        limits: { maxWords: 30, maxLines: 7, perBulletMaxLines: 4 },
+        // maxLines:7 × ~8 words/line ≈ 50 words
+        limits: { maxWords: 50, maxLines: 7, perBulletMaxLines: 4 },
       },
       deadline: {
         box: { x: SIDE, y: 440, width: INNER_W, height: 150 },
@@ -236,7 +239,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         body: {
           box: { x: SIDE, y: 430, width: INNER_W, height: 650 },
           fontSize: 30, minFontSize: 24, fontFamily: "Inter", lineHeight: 1.55,
-          limits: { maxWords: 30, maxLines: 7, perBulletMaxLines: 4 },
+          // maxLines:7 × ~8 words/line ≈ 50 words
+          limits: { maxWords: 50, maxLines: 7, perBulletMaxLines: 4 },
         },
       },
       deadline: {
