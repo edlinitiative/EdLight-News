@@ -17,14 +17,14 @@ import { generateContextualImage } from "../services/geminiImageGen.js";
 
 // Must match the TTLs in scheduleIgPost.ts
 const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
-  news: 20,        // daily news — stale after ~1 posting cycle
-  taux: 6,         // exchange rate — only valid same-day
-  utility: 72,
-  histoire: 20,    // fact of the day — stale next day
-  opportunity: 336,
-  scholarship: 336,
-  breaking: 12,    // single-slide flash — stale within half a day
-  stat: 72,        // manually curated — treat like utility
+  news: 48,          // 2 days  — breaking/current events
+  taux: 24,          // 1 day   — exchange rates are daily
+  utility: 72,       // 3 days  — fait-du-jour, study tips
+  histoire: 24,      // 1 day   — must match today's date
+  opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
+  scholarship: 336,  // 14 days — scholarships (capped by deadline)
+  breaking: 12,      // 12 h    — single-slide flash item loses relevance fast
+  stat: 72,          // 3 days  — manually curated, treat like utility
 };
 
 /** Post types whose Storage slides should be deleted after posting (ephemeral). */
