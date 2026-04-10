@@ -8,6 +8,7 @@ import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { BackToTop } from "@/components/BackToTop";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
 import { RouteLanguageSync } from "@/components/RouteLanguageSync";
 
@@ -94,6 +95,7 @@ export default function RootLayout({
             </div>
 
             <MobileBottomNav />
+            <BackToTop />
           </LanguageProvider>
         </ThemeProvider>
       </body>

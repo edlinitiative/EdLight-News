@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instagram, Mail, ExternalLink } from "lucide-react";
+import { Instagram, Mail, ExternalLink, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Contact · EdLight News",
@@ -60,6 +60,29 @@ export default function ContactPage() {
               className="text-sm font-semibold text-blue-700 hover:underline dark:text-blue-400"
             >
               news@edlight.org
+            </a>
+          </div>
+        </div>
+
+        {/* WhatsApp */}
+        <div className="flex items-start gap-4 rounded-xl border border-stone-200 bg-white p-5 dark:border-stone-800 dark:bg-stone-900">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="mb-1 text-sm font-bold text-stone-900 dark:text-white">
+              WhatsApp
+            </h3>
+            <p className="mb-2 text-sm text-stone-500 dark:text-stone-400">
+              Messages directs pour questions urgentes ou signalements.
+            </p>
+            <a
+              href="https://wa.me/message/edlightnews"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
+            >
+              Envoyer un message WhatsApp
             </a>
           </div>
         </div>

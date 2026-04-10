@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, DollarSign, GraduationCap, CalendarDays } from "lucide-react";
+import { Home, Newspaper, Globe, DollarSign, Briefcase } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { withLangParam } from "@/lib/utils";
 
@@ -13,19 +13,24 @@ const NAV_ITEMS = [
     label: { fr: "Accueil", ht: "Akèy" },
   },
   {
+    href: "/news",
+    icon: Newspaper,
+    label: { fr: "Actualités", ht: "Nouvèl" },
+  },
+  {
+    href: "/haiti",
+    icon: Globe,
+    label: { fr: "Haïti", ht: "Ayiti" },
+  },
+  {
     href: "/bourses",
     icon: DollarSign,
     label: { fr: "Bourses", ht: "Bous" },
   },
   {
-    href: "/universites",
-    icon: GraduationCap,
-    label: { fr: "Profils", ht: "Pwofil" },
-  },
-  {
-    href: "/calendrier",
-    icon: CalendarDays,
-    label: { fr: "Agenda", ht: "Ajanda" },
+    href: "/opportunites",
+    icon: Briefcase,
+    label: { fr: "Opportunités", ht: "Okazyon" },
   },
 ] as const;
 

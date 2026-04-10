@@ -23,7 +23,7 @@ import { PageLanguageSync } from "@/components/PageLanguageSync";
 import { fetchEnrichedFeed } from "@/lib/content";
 import type { FeedItem } from "@/components/news-feed";
 
-export const revalidate = 300;
+export const revalidate = 60;
 const BASE_URL = "https://news.edlight.org";
 
 async function getArticle(id: string): Promise<ContentVersion | null> {
@@ -222,7 +222,7 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
       </h2>
       <dl className="space-y-2">
         {rows.map(({ label, value }, i) => (
-          <div key={i} className="grid grid-cols-[140px_1fr] gap-2 text-sm">
+          <div key={i} className="grid grid-cols-[minmax(0,100px)_1fr] sm:grid-cols-[140px_1fr] gap-2 text-sm">
             <dt className="font-medium text-stone-600 dark:text-stone-400">{label}</dt>
             <dd>{value}</dd>
           </div>
@@ -943,16 +943,22 @@ export default async function ArticlePage({
   return (
     <article className="mx-auto max-w-3xl space-y-8">
       <PageLanguageSync lang={currentLang} />
-      {/* Breadcrumb back-link */}
-      <div className="-mb-2">
-        <Link
-          href={`/news?lang=${currentLang}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-400 transition-colors hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          {currentLang === "fr" ? "Actualités" : "Nouvèl yo"}
+      {/* Breadcrumb */}
+      <nav aria-label="Fil d'Ariane" className="-mb-2 flex items-center gap-1 text-xs text-stone-400 dark:text-stone-500">
+        <Link href={`/?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+          {currentLang === "fr" ? "Accueil" : "Akèy"}
         </Link>
-      </div>
+        <ChevronRight className="h-3 w-3 shrink-0" />
+        <Link href={`/news?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+          {currentLang === "fr" ? "Actualités" : "Nouvèl"}
+        </Link>
+        {catLabel && (
+          <>
+            <ChevronRight className="h-3 w-3 shrink-0" />
+            <span className="text-stone-500 dark:text-stone-400 font-medium">{catLabel}</span>
+          </>
+        )}
+      </nav>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

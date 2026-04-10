@@ -8,6 +8,12 @@ export const metadata: Metadata = {
     "EdLight News est une plateforme d'information et d'opportunités pour les jeunes haïtiens et la diaspora.",
 };
 
+const ABOUT_STATS = [
+  { value: "30 000+", label: "lecteurs actifs" },
+  { value: "2",       label: "langues de publication" },
+  { value: "100 %",   label: "indépendant" },
+] as const;
+
 export default function AboutPage() {
   return (
     <>
@@ -62,11 +68,7 @@ export default function AboutPage() {
         <div className="border-t border-stone-800/80 bg-stone-900/40">
           <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
             <dl className="grid grid-cols-3 gap-6 text-center">
-              {[
-                { value: "30 000+", label: "lecteurs actifs" },
-                { value: "2", label: "langues de publication" },
-                { value: "100 %", label: "indépendant" },
-              ].map((s) => (
+              {ABOUT_STATS.map((s) => (
                 <div key={s.label}>
                   <dt
                     className="text-3xl font-extrabold text-white sm:text-4xl"

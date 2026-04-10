@@ -25,7 +25,7 @@ import {
 import { rankFeed } from "@/lib/ranking";
 import type { FeedItem } from "@/components/news-feed";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export async function generateMetadata({
   searchParams,
@@ -203,13 +203,6 @@ export default async function AccueilPage({
   // Latest news (non-opportunity, any geo)
   const latestNews = rankedFeed.filter((a) => !isOpportunity(a)).slice(0, 6);
 
-  // Editor's picks: highest-scored articles (avoid hero duplicates)
-  const heroIds = new Set(heroArticles.map((a) => a.id));
-  const latestIds = new Set(latestNews.map((a) => a.id));
-  const editorsPicks = rankedFeed
-    .filter((a) => !heroIds.has(a.id) && !latestIds.has(a.id) && !isOpportunity(a))
-    .slice(0, 5);
-
   // Opportunities spotlight
   const featuredOpp = opportunities[0] ?? null;
   const moreOpps = opportunities.slice(1, 6);
@@ -257,12 +250,6 @@ export default async function AccueilPage({
   const moreEdu = educationArticles.slice(1, 4);
   const topBusiness = businessArticles[0] ?? null;
   const moreBusiness = businessArticles.slice(1, 4);
-
-  // Trending: top articles not yet shown anywhere
-  const shownIds = new Set([...heroIds, ...latestIds, ...editorsPicks.map((a) => a.id)]);
-  const trendingArticles = rankedFeed
-    .filter((a) => !shownIds.has(a.id) && !isOpportunity(a))
-    .slice(0, 5);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -812,77 +799,6 @@ export default async function AccueilPage({
                 </div>
               )}
 
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          5. EDITOR'S PICKS
-         ══════════════════════════════════════════════════════════════════════ */}
-      {editorsPicks.length > 0 && (
-        <section>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              title={fr ? "À ne pas manquer" : "Pa manke sa yo"}
-              href={lq("/news")}
-              linkLabel={fr ? "Voir tout" : "Wè tout"}
-            />
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              {editorsPicks.map((article) => (
-                <ArticleCard
-                  key={article.id}
-                  article={article}
-                  lang={lang}
-                  variant="compact"
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          6. TRENDING THIS WEEK
-         ══════════════════════════════════════════════════════════════════════ */}
-      {trendingArticles.length > 0 && (
-        <section>
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              title={fr ? "À lire aussi" : "Li tou"}
-              href={lq("/news")}
-              linkLabel={fr ? "Voir tout" : "Wè tout"}
-            />
-            <div className="divide-y divide-stone-100 dark:divide-stone-800">
-              {trendingArticles.map((article, i) => (
-                <Link
-                  key={article.id}
-                  href={lq(`/news/${article.id}`)}
-                  className="group flex items-start gap-4 py-4 first:pt-0 last:pb-0"
-                >
-                  <span className="shrink-0 w-6 text-right text-lg font-black text-stone-200 dark:text-stone-700 leading-none mt-0.5">
-                    {i + 1}
-                  </span>
-                  {article.imageUrl && (
-                    <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
-                      <ImageWithFallback
-                        src={article.imageUrl}
-                        alt={article.title}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                      />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <CategoryBadge category={article.category} lang={lang} />
-                    <h3 className="text-sm font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-400">
-                      {article.title}
-                    </h3>
-                    <p className="text-xs text-stone-400">
-                      {article.publishedAt ? formatRelativeDate(article.publishedAt, lang) : article.sourceName}
-                    </p>
-                  </div>
-                </Link>
-              ))}
             </div>
           </div>
         </section>

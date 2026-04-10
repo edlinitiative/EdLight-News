@@ -172,10 +172,10 @@ export function ArticleCard({
         </h3>
 
         {/* Summary */}
-        {!isCompact && article.summary && (
+        {article.summary && (
           <p className={[
             "text-sm leading-relaxed text-stone-500 dark:text-stone-400",
-            isFeatured ? "line-clamp-3" : "line-clamp-2",
+            isFeatured ? "line-clamp-3" : isCompact ? "line-clamp-1" : "line-clamp-2",
           ].join(" ")}>
             {article.summary}
           </p>

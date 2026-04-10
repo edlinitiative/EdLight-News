@@ -86,7 +86,7 @@ export function Footer() {
   const l = (href: string) => withLangParam(href, lang);
 
   return (
-    <footer className="border-t border-stone-200 bg-stone-950 dark:border-stone-800 dark:bg-stone-950">
+    <footer className="border-t-2 border-stone-300 bg-stone-950 dark:border-stone-700 dark:bg-stone-950">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
 
         {/* Masthead in footer */}

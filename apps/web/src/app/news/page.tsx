@@ -12,7 +12,7 @@ import { Suspense } from "react";
 import { buildOgMetadata } from "@/lib/og";
 import { withLangParam } from "@/lib/utils";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export async function generateMetadata({
   searchParams,

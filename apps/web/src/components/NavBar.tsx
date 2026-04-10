@@ -100,6 +100,23 @@ export function NavBar() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const id = setTimeout(() => searchInputRef.current?.focus(), 50);
+    return () => clearTimeout(id);
+  }, [searchOpen]);
+
   const allLinks = NAV_LINKS;
   const primaryLinks = NAV_LINKS.filter((l) => l.section === "primary");
   const secondaryLinks = NAV_LINKS.filter((l) => l.section === "secondary");
@@ -146,7 +163,7 @@ export function NavBar() {
         ref={navRef}
         className="sticky top-0 z-50 border-b border-stone-200/70 bg-white/80 backdrop-blur-md dark:border-stone-800/60 dark:bg-stone-950/85"
       >
-        <div className="mx-auto flex h-13 max-w-6xl items-center gap-5 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-5 px-4 sm:px-6 lg:px-8">
           {/* Brand — Home link */}
           <Link href={l("/")} className="flex shrink-0 items-baseline gap-0 mr-1">
             <span className="text-[17px] font-black tracking-tight text-stone-900 dark:text-white">
@@ -219,8 +236,9 @@ export function NavBar() {
               onClick={() => setSearchOpen(true)}
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
               aria-label={fr ? "Rechercher" : "Chèche"}
+              title={fr ? "Rechercher (⌘K)" : "Chèche (⌘K)"}
             >
-              <Search className="h-4.5 w-4.5" />
+              <Search className="h-[18px] w-[18px]" />
             </button>
             <LanguageToggle />
             <DarkModeToggle />

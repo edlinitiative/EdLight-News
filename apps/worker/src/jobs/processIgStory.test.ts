@@ -32,12 +32,45 @@ function makeStoryItem(overrides: Partial<IGStoryQueueItem> = {}): IGStoryQueueI
 
 const originalDeps = { ...processIgStoryDeps };
 
+/** Stub listPostedAndScheduledToday so staples gate passes by default. */
+function stubStaplesPosted() {
+  processIgStoryDeps.listPostedAndScheduledToday = async () => [
+    { id: "t1", igType: "taux", status: "posted", targetPostDate: undefined },
+    { id: "h1", igType: "histoire", status: "posted", targetPostDate: undefined },
+    { id: "u1", igType: "utility", status: "posted", targetPostDate: undefined },
+  ] as any;
+}
+
 afterEach(() => {
   Object.assign(processIgStoryDeps, originalDeps);
 });
 
 describe("processIgStory", () => {
+  it("waits for staple posts before processing any stories", async () => {
+    // Only taux posted — histoire and utility still missing
+    processIgStoryDeps.listPostedAndScheduledToday = async () => [
+      { id: "t1", igType: "taux", status: "posted", targetPostDate: undefined },
+      { id: "h1", igType: "histoire", status: "scheduled", targetPostDate: undefined },
+    ] as any;
+
+    let listQueuedCalled = false;
+    processIgStoryDeps.listQueuedStories = async () => {
+      listQueuedCalled = true;
+      return [];
+    };
+
+    const result = await processIgStory();
+
+    assert.equal(listQueuedCalled, false, "Should not fetch stories while staples are pending");
+    assert.equal(result.processed, 0);
+    assert.ok(result.waitingForStaples);
+    assert.ok(result.waitingForStaples!.includes("histoire"));
+    assert.ok(result.waitingForStaples!.includes("utility"));
+  });
+
   it("fails story items that do not pass preflight before rendering any frames", async () => {
+    stubStaplesPosted();
+
     const updates: Array<{
       id: string;
       status: IGStoryQueueItem["status"];

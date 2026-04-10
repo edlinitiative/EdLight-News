@@ -94,6 +94,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     // Step 10: Instagram pipeline — build queue, taux post, stories, schedule, and process
     let igResult: { buildQueue: any; taux: any; story: any; schedule: any; process: any; storyProcess: any } = { buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 }, taux: { queued: false, skipped: "" }, story: { queued: false, skipped: "" }, schedule: { scheduled: 0, skipped: "" }, process: { processed: 0, posted: 0, dryRun: 0, errors: 0 }, storyProcess: { processed: 0, posted: 0, dryRun: 0, errors: 0 } };
     try {
+      // ── Phase A: Build the carousel queue + taux ─────────────────────
       igResult.buildQueue = await buildIgQueue();
       igResult.taux = await buildIgTaux();
       // Warn on actionable taux skip reasons so they appear as warnings in logs.
@@ -104,9 +105,15 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       if (igResult.taux.skipped && actionableTauxSkips.has(igResult.taux.skipped)) {
         console.warn(`[tick] taux SKIPPED — ${igResult.taux.skipped} (a later tick will retry)`);
       }
-      igResult.story = await buildIgStory();
+
+      // ── Phase B: Schedule + post staple carousels FIRST ─────────────
+      // Taux, histoire, and utility must land in the feed before the
+      // story goes out, so followers can find the full content.
       igResult.schedule = await scheduleIgPost();
       igResult.process = await processIgScheduled();
+
+      // ── Phase C: Build + post story (gated on staples being posted) ─
+      igResult.story = await buildIgStory();
       igResult.storyProcess = await processIgStory();
     } catch (err) {
       // IG pipeline is non-critical — log and continue

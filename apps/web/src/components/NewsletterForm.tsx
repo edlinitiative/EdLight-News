@@ -89,9 +89,21 @@ export function NewsletterForm({ lang, variant = "homepage" }: Props) {
         <p className="mt-2 text-xs text-red-600 dark:text-red-400">{errorMsg}</p>
       )}
       <p className="mt-2 text-[11px] text-stone-400 dark:text-stone-500">
-        {fr
-          ? "Gratuit. Pas de spam. Désabonnement à tout moment."
-          : "Gratis. Pa gen spam. Dezabòne nenpòt ki lè."}
+        {fr ? (
+          <>
+            Édition quotidienne · Gratuit · Désabonnement à tout moment ·{" "}
+            <a href="/privacy" className="underline hover:text-stone-600 dark:hover:text-stone-300 transition-colors">
+              Confidentialité
+            </a>
+          </>
+        ) : (
+          <>
+            Edisyon chak jou · Gratis · Dezabòne nenpòt ki lè ·{" "}
+            <a href="/privacy" className="underline hover:text-stone-600 dark:hover:text-stone-300 transition-colors">
+              Konfidyansyalite
+            </a>
+          </>
+        )}
       </p>
     </form>
   );
