@@ -167,12 +167,9 @@ export function NavBar() {
           {/* Brand — Home link */}
           <Link href={l("/")} className="flex shrink-0 items-baseline gap-0 mr-1">
             <span className="text-[17px] font-black tracking-tight text-stone-900 dark:text-white">
-              Ed
+              EdLight
             </span>
-            <span className="text-[17px] font-black tracking-tight text-blue-600 dark:text-blue-400">
-              Light
-            </span>
-            <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500">
+            <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400">
               News
             </span>
           </Link>

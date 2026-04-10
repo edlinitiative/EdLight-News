@@ -95,7 +95,7 @@ export function Footer() {
             <div>
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-extrabold tracking-tight text-white">EdLight</span>
-                <span className="text-xl font-normal tracking-tight text-stone-400">News</span>
+                <span className="ml-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-400">News</span>
               </div>
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-stone-400">
                 {T.tagline[lang]}
