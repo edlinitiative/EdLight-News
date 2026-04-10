@@ -17,7 +17,8 @@
  *  4. Pull highest-scored items NOT already scheduled for carousels.
  *  5. Format via buildDailySummaryStory → insert into ig_story_queue.
  *
- * Time gate: 05:30–06:29 Haiti time (morning briefing).
+ * Time gate: 05:30–09:59 Haiti time (morning briefing — wide window for
+ *            Cloud Scheduler / GHA cron jitter).
  */
 
 import { igQueueRepo, igStoryQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
@@ -43,9 +44,10 @@ function isInStoryWindow(): boolean {
   const haiti = toHaitiDate(new Date());
   const hour = haiti.getHours();
   const minute = haiti.getMinutes();
-  // 05:30–06:29 Haiti time — stories go out first thing so they
-  // last the full day (IG stories expire after 24h).
-  return (hour > 5 || (hour === 5 && minute >= 30)) && hour < 7;
+  // 05:30–09:59 Haiti time — wide window so the story still gets built
+  // even when Cloud Scheduler or GHA fires late. IG stories expire after
+  // 24h, so posting at 09:xx still leaves 15h of visibility.
+  return (hour > 5 || (hour === 5 && minute >= 30)) && hour < 10;
 }
 
 function todayDateKey(): string {

@@ -5,7 +5,7 @@ Goal: Automated content factory for Haitian students. Outputs in French + Haitia
 ## App Architecture
 
 - **apps/web**: Next.js 14 (App Router), TypeScript, Tailwind, deployed on Vercel @ news.edlight.org
-- **apps/worker**: Node.js TypeScript service run via GitHub Actions (every 15 min, free on public repo). Cloud Run decommissioned April 2026.
+- **apps/worker**: Node.js TypeScript service deployed on Cloud Run (scale-to-zero). Triggered by Cloud Scheduler every 15 min. GHA pipeline.yml kept as manual fallback.
 
 ## Packages
 
@@ -89,6 +89,16 @@ Mobile: Bottom nav bar
 ## Instagram Pipeline
 
 ig_queue status flow: queued → scheduled → rendering → posted
+
+Daily schedule (Haiti time, America/Port-au-Prince):
+- 06:30 — taux du jour (pinned staple)
+- 06:50 — fait du jour / utility (pinned staple)
+- 07:00 — histoire (pinned staple)
+- 08:30, 10:00, 11:30, 14:00, 16:00, 18:00, 20:00 — regular slots
+
+Daily cap: 8 posts (10 if urgent score ≥ 90). Per-type caps: scholarship 2, opportunity 2, taux 1.
+Quiet hours: 23:00–05:29 Haiti time — no scheduling.
+Morning briefing IG Story: 05:30–09:59 window.
 
 Selection scores:
 - scholarship=70, opportunity=65, utility=55, histoire=50, news=45
@@ -292,7 +302,14 @@ Author detail pages at `/auteur/[slug]` showing bio, photo, and article history.
 
 ## Pipeline scheduling
 
-GitHub Actions (`pipeline.yml`) is the sole runner — fires every 15 minutes on the public repo (free, no quota). Cloud Run + Cloud Scheduler were decommissioned in April 2026.
+Cloud Scheduler → Cloud Run is the PRIMARY runner (every 15 min, reliable).
+GitHub Actions (`pipeline.yml`) is kept as a manual-dispatch fallback.
+
+Infra:
+- Cloud Run: `edlight-news-worker` in `us-central1`, scale-to-zero, 2Gi, auth-required
+- Cloud Scheduler: `edlight-news-pipeline`, `*/15 * * * *` Haiti TZ, OIDC auth
+- Deploy workflow: `.github/workflows/deploy-worker.yml` — builds Docker, pushes to Artifact Registry, deploys, upserts scheduler
+- GHA fallback: `.github/workflows/pipeline.yml` — manual dispatch only (no cron)
 
 ## End-to-end test
 

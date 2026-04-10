@@ -1,11 +1,9 @@
 name: EdLight News Pipeline
 
 on:
-  # Run every 15 minutes (96 ticks/day). Free for public repos — no quota cost.
-  # Cloud Run decommissioned April 2026: repo is public, GHA is now the sole runner.
-  schedule:
-    - cron: "*/15 * * * *"
-  # Also allow manual trigger from GitHub Actions tab
+  # FALLBACK runner — only fires on manual trigger or as a safety net.
+  # Primary tick driver is Cloud Scheduler → Cloud Run (see deploy-worker.yml).
+  # Keep workflow_dispatch so we can manually trigger a tick if Cloud Run is down.
   workflow_dispatch:
 
 jobs:
