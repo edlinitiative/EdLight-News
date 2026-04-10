@@ -531,8 +531,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
 export const DETAIL_BULLET_CHARS = 160;
 
 /** Safe chars for cover body facts: 28 px Inter, 900 px wide, 2-line clamp.
- *  (900 / (28 × 0.52)) × 0.75 × 2 ≈ 92 — use 90 as working limit. */
-export const COVER_BULLET_CHARS = 90;
+ *  (900 / (28 × 0.53)) × 0.91 × 2 ≈ 110 — use 110 as working limit. */
+export const COVER_BULLET_CHARS = 110;
 
 // ── Lookup helpers ────────────────────────────────────────────────────────────
 

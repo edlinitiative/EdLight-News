@@ -49,10 +49,10 @@ const MAX_BULLETS_PER_SLIDE = 2;
 
 /** Detail body bullets: 32 px Inter, 900 px, 4-line clamp → ~160 safe chars. */
 const DETAIL_BULLET_CHARS = 160;
-/** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~90 safe chars. */
-const COVER_BULLET_CHARS = 90;
-/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~130 safe chars. */
-const DECK_LINE_CHARS = 130;
+/** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~110 safe chars. */
+const COVER_BULLET_CHARS = 110;
+/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~140 safe chars. */
+const DECK_LINE_CHARS = 140;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 

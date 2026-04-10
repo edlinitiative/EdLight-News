@@ -18,6 +18,7 @@ import { buildUtilityCarousel } from "./utility.js";
 import { buildBreakingNewsPost } from "./breaking.js";
 import { buildStatCard } from "./stat.js";
 import { normalizePayloadForPublishing, reviewSlides } from "../review.js";
+import { enforceBulletBudgets } from "./helpers.js";
 
 const MIN_IG_BACKGROUND_SHORT_SIDE = 1080;
 const MAX_IG_BACKGROUND_ASPECT_RATIO = 2.1;
@@ -187,7 +188,7 @@ export async function formatForIG(
     const reviewed = await reviewSlides(payload, igType, item);
     if (reviewed.corrected) {
       console.log(`[formatForIG] Reviewer corrected ${igType} post: ${reviewed.corrections.join("; ")}`);
-      return normalizePayloadForPublishing(reviewed.payload);
+      return normalizePayloadForPublishing(enforceBulletBudgets(reviewed.payload));
     }
   } catch (err) {
     console.warn(`[formatForIG] Reviewer error (non-fatal):`, err instanceof Error ? err.message : err);

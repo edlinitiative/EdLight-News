@@ -2,7 +2,7 @@
  * IG Formatter helpers — shared across all formatter templates.
  */
 
-import type { Item } from "@edlight-news/types";
+import type { Item, IGFormattedPayload } from "@edlight-news/types";
 
 const MAX_CAPTION_LENGTH = 2200; // IG's actual limit
 const MIN_CAPTION_LENGTH = 600;
@@ -478,6 +478,55 @@ export function shortenText(text: string, max: number): string {
   // These appear when a compound-word parenthetical falls exactly at the cut point.
   cutStr = cutStr.replace(/\s+\([^)]{0,30}$/, "").replace(/\([^)]{0,30}$/, "").trimEnd();
   return cutStr + "…";
+}
+
+// ── Post-reviewer bullet budget enforcement ─────────────────────────────────
+// Char budgets derived from renderer zone configs (templateLimits.ts).
+// Keep in sync with the per-formatter constants (histoire.ts, news.ts, etc.).
+
+/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~140 safe chars. */
+const DECK_LINE_BUDGET  = 140;
+/** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~110 safe chars. */
+const COVER_BODY_BUDGET = 110;
+/** Detail body bullets: 32 px Inter, 900 px, 4-line clamp → ~160 safe chars. */
+const DETAIL_BULLET_BUDGET = 160;
+
+/**
+ * Re-apply char budgets on every slide's bullets.
+ *
+ * The reviewer LLM can rewrite bullets to any length. This function runs
+ * after the reviewer returns to ensure no bullet exceeds its zone's pixel
+ * capacity. Uses the same `shortenText` sentence-boundary logic so we never
+ * get ugly mid-word truncation.
+ *
+ * Cover slide (index 0, layout "headline"):
+ *   bullet[0] → deckLine / supportLine  (DECK_LINE_BUDGET)
+ *   bullet[1+] → body facts             (COVER_BODY_BUDGET)
+ * CTA slides are left untouched.
+ * All other slides → DETAIL_BULLET_BUDGET.
+ */
+export function enforceBulletBudgets(payload: IGFormattedPayload): IGFormattedPayload {
+  const slides = payload.slides.map((slide, idx) => {
+    // CTA slides: short by design, skip
+    if (slide.layout === "cta") return slide;
+
+    // Cover slide: first slide with layout "headline"
+    if (idx === 0 && slide.layout === "headline") {
+      return {
+        ...slide,
+        bullets: slide.bullets.map((b, bi) =>
+          shortenText(b, bi === 0 ? DECK_LINE_BUDGET : COVER_BODY_BUDGET),
+        ),
+      };
+    }
+
+    // Detail / explanation slides
+    return {
+      ...slide,
+      bullets: slide.bullets.map((b) => shortenText(b, DETAIL_BULLET_BUDGET)),
+    };
+  });
+  return { ...payload, slides };
 }
 
 /**
