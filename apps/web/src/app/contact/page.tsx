@@ -56,10 +56,10 @@ export default function ContactPage() {
               Questions éditoriales, corrections, suggestions de contenu.
             </p>
             <a
-              href="mailto:contact@edlightinitiative.org"
+              href="mailto:news@edlight.org"
               className="text-sm font-semibold text-blue-700 hover:underline dark:text-blue-400"
             >
-              contact@edlightinitiative.org
+              news@edlight.org
             </a>
           </div>
         </div>
@@ -120,10 +120,10 @@ export default function ContactPage() {
           Vous représentez une institution éducative, un programme de bourses ou une
           organisation souhaitant collaborer avec EdLight News ? Écrivez-nous à{" "}
           <a
-            href="mailto:contact@edlightinitiative.org"
+            href="mailto:news@edlight.org"
             className="font-semibold text-blue-700 hover:underline dark:text-blue-400"
           >
-            contact@edlightinitiative.org
+            news@edlight.org
           </a>{" "}
           avec en objet <em>«&nbsp;Partenariat EdLight News&nbsp;»</em>.
         </p>
