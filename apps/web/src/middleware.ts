@@ -49,7 +49,14 @@ export async function middleware(req: NextRequest) {
 
   // Skip auth for the login page and the auth API endpoint
   if (pathname === "/admin/login" || pathname === "/api/admin/auth") {
-    return NextResponse.next();
+    // Forward the pathname as a **request** header so the shared admin
+    // layout can read it via `headers()` and skip its own auth check
+    // for the login page (avoiding a redirect loop).
+    // NOTE: `res.headers.set(...)` sets a *response* header — invisible
+    // to Server Components. We must use `request.headers` instead.
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set("x-admin-pathname", pathname);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   const password = process.env.ADMIN_PASSWORD;
