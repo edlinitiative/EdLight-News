@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Lazy import to avoid edge runtime issues
 async function getAdminFirestore() {
-  const { getDb } = await import("@edlight-news/firebase/admin");
+  const { getDb } = await import("@edlight-news/firebase");
   return getDb();
 }
 
