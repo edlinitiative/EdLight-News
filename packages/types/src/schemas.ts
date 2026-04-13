@@ -292,6 +292,7 @@ export const itemSchema = z.object({
   effectiveDate: z.string().optional(),
   sourceList: z.array(synthesisSourceRefSchema).optional(),
   successTag: z.boolean().optional(),
+  generationAttempts: z.number().int().nonnegative().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });

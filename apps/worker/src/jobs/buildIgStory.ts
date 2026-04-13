@@ -159,7 +159,9 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
 
     // ── Frame 1: Taux du jour ────────────────────────────────────────────
     let tauxInput: StoryTauxInput | undefined;
-    const tauxItem = deduped.find((ig) => ig.igType === "taux");
+    const tauxItem = deduped.find(
+      (ig) => ig.igType === "taux" && ig.sourceContentId === `taux-${dateKey}`,
+    );
     if (tauxItem?.payload?.slides?.[0]) {
       const coverSlide = tauxItem.payload.slides[0];
       tauxInput = {

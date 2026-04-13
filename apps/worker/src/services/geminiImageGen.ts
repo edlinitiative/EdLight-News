@@ -196,10 +196,10 @@ async function callImagen3(prompt: string): Promise<Buffer | null> {
     // Primary: Gemini 2.5 Flash Image — cheapest image model ($0.039/image)
     // (gemini-3.1-flash-image-preview was billed at Pro rates, ~$0.067+/image)
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         signal: AbortSignal.timeout(IMAGE_GEN_TIMEOUT_MS),
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
@@ -245,10 +245,10 @@ async function callImagen3(prompt: string): Promise<Buffer | null> {
 async function callGemini20Fallback(prompt: string, apiKey: string): Promise<Buffer | null> {
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         signal: AbortSignal.timeout(IMAGE_GEN_TIMEOUT_MS),
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],

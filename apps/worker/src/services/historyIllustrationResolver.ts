@@ -306,6 +306,50 @@ function stripHtml(value?: string): string | undefined {
   return value.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 }
 
+/** Licenses considered safe for republication (public domain + CC BY / CC BY-SA). */
+const ALLOWED_LICENSES = new Set([
+  "public domain",
+  "pd",
+  "pd-usgov",
+  "pd-usgov-military",
+  "pd-usgov-military-army",
+  "pd-usgov-military-navy",
+  "pd-usgov-military-air force",
+  "pd-usgov-white house",
+  "pd-usgov-potus",
+  "pd-usgov-fema",
+  "pd-usgov-nasa",
+  "pd-usgov-usaid",
+  "pd-usgov-dos",
+  "pd-author",
+  "pd-self",
+  "pd-old-70",
+  "pd-old-100",
+  "pd-old",
+  "pd-textlogo",
+  "pd-ineligible",
+  "cc0",
+  "cc0 1.0",
+  "cc-zero",
+  "cc by 2.0",
+  "cc by 3.0",
+  "cc by 4.0",
+  "cc-by-2.0",
+  "cc-by-3.0",
+  "cc-by-4.0",
+  "cc by-sa 2.0",
+  "cc by-sa 3.0",
+  "cc by-sa 4.0",
+  "cc-by-sa-2.0",
+  "cc-by-sa-3.0",
+  "cc-by-sa-4.0",
+]);
+
+function isAllowedLicense(license?: string): boolean {
+  if (!license) return false;
+  return ALLOWED_LICENSES.has(license.toLowerCase().trim());
+}
+
 function normalizeTitle(raw: string): string {
   return raw
     .replace(/[“”"'`]/g, "")
@@ -375,6 +419,13 @@ async function searchCommonsImage(query: string): Promise<ResolvedHistoryIllustr
 
     const author = stripHtml(info.extmetadata?.Artist?.value);
     const license = stripHtml(info.extmetadata?.LicenseShortName?.value);
+
+    if (!isAllowedLicense(license)) {
+      console.debug(
+        `[historyIllustrationResolver] Skipping "${p.title}" — license "${license ?? "unknown"}" not in allowlist`,
+      );
+      continue;
+    }
 
     return {
       imageUrl,

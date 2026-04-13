@@ -597,6 +597,14 @@ export function buildHistoireCarousel(
     }
   }
 
+  // Cap content slides to avoid exceeding IG's 10-slide limit.
+  // Cover is slides[0]; content fills slides[1..N].
+  // After this cap: cover(1) + content(≤5) + other-facts(≤1) + CTA(1) = ≤8 total.
+  const maxBeforeExtras = 1 + MAX_CONTENT_SLIDES;
+  if (slides.length > maxBeforeExtras) {
+    slides.length = maxBeforeExtras;
+  }
+
   // ══════════════════════════════════════════════════════════════════════
   // Second-to-last slide — Other events on this date (bullet summary)
   // ══════════════════════════════════════════════════════════════════════

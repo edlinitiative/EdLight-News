@@ -47,10 +47,11 @@ afterEach(() => {
 
 describe("processIgStory", () => {
   it("waits for staple posts before processing any stories", async () => {
-    // Only taux posted — histoire and utility still missing
+    // taux posted, histoire only scheduled, utility absent but in queue
     processIgStoryDeps.listPostedAndScheduledToday = async () => [
       { id: "t1", igType: "taux", status: "posted", targetPostDate: undefined },
       { id: "h1", igType: "histoire", status: "scheduled", targetPostDate: undefined },
+      { id: "u1", igType: "utility", status: "scheduled", targetPostDate: undefined },
     ] as any;
 
     let listQueuedCalled = false;
@@ -66,6 +67,21 @@ describe("processIgStory", () => {
     assert.ok(result.waitingForStaples);
     assert.ok(result.waitingForStaples!.includes("histoire"));
     assert.ok(result.waitingForStaples!.includes("utility"));
+  });
+
+  it("does NOT block on staples absent from today's queue (weekend/missing)", async () => {
+    // Weekend scenario: only utility is queued+posted; taux and histoire
+    // were never generated today → gate should NOT block.
+    processIgStoryDeps.listPostedAndScheduledToday = async () => [
+      { id: "u1", igType: "utility", status: "posted", targetPostDate: undefined },
+    ] as any;
+
+    processIgStoryDeps.listQueuedStories = async () => [];
+
+    const result = await processIgStory();
+
+    // Gate passes — processed 0 because queue is empty, but NOT waiting
+    assert.equal(result.waitingForStaples, undefined);
   });
 
   it("fails story items that do not pass preflight before rendering any frames", async () => {

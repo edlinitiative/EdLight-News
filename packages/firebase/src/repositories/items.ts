@@ -8,6 +8,7 @@ export type ItemUpdate = Partial<CreateItem> & {
   imageConfidence?: number;
   imageAttribution?: ImageAttribution;
   entity?: EntityRef;
+  generationAttempts?: number;
 };
 
 const COLLECTION = "items";

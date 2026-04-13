@@ -144,5 +144,6 @@ const FIELD_ZONE_MAP = {
 } as const;
 
 function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
+  // Strip bullet markers so "• word1 word2" counts as 2, not 3
+  return text.replace(/•/g, "").trim().split(/\s+/).filter(Boolean).length;
 }

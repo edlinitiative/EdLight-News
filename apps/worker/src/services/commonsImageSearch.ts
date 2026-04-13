@@ -19,6 +19,8 @@ type CommonsImageInfo = {
   thumburl?: string;
   url?: string;
   descriptionurl?: string;
+  width?: number;
+  height?: number;
   extmetadata?: {
     Artist?: { value?: string };
     LicenseShortName?: { value?: string };
@@ -186,7 +188,7 @@ async function searchCommons(query: string): Promise<FreeImageResult | null> {
   url.searchParams.set("gsrnamespace", "6"); // File: namespace
   url.searchParams.set("gsrlimit", "8");
   url.searchParams.set("prop", "imageinfo");
-  url.searchParams.set("iiprop", "url|extmetadata");
+  url.searchParams.set("iiprop", "url|size|extmetadata");
   url.searchParams.set("iiurlwidth", "1280");
 
   const res = await fetch(url.toString(), { headers: { "User-Agent": UA } });
@@ -213,6 +215,13 @@ async function searchCommons(query: string): Promise<FreeImageResult | null> {
     if (/\.(svg|pdf|tiff?)$/i.test(imageUrl)) continue;
     // Skip very small thumbnails (likely icons)
     if (info.thumburl && /\/\d{1,2}px-/i.test(info.thumburl)) continue;
+
+    // ── Dimension gate: reject images whose short side is below 1080px ──
+    // The API returns the original image dimensions via iiprop=size.
+    // Images below 1080px on their shortest side look blurry on IG (1080×1350).
+    const origW = info.width;
+    const origH = info.height;
+    if (origW && origH && Math.min(origW, origH) < 1080) continue;
 
     const license = stripHtml(info.extmetadata?.LicenseShortName?.value);
     const author = stripHtml(info.extmetadata?.Artist?.value);

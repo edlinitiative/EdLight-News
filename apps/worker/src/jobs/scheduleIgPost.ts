@@ -20,23 +20,13 @@
 
 import { igQueueRepo } from "@edlight-news/firebase";
 import type { IGPostType } from "@edlight-news/types";
+import { STALENESS_TTL_HOURS, isStale } from "./igStaleness.js";
+
+// Re-export so existing consumers (tests, scripts) keep working.
+export { STALENESS_TTL_HOURS, isStale };
 
 // Haiti timezone
 const HAITI_TZ = "America/Port-au-Prince";
-
-// ── Staleness TTLs per IG post type (hours) ─────────────────────────────────
-// News goes stale fast; scholarships with deadlines stay relevant longer.
-/** @internal exported for tests */
-export const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
-  news: 48,          // 2 days  — breaking/current events
-  taux: 24,          // 1 day   — exchange rates are daily
-  utility: 72,       // 3 days  — fait-du-jour, study tips
-  histoire: 24,      // 1 day   — must match today's date
-  opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
-  scholarship: 336,  // 14 days — scholarships (capped by deadline)
-  breaking: 12,      // 12 h    — single-slide flash item loses relevance fast
-  stat: 72,          // 3 days  — manually curated, treat like utility
-};
 
 // ── Per-type daily caps ─────────────────────────────────────────────────────
 // Prevent any single type from dominating the feed. undefined = no cap.
@@ -72,18 +62,7 @@ export interface ScheduleIgPostResult {
   expired: number;
 }
 
-/** Check if an IG queue item is too old to post. @internal exported for tests */
-export function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
-  const ttlHours = STALENESS_TTL_HOURS[item.igType] ?? 72;
-  const createdMs =
-    item.createdAt && typeof item.createdAt === "object" && "seconds" in item.createdAt
-      ? (item.createdAt as { seconds: number }).seconds * 1000
-      : item.createdAt instanceof Date
-        ? item.createdAt.getTime()
-        : 0;
-  if (createdMs === 0) return false; // can't determine age — don't expire
-  return Date.now() - createdMs > ttlHours * 60 * 60 * 1000;
-}
+
 
 /** @internal exported for tests */
 export function toHaitiDate(date: Date): Date {
@@ -330,7 +309,18 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
         !scheduledThisTick.has(q.id) &&
         matchesTargetPostDate(q, haitiToday),
     );
-    if (!candidate) continue; // no item of this type in queue
+    if (!candidate) {
+      // ── Staple watchdog: warn when a daily staple has no candidate ────
+      // This catches histoire generation failures, missing taux, or
+      // utility gaps early so operators can investigate the upstream job.
+      // Note: BRH sometimes publishes rates on Saturdays, so taux is NOT
+      // excluded on weekends — the freshness gate in buildIgTaux handles it.
+      console.warn(
+        `[scheduleIgPost] ⚠️  STAPLE WATCHDOG: no "${stapleType}" candidate in queue for ${haitiToday}. ` +
+        `Upstream job may have failed or produced no content.`,
+      );
+      continue; // no item of this type in queue
+    }
 
     // Try the pinned slot first for this staple type
     const pinnedIdx = STAPLE_SLOT_INDEX[stapleType];

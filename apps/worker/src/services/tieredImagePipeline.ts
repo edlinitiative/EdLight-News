@@ -11,13 +11,13 @@
  * Decision logic varies by story type:
  *
  *   Person-led:
- *     Wikidata portrait → Official Flickr → Wikimedia Commons → Unsplash → fallback
+ *     Wikidata portrait → Official Flickr → LoC → Unsplash → Flickr CC → Wikimedia Commons
  *
  *   Event-led:
- *     Official Flickr → Wikimedia Commons → LoC (if historical) → Unsplash → fallback
+ *     Official Flickr → LoC (if historical) → Unsplash → Flickr CC → Wikimedia Commons
  *
  *   Topic-led:
- *     Wikimedia Commons → LoC → Unsplash → fallback
+ *     LoC → Unsplash → Flickr CC → Wikimedia Commons
  *
  * Replaces the flat Unsplash → Commons cascade with a smarter tiered approach
  * while maintaining backward compatibility with `findEditorialImage()`.
@@ -373,17 +373,9 @@ export async function findTieredImage(
     }
   }
 
-  // ── Tier 2: Wikimedia Commons (archive) ────────────────────────────────
-  for (const query of queries.slice(0, 3)) {
-    const commonsResult = await searchCommonsTiered(query, storyType, personName ?? undefined);
-    if (commonsResult) {
-      candidates.push(commonsResult);
-      if (commonsResult.score >= 55) break; // Good enough from Commons
-    }
-  }
-
-  // ── Tier 3: Library of Congress (historical archive, free) ─────────────
-  // Especially useful for Haiti history and U.S. content
+  // ── Tier 2: Library of Congress (historical archive, free) ─────────────
+  // Especially useful for Haiti history and U.S. content.
+  // Moved ahead of Wikimedia for higher editorial quality.
   const isHistorical = item.utilityMeta?.series === "HaitiHistory" ||
     item.utilityMeta?.series === "HaitiFactOfTheDay" ||
     /\bhistoi(?:re|rical)\b/i.test(titleAndSummary);
@@ -398,7 +390,7 @@ export async function findTieredImage(
     }
   }
 
-  // ── Tier 4: Unsplash (stock — generic fallback) ────────────────────────
+  // ── Tier 3: Unsplash (stock — curated fallback) ────────────────────────
   const unsplashKey = process.env.Unsplash_ACCESS_KEY;
   if (unsplashKey) {
     for (const query of queries.slice(0, 2)) {
@@ -410,7 +402,7 @@ export async function findTieredImage(
     }
   }
 
-  // ── Tier 5: Flickr broad search (CC-licensed) ─────────────────────────
+  // ── Tier 4: Flickr broad search (CC-licensed) ─────────────────────────
   if (candidates.length === 0) {
     for (const query of queries.slice(0, 2)) {
       const flickrBroad = await searchFlickr(query, storyType, {
@@ -420,6 +412,19 @@ export async function findTieredImage(
       if (flickrBroad) {
         candidates.push(flickrBroad);
         break;
+      }
+    }
+  }
+
+  // ── Tier 5: Wikimedia Commons (last resort) ────────────────────────────
+  // Moved to the very end — Commons images are often low-resolution or
+  // diagrams that don't meet the IG editorial bar.
+  if (candidates.length === 0) {
+    for (const query of queries.slice(0, 3)) {
+      const commonsResult = await searchCommonsTiered(query, storyType, personName ?? undefined);
+      if (commonsResult) {
+        candidates.push(commonsResult);
+        if (commonsResult.score >= 55) break;
       }
     }
   }

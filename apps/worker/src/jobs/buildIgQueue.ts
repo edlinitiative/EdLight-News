@@ -16,6 +16,7 @@ import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generat
 import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
+import { findTieredImage } from "../services/tieredImagePipeline.js";
 import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
@@ -255,16 +256,34 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           igImageSafe = false;
         }
 
-        // For unsafe sources, try to find a free-licensed replacement image
+        // For unsafe sources, try to find a free-licensed replacement image.
+        // Prefer the tiered pipeline (Flickr → Wikimedia → LoC → Unsplash)
+        // when API keys are available; fall back to commonsImageSearch.
         let overrideImageUrl: string | undefined;
         if (!igImageSafe && item.imageSource === "publisher") {
           try {
-            const freeImage = await findFreeImage(item);
-            if (freeImage) {
-              overrideImageUrl = freeImage.imageUrl;
+            // Tier 1: full tiered pipeline (uses Flickr/Unsplash if keys are set)
+            const tieredResult = await findTieredImage(item);
+            if (tieredResult && tieredResult.width >= 1080) {
+              overrideImageUrl = tieredResult.url;
+              console.log(
+                `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} (${tieredResult.width}×${tieredResult.height})`,
+              );
             }
           } catch (err) {
-            console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
+          }
+
+          // Tier 2: commons-only fallback
+          if (!overrideImageUrl) {
+            try {
+              const freeImage = await findFreeImage(item);
+              if (freeImage) {
+                overrideImageUrl = freeImage.imageUrl;
+              }
+            } catch (err) {
+              console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            }
           }
         }
 

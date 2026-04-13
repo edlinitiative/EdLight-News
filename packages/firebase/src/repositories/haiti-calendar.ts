@@ -39,7 +39,7 @@ export async function listByEventType(eventType: CalendarEventType): Promise<Hai
 
 export async function listByLevel(level: CalendarLevel): Promise<HaitiCalendarEvent[]> {
   const snap = await collection()
-    .where("level", "==", level)
+    .where("level", "array-contains", level)
     .orderBy("dateISO")
     .get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as HaitiCalendarEvent);

@@ -93,9 +93,16 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
 
     // Step 10: Instagram pipeline — build queue, taux post, stories, schedule, and process
     let igResult: { buildQueue: any; taux: any; story: any; schedule: any; process: any; storyProcess: any } = { buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 }, taux: { queued: false, skipped: "" }, story: { queued: false, skipped: "" }, schedule: { scheduled: 0, skipped: "" }, process: { processed: 0, posted: 0, dryRun: 0, errors: 0 }, storyProcess: { processed: 0, posted: 0, dryRun: 0, errors: 0 } };
+
+    // ── Phase A: Build the carousel queue + taux ─────────────────────
     try {
-      // ── Phase A: Build the carousel queue + taux ─────────────────────
       igResult.buildQueue = await buildIgQueue();
+    } catch (err) {
+      console.error("[tick] buildIgQueue error:", err);
+      igResult.buildQueue = { error: String(err) };
+    }
+
+    try {
       igResult.taux = await buildIgTaux();
       // Warn on actionable taux skip reasons so they appear as warnings in logs.
       // brh-date-stale is expected early in the morning (BRH posts mid-day) but
@@ -105,19 +112,41 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       if (igResult.taux.skipped && actionableTauxSkips.has(igResult.taux.skipped)) {
         console.warn(`[tick] taux SKIPPED — ${igResult.taux.skipped} (a later tick will retry)`);
       }
+    } catch (err) {
+      console.error("[tick] buildIgTaux error:", err);
+      igResult.taux = { error: String(err) };
+    }
 
-      // ── Phase B: Schedule + post staple carousels FIRST ─────────────
-      // Taux, histoire, and utility must land in the feed before the
-      // story goes out, so followers can find the full content.
+    // ── Phase B: Schedule + post staple carousels FIRST ─────────────
+    // Taux, histoire, and utility must land in the feed before the
+    // story goes out, so followers can find the full content.
+    try {
       igResult.schedule = await scheduleIgPost();
-      igResult.process = await processIgScheduled();
+    } catch (err) {
+      console.error("[tick] scheduleIgPost error:", err);
+      igResult.schedule = { error: String(err) };
+    }
 
-      // ── Phase C: Build + post story (gated on staples being posted) ─
+    try {
+      igResult.process = await processIgScheduled();
+    } catch (err) {
+      console.error("[tick] processIgScheduled error:", err);
+      igResult.process = { error: String(err) };
+    }
+
+    // ── Phase C: Build + post story (gated on staples being posted) ─
+    try {
       igResult.story = await buildIgStory();
+    } catch (err) {
+      console.error("[tick] buildIgStory error:", err);
+      igResult.story = { error: String(err) };
+    }
+
+    try {
       igResult.storyProcess = await processIgStory();
     } catch (err) {
-      // IG pipeline is non-critical — log and continue
-      console.warn("[tick] IG pipeline error:", err instanceof Error ? err.message : err);
+      console.error("[tick] processIgStory error:", err);
+      igResult.storyProcess = { error: String(err) };
     }
 
     const durationMs = Date.now() - startMs;

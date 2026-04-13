@@ -14,34 +14,10 @@ import {
   type IGPublishIssue,
 } from "../services/igPublishValidation.js";
 import { generateContextualImage } from "../services/geminiImageGen.js";
-
-// Must match the TTLs in scheduleIgPost.ts
-const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
-  news: 48,          // 2 days  — breaking/current events
-  taux: 24,          // 1 day   — exchange rates are daily
-  utility: 72,       // 3 days  — fait-du-jour, study tips
-  histoire: 24,      // 1 day   — must match today's date
-  opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
-  scholarship: 336,  // 14 days — scholarships (capped by deadline)
-  breaking: 12,      // 12 h    — single-slide flash item loses relevance fast
-  stat: 72,          // 3 days  — manually curated, treat like utility
-};
+import { STALENESS_TTL_HOURS, isStale } from "./igStaleness.js";
 
 /** Post types whose Storage slides should be deleted after posting (ephemeral). */
 const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire", "breaking"]);
-
-/** Check if an IG queue item is too old to post. */
-function isStale(item: { igType: IGPostType; createdAt: any }): boolean {
-  const ttlHours = STALENESS_TTL_HOURS[item.igType] ?? 72;
-  const createdMs =
-    item.createdAt && typeof item.createdAt === "object" && "seconds" in item.createdAt
-      ? (item.createdAt as { seconds: number }).seconds * 1000
-      : item.createdAt instanceof Date
-        ? item.createdAt.getTime()
-        : 0;
-  if (createdMs === 0) return false;
-  return Date.now() - createdMs > ttlHours * 60 * 60 * 1000;
-}
 
 export interface ProcessIgScheduledResult {
   processed: number;
@@ -60,7 +36,9 @@ function isItemImageUsableForIG(item: Awaited<ReturnType<typeof itemsRepo.getIte
     return false;
   }
 
-  if (!width || !height) return true;
+  // Unknown dimensions → reject. Accepting unknown-dimension images let
+  // blurry / undersized publisher images slip through as IG backgrounds.
+  if (!width || !height) return false;
   if (Math.min(width, height) < 1080) return false;
   if (width / Math.max(height, 1) > 2.1) return false;
 

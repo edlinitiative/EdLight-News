@@ -118,8 +118,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
       body: {
         box: { x: SIDE, y: 460, width: INNER_W, height: 690 },
         fontSize: 32, minFontSize: 26, fontFamily: "Inter", lineHeight: 1.5,
-        // 2 bullets × 4 lines × ~7.5 words/line ≈ 60 words
-        limits: { maxWords: 60, maxLines: 8, perBulletMaxLines: 4 },
+        // 3 bullets × 4 lines × ~8 words/line ≈ 96 words; 100 gives headroom
+        limits: { maxWords: 100, maxLines: 12, perBulletMaxLines: 4 },
       },
       supportLine: {
         box: { x: SIDE, y: 480, width: INNER_W, height: 150 },
@@ -162,8 +162,8 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
         body: {
           box: { x: SIDE, y: 460, width: INNER_W, height: 690 },
           fontSize: 32, minFontSize: 26, fontFamily: "Inter", lineHeight: 1.5,
-          // 2 bullets × 4 lines × ~7.5 words/line ≈ 60 words
-          limits: { maxWords: 60, maxLines: 8, perBulletMaxLines: 4 },
+          // 3 bullets × 5 lines × ~7 words/line ≈ 105 words; headroom built in
+          limits: { maxWords: 100, maxLines: 15, perBulletMaxLines: 5 },
         },
       },
       data: {

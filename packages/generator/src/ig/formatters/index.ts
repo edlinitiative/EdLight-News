@@ -70,7 +70,9 @@ export function isItemImageUsableForIG(item: Item): boolean {
     return false;
   }
 
-  if (!width || !height) return true;
+  // Unknown dimensions → reject. Accepting unknown-dimension images let
+  // blurry / undersized publisher images slip through as IG backgrounds.
+  if (!width || !height) return false;
 
   if (Math.min(width, height) < MIN_IG_BACKGROUND_SHORT_SIDE) {
     return false;
@@ -166,14 +168,16 @@ export async function formatForIG(
   const igImageSafe = (options.igImageSafe ?? true) && isItemImageUsableForIG(item);
 
   if (!igImageSafe && payload.slides.length > 0) {
-    // Source flagged as unsafe — strip ALL slides' images
+    // Source flagged as unsafe — strip slides' images (except CTA landmark images)
     for (const slide of payload.slides) {
+      if (slide.layout === "cta") continue;
       delete slide.backgroundImage;
     }
     // Restore all slides with the free-licensed alternative so every slide
     // in the carousel uses the same image (avoids cover ≠ inner mismatch).
     if (options.overrideImageUrl) {
       for (const slide of payload.slides) {
+        if (slide.layout === "cta") continue;
         slide.backgroundImage = options.overrideImageUrl;
       }
     }

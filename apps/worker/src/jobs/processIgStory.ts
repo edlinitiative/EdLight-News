@@ -61,17 +61,30 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
 
   try {
     // ── Staples gate ──────────────────────────────────────────────────
-    // Don't publish the story until all three daily staple carousel posts
-    // (taux, histoire, utility) are confirmed "posted". This avoids the
-    // scenario where a follower sees taux/fait-du-jour in the story but
-    // can't find the full carousel in the feed yet.
+    // Don't publish the story until all daily staple carousel posts that
+    // were actually queued/scheduled today are confirmed "posted". This
+    // avoids the scenario where a follower sees taux/fait-du-jour in the
+    // story but can't find the full carousel in the feed yet.
+    //
+    // Weekend-aware: if a staple type has NO entry at all today (e.g.
+    // taux on weekends, or histoire when generation failed), we don't
+    // block on it — we only block on staples that ARE in the pipeline
+    // but haven't finished posting.
     const todayStatuses = await processIgStoryDeps.listPostedAndScheduledToday();
     const postedTypes = new Set(
       todayStatuses
         .filter((s) => s.status === "posted")
         .map((s) => s.igType),
     );
-    const missingStaples = REQUIRED_STAPLES.filter((t) => !postedTypes.has(t));
+    // Only require staples that actually exist in today's queue
+    const todayStapleTypes = new Set(
+      todayStatuses
+        .filter((s) => REQUIRED_STAPLES.includes(s.igType as IGPostType))
+        .map((s) => s.igType),
+    );
+    const missingStaples = REQUIRED_STAPLES.filter(
+      (t) => todayStapleTypes.has(t) && !postedTypes.has(t),
+    );
 
     if (missingStaples.length > 0) {
       console.log(

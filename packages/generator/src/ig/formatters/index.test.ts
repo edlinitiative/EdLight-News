@@ -57,12 +57,12 @@ describe("isItemImageUsableForIG", () => {
     assert.equal(isItemImageUsableForIG(item), true);
   });
 
-  it("keeps unknown non-branded images for backwards compatibility", () => {
+  it("rejects images with unknown dimensions", () => {
     const item = makeItem({
       imageSource: "publisher",
       imageMeta: undefined,
     });
 
-    assert.equal(isItemImageUsableForIG(item), true);
+    assert.equal(isItemImageUsableForIG(item), false);
   });
 });

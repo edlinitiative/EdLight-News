@@ -323,6 +323,9 @@ export interface Item {
   /** Explicitly tagged as a success / achievement story */
   successTag?: boolean;
 
+  /** Number of failed Gemini generation attempts (for retry-limiting) */
+  generationAttempts?: number;
+
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

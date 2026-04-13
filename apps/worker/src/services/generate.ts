@@ -35,6 +35,9 @@ const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "5", 10);
  */
 const SKIP_GENERATION_THRESHOLD = PUBLISH_SCORE_THRESHOLD * 0.35; // ~0.14
 
+/** Max Gemini generation attempts before permanently skipping an item */
+const MAX_GENERATION_ATTEMPTS = 3;
+
 export async function generateForItems(): Promise<{
   generated: number;
   skipped: number;
@@ -54,6 +57,15 @@ export async function generateForItems(): Promise<{
       // Skip if already has web content versions
       const hasVersions = await contentVersionsRepo.hasWebVersions(item.id);
       if (hasVersions) {
+        skipped++;
+        continue;
+      }
+
+      // Skip items that have permanently failed generation
+      if ((item.generationAttempts ?? 0) >= MAX_GENERATION_ATTEMPTS) {
+        console.warn(
+          `[generate] SKIPPED item ${item.id} — exceeded max generation attempts (${item.generationAttempts}/${MAX_GENERATION_ATTEMPTS})`,
+        );
         skipped++;
         continue;
       }
@@ -99,6 +111,9 @@ export async function generateForItems(): Promise<{
 
       if (!result.success) {
         console.error(`[generate] Gemini error for item ${item.id}:`, result.error);
+        await itemsRepo.updateItem(item.id, {
+          generationAttempts: (item.generationAttempts ?? 0) + 1,
+        });
         errors++;
         continue;
       }
@@ -289,6 +304,13 @@ export async function generateForItems(): Promise<{
       );
     } catch (err) {
       console.error(`[generate] error for item ${item.id}:`, err);
+      try {
+        await itemsRepo.updateItem(item.id, {
+          generationAttempts: (item.generationAttempts ?? 0) + 1,
+        });
+      } catch (updateErr) {
+        console.error(`[generate] failed to update generationAttempts for item ${item.id}:`, updateErr);
+      }
       errors++;
     }
   }
