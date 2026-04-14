@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X, Trash2 } from "lucide-react";
+import { Copy, Check, ExternalLink, RefreshCw, ArrowUpCircle, XCircle, RotateCcw, X, Trash2, Zap } from "lucide-react";
 import { IGPostPreview, IGSlideFrame } from "@/components/IGSlidePreview";
 import type { IGQueueEntry, IGQueueCounts } from "@/types/admin";
 
@@ -217,6 +217,14 @@ function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: 
             <>
               <button
                 disabled={busy}
+                onClick={() => void handleAction("publish_now")}
+                className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[11px] font-medium text-green-700 transition hover:bg-green-100 disabled:opacity-50 dark:bg-green-900/30 dark:text-green-300"
+                title="Publish on the next tick (within 15 min)"
+              >
+                <Zap className="h-3 w-3" /> Publish Now
+              </button>
+              <button
+                disabled={busy}
                 onClick={() => void handleAction("push")}
                 className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-300"
               >
@@ -232,13 +240,23 @@ function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: 
             </>
           )}
           {(entry.status === "scheduled" || entry.status === "scheduled_ready_for_manual") && (
-            <button
-              disabled={busy}
-              onClick={() => void handleAction("skip")}
-              className="flex items-center gap-1 rounded-md bg-stone-50 px-2 py-1 text-[11px] font-medium text-stone-500 transition hover:bg-stone-100 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-400"
-            >
-              <XCircle className="h-3 w-3" /> Skip
-            </button>
+            <>
+              <button
+                disabled={busy}
+                onClick={() => void handleAction("publish_now")}
+                className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[11px] font-medium text-green-700 transition hover:bg-green-100 disabled:opacity-50 dark:bg-green-900/30 dark:text-green-300"
+                title="Publish on the next tick (within 15 min)"
+              >
+                <Zap className="h-3 w-3" /> Publish Now
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => void handleAction("skip")}
+                className="flex items-center gap-1 rounded-md bg-stone-50 px-2 py-1 text-[11px] font-medium text-stone-500 transition hover:bg-stone-100 disabled:opacity-50 dark:bg-stone-800 dark:text-stone-400"
+              >
+                <XCircle className="h-3 w-3" /> Skip
+              </button>
+            </>
           )}
           {(entry.status === "expired" || entry.status === "skipped") && (
             <button

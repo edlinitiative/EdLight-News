@@ -117,7 +117,7 @@ export async function GET() {
 
 /**
  * PATCH /api/admin/ig-queue
- * Actions: push (schedule next slot), skip, requeue
+ * Actions: push (schedule next slot), skip, requeue, publish_now
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -128,7 +128,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Missing id or action" }, { status: 400 });
     }
 
-    const validActions = ["push", "skip", "requeue"];
+    const validActions = ["push", "skip", "requeue", "publish_now"];
     if (!validActions.includes(action)) {
       return NextResponse.json(
         { error: `Invalid action '${action}'. Must be one of: ${validActions.join(", ")}` },
@@ -137,10 +137,31 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (action === "push") {
-      // Schedule for the next available slot
-      const nextSlot = getNextAvailableSlot();
-      await igQueueRepo.setScheduled(id, nextSlot);
+      // Gather already-taken slots so we don't double-book
+      const takenSlots = await getTakenSlotISOs();
+      const nextSlot = getNextAvailableSlot(takenSlots);
+      if (!nextSlot) {
+        return NextResponse.json(
+          { error: "No available slots — all time-slots for today and tomorrow are taken." },
+          { status: 409 },
+        );
+      }
+      await igQueueRepo.setScheduled(id, nextSlot, { manuallyScheduled: true });
       return NextResponse.json({ ok: true, action, scheduledFor: nextSlot });
+    }
+
+    if (action === "publish_now") {
+      // Schedule for immediate processing on the next worker tick (≤15 min).
+      // manuallyScheduled bypasses staleness checks so the item won't be
+      // expired before it's processed.
+      const now = new Date().toISOString();
+      await igQueueRepo.setScheduled(id, now, { manuallyScheduled: true });
+      return NextResponse.json({
+        ok: true,
+        action,
+        scheduledFor: now,
+        message: "Scheduled for immediate publishing — will be processed on the next tick (within 15 minutes).",
+      });
     }
 
     if (action === "skip") {
@@ -165,12 +186,29 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
-/** Compute the next available IG posting slot (Haiti local → UTC). */
-function getNextAvailableSlot(): string {
-  const HAITI_TZ = "America/Port-au-Prince";
-  const now = new Date();
+// ─── Slot helpers ────────────────────────────────────────────────────────────
 
-  // Use Intl.DateTimeFormat parts so DST transitions are handled by the platform
+const HAITI_TZ = "America/Port-au-Prince";
+
+/**
+ * IG posting slots (Haiti local time).
+ * ⚠️  Must stay in sync with the worker's SLOTS in scheduleIgPost.ts.
+ */
+const SLOTS = [
+  { hour: 6, minute: 30 },    // Pinned: taux du jour
+  { hour: 6, minute: 50 },    // Pinned: fait du jour / utility
+  { hour: 7, minute: 0 },     // Pinned: histoire
+  { hour: 8, minute: 30 },    // Morning — general slot
+  { hour: 10, minute: 0 },    // Mid-morning
+  { hour: 11, minute: 30 },   // Late morning
+  { hour: 14, minute: 0 },    // Early afternoon
+  { hour: 16, minute: 0 },    // After school
+  { hour: 18, minute: 0 },    // Evening
+  { hour: 20, minute: 0 },    // Late evening
+];
+
+/** Extract Haiti wall-clock parts from a JS Date (DST-safe). */
+function haitiParts(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: HAITI_TZ,
     year: "numeric",
@@ -180,15 +218,23 @@ function getNextAvailableSlot(): string {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  }).formatToParts(now);
+  }).formatToParts(date);
   const get = (t: string) => parts.find((p) => p.type === t)!.value;
-  const haitiNow = new Date(
-    `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`,
-  );
-  const haitiHour = haitiNow.getHours();
-  const haitiMinute = haitiNow.getMinutes();
+  return {
+    year: Number(get("year")),
+    month: Number(get("month")) - 1, // JS month is 0-based
+    day: Number(get("day")),
+    hour: Number(get("hour")),
+    minute: Number(get("minute")),
+  };
+}
 
-  // Derive the current UTC offset from actual wall-clock difference
+/** Compute Haiti→UTC offset in hours (handles DST). */
+function getHaitiOffsetHours(now: Date): number {
+  const h = haitiParts(now);
+  const haitiLocal = new Date(
+    Date.UTC(h.year, h.month, h.day, h.hour, h.minute, 0, 0),
+  );
   const utcParts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "UTC",
     year: "numeric",
@@ -200,35 +246,70 @@ function getNextAvailableSlot(): string {
     hour12: false,
   }).formatToParts(now);
   const getU = (t: string) => utcParts.find((p) => p.type === t)!.value;
-  const utcNow = new Date(
+  const utcLocal = new Date(
     `${getU("year")}-${getU("month")}-${getU("day")}T${getU("hour")}:${getU("minute")}:${getU("second")}`,
   );
-  const offsetHours = Math.round(
-    (utcNow.getTime() - haitiNow.getTime()) / (60 * 60 * 1000),
+  return Math.round(
+    (utcLocal.getTime() - haitiLocal.getTime()) / (60 * 60 * 1000),
   );
+}
 
-  const SLOTS = [
-    { hour: 8, minute: 0 },
-    { hour: 10, minute: 30 },
-    { hour: 12, minute: 30 },
-    { hour: 15, minute: 0 },
-    { hour: 17, minute: 30 },
-    { hour: 19, minute: 0 },
-    { hour: 21, minute: 0 },
-  ];
+/** Collect scheduledFor values from all currently scheduled/rendering items. */
+async function getTakenSlotISOs(): Promise<Set<string>> {
+  const db = getDb();
+  const snap = await db
+    .collection("ig_queue")
+    .where("status", "in", ["scheduled", "rendering"])
+    .select("scheduledFor")
+    .get();
+  const taken = new Set<string>();
+  for (const doc of snap.docs) {
+    const sf = doc.data().scheduledFor;
+    if (sf) taken.add(sf);
+  }
+  return taken;
+}
 
-  const y = haitiNow.getFullYear();
-  const m = haitiNow.getMonth();
-  const d = haitiNow.getDate();
+/**
+ * Compute the next available IG posting slot (Haiti local → UTC ISO).
+ * Aligned with the worker's slot table so admin-pushed items sit in the
+ * same grid and don't collide with auto-scheduled content.
+ */
+function getNextAvailableSlot(takenSlots: Set<string>): string | null {
+  const now = new Date();
+  const h = haitiParts(now);
+  const offsetHours = getHaitiOffsetHours(now);
 
   for (let dayOff = 0; dayOff <= 1; dayOff++) {
     for (const slot of SLOTS) {
-      if (dayOff === 0 && (haitiHour > slot.hour || (haitiHour === slot.hour && haitiMinute >= slot.minute))) {
+      // Skip past slots if looking at today
+      if (
+        dayOff === 0 &&
+        (h.hour > slot.hour || (h.hour === slot.hour && h.minute >= slot.minute))
+      ) {
         continue;
       }
-      return new Date(Date.UTC(y, m, d + dayOff, slot.hour + offsetHours, slot.minute, 0, 0)).toISOString();
+
+      const slotDate = new Date(
+        Date.UTC(h.year, h.month, h.day + dayOff, slot.hour + offsetHours, slot.minute, 0, 0),
+      );
+      const iso = slotDate.toISOString();
+
+      if (takenSlots.has(iso)) continue;
+
+      // Safety: skip if within 30 min of any taken slot
+      let conflict = false;
+      for (const taken of takenSlots) {
+        if (Math.abs(new Date(taken).getTime() - slotDate.getTime()) < 30 * 60 * 1000) {
+          conflict = true;
+          break;
+        }
+      }
+      if (conflict) continue;
+
+      return iso;
     }
   }
 
-  return new Date(Date.UTC(y, m, d + 1, 8 + offsetHours, 0, 0, 0)).toISOString();
+  return null; // all slots taken
 }

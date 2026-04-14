@@ -220,12 +220,17 @@ export async function setPayload(
 export async function setScheduled(
   id: string,
   scheduledFor: string,
+  options?: { manuallyScheduled?: boolean },
 ): Promise<void> {
-  await collection().doc(id).update({
+  const update: Record<string, unknown> = {
     status: "scheduled" satisfies IGQueueStatus,
     scheduledFor,
     updatedAt: FieldValue.serverTimestamp(),
-  });
+  };
+  if (options?.manuallyScheduled) {
+    update.manuallyScheduled = true;
+  }
+  await collection().doc(id).update(update);
 }
 
 export async function markPosted(
