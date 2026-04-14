@@ -30,13 +30,22 @@ describe("isItemImageUsableForIG", () => {
     assert.equal(isItemImageUsableForIG(item), false);
   });
 
-  it("rejects images whose short side is below 1080px", () => {
+  it("rejects images whose short side is below 720px", () => {
     const item = makeItem({
       imageSource: "publisher",
-      imageMeta: { width: 1600, height: 900 },
+      imageMeta: { width: 1024, height: 600 },
     });
 
     assert.equal(isItemImageUsableForIG(item), false);
+  });
+
+  it("accepts publisher images at 720px short side", () => {
+    const item = makeItem({
+      imageSource: "publisher",
+      imageMeta: { width: 1280, height: 720 },
+    });
+
+    assert.equal(isItemImageUsableForIG(item), true);
   });
 
   it("rejects overly panoramic images", () => {

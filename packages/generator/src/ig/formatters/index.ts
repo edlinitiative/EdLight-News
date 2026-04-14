@@ -20,7 +20,12 @@ import { buildStatCard } from "./stat.js";
 import { normalizePayloadForPublishing, reviewSlides } from "../review.js";
 import { enforceBulletBudgets } from "./helpers.js";
 
-const MIN_IG_BACKGROUND_SHORT_SIDE = 1080;
+// 720 px is the minimum we accept for publisher (editorial) images.
+// A real photo at 720 px upscaled ×1.5 to fill the 1080×1350 canvas still
+// looks sharper and more editorially accurate than a random stock substitute.
+// Replacement images sourced by the reverse-search / tiered pipeline keep
+// their own higher threshold (≥ 1080 px) since those are net-new downloads.
+const MIN_IG_BACKGROUND_SHORT_SIDE = 720;
 const MAX_IG_BACKGROUND_ASPECT_RATIO = 2.1;
 
 // ── PRD §8.6: Stock photo host blocklist ─────────────────────────────────────

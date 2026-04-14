@@ -1,209 +1,140 @@
 /**
- * Reverse image search service.
+ * High-quality image finder for publisher images.
  *
  * When an article has a publisher image that is too low-resolution for IG
- * (< 1080 px shortest side), this service uses Gemini Vision to describe
- * the image content and then searches Brave Image Search for a high-quality
- * version of the **same** image (or a visually equivalent one).
+ * (< 1080 px shortest side), this service builds a targeted search query
+ * from the article's OWN metadata (title, entities, source) — no AI vision
+ * needed — then searches Brave Image Search for a high-quality version of
+ * the same photo (typically the original wire-service image from AP/Reuters/AFP).
  *
- * This bridges the gap where the article shows image A (low-res publisher
- * og:image) and the IG post shows image B (keyword-matched stock photo).
- * By searching for a description of the actual image, we can often find
- * the same photo at wire-service resolution (AP, Reuters, AFP).
+ * Why NOT use Gemini Vision?
+ * - The article title + entity names already describe the image contents
+ *   better than any vision model could (e.g. "Tatiana Auguste élue Canada").
+ * - Gemini Vision costs ~$0.01-0.07 per call, per item, every 30 minutes.
+ * - The existing Brave API key handles this at zero additional cost.
  *
- * Pipeline integration point: called from buildIgQueue.ts BEFORE the
- * generic tiered keyword search. If a high-res match is found, it becomes
- * the overrideImageUrl; otherwise the pipeline falls through to the normal
+ * Pipeline integration: called from buildIgQueue.ts BEFORE the generic
+ * tiered keyword search. If a high-res match is found, it becomes the
+ * overrideImageUrl; otherwise the pipeline falls through to the normal
  * Brave → Unsplash → LoC → Commons cascade.
  */
 
 import type { Item } from "@edlight-news/types";
 import type { ImageCandidate } from "./imageTypes.js";
 import { computeImageScore } from "./imageScoring.js";
+import { findVisionMatch } from "./googleVisionSearch.js";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const BRAVE_IMAGE_API = "https://api.search.brave.com/res/v1/images/search";
 const MIN_WIDTH = 1080;
-const GEMINI_VISION_TIMEOUT_MS = 15_000;
 const BRAVE_TIMEOUT_MS = 10_000;
+const HEAD_TIMEOUT_MS = 5_000;
 
-// ── Gemini Vision — describe the publisher image ───────────────────────────
+// ── Build a focused search query from article metadata ─────────────────────
 
 /**
- * Use Gemini Vision to generate a detailed description of an image.
- * The description is optimised for reverse-image search: it focuses on
- * identifiable people, settings, logos, and distinctive visual elements.
+ * Construct a search query tailored to find the exact news photo.
+ *
+ * Strategy:
+ * 1. Lead with entity names (person, org) — they're the most discriminating.
+ * 2. Append key title words (stripping common French stop-words).
+ * 3. Add source name to bias toward the same wire-service photo.
+ * 4. Cap at ~15 words so Brave returns precise results.
  */
-async function describeImageWithGemini(imageUrl: string): Promise<string | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.warn("[reverseImageSearch] No GEMINI_API_KEY set — skipping vision describe");
-    return null;
+function buildSearchQuery(item: Item): string {
+  const parts: string[] = [];
+
+  // ── Entity name (most powerful signal for news photos) ────────────────
+  if (item.entity?.personName) {
+    parts.push(item.entity.personName);
   }
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(GEMINI_VISION_TIMEOUT_MS),
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: [
-                    "Describe this image for a reverse image search query.",
-                    "Focus on:",
-                    "- Full names of any recognisable people (politicians, public figures)",
-                    "- Specific setting (parliament, podium, press conference, office, etc.)",
-                    "- Distinctive objects, logos, flags, or banners visible",
-                    "- The action taking place (speaking, signing, meeting, etc.)",
-                    "",
-                    "Return ONLY a concise search query (10-20 words) that would find",
-                    "this exact image or a very similar one on a news image search engine.",
-                    "Do not include quotation marks. Do not explain — just the query.",
-                  ].join("\n"),
-                },
-                {
-                  inlineData: undefined, // will be set below
-                  fileData: {
-                    mimeType: "image/jpeg",
-                    fileUri: imageUrl,
-                  },
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 100,
-          },
-        }),
-      },
-    );
+  // ── Title keywords (skip stop-words) ─────────────────────────────────
+  const STOP_WORDS = new Set([
+    // French
+    "le", "la", "les", "de", "du", "des", "un", "une", "et", "en", "au",
+    "aux", "pour", "par", "sur", "dans", "est", "sont", "a", "été", "se",
+    "ce", "qui", "que", "d", "l", "n", "s", "c", "qu",
+    // English
+    "the", "a", "an", "of", "in", "to", "for", "and", "is", "at", "on",
+    "by", "with", "from", "has", "was", "are", "its", "it", "be", "as",
+    // Connectors
+    "—", "-", ":", "|", "–", "/",
+  ]);
 
-    if (!res.ok) {
-      // Gemini may not support fileUri for arbitrary URLs — try with
-      // an inline image download instead.
-      return await describeImageInline(imageUrl, apiKey);
-    }
+  const titleWords = (item.title ?? "")
+    .replace(/[''"""«»()[\]{}]/g, "")
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOP_WORDS.has(w.toLowerCase()))
+    .slice(0, 8);
+  parts.push(...titleWords);
 
-    const data = (await res.json()) as {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: string }> };
-      }>;
-    };
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!text || text.length < 5) return null;
-
-    console.log(`[reverseImageSearch] Gemini described image: "${text}"`);
-    return text;
-  } catch {
-    // Fall back to inline download approach
-    return await describeImageInline(imageUrl, apiKey);
+  // ── Source name (biases toward same news outlet's wire photo) ─────────
+  if (item.source?.name) {
+    parts.push(item.source.name);
   }
+
+  // Deduplicate while preserving order
+  const seen = new Set<string>();
+  const unique = parts.filter((p) => {
+    const lower = p.toLowerCase();
+    if (seen.has(lower)) return false;
+    seen.add(lower);
+    return true;
+  });
+
+  // Cap at 15 words
+  return unique.slice(0, 15).join(" ");
 }
 
+// ── Check publisher image dimensions via HEAD request ──────────────────────
+
 /**
- * Fallback: download the image, base64-encode it, and send as inlineData
- * to Gemini Vision. More reliable than fileUri for arbitrary publisher URLs.
+ * Quick dimension check: try to determine if the publisher image is already
+ * large enough by probing the image with a HEAD request. Some CDNs expose
+ * content-length which can hint at quality, but dimensions in the Item
+ * metadata (imageMeta) are more reliable.
  */
-async function describeImageInline(
-  imageUrl: string,
-  apiKey: string,
-): Promise<string | null> {
+async function isPublisherImageSmall(item: Item, minShortestSide: number): Promise<boolean> {
+  // If we already have stored dimensions, use those
+  const w = item.imageMeta?.width;
+  const h = item.imageMeta?.height;
+
+  if (w && h) {
+    return Math.min(w, h) < minShortestSide;
+  }
+
+  // No stored dimensions — check content-length as heuristic.
+  // Images < 50 KB are almost certainly low-res.
   try {
-    // Download the image
-    const imgRes = await fetch(imageUrl, {
-      signal: AbortSignal.timeout(10_000),
+    const headRes = await fetch(item.imageUrl!, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(HEAD_TIMEOUT_MS),
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; EdLight-News/1.0; +https://edlight.org)",
       },
       redirect: "follow",
     });
 
-    if (!imgRes.ok) return null;
-
-    const contentType = imgRes.headers.get("content-type") ?? "image/jpeg";
-    if (!contentType.startsWith("image/")) return null;
-
-    const buffer = Buffer.from(await imgRes.arrayBuffer());
-    if (buffer.length < 1_000 || buffer.length > 20_000_000) return null;
-
-    const base64 = buffer.toString("base64");
-    const mimeType = contentType.split(";")[0]!.trim();
-
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(GEMINI_VISION_TIMEOUT_MS),
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: [
-                    "Describe this image for a reverse image search query.",
-                    "Focus on:",
-                    "- Full names of any recognisable people (politicians, public figures)",
-                    "- Specific setting (parliament, podium, press conference, office, etc.)",
-                    "- Distinctive objects, logos, flags, or banners visible",
-                    "- The action taking place (speaking, signing, meeting, etc.)",
-                    "",
-                    "Return ONLY a concise search query (10-20 words) that would find",
-                    "this exact image or a very similar one on a news image search engine.",
-                    "Do not include quotation marks. Do not explain — just the query.",
-                  ].join("\n"),
-                },
-                {
-                  inlineData: {
-                    mimeType,
-                    data: base64,
-                  },
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 100,
-          },
-        }),
-      },
-    );
-
-    if (!res.ok) {
-      console.warn(`[reverseImageSearch] Gemini Vision inline returned ${res.status}`);
-      return null;
+    if (headRes.ok) {
+      const contentLength = parseInt(headRes.headers.get("content-length") ?? "0", 10);
+      // A 1080×1080 JPEG at decent quality is typically > 100 KB.
+      // If the image is under 50 KB it's almost certainly too small.
+      if (contentLength > 0 && contentLength < 50_000) {
+        return true;
+      }
     }
-
-    const data = (await res.json()) as {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: string }> };
-      }>;
-    };
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!text || text.length < 5) return null;
-
-    console.log(`[reverseImageSearch] Gemini described image (inline): "${text}"`);
-    return text;
-  } catch (err) {
-    console.warn(
-      "[reverseImageSearch] inline vision failed:",
-      err instanceof Error ? err.message : err,
-    );
-    return null;
+  } catch {
+    // HEAD failed — assume it might be small
   }
+
+  // Unknown dimensions and HEAD didn't help — assume small to be safe.
+  // The search is cheap (just a Brave API call we already pay for).
+  return true;
 }
 
-// ── Brave Image Search with vision-derived query ───────────────────────────
+// ── Brave Image Search ─────────────────────────────────────────────────────
 
 interface BraveImageResult {
   title: string;
@@ -219,11 +150,11 @@ interface BraveImageResult {
 }
 
 /**
- * Search Brave Image Search using the Gemini-derived description.
+ * Search Brave Image Search using the article-metadata-derived query.
  * Filters for images that are large enough for IG (≥ 1080 px shortest side).
  */
 async function searchBraveForHQImage(
-  visionQuery: string,
+  query: string,
   item: Item,
 ): Promise<ImageCandidate | null> {
   const apiKey = process.env.BRAVE_SEARCH_API_KEY;
@@ -231,7 +162,7 @@ async function searchBraveForHQImage(
 
   try {
     const url = new URL(BRAVE_IMAGE_API);
-    url.searchParams.set("q", visionQuery);
+    url.searchParams.set("q", query);
     url.searchParams.set("count", "15");
     url.searchParams.set("safesearch", "strict");
 
@@ -245,7 +176,7 @@ async function searchBraveForHQImage(
     });
 
     if (!res.ok) {
-      console.warn(`[reverseImageSearch] Brave returned ${res.status} for "${visionQuery}"`);
+      console.warn(`[reverseImageSearch] Brave returned ${res.status} for "${query}"`);
       return null;
     }
 
@@ -272,9 +203,9 @@ async function searchBraveForHQImage(
       const metadata = `${img.title ?? ""} ${domain}`;
 
       const { total, breakdown } = computeImageScore({
-        query: visionQuery,
+        query,
         imageMetadata: metadata,
-        storyType: "event", // generic — vision query carries the context
+        storyType: "event",
         entityMatch: false,
         tier: "editorial",
         captureDate: img.page_age,
@@ -283,8 +214,8 @@ async function searchBraveForHQImage(
         licenseStatus: "editorial_fair_use",
       });
 
-      // Boost score slightly: vision-matched images are more likely to be
-      // the actual photo than keyword-matched ones.
+      // Boost score: entity-matched queries are more likely to return
+      // the actual news photo than generic keyword searches.
       const boostedTotal = Math.min(100, total + 8);
 
       if (!best || boostedTotal > best.score) {
@@ -320,16 +251,18 @@ async function searchBraveForHQImage(
 
 /**
  * Attempt to find a high-quality version of the item's publisher image
- * using Gemini Vision + Brave Image Search.
+ * using the article's own metadata + Brave Image Search.
+ *
+ * Zero additional API cost — uses the Brave API key you already pay for.
+ * No Gemini Vision, no image processing libraries needed.
  *
  * Returns an `ImageCandidate` with the high-res URL, or null if:
  * - The item has no publisher image
  * - The publisher image is already high-enough quality
- * - Gemini Vision failed to describe the image
  * - Brave found no high-res matches
  *
- * @param item   - The content item with its (potentially low-res) publisher image
- * @param minShortestSide - Minimum shortest-side pixels for IG (default 1080)
+ * @param item              The content item with its (potentially low-res) publisher image
+ * @param minShortestSide   Minimum shortest-side pixels for IG (default 1080)
  */
 export async function findHighResVersion(
   item: Item,
@@ -339,41 +272,56 @@ export async function findHighResVersion(
   if (!item.imageUrl) return null;
 
   // Check if the publisher image is already good enough
-  const width = item.imageMeta?.width;
-  const height = item.imageMeta?.height;
+  const tooSmall = await isPublisherImageSmall(item, minShortestSide);
+  if (!tooSmall) return null;
 
-  if (width && height && Math.min(width, height) >= minShortestSide) {
-    // Already high-res — no need to reverse search
-    return null;
-  }
-
-  // If we don't know the dimensions, still try — the image may be low-res
-  // without us knowing (no dimensions were stored)
   console.log(
-    `[reverseImageSearch] Publisher image for ${item.id} is ${width ?? "?"}×${height ?? "?"} — ` +
-    `searching for high-res version…`,
+    `[reverseImageSearch] Publisher image for ${item.id} appears low-res — ` +
+    `searching for high-quality version…`,
   );
 
-  // Step 1: Describe the image with Gemini Vision
-  const visionQuery = await describeImageWithGemini(item.imageUrl);
-  if (!visionQuery) {
-    console.log(`[reverseImageSearch] Gemini Vision could not describe image for ${item.id}`);
-    return null;
+  // ── Step 1: Google Cloud Vision WEB_DETECTION ───────────────────────────
+  // Finds the *exact same photo* indexed across the web at higher resolution.
+  // No text intermediary — pixel-level matching. Uses ~1 of your 1,000 free
+  // monthly calls (quota enforced in googleVisionSearch.ts).
+  if (item.imageUrl) {
+    try {
+      const visionMatch = await findVisionMatch(item.imageUrl);
+      if (visionMatch) {
+        console.log(
+          `[reverseImageSearch] ✅ Vision exact match for ${item.id}: ` +
+          `${visionMatch.sourceDomain} (${visionMatch.sourceType}, score=${visionMatch.score})`,
+        );
+        return visionMatch;
+      }
+    } catch (err) {
+      console.warn(
+        `[reverseImageSearch] Vision search failed for ${item.id}:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
   }
 
-  // Step 2: Search Brave with the vision-derived query
-  const result = await searchBraveForHQImage(visionQuery, item);
+  // ── Step 2: Brave metadata text search (fallback) ────────────────────────
+  // Uses article title + entity names to search Brave Images for a high-res
+  // editorial photo. Less precise than Vision but works without a Vision key.
+  if (query.length < 5) {
+    console.log(`[reverseImageSearch] Query too short for ${item.id}: "${query}"`);
+    return null;
+  }
+  console.log(`[reverseImageSearch] Search query: "${query}"`);
+
+  // Search Brave Images
+  const result = await searchBraveForHQImage(query, item);
 
   if (result) {
     console.log(
-      `[reverseImageSearch] ✅ Found high-res match for ${item.id}: ` +
+      `[reverseImageSearch] ✅ Found HQ match for ${item.id}: ` +
       `${result.width}×${result.height} from ${result.sourceDomain} ` +
       `(score=${result.score.toFixed(1)})`,
     );
   } else {
-    console.log(
-      `[reverseImageSearch] ⚠️  No high-res match found for ${item.id}`,
-    );
+    console.log(`[reverseImageSearch] ⚠️  No HQ match found for ${item.id}`);
   }
 
   return result;

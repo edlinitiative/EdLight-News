@@ -296,9 +296,9 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
             `[buildIgQueue] Publisher image not usable for ${item.id} (${reason}) — searching for replacement`,
           );
 
-          // ── Step 1: Reverse image search (same image, higher resolution) ─
-          // Uses Gemini Vision to describe the publisher image and Brave to
-          // find the same photo at ≥1080px. This preserves editorial accuracy.
+          // ── Step 1: HQ image search (same image, higher resolution) ──────
+          // Uses article metadata (title, entities, source) to search Brave
+          // for the same photo at ≥1080px. Zero extra cost — no AI vision.
           if (item.imageUrl) {
             try {
               const hqMatch = await findHighResVersion(item);
