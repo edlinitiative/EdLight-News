@@ -223,6 +223,8 @@ function seriesToCategory(series: UtilitySeries): ItemCategory {
       return "bourses";
     case "HaitiEducationCalendar":
       return "resource";
+    case "HaitiFactOfTheDay":
+      return "local_news";
     default:
       return "resource";
   }

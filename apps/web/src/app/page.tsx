@@ -99,6 +99,29 @@ function SectionHeader({
   );
 }
 
+/**
+ * Compute the display category for an article, remapping misleading
+ * upstream categories so the badge shown to the user is accurate.
+ *
+ * Handles two known data-quality issues:
+ *  1. HaitiFactOfTheDay utility items stored with category="resource"
+ *     — these are daily news, not educational resources.
+ *  2. Opportunity-adjacent categories (bourses, concours, stages, programmes)
+ *     on articles that aren't actually opportunities (classifier false positives).
+ */
+function displayCategory(a: FeedItem): string {
+  const cat = a.category ?? "";
+  // Utility daily-fact items are news, not resources
+  if (cat === "resource" && a.itemType === "utility" && a.utilityType === "daily_fact") {
+    return a.geoTag === "HT" ? "local_news" : "news";
+  }
+  // Opportunity-adjacent categories on non-opportunity articles → remap
+  if (OPPORTUNITY_CATS.has(cat) && !isOpportunity(a)) {
+    return a.geoTag === "HT" || a.vertical === "haiti" ? "local_news" : "news";
+  }
+  return cat;
+}
+
 /** Small coloured category badge */
 function CategoryBadge({ category, lang }: { category?: string; lang: ContentLanguage }) {
   if (!category) return null;
@@ -170,7 +193,7 @@ export default async function AccueilPage({
   const [rawFeed, closingScholarships, trendingArticles] = await Promise.all([
     safeFetch(() => fetchEnrichedFeed(lang, 80), [], "enrichedFeed"),
     safeFetch(() => fetchScholarshipsClosingSoon(60), [], "scholarships"),
-    safeFetch(() => fetchTrending(lang, 4), [], "trending"),
+    safeFetch(() => fetchTrending(lang, 8), [], "trending"),
   ]);
 
   // Remove exchange-rate filler articles
@@ -335,7 +358,7 @@ export default async function AccueilPage({
                 )}
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <CategoryBadge category={leadArticle.category} lang={lang} />
+                    <CategoryBadge category={displayCategory(leadArticle)} lang={lang} />
                     {leadArticle.geoTag === "HT" && (
                       <span className="rounded bg-red-50 px-2 py-0.5 text-[11px] font-bold uppercase text-red-700 dark:bg-red-950/30 dark:text-red-400">
                         {fr ? "Haïti" : "Ayiti"}
@@ -388,7 +411,7 @@ export default async function AccueilPage({
                         </div>
                       )}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <CategoryBadge category={article.category} lang={lang} />
+                        <CategoryBadge category={displayCategory(article)} lang={lang} />
                         <h3 className="text-sm font-bold leading-snug text-stone-900 line-clamp-3 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-400">
                           {article.title}
                         </h3>
@@ -480,7 +503,7 @@ export default async function AccueilPage({
                   )}
                   <div className="flex flex-1 flex-col gap-2 p-5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <CategoryBadge category={featuredOpp.category} lang={lang} />
+                      <CategoryBadge category={displayCategory(featuredOpp)} lang={lang} />
                       <DeadlinePill deadline={featuredOpp.deadline} lang={lang} />
                     </div>
                     <h3
@@ -522,7 +545,7 @@ export default async function AccueilPage({
                       )}
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <CategoryBadge category={opp.category} lang={lang} />
+                          <CategoryBadge category={displayCategory(opp)} lang={lang} />
                           <DeadlinePill deadline={opp.deadline} lang={lang} />
                         </div>
                         <h4 className="text-sm font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-400">
@@ -614,7 +637,7 @@ export default async function AccueilPage({
                         </div>
                       )}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <CategoryBadge category={topHaiti.category} lang={lang} />
+                        <CategoryBadge category={displayCategory(topHaiti)} lang={lang} />
                         <h3 className="text-base font-bold leading-snug text-stone-900 line-clamp-3 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-400">
                           {topHaiti.title}
                         </h3>
@@ -677,7 +700,7 @@ export default async function AccueilPage({
                         </div>
                       )}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <CategoryBadge category={topWorld.category} lang={lang} />
+                        <CategoryBadge category={displayCategory(topWorld)} lang={lang} />
                         <h3 className="text-base font-bold leading-snug text-stone-900 line-clamp-3 group-hover:text-emerald-700 dark:text-white dark:group-hover:text-emerald-400">
                           {topWorld.title}
                         </h3>
@@ -740,7 +763,7 @@ export default async function AccueilPage({
                         </div>
                       )}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <CategoryBadge category={topEdu.category} lang={lang} />
+                        <CategoryBadge category={displayCategory(topEdu)} lang={lang} />
                         <h3 className="text-base font-bold leading-snug text-stone-900 line-clamp-3 group-hover:text-teal-700 dark:text-white dark:group-hover:text-teal-400">
                           {topEdu.title}
                         </h3>
@@ -803,7 +826,7 @@ export default async function AccueilPage({
                         </div>
                       )}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <CategoryBadge category={topBusiness.category} lang={lang} />
+                        <CategoryBadge category={displayCategory(topBusiness)} lang={lang} />
                         <h3 className="text-base font-bold leading-snug text-stone-900 line-clamp-3 group-hover:text-orange-700 dark:text-white dark:group-hover:text-orange-400">
                           {topBusiness.title}
                         </h3>
@@ -876,7 +899,7 @@ export default async function AccueilPage({
                     </div>
                   )}
                   <div className="min-w-0 flex-1 space-y-1.5">
-                    <CategoryBadge category={article.category} lang={lang} />
+                    <CategoryBadge category={displayCategory(article)} lang={lang} />
                     <h3
                       className="text-base font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-400"
                       style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}

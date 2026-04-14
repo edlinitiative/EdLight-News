@@ -192,8 +192,9 @@ export async function generateForItems(): Promise<{
       }
 
       // Determine final category: deterministic classifier wins for opportunities
+      type Vertical = "news" | "opportunites" | "haiti" | "world" | "education" | "business" | "technology" | "explainers" | "bourses" | "histoire" | "succes";
       let finalCategory: ItemCategory;
-      let finalVertical: string | undefined;
+      let finalVertical: Vertical | undefined;
       let finalDeadline: string | null;
       let finalOpportunity: Opportunity | undefined;
 
