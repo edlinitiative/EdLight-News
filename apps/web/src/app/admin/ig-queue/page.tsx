@@ -308,6 +308,7 @@ export default function IGQueuePage() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<IGQueueEntry | null>(null);
   const [purging, setPurging] = useState(false);
   const [purgeConfirm, setPurgeConfirm] = useState(false);
@@ -339,8 +340,26 @@ export default function IGQueuePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error((data as { error?: string }).error ?? "Action failed");
+      const data = await res.json() as { ok?: boolean; error?: string; message?: string };
+      if (!res.ok) throw new Error(data.error ?? "Action failed");
+
+      if (action === "publish_now") {
+        setSuccessMsg("⚡ Publishing… triggering worker now. Status will update shortly.");
+        setTimeout(() => setSuccessMsg(null), 30_000);
+
+        // Trigger the worker tick so it processes the item immediately
+        fetch("/api/admin/tick", { method: "POST" }).catch(() => {
+          // Non-critical — Cloud Scheduler will pick it up within 15 min
+        });
+
+        // Auto-refresh so the user sees status change to rendering → posted
+        setTimeout(() => void loadData(), 5_000);
+        setTimeout(() => void loadData(), 15_000);
+        setTimeout(() => void loadData(), 30_000);
+        setTimeout(() => void loadData(), 60_000);
+        setTimeout(() => void loadData(), 90_000);
+      }
+
       void loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -490,6 +509,14 @@ export default function IGQueuePage() {
 
       {/* Error */}
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {/* Success */}
+      {successMsg && (
+        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
+          <Zap className="h-4 w-4 shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
 
       {/* Loading */}
       {loading && <p className="text-sm text-stone-400">Loading…</p>}

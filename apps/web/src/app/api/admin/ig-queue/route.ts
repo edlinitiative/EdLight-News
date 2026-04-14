@@ -151,16 +151,32 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (action === "publish_now") {
-      // Schedule for immediate processing on the next worker tick (≤15 min).
+      // Schedule for immediate processing and trigger the worker right away.
       // manuallyScheduled bypasses staleness checks so the item won't be
       // expired before it's processed.
       const now = new Date().toISOString();
       await igQueueRepo.setScheduled(id, now, { manuallyScheduled: true });
+
+      // Fire-and-forget: trigger the worker so it processes immediately
+      // instead of waiting up to 15 min for the next Cloud Scheduler tick.
+      const workerUrl = process.env.WORKER_URL;
+      if (workerUrl) {
+        fetch(`${workerUrl}/tick`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(5_000),
+        }).catch((err) => {
+          console.warn("[api/admin/ig-queue] publish_now: failed to trigger worker tick:", err);
+        });
+      }
+
       return NextResponse.json({
         ok: true,
         action,
         scheduledFor: now,
-        message: "Scheduled for immediate publishing — will be processed on the next tick (within 15 minutes).",
+        message: workerUrl
+          ? "Publishing now — worker triggered. The post will appear on Instagram within 1–2 minutes."
+          : "Scheduled for immediate publishing — will be processed on the next tick (within 15 minutes). Set WORKER_URL for instant publishing.",
       });
     }
 
