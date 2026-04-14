@@ -147,7 +147,7 @@ function PostModal({ entry, onClose }: { entry: IGQueueEntry; onClose: () => voi
 
 // ── Post card ────────────────────────────────────────────────────────────────
 
-function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: (id: string, action: string) => void; onOpen: (entry: IGQueueEntry) => void }) {
+function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: (id: string, action: string) => Promise<void>; onOpen: (entry: IGQueueEntry) => void }) {
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [busy, setBusy] = useState(false);
   const accentBorder = TYPE_ACCENTS[entry.igType] ?? "border-stone-300";
@@ -155,7 +155,7 @@ function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: 
   const handleAction = async (action: string) => {
     setBusy(true);
     try {
-      onAction(entry.id, action);
+      await onAction(entry.id, action);
     } finally {
       setBusy(false);
     }
