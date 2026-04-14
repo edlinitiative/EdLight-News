@@ -230,7 +230,7 @@ export function HistoireClient({
     : formatMonthDay(selectedDate, lang);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* ── ① Sticky WeekStrip ───────────────────────────────── */}
       <WeekStrip
         days={weekDays}
@@ -247,10 +247,10 @@ export function HistoireClient({
           {activeHolidays.map((h) => (
             <div
               key={h.id}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-50 to-amber-100/60 px-3.5 py-2.5 text-sm font-medium text-amber-800 dark:from-amber-900/20 dark:to-amber-800/15 dark:text-amber-200"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-200/50 bg-gradient-to-r from-amber-50 to-amber-100/60 px-3.5 py-2.5 text-sm font-medium shadow-sm dark:border-amber-700/30 dark:from-amber-900/20 dark:to-amber-800/15"
             >
               <Star className="h-3.5 w-3.5 text-amber-500" />
-              {fr ? h.name_fr : h.name_ht}
+              <span className="font-serif italic text-amber-800 dark:text-amber-200">{fr ? h.name_fr : h.name_ht}</span>
               {h.isNationalHoliday && (
                 <span className="ml-1 rounded-full bg-amber-200/60 px-2 py-0.5 text-[10px] font-semibold uppercase dark:bg-amber-800/30 dark:text-amber-300">
                   {fr ? "National" : "Nasyonal"}
@@ -281,9 +281,9 @@ export function HistoireClient({
         className="animate-in fade-in duration-200"
       >
         {isLoading ? (
-          <div className="flex flex-col items-center gap-3 py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-            <p className="text-sm text-stone-400 dark:text-stone-500">
+          <div className="flex flex-col items-center gap-3 py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
+            <p className="font-serif text-sm italic text-stone-400 dark:text-stone-500">
               {fr ? "Chargement\u2026" : "Chajman\u2026"}
             </p>
           </div>
@@ -320,7 +320,7 @@ export function HistoireClient({
 
         {/* ── ⑤ Sub-facts: "Aussi ce jour-là" ──────────────────── */}
         {!isLoading && secondaryEntries.length > 0 && (
-          <div className="mt-6">
+          <div className="mt-10">
             <HistoryList
               entries={secondaryEntries}
               lang={lang}

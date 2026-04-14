@@ -70,7 +70,7 @@ export default async function HistoirePage({
   const l = (href: string) => `${href}?lang=${lang}`;
 
   return (
-    <div className="space-y-10 pb-14">
+    <div className="space-y-0 pb-14">
       {/* ─── Hero ────────────────────────────────────────────────── */}
       <PageHero
         variant="history"
@@ -104,7 +104,7 @@ export default async function HistoirePage({
       />
 
       {/* ─── Interactive content ──────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
         <HistoireClient
           todayMD={todayMD}
           monthEntries={monthEntries.map(serializeEntry)}

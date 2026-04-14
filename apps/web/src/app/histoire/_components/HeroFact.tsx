@@ -50,16 +50,16 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
   const isWikiImage = !ownIllustration && !!wikiThumb;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-md dark:border-stone-700 dark:bg-stone-800">
-      {/* ── Image (compact cinematic — 3:1) ───────────────── */}
+    <article className="group overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-md transition-shadow hover:shadow-lg dark:border-stone-700/60 dark:bg-stone-800">
+      {/* ── Image (cinematic — 16:9) ──────────────────────── */}
       {imageUrl && (
-        <div className="relative aspect-[2.5/1] max-h-56 w-full overflow-hidden sm:aspect-[3/1]">
+        <div className="relative aspect-[16/9] max-h-72 w-full overflow-hidden sm:aspect-[2.5/1]">
           {isWikiImage ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={imageUrl}
               alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             />
           ) : (
             <Image
@@ -67,7 +67,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
               alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
               fill
               sizes="(max-width: 768px) 100vw, 960px"
-              className="object-cover"
+              className="object-cover transition duration-500 group-hover:scale-[1.03]"
               priority
             />
           )}
@@ -118,7 +118,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
       )}
 
       {/* ── Body ──────────────────────────────────────────── */}
-      <div className="space-y-4 p-5 sm:p-6">
+      <div className="space-y-4 p-6 sm:p-8">
         {/* Tags row (shown when no image) */}
         {!imageUrl && (
           <div className="flex flex-wrap items-center gap-2">
@@ -153,18 +153,18 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
         )}
 
         {/* Headline — uses serif editorial style */}
-        <h2 className="headline-section">
+        <h2 className="font-serif text-2xl font-bold italic leading-snug tracking-tight text-stone-900 dark:text-white sm:text-3xl">
           {fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}
         </h2>
 
         {/* Full summary — no clamp */}
-        <p className="text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+        <p className="text-[15px] leading-[1.8] text-stone-600 dark:text-stone-300">
           {fr ? entry.summary_fr : (entry.summary_ht ?? entry.summary_fr)}
         </p>
 
         {/* Takeaway callout */}
         {entry.student_takeaway_fr && (
-          <div className="flex gap-3 rounded-xl bg-amber-50 p-4 dark:bg-amber-900/20">
+          <div className="flex gap-3 rounded-xl border border-amber-200/40 bg-amber-50/80 p-4 dark:border-amber-700/30 dark:bg-amber-900/20">
             <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <div>
               <p className="text-xs font-bold text-amber-800 dark:text-amber-200">
@@ -192,7 +192,7 @@ export function HeroFact({ entry, lang, showDate }: HeroFactProps) {
                 href={s.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                className="inline-flex items-center gap-1 text-xs font-medium text-stone-500 transition-colors hover:text-stone-800 hover:underline dark:text-stone-400 dark:hover:text-stone-200"
               >
                 <ExternalLink className="h-2.5 w-2.5" />
                 {s.label}

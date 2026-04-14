@@ -71,16 +71,17 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
     <section className="space-y-4">
       {/* Section heading + filter pills */}
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-base font-semibold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-lg">
+        <h3 className="font-serif text-lg font-bold italic text-stone-900 dark:text-white">
           {fr ? "Aussi ce jour-là" : "Menm jou sa a tou"}
         </h3>
+        <div className="h-px flex-1 bg-stone-200 dark:bg-stone-700" />
         <div className="flex flex-wrap items-center gap-1.5">
           {availableTags.length > 0 && (
             <>
               <button
                 onClick={() => setSelectedTag("")}
                 className={
-                  "rounded-lg px-2.5 py-1 text-xs font-semibold transition " +
+                  "rounded-full px-2.5 py-1 text-xs font-semibold transition " +
                   (selectedTag === ""
                     ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
                     : "text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200")
@@ -96,7 +97,7 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
                     key={t}
                     onClick={() => setSelectedTag(isActive ? "" : t)}
                     className={
-                      "inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold transition " +
+                      "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition " +
                       (isActive
                         ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
                         : `text-stone-500 hover:bg-stone-100 hover:text-stone-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-200`)
@@ -117,7 +118,7 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
         <EmptyState lang={lang} dateLabel={emptyLabel} />
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {visible.map((entry) => (
               <HistoryCard key={entry.id} entry={entry} lang={lang} showDate={showDate} />
             ))}
@@ -127,7 +128,7 @@ export function HistoryList({ entries, lang, emptyLabel, showDate }: HistoryList
             <div className="flex justify-center pt-1">
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-5 py-2 text-xs font-medium text-stone-600 shadow-sm transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-5 py-2.5 text-xs font-medium text-stone-600 shadow-sm transition hover:bg-stone-50 hover:shadow-md dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
               >
                 {expanded
                   ? (fr ? "Voir moins" : "Wè mwens")

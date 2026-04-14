@@ -110,11 +110,11 @@ const HERO_THEMES: Record<HeroVariant, PageHeroTheme> = {
     statColor: "text-teal-600 dark:text-teal-400",
   },
   history: {
-    iconBg: "bg-amber-600/10 ring-1 ring-amber-600/20",
-    iconColor: "text-amber-700 dark:text-amber-400",
-    heroBg: "from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-amber-600 text-white hover:bg-amber-700 shadow-sm shadow-amber-500/20",
-    statColor: "text-amber-700 dark:text-amber-400",
+    iconBg: "bg-amber-700/10 ring-1 ring-amber-700/25",
+    iconColor: "text-amber-800 dark:text-amber-400",
+    heroBg: "from-amber-50/60 via-stone-50/40 to-white dark:from-amber-950/30 dark:via-stone-950 dark:to-stone-950",
+    primaryAction: "bg-stone-900 text-white hover:bg-stone-800 shadow-sm dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white",
+    statColor: "text-amber-800 dark:text-amber-400",
   },
   opinion: {
     iconBg: "bg-rose-600/10 ring-1 ring-rose-600/20",

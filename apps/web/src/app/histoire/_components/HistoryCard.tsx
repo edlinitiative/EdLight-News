@@ -51,7 +51,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
   const hasExpandableContent = !!(entry.student_takeaway_fr || (entry.sources && entry.sources.length > 0));
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-stone-700 dark:bg-stone-800">
+    <article className="group overflow-hidden rounded-xl border border-stone-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-stone-700/60 dark:bg-stone-800">
       {/* ── Horizontal layout: image left + text right ────── */}
       <div
         className="flex cursor-pointer"
@@ -74,7 +74,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
               <img
                 src={imageUrl}
                 alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
-                className="h-full w-full object-cover transition group-hover:scale-[1.03]"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]"
                 loading="lazy"
               />
             ) : (
@@ -83,7 +83,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
                 alt={`${fr ? "Illustration :" : "Illustrasyon :"} ${fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}`}
                 fill
                 sizes="144px"
-                className="object-cover transition group-hover:scale-[1.03]"
+                className="object-cover transition duration-500 group-hover:scale-[1.05]"
               />
             )}
             {isWikiImage && (
@@ -101,7 +101,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
             {entry.year != null && (
               <time
                 dateTime={toISODate(entry.monthDay, entry.year)}
-                className="rounded bg-blue-50 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+                className="rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-stone-700 dark:bg-stone-700 dark:text-stone-300"
               >
                 {entry.year}
               </time>
@@ -128,7 +128,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
           </div>
 
           {/* Title — serif editorial */}
-          <h3 className="headline-card line-clamp-2">
+          <h3 className="font-serif text-base font-bold italic leading-snug tracking-tight text-stone-900 line-clamp-2 dark:text-white">
             {fr ? entry.title_fr : (entry.title_ht ?? entry.title_fr)}
           </h3>
 
@@ -139,7 +139,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
 
           {/* Expand indicator */}
           {hasExpandableContent && (
-            <div className="flex items-center gap-1 text-[11px] font-medium text-blue-600 dark:text-blue-400">
+            <div className="flex items-center gap-1 text-[11px] font-medium text-stone-500 dark:text-stone-400">
               <span>{expanded ? (fr ? "Moins" : "Mwens") : (fr ? "Lire plus" : "Li plis")}</span>
               <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
             </div>
@@ -155,7 +155,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
           <div className="space-y-3 border-t border-stone-100 px-3.5 pb-4 pt-3 dark:border-stone-700/50 sm:px-4">
             {/* Takeaway */}
             {entry.student_takeaway_fr && (
-              <div className="flex gap-2.5 rounded-lg bg-amber-50 p-3 dark:bg-amber-900/20">
+              <div className="flex gap-2.5 rounded-lg border border-amber-200/40 bg-amber-50/80 p-3 dark:border-amber-700/30 dark:bg-amber-900/20">
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                 <p className="text-xs leading-relaxed text-amber-900/80 dark:text-amber-200/70">
                   {fr
@@ -179,7 +179,7 @@ export function HistoryCard({ entry, lang, showDate }: HistoryCardProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline dark:text-blue-400"
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-stone-500 transition-colors hover:text-stone-800 hover:underline dark:text-stone-400 dark:hover:text-stone-200"
                   >
                     <ExternalLink className="h-2 w-2" />
                     {s.label}

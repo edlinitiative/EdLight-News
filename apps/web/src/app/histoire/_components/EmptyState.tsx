@@ -19,10 +19,12 @@ interface EmptyStateProps {
 export function EmptyState({ lang, dateLabel, hint, onGoToday }: EmptyStateProps) {
   const fr = lang === "fr";
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-stone-200 bg-white py-14 text-center dark:border-stone-700 dark:bg-stone-800">
-      <BookOpen className="mb-3 h-10 w-10 text-stone-300 dark:text-stone-600" />
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-stone-200 bg-stone-50/50 py-14 text-center dark:border-stone-700 dark:bg-stone-800/50">
+      <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-stone-100 dark:bg-stone-700/50">
+        <BookOpen className="h-6 w-6 text-stone-400 dark:text-stone-500" />
+      </div>
       {dateLabel && (
-        <p className="mb-1 text-sm font-medium text-stone-500 dark:text-stone-400">
+        <p className="mb-1 font-serif text-sm font-medium italic text-stone-500 dark:text-stone-400">
           {dateLabel}
         </p>
       )}
@@ -39,7 +41,7 @@ export function EmptyState({ lang, dateLabel, hint, onGoToday }: EmptyStateProps
       {onGoToday && (
         <button
           onClick={onGoToday}
-          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-blue-600/10 px-4 py-2 text-xs font-semibold text-blue-700 transition hover:bg-blue-600/20 dark:bg-blue-500/15 dark:text-blue-300 dark:hover:bg-blue-500/25"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 shadow-sm transition hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
         >
           <CalendarCheck className="h-3.5 w-3.5" />
           {fr ? "Retour à aujourd\u2019hui" : "Retounen jodi a"}
