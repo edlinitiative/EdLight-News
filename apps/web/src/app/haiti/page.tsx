@@ -57,7 +57,7 @@ export default async function HaitiPage({
 
   // ── Candidate pool: same broad query as before ──────────────────────────
   const candidatePool = allArticles.filter(
-    (a) => a.geoTag === "HT" || a.category === "local_news",
+    (a) => a.vertical === "haiti" || a.geoTag === "HT" || a.category === "local_news",
   );
 
   // ── Hard geo filter: only truly Haiti-related items survive ─────────────

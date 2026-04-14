@@ -182,9 +182,16 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     let newItemsQueuedThisRun = 0;
 
     for (const item of freshItems) {
+      // Daily staple types (histoire, taux, utility/daily-fact) are exempt
+      // from the per-run cap — they MUST enter the queue to be scheduled
+      // at their pinned morning slots. Without this exemption, a burst of
+      // 20+ news items can block histoire from ever being queued.
+      const isStapleItem = isHistoireItem(item) || isDailyUtilityItem(item);
+
       // Stop after queuing MAX_NEW_ITEMS_PER_RUN new eligible items per tick
       // to prevent runaway Gemini / Firestore quota consumption.
-      if (newItemsQueuedThisRun >= MAX_NEW_ITEMS_PER_RUN) {
+      // Staple items bypass this cap.
+      if (!isStapleItem && newItemsQueuedThisRun >= MAX_NEW_ITEMS_PER_RUN) {
         break;
       }
 
@@ -256,35 +263,40 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           igImageSafe = false;
         }
 
-        // For unsafe sources, try to find a free-licensed replacement image.
-        // Prefer the tiered pipeline (Flickr → Wikimedia → LoC → Unsplash)
-        // when API keys are available; fall back to commonsImageSearch.
+        // ── Always run the tiered image pipeline ─────────────────────────
+        // Finds the best contextual image from Brave → Unsplash → LoC → Wikimedia.
+        // This runs for EVERY item, not just unsafe sources, because even
+        // "safe" publisher images are often low-resolution or poorly cropped.
         let overrideImageUrl: string | undefined;
-        if (!igImageSafe && item.imageSource === "publisher") {
+        try {
+          const tieredResult = await findTieredImage(item);
+          if (tieredResult && tieredResult.width >= 1080) {
+            overrideImageUrl = tieredResult.url;
+            console.log(
+              `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} ` +
+              `(${tieredResult.width}×${tieredResult.height}, score=${tieredResult.score.toFixed(1)})`,
+            );
+          }
+        } catch (err) {
+          console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
+        }
+
+        // Fallback: commons-only search if tiered pipeline found nothing
+        if (!overrideImageUrl) {
           try {
-            // Tier 1: full tiered pipeline (uses Flickr/Unsplash if keys are set)
-            const tieredResult = await findTieredImage(item);
-            if (tieredResult && tieredResult.width >= 1080) {
-              overrideImageUrl = tieredResult.url;
-              console.log(
-                `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} (${tieredResult.width}×${tieredResult.height})`,
-              );
+            const freeImage = await findFreeImage(item);
+            if (freeImage) {
+              overrideImageUrl = freeImage.imageUrl;
             }
           } catch (err) {
-            console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
           }
+        }
 
-          // Tier 2: commons-only fallback
-          if (!overrideImageUrl) {
-            try {
-              const freeImage = await findFreeImage(item);
-              if (freeImage) {
-                overrideImageUrl = freeImage.imageUrl;
-              }
-            } catch (err) {
-              console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
-            }
-          }
+        // When we have a pipeline-sourced image, mark igImageSafe as false
+        // so the formatter replaces slides' backgroundImage with our override.
+        if (overrideImageUrl) {
+          igImageSafe = false;
         }
 
         // Format the payload
@@ -380,6 +392,9 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           ...(targetPostDate
             ? { targetPostDate }
             : {}),
+          // Stamp the Haiti-local queue date on ALL items so the scheduler
+          // can prefer same-day items over stale carry-overs from previous days.
+          queuedDate: haitiToday,
         });
         result.queued++;
         newItemsQueuedThisRun++;

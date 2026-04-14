@@ -12,6 +12,7 @@ import {
 import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/types";
 import { computeScoring } from "./scoring.js";
 import { classifyItem } from "./classify.js";
+import { classifyWithZeroShot, resolveCategory } from "./zeroShotClassifier.js";
 import { PUBLISH_SCORE_THRESHOLD } from "@edlight-news/generator";
 import { isBotProtectionPage } from "@edlight-news/scraper";
 
@@ -166,6 +167,30 @@ export async function generateForItems(): Promise<{
         item.extractedText ?? "",
       );
 
+      // ── Zero-shot ML classification (2nd opinion) ──────────────────────
+      let mlCategory: ItemCategory = draft.extracted.category as ItemCategory;
+      try {
+        const zeroShotResult = await classifyWithZeroShot(
+          draft.title_fr,
+          draft.body_fr,
+        );
+        const resolved = resolveCategory(
+          draft.extracted.category,
+          zeroShotResult,
+          classification.isOpportunity,
+        );
+        mlCategory = resolved.category as ItemCategory;
+        console.log(
+          `[generate] zero-shot: ${resolved.source} → ${resolved.category} (${resolved.reason}) [${zeroShotResult.latencyMs}ms]`,
+        );
+      } catch (err) {
+        console.warn(`[generate] zero-shot classifier failed, falling back to Gemini:`, err);
+      }
+      // Apply ML-corrected category back onto the draft for downstream use
+      if (mlCategory !== draft.extracted.category) {
+        (draft.extracted as { category: string }).category = mlCategory;
+      }
+
       // Determine final category: deterministic classifier wins for opportunities
       let finalCategory: ItemCategory;
       let finalVertical: string | undefined;
@@ -210,9 +235,32 @@ export async function generateForItems(): Promise<{
         };
       } else {
         finalCategory = draft.extracted.category as ItemCategory;
-        finalVertical = undefined;
         finalDeadline = draft.extracted.deadline ?? null;
         finalOpportunity = undefined;
+
+        // ── Infer vertical from content signals ───────────────────────────
+        // The website uses `vertical` as the primary taxonomy for section
+        // pages (world, education, business). Without this, articles only
+        // appear via keyword fallback matching.
+        const textForVertical = `${item.title} ${item.summary ?? ""} ${draft.title_fr}`.toLowerCase();
+
+        if (
+          scoring.geoTag === "Global" ||
+          scoring.geoTag === "Diaspora" ||
+          /\b(international|géopolitique|diplomatie|onu|nations unies|g7|g20|otan|nato|monde|world|global|entènasyonal|jewopolitik)\b/i.test(textForVertical)
+        ) {
+          finalVertical = "world";
+        } else if (
+          /\b(université|education|éducation|enseignement|étudiant|lycée|school|academic|inivèsite|edikasyon|recherche|research)\b/i.test(textForVertical)
+        ) {
+          finalVertical = "education";
+        } else if (
+          /\b(économie|economy|business|entreprise|startup|finance|investissement|marché|entrepreneurship|commerce|emploi|ekonomi|biznis)\b/i.test(textForVertical)
+        ) {
+          finalVertical = "business";
+        } else {
+          finalVertical = undefined;
+        }
       }
 
       const isOpportunityType =

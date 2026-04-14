@@ -674,6 +674,12 @@ export interface IGQueueItem {
   /** Target post date (YYYY-MM-DD, Haiti time). For histoire items this is
    *  the date the content refers to — ensures same-day posting. */
   targetPostDate?: string;
+  /** The Haiti-local date (YYYY-MM-DD) when this item was queued.
+   *  Used by the scheduler to prefer same-day items over stale carry-overs. */
+  queuedDate?: string;
+  /** Number of times rendering/publishing has been attempted and failed.
+   *  Items exceeding the cap are moved to manual review. */
+  renderRetries?: number;
   igPostId?: string;
   reasons: string[];
   payload?: IGFormattedPayload;

@@ -215,21 +215,21 @@ describe("isQuietHour", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("Staleness TTL configuration", () => {
-  it("news = 48h", () => assert.equal(STALENESS_TTL_HOURS.news, 48));
+  it("news = 24h", () => assert.equal(STALENESS_TTL_HOURS.news, 24));
   it("taux = 24h", () => assert.equal(STALENESS_TTL_HOURS.taux, 24));
-  it("utility = 72h", () => assert.equal(STALENESS_TTL_HOURS.utility, 72));
-  it("histoire = 24h", () => assert.equal(STALENESS_TTL_HOURS.histoire, 24));
-  it("opportunity = 336h (14d)", () => assert.equal(STALENESS_TTL_HOURS.opportunity, 336));
-  it("scholarship = 336h (14d)", () => assert.equal(STALENESS_TTL_HOURS.scholarship, 336));
+  it("utility = 48h", () => assert.equal(STALENESS_TTL_HOURS.utility, 48));
+  it("histoire = 36h", () => assert.equal(STALENESS_TTL_HOURS.histoire, 36));
+  it("opportunity = 72h (3d)", () => assert.equal(STALENESS_TTL_HOURS.opportunity, 72));
+  it("scholarship = 72h (3d)", () => assert.equal(STALENESS_TTL_HOURS.scholarship, 72));
 });
 
 describe("isStale", () => {
-  it("news item 49h old → stale", () => {
-    assert.equal(isStale({ igType: "news", createdAt: hoursAgo(49) }), true);
+  it("news item 25h old → stale", () => {
+    assert.equal(isStale({ igType: "news", createdAt: hoursAgo(25) }), true);
   });
 
-  it("news item 47h old → NOT stale", () => {
-    assert.equal(isStale({ igType: "news", createdAt: hoursAgo(47) }), false);
+  it("news item 23h old → NOT stale", () => {
+    assert.equal(isStale({ igType: "news", createdAt: hoursAgo(23) }), false);
   });
 
   it("taux item 25h old → stale", () => {
@@ -240,24 +240,24 @@ describe("isStale", () => {
     assert.equal(isStale({ igType: "taux", createdAt: hoursAgo(23) }), false);
   });
 
-  it("histoire item 25h old → stale (24h TTL)", () => {
-    assert.equal(isStale({ igType: "histoire", createdAt: hoursAgo(25) }), true);
+  it("histoire item 37h old → stale (36h TTL)", () => {
+    assert.equal(isStale({ igType: "histoire", createdAt: hoursAgo(37) }), true);
   });
 
-  it("histoire item 23h old → NOT stale", () => {
-    assert.equal(isStale({ igType: "histoire", createdAt: hoursAgo(23) }), false);
+  it("histoire item 35h old → NOT stale", () => {
+    assert.equal(isStale({ igType: "histoire", createdAt: hoursAgo(35) }), false);
   });
 
-  it("scholarship item 15 days old → stale (14d TTL)", () => {
-    assert.equal(isStale({ igType: "scholarship", createdAt: hoursAgo(360) }), true);
+  it("scholarship item 4 days old → stale (72h TTL)", () => {
+    assert.equal(isStale({ igType: "scholarship", createdAt: hoursAgo(96) }), true);
   });
 
-  it("scholarship item 13 days old → NOT stale", () => {
-    assert.equal(isStale({ igType: "scholarship", createdAt: hoursAgo(312) }), false);
+  it("scholarship item 2 days old → NOT stale", () => {
+    assert.equal(isStale({ igType: "scholarship", createdAt: hoursAgo(48) }), false);
   });
 
   it("handles Date object createdAt", () => {
-    const old = new Date(Date.now() - 50 * 3600_000);
+    const old = new Date(Date.now() - 26 * 3600_000);
     assert.equal(isStale({ igType: "news", createdAt: old }), true);
   });
 

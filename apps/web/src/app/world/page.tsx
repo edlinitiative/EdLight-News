@@ -37,14 +37,16 @@ export async function generateMetadata({
 }
 
 // Categories that map to "world / international" content
-const WORLD_CATS = new Set([
-  "news",
-  "world",
-  "international",
-  "geopolitics",
-  "economy",
-  "global",
-]);
+// Only "news" exists in ItemCategory — others are keyword-fallback targets
+const WORLD_CATS = new Set(["news"]);
+
+const WORLD_KEYWORDS = [
+  "international", "geopolitics", "géopolitique", "diplomacy", "diplomatie",
+  "monde", "world", "global", "ONU", "nations unies", "united nations",
+  "union européenne", "NATO", "OTAN", "G7", "G20", "conflict", "conflit",
+  "migration", "climat", "climate", "economy", "économie mondiale",
+  "mond", "entènasyonal", "jewopolitik",
+];
 
 export default async function WorldPage({
   searchParams,
@@ -72,14 +74,13 @@ export default async function WorldPage({
     if (isTauxDuJourArticle(a)) return false;
     if (a.geoTag === "HT" || a.category === "local_news") return false;
     if (OPPORTUNITY_CATS.has(a.category ?? "") || a.vertical === "opportunites") return false;
-    // Accept broad news / world category items, including untagged general news
-    return (
-      WORLD_CATS.has(a.category ?? "") ||
-      a.category === "news" ||
-      a.geoTag === "GLOBAL" ||
-      a.geoTag == null ||
-      a.geoTag === ""
-    );
+    // Accept world/international articles via category, geoTag, vertical, or keywords
+    if (WORLD_CATS.has(a.category ?? "")) return true;
+    if (a.vertical === "world") return true;
+    if (a.geoTag === "Global" || a.geoTag === "Diaspora") return true;
+    // Keyword fallback: scan title+summary for world/international signals
+    const text = `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase();
+    return WORLD_KEYWORDS.some((kw) => text.toLowerCase().includes(kw.toLowerCase()));
   });
 
   const articles = rankAndDeduplicate(worldPool, {

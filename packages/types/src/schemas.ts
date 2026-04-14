@@ -269,7 +269,7 @@ export const itemSchema = z.object({
   qualityFlags: qualityFlagsSchema,
   citations: z.array(citationSchema).min(1),
   // v2 fields — optional for backwards compat
-  vertical: z.string().optional(),
+  vertical: z.enum(["news", "opportunites", "haiti", "world", "education", "business", "technology", "explainers", "bourses", "histoire", "succes"]).optional(),
   geoTag: geoTagSchema.optional(),
   audienceFitScore: z.number().min(0).max(1).optional(),
   dedupeGroupId: z.string().optional(),
@@ -987,6 +987,8 @@ export const igQueueItemSchema = z.object({
   status: igQueueStatusSchema,
   scheduledFor: z.string().optional(),
   targetPostDate: z.string().optional(),
+  queuedDate: z.string().optional(),
+  renderRetries: z.number().int().min(0).optional(),
   igPostId: z.string().optional(),
   reasons: z.array(z.string()),
   payload: igFormattedPayloadSchema.optional(),

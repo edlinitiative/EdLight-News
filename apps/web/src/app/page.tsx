@@ -66,7 +66,7 @@ function isOpportunity(a: FeedItem): boolean {
 }
 
 function isHaiti(a: FeedItem): boolean {
-  return a.geoTag === "HT" || a.category === "local_news";
+  return a.vertical === "haiti" || a.geoTag === "HT" || a.category === "local_news";
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -208,36 +208,49 @@ export default async function AccueilPage({
   const moreOpps = opportunities.slice(1, 6);
 
   // World articles (international, non-Haiti)
+  const WORLD_KEYWORDS = [
+    "international", "géopolitique", "diplomatie", "monde", "world",
+    "global", "ONU", "nations unies", "conflict", "conflit",
+    "migration", "climat", "economy", "économie mondiale",
+  ];
   const worldArticles = rankedFeed.filter(
     (a) =>
       !isOpportunity(a) &&
       !isHaiti(a) &&
       (a.vertical === "world" ||
-        a.geoTag === "GLOBAL" ||
-        (!a.geoTag &&
-          [
-            "politics", "international", "diplomacy", "conflict",
-            "environment", "science", "economy",
-          ].includes(a.category ?? ""))),
+        a.geoTag === "Global" ||
+        (a.category === "news" &&
+          WORLD_KEYWORDS.some((kw) =>
+            `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase().includes(kw.toLowerCase()),
+          ))),
   );
 
   // Education articles
+  const EDUCATION_KEYWORDS = [
+    "université", "education", "éducation", "enseignement", "étudiant",
+    "school", "lycée", "formation", "academic", "inivèsite", "edikasyon",
+  ];
   const educationArticles = rankedFeed.filter(
     (a) =>
       !isOpportunity(a) &&
       (a.vertical === "education" ||
-        ["education", "higher_education", "universities", "research", "skills"].includes(
-          a.category ?? "",
+        EDUCATION_KEYWORDS.some((kw) =>
+          `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase().includes(kw.toLowerCase()),
         )),
   );
 
   // Business articles
+  const BUSINESS_KEYWORDS = [
+    "économie", "economy", "business", "entreprise", "startup",
+    "finance", "emploi", "carrière", "investissement", "commerce",
+    "marché", "entrepreneurship", "ekonomi", "biznis",
+  ];
   const businessArticles = rankedFeed.filter(
     (a) =>
       !isOpportunity(a) &&
       (a.vertical === "business" ||
-        ["business", "economy", "finance", "entrepreneurship", "startup", "trade"].includes(
-          a.category ?? "",
+        BUSINESS_KEYWORDS.some((kw) =>
+          `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase().includes(kw.toLowerCase()),
         )),
   );
 
@@ -250,6 +263,24 @@ export default async function AccueilPage({
   const moreEdu = educationArticles.slice(1, 4);
   const topBusiness = businessArticles[0] ?? null;
   const moreBusiness = businessArticles.slice(1, 4);
+
+  // Editor's picks: high-quality articles not yet shown in other sections
+  const shownIds = new Set(
+    [
+      leadArticle?.id,
+      ...secondaryHero.map((a) => a.id),
+      ...latestNews.map((a) => a.id),
+      featuredOpp?.id,
+      ...moreOpps.map((a) => a.id),
+      topHaiti?.id, ...moreHaiti.map((a) => a.id),
+      topWorld?.id, ...moreWorld.map((a) => a.id),
+      topEdu?.id, ...moreEdu.map((a) => a.id),
+      topBusiness?.id, ...moreBusiness.map((a) => a.id),
+    ].filter(Boolean),
+  );
+  const editorPicks = rankedFeed
+    .filter((a) => !shownIds.has(a.id) && a.imageUrl)
+    .slice(0, 4);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -799,6 +830,53 @@ export default async function AccueilPage({
                 </div>
               )}
 
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          5. EDITOR'S PICKS
+         ══════════════════════════════════════════════════════════════════════ */}
+      {editorPicks.length > 0 && (
+        <section>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <SectionHeader
+              title={fr ? "À la une" : "Alaune"}
+              href={lq("/news")}
+              linkLabel={fr ? "Tout voir" : "Wè tout"}
+            />
+            <div className="grid gap-6 sm:grid-cols-2">
+              {editorPicks.map((article) => (
+                <Link
+                  key={article.id}
+                  href={lq(`/news/${article.id}`)}
+                  className="group flex gap-4 rounded-xl border border-stone-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
+                >
+                  {article.imageUrl && (
+                    <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
+                      <ImageWithFallback
+                        src={article.imageUrl}
+                        alt={article.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                      />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <CategoryBadge category={article.category} lang={lang} />
+                    <h3
+                      className="text-base font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-blue-700 dark:text-white dark:group-hover:text-blue-400"
+                      style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+                    >
+                      {article.title}
+                    </h3>
+                    <p className="text-xs text-stone-400">
+                      {article.sourceName}
+                      {article.publishedAt && ` · ${formatRelativeDate(article.publishedAt, lang)}`}
+                    </p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

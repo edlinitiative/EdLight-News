@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Newspaper, Globe, DollarSign, Briefcase } from "lucide-react";
+import { Home, Newspaper, Globe, DollarSign, Briefcase, Search } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { withLangParam } from "@/lib/utils";
 
@@ -31,6 +31,11 @@ const NAV_ITEMS = [
     href: "/opportunites",
     icon: Briefcase,
     label: { fr: "Opportunités", ht: "Okazyon" },
+  },
+  {
+    href: "/search",
+    icon: Search,
+    label: { fr: "Chercher", ht: "Chèche" },
   },
 ] as const;
 

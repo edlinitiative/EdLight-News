@@ -36,6 +36,10 @@ export const geminiWebDraftSchema = z.object({
       "event",
       "resource",
       "local_news",
+      "bourses",
+      "concours",
+      "stages",
+      "programmes",
     ]),
   }),
 });

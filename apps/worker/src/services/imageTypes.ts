@@ -11,6 +11,7 @@ export type LicenseStatus =
   | "safe_public_domain"       // PD, PD-USGov, CC0 — no attribution needed
   | "official_reusable"        // Official gov/org media gallery — reuse permitted
   | "cc_attribution"           // CC BY / CC BY-SA — attribution required
+  | "editorial_fair_use"       // News/editorial image — fair use for commentary
   | "licensed_editorial"       // Reuters/AP/Getty — NOT auto-publishable
   | "unknown_do_not_publish";  // Unknown license — block from auto-posting
 
@@ -37,7 +38,7 @@ export interface ImageCandidate {
   url: string;
 
   /** Which search backend found this image */
-  source: "unsplash" | "wikimedia" | "flickr" | "loc" | "wikidata" | "official";
+  source: "unsplash" | "wikimedia" | "flickr" | "loc" | "wikidata" | "official" | "brave";
 
   /** Which tier this source belongs to */
   tier: ImageSourceTier;

@@ -1,20 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Newspaper, BookOpen, Globe, Instagram } from "lucide-react";
+import { withLangParam } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "À propos · EdLight News",
+  title: "À propos / Sou nou · EdLight News",
   description:
     "EdLight News est une plateforme d'information et d'opportunités pour les jeunes haïtiens et la diaspora.",
 };
 
-const ABOUT_STATS = [
-  { value: "30 000+", label: "lecteurs actifs" },
-  { value: "2",       label: "langues de publication" },
-  { value: "100 %",   label: "indépendant" },
-] as const;
+export default function AboutPage({
+  searchParams,
+}: {
+  searchParams: { lang?: string };
+}) {
+  const lang = searchParams.lang === "ht" ? "ht" : "fr";
+  const fr = lang === "fr";
 
-export default function AboutPage() {
+  const ABOUT_STATS = [
+    { value: "30 000+", label: fr ? "lecteurs actifs" : "lektè aktif" },
+    { value: "2",       label: fr ? "langues de publication" : "lang piblikasyon" },
+    { value: "100 %",   label: fr ? "indépendant" : "endepandan" },
+  ] as const;
   return (
     <>
       {/* ── Full-bleed hero ─────────────────────────────────────── */}
@@ -23,7 +30,7 @@ export default function AboutPage() {
           {/* Eyebrow */}
           <div className="mb-5">
             <span className="inline-block rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-300">
-              À propos
+              {fr ? "À propos" : "Sou nou"}
             </span>
           </div>
 
@@ -32,25 +39,26 @@ export default function AboutPage() {
             className="mb-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl md:text-7xl"
             style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
           >
-            Informer.
+            {fr ? "Informer." : "Enfòme."}
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">
-              Ouvrir des portes.
+              {fr ? "Ouvrir des portes." : "Ouvri pòt."}
             </span>
           </h1>
 
           <p className="mb-8 max-w-2xl text-lg leading-relaxed text-stone-300 sm:text-xl">
-            Servir la jeunesse haïtienne — une information utile, fiable et accessible
-            pour les étudiants, les jeunes professionnels et la diaspora mondiale.
+            {fr
+              ? "Servir la jeunesse haïtienne — une information utile, fiable et accessible pour les étudiants, les jeunes professionnels et la diaspora mondiale."
+              : "Sèvi jèn ayisyen yo — yon enfòmasyon itil, fyab e aksesib pou elèv, jèn pwofesyonèl ak dyaspora mondyal la."}
           </p>
 
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/news"
+              href={withLangParam("/news", lang)}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
             >
               <Newspaper className="h-4 w-4" />
-              Lire les actualités
+              {fr ? "Lire les actualités" : "Li nouvèl yo"}
             </Link>
             <a
               href="https://www.instagram.com/edlightnews"
@@ -91,49 +99,54 @@ export default function AboutPage() {
       {/* ── Why it exists ───────────────────────────────────────── */}
       <section className="mb-10">
         <h2 className="mb-4 text-2xl font-bold tracking-tight text-stone-900 dark:text-white">
-          Pourquoi EdLight News existe
+          {fr ? "Pourquoi EdLight News existe" : "Poukisa EdLight News egziste"}
         </h2>
         <p className="mb-4 text-base leading-relaxed text-stone-600 dark:text-stone-400">
-          Trop souvent, les jeunes haïtiens et la diaspora n'ont pas accès à une source
-          d'information structurée, visuellement soignée et réellement utile à leur
-          quotidien. Les grandes plateformes médiatiques ne couvrent pas ce qui compte
-          pour eux&nbsp;: les bourses, les concours, les opportunités de carrière, les
-          enjeux locaux en Haïti et les tendances globales en éducation.
+          {fr
+            ? <>Trop souvent, les jeunes haïtiens et la diaspora n{"'"}ont pas accès à une source d{"'"}information structurée, visuellement soignée et réellement utile à leur quotidien. Les grandes plateformes médiatiques ne couvrent pas ce qui compte pour eux&nbsp;: les bourses, les concours, les opportunités de carrière, les enjeux locaux en Haïti et les tendances globales en éducation.</>
+            : "Twò souvan, jèn ayisyen yo ak dyaspora a pa gen aksè a yon sous enfòmasyon ki byen òganize, ki bèl vizyèlman e ki vrèman itil nan lavi yo chak jou. Gwo platfòm medya yo pa kouvri sa ki enpòtan pou yo : bous, konkou, opòtinite karyè, pwoblèm lokal ann Ayiti ak tandans mondyal nan edikasyon."}
         </p>
         <p className="text-base leading-relaxed text-stone-600 dark:text-stone-400">
-          EdLight News comble ce vide. Nous publions des synthèses journalières, des
-          reportages expliqués, des calendriers de bourses et des ressources pratiques
-          — tout ce qu'un étudiant ou un jeune professionnel haïtien a besoin de
-          savoir pour avancer.
+          {fr
+            ? "EdLight News comble ce vide. Nous publions des synthèses journalières, des reportages expliqués, des calendriers de bourses et des ressources pratiques — tout ce qu'un étudiant ou un jeune professionnel haïtien a besoin de savoir pour avancer."
+            : "EdLight News ranpli vid sa a. Nou pibliye rezime chak jou, repòtaj eksplike, kalandriye bous ak resous pratik — tout sa yon etidyan oswa yon jèn pwofesyonèl ayisyen bezwen konnen pou l avanse."}
         </p>
       </section>
 
       {/* ── What we cover ───────────────────────────────────────── */}
       <section className="mb-10">
         <h2 className="mb-5 text-2xl font-bold tracking-tight text-stone-900 dark:text-white">
-          Ce que vous trouverez ici
+          {fr ? "Ce que vous trouverez ici" : "Sa ou ap jwenn isit la"}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {[
             {
               icon: <Newspaper className="h-5 w-5" />,
-              title: "Actualités & Analyses",
-              desc: "Haïti, monde, éducation, business, technologie — couverture quotidienne structurée.",
+              title: fr ? "Actualités & Analyses" : "Nouvèl & Analiz",
+              desc: fr
+                ? "Haïti, monde, éducation, business, technologie — couverture quotidienne structurée."
+                : "Ayiti, mond, edikasyon, biznis, teknoloji — kouvèti chak jou ki byen òganize.",
             },
             {
               icon: <BookOpen className="h-5 w-5" />,
-              title: "Explainers",
-              desc: "Des dossiers clairs sur les enjeux complexes : politique, science, économie, droits.",
+              title: fr ? "Explainers" : "Eksplikasyon",
+              desc: fr
+                ? "Des dossiers clairs sur les enjeux complexes : politique, science, économie, droits."
+                : "Dosye klè sou sijè konplèks : politik, syans, ekonomi, dwa.",
             },
             {
               icon: <Globe className="h-5 w-5" />,
-              title: "Opportunités",
-              desc: "Bourses, stages, concours, programmes et fellowships avec deadlines visibles.",
+              title: fr ? "Opportunités" : "Okazyon",
+              desc: fr
+                ? "Bourses, stages, concours, programmes et fellowships avec deadlines visibles."
+                : "Bous, estaj, konkou, pwogram ak fellowships ak dat limit ki vizib.",
             },
             {
               icon: <ArrowRight className="h-5 w-5" />,
-              title: "Ressources pratiques",
-              desc: "Guides, calendriers académiques, ressources utiles pour l'orientation et la carrière.",
+              title: fr ? "Ressources pratiques" : "Resous pratik",
+              desc: fr
+                ? "Guides, calendriers académiques, ressources utiles pour l'orientation et la carrière."
+                : "Gid, kalandriye akademik, resous itil pou oryantasyon ak karyè.",
             },
           ].map((item) => (
             <div
@@ -157,22 +170,37 @@ export default function AboutPage() {
       {/* ── EdLight ecosystem ───────────────────────────────────── */}
       <section className="mb-10 rounded-xl border border-blue-100 bg-blue-50/60 p-6 dark:border-blue-900/30 dark:bg-blue-950/20">
         <h2 className="mb-3 text-xl font-bold tracking-tight text-stone-900 dark:text-white">
-          Partie de l'écosystème EdLight
+          {fr ? "Partie de l'écosystème EdLight" : "Pati nan ekosistèm EdLight"}
         </h2>
         <p className="mb-4 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
-          EdLight News est la branche éditoriale de{" "}
-          <a
-            href="https://edlight.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-blue-700 hover:underline dark:text-blue-400"
-          >
-            EdLight Initiative
-          </a>
-          , une organisation dédiée à l'accès à l'éducation et aux opportunités pour
-          les jeunes haïtiens. Si EdLight News est une publication indépendante sur le
-          plan éditorial, elle partage la même mission fondamentale : informer, outiller
-          et inspirer la jeunesse haïtienne.
+          {fr ? (
+            <>EdLight News est la branche éditoriale de{" "}
+            <a
+              href="https://edlight.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-blue-700 hover:underline dark:text-blue-400"
+            >
+              EdLight Initiative
+            </a>
+            , une organisation dédiée à l{"'"}accès à l{"'"}éducation et aux opportunités pour
+            les jeunes haïtiens. Si EdLight News est une publication indépendante sur le
+            plan éditorial, elle partage la même mission fondamentale : informer, outiller
+            et inspirer la jeunesse haïtienne.</>
+          ) : (
+            <>EdLight News se branch editoryal{" "}
+            <a
+              href="https://edlight.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-blue-700 hover:underline dark:text-blue-400"
+            >
+              EdLight Initiative
+            </a>
+            , yon òganizasyon ki dedye a aksè nan edikasyon ak opòtinite pou jèn ayisyen yo.
+            Menm si EdLight News se yon piblikasyon endepandan nan nivo editoryal, li pataje
+            menm misyon fondamantal la : enfòme, ekipe ak enspire jèn ayisyen yo.</>
+          )}
         </p>
         <a
           href="https://edlight.org"
@@ -180,28 +208,28 @@ export default function AboutPage() {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:underline dark:text-blue-400"
         >
-          Découvrir EdLight <ArrowRight className="h-3.5 w-3.5" />
+          {fr ? "Découvrir EdLight" : "Dekouvri EdLight"} <ArrowRight className="h-3.5 w-3.5" />
         </a>
       </section>
 
       {/* ── CTAs ────────────────────────────────────────────────── */}
       <section className="mb-4">
         <h2 className="mb-5 text-xl font-bold tracking-tight text-stone-900 dark:text-white">
-          Rejoignez la communauté
+          {fr ? "Rejoignez la communauté" : "Rejwenn kominote a"}
         </h2>
         <div className="flex flex-wrap gap-3">
           <Link
-            href="/news"
+            href={withLangParam("/news", lang)}
             className="inline-flex items-center gap-2 rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-stone-800 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
           >
             <Newspaper className="h-4 w-4" />
-            Lire les actualités
+            {fr ? "Lire les actualités" : "Li nouvèl yo"}
           </Link>
           <Link
-            href="/opportunites"
+            href={withLangParam("/opportunites", lang)}
             className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
           >
-            Parcourir les opportunités
+            {fr ? "Parcourir les opportunités" : "Wè okazyon yo"}
           </Link>
           <a
             href="https://www.instagram.com/edlightnews"
@@ -210,7 +238,7 @@ export default function AboutPage() {
             className="inline-flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
           >
             <Instagram className="h-4 w-4" />
-            Suivre sur Instagram
+            {fr ? "Suivre sur Instagram" : "Swiv sou Instagram"}
           </a>
         </div>
       </section>

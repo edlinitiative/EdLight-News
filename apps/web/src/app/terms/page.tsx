@@ -77,6 +77,18 @@ export default function TermsOfServicePage() {
         </a>
         .
       </p>
+
+      <h2>Kondisyon itilizasyon (Kreyòl Ayisyen)</h2>
+      <p>
+        EdLight News se yon platfòm edikasyon gratis e non-komèsyal ki rasanble
+        bous, okazyon ak nouvèl pou elèv ayisyen yo. Pa bezwen kont. Nou fè
+        efò pou nou egzak men nou rekòmande pou verifye enfòmasyon yo nan sous
+        ofisyèl yo. Pou nenpòt kesyon, kontakte{" "}
+        <a href="mailto:contact@edlightinitiative.org">
+          contact@edlightinitiative.org
+        </a>
+        .
+      </p>
     </main>
   );
 }

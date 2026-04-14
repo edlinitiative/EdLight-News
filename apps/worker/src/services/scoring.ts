@@ -140,7 +140,11 @@ export function computeScoring(title: string, body: string, category?: string): 
   else if (studentHits >= 1) score += 0.20;
 
   // Category bonus (max +0.20)
-  if (category === "scholarship" || category === "opportunity") score += 0.20;
+  if (
+    category === "scholarship" || category === "opportunity" ||
+    category === "bourses" || category === "concours" ||
+    category === "stages" || category === "programmes"
+  ) score += 0.20;
   else if (category === "local_news" || category === "news") score += 0.15;
   else if (category === "resource" || category === "event") score += 0.10;
 
@@ -157,8 +161,13 @@ export function computeScoring(title: string, body: string, category?: string): 
   if (haitiHits >= 2) geoTag = "HT";
   else if (haitiHits >= 1 || normalizeForSearch(text).includes("diaspora")) geoTag = "Diaspora";
 
-  // For Bourses/Ressources, allow Global only if student-relevant
-  if ((category === "scholarship" || category === "resource") && geoTag === "Global") {
+  // For opportunity/resource items, allow Global only if student-relevant
+  if (
+    (category === "scholarship" || category === "resource" ||
+     category === "bourses" || category === "concours" ||
+     category === "stages" || category === "programmes")
+    && geoTag === "Global"
+  ) {
     if (studentHits === 0) {
       score = Math.max(0, score - 0.20);
     }

@@ -9,6 +9,7 @@ dotenv.config({ path: envPath });
 
 import express from "express";
 import { tickRouter } from "./routes/tick.js";
+import { warmUpClassifier } from "./services/zeroShotClassifier.js";
 
 const app = express();
 app.use(express.json());
@@ -24,4 +25,6 @@ app.use(tickRouter);
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 app.listen(PORT, () => {
   console.log(`[worker] listening on :${PORT} — awaiting Cloud Scheduler /tick`);
+  // Pre-load the zero-shot classifier model in the background
+  warmUpClassifier();
 });

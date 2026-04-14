@@ -130,6 +130,7 @@ const LICENSE_SCORES: Record<LicenseStatus, number> = {
   official_reusable: 14,
   licensed_editorial: 14,       // Reuters/AP/Getty — best editorial quality
   cc_attribution: 12,
+  editorial_fair_use: 11,       // News/editorial images via web search — fair use for commentary
   unknown_do_not_publish: 0,    // ZERO — blocks auto-publishing
 };
 

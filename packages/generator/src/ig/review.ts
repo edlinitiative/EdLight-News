@@ -425,22 +425,25 @@ export function validatePayloadForPublishing(
     }
   }
 
-  // PRD §7: Heading must be a short label (≤80 chars), not a prose sentence.
-  // Headings > 80 chars almost always mean narrativeToSlides put a full
-  // sentence in the heading field.
+  // PRD §7: Heading must be a short label, not a prose sentence.
+  // Standard posts: ≤80 chars. Histoire posts: ≤150 chars (historical event
+  // titles are naturally longer, e.g. treaties, battles, independence acts.
+  // Previous limit of 120 caused most histoire posts to trigger shouldHold
+  // and get trapped in manual-review limbo until they expired — never posting).
   const DATA_MISSING_SLIDE_RE =
     /\b(pas|non)\s+(disponible|détaillé|précisé|mentionné|indiqué|fourni|spécifié|inclus?|abordé)\b/i;
+  const headingMaxChars = igType === "histoire" ? 150 : 80;
 
   for (let i = 0; i < normalizedPayload.slides.length; i++) {
     const slide = normalizedPayload.slides[i]!;
-    if (slide.layout !== "cta" && slide.heading.length > 80) {
+    if (slide.layout !== "cta" && slide.heading.length > headingMaxChars) {
       issues.push({
         severity: "error",
         message: `Slide ${
           i + 1
         }: titre trop long (${
           slide.heading.length
-        } chars, max 80). Le titre ne doit pas être une phrase complète.`,
+        } chars, max ${headingMaxChars}). Le titre ne doit pas être une phrase complète.`,
       });
     }
     if (
@@ -478,12 +481,18 @@ export function validatePayloadForPublishing(
     }
   }
 
+  // Cross-slide similarity: histoire posts get a higher threshold (0.88)
+  // because slides about events in the same era legitimately share vocabulary
+  // (dates, proper nouns, French historical terms) without being duplicates.
+  // Previous threshold of 0.82 caused most histoire posts to trigger
+  // shouldHold via needsReview() and expire in manual-review limbo.
+  const similarityThreshold = igType === "histoire" ? 0.88 : 0.72;
   for (let i = 0; i < normalizedPayload.slides.length; i++) {
     for (let j = i + 1; j < normalizedPayload.slides.length; j++) {
       const left = slideText(normalizedPayload.slides[i]!);
       const right = slideText(normalizedPayload.slides[j]!);
       const similarityScore = similarity(left, right);
-      if (similarityScore >= 0.72) {
+      if (similarityScore >= similarityThreshold) {
         issues.push({
           severity: "error",
           message: `Slides ${i + 1} et ${j + 1}: contenu trop similaire.`,

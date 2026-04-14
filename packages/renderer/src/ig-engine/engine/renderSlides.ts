@@ -24,6 +24,13 @@ import { getBrowserInstance } from "../../index.js";
 const CANVAS_W = 1080;
 const CANVAS_H = 1350;
 
+/**
+ * Timeout (ms) for `page.setContent()` with `waitUntil: "networkidle"`.
+ * Playwright default is 30 s; we shorten to 10 s so a single slow image
+ * (e.g. Wikimedia 429 holding TCP open) doesn't hang the whole carousel.
+ */
+const NETWORK_IDLE_TIMEOUT_MS = 10_000;
+
 // ── Public types ──────────────────────────────────────────────────────────────
 
 /** A single rendered slide returned by renderPost() / renderSingleSlide(). */
@@ -96,7 +103,35 @@ export async function renderPost(
 
       const page = await context.newPage();
       try {
-        await page.setContent(html, { waitUntil: "networkidle" });
+        // Try networkidle first (waits for all images to load).
+        // If an image URL is broken / slow (e.g. Wikimedia 429), fall back to
+        // "commit" which renders immediately with whatever has loaded so far —
+        // the slide gets the gradient background instead of a blank timeout.
+        try {
+          await page.setContent(html, {
+            waitUntil: "networkidle",
+            timeout: NETWORK_IDLE_TIMEOUT_MS,
+          });
+        } catch (idleErr) {
+          const isTimeout =
+            idleErr instanceof Error &&
+            (idleErr.message.includes("Timeout") ||
+              idleErr.name === "TimeoutError");
+
+          if (isTimeout) {
+            console.warn(
+              `[renderSlides] ⚠ networkidle timed out on slide ${i + 1}/${post.slides.length}` +
+                " — falling back to immediate render (broken image URL likely)",
+            );
+            // Re-set with "commit" so we get a rendered slide (gradient bg)
+            // rather than crashing the entire carousel.
+            await page.setContent(html, { waitUntil: "commit", timeout: 5_000 });
+            // Small delay for CSS/fonts to settle
+            await page.waitForTimeout(500);
+          } else {
+            throw idleErr; // non-timeout errors still propagate
+          }
+        }
 
         // Post-render DOM overflow detection — ground truth check.
         // Finds any element whose content overflows its visible bounds.
@@ -172,7 +207,27 @@ export async function renderSingleSlide(
   const page = await context.newPage();
   try {
     const html = buildSlideHtml(templateId, slide, contentType, slideIndex, totalSlides);
-    await page.setContent(html, { waitUntil: "networkidle" });
+
+    // Same networkidle → commit fallback as renderPost().
+    try {
+      await page.setContent(html, {
+        waitUntil: "networkidle",
+        timeout: NETWORK_IDLE_TIMEOUT_MS,
+      });
+    } catch (idleErr) {
+      const isTimeout =
+        idleErr instanceof Error &&
+        (idleErr.message.includes("Timeout") || idleErr.name === "TimeoutError");
+      if (isTimeout) {
+        console.warn(
+          "[renderSlides] ⚠ networkidle timed out on single slide — falling back to immediate render",
+        );
+        await page.setContent(html, { waitUntil: "commit", timeout: 5_000 });
+        await page.waitForTimeout(500);
+      } else {
+        throw idleErr;
+      }
+    }
 
     // Post-render DOM overflow detection
     const overflowFields = await page.evaluate(() => {

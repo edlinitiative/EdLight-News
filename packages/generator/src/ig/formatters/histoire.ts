@@ -443,9 +443,9 @@ export function buildHistoireCarousel(
       : null;
   const coverHeading = mainEventYear ? `${dateLabel} ${mainEventYear}` : dateLabel;
 
-  // Cover bullets: first bullet becomes the deck (supportLine) on the cover;
-  // additional bullets become body text for a richer, more polished cover slide.
-  // Uses buildHistorySummaryLines to pull 2–3 concise facts from sections + summary.
+  // Cover bullets: single deck line — the main event's first sentence.
+  // Secondary events are reserved for the "other-facts" slide to avoid
+  // duplication and keep the cover focused on the primary story.
   const mainEventRawTitle =
     contentSections.length > 0
       ? normalizeHistoryEventHeading(contentSections[0]!.heading)
@@ -464,16 +464,7 @@ export function buildHistoireCarousel(
       ? shortenText(mainEventRawTitle, DECK_LINE_CHARS)
       : "";
 
-  // Summary facts (bullets 1+): additional key facts for a richer cover
-  const summaryFacts = buildHistorySummaryLines(
-    contentSections.slice(0, 3),
-    summary ?? "",
-  ).filter((line) => line !== deckLine && !overlapsCoverBullet(line, deckLine));
-
-  const coverBullets = [
-    ...(deckLine ? [deckLine] : []),
-    ...summaryFacts.slice(0, 2),
-  ];
+  const coverBullets = deckLine ? [deckLine] : [];
 
   // ══════════════════════════════════════════════════════════════════════
   // Slide 1 — Cover: date + year heading, main event title as subtitle, full-bleed image

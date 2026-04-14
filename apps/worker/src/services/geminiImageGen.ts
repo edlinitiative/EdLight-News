@@ -255,6 +255,9 @@ async function callGemini20Fallback(prompt: string, apiKey: string): Promise<Buf
           generationConfig: {
             responseModalities: ["IMAGE", "TEXT"],
             maxOutputTokens: 4096,
+            imageConfig: {
+              aspectRatio: "4:5",
+            },
           },
         }),
       },

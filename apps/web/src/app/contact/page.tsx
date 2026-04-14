@@ -6,7 +6,13 @@ export const metadata: Metadata = {
   description: "Contactez l'équipe EdLight News pour toute question, suggestion ou partenariat.",
 };
 
-export default function ContactPage() {
+export default function ContactPage({
+  searchParams,
+}: {
+  searchParams: { lang?: string };
+}) {
+  const lang = searchParams.lang === "ht" ? "ht" : "fr";
+  const fr = lang === "fr";
   return (
     <>
       {/* ── Full-bleed hero ─────────────────────────────────────── */}
@@ -15,7 +21,7 @@ export default function ContactPage() {
           {/* Eyebrow */}
           <div className="mb-5">
             <span className="inline-block rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-300">
-              Contact
+              {fr ? "Contact" : "Kontakt"}
             </span>
           </div>
 
@@ -24,16 +30,17 @@ export default function ContactPage() {
             className="mb-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl md:text-7xl"
             style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
           >
-            Parlons-nous.
+            {fr ? "Parlons-nous." : "Ann pale."}
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">
-              On vous répond.
+              {fr ? "On vous répond." : "Nou reponn."}
             </span>
           </h1>
 
           <p className="max-w-xl text-lg leading-relaxed text-stone-300">
-            Nous lisons tous les messages et nous nous efforçons de répondre
-            dans les&nbsp;48&nbsp;heures ouvrables.
+            {fr
+              ? "Nous lisons tous les messages et nous nous efforçons de répondre dans les\u00a048\u00a0heures ouvrables."
+              : "Nou li tout mesaj yo epi nou eseye reponn nan 48 èdtan ouvrab."}
           </p>
         </div>
       </section>
@@ -50,10 +57,10 @@ export default function ContactPage() {
           </div>
           <div>
             <h3 className="mb-1 text-sm font-bold text-stone-900 dark:text-white">
-              E-mail général
+              {fr ? "E-mail général" : "Imèl jeneral"}
             </h3>
             <p className="mb-2 text-sm text-stone-500 dark:text-stone-400">
-              Questions éditoriales, corrections, suggestions de contenu.
+              {fr ? "Questions éditoriales, corrections, suggestions de contenu." : "Kesyon editoryal, koreksyon, sijesyon kontni."}
             </p>
             <a
               href="mailto:news@edlight.org"
@@ -74,7 +81,7 @@ export default function ContactPage() {
               WhatsApp
             </h3>
             <p className="mb-2 text-sm text-stone-500 dark:text-stone-400">
-              Messages directs pour questions urgentes ou signalements.
+              {fr ? "Messages directs pour questions urgentes ou signalements." : "Mesaj dirèk pou kesyon ijan oswa siyalman."}
             </p>
             <a
               href="https://wa.me/message/edlightnews"
@@ -82,7 +89,7 @@ export default function ContactPage() {
               rel="noopener noreferrer"
               className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
             >
-              Envoyer un message WhatsApp
+              {fr ? "Envoyer un message WhatsApp" : "Voye yon mesaj WhatsApp"}
             </a>
           </div>
         </div>
@@ -97,7 +104,7 @@ export default function ContactPage() {
               Instagram
             </h3>
             <p className="mb-2 text-sm text-stone-500 dark:text-stone-400">
-              Suivez-nous pour les actualités quotidiennes et les opportunités.
+              {fr ? "Suivez-nous pour les actualités quotidiennes et les opportunités." : "Swiv nou pou nouvèl chak jou ak okazyon yo."}
             </p>
             <a
               href="https://www.instagram.com/edlightnews"
@@ -120,7 +127,7 @@ export default function ContactPage() {
               EdLight Initiative
             </h3>
             <p className="mb-2 text-sm text-stone-500 dark:text-stone-400">
-              Pour les partenariats institutionnels ou les collaborations avec EdLight.
+              {fr ? "Pour les partenariats institutionnels ou les collaborations avec EdLight." : "Pou patnarya enstitisyonèl oswa kolaborasyon ak EdLight."}
             </p>
             <a
               href="https://edlight.org"
@@ -137,7 +144,7 @@ export default function ContactPage() {
       {/* ── Partnerships ────────────────────────────────────────── */}
       <section className="rounded-xl border border-blue-100 bg-blue-50/60 p-6 dark:border-blue-900/30 dark:bg-blue-950/20">
         <h2 className="mb-2 text-lg font-bold text-stone-900 dark:text-white">
-          Partenariats &amp; collaborations
+          {fr ? "Partenariats & collaborations" : "Patnarya & kolaborasyon"}
         </h2>
         <p className="text-sm leading-relaxed text-stone-600 dark:text-stone-300">
           Vous représentez une institution éducative, un programme de bourses ou une

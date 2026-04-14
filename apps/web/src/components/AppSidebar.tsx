@@ -12,19 +12,27 @@ import {
   Compass,
   BookOpen,
   Award,
+  TrendingUp,
+  Lightbulb,
+  Cpu,
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { withLangParam } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/news",         label: { fr: "Actualités",  ht: "Nouvèl"     }, icon: Newspaper     },
-  { href: "/bourses",      label: { fr: "Bourses",      ht: "Bous"       }, icon: DollarSign    },
-  { href: "/opportunites", label: { fr: "Opportunités", ht: "Okazyon"    }, icon: Briefcase     },
   { href: "/haiti",        label: { fr: "Haïti",        ht: "Ayiti"      }, icon: Globe         },
+  { href: "/world",        label: { fr: "Monde",        ht: "Mond"       }, icon: TrendingUp    },
+  { href: "/education",    label: { fr: "Éducation",    ht: "Edikasyon"  }, icon: GraduationCap },
+  { href: "/business",     label: { fr: "Business",     ht: "Biznis"     }, icon: Briefcase     },
+  { href: "/technology",   label: { fr: "Techno",       ht: "Teknoloji"  }, icon: Cpu           },
+  { href: "/opportunites", label: { fr: "Opportunités", ht: "Okazyon"    }, icon: DollarSign    },
+  { href: "/bourses",      label: { fr: "Bourses",      ht: "Bous"       }, icon: DollarSign    },
+  { href: "/explainers",   label: { fr: "Explainers",   ht: "Eksplike"   }, icon: Lightbulb     },
+  { href: "/histoire",     label: { fr: "Histoire",     ht: "Istwa"      }, icon: BookOpen      },
   { href: "/universites",  label: { fr: "Universités",  ht: "Inivèsite"  }, icon: GraduationCap },
   { href: "/calendrier",   label: { fr: "Calendrier",   ht: "Kalandriye" }, icon: CalendarDays  },
   { href: "/parcours",     label: { fr: "Parcours",     ht: "Wout"       }, icon: Compass       },
-  { href: "/histoire",     label: { fr: "Histoire",     ht: "Istwa"      }, icon: BookOpen      },
   { href: "/succes",       label: { fr: "Succès",       ht: "Siksè"      }, icon: Award         },
 ];
 

@@ -89,6 +89,23 @@ export default function PrivacyPolicyPage() {
         </a>
         .
       </p>
+
+      <hr />
+
+      <h2>Politik konfidansyalite (Kreyòl Ayisyen)</h2>
+      <p>
+        EdLight News se yon platfòm edikasyon gratis pou elèv ayisyen yo. Nou
+        pa kolekte okenn done pèsonèl. Entegrasyon Instagram nou an sèvi sèlman
+        pou pibliye kontni edikasyon soti nan pwòp kont nou. Nou pa vann ni
+        pataje okenn done ak tyès pati.
+      </p>
+      <p>
+        Pou nenpòt kesyon, kontakte nou nan{" "}
+        <a href="mailto:contact@edlightinitiative.org">
+          contact@edlightinitiative.org
+        </a>
+        .
+      </p>
     </main>
   );
 }

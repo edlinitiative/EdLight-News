@@ -12,14 +12,14 @@ import type { IGPostType } from "@edlight-news/types";
 // ── Staleness TTLs per IG post type (hours) ─────────────────────────────────
 // News goes stale fast; scholarships with deadlines stay relevant longer.
 export const STALENESS_TTL_HOURS: Record<IGPostType, number> = {
-  news: 48,          // 2 days  — breaking/current events
+  news: 24,          // 1 day   — breaking/current events go stale fast
   taux: 24,          // 1 day   — exchange rates are daily
-  utility: 72,       // 3 days  — fait-du-jour, study tips
-  histoire: 24,      // 1 day   — must match today's date
-  opportunity: 336,  // 14 days — jobs/programs (capped by deadline)
-  scholarship: 336,  // 14 days — scholarships (capped by deadline)
+  utility: 48,       // 2 days  — fait-du-jour, study tips
+  histoire: 36,      // 36 h    — daily staple needs extra runway when shouldHold delays auto-publish
+  opportunity: 72,   // 3 days  — jobs/programs (reduced from 14d to prevent multi-day carry-over)
+  scholarship: 72,   // 3 days  — scholarships (reduced from 14d to prevent multi-day carry-over)
   breaking: 12,      // 12 h    — single-slide flash item loses relevance fast
-  stat: 72,          // 3 days  — manually curated, treat like utility
+  stat: 48,          // 2 days  — manually curated, treat like utility
 };
 
 /** Check if an IG queue item is too old to post. */

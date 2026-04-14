@@ -32,19 +32,16 @@ export async function generateMetadata({
   };
 }
 
-const BUSINESS_CATS = new Set([
-  "business", "economy", "finance", "entrepreneurship", "market", "career",
-  "economics", "startup", "work", "employment",
-]);
-
+// Business is identified by vertical + keyword matching
+// (no ItemCategory value exists for "business" — the enum is for content types)
 const BUSINESS_KEYWORDS = [
   "économie", "economy", "business", "entreprise", "startup", "marché",
   "finance", "emploi", "carrière", "investissement", "croissance",
-  "commerce", "salaire", "travail", "entrepwenè", "ekonomi", "biznis",
+  "commerce", "salaire", "travail", "entrepòenè", "ekonomi", "biznis",
+  "entrepreneurship", "market",
 ];
 
 function isBusinessArticle(a: { category?: string | null; title?: string | null; summary?: string | null; vertical?: string | null }): boolean {
-  if (BUSINESS_CATS.has(a.category ?? "")) return true;
   if (a.vertical === "business") return true;
   const text = `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase();
   return BUSINESS_KEYWORDS.some((kw) => text.includes(kw));

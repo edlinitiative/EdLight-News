@@ -1,33 +1,25 @@
 /**
  * Tiered image sourcing pipeline for IG posts.
  *
- * Implements the 5-layer architecture:
+ * Implements a 4-tier architecture:
  *   1. Story classification (person / event / topic)
- *   2. Tiered source search (official → editorial → archive → stock → fallback)
- *   3. Licensing gate (blocks unsafe images from auto-publishing)
- *   4. Weighted multi-factor ranking
- *   5. Best candidate selection
+ *   2. Tiered source search (Brave → Unsplash → LoC → Wikimedia)
+ *   3. Weighted multi-factor ranking
+ *   4. Best candidate selection
  *
- * Decision logic varies by story type:
+ * Tier cascade (all story types):
+ *   Tier 1 — Brave Image Search (contextual, finds real editorial images)
+ *   Tier 2 — Unsplash (high-quality stock, curated, proper licensing)
+ *   Tier 3 — Library of Congress (archival, free, especially good for Haiti history)
+ *   Tier 4 — Wikimedia Commons (last resort, variable quality)
  *
- *   Person-led:
- *     Wikidata portrait → Official Flickr → LoC → Unsplash → Flickr CC → Wikimedia Commons
- *
- *   Event-led:
- *     Official Flickr → LoC (if historical) → Unsplash → Flickr CC → Wikimedia Commons
- *
- *   Topic-led:
- *     LoC → Unsplash → Flickr CC → Wikimedia Commons
- *
- * Replaces the flat Unsplash → Commons cascade with a smarter tiered approach
- * while maintaining backward compatibility with `findEditorialImage()`.
+ * All tiers always run and contribute candidates. The best candidate
+ * by composite score wins, regardless of which tier found it.
  */
 
 import type { Item } from "@edlight-news/types";
 import type { ImageCandidate, StoryType } from "./imageTypes.js";
 import { classifyStory, extractPersonName } from "./storyClassifier.js";
-import { findOfficialSources, getFlickrUserIds } from "./officialSourceRegistry.js";
-import { searchFlickr } from "./flickrSearch.js";
 import { searchLibraryOfCongress } from "./locSearch.js";
 import { computeImageScore } from "./imageScoring.js";
 import { detectPersonName } from "./wikidata.js";
@@ -42,6 +34,128 @@ const UNSPLASH_API = "https://api.unsplash.com";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 const UA = "EdLight-News-Worker/1.0 (tiered image pipeline; contact@edlight.news)";
 const MIN_WIDTH = 1200;
+
+// ── Brave Image Search adapter ─────────────────────────────────────────────
+
+const BRAVE_IMAGE_API = "https://api.search.brave.com/res/v1/images/search";
+
+interface BraveImageResult {
+  title: string;
+  url: string;           // page URL
+  thumbnail: {
+    src: string;         // thumbnail URL (reliable, hosted by Brave CDN)
+  };
+  properties: {
+    url: string;         // full-size image URL
+    width?: number;
+    height?: number;
+  };
+  source: string;        // source domain
+  page_age?: string;     // ISO date
+}
+
+/**
+ * Search Brave Image Search API for contextual editorial images.
+ *
+ * Uses the dedicated image search endpoint (not web search) which returns
+ * structured results with dimensions, making it far more reliable than
+ * og:image scraping.
+ *
+ * Free tier: 2,000 queries/month — well within our ~300/month usage.
+ */
+async function searchBraveImages(
+  query: string,
+  storyType: StoryType,
+  entityName?: string,
+): Promise<ImageCandidate | null> {
+  const apiKey = process.env.BRAVE_SEARCH_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const url = new URL(BRAVE_IMAGE_API);
+    url.searchParams.set("q", query);
+    url.searchParams.set("count", "10");
+    url.searchParams.set("safesearch", "strict");
+
+    const res = await fetch(url.toString(), {
+      headers: {
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip",
+        "X-Subscription-Token": apiKey,
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!res.ok) {
+      console.warn(`[braveImages] API returned ${res.status} for "${query}"`);
+      return null;
+    }
+
+    const data = (await res.json()) as { results?: BraveImageResult[] };
+    if (!data.results?.length) return null;
+
+    let best: ImageCandidate | null = null;
+
+    for (const img of data.results) {
+      const w = img.properties?.width ?? 0;
+      const h = img.properties?.height ?? 0;
+
+      // Skip images below IG minimum resolution
+      if (w < MIN_WIDTH) continue;
+
+      // Skip stock photo sites — we have Unsplash for that
+      const domain = (img.source ?? "").toLowerCase();
+      if (/getty|shutterstock|alamy|istockphoto|depositphotos|dreamstime|123rf/i.test(domain)) continue;
+
+      const imageUrl = img.properties?.url || img.thumbnail?.src;
+      if (!imageUrl) continue;
+
+      // Skip SVGs, PDFs
+      if (/\.(svg|pdf)$/i.test(imageUrl)) continue;
+
+      const metadata = `${img.title ?? ""} ${domain}`;
+      const entityMatch = entityName
+        ? metadata.toLowerCase().includes(entityName.toLowerCase())
+        : false;
+
+      const { total, breakdown } = computeImageScore({
+        query,
+        imageMetadata: metadata,
+        storyType,
+        entityMatch,
+        tier: "editorial",
+        captureDate: img.page_age,
+        width: w,
+        height: h,
+        licenseStatus: "editorial_fair_use",
+      });
+
+      if (!best || total > best.score) {
+        best = {
+          url: imageUrl,
+          source: "brave",
+          tier: "editorial",
+          licenseStatus: "editorial_fair_use",
+          score: total,
+          scoreBreakdown: breakdown,
+          width: w,
+          height: h,
+          sourceDomain: domain,
+          sourceType: "web_search",
+          entityName,
+          license: "Editorial Fair Use",
+          sourceUrl: img.url,
+          captureDate: img.page_age,
+        };
+      }
+    }
+
+    return best;
+  } catch (err) {
+    console.warn(`[braveImages] search failed for "${query}":`, err instanceof Error ? err.message : err);
+    return null;
+  }
+}
 
 // ── Unsplash adapter (upgraded to ImageCandidate) ──────────────────────────
 
@@ -195,7 +309,7 @@ async function searchCommonsTiered(
     url.searchParams.set("gsrlimit", "8");
     url.searchParams.set("prop", "imageinfo");
     url.searchParams.set("iiprop", "url|extmetadata|size");
-    url.searchParams.set("iiurlwidth", "1280");
+    url.searchParams.set("iiurlwidth", "2160");
 
     const res = await fetch(url.toString(), {
       headers: { "User-Agent": UA },
@@ -322,14 +436,13 @@ function buildSearchQueries(item: Item, storyType: StoryType, personName: string
 // ── Main tiered pipeline ───────────────────────────────────────────────────
 
 /**
- * Find the best image for an item using the tiered sourcing strategy.
+ * Find the best image for an item using the 4-tier sourcing strategy.
  *
- * This is the upgraded replacement for `findEditorialImage()` with:
- * - Story classification (person/event/topic)
- * - Official source registry (government Flickr accounts)
- * - Library of Congress (free historical archive)
- * - Weighted multi-factor scoring
- * - Licensing gate (blocks unsafe images)
+ * Tier cascade (all tiers always run, best score wins):
+ *   1. Brave Image Search — contextual editorial images from the web
+ *   2. Unsplash — high-quality stock photography
+ *   3. Library of Congress — archival, especially Haiti history
+ *   4. Wikimedia Commons — last resort, variable quality
  *
  * Returns the best `ImageCandidate` above `minScore`, or null.
  */
@@ -348,49 +461,22 @@ export async function findTieredImage(
     `"${item.title?.slice(0, 50)}…" queries=[${queries.map((q) => `"${q}"`).join(", ")}]`,
   );
 
-  // Collect all candidates across tiers
+  // Collect candidates from ALL tiers — best score wins regardless of tier
   const candidates: ImageCandidate[] = [];
 
-  // ── Tier 1: Official sources (Flickr government accounts) ──────────────
-  const titleAndSummary = `${item.title ?? ""} ${item.summary ?? ""}`;
-  const keywords = titleAndSummary.split(/\s+/).filter((w) => w.length > 3);
-  const officialSources = findOfficialSources(keywords);
-  const flickrUserIds = getFlickrUserIds(officialSources);
-
-  if (flickrUserIds.length > 0) {
-    for (const query of queries.slice(0, 2)) {
-      const flickrResult = await searchFlickr(query, storyType, {
-        officialUserIds: flickrUserIds,
-        officialEntries: officialSources,
-        entityName: personName ?? undefined,
-        minScore,
-      });
-      if (flickrResult) {
-        candidates.push(flickrResult);
-        // Official source with high score? Short-circuit
-        if (flickrResult.score >= 60) break;
-      }
+  // ── Tier 1: Brave Image Search (contextual editorial images) ───────────
+  // Finds the *actual* image for the story — the real politician, the real
+  // event, the real location — not a generic stock photo.
+  for (const query of queries.slice(0, 2)) {
+    const braveResult = await searchBraveImages(query, storyType, personName ?? undefined);
+    if (braveResult) {
+      candidates.push(braveResult);
+      // High-score contextual hit? No need to try more queries
+      if (braveResult.score >= 55) break;
     }
   }
 
-  // ── Tier 2: Library of Congress (historical archive, free) ─────────────
-  // Especially useful for Haiti history and U.S. content.
-  // Moved ahead of Wikimedia for higher editorial quality.
-  const isHistorical = item.utilityMeta?.series === "HaitiHistory" ||
-    item.utilityMeta?.series === "HaitiFactOfTheDay" ||
-    /\bhistoi(?:re|rical)\b/i.test(titleAndSummary);
-
-  if (isHistorical || storyType === "event") {
-    for (const query of queries.slice(0, 2)) {
-      const locResult = await searchLibraryOfCongress(query, storyType, personName ?? undefined, minScore);
-      if (locResult) {
-        candidates.push(locResult);
-        break; // One LoC result is enough
-      }
-    }
-  }
-
-  // ── Tier 3: Unsplash (stock — curated fallback) ────────────────────────
+  // ── Tier 2: Unsplash (high-quality stock fallback) ─────────────────────
   const unsplashKey = process.env.Unsplash_ACCESS_KEY;
   if (unsplashKey) {
     for (const query of queries.slice(0, 2)) {
@@ -402,24 +488,23 @@ export async function findTieredImage(
     }
   }
 
-  // ── Tier 4: Flickr broad search (CC-licensed) ─────────────────────────
-  if (candidates.length === 0) {
-    for (const query of queries.slice(0, 2)) {
-      const flickrBroad = await searchFlickr(query, storyType, {
-        entityName: personName ?? undefined,
-        minScore,
-      });
-      if (flickrBroad) {
-        candidates.push(flickrBroad);
-        break;
-      }
+  // ── Tier 3: Library of Congress (archival, free) ───────────────────────
+  // Valuable for Haiti history, U.S. policy, disaster coverage, maps, and
+  // news photography. No longer gated to historical/event content only.
+  for (const query of queries.slice(0, 2)) {
+    const locResult = await searchLibraryOfCongress(query, storyType, personName ?? undefined, minScore);
+    if (locResult) {
+      candidates.push(locResult);
+      break;
     }
   }
 
-  // ── Tier 5: Wikimedia Commons (last resort) ────────────────────────────
-  // Moved to the very end — Commons images are often low-resolution or
-  // diagrams that don't meet the IG editorial bar.
-  if (candidates.length === 0) {
+  // ── Tier 4: Wikimedia Commons (last resort) ────────────────────────────
+  // Only searched if higher tiers haven't found a strong candidate (score ≥ 50).
+  // Commons images are often low-resolution, diagrams, or maps that don't
+  // meet the IG editorial bar.
+  const bestSoFar = candidates.reduce((max, c) => Math.max(max, c.score), 0);
+  if (bestSoFar < 50) {
     for (const query of queries.slice(0, 3)) {
       const commonsResult = await searchCommonsTiered(query, storyType, personName ?? undefined);
       if (commonsResult) {

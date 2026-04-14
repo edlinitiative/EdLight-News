@@ -8,6 +8,7 @@
 import { callLLM } from "./client.js";
 import { buildWebDraftPrompt } from "./prompts.js";
 import { geminiWebDraftSchema, type GeminiWebDraft } from "./schema.js";
+import { validateAndFixCategory } from "./validate-classification.js";
 import type { ContentChannel, ContentLanguage, ContentStatus, ItemCategory, QualityFlags } from "@edlight-news/types";
 
 export type { GeminiWebDraft } from "./schema.js";
@@ -88,6 +89,9 @@ export type {
   EditorialToneKey,
   EditorialDirective,
 } from "./editorial-tone.js";
+
+// ── Re-export classification validation module ─────────────────────────────
+export { validateAndFixCategory } from "./validate-classification.js";
 
 // ── Re-export dataset content module ────────────────────────────────────────
 export {
@@ -189,7 +193,19 @@ export async function generateWebDraftFRHT(
       };
     }
 
-    return { success: true, draft: result.data };
+    // Post-validate category — fix obvious misclassifications before Firestore
+    const draft = result.data;
+    const correctedCategory = validateAndFixCategory({
+      titleFr: draft.title_fr,
+      bodyFr: draft.body_fr,
+      category: draft.extracted.category,
+      deadline: draft.extracted.deadline,
+    });
+    if (correctedCategory !== draft.extracted.category) {
+      (draft.extracted as { category: string }).category = correctedCategory;
+    }
+
+    return { success: true, draft };
   } catch (err) {
     return {
       success: false,

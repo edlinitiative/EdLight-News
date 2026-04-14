@@ -4,6 +4,7 @@
  */
 
 import { editorialBlockForKey } from "./editorial-tone.js";
+import { getCreoleGlossaryBlock } from "./creole-glossary.js";
 
 export function buildWebDraftPrompt(input: {
   title: string;
@@ -19,6 +20,8 @@ ${editorial}
 
 À partir de l'article source ci-dessous, génère du contenu pour le web en FRANÇAIS et en KREYÒL AYISYEN.
 
+${getCreoleGlossaryBlock()}
+
 RÈGLES STRICTES:
 1. Ne copie JAMAIS le texte source mot pour mot. Reformule toujours.
 2. Sois concis et utile pour un étudiant haïtien.
@@ -33,7 +36,8 @@ RÈGLES STRICTES:
 11. TRADUCTION D'ABORD: Si le texte source est en anglais ou dans une autre langue, TRADUIS D'ABORD l'intégralité en français. Ensuite, rédige le contenu à partir de ta traduction française. Cela garantit un texte 100% français sans mots anglais résiduels.
 12. ARC NARRATIF: Rédige le body_fr comme une histoire cohérente et fluide. Le premier paragraphe doit capturer l'essence complète du sujet. Les paragraphes suivants développent l'histoire séquentiellement. Un lecteur qui lit du début à la fin doit comprendre toute l'histoire sans saut logique.
 13. LIMITES INSTAGRAM (IMPÉRATIF): summary_fr et summary_ht sont affichées en gros sur Instagram Stories. MAX 280 CARACTÈRES chacune. Exactement 2 phrases complètes qui se suffisent à elles-mêmes. Ne jamais couper une phrase à mi-chemin — si 280 caractères ne suffisent pas pour terminer la deuxième phrase, réduis-la ou n'écris qu'une seule phrase.
-14. IG_NARRATIVE (CARROUSEL INSTAGRAM — IMPÉRATIF): Écris ig_narrative comme 3–4 GROUPES de phrases séparés par |||, suivant l'arc éditorial obligatoire en 4 actes: groupe 1 = CE QUI S'EST PASSÉ — le fait central (2–3 phrases), groupe 2 = POURQUOI C'EST IMPORTANT — conséquences et contexte (2–3 phrases), groupe 3 = FAIT CLÉ — chiffre marquant, citation ou détail précis (1–2 phrases), groupe 4 si pertinent = POUR LE LECTEUR — impact direct sur les étudiants haïtiens (1–2 phrases). Chaque groupe doit lire comme un mini-paragraphe fluide et s'enchaîner naturellement avec le suivant. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". RÈGLE ABSOLUE DE LONGUEUR: chaque phrase individuelle MAX 200 CARACTÈRES — pas de virgules empilées, pas de subordonnées en cascade. Une phrase = une idée = un seul verbe principal. Si une phrase dépasse 200 caractères, divise-la obligatoirement en deux. Format exact attendu: "Ce qui s'est passé. Contexte immédiat.|||Conséquences principales. Réactions clés.|||Chiffre ou citation précis.|||Ce que ça signifie pour vous."
+14. CLASSIFICATION CATÉGORIE: Choisis la catégorie la plus précise. "bourses" = bourse d'études spécifiquement. "concours" = compétition, concours d'entrée. "stages" = stage, internship. "programmes" = programme de formation, fellowship. "scholarship" = bourse générique ou anglophone. "opportunity" = opportunité générique. "news" = actualité générale (politique, société, sport, culture). "event" = événement daté. "resource" = ressource éducative, guide, calendrier. "local_news" = actualité spécifiquement locale haïtienne. IMPORTANT: Un article sur un procès, un conflit, un accident, une élection = "news" ou "local_news", JAMAIS "bourses" ou "programmes".
+15. IG_NARRATIVE (CARROUSEL INSTAGRAM — IMPÉRATIF): Écris ig_narrative comme 3–4 GROUPES de phrases séparés par |||, suivant l'arc éditorial obligatoire en 4 actes: groupe 1 = CE QUI S'EST PASSÉ — le fait central (2–3 phrases), groupe 2 = POURQUOI C'EST IMPORTANT — conséquences et contexte (2–3 phrases), groupe 3 = FAIT CLÉ — chiffre marquant, citation ou détail précis (1–2 phrases), groupe 4 si pertinent = POUR LE LECTEUR — impact direct sur les étudiants haïtiens (1–2 phrases). Chaque groupe doit lire comme un mini-paragraphe fluide et s'enchaîner naturellement avec le suivant. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". RÈGLE ABSOLUE DE LONGUEUR: chaque phrase individuelle MAX 200 CARACTÈRES — pas de virgules empilées, pas de subordonnées en cascade. Une phrase = une idée = un seul verbe principal. Si une phrase dépasse 200 caractères, divise-la obligatoirement en deux. Format exact attendu: "Ce qui s'est passé. Contexte immédiat.|||Conséquences principales. Réactions clés.|||Chiffre ou citation précis.|||Ce que ça signifie pour vous."
 
 ARTICLE SOURCE:
 Titre: ${input.title}
@@ -59,7 +63,7 @@ RÉPONDS UNIQUEMENT en JSON valide avec cette structure exacte:
   "extracted": {
     "deadline": "2026-03-15 ou null si pas de deadline",
     "eligibility": "Critères d'éligibilité EN FRANÇAIS (même si la source est en anglais) ou null",
-    "category": "scholarship|opportunity|news|event|resource|local_news"
+    "category": "scholarship|opportunity|news|event|resource|local_news|bourses|concours|stages|programmes"
   }
 }`;
 }

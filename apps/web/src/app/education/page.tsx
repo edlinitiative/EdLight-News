@@ -34,23 +34,15 @@ export async function generateMetadata({
   };
 }
 
-const EDUCATION_CATS = new Set([
-  "education",
-  "higher_education",
-  "universities",
-  "school",
-  "academic",
-  "edukasyon",
-]);
-
+// Education is identified by vertical + keyword matching
+// (no ItemCategory value exists for "education" — the enum is for content types)
 const EDUCATION_KEYWORDS = [
   "université", "school", "éducation", "education", "enseignement",
-  "étudiant", "académique", "université", "lycée", "formation",
-  "inivèsite", "elèv", "edikasyon",
+  "étudiant", "académique", "lycée", "formation",
+  "inivèsite", "elèv", "edikasyon", "recherche", "research",
 ];
 
 function isEducationArticle(a: { category?: string | null; title?: string | null; summary?: string | null; vertical?: string | null }): boolean {
-  if (EDUCATION_CATS.has(a.category ?? "")) return true;
   if (a.vertical === "education") return true;
   const text = `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase();
   return EDUCATION_KEYWORDS.some((kw) => text.includes(kw));

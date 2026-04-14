@@ -176,7 +176,7 @@ async function searchCommons(query: string): Promise<ScoredImage | null> {
     url.searchParams.set("gsrlimit", "6");
     url.searchParams.set("prop", "imageinfo");
     url.searchParams.set("iiprop", "url|extmetadata|size");
-    url.searchParams.set("iiurlwidth", "1280");
+    url.searchParams.set("iiurlwidth", "2160");
 
     const res = await fetch(url.toString(), { headers: { "User-Agent": UA } });
     if (!res.ok) return null;

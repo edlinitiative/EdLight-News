@@ -399,7 +399,7 @@ async function searchCommonsImage(query: string): Promise<ResolvedHistoryIllustr
   url.searchParams.set("gsrlimit", "5");
   url.searchParams.set("prop", "imageinfo");
   url.searchParams.set("iiprop", "url|extmetadata");
-  url.searchParams.set("iiurlwidth", "1280");
+  url.searchParams.set("iiurlwidth", "2160");
 
   const res = await fetch(url.toString(), {
     headers: { "User-Agent": "EdLight-News-Worker/1.0 (history illustration resolver)" },
@@ -448,7 +448,7 @@ async function getCommonsFileInfo(fileTitle: string): Promise<ResolvedHistoryIll
   url.searchParams.set("format", "json");
   url.searchParams.set("prop", "imageinfo");
   url.searchParams.set("iiprop", "url|extmetadata");
-  url.searchParams.set("iiurlwidth", "1280");
+  url.searchParams.set("iiurlwidth", "2160");
   url.searchParams.set("titles", title);
 
   const res = await fetch(url.toString(), {
