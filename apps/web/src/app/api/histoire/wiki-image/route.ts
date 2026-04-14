@@ -36,7 +36,24 @@ async function tryWikiSearch(query: string): Promise<string | null> {
 const resolveWikiThumb = unstable_cache(
   async (title: string, year: number | null): Promise<string | null> => {
     const candidates: string[] = [];
-    if (year) candidates.push(`${year} ${title} Haïti`);
+
+    // Try the exact title first (most specific)
+    if (year) candidates.push(`"${title}" ${year}`);
+    candidates.push(`"${title}"`);
+
+    // Extract a proper-noun name from the title (e.g. "Ertha Pascal-Trouillot"
+    // from "Cérémonie d'investiture d'Ertha Pascal-Trouillot") and search that.
+    const nameMatch = title.match(
+      /(?:d[e'']|de la |du |des )([A-ZÀ-ÖØ-Þ][\w'-]+(?:\s+[A-ZÀ-ÖØ-Þ][\w'-]+)+)/,
+    );
+    if (nameMatch) {
+      const name = nameMatch[1]!;
+      candidates.push(`${name} Haïti`);
+      candidates.push(name);
+    }
+
+    // Generic fallbacks
+    if (year) candidates.push(`${title} ${year} Haïti`);
     candidates.push(`${title} Haïti`);
     candidates.push(title);
 
@@ -46,7 +63,7 @@ const resolveWikiThumb = unstable_cache(
     }
     return null;
   },
-  ["wiki-thumb"],
+  ["wiki-thumb-v2"],
   { revalidate: 86400 }, // 24 hours
 );
 
