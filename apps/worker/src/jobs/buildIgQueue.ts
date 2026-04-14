@@ -12,7 +12,7 @@
  */
 
 import { itemsRepo, igQueueRepo, contentVersionsRepo, sourcesRepo } from "@edlight-news/firebase";
-import { decideIG, applyDedupePenalty, formatForIG } from "@edlight-news/generator/ig/index.js";
+import { decideIG, applyDedupePenalty, formatForIG, isItemImageUsableForIG } from "@edlight-news/generator/ig/index.js";
 import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
@@ -264,66 +264,96 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           igImageSafe = false;
         }
 
-        // ── Always run the tiered image pipeline ─────────────────────────
-        // Finds the best contextual image from Brave → Unsplash → LoC → Wikimedia.
-        // This runs for EVERY item, not just unsafe sources, because even
-        // "safe" publisher images are often low-resolution or poorly cropped.
+        // ── Smart image pipeline: prefer publisher image when adequate ────
+        // The publisher image (og:image) is the CORRECT editorial image for
+        // this story — it's what the website shows. We should only replace it
+        // when it genuinely fails IG quality requirements (too small, wrong
+        // aspect ratio, stock photo CDN, missing dimensions, etc.).
+        //
+        // Previous behavior: always ran keyword search → always found
+        // *something* → always overrode the publisher image → IG showed
+        // random keyword-matched images instead of the article's real photo.
         let overrideImageUrl: string | undefined;
+        const publisherImageUsable = isItemImageUsableForIG(item);
 
-        // ── Reverse image search: find HQ version of low-res publisher image ─
-        // When the article has a publisher image (og:image) that's too small
-        // for IG, use Gemini Vision to describe it and Brave Image Search to
-        // find the same photo at higher resolution. This keeps the article and
-        // IG post showing the SAME image instead of falling back to a generic
-        // keyword-matched stock photo.
-        try {
-          const hqMatch = await findHighResVersion(item);
-          if (hqMatch && hqMatch.width >= 1080) {
-            overrideImageUrl = hqMatch.url;
-            console.log(
-              `[buildIgQueue] reverse image search found HQ match for ${item.id}: ` +
-              `${hqMatch.source} (${hqMatch.width}×${hqMatch.height}, score=${hqMatch.score.toFixed(1)})`,
-            );
-          }
-        } catch (err) {
-          console.warn(
-            `[buildIgQueue] reverse image search failed for ${item.id}:`,
-            err instanceof Error ? err.message : err,
+        if (publisherImageUsable && igImageSafe) {
+          // Publisher image passes all IG quality checks — use it as-is.
+          // No keyword search needed. The formatter will keep the original
+          // slide backgrounds which reference the publisher image.
+          console.log(
+            `[buildIgQueue] Publisher image usable for ${item.id} — skipping image search`,
           );
-        }
+        } else {
+          // Publisher image is inadequate (too small, no dimensions, stock
+          // CDN, or source flagged igImageSafe=false). Try to find a better
+          // image, preferring the SAME photo at higher resolution.
+          const reason = !igImageSafe
+            ? "source flagged unsafe"
+            : !item.imageUrl
+              ? "no publisher image"
+              : "publisher image too small or missing dimensions";
+          console.log(
+            `[buildIgQueue] Publisher image not usable for ${item.id} (${reason}) — searching for replacement`,
+          );
 
-        // ── Tiered keyword search (if reverse search found nothing) ──────
-        if (!overrideImageUrl) {
-          try {
-            const tieredResult = await findTieredImage(item);
-            if (tieredResult && tieredResult.width >= 1080) {
-              overrideImageUrl = tieredResult.url;
-              console.log(
-                `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} ` +
-                `(${tieredResult.width}×${tieredResult.height}, score=${tieredResult.score.toFixed(1)})`,
+          // ── Step 1: Reverse image search (same image, higher resolution) ─
+          // Uses Gemini Vision to describe the publisher image and Brave to
+          // find the same photo at ≥1080px. This preserves editorial accuracy.
+          if (item.imageUrl) {
+            try {
+              const hqMatch = await findHighResVersion(item);
+              if (hqMatch && hqMatch.width >= 1080) {
+                overrideImageUrl = hqMatch.url;
+                console.log(
+                  `[buildIgQueue] reverse image search found HQ match for ${item.id}: ` +
+                  `${hqMatch.source} (${hqMatch.width}×${hqMatch.height}, score=${hqMatch.score.toFixed(1)})`,
+                );
+              }
+            } catch (err) {
+              console.warn(
+                `[buildIgQueue] reverse image search failed for ${item.id}:`,
+                err instanceof Error ? err.message : err,
               );
             }
-          } catch (err) {
-            console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
           }
-        }
 
-        // Fallback: commons-only search if tiered pipeline found nothing
-        if (!overrideImageUrl) {
-          try {
-            const freeImage = await findFreeImage(item);
-            if (freeImage) {
-              overrideImageUrl = freeImage.imageUrl;
+          // ── Step 2: Tiered keyword search (only if reverse search failed) ──
+          // Searches Brave → Unsplash → LoC → Wikimedia by title keywords.
+          // This is the fallback that CAN return unrelated images, so we only
+          // use it when we truly have no usable publisher image.
+          if (!overrideImageUrl) {
+            try {
+              const tieredResult = await findTieredImage(item);
+              if (tieredResult && tieredResult.width >= 1080) {
+                overrideImageUrl = tieredResult.url;
+                console.log(
+                  `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} ` +
+                  `(${tieredResult.width}×${tieredResult.height}, score=${tieredResult.score.toFixed(1)})`,
+                );
+              }
+            } catch (err) {
+              console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
             }
-          } catch (err) {
-            console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
           }
-        }
 
-        // When we have a pipeline-sourced image, mark igImageSafe as false
-        // so the formatter replaces slides' backgroundImage with our override.
-        if (overrideImageUrl) {
-          igImageSafe = false;
+          // ── Step 3: Commons-only fallback ──────────────────────────────────
+          if (!overrideImageUrl) {
+            try {
+              const freeImage = await findFreeImage(item);
+              if (freeImage) {
+                overrideImageUrl = freeImage.imageUrl;
+              }
+            } catch (err) {
+              console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
+            }
+          }
+
+          // Only mark igImageSafe=false when we actually have a replacement.
+          // Without a replacement, the formatter will strip the publisher image
+          // and fall back to the branded gradient (better than a random image).
+          if (overrideImageUrl) {
+            igImageSafe = false;
+          }
         }
 
         // Format the payload
