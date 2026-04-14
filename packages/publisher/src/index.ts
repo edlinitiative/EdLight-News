@@ -143,10 +143,14 @@ export async function publishIgPost(
       await waitForContainer(creationId, "single ");
     } else {
       // Step 1: Create carousel container items (one per slide image)
+      // NOTE: media_type=IMAGE is required for carousel children in the Instagram
+      // Graph API — omitting it causes "Only photo or video can be accepted as
+      // media type" (even when image_url is provided).
       const containerIds: string[] = [];
       for (let i = 0; i < slidePaths.length; i++) {
         const data = await igPost(`${baseUrl}/media`, {
           image_url: slidePaths[i]!,
+          media_type: "IMAGE",
           is_carousel_item: "true",
         });
         if (data.error) throw new Error(`IG API error: ${data.error.message}`);

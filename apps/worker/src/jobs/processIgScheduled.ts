@@ -362,10 +362,28 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           });
           result.dryRun++;
         } else {
-          await igQueueRepo.updateStatus(item.id, "scheduled", {
-            reasons: [...item.reasons, `Publish error: ${publishResult.error}`],
-            renderedBy: assets.renderedBy,
-          });
+          // Publish failed — track retries so the item doesn't cycle forever.
+          const publishRetries = (item.renderRetries ?? 0) + 1;
+          if (publishRetries >= MAX_RENDER_RETRIES) {
+            console.warn(
+              `[processIgScheduled] item ${item.id} exceeded ${MAX_RENDER_RETRIES} publish retries — holding for manual review`,
+            );
+            await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
+              reasons: [
+                ...item.reasons,
+                `Publish error: ${publishResult.error}`,
+                `Held for manual review after ${MAX_RENDER_RETRIES} failed publish attempts`,
+              ],
+              renderRetries: publishRetries,
+              renderedBy: assets.renderedBy,
+            });
+          } else {
+            await igQueueRepo.updateStatus(item.id, "scheduled", {
+              reasons: [...item.reasons, `Publish error: ${publishResult.error}`],
+              renderRetries: publishRetries,
+              renderedBy: assets.renderedBy,
+            });
+          }
           result.errors++;
         }
       } catch (err) {
