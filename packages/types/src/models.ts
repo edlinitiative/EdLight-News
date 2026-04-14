@@ -109,7 +109,7 @@ export interface Opportunity {
 
 // ── Synthesis types ────────────────────────────────────────────────────────
 
-export type ItemType = "source" | "synthesis" | "utility";
+export type ItemType = "source" | "synthesis" | "utility" | "opinion";
 
 /** Denormalized reference to a source article included in a synthesis */
 export interface SynthesisSourceRef {
@@ -305,7 +305,7 @@ export interface Item {
   entity?: EntityRef;
 
   // ── Synthesis fields (only for itemType="synthesis") ──────────────────
-  /** "source" (default), "synthesis", or "utility" (student-focused original content) */
+  /** "source" (default), "synthesis", "utility" (student-focused original content), or "opinion" (analysis / commentary) */
   itemType?: ItemType;
   /** Utility content metadata (only for itemType="utility") */
   utilityMeta?: UtilityMeta;
@@ -328,6 +328,9 @@ export interface Item {
 
   /** Number of failed Gemini generation attempts (for retry-limiting) */
   generationAttempts?: number;
+
+  /** Slug of the contributor who authored this item (links to /auteur/[slug]) */
+  authorSlug?: string;
 
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -747,6 +750,54 @@ export interface IGStoryQueueItem {
   updatedAt: Timestamp;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ── WhatsApp pipeline types ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+export type WaQueueStatus =
+  | "queued"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "failed"
+  | "skipped";
+
+/** The formatted message payload ready to send via WhatsApp Business API. */
+export interface WaMessagePayload {
+  /** Text body of the WhatsApp message (supports basic formatting *bold*, _italic_). */
+  text: string;
+  /** Optional public image URL to send as a media message. */
+  imageUrl?: string;
+  /** Optional link preview URL (appended or embedded in the text). */
+  linkUrl?: string;
+}
+
+/** Firestore collection: wa_queue */
+export interface WaQueueItem {
+  id: string;
+  /** The content_versions doc ID that sourced this message. */
+  sourceContentId: string;
+  /** Priority score (0-100) — higher = send first. */
+  score: number;
+  status: WaQueueStatus;
+  /** ISO date-time when the message is scheduled to be sent. */
+  scheduledFor?: string;
+  /** The Haiti-local date (YYYY-MM-DD) when this item was queued. */
+  queuedDate?: string;
+  /** Number of send attempts (for retry logic). */
+  sendRetries?: number;
+  /** WhatsApp message ID returned by the API after successful send. */
+  waMessageId?: string;
+  /** Human-readable reasons for queuing / skipping. */
+  reasons: string[];
+  /** The message content to send. */
+  payload?: WaMessagePayload;
+  /** Last error message if status is "failed". */
+  error?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // ── Shared enums for datasets ──────────────────────────────────────────────
 
 export type DatasetCountry =
@@ -955,12 +1006,28 @@ export interface DatasetJob {
 
 export type ContributorRole = "intern" | "editor" | "admin";
 
+export interface ContributorSocialLinks {
+  twitter?: string;
+  linkedin?: string;
+  website?: string;
+}
+
 export interface ContributorProfile {
   id: string;
+  /** URL-safe slug for the /auteur/[slug] page */
+  slug: string;
+  /** Public display name (may differ from internal `name`) */
+  displayName: string;
   name: string;
   email?: string;
   role: ContributorRole;
   verified: boolean;
+  /** Short public bio (1-3 sentences) */
+  bio?: string;
+  /** Public profile photo URL */
+  photoUrl?: string;
+  /** Social / web links */
+  socialLinks?: ContributorSocialLinks;
   payoutRate?: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;

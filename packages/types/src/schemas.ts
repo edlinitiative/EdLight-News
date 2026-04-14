@@ -284,7 +284,7 @@ export const itemSchema = z.object({
   imageAttribution: imageAttributionSchema.optional(),
   entity: entityRefSchema.optional(),
   // synthesis fields
-  itemType: z.enum(["source", "synthesis", "utility"]).optional(),
+  itemType: z.enum(["source", "synthesis", "utility", "opinion"]).optional(),
   clusterId: z.string().optional(),
   synthesisMeta: synthesisMetaSchema.optional(),
   utilityMeta: utilityMetaSchema.optional(),
@@ -293,6 +293,7 @@ export const itemSchema = z.object({
   sourceList: z.array(synthesisSourceRefSchema).optional(),
   successTag: z.boolean().optional(),
   generationAttempts: z.number().int().nonnegative().optional(),
+  authorSlug: z.string().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -668,12 +669,23 @@ export const datasetJobSchema = z.object({
 
 export const contributorRoleSchema = z.enum(["intern", "editor", "admin"]);
 
+export const contributorSocialLinksSchema = z.object({
+  twitter: z.string().optional(),
+  linkedin: z.string().optional(),
+  website: z.string().url().optional(),
+});
+
 export const contributorProfileSchema = z.object({
   id: z.string().min(1),
+  slug: z.string().min(1),
+  displayName: z.string().min(1),
   name: z.string().min(1),
   email: z.string().email().optional(),
   role: contributorRoleSchema,
   verified: z.boolean(),
+  bio: z.string().optional(),
+  photoUrl: z.string().url().optional(),
+  socialLinks: contributorSocialLinksSchema.optional(),
   payoutRate: z.number().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
@@ -1053,6 +1065,47 @@ export const createIGStoryQueueItemSchema = igStoryQueueItemSchema.omit({
 export type CreateIGStoryQueueItem = z.infer<
   typeof createIGStoryQueueItemSchema
 >;
+
+// ── WhatsApp pipeline schemas ──────────────────────────────────────────────
+
+export const waQueueStatusSchema = z.enum([
+  "queued",
+  "scheduled",
+  "sending",
+  "sent",
+  "failed",
+  "skipped",
+]);
+
+export const waMessagePayloadSchema = z.object({
+  text: z.string().min(1),
+  imageUrl: z.string().url().optional(),
+  linkUrl: z.string().url().optional(),
+});
+
+export const waQueueItemSchema = z.object({
+  id: z.string().min(1),
+  sourceContentId: z.string().min(1),
+  score: z.number().min(0).max(100),
+  status: waQueueStatusSchema,
+  scheduledFor: z.string().optional(),
+  queuedDate: z.string().optional(),
+  sendRetries: z.number().int().min(0).optional(),
+  waMessageId: z.string().optional(),
+  reasons: z.array(z.string()),
+  payload: waMessagePayloadSchema.optional(),
+  error: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createWaQueueItemSchema = waQueueItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateWaQueueItem = z.infer<typeof createWaQueueItemSchema>;
 
 // ── Inferred create types for datasets ─────────────────────────────────────
 

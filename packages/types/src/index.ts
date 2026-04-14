@@ -68,6 +68,7 @@ export type {
   DatasetJobStatus,
   DatasetJob,
   ContributorRole,
+  ContributorSocialLinks,
   ContributorProfile,
   DraftStatus,
   Draft,
@@ -101,6 +102,10 @@ export type {
   IGStorySlide,
   IGStoryPayload,
   IGStoryQueueItem,
+  // WhatsApp pipeline types
+  WaQueueStatus,
+  WaMessagePayload,
+  WaQueueItem,
 } from "./models.js";
 
 export {
@@ -165,6 +170,7 @@ export {
   datasetNameSchema,
   datasetJobSchema,
   contributorRoleSchema,
+  contributorSocialLinksSchema,
   contributorProfileSchema,
   draftStatusSchema,
   draftSchema,
@@ -208,6 +214,11 @@ export {
   igStoryPayloadSchema,
   igStoryQueueItemSchema,
   createIGStoryQueueItemSchema,
+  // WhatsApp pipeline schemas
+  waQueueStatusSchema,
+  waMessagePayloadSchema,
+  waQueueItemSchema,
+  createWaQueueItemSchema,
 } from "./schemas.js";
 
 export type {
@@ -236,4 +247,6 @@ export type {
   CreateIGQueueItem,
   // Instagram Stories create types
   CreateIGStoryQueueItem,
+  // WhatsApp create types
+  CreateWaQueueItem,
 } from "./schemas.js";
