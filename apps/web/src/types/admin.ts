@@ -85,3 +85,32 @@ export interface IGPublishEntry {
   createdAt: string | null;
   updatedAt: string | null;
 }
+
+// ── WA Queue ─────────────────────────────────────────────────────────────────
+
+export interface WAQueueEntry {
+  id: string;
+  sourceContentId: string;
+  score: number;
+  status: string;
+  scheduledFor: string | null;
+  reasons: string[];
+  text: string | null;
+  imageUrl: string | null;
+  linkUrl: string | null;
+  waMessageId: string | null;
+  sendRetries: number;
+  error: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface WAQueueCounts {
+  queued: number;
+  scheduled: number;
+  sending: number;
+  sent: number;
+  failed: number;
+  skipped: number;
+  totalDocs: number;
+}

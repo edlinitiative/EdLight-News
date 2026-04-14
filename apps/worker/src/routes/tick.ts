@@ -13,6 +13,9 @@ import { buildIgStory } from "../jobs/buildIgStory.js";
 import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
 import { processIgScheduled } from "../jobs/processIgScheduled.js";
 import { processIgStory } from "../jobs/processIgStory.js";
+import { buildWaQueue } from "../jobs/buildWaQueue.js";
+import { scheduleWaPost } from "../jobs/scheduleWaPost.js";
+import { processWaScheduled } from "../jobs/processWaScheduled.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
 export const tickRouter = Router();
@@ -149,8 +152,36 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       igResult.storyProcess = { error: String(err) };
     }
 
+    // Step 11: WhatsApp pipeline — build queue, schedule, and send
+    let waResult: { buildQueue: any; schedule: any; process: any } = {
+      buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 },
+      schedule: { scheduled: 0, skippedCap: 0 },
+      process: { processed: 0, sent: 0, failed: 0, skipped: 0, dryRun: 0 },
+    };
+
+    try {
+      waResult.buildQueue = await buildWaQueue();
+    } catch (err) {
+      console.error("[tick] buildWaQueue error:", err);
+      waResult.buildQueue = { error: String(err) };
+    }
+
+    try {
+      waResult.schedule = await scheduleWaPost();
+    } catch (err) {
+      console.error("[tick] scheduleWaPost error:", err);
+      waResult.schedule = { error: String(err) };
+    }
+
+    try {
+      waResult.process = await processWaScheduled();
+    } catch (err) {
+      console.error("[tick] processWaScheduled error:", err);
+      waResult.process = { error: String(err) };
+    }
+
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, historyResult, igResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, historyResult, igResult, waResult });
 
     res.json({
       ok: true,
@@ -166,6 +197,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         datasets: datasetResult,
         history: historyResult,
         instagram: igResult,
+        whatsapp: waResult,
       },
     });
   } catch (err) {

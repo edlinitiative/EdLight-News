@@ -24,6 +24,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "/education",   label: { fr: "Éducation",         ht: "Edikasyon"   }, section: "primary" },
   { href: "/business",    label: { fr: "Business",          ht: "Biznis"      }, section: "primary" },
   { href: "/technology",  label: { fr: "Techno",            ht: "Teknoloji"   }, section: "primary" },
+  { href: "/opinion",    label: { fr: "Opinion",           ht: "Opinyon"     }, section: "secondary" },
   { href: "/explainers",  label: { fr: "Explainers",        ht: "Eksplike"    }, section: "secondary" },
   { href: "/bourses",     label: { fr: "Bourses",           ht: "Bous"        }, section: "secondary" },
   { href: "/about",       label: { fr: "À propos",          ht: "Sou nou"     }, section: "secondary" },

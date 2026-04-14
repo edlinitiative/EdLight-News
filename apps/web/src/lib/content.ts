@@ -157,6 +157,7 @@ export function enrichArticles(
       synthesisTags: cv.synthesisTags,
       sourceList: item?.sourceList,
       successTag: item?.successTag,
+      authorSlug: item?.authorSlug,
     };
   });
 }

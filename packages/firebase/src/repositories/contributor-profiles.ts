@@ -31,6 +31,13 @@ export async function getByEmail(email: string): Promise<ContributorProfile | nu
   return { id: doc.id, ...doc.data() } as ContributorProfile;
 }
 
+export async function getBySlug(slug: string): Promise<ContributorProfile | null> {
+  const snap = await collection().where("slug", "==", slug).limit(1).get();
+  if (snap.empty) return null;
+  const doc = snap.docs[0]!;
+  return { id: doc.id, ...doc.data() } as ContributorProfile;
+}
+
 export async function listAll(): Promise<ContributorProfile[]> {
   const snap = await collection().orderBy("displayName").get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as ContributorProfile);

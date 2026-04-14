@@ -101,6 +101,8 @@ export interface FeedItem {
   sourceList?: { itemId: string; title: string; sourceName: string; publishedAt?: string }[];
   /** Explicitly tagged as a success / achievement story */
   successTag?: boolean;
+  /** Contributor slug for author link */
+  authorSlug?: string;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

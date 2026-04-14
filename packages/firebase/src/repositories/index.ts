@@ -20,3 +20,4 @@ export * as haitiHolidaysRepo from "./haiti-holidays.js";
 export * as historyPublishLogRepo from "./history-publish-log.js";
 export * as igQueueRepo from "./ig-queue.js";
 export * as igStoryQueueRepo from "./ig-story-queue.js";
+export * as waQueueRepo from "./wa-queue.js";

@@ -25,7 +25,8 @@ export type EditorialToneKey =
   | "study-abroad"
   | "career"
   | "profile"
-  | "news";
+  | "news"
+  | "opinion";
 
 // ── Per-tone editorial directives ───────────────────────────────────────────
 
@@ -189,6 +190,37 @@ const DIRECTIVES: Record<EditorialToneKey, EditorialDirective> = {
     studentLens: [
       "Inform clearly.",
       "Maintain credibility.",
+    ].join("\n"),
+  },
+
+  // ── Opinion / Analysis ────────────────────────────────────────────────────
+  opinion: {
+    key: "opinion",
+    tone: [
+      "Analytical and reflective.",
+      "Opinionated but grounded in facts.",
+      "Confident but not arrogant.",
+      "Empathetic toward Haitian student realities.",
+    ].join("\n"),
+    style: [
+      "500–900 words.",
+      "Clear thesis statement in the opening paragraph.",
+      "Structured argument with evidence.",
+      "Sections: Contexte, Analyse, Pourquoi cela compte, Pour les étudiants.",
+      "End with a forward-looking or thought-provoking conclusion.",
+    ].join("\n"),
+    rules: [
+      "Clearly label as opinion — never disguise as straight news.",
+      "Support claims with cited facts and data.",
+      "Acknowledge counter-arguments or limitations.",
+      "Avoid inflammatory language or personal attacks.",
+      "Distinguish clearly between fact and interpretation.",
+    ].join("\n"),
+    studentLens: [
+      "Connect analysis to student experience and concerns.",
+      "Encourage independent thinking and questioning.",
+      "Provide actionable perspectives when possible.",
+      "Avoid condescension — write as a peer, not a lecturer.",
     ].join("\n"),
   },
 };

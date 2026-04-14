@@ -9,15 +9,19 @@ import {
   ImagePlus,
   Instagram,
   Send,
+  MessageCircle,
+  Users,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/drafts", label: "Drafts", Icon: FileEdit },
+  { href: "/admin/contributors", label: "Contributors", Icon: Users },
   { href: "/admin/histoire", label: "Histoire", Icon: BookOpen },
   { href: "/admin/histoire/images", label: "Images", Icon: ImagePlus },
   { href: "/admin/ig-queue", label: "IG Queue", Icon: Instagram },
   { href: "/admin/ig-publish", label: "IG Publish", Icon: Send },
+  { href: "/admin/wa-queue", label: "WA Queue", Icon: MessageCircle },
 ] as const;
 
 export function AdminSidebar() {

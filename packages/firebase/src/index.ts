@@ -23,4 +23,5 @@ export {
   historyPublishLogRepo,
   igQueueRepo,
   igStoryQueueRepo,
+  waQueueRepo,
 } from "./repositories/index.js";

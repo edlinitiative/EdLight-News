@@ -12,7 +12,8 @@ type HeroVariant =
   | "calendar"
   | "pathways"
   | "universities"
-  | "history";
+  | "history"
+  | "opinion";
 
 interface PageHeroStat {
   label: string;
@@ -114,6 +115,13 @@ const HERO_THEMES: Record<HeroVariant, PageHeroTheme> = {
     heroBg: "from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-stone-950 dark:to-stone-950",
     primaryAction: "bg-amber-600 text-white hover:bg-amber-700 shadow-sm shadow-amber-500/20",
     statColor: "text-amber-700 dark:text-amber-400",
+  },
+  opinion: {
+    iconBg: "bg-rose-600/10 ring-1 ring-rose-600/20",
+    iconColor: "text-rose-600 dark:text-rose-400",
+    heroBg: "from-rose-50/70 via-white to-white dark:from-rose-950/20 dark:via-stone-950 dark:to-stone-950",
+    primaryAction: "bg-rose-600 text-white hover:bg-rose-700 shadow-sm shadow-rose-500/20",
+    statColor: "text-rose-600 dark:text-rose-400",
   },
 };
 

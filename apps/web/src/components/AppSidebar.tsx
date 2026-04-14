@@ -16,6 +16,7 @@ import {
   Lightbulb,
   Cpu,
   Bookmark,
+  Feather,
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { withLangParam } from "@/lib/utils";
@@ -30,6 +31,7 @@ const NAV_LINKS = [
   { href: "/opportunites", label: { fr: "Opportunités", ht: "Okazyon"    }, icon: DollarSign    },
   { href: "/bourses",      label: { fr: "Bourses",      ht: "Bous"       }, icon: DollarSign    },
   { href: "/explainers",   label: { fr: "Explainers",   ht: "Eksplike"   }, icon: Lightbulb     },
+  { href: "/opinion",      label: { fr: "Opinion",      ht: "Opinyon"    }, icon: Feather       },
   { href: "/histoire",     label: { fr: "Histoire",     ht: "Istwa"      }, icon: BookOpen      },
   { href: "/universites",  label: { fr: "Universités",  ht: "Inivèsite"  }, icon: GraduationCap },
   { href: "/calendrier",   label: { fr: "Calendrier",   ht: "Kalandriye" }, icon: CalendarDays  },

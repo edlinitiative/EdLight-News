@@ -7,7 +7,7 @@
  * Processes entries from the publish_queue collection.
  */
 
-import type { PublishQueueEntry, IGQueueItem, IGFormattedPayload } from "@edlight-news/types";
+import type { PublishQueueEntry, IGQueueItem, IGFormattedPayload, WaQueueItem, WaMessagePayload } from "@edlight-news/types";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -378,5 +378,122 @@ export async function publishIgStory(
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[publisher] IG Story publish failed: ${msg}`);
     return { posted: false, dryRun: false, error: msg };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── WhatsApp Business API publishing ────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getWACredentials(): { accessToken: string; phoneNumberId: string } | null {
+  const accessToken = process.env.WA_ACCESS_TOKEN ?? process.env.IG_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WA_PHONE_NUMBER_ID;
+  if (!accessToken || !phoneNumberId) return null;
+  return { accessToken, phoneNumberId };
+}
+
+export interface WAPublishResult {
+  sent: boolean;
+  waMessageId?: string;
+  dryRun: boolean;
+  error?: string;
+}
+
+/**
+ * Send a message to a WhatsApp Channel via the WhatsApp Business API.
+ *
+ * Uses the Meta Graph API (same infrastructure as IG):
+ *   POST /{phone-number-id}/messages
+ *
+ * Supports two modes:
+ *   1. Text-only: sends a plain text message
+ *   2. Image + caption: sends an image message with caption text
+ *
+ * Falls back to dry-run if WA_PHONE_NUMBER_ID is not set.
+ *
+ * Environment variables:
+ *   - WA_ACCESS_TOKEN (falls back to IG_ACCESS_TOKEN — same Meta Business token)
+ *   - WA_PHONE_NUMBER_ID — the WhatsApp Business phone number ID
+ *   - WA_CHANNEL_ID — the WhatsApp Channel ID to post updates to
+ *   - WA_API_HOST — defaults to graph.facebook.com
+ */
+export async function publishToWhatsApp(
+  queueItem: WaQueueItem,
+  payload: WaMessagePayload,
+): Promise<WAPublishResult> {
+  const creds = getWACredentials();
+
+  if (!creds) {
+    // Dry-run mode
+    console.log(`[publisher] WA dry-run: ${queueItem.id} — "${payload.text.slice(0, 80)}…"`);
+    return { sent: false, dryRun: true };
+  }
+
+  try {
+    const { accessToken, phoneNumberId } = creds;
+    const apiHost = process.env.WA_API_HOST ?? "graph.facebook.com";
+    const apiVersion = "v21.0";
+    const url = `https://${apiHost}/${apiVersion}/${phoneNumberId}/messages`;
+
+    // WhatsApp Channel updates use the "newsletter" messaging type.
+    // If WA_CHANNEL_ID is set, we post to the channel; otherwise we send
+    // to a regular recipient (for testing).
+    const channelId = process.env.WA_CHANNEL_ID;
+
+    let body: Record<string, unknown>;
+
+    if (payload.imageUrl) {
+      // Image message with caption
+      body = {
+        messaging_product: "whatsapp",
+        ...(channelId ? { to: channelId } : {}),
+        type: "image",
+        image: {
+          link: payload.imageUrl,
+          caption: payload.text,
+        },
+      };
+    } else {
+      // Text-only message
+      body = {
+        messaging_product: "whatsapp",
+        ...(channelId ? { to: channelId } : {}),
+        type: "text",
+        text: {
+          body: payload.text,
+          preview_url: !!payload.linkUrl,
+        },
+      };
+    }
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = (await res.json()) as {
+      messages?: { id: string }[];
+      error?: { message: string; code: number };
+    };
+
+    if (data.error) {
+      throw new Error(`WA API error (${data.error.code}): ${data.error.message}`);
+    }
+
+    const messageId = data.messages?.[0]?.id;
+    if (messageId) {
+      console.log(`[publisher] WA message sent: ${messageId}`);
+      return { sent: true, waMessageId: messageId, dryRun: false };
+    }
+
+    throw new Error("WA API returned no message ID and no error");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[publisher] WA publish failed: ${msg}`);
+    return { sent: false, dryRun: false, error: msg };
   }
 }
