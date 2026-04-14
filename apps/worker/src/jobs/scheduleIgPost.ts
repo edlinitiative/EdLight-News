@@ -219,7 +219,10 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const allScheduled = await igQueueRepo.listAllScheduled(50);
   const now = new Date();
   for (const item of allScheduled) {
-    if (isStale(item)) {
+    // Admin-pushed items bypass staleness — the operator chose to publish them.
+    const isManual = !!(item as any).manuallyScheduled;
+
+    if (!isManual && isStale(item)) {
       await igQueueRepo.updateStatus(item.id, "expired", {
         reasons: [...(item.reasons ?? []), `Expired scheduled: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL for ${item.igType}`],
       });
@@ -229,7 +232,10 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     if (item.scheduledFor) {
       const scheduledTime = new Date(item.scheduledFor).getTime();
       const overduMs = now.getTime() - scheduledTime;
-      if (overduMs > 2 * 60 * 60 * 1000) {
+      // Manual items get a longer grace period (6h vs 2h) so late-night
+      // pushes survive until the next active tick window.
+      const overdueThresholdMs = isManual ? 6 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000;
+      if (overduMs > overdueThresholdMs) {
         await igQueueRepo.updateStatus(item.id, "expired", {
           reasons: [...(item.reasons ?? []), `Expired: scheduled slot missed by ${Math.round(overduMs / 3600000)}h (scheduledFor=${item.scheduledFor})`],
         });
@@ -246,8 +252,10 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const scheduledToday = await igQueueRepo.countScheduledToday();
   let totalToday = postedToday + scheduledToday;
 
-  // Get a broader pool of queued items so we can enforce type diversity
-  const queued = await igQueueRepo.listQueuedByScore(30);
+  // Get a broader pool of queued items so we can enforce type diversity.
+  // Use 50 (not 30) to ensure high-scoring carry-overs from prior days
+  // aren't truncated out of the candidate pool.
+  const queued = await igQueueRepo.listQueuedByScore(50);
 
   // ── Expire stale queued items ────────────────────────────────────────
   const fresh: typeof queued = [];
@@ -261,6 +269,19 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
       fresh.push(item);
     }
   }
+
+  // ── Prefer items queued today, but don't starve high-scoring carry-overs ──
+  // Use a weighted composite score: today's items get a +10 freshness bonus.
+  // This gives modest preference to today's content when scores are close,
+  // but genuinely high-scoring carry-overs (e.g. scholarship at 90 vs
+  // news at 45) still win — preventing them from expiring unposted.
+  const haitiToday = getHaitiTodayISO();
+  const FRESHNESS_BONUS = 10;
+  fresh.sort((a, b) => {
+    const aBonus = (a as any).queuedDate === haitiToday ? FRESHNESS_BONUS : 0;
+    const bBonus = (b as any).queuedDate === haitiToday ? FRESHNESS_BONUS : 0;
+    return ((b.score ?? 0) + bBonus) - ((a.score ?? 0) + aBonus);
+  });
 
   if (fresh.length === 0) {
     return { scheduled: 0, skipped: "no-queued-items", expired };
@@ -282,9 +303,6 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
 
   // Track items scheduled this tick so we don't double-pick from fresh[]
   const scheduledThisTick = new Set<string>();
-
-  // Today's Haiti date for date-aware staple checks
-  const haitiToday = getHaitiTodayISO();
 
   // ════════════════════════════════════════════════════════════════════
   // PHASE 1 — Schedule ALL missing daily staples in one pass
@@ -395,27 +413,59 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   const needsNewsDiversity = !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
 
   if (needsNewsDiversity) {
-    regularItem = fresh.find(
+    const bestNewsCandidate = fresh.find(
       (q) =>
         q.igType === "news" &&
         !scheduledThisTick.has(q.id) &&
         matchesTargetPostDate(q, haitiToday),
     );
-    if (regularItem) {
-      console.log(
-        `[scheduleIgPost] type-diversity: picking news item ${regularItem.id} (score=${regularItem.score})`,
+    if (bestNewsCandidate) {
+      // Only force news diversity when the score gap is modest (≤25).
+      // If a scholarship at 85 is waiting while the best news is 45,
+      // forcing news causes high-value items to expire unposted.
+      const bestNonNews = fresh.find(
+        (q) =>
+          q.igType !== "news" &&
+          !scheduledThisTick.has(q.id) &&
+          matchesTargetPostDate(q, haitiToday),
       );
+      const gap = (bestNonNews?.score ?? 0) - (bestNewsCandidate.score ?? 0);
+      if (gap <= 25) {
+        regularItem = bestNewsCandidate;
+        console.log(
+          `[scheduleIgPost] type-diversity: picking news item ${regularItem.id} (score=${regularItem.score})`,
+        );
+      } else {
+        console.log(
+          `[scheduleIgPost] type-diversity: skipping news (score=${bestNewsCandidate.score}) — ` +
+          `gap of ${gap} vs best non-news (score=${bestNonNews?.score}, type=${bestNonNews?.igType}) too large`,
+        );
+      }
     }
   }
 
   // ── Per-type cap enforcement ─────────────────────────────────────────
+  // High-priority items (score ≥ 75) bypass type caps — genuinely urgent
+  // content (deadline-imminent scholarships, breaking news) should never be
+  // starved by caps while lower-scored items fill the remaining slots.
+  // Threshold lowered from 85 to 75: scholarships base at 70 + deadline
+  // urgency bonuses commonly land at 78-84 and were being blocked while
+  // lower-scored news (45-55) filled the feed.
   if (!regularItem) {
     for (const candidate of fresh) {
       if (scheduledThisTick.has(candidate.id)) continue;
       if (!matchesTargetPostDate(candidate, haitiToday)) continue;
       const cap = TYPE_DAILY_CAPS[candidate.igType];
-      if (cap != null && (todayTypeCounts.get(candidate.igType) ?? 0) >= cap) {
-        continue;
+      const typeCount = todayTypeCounts.get(candidate.igType) ?? 0;
+      if (cap != null && typeCount >= cap) {
+        if ((candidate.score ?? 0) >= 75) {
+          console.log(
+            `[scheduleIgPost] high-score override: ${candidate.igType} item ${candidate.id} ` +
+            `(score=${candidate.score}) bypasses type cap (${typeCount}/${cap})`,
+          );
+        } else {
+          continue;
+        }
       }
       regularItem = candidate;
       break;

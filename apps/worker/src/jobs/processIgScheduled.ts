@@ -19,6 +19,13 @@ import { STALENESS_TTL_HOURS, isStale } from "./igStaleness.js";
 /** Post types whose Storage slides should be deleted after posting (ephemeral). */
 const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire", "breaking"]);
 
+/**
+ * Maximum number of rendering/publish attempts before an item is parked for
+ * manual review.  Prevents broken items (e.g. persistently unreachable image
+ * URL, renderer crashes) from cycling in an infinite retry loop every tick.
+ */
+const MAX_RENDER_RETRIES = 3;
+
 export interface ProcessIgScheduledResult {
   processed: number;
   posted: number;
@@ -77,7 +84,18 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
 
     for (const item of scheduled) {
       if (item.status === "scheduled_ready_for_manual") {
-        continue;
+        // Daily staple types must not languish in manual review — let them
+        // fall through to the shouldHold check which has the staple override
+        // logic to auto-publish.  Without this, a histoire held for a soft
+        // quality issue (e.g. heading length) stays stuck forever because
+        // the override at L270+ is never reached.
+        const STAPLE_RESCUE_TYPES = new Set<IGPostType>(["histoire", "taux", "utility"]);
+        if (!STAPLE_RESCUE_TYPES.has(item.igType)) {
+          continue;
+        }
+        console.log(
+          `[processIgScheduled] re-processing staple ${item.igType} item ${item.id} from manual-review queue`,
+        );
       }
 
       // Only process items that are due
@@ -91,7 +109,9 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
         // ── Final freshness check ────────────────────────────────────────
         // An item may have been queued days ago and only now reached its
         // scheduled slot.  Don't post stale content.
-        if (isStale(item)) {
+        // Admin-pushed items bypass staleness — the operator chose to publish.
+        const isManual = !!(item as any).manuallyScheduled;
+        if (!isManual && isStale(item)) {
           console.log(`[processIgScheduled] item ${item.id} (${item.igType}) is stale — expiring instead of posting`);
           await igQueueRepo.updateStatus(item.id, "expired", {
             reasons: [...item.reasons, `Expired at post time: exceeded ${STALENESS_TTL_HOURS[item.igType]}h TTL`],
@@ -180,20 +200,111 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           }
         }
 
+        // ── Pre-render image URL health check ────────────────────────────
+        // Verify that background-image URLs are reachable before spending
+        // CPU on Playwright rendering.  Broken URLs (429 / 404 / timeout)
+        // are cleared so the slide falls through to the gradient background
+        // rather than hanging the renderer.
+        const uniqueImageUrls = [
+          ...new Set(
+            publishPayload.slides
+              .map((s) => s.backgroundImage)
+              .filter((u): u is string => !!u),
+          ),
+        ];
+
+        const brokenUrls = new Set<string>();
+        await Promise.all(
+          uniqueImageUrls.map(async (url) => {
+            try {
+              const ctrl = new AbortController();
+              const timer = setTimeout(() => ctrl.abort(), 5_000);
+              const resp = await fetch(url, {
+                method: "HEAD",
+                signal: ctrl.signal,
+                redirect: "follow",
+              });
+              clearTimeout(timer);
+              if (!resp.ok) {
+                brokenUrls.add(url);
+                console.warn(
+                  `[processIgScheduled] image URL returned ${resp.status} for ${item.id}: ${url.slice(0, 120)}`,
+                );
+              }
+            } catch {
+              brokenUrls.add(url);
+              console.warn(
+                `[processIgScheduled] image URL unreachable for ${item.id}: ${url.slice(0, 120)}`,
+              );
+            }
+          }),
+        );
+
+        if (brokenUrls.size > 0) {
+          // Clear broken URLs from slides
+          for (const slide of publishPayload.slides) {
+            if (slide.backgroundImage && brokenUrls.has(slide.backgroundImage)) {
+              delete slide.backgroundImage;
+            }
+          }
+
+          // Attempt Gemini fallback for newly-emptied slides
+          const emptiedSlides = publishPayload.slides.filter((s) => !s.backgroundImage);
+          if (emptiedSlides.length > 0 && sourceItem) {
+            try {
+              const generated = await generateContextualImage(sourceItem);
+              if (generated?.url) {
+                for (const slide of emptiedSlides) {
+                  slide.backgroundImage = generated.url;
+                }
+                console.log(
+                  `[processIgScheduled] replaced ${brokenUrls.size} broken URL(s) with Gemini image for ${item.id}`,
+                );
+              }
+            } catch (genErr) {
+              const genMsg = genErr instanceof Error ? genErr.message : String(genErr);
+              console.warn(
+                `[processIgScheduled] Gemini fallback after broken URL failed for ${item.id}: ${genMsg}`,
+              );
+            }
+          }
+        }
+
         if (validation.shouldHold) {
-          await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
-            payload: publishPayload,
-            reasons: [
-              ...item.reasons,
-              ...validation.issues.map((issue: IGPublishIssue) => `Quality hold: ${issue.message}`),
-            ],
-          });
-          console.warn(
-            `[processIgScheduled] item ${item.id} held for manual review: ${validation.issues
-              .map((issue: IGPublishIssue) => issue.message)
-              .join("; ")}`,
-          );
-          continue;
+          // Daily staple types (histoire, taux, utility) must post every day.
+          // ALL quality holds are overridable for staples — holding them for
+          // manual review causes them to expire unposted while lower-scored
+          // non-staple items fill the feed.  The only hard-block for staples is
+          // a structurally broken payload (0 slides or completely empty caption).
+          const DAILY_STAPLE_TYPES = new Set<IGPostType>(["histoire", "taux", "utility"]);
+          const isStapleType = DAILY_STAPLE_TYPES.has(item.igType);
+          // Hard errors that mean the post is structurally unpublishable
+          const HARD_ERROR_RE = /aucune slide|0 slides/i;
+          const hasHardError = validation.issues
+            .filter((i: IGPublishIssue) => i.severity === "error")
+            .some((i: IGPublishIssue) => HARD_ERROR_RE.test(i.message));
+
+          if (isStapleType && !hasHardError) {
+            console.log(
+              `[processIgScheduled] staple override: auto-publishing ${item.igType} item ${item.id} ` +
+              `despite quality holds: ${validation.issues.map((i: IGPublishIssue) => i.message).join("; ")}`,
+            );
+            // Fall through to render & publish below
+          } else {
+            await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
+              payload: publishPayload,
+              reasons: [
+                ...item.reasons,
+                ...validation.issues.map((issue: IGPublishIssue) => `Quality hold: ${issue.message}`),
+              ],
+            });
+            console.warn(
+              `[processIgScheduled] item ${item.id} held for manual review: ${validation.issues
+                .map((issue: IGPublishIssue) => issue.message)
+                .join("; ")}`,
+            );
+            continue;
+          }
         }
 
         // Render assets
@@ -260,9 +371,28 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error(`[processIgScheduled] error processing ${item.id}:`, msg);
-        await igQueueRepo.updateStatus(item.id, "scheduled", {
-          reasons: [...item.reasons, `Processing error: ${msg}`],
-        });
+
+        const retries = (item.renderRetries ?? 0) + 1;
+        if (retries >= MAX_RENDER_RETRIES) {
+          // Too many failures — park for manual review instead of cycling
+          // back to "scheduled" every tick.
+          console.warn(
+            `[processIgScheduled] item ${item.id} exceeded ${MAX_RENDER_RETRIES} retries — holding for manual review`,
+          );
+          await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
+            reasons: [
+              ...item.reasons,
+              `Processing error (attempt ${retries}/${MAX_RENDER_RETRIES}): ${msg}`,
+              `Held for manual review after ${MAX_RENDER_RETRIES} failed attempts`,
+            ],
+            renderRetries: retries,
+          });
+        } else {
+          await igQueueRepo.updateStatus(item.id, "scheduled", {
+            reasons: [...item.reasons, `Processing error (attempt ${retries}/${MAX_RENDER_RETRIES}): ${msg}`],
+            renderRetries: retries,
+          });
+        }
         result.errors++;
       }
     }
