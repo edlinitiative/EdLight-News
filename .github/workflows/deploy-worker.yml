@@ -148,6 +148,18 @@ jobs:
             --format='value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
 
+      # ── Ensure allUsers can invoke the service ─────────────────────────────
+      # The --allow-unauthenticated flag in the deploy step may silently fail
+      # if the deploying SA lacks IAM permissions. This explicit step ensures
+      # the policy is set. App-level auth (WORKER_API_KEY) secures endpoints.
+      - name: Set IAM policy for unauthenticated access
+        run: |
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --member="allUsers" \
+            --role="roles/run.invoker" \
+            --quiet || echo "WARNING: Could not set IAM policy — admin Publish Now may not work"
+
       # ── Cloud Scheduler: every 15 minutes (96 ticks/day) ──────────────────
       # This is the PRIMARY tick driver. Reliable to the minute, no GHA
       # throttling. OIDC token auto-authenticates against Cloud Run.
@@ -181,11 +193,46 @@ jobs:
               --quiet
           fi
 
+      # ── Fast IG Scheduler: every 3 minutes ────────────────────────────────
+      # Lightweight: only runs processIgScheduled() (no ingest/generate).
+      # Picks up "Publish Now" items within 3 min instead of waiting 15 min.
+      # Does nothing if no items are due — returns in <1 second.
+      - name: Upsert fast IG Scheduler job
+        run: |
+          IG_URL="${{ steps.service_url.outputs.url }}/process-ig-now"
+          SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+
+          if gcloud scheduler jobs describe edlight-news-process-ig \
+               --location=${{ env.REGION }} --quiet 2>/dev/null; then
+            gcloud scheduler jobs update http edlight-news-process-ig \
+              --location=${{ env.REGION }} \
+              --schedule="*/3 * * * *" \
+              --time-zone="America/Port-au-Prince" \
+              --uri="$IG_URL" \
+              --http-method=POST \
+              --oidc-service-account-email="$SA" \
+              --oidc-token-audience="$IG_URL" \
+              --attempt-deadline=120s \
+              --quiet
+          else
+            gcloud scheduler jobs create http edlight-news-process-ig \
+              --location=${{ env.REGION }} \
+              --schedule="*/3 * * * *" \
+              --time-zone="America/Port-au-Prince" \
+              --uri="$IG_URL" \
+              --http-method=POST \
+              --oidc-service-account-email="$SA" \
+              --oidc-token-audience="$IG_URL" \
+              --attempt-deadline=120s \
+              --quiet
+          fi
+
       - name: Summary
         run: |
           echo "### ✅ Worker deployed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Service:** ${{ steps.service_url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** \`${{ env.IMAGE }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Scheduler:** \`*/15 * * * *\` (every 15 min, Haiti TZ)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scheduler (full pipeline):** \`*/15 * * * *\` (every 15 min)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scheduler (IG fast-path):** \`*/3 * * * *\` (every 3 min)" >> $GITHUB_STEP_SUMMARY
           echo "- **Memory:** 2Gi, scale-to-zero" >> $GITHUB_STEP_SUMMARY
