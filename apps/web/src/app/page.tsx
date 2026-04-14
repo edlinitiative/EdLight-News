@@ -61,10 +61,11 @@ const OPPORTUNITY_CATS = new Set([
 ]);
 
 function isOpportunity(a: FeedItem): boolean {
-  return (
-    a.vertical === "opportunites" ||
-    OPPORTUNITY_CATS.has(a.category ?? "")
-  );
+  // Must pass a content smell test — prevents misclassified news (e.g. crime
+  // stories with category="bourses") from polluting the Opportunities section.
+  const catIsOpp = a.vertical === "opportunites" || OPPORTUNITY_CATS.has(a.category ?? "");
+  if (!catIsOpp) return false;
+  return a.itemType === "utility" || contentLooksLikeOpportunity(a.title ?? "", a.summary);
 }
 
 function isHaiti(a: FeedItem): boolean {
@@ -217,10 +218,6 @@ export default async function AccueilPage({
   // ── Segment the feed ──────────────────────────────────────────────────────
   const opportunities = rankedFeed.filter(isOpportunity);
   const haitiArticles = rankedFeed.filter((a) => isHaiti(a) && !isOpportunity(a));
-  const boursesArticles = rankedFeed.filter(
-    (a) =>
-      OPPORTUNITY_CATS.has(a.category ?? "") || a.vertical === "opportunites",
-  );
   // General news: not opportunities, not haiti-specific
   const generalNews = rankedFeed.filter((a) => !isOpportunity(a) && !isHaiti(a));
 
@@ -233,8 +230,11 @@ export default async function AccueilPage({
   const leadArticle = heroArticles[0] ?? null;
   const secondaryHero = heroArticles.slice(1, 4);
 
-  // Latest news (non-opportunity, any geo)
-  const latestNews = rankedFeed.filter((a) => !isOpportunity(a)).slice(0, 6);
+  // Latest news: chronological (most recent first), skip opportunities and
+  // utility items so the section feels like a real "breaking news" feed.
+  const latestNews = filteredFeed
+    .filter((a) => !isOpportunity(a) && a.itemType !== "utility")
+    .slice(0, 6);
 
   // Opportunities spotlight
   const featuredOpp = opportunities[0] ?? null;
@@ -367,7 +367,7 @@ export default async function AccueilPage({
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <CategoryBadge category={displayCategory(leadArticle)} lang={lang} />
-                    {leadArticle.geoTag === "HT" && (
+                    {leadArticle.geoTag === "HT" && displayCategory(leadArticle) !== "local_news" && (
                       <span className="rounded bg-red-50 px-2 py-0.5 text-[11px] font-bold uppercase text-red-700 dark:bg-red-950/30 dark:text-red-400">
                         {fr ? "Haïti" : "Ayiti"}
                       </span>
