@@ -63,13 +63,20 @@ const OPPORTUNITY_CATS = new Set([
 function isOpportunity(a: FeedItem): boolean {
   // Must pass a content smell test — prevents misclassified news (e.g. crime
   // stories with category="bourses") from polluting the Opportunities section.
+  // NOTE: we do NOT bypass the smell test for utility items; calendar/daily_fact
+  // utilities are not opportunities even if their vertical is "opportunites".
   const catIsOpp = a.vertical === "opportunites" || OPPORTUNITY_CATS.has(a.category ?? "");
   if (!catIsOpp) return false;
-  return a.itemType === "utility" || contentLooksLikeOpportunity(a.title ?? "", a.summary);
+  return contentLooksLikeOpportunity(a.title ?? "", a.summary);
 }
 
+const HAITI_TITLE_RE = /\b(?:ha[iï]ti|ayiti|port[- ]au[- ]prince|cap[- ]ha[iï]tien|p[ée]tion[- ]ville|ha[iï]tien(?:ne)?s?|gonaives|jacmel|j[ée]r[ée]mie|les\s+cayes)\b/i;
+
 function isHaiti(a: FeedItem): boolean {
-  return a.vertical === "haiti" || a.geoTag === "HT" || a.category === "local_news";
+  if (a.vertical === "haiti" || a.geoTag === "HT" || a.category === "local_news") return true;
+  // Catch articles *about* Haiti even when upstream metadata is missing
+  const blob = `${a.title ?? ""} ${a.summary ?? ""}`;
+  return HAITI_TITLE_RE.test(blob);
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -121,9 +128,7 @@ function displayCategory(a: FeedItem): string {
   // Use content smell test (not isOpportunity() which also checks the category
   // set, creating a tautology that prevents the remap from ever firing).
   if (OPPORTUNITY_CATS.has(cat)) {
-    const looksLikeOpp =
-      a.itemType === "utility" ||
-      contentLooksLikeOpportunity(a.title ?? "", a.summary);
+    const looksLikeOpp = contentLooksLikeOpportunity(a.title ?? "", a.summary);
     if (!looksLikeOpp) {
       return a.geoTag === "HT" || a.vertical === "haiti" ? "local_news" : "news";
     }
@@ -244,7 +249,7 @@ export default async function AccueilPage({
   const WORLD_KEYWORDS = [
     "international", "géopolitique", "diplomatie", "monde", "world",
     "global", "ONU", "nations unies", "conflict", "conflit",
-    "migration", "climat", "economy", "économie mondiale",
+    "migration", "climat", "économie mondiale",
   ];
   const worldArticles = rankedFeed.filter(
     (a) =>
@@ -258,33 +263,27 @@ export default async function AccueilPage({
           ))),
   );
 
-  // Education articles
-  const EDUCATION_KEYWORDS = [
-    "université", "education", "éducation", "enseignement", "étudiant",
-    "school", "lycée", "formation", "academic", "inivèsite", "edikasyon",
-  ];
+  // Education articles — use word-boundary regex to avoid substring matches
+  // (e.g. "informations" should not match "formation").
+  // Dropped "étudiant" (too ambiguous: music articles "inspire les étudiants")
+  // and "formation" (matches "information", military training, etc.).
+  const EDUCATION_RE = /\b(?:universit[eé]|education|[eé]ducation|enseignement|school|lyc[eé]e|academic|iniv[eè]site|edikasyon|UEH|MENFP|facult[eé]|scolaire)\b/i;
   const educationArticles = rankedFeed.filter(
     (a) =>
       !isOpportunity(a) &&
       (a.vertical === "education" ||
-        EDUCATION_KEYWORDS.some((kw) =>
-          `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase().includes(kw.toLowerCase()),
-        )),
+        EDUCATION_RE.test(`${a.title ?? ""} ${a.summary ?? ""}`)),
   );
 
-  // Business articles
-  const BUSINESS_KEYWORDS = [
-    "économie", "economy", "business", "entreprise", "startup",
-    "finance", "emploi", "carrière", "investissement", "commerce",
-    "marché", "entrepreneurship", "ekonomi", "biznis",
-  ];
+  // Business articles — word-boundary regex to avoid false positives.
+  // Dropped ambiguous terms: "marché" (physical markets / street vendors),
+  // "finance/financement" (crime financing), "commerce" (street commerce).
+  const BUSINESS_RE = /\b(?:[eé]conomie|economy|business|entreprise|startup|carri[eè]re|investissement|entrepreneurship|ekonomi|biznis|PIB|croissance\s+[eé]conomique)\b/i;
   const businessArticles = rankedFeed.filter(
     (a) =>
       !isOpportunity(a) &&
       (a.vertical === "business" ||
-        BUSINESS_KEYWORDS.some((kw) =>
-          `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase().includes(kw.toLowerCase()),
-        )),
+        BUSINESS_RE.test(`${a.title ?? ""} ${a.summary ?? ""}`)),
   );
 
   // Category highlights

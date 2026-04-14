@@ -187,10 +187,24 @@ const SMELL_REGEXES: RegExp[] = (() => {
 })();
 
 /**
+ * Negative-signal regex: if these match, the article is almost certainly
+ * *news about* a subject rather than an *opportunity to participate*.
+ *
+ * Covers:
+ *  - Electoral/political context (inscription des *électeurs*, processus *électoral*)
+ *  - Winner/result announcements (remporte, lauréat, gagné un concours)
+ *  - Crime/security context (assassinat, complot, arrêté, accusé)
+ */
+const NEGATIVE_RE = /\b(?:electora[l]|electeur|electeurs|scrutin|vote|mandat|depute|parlement|senat(?:eur)?|remporte|laureat|gagne|gagnant|proclam|sacr[e]e?\s+champion|arrestation|assassin|complot|accuse|condamn|gang|armee|militaire|tir|fusillade|enlev|kidnapp)/i;
+
+/**
  * Quick smell test: does the title/summary actually contain opportunity
  * keywords?  Prevents general-news articles with stale opp-adjacent
  * Firestore categories (e.g. crime news with category "concours") from
  * being run through the opportunity classifier.
+ *
+ * Also rejects articles with negative signals (electoral context, winner
+ * announcements, crime reports) even when positive keywords match.
  *
  * Exported so ArticleCard, news-feed CategoryBadge, and the /news/[id]
  * detail page can all share the same logic (DRY).
@@ -200,6 +214,7 @@ export function contentLooksLikeOpportunity(
   summary?: string,
 ): boolean {
   const blob = normalise(`${title} ${summary ?? ""}`);
+  if (NEGATIVE_RE.test(blob)) return false;
   return SMELL_REGEXES.some((re) => re.test(blob));
 }
 

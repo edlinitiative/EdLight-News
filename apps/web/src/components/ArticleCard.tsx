@@ -33,7 +33,6 @@ const OPPORTUNITY_CATEGORIES = new Set([
 
 function deriveCategory(article: FeedItem, lang: ContentLanguage) {
   const passesSmellTest =
-    article.itemType === "utility" ||
     contentLooksLikeOpportunity(article.title ?? "", article.summary);
 
   const isOpp =
@@ -158,7 +157,7 @@ export function ArticleCard({
               {article.sourceCount ? ` · ${article.sourceCount}` : ""}
             </span>
           )}
-          {article.geoTag === "HT" && (
+          {article.geoTag === "HT" && derived.label !== (fr ? "Haïti" : "Ayiti") && (
             <span className="badge bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400">
               {fr ? "Haïti" : "Ayiti"}
             </span>

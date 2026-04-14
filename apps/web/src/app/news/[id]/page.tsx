@@ -862,7 +862,6 @@ export default async function ArticlePage({
   // opportunity — prevents general news articles with stale opp-adjacent
   // categories (e.g. crime news with category "concours") from mis-labelling.
   const passesSmellTest =
-    item?.itemType === "utility" ||
     contentLooksLikeOpportunity(article.title ?? "", article.summary);
 
   const isOpportunity =
@@ -1070,7 +1069,7 @@ export default async function ArticlePage({
         )}
         {isSynthesis && item && <SynthesisBadge item={item} lang={currentLang} />}
         {isUtility && item && <UtilityBadge item={item} lang={currentLang} />}
-        {item?.geoTag === "HT" && (
+        {item?.geoTag === "HT" && fallbackCat !== "local_news" && (
           <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/20 dark:text-red-300">
             <MapPin className="mr-0.5 inline-block h-3 w-3" />{currentLang === "fr" ? "Haïti" : "Ayiti"}
           </span>
