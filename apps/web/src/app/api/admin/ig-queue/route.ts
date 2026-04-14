@@ -151,36 +151,19 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (action === "publish_now") {
-      // Schedule for immediate processing and trigger the worker right away.
-      // manuallyScheduled bypasses staleness checks so the item won't be
-      // expired before it's processed.
+      // Schedule for immediate processing. manuallyScheduled bypasses
+      // staleness checks so the item won't be expired before it's processed.
       const now = new Date().toISOString();
       await igQueueRepo.setScheduled(id, now, { manuallyScheduled: true });
 
-      // Fire-and-forget: trigger the worker's fast IG-only endpoint so it
-      // processes immediately (seconds, not the 5-10 min full /tick pipeline).
-      const workerUrl = process.env.WORKER_URL;
-      if (workerUrl) {
-        const headers: Record<string, string> = { "Content-Type": "application/json" };
-        const apiKey = process.env.WORKER_API_KEY;
-        if (apiKey) headers["x-api-key"] = apiKey;
-
-        fetch(`${workerUrl}/process-ig-now`, {
-          method: "POST",
-          headers,
-          signal: AbortSignal.timeout(60_000),
-        }).catch((err) => {
-          console.warn("[api/admin/ig-queue] publish_now: failed to trigger worker:", err);
-        });
-      }
-
+      // The fast Cloud Scheduler job (edlight-news-process-ig) runs every
+      // 3 minutes and calls /process-ig-now on the worker. The item will
+      // be picked up on the next tick.
       return NextResponse.json({
         ok: true,
         action,
         scheduledFor: now,
-        message: workerUrl
-          ? "Publishing now — rendering and posting. Should appear on Instagram within 1–2 minutes."
-          : "Scheduled for immediate publishing — will be processed on the next tick (within 15 minutes). Set WORKER_URL for instant publishing.",
+        message: "Scheduled for immediate publishing — the worker will pick this up within 3 minutes and post to Instagram.",
       });
     }
 
