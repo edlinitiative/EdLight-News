@@ -32,38 +32,59 @@ async function tryWikiSearch(query: string): Promise<string | null> {
   }
 }
 
+/** Check whether a Wikipedia page exists for the query (even if it has no image). */
+async function wikiPageExists(query: string): Promise<boolean> {
+  try {
+    const res = await fetch(WIKI_API + encodeURIComponent(query), {
+      headers: { "User-Agent": "EdLight-News/1.0 (news.edlight.org)" },
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    return !!pages && Object.keys(pages).length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Resolve the best Wikipedia thumbnail for a title/year combo. Cached 24 h. */
 const resolveWikiThumb = unstable_cache(
   async (title: string, year: number | null): Promise<string | null> => {
-    const candidates: string[] = [];
+    // 1. Try the exact-quoted title (most specific)
+    if (year) {
+      const thumb = await tryWikiSearch(`"${title}" ${year}`);
+      if (thumb) return thumb;
+    }
+    {
+      const thumb = await tryWikiSearch(`"${title}"`);
+      if (thumb) return thumb;
+    }
 
-    // Try the exact title first (most specific)
-    if (year) candidates.push(`"${title}" ${year}`);
-    candidates.push(`"${title}"`);
-
-    // Extract a proper-noun name from the title (e.g. "Ertha Pascal-Trouillot"
-    // from "Cérémonie d'investiture d'Ertha Pascal-Trouillot") and search that.
+    // 2. Extract a proper-noun name from the title (e.g. "Ertha Pascal-Trouillot"
+    //    from "Cérémonie d'investiture d'Ertha Pascal-Trouillot").
+    //    If we find the correct Wikipedia page for that person but it has no
+    //    thumbnail, STOP here — don't fall through to generic queries that
+    //    might match an unrelated person's page.
     const nameMatch = title.match(
-      /(?:d[e'']|de la |du |des )([A-ZÀ-ÖØ-Þ][\w'-]+(?:\s+[A-ZÀ-ÖØ-Þ][\w'-]+)+)/,
+      /(?:d[e''\u2019]|de la |du |des )([A-ZÀ-ÖØ-Þ][\w'-]+(?:\s+[A-ZÀ-ÖØ-Þ][\w'-]+)+)/,
     );
     if (nameMatch) {
       const name = nameMatch[1]!;
-      candidates.push(`${name} Haïti`);
-      candidates.push(name);
+      const thumb = await tryWikiSearch(`${name} Haïti`) ?? await tryWikiSearch(name);
+      if (thumb) return thumb;
+      // The person's page exists but has no image — return null rather than
+      // risking a wrong image from a generic search.
+      if (await wikiPageExists(name)) return null;
     }
 
-    // Generic fallbacks
-    if (year) candidates.push(`${title} ${year} Haïti`);
-    candidates.push(`${title} Haïti`);
-    candidates.push(title);
-
-    for (const q of candidates) {
-      const thumb = await tryWikiSearch(q);
+    // 3. Generic fallbacks (only reached if no specific person was identified)
+    if (year) {
+      const thumb = await tryWikiSearch(`${title} ${year} Haïti`);
       if (thumb) return thumb;
     }
-    return null;
+    return await tryWikiSearch(`${title} Haïti`) ?? await tryWikiSearch(title);
   },
-  ["wiki-thumb-v2"],
+  ["wiki-thumb-v3"],
   { revalidate: 86400 }, // 24 hours
 );
 
