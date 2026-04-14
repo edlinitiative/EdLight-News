@@ -305,11 +305,12 @@ export async function findHighResVersion(
   // ── Step 2: Brave metadata text search (fallback) ────────────────────────
   // Uses article title + entity names to search Brave Images for a high-res
   // editorial photo. Less precise than Vision but works without a Vision key.
+  const query = buildSearchQuery(item);
   if (query.length < 5) {
     console.log(`[reverseImageSearch] Query too short for ${item.id}: "${query}"`);
     return null;
   }
-  console.log(`[reverseImageSearch] Search query: "${query}"`);
+  console.log(`[reverseImageSearch] Brave fallback query: "${query}"`);
 
   // Search Brave Images
   const result = await searchBraveForHQImage(query, item);

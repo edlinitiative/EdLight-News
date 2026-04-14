@@ -10,6 +10,7 @@ dotenv.config({ path: envPath });
 import express from "express";
 import { tickRouter } from "./routes/tick.js";
 import { processIgNowRouter } from "./routes/processIgNow.js";
+import { getVisionQuotaStatus } from "./services/googleVisionSearch.js";
 import { warmUpClassifier } from "./services/zeroShotClassifier.js";
 
 const app = express();
@@ -51,6 +52,14 @@ app.use((req, res, next) => {
 // Health check
 app.get("/", (_req, res) => {
   res.json({ status: "ok", service: "edlight-news-worker" });
+});
+
+// API quota status — visible to authenticated callers via /quota
+app.get("/quota", async (_req, res) => {
+  const vision = await getVisionQuotaStatus();
+  res.json({
+    googleVision: vision ?? { month: null, used: 0, cap: 950, remaining: 950, note: "No calls made yet" },
+  });
 });
 
 // Pipeline endpoint — triggered by Cloud Scheduler (OIDC) or API key
