@@ -344,20 +344,22 @@ export default function IGQueuePage() {
       if (!res.ok) throw new Error(data.error ?? "Action failed");
 
       if (action === "publish_now") {
-        setSuccessMsg("⚡ Publishing… triggering worker now. Status will update shortly.");
-        setTimeout(() => setSuccessMsg(null), 30_000);
+        setSuccessMsg("⚡ Publishing… rendering and posting now. This takes ~1-2 minutes.");
+        setTimeout(() => setSuccessMsg(null), 120_000);
 
-        // Trigger the worker tick so it processes the item immediately
-        fetch("/api/admin/tick", { method: "POST" }).catch(() => {
-          // Non-critical — Cloud Scheduler will pick it up within 15 min
-        });
+        // Trigger the fast IG-only worker endpoint (skips full pipeline)
+        fetch("/api/admin/process-ig-now", { method: "POST" })
+          .then(() => void loadData())
+          .catch(() => {
+            // Non-critical — Cloud Scheduler will pick it up within 15 min
+          });
 
         // Auto-refresh so the user sees status change to rendering → posted
-        setTimeout(() => void loadData(), 5_000);
-        setTimeout(() => void loadData(), 15_000);
+        setTimeout(() => void loadData(), 10_000);
         setTimeout(() => void loadData(), 30_000);
         setTimeout(() => void loadData(), 60_000);
         setTimeout(() => void loadData(), 90_000);
+        setTimeout(() => void loadData(), 120_000);
       }
 
       void loadData();
