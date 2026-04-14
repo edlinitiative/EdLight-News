@@ -16,6 +16,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
+import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
 import {
   withLangParam,
@@ -115,9 +116,16 @@ function displayCategory(a: FeedItem): string {
   if (cat === "resource" && a.itemType === "utility" && a.utilityType === "daily_fact") {
     return a.geoTag === "HT" ? "local_news" : "news";
   }
-  // Opportunity-adjacent categories on non-opportunity articles → remap
-  if (OPPORTUNITY_CATS.has(cat) && !isOpportunity(a)) {
-    return a.geoTag === "HT" || a.vertical === "haiti" ? "local_news" : "news";
+  // Opportunity-adjacent categories on non-opportunity articles → remap.
+  // Use content smell test (not isOpportunity() which also checks the category
+  // set, creating a tautology that prevents the remap from ever firing).
+  if (OPPORTUNITY_CATS.has(cat)) {
+    const looksLikeOpp =
+      a.itemType === "utility" ||
+      contentLooksLikeOpportunity(a.title ?? "", a.summary);
+    if (!looksLikeOpp) {
+      return a.geoTag === "HT" || a.vertical === "haiti" ? "local_news" : "news";
+    }
   }
   return cat;
 }

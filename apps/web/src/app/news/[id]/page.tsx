@@ -22,6 +22,8 @@ import { buildOgMetadata } from "@/lib/og";
 import { PageLanguageSync } from "@/components/PageLanguageSync";
 import { ViewTracker } from "@/components/ViewTracker";
 import { BookmarkButton } from "@/components/BookmarkButton";
+import { OpinionHeader } from "@/components/OpinionHeader";
+import { AuthorBlock } from "@/components/AuthorBlock";
 import { fetchEnrichedFeed } from "@/lib/content";
 import type { FeedItem } from "@/components/news-feed";
 
@@ -848,6 +850,7 @@ export default async function ArticlePage({
 
   const isSynthesis = item?.itemType === "synthesis";
   const isUtility = item?.itemType === "utility";
+  const isOpinion = item?.itemType === "opinion";
   const isHistory = isUtility && item?.utilityMeta?.utilityType === "history";
 
   // Derive subcategory using the classifier for opportunity items
@@ -890,10 +893,14 @@ export default async function ArticlePage({
   // Use derived subcategory colour for opportunity items, fall back to legacy.
   // When an opp-adjacent category failed the smell test, remap to avoid
   // misleading "Concours"/"Stages" labels on general news articles.
+  // Also remap utility daily-fact items stored as "resource" → local_news/news.
   const rawCat = item?.category ?? "";
-  const fallbackCat = OPPORTUNITY_CATEGORIES.has(rawCat)
-    ? (item?.geoTag === "HT" || item?.vertical === "haiti" ? "local_news" : "news")
-    : rawCat;
+  const isUtilityDailyFact = rawCat === "resource" && item?.itemType === "utility" && item?.utilityMeta?.utilityType === "daily_fact";
+  const fallbackCat = isUtilityDailyFact
+    ? (item?.geoTag === "HT" ? "local_news" : "news")
+    : OPPORTUNITY_CATEGORIES.has(rawCat)
+      ? (item?.geoTag === "HT" || item?.vertical === "haiti" ? "local_news" : "news")
+      : rawCat;
   const catColor = derivedSubCat
     ? SUBCAT_COLORS[derivedSubCat]
     : (CATEGORY_COLORS[fallbackCat] ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300");
@@ -952,10 +959,16 @@ export default async function ArticlePage({
           {currentLang === "fr" ? "Accueil" : "Akèy"}
         </Link>
         <ChevronRight className="h-3 w-3 shrink-0" />
-        <Link href={`/news?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
-          {currentLang === "fr" ? "Actualités" : "Nouvèl"}
-        </Link>
-        {catLabel && (
+        {isOpinion ? (
+          <Link href={`/opinion?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+            {currentLang === "fr" ? "Opinion" : "Opinyon"}
+          </Link>
+        ) : (
+          <Link href={`/news?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+            {currentLang === "fr" ? "Actualités" : "Nouvèl"}
+          </Link>
+        )}
+        {catLabel && !isOpinion && (
           <>
             <ChevronRight className="h-3 w-3 shrink-0" />
             <span className="text-stone-500 dark:text-stone-400 font-medium">{catLabel}</span>
@@ -976,7 +989,7 @@ export default async function ArticlePage({
         heroImageSource === "branded" ? (
           <BrandedHero
             title={article.title}
-            category={item?.category}
+            category={fallbackCat}
             sourceName={item?.source?.name}
             className={isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"}
           />
@@ -993,7 +1006,7 @@ export default async function ArticlePage({
               fallback={
                 <BrandedHero
                   title={article.title}
-                  category={item?.category}
+                  category={fallbackCat}
                   sourceName={item?.source?.name}
                   className="h-full w-full"
                 />
@@ -1031,13 +1044,24 @@ export default async function ArticlePage({
       {!heroImageUrl && !isUtility && (
         <BrandedHero
           title={article.title}
-          category={item?.category}
+          category={fallbackCat}
           sourceName={item?.source?.name}
           className="aspect-video"
         />
       )}
 
       {/* Top meta badges */}
+      {isOpinion ? (
+        <OpinionHeader
+          title={article.title}
+          summary={article.summary}
+          item={item}
+          lang={currentLang}
+          publishedDate={pubDate || createdDate}
+          readingTime={estimateReadingTime(article.body, article.sections)}
+        />
+      ) : (
+      <>
       <div className="flex flex-wrap items-center gap-2">
         {(derivedSubCat || item?.category) && (
           <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${catColor}`}>
@@ -1107,6 +1131,8 @@ export default async function ArticlePage({
           {article.summary}
         </p>
       )}
+      </>
+      )}
 
       {/* Share buttons + Bookmark */}
       <div className="flex items-center gap-3">
@@ -1117,6 +1143,16 @@ export default async function ArticlePage({
         />
         <BookmarkButton articleId={article.id} lang={currentLang} variant="button" />
       </div>
+
+      {/* Author byline (when authorSlug is set on the item) */}
+      {item?.authorSlug && (
+        <AuthorBlock
+          name={item.source?.name ?? "EdLight News"}
+          slug={item.authorSlug}
+          lang={currentLang}
+          variant="full"
+        />
+      )}
 
       {/* What changed note (synthesis living updates) */}
       {isSynthesis && (

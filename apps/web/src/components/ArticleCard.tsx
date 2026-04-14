@@ -63,12 +63,16 @@ function deriveCategory(article: FeedItem, lang: ContentLanguage) {
     }
   }
 
-  // When an opp-adjacent category failed the smell test, remap to avoid
+  // Utility daily-fact items stored as "resource" are actually news, not resources.
+  // Also remap opp-adjacent categories that failed the smell test to avoid
   // misleading "Concours"/"Stages"/"Programmes" labels on general news articles.
   const cat = article.category ?? "";
-  const displayCat = OPPORTUNITY_CATEGORIES.has(cat)
-    ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
-    : cat;
+  const isUtilityDailyFact = cat === "resource" && article.itemType === "utility" && article.utilityType === "daily_fact";
+  const displayCat = isUtilityDailyFact
+    ? (article.geoTag === "HT" ? "local_news" : "news")
+    : OPPORTUNITY_CATEGORIES.has(cat)
+      ? (article.geoTag === "HT" || article.vertical === "haiti" ? "local_news" : "news")
+      : cat;
   return {
     color: CATEGORY_COLORS[displayCat] ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300",
     label: categoryLabel(displayCat, lang),
