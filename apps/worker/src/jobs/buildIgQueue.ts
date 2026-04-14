@@ -17,6 +17,7 @@ import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/
 import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
 import { findFreeImage } from "../services/commonsImageSearch.js";
 import { findTieredImage } from "../services/tieredImagePipeline.js";
+import { findHighResVersion } from "../services/reverseImageSearch.js";
 import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
@@ -268,17 +269,43 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // This runs for EVERY item, not just unsafe sources, because even
         // "safe" publisher images are often low-resolution or poorly cropped.
         let overrideImageUrl: string | undefined;
+
+        // ── Reverse image search: find HQ version of low-res publisher image ─
+        // When the article has a publisher image (og:image) that's too small
+        // for IG, use Gemini Vision to describe it and Brave Image Search to
+        // find the same photo at higher resolution. This keeps the article and
+        // IG post showing the SAME image instead of falling back to a generic
+        // keyword-matched stock photo.
         try {
-          const tieredResult = await findTieredImage(item);
-          if (tieredResult && tieredResult.width >= 1080) {
-            overrideImageUrl = tieredResult.url;
+          const hqMatch = await findHighResVersion(item);
+          if (hqMatch && hqMatch.width >= 1080) {
+            overrideImageUrl = hqMatch.url;
             console.log(
-              `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} ` +
-              `(${tieredResult.width}×${tieredResult.height}, score=${tieredResult.score.toFixed(1)})`,
+              `[buildIgQueue] reverse image search found HQ match for ${item.id}: ` +
+              `${hqMatch.source} (${hqMatch.width}×${hqMatch.height}, score=${hqMatch.score.toFixed(1)})`,
             );
           }
         } catch (err) {
-          console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
+          console.warn(
+            `[buildIgQueue] reverse image search failed for ${item.id}:`,
+            err instanceof Error ? err.message : err,
+          );
+        }
+
+        // ── Tiered keyword search (if reverse search found nothing) ──────
+        if (!overrideImageUrl) {
+          try {
+            const tieredResult = await findTieredImage(item);
+            if (tieredResult && tieredResult.width >= 1080) {
+              overrideImageUrl = tieredResult.url;
+              console.log(
+                `[buildIgQueue] tiered image found for ${item.id}: ${tieredResult.source} ` +
+                `(${tieredResult.width}×${tieredResult.height}, score=${tieredResult.score.toFixed(1)})`,
+              );
+            }
+          } catch (err) {
+            console.warn(`[buildIgQueue] tiered image pipeline failed for ${item.id}:`, err instanceof Error ? err.message : err);
+          }
         }
 
         // Fallback: commons-only search if tiered pipeline found nothing
