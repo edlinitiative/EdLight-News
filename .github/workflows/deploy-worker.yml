@@ -106,13 +106,16 @@ jobs:
           # Scale-to-zero between scheduler ticks — only pay for actual compute.
           # 2Gi memory: Chromium (Playwright) + LLM payloads need headroom.
           # 900s timeout: full tick pipeline can take 5–15 min on heavy ticks.
+          # --allow-unauthenticated: auth is handled at the app level via
+          # WORKER_API_KEY, so the admin app (Vercel) can trigger /process-ig-now.
+          # Cloud Scheduler still sends OIDC tokens which the app also accepts.
           flags: >-
             --min-instances=0
             --max-instances=1
             --memory=2Gi
             --cpu=1
             --timeout=900
-            --no-allow-unauthenticated
+            --allow-unauthenticated
             --service-account=firebase-adminsdk-fbsvc@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
           env_vars: |
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
@@ -132,6 +135,7 @@ jobs:
             GOOGLE_CSE_API_KEY=${{ secrets.GOOGLE_CSE_API_KEY }}
             GOOGLE_CSE_CX=${{ secrets.GOOGLE_CSE_CX }}
             Unsplash_ACCESS_KEY=${{ secrets.UNSPLASH_ACCESS_KEY }}
+            WORKER_API_KEY=${{ secrets.WORKER_API_KEY }}
             PROCESS_BATCH_LIMIT=10
             GENERATE_BATCH_LIMIT=3
             IMAGE_BATCH_LIMIT=5

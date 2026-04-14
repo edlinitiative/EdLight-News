@@ -22,9 +22,13 @@ export async function POST() {
   }
 
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const apiKey = process.env.WORKER_API_KEY;
+    if (apiKey) headers["x-api-key"] = apiKey;
+
     const response = await fetch(`${workerUrl}/process-ig-now`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       signal: AbortSignal.timeout(140_000), // just under maxDuration
     });
 

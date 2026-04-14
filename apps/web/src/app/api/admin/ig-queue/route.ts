@@ -161,9 +161,13 @@ export async function PATCH(req: NextRequest) {
       // processes immediately (seconds, not the 5-10 min full /tick pipeline).
       const workerUrl = process.env.WORKER_URL;
       if (workerUrl) {
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        const apiKey = process.env.WORKER_API_KEY;
+        if (apiKey) headers["x-api-key"] = apiKey;
+
         fetch(`${workerUrl}/process-ig-now`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           signal: AbortSignal.timeout(60_000),
         }).catch((err) => {
           console.warn("[api/admin/ig-queue] publish_now: failed to trigger worker:", err);

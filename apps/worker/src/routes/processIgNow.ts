@@ -14,6 +14,7 @@ import { processIgScheduled } from "../jobs/processIgScheduled.js";
 export const processIgNowRouter = Router();
 
 processIgNowRouter.post("/process-ig-now", async (_req: Request, res: Response) => {
+  // Auth is handled by the global middleware in index.ts
   const startMs = Date.now();
 
   try {
