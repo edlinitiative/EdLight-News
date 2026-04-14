@@ -36,13 +36,19 @@ export default function Loading() {
 
       {/* Hero card skeleton */}
       <div className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white dark:border-stone-700/60 dark:bg-stone-800/80">
-        <div className="aspect-[16/9] bg-stone-100 dark:bg-stone-700 sm:aspect-[2.5/1]" />
-        <div className="space-y-4 p-6 sm:p-8">
-          <div className="h-7 w-3/4 rounded bg-stone-200 dark:bg-stone-700" />
-          <div className="space-y-2">
-            <div className="h-4 w-full rounded bg-stone-100 dark:bg-stone-800" />
-            <div className="h-4 w-full rounded bg-stone-100 dark:bg-stone-800" />
-            <div className="h-4 w-2/3 rounded bg-stone-100 dark:bg-stone-800" />
+        <div className="flex flex-col sm:flex-row">
+          <div className="aspect-[4/3] w-full bg-stone-100 dark:bg-stone-700 sm:aspect-auto sm:w-[40%]" />
+          <div className="flex flex-1 flex-col justify-center space-y-4 p-6 sm:p-8">
+            <div className="flex gap-2">
+              <div className="h-6 w-14 rounded-md bg-stone-200 dark:bg-stone-700" />
+              <div className="h-6 w-20 rounded-full bg-stone-100 dark:bg-stone-700" />
+            </div>
+            <div className="h-7 w-3/4 rounded bg-stone-200 dark:bg-stone-700" />
+            <div className="space-y-2">
+              <div className="h-4 w-full rounded bg-stone-100 dark:bg-stone-800" />
+              <div className="h-4 w-full rounded bg-stone-100 dark:bg-stone-800" />
+              <div className="h-4 w-2/3 rounded bg-stone-100 dark:bg-stone-800" />
+            </div>
           </div>
         </div>
       </div>
