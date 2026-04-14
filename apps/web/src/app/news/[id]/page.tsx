@@ -20,6 +20,8 @@ import { classifyOpportunity, contentLooksLikeOpportunity } from "@/lib/opportun
 import { SUBCAT_COLORS, SUBCAT_LABELS, type OpportunitySubCat } from "@/lib/opportunities";
 import { buildOgMetadata } from "@/lib/og";
 import { PageLanguageSync } from "@/components/PageLanguageSync";
+import { ViewTracker } from "@/components/ViewTracker";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { fetchEnrichedFeed } from "@/lib/content";
 import type { FeedItem } from "@/components/news-feed";
 
@@ -943,6 +945,7 @@ export default async function ArticlePage({
   return (
     <article className="mx-auto max-w-3xl space-y-8">
       <PageLanguageSync lang={currentLang} />
+      <ViewTracker itemId={article.itemId} />
       {/* Breadcrumb */}
       <nav aria-label="Fil d'Ariane" className="-mb-2 flex items-center gap-1 text-xs text-stone-400 dark:text-stone-500">
         <Link href={`/?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
@@ -1105,12 +1108,15 @@ export default async function ArticlePage({
         </p>
       )}
 
-      {/* Share buttons */}
-      <ShareButtons
-        url={shareUrl}
-        title={article.title}
-        lang={currentLang}
-      />
+      {/* Share buttons + Bookmark */}
+      <div className="flex items-center gap-3">
+        <ShareButtons
+          url={shareUrl}
+          title={article.title}
+          lang={currentLang}
+        />
+        <BookmarkButton articleId={article.id} lang={currentLang} variant="button" />
+      </div>
 
       {/* What changed note (synthesis living updates) */}
       {isSynthesis && (

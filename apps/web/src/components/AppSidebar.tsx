@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Lightbulb,
   Cpu,
+  Bookmark,
 } from "lucide-react";
 import { useLanguage } from "@/lib/language-context";
 import { withLangParam } from "@/lib/utils";
@@ -34,6 +35,7 @@ const NAV_LINKS = [
   { href: "/calendrier",   label: { fr: "Calendrier",   ht: "Kalandriye" }, icon: CalendarDays  },
   { href: "/parcours",     label: { fr: "Parcours",     ht: "Wout"       }, icon: Compass       },
   { href: "/succes",       label: { fr: "Succès",       ht: "Siksè"      }, icon: Award         },
+  { href: "/saved",        label: { fr: "Sauvegardés",  ht: "Sove"       }, icon: Bookmark      },
 ];
 
 function isActive(href: string, pathname: string): boolean {

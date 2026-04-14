@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { FeedItem } from "@/components/news-feed";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { DeadlineBadge } from "@/components/DeadlineBadge";
 import {
@@ -198,6 +199,9 @@ export function ArticleCard({
           <span className="reading-time">
             <Clock className="h-3 w-3" />
             {readTime} min
+          </span>
+          <span className="ml-auto">
+            <BookmarkButton articleId={article.id} lang={lang} />
           </span>
         </div>
       </div>

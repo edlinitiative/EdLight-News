@@ -178,6 +178,55 @@ export const fetchEnrichedFeed = unstable_cache(
   { revalidate: 300, tags: ["feed"] },
 );
 
+// ── Trending articles (by viewCount) ─────────────────────────────────────────
+
+/**
+ * Fetch the most-viewed articles.
+ * Queries items ordered by viewCount desc, then enriches them with
+ * matching content_versions in the requested language.
+ * Cached for 5 minutes to avoid hammering Firestore.
+ */
+export const fetchTrending = unstable_cache(
+  async (lang: ContentLanguage, limit: number = 8): Promise<EnrichedArticle[]> => {
+    const { getDb } = await import("@edlight-news/firebase");
+    const db = getDb();
+
+    // Query items with highest viewCount
+    const snapshot = await db
+      .collection("items")
+      .where("viewCount", ">", 0)
+      .orderBy("viewCount", "desc")
+      .limit(limit * 2) // over-fetch since some may lack content_versions
+      .get();
+
+    if (snapshot.empty) return [];
+
+    const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Item));
+    const itemMap = new Map(items.map((i) => [i.id, i]));
+    const itemIds = items.map((i) => i.id);
+
+    // Find matching content_versions for these items
+    const cvs: import("@edlight-news/types").ContentVersion[] = [];
+    const { contentVersionsRepo } = await import("@edlight-news/firebase");
+    for (const itemId of itemIds) {
+      try {
+        const versions = await contentVersionsRepo.listByItemId(itemId);
+        const match = versions.find(
+          (v) => v.language === lang && v.channel === "web" && v.status === "published",
+        );
+        if (match) cvs.push(match);
+      } catch {
+        // skip items without content_versions
+      }
+      if (cvs.length >= limit) break;
+    }
+
+    return enrichArticles(cvs, itemMap).slice(0, limit);
+  },
+  ["trending-feed"],
+  { revalidate: 300, tags: ["trending"] },
+);
+
 // ── Strict success gating (shared by homepage + /succes page) ────────────────
 
 /**

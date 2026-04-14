@@ -9,8 +9,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowRight, Instagram, Newspaper } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
-import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
+import { fetchEnrichedFeed, fetchTrending, getLangFromSearchParams } from "@/lib/content";
 import { fetchScholarshipsClosingSoon } from "@/lib/datasets";
+import { TrendingSection } from "@/components/TrendingSection";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { NewsletterForm } from "@/components/NewsletterForm";
@@ -166,9 +167,10 @@ export default async function AccueilPage({
     }
   };
 
-  const [rawFeed, closingScholarships] = await Promise.all([
+  const [rawFeed, closingScholarships, trendingArticles] = await Promise.all([
     safeFetch(() => fetchEnrichedFeed(lang, 80), [], "enrichedFeed"),
     safeFetch(() => fetchScholarshipsClosingSoon(60), [], "scholarships"),
+    safeFetch(() => fetchTrending(lang, 4), [], "trending"),
   ]);
 
   // Remove exchange-rate filler articles
@@ -435,6 +437,17 @@ export default async function AccueilPage({
           )}
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          2½. TRENDING
+         ══════════════════════════════════════════════════════════════════════ */}
+      {trendingArticles.length > 0 && (
+        <section>
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <TrendingSection articles={trendingArticles} lang={lang} />
+          </div>
+        </section>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════════
           3. OPPORTUNITIES SPOTLIGHT
