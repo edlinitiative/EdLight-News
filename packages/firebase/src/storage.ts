@@ -92,8 +92,50 @@ export async function getOrUploadImageBuffer(
 }
 
 /**
+ * Instagram's Graph API rejects images larger than 8 MB.  We compress at 7.5 MB
+ * to leave headroom for metadata overhead.
+ */
+const IG_MAX_IMAGE_BYTES = 7.5 * 1024 * 1024;
+
+/**
+ * If a PNG buffer exceeds the IG size limit, convert it to high-quality JPEG.
+ * Returns `{ buffer, ext, contentType }` — unchanged for small PNGs.
+ */
+async function compressForIG(
+  pngBuffer: Buffer,
+): Promise<{ buffer: Buffer; ext: string; contentType: string }> {
+  if (pngBuffer.length <= IG_MAX_IMAGE_BYTES) {
+    return { buffer: pngBuffer, ext: "png", contentType: "image/png" };
+  }
+
+  const sharp = (await import("sharp")).default;
+  // Start at quality 92 and step down until we're under the limit.
+  for (const quality of [92, 85, 78, 70]) {
+    const jpegBuf = await sharp(pngBuffer).jpeg({ quality, mozjpeg: true }).toBuffer();
+    if (jpegBuf.length <= IG_MAX_IMAGE_BYTES) {
+      console.log(
+        `[storage] compressed PNG (${(pngBuffer.length / 1024 / 1024).toFixed(1)} MB) → ` +
+        `JPEG q${quality} (${(jpegBuf.length / 1024 / 1024).toFixed(1)} MB)`,
+      );
+      return { buffer: jpegBuf, ext: "jpg", contentType: "image/jpeg" };
+    }
+  }
+
+  // Last resort — quality 60 should always be under 8 MB for a 1080×1350 image.
+  const jpegBuf = await sharp(pngBuffer).jpeg({ quality: 60, mozjpeg: true }).toBuffer();
+  console.log(
+    `[storage] compressed PNG (${(pngBuffer.length / 1024 / 1024).toFixed(1)} MB) → ` +
+    `JPEG q60 (${(jpegBuf.length / 1024 / 1024).toFixed(1)} MB)`,
+  );
+  return { buffer: jpegBuf, ext: "jpg", contentType: "image/jpeg" };
+}
+
+/**
  * Upload an array of local image files to Firebase Storage and return their
  * public download URLs.  Designed for IG carousel slides.
+ *
+ * PNGs that exceed Instagram's 8 MB image-size limit are automatically
+ * compressed to high-quality JPEG before upload.
  *
  * @param localPaths - Absolute paths to local PNG files
  * @param queueItemId - IG queue item ID (used to namespace the upload path)
@@ -108,9 +150,10 @@ export async function uploadCarouselSlides(
 
   for (let i = 0; i < localPaths.length; i++) {
     const localPath = localPaths[i]!;
-    const buffer = readFileSync(localPath);
-    const storagePath = `ig_posts/${queueItemId}/slide_${i + 1}.png`;
-    const url = await uploadImageBuffer(storagePath, buffer, "image/png");
+    const rawBuffer = readFileSync(localPath);
+    const { buffer, ext, contentType } = await compressForIG(rawBuffer);
+    const storagePath = `ig_posts/${queueItemId}/slide_${i + 1}.${ext}`;
+    const url = await uploadImageBuffer(storagePath, buffer, contentType);
     urls.push(url);
   }
 
