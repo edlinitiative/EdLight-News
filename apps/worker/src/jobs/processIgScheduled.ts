@@ -78,8 +78,12 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
   };
 
   try {
-    // Get scheduled items that are due
-    const scheduled = await igQueueRepo.listScheduled(10);
+    // Get scheduled items that are due — use listAllScheduled so we also
+    // pick up items in "scheduled_ready_for_manual" that are eligible for
+    // staple rescue (the rescue block below filters non-staples out).
+    // Previously this used listScheduled() which only returns status=="scheduled",
+    // making the rescue block dead code and leaving staples stuck forever.
+    const scheduled = await igQueueRepo.listAllScheduled(10);
     const now = new Date();
 
     for (const item of scheduled) {

@@ -199,6 +199,9 @@ export async function deleteStorySlides(storyId: string): Promise<void> {
  * Upload a single story frame PNG to Firebase Storage and return its
  * public download URL.
  *
+ * PNGs that exceed Instagram's 8 MB image-size limit are automatically
+ * compressed to high-quality JPEG before upload (same as carousel slides).
+ *
  * @param localPath    - Absolute path to the local PNG file
  * @param storyId      - IG story queue item ID
  * @param frameIndex   - 0-based frame index
@@ -210,9 +213,10 @@ export async function uploadStorySlide(
   frameIndex: number,
 ): Promise<string> {
   const { readFileSync } = await import("node:fs");
-  const buffer = readFileSync(localPath);
-  const storagePath = `ig_stories/${storyId}/frame_${frameIndex + 1}.png`;
-  const url = await uploadImageBuffer(storagePath, buffer, "image/png");
+  const rawBuffer = readFileSync(localPath);
+  const { buffer, ext, contentType } = await compressForIG(rawBuffer);
+  const storagePath = `ig_stories/${storyId}/frame_${frameIndex + 1}.${ext}`;
+  const url = await uploadImageBuffer(storagePath, buffer, contentType);
   console.log(`[storage] Uploaded story frame ${frameIndex + 1} for ${storyId}`);
   return url;
 }
