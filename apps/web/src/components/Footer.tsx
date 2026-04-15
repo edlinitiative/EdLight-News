@@ -194,9 +194,20 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 pt-8" style={{ borderTop: '1px solid rgba(202,196,208,0.1)' }}>
-          <p className="text-label-sm text-[#78716c]">
-            © {new Date().getFullYear()} EdLight Initiative
-          </p>
+          <div className="flex flex-col gap-1">
+            <p className="text-label-sm text-[#78716c]">
+              © {new Date().getFullYear()} EdLight Initiative
+            </p>
+            <a
+              href="https://edlight.org/labs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-label-sm text-[#78716c] transition-colors hover:text-[#c4bcff]"
+            >
+              {lang === "fr" ? "Créé avec" : "Kreye ak"}{" "}
+              <span className="font-semibold">EdLight Labs</span>
+            </a>
+          </div>
           <p className="text-label-sm text-[#49454f]">
             {T.disclaimer[lang]}
           </p>
