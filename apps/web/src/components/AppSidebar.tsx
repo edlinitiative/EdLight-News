@@ -52,7 +52,7 @@ export function AppSidebar() {
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-surface-container-lowest z-40 overflow-y-auto" style={{ borderRight: '1px solid rgba(202,196,208,0.1)' }}>
       <nav className="flex-1 px-3 pt-6">
-        <p className="mb-2 px-3 text-label-sm uppercase tracking-[0.15em] text-on-surface-variant/60">Navigation</p>
+        <p className="mb-2 px-3 text-label-sm uppercase tracking-[0.15em] text-on-surface-variant/70 dark:text-on-surface-variant">Navigation</p>
         <ul className="space-y-0.5">
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href, pathname);

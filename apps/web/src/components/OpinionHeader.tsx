@@ -64,7 +64,7 @@ export function OpinionHeader({
           <p className="text-sm font-semibold text-stone-900 dark:text-white">
             {authorName}
           </p>
-          <div className="flex items-center gap-2 text-xs text-stone-400 dark:text-stone-500">
+          <div className="flex items-center gap-2 text-xs text-stone-400 dark:text-stone-300">
             {publishedDate && <time>{publishedDate}</time>}
             {publishedDate && readingTime && <span>·</span>}
             {readingTime && (

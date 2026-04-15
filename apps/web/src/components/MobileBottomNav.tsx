@@ -59,7 +59,7 @@ export function MobileBottomNav() {
             className={`flex flex-col items-center gap-0.5 transition-colors duration-200 ${
               active
                 ? "text-primary"
-                : "text-on-surface-variant/60 hover:text-on-surface"
+                : "text-on-surface-variant/70 hover:text-on-surface dark:text-on-surface-variant"
             }`}
           >
             <Icon className="h-5 w-5" />

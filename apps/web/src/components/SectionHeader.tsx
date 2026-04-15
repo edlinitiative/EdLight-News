@@ -53,7 +53,7 @@ export function SectionHeader({
         {description && (
           <p
             className={[
-              "mt-2 text-sm leading-relaxed text-stone-500 dark:text-stone-400",
+              "mt-2 text-sm leading-relaxed text-stone-500 dark:text-stone-300",
               isCenter ? "mx-auto max-w-lg" : "max-w-xl",
             ].join(" ")}
           >
@@ -72,7 +72,7 @@ export function SectionHeader({
       {href && linkLabel && !isCenter && (
         <Link
           href={href}
-          className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
+          className="group inline-flex shrink-0 items-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:border-blue-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-300"
         >
           {linkLabel}
           <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />

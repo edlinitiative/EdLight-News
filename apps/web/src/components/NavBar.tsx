@@ -152,7 +152,7 @@ export function NavBar() {
                 {fr ? "Chercher" : "Chèche"}
               </button>
             </form>
-            <p className="mt-2 text-center text-xs text-on-surface-variant/60">
+            <p className="mt-2 text-center text-xs text-on-surface-variant/70 dark:text-on-surface-variant">
               {fr ? "Appuyez sur Échap pour fermer" : "Peze Esc pou fèmen"}
             </p>
           </div>
@@ -215,7 +215,7 @@ export function NavBar() {
                       "relative whitespace-nowrap px-2.5 py-1.5 text-[12px] font-medium transition-colors",
                       active
                         ? "text-on-surface"
-                        : "text-on-surface-variant/70 hover:text-on-surface",
+                        : "text-on-surface-variant/70 hover:text-on-surface dark:text-on-surface-variant",
                     ].join(" ")}
                   >
                     {link.label[language]}
@@ -282,7 +282,7 @@ export function NavBar() {
             </div>
 
             <div className="p-4">
-              <p className="mb-2 text-label-sm uppercase tracking-widest text-on-surface-variant/60">
+              <p className="mb-2 text-label-sm uppercase tracking-widest text-on-surface-variant/70 dark:text-on-surface-variant">
                 {fr ? "Navigation" : "Navigasyon"}
               </p>
               {/* Home link */}
@@ -321,7 +321,7 @@ export function NavBar() {
 
               <div className="my-3" style={{ borderTop: '1px solid rgba(202,196,208,0.1)' }} />
 
-              <p className="mb-2 text-label-sm uppercase tracking-widest text-on-surface-variant/60">
+              <p className="mb-2 text-label-sm uppercase tracking-widest text-on-surface-variant/70 dark:text-on-surface-variant">
                 {fr ? "Plus" : "Plis"}
               </p>
               <nav className="flex flex-col">
@@ -336,7 +336,7 @@ export function NavBar() {
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         active
                           ? "bg-surface-container-high text-on-surface"
-                          : "text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface",
+                          : "text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface dark:text-on-surface-variant",
                       ].join(" ")}
                     >
                       {link.label[language]}

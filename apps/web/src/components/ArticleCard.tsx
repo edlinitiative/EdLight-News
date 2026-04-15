@@ -205,7 +205,7 @@ export function ArticleCard({
         )}
 
         {/* Footer */}
-        <div className="mt-auto flex items-center gap-2 pt-1.5 text-label-sm text-on-surface-variant/60">
+        <div className="mt-auto flex items-center gap-2 pt-1.5 text-label-sm text-on-surface-variant/70 dark:text-on-surface-variant">
           {article.sourceName && (
             <span className="font-semibold uppercase tracking-wider text-on-surface-variant">
               {article.sourceName}

@@ -70,7 +70,7 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
 
       {/* ─── Distribution Stats ─── */}
       <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5">
-        <h6 className="text-xs font-bold uppercase tracking-widest text-[#474948] dark:text-stone-500 mb-3">
+        <h6 className="text-xs font-bold uppercase tracking-widest text-[#474948] dark:text-stone-300 mb-3">
           {fr ? "Répartition" : "Distribisyon"}
         </h6>
         <div className="space-y-3">
@@ -95,7 +95,7 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
                     style={{ width: `${Math.round((count / total) * 100)}%` }}
                   />
                 </div>
-                <span className="text-[11px] tabular-nums font-medium text-[#474948] dark:text-stone-400 w-6 text-right">
+                <span className="text-[11px] tabular-nums font-medium text-[#474948] dark:text-stone-300 w-6 text-right">
                   {count}
                 </span>
               </div>

@@ -129,7 +129,7 @@ export function OpportunityCard({
             {subCatLabel}
           </span>
           {classification && classification.confidence !== "high" && (
-            <span className="rounded-full bg-[#f9f2f0] px-1.5 py-0.5 text-[10px] text-[#474948] dark:bg-stone-800 dark:text-stone-400">
+            <span className="rounded-full bg-[#f9f2f0] px-1.5 py-0.5 text-[10px] text-[#474948] dark:bg-stone-800 dark:text-stone-300">
               {classification.confidence === "medium" ? "~" : "?"}
             </span>
           )}
@@ -166,7 +166,7 @@ export function OpportunityCard({
             );
           })()}
           {!isExpired && !deadline.missing && deadline.iso && (
-            <span className="text-[10px] text-[#474948] dark:text-stone-500">
+            <span className="text-[10px] text-[#474948] dark:text-stone-300">
               {getDeadlineStatus(article.deadline ?? deadline.iso, lang).humanLine}
             </span>
           )}
@@ -178,12 +178,12 @@ export function OpportunityCard({
         </h2>
 
         {/* Summary */}
-        <p className="mb-2 line-clamp-2 text-sm text-[#474948] dark:text-stone-400">
+        <p className="mb-2 line-clamp-2 text-sm text-[#474948] dark:text-stone-300">
           {article.summary || article.body?.slice(0, 150) || ""}
         </p>
 
         {/* Footer */}
-        <div className="mt-auto border-t border-[#f3ecea] border-dashed pt-3 flex flex-wrap items-center gap-1.5 text-xs text-[#474948] dark:text-stone-500">
+        <div className="mt-auto border-t border-[#f3ecea] border-dashed pt-3 flex flex-wrap items-center gap-1.5 text-xs text-[#474948] dark:text-stone-300">
           {article.sourceName && <span>{article.sourceName}</span>}
           {article.sourceName && article.publishedAt && <span>·</span>}
           {article.publishedAt && (

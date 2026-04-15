@@ -30,9 +30,9 @@ export function PageHeader({
       {/* Left: eyebrow + title */}
       <div className="min-w-0">
         {eyebrow && (
-          <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400 dark:text-stone-500">
+          <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400 dark:text-stone-300">
             {icon && (
-              <span className="flex h-5 w-5 items-center justify-center text-stone-400 dark:text-stone-500">
+              <span className="flex h-5 w-5 items-center justify-center text-stone-400 dark:text-stone-300">
                 {icon}
               </span>
             )}
@@ -54,7 +54,7 @@ export function PageHeader({
               <span className="text-lg font-extrabold tabular-nums text-stone-900 dark:text-white">
                 {stat.value}
               </span>
-              <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+              <span className="ml-1 text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-300">
                 {stat.label}
               </span>
             </div>

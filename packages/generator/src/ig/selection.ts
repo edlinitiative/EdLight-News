@@ -347,13 +347,6 @@ function hasRealOpportunityFields(item: Item): boolean {
   // Content-based guard: if title+summary strongly signal news, downgrade
   if (looksLikeNewsContent(item)) return false;
 
-  // Thin-content guard: Google News RSS items have only title + 1-line summary.
-  // The LLM produces repetitive filler narratives on these. Require at least
-  // 80 words of usable text before treating this as a real opportunity for IG.
-  const bodyText = item.extractedText ?? item.summary ?? "";
-  const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
-  if (wordCount < 80) return false;
-
   // Eligibility is mandatory — the strongest signal for a real opportunity
   const hasEligibility = !!(opp.eligibility && opp.eligibility.length > 0);
   if (!hasEligibility) return false;
@@ -368,7 +361,23 @@ function hasRealOpportunityFields(item: Item): boolean {
   );
   const canonicalUrl = item.canonicalUrl ?? item.source?.originalUrl ?? "";
   const hasCanonicalLink = canonicalUrl.length > 5 && !isNewsUrl(canonicalUrl);
-  return hasHowToApply || hasOfficialLink || hasCanonicalLink;
+  const hasActionableLink = hasHowToApply || hasOfficialLink || hasCanonicalLink;
+  if (!hasActionableLink) return false;
+
+  // Thin-content guard: Google News RSS items may carry minimal extracted text.
+  // Keep the 80-word preference, but allow strongly structured opportunities
+  // with concrete metadata to pass even when body text is short.
+  const bodyText = item.extractedText ?? item.summary ?? "";
+  const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
+  if (wordCount >= 80) return true;
+
+  const hasStructuredOppSignals =
+    (opp.coverage?.trim().length ?? 0) > 10 ||
+    (opp.financingType?.trim().length ?? 0) > 2 ||
+    (opp.provider?.trim().length ?? 0) > 2 ||
+    (opp.levels?.length ?? 0) > 0;
+
+  return hasStructuredOppSignals;
 }
 
 // ── Main selection function ────────────────────────────────────────────────
