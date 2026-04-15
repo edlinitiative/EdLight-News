@@ -31,6 +31,19 @@ const SHARP_EXTERNALS = [
 ];
 
 const nextConfig = {
+  // Force canonical host for SEO consistency.
+  // Google may delay indexing when the same content is reachable on both
+  // *.vercel.app and the production custom domain.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "edlight-news.vercel.app" }],
+        destination: "https://news.edlight.org/:path*",
+        permanent: true,
+      },
+    ];
+  },
   // Allow images from Firebase Storage, Wikimedia Commons, and common publisher CDNs
   images: {
     remotePatterns: [
