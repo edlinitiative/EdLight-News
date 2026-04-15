@@ -339,7 +339,7 @@ function StructuredSections({
                     alt={section.imageCaption || section.heading}
                     fill
                     sizes="(max-width: 768px) 100vw, 768px"
-                    className="h-full w-full object-cover"
+                    className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
                     fallback={
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 to-stone-300 dark:from-stone-700 dark:to-stone-600">
                         <span className="text-xs font-bold tracking-wide text-stone-400 dark:text-stone-500">
@@ -835,7 +835,9 @@ export default async function ArticlePage({
   let heroImageSource = item?.imageSource ?? null;
   let heroImageAttribution = item?.imageAttribution ?? null;
   if (dedupeGroupItems.length > 0) {
-    let bestScore = IMAGE_RANK[item?.imageSource ?? ""] ?? (item?.imageUrl ? 0 : -1);
+    // Start from -1 (same as mergeGroup in ranking.ts) so the
+    // best image is picked identically to what the feed cards show.
+    let bestScore = -1;
     for (const sibling of dedupeGroupItems) {
       if (!sibling.imageUrl) continue;
       const score = IMAGE_RANK[sibling.imageSource ?? ""] ?? 0;
@@ -1001,7 +1003,7 @@ export default async function ArticlePage({
               alt={article.title}
               fill
               sizes="(max-width: 768px) 100vw, 768px"
-              className="h-full w-full object-cover"
+              className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
               fallback={
                 <BrandedHero
                   title={article.title}
