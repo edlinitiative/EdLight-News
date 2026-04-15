@@ -416,7 +416,6 @@ body {
   background:radial-gradient(circle at 18% 18%, ${accent}12 0%, transparent 34%),
              radial-gradient(circle at 82% 82%, rgba(0,0,0,0.18) 0%, transparent 42%);
 }
-.bar { position:absolute; left:0; top:0; bottom:0; width:6px; background:${accent}; }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center;
@@ -424,14 +423,6 @@ body {
 }
 	.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
 	.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 20px; border-radius:999px; }
-	.count {
-  font-family:${FONT_HEADLINE}; font-size:15px; font-weight:700; letter-spacing:2px;
-  color:rgba(255,255,255,0.74);
-  padding:8px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,0.34);
-  border:1px solid rgba(255,255,255,0.08);
-	}
 	.panel {
 	  max-width: 900px;
 	  padding:${metrics.panelPaddingY}px ${metrics.panelPaddingX}px ${metrics.panelPaddingY - 4}px;
@@ -471,12 +462,10 @@ body {
 </style></head>
 <body>
 ${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
-<div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 	<div class="c">
 	  <div class="top">
 	    <span class="pill">${escapeHtml(eyebrow)}</span>
-	    <div class="count">${slideIndex + 1}/${totalSlides}</div>
 	  </div>
 	  <div class="panel">
 	    <div class="rule"></div>
@@ -534,7 +523,6 @@ body {
 .img-vignette { position:absolute; inset:0; background:
   radial-gradient(circle at 18% 18%, ${accent}10 0%, transparent 30%),
   radial-gradient(circle at 82% 78%, rgba(255,255,255,0.04) 0%, transparent 34%); }
-.bar { position:absolute; left:0; top:0; bottom:0; width:6px; background:${accent}; }
 .c {
   position:relative; z-index:1;
   height:100%; display:flex; flex-direction:column; justify-content:flex-end;
@@ -550,14 +538,6 @@ body {
   border:1px solid rgba(255,255,255,0.10);
   font-size:${metrics.eyebrowSize}px; font-weight:800; text-transform:uppercase; letter-spacing:3px;
   padding:9px 18px; border-radius:999px;
-}
-.count {
-  font-family:${FONT_HEADLINE}; font-size:15px; font-weight:700; letter-spacing:2px;
-  color:rgba(255,255,255,0.68);
-  padding:8px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,0.36);
-  border:1px solid rgba(255,255,255,0.08);
 }
 .panel {
   max-width: 900px;
@@ -607,12 +587,10 @@ body {
 </style></head>
 <body>
 ${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
-<div class="bar"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
   <div class="top">
     <div class="cat">${escapeHtml(content.eyebrow)}</div>
-    <div class="count">${slideIndex + 1}/${totalSlides}</div>
   </div>
   <div class="panel">
     <div class="rule"></div>
@@ -765,7 +743,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
       <span class="tag">Repères</span>
     </div>
     <div class="handle-row">
-      <div class="handle">@edlightnews</div>
+      <div class="handle">@edlight.news</div>
       <div class="note">En story chaque matin</div>
     </div>
     <div class="kreyol">Nouvèl, opòtinite ak repè pou elèv ak etidyan ayisyen, chak jou.</div>
@@ -784,7 +762,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
  *   "facts"    → daily facts card
  *   "headline" → article summary card (dark bg + accent bar)
  *   "cover"    → full-bleed image cover (legacy default for frame 0)
- *   "cta"      → follow/close frame (auto-appended by asset generator)
+ *   "cta"      → follow/close frame
  *
  * Legacy slides without `frameType` fall back to positional logic:
  *   Frame 0 → cover, Frame N-1 → CTA, others → headline
@@ -836,8 +814,7 @@ export interface StoryAssetResult {
 /**
  * Generate story assets for an IG story queue item.
  *
- * Renders: content slides from payload + auto-appended CTA closing frame.
- * Total frames = payload.slides.length + 1 (CTA).
+ * Renders content slides from payload.
  *
  * Uses `waitUntil: "networkidle"` so Google Fonts finish loading before
  * the screenshot is taken, ensuring premium Inter typography.
@@ -852,8 +829,7 @@ export async function generateStoryAssets(
   const slidePaths: string[] = [];
   let mode: "rendered" | "dry-run" = "dry-run";
 
-  // +1 for the auto-appended CTA frame
-  const totalSlides = payload.slides.length + 1;
+  const totalSlides = payload.slides.length;
 
   // Determine dominant accent (from the first content slide, fallback to default)
   const dominantAccent =
@@ -913,23 +889,6 @@ export async function generateStoryAssets(
         slidePaths.push(pngPath);
       }
 
-      // Render CTA closing frame
-      const ctaSlide: IGStorySlide = {
-        heading: "",
-        bullets: [],
-        accent: dominantAccent,
-      };
-      const ctaHtml = buildStorySlideHTML(
-        ctaSlide,
-        payload.dateLabel,
-        totalSlides - 1,
-        totalSlides,
-        true,
-      );
-      const ctaPath = join(exportDir, `story_cta.png`);
-      await renderFrameToFile(browser, ctaHtml, ctaPath);
-      slidePaths.push(ctaPath);
-
       mode = "rendered";
     } finally {
       await browser.close();
@@ -950,22 +909,6 @@ export async function generateStoryAssets(
       slidePaths.push(htmlPath);
     }
 
-    // CTA dry-run
-    const ctaSlide: IGStorySlide = {
-      heading: "",
-      bullets: [],
-      accent: dominantAccent,
-    };
-    const ctaHtml = buildStorySlideHTML(
-      ctaSlide,
-      payload.dateLabel,
-      totalSlides - 1,
-      totalSlides,
-      true,
-    );
-    const ctaPath = join(exportDir, `story_cta.html`);
-    writeFileSync(ctaPath, ctaHtml, "utf-8");
-    slidePaths.push(ctaPath);
   }
 
   return { mode, slidePaths, exportDir };

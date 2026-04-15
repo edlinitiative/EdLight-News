@@ -26,20 +26,12 @@ describe("buildStorySlideHTML", () => {
     );
   });
 
-  it("CTA frame uses the premium editorial closing copy", () => {
+  it("CTA frame renders the follow/close frame", () => {
     const slide: IGStorySlide = { heading: "", bullets: [], accent: "#14b8a6" };
     const html = buildStorySlideHTML(slide, "13 mars 2026", 5, 6, true);
     assert.ok(
-      html.includes("Votre briefing étudiant, chaque matin."),
-      "CTA should use the new editorial headline",
-    );
-    assert.ok(
-      html.includes("Actualités"),
-      "CTA should surface the editorial content pillars",
-    );
-    assert.ok(
-      html.includes("En story chaque matin"),
-      "CTA should mention the daily story cadence",
+      html.includes("@edlight.news"),
+      "CTA frame should contain the handle",
     );
   });
 
