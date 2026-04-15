@@ -29,8 +29,8 @@ processIgNowRouter.post("/process-ig-now", async (_req: Request, res: Response) 
 
     console.log(
       `[process-ig-now] done in ${durationMs}ms — processed=${result.processed} posted=${result.posted} dryRun=${result.dryRun} errors=${result.errors}` +
-      ` | story: processed=${storyResult.processed} posted=${storyResult.posted}` +
-      (storyResult.waitingForStaples ? ` waitingFor=[${storyResult.waitingForStaples.join(",")}]` : ""),
+      ` stories=${result.storiesPublished}` +
+      ` | summary: processed=${storyResult.processed} posted=${storyResult.posted}`,
     );
 
     res.json({ ok: true, durationMs, result, storyResult });

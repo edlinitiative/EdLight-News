@@ -254,3 +254,86 @@ export function buildDailySummaryStory(
 
   return { slides, dateLabel };
 }
+// ── Per-post story builder ────────────────────────────────────────────────
+// Builds a single story frame for an individual post (called from
+// processIgScheduled right after a carousel posts successfully).
+// This replaces the monolithic morning-briefing approach where one big
+// story is blocked until ALL staples are posted.
+
+/**
+ * Build a single-frame story payload for an individual IG post.
+ *
+ * Called immediately after a carousel post publishes so followers see a
+ * story frame promoting that content within seconds — no waiting for
+ * other posts.  If one post fails, the next one still gets its story.
+ *
+ * @param input  - The item data + optional bilingual text + igType
+ * @param taux   - If the post is a taux item, provide the rate data instead
+ * @param facts  - If the post is a facts/utility item, provide the facts
+ * @returns      - A single-slide IGStoryPayload ready for rendering
+ */
+export function buildStorySlideForPost(
+  input?: StoryItemInput,
+  taux?: StoryTauxInput,
+  facts?: StoryFactsInput,
+): IGStoryPayload {
+  const d = new Date();
+  const dateLabel = d.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const slides: IGStorySlide[] = [];
+
+  if (taux) {
+    const tauxBullets = taux.bullets ?? [];
+    slides.push({
+      heading: taux.rate,
+      bullets: [taux.dateLabel, ...tauxBullets],
+      accent: "#eab308",
+      backgroundImage: taux.backgroundImage,
+      frameType: "taux",
+    });
+  } else if (facts && facts.facts.length > 0) {
+    // For facts/utility, use a single frame (no chunking for per-post stories)
+    slides.push({
+      heading: "Repères du jour",
+      bullets: facts.facts.slice(0, STORY_MAX_FACTS_PER_FRAME),
+      eyebrow: "Ce matin",
+      accent: "#34d399",
+      backgroundImage: facts.backgroundImage,
+      frameType: "facts",
+    });
+  } else if (input) {
+    const { item, bi, igType, backgroundImage } = input;
+    const title = bi?.frTitle ?? item.title;
+    const summary = bi?.frSummary ?? item.summary;
+    const cat = igType ?? item.category ?? "news";
+    const catLabel =
+      CATEGORY_LABELS[cat] ?? CATEGORY_LABELS[item.category ?? "news"] ?? "";
+    const hasDeadline = !!formatStoryDeadline(item.deadline ?? "");
+    const subheading = buildStorySummary(summary, hasDeadline);
+    const meta = buildStoryMeta(item);
+    const footer = pickStorySourceFooter(item);
+    const bullets = [subheading, ...meta].filter((entry) => entry.length > 0);
+
+    slides.push({
+      heading: shortenHeadline(
+        title,
+        STORY_HEADLINE_MAX_WORDS,
+        STORY_HEADLINE_MAX_CHARS,
+      ),
+      bullets,
+      eyebrow: catLabel || "À LA UNE",
+      subheading,
+      meta,
+      footer,
+      accent: CATEGORY_ACCENTS[cat],
+      backgroundImage: backgroundImage ?? item.imageUrl ?? undefined,
+      frameType: "headline",
+    });
+  }
+
+  return { slides, dateLabel };
+}

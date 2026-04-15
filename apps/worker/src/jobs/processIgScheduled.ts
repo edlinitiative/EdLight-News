@@ -5,16 +5,24 @@
  * Runs as part of the /tick pipeline.
  */
 
-import { igQueueRepo, itemsRepo, uploadCarouselSlides, deleteCarouselSlides } from "@edlight-news/firebase";
+import { igQueueRepo, itemsRepo, uploadCarouselSlides, deleteCarouselSlides, uploadStorySlide } from "@edlight-news/firebase";
 import { renderWithIgEngine } from "@edlight-news/renderer/ig-engine-render.js";
-import { publishIgPost } from "@edlight-news/publisher";
-import type { IGQueueItem, IGPostType } from "@edlight-news/types";
+import { generateStoryAssets } from "@edlight-news/renderer/ig-story.js";
+import { publishIgPost, publishIgStory } from "@edlight-news/publisher";
+import type { IGQueueItem, IGPostType, IGStoryPayload } from "@edlight-news/types";
 import {
   validatePayloadForPublishing,
   type IGPublishIssue,
 } from "../services/igPublishValidation.js";
 import { generateContextualImage } from "../services/geminiImageGen.js";
 import { STALENESS_TTL_HOURS, isStale } from "./igStaleness.js";
+import {
+  buildStorySlideForPost,
+  type StoryItemInput,
+  type StoryTauxInput,
+  type StoryFactsInput,
+} from "@edlight-news/generator/ig/index.js";
+import { contentVersionsRepo } from "@edlight-news/firebase";
 
 /** Post types whose Storage slides should be deleted after posting (ephemeral). */
 const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire", "breaking"]);
@@ -31,6 +39,9 @@ export interface ProcessIgScheduledResult {
   posted: number;
   dryRun: number;
   errors: number;
+  /** Per-post story frames published alongside carousel posts */
+  storiesPublished: number;
+  storiesFailed: number;
 }
 
 function isItemImageUsableForIG(item: Awaited<ReturnType<typeof itemsRepo.getItem>>): boolean {
@@ -69,12 +80,142 @@ function stripUnsafeSlideBackgrounds(
   return stripped;
 }
 
+/**
+ * After a carousel post is successfully published, immediately render and
+ * publish a single-frame IG Story promoting that post.
+ *
+ * Each post gets its own story frame independently — no waiting for other
+ * posts. If one fails, the next post still gets its story.
+ */
+async function publishStoryForPost(
+  item: IGQueueItem,
+  sourceItem: Awaited<ReturnType<typeof itemsRepo.getItem>>,
+): Promise<{ posted: boolean; error?: string }> {
+  try {
+    // Build a single-slide story payload based on post type
+    let storyPayload: IGStoryPayload;
+
+    if (item.igType === "taux" && item.payload?.slides?.[0]) {
+      const coverSlide = item.payload.slides[0];
+      const tauxInput: StoryTauxInput = {
+        rate: coverSlide.heading,
+        dateLabel: coverSlide.footer ?? new Date().toLocaleDateString("fr-FR"),
+        bullets: coverSlide.bullets.slice(0, 2),
+        backgroundImage: coverSlide.backgroundImage,
+      };
+      storyPayload = buildStorySlideForPost(undefined, tauxInput);
+    } else if (item.igType === "utility" || item.igType === "histoire") {
+      // Build a facts-style frame for utility/histoire
+      const factsInput: StoryFactsInput = {
+        facts: sourceItem?.summary
+          ? [sourceItem.summary.slice(0, 360)]
+          : item.payload?.slides?.[0]?.bullets ?? [],
+        backgroundImage:
+          item.payload?.slides?.[0]?.backgroundImage ??
+          sourceItem?.imageUrl ??
+          undefined,
+      };
+      storyPayload = buildStorySlideForPost(undefined, undefined, factsInput);
+    } else {
+      // Headline-style story for news, scholarship, opportunity, etc.
+      let bi: StoryItemInput["bi"];
+      if (sourceItem) {
+        try {
+          const versions = await contentVersionsRepo.listByItemId(sourceItem.id);
+          const fr = versions.find((v) => v.language === "fr");
+          const ht = versions.find((v) => v.language === "ht");
+          if (fr) {
+            bi = {
+              frTitle: fr.title,
+              frSummary: fr.summary,
+              htTitle: ht?.title,
+              htSummary: ht?.summary,
+            };
+          }
+        } catch {
+          // Content versions unavailable — use raw item
+        }
+      }
+
+      const bgImage =
+        item.payload?.slides?.[0]?.backgroundImage ??
+        (sourceItem?.imageUrl || undefined);
+
+      storyPayload = buildStorySlideForPost({
+        item: sourceItem!,
+        bi,
+        igType: item.igType,
+        backgroundImage: bgImage,
+      });
+    }
+
+    if (storyPayload.slides.length === 0) {
+      return { posted: false, error: "No story slide generated" };
+    }
+
+    // Render the single story frame (1080×1920)
+    const fakeStoryQueueItem = {
+      id: `post-story-${item.id}`,
+      dateKey: "",
+      status: "queued" as const,
+      sourceItemIds: [item.sourceContentId],
+      payload: storyPayload,
+      createdAt: null as any,
+      updatedAt: null as any,
+    };
+    const storyAssets = await generateStoryAssets(fakeStoryQueueItem, storyPayload);
+
+    if (storyAssets.mode !== "rendered" || storyAssets.slidePaths.length === 0) {
+      return { posted: false, error: "Story render dry-run (no Chromium or creds)" };
+    }
+
+    // Upload + publish each frame (usually just 1 frame + CTA = 2)
+    let lastMediaId: string | undefined;
+    let allPosted = true;
+
+    for (let i = 0; i < storyAssets.slidePaths.length; i++) {
+      const publicUrl = await uploadStorySlide(
+        storyAssets.slidePaths[i]!,
+        fakeStoryQueueItem.id,
+        i,
+      );
+      const publishResult = await publishIgStory(publicUrl, fakeStoryQueueItem.id);
+
+      if (publishResult.posted) {
+        lastMediaId = publishResult.igMediaId;
+      } else if (publishResult.dryRun) {
+        return { posted: false, error: "dry-run" };
+      } else {
+        allPosted = false;
+        console.warn(`[processIgScheduled] story frame ${i + 1} failed: ${publishResult.error}`);
+      }
+
+      // Brief pause between frames so IG processes them in order
+      if (i < storyAssets.slidePaths.length - 1) {
+        await new Promise((r) => setTimeout(r, 3000));
+      }
+    }
+
+    if (allPosted && lastMediaId) {
+      console.log(`[processIgScheduled] ✅ story published for ${item.igType} post ${item.id}`);
+      return { posted: true };
+    }
+    return { posted: false, error: "Not all story frames published" };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`[processIgScheduled] story for ${item.id} failed: ${msg}`);
+    return { posted: false, error: msg };
+  }
+}
+
 export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
   const result: ProcessIgScheduledResult = {
     processed: 0,
     posted: 0,
     dryRun: 0,
     errors: 0,
+    storiesPublished: 0,
+    storiesFailed: 0,
   };
 
   try {
@@ -359,6 +500,16 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
               console.warn(`[processIgScheduled] slide cleanup failed for ${item.id}:`, err),
             );
           }
+
+          // ── Per-post Story: immediately publish a story frame for this post ──
+          // Each post gets its own story — no waiting for other posts.
+          // If it fails, the carousel is still posted and the next post tries too.
+          const storyResult = await publishStoryForPost(item, sourceItem);
+          if (storyResult.posted) {
+            result.storiesPublished++;
+          } else if (storyResult.error !== "dry-run") {
+            result.storiesFailed++;
+          }
         } else if (publishResult.dryRun) {
           await igQueueRepo.updateStatus(item.id, "scheduled_ready_for_manual", {
             dryRunPath: publishResult.dryRunPath,
@@ -420,7 +571,10 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
     }
 
     if (result.processed > 0) {
-      console.log(`[processIgScheduled] processed=${result.processed} posted=${result.posted} dryRun=${result.dryRun} errors=${result.errors}`);
+      console.log(
+        `[processIgScheduled] processed=${result.processed} posted=${result.posted} dryRun=${result.dryRun} errors=${result.errors}` +
+        ` | stories: published=${result.storiesPublished} failed=${result.storiesFailed}`,
+      );
     }
   } catch (err) {
     console.error("[processIgScheduled] fatal error:", err);

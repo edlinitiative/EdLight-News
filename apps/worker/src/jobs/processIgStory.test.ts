@@ -32,60 +32,22 @@ function makeStoryItem(overrides: Partial<IGStoryQueueItem> = {}): IGStoryQueueI
 
 const originalDeps = { ...processIgStoryDeps };
 
-/** Stub listPostedAndScheduledToday so staples gate passes by default. */
-function stubStaplesPosted() {
-  processIgStoryDeps.listPostedAndScheduledToday = async () => [
-    { id: "t1", igType: "taux", status: "posted", targetPostDate: undefined },
-    { id: "h1", igType: "histoire", status: "posted", targetPostDate: undefined },
-    { id: "u1", igType: "utility", status: "posted", targetPostDate: undefined },
-  ] as any;
-}
-
 afterEach(() => {
   Object.assign(processIgStoryDeps, originalDeps);
 });
 
 describe("processIgStory", () => {
-  it("waits for staple posts before processing any stories", async () => {
-    // taux posted, histoire only scheduled, utility absent but in queue
-    processIgStoryDeps.listPostedAndScheduledToday = async () => [
-      { id: "t1", igType: "taux", status: "posted", targetPostDate: undefined },
-      { id: "h1", igType: "histoire", status: "scheduled", targetPostDate: undefined },
-      { id: "u1", igType: "utility", status: "scheduled", targetPostDate: undefined },
-    ] as any;
-
-    let listQueuedCalled = false;
-    processIgStoryDeps.listQueuedStories = async () => {
-      listQueuedCalled = true;
-      return [];
-    };
-
-    const result = await processIgStory();
-
-    assert.equal(listQueuedCalled, false, "Should not fetch stories while staples are pending");
-    assert.equal(result.processed, 0);
-    assert.ok(result.waitingForStaples);
-    assert.ok(result.waitingForStaples!.includes("histoire"));
-    assert.ok(result.waitingForStaples!.includes("utility"));
-  });
-
-  it("does NOT block on staples absent from today's queue (weekend/missing)", async () => {
-    // Weekend scenario: only utility is queued+posted; taux and histoire
-    // were never generated today → gate should NOT block.
-    processIgStoryDeps.listPostedAndScheduledToday = async () => [
-      { id: "u1", igType: "utility", status: "posted", targetPostDate: undefined },
-    ] as any;
-
+  it("processes queued stories immediately without waiting for staples", async () => {
+    // With staples gate removed, stories should be processed right away
     processIgStoryDeps.listQueuedStories = async () => [];
 
     const result = await processIgStory();
 
-    // Gate passes — processed 0 because queue is empty, but NOT waiting
-    assert.equal(result.waitingForStaples, undefined);
+    // No stories in queue — processed 0, but no blocking either
+    assert.equal(result.processed, 0);
   });
 
   it("fails story items that do not pass preflight before rendering any frames", async () => {
-    stubStaplesPosted();
 
     const updates: Array<{
       id: string;

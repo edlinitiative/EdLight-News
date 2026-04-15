@@ -7,7 +7,7 @@
 export { decideIG, applyDedupePenalty } from "./selection.js";
 export { formatForIG, isItemImageUsableForIG } from "./formatters/index.js";
 export type { BilingualText, FormatIGOptions } from "./formatters/index.js";
-export { buildDailySummaryStory } from "./formatters/story.js";
+export { buildDailySummaryStory, buildStorySlideForPost } from "./formatters/story.js";
 export type { StoryItemInput, StoryTauxInput, StoryFactsInput } from "./formatters/story.js";
 export {
   reviewSlides,

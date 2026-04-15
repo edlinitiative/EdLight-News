@@ -8,33 +8,28 @@
  * "story sequence", we publish multiple STORIES in rapid succession.
  * Instagram shows them in order, each for ~5 seconds.
  *
- * Staples gate: the story is NOT published until all three daily staple
- * carousel posts (taux, histoire, utility) are confirmed "posted" for
- * today. This ensures followers who see the story can immediately find
- * the referenced content in the feed.
+ * NOTE: Per-post stories are now handled directly in processIgScheduled —
+ * each carousel post immediately publishes its own story frame after posting.
+ * This job only handles the optional daily summary story (if one was queued
+ * by buildIgStory). No staples gate — the summary publishes immediately.
  */
 
-import { igStoryQueueRepo, igQueueRepo, uploadStorySlide } from "@edlight-news/firebase";
+import { igStoryQueueRepo, uploadStorySlide } from "@edlight-news/firebase";
 import { generateStoryAssets } from "@edlight-news/renderer/ig-story.js";
 import { publishIgStory } from "@edlight-news/publisher";
-import type { IGStoryQueueItem, IGPostType } from "@edlight-news/types";
+import type { IGStoryQueueItem } from "@edlight-news/types";
 import { validateStoryPayloadForPublishing } from "../services/igPublishValidation.js";
 import type { IGPublishIssue } from "@edlight-news/generator/ig/index.js";
-
-/** Daily staple types that must be posted before the story goes live. */
-const REQUIRED_STAPLES: IGPostType[] = ["taux", "histoire", "utility"];
 
 export interface ProcessIgStoryResult {
   processed: number;
   posted: number;
   dryRun: number;
   errors: number;
-  waitingForStaples?: string[];
 }
 
 export const processIgStoryDeps = {
   listQueuedStories: (limit: number) => igStoryQueueRepo.listByStatus("queued", limit),
-  listPostedAndScheduledToday: () => igQueueRepo.listPostedAndScheduledToday(),
   updateStoryStatus: (
     id: string,
     status: IGStoryQueueItem["status"],
@@ -60,39 +55,6 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
   };
 
   try {
-    // ── Staples gate ──────────────────────────────────────────────────
-    // Don't publish the story until all daily staple carousel posts that
-    // were actually queued/scheduled today are confirmed "posted". This
-    // avoids the scenario where a follower sees taux/fait-du-jour in the
-    // story but can't find the full carousel in the feed yet.
-    //
-    // Weekend-aware: if a staple type has NO entry at all today (e.g.
-    // taux on weekends, or histoire when generation failed), we don't
-    // block on it — we only block on staples that ARE in the pipeline
-    // but haven't finished posting.
-    const todayStatuses = await processIgStoryDeps.listPostedAndScheduledToday();
-    const postedTypes = new Set(
-      todayStatuses
-        .filter((s) => s.status === "posted")
-        .map((s) => s.igType),
-    );
-    // Only require staples that actually exist in today's queue
-    const todayStapleTypes = new Set(
-      todayStatuses
-        .filter((s) => REQUIRED_STAPLES.includes(s.igType as IGPostType))
-        .map((s) => s.igType),
-    );
-    const missingStaples = REQUIRED_STAPLES.filter(
-      (t) => todayStapleTypes.has(t) && !postedTypes.has(t),
-    );
-
-    if (missingStaples.length > 0) {
-      console.log(
-        `[processIgStory] waiting for staple posts before publishing story: ${missingStaples.join(", ")}`,
-      );
-      return { ...result, waitingForStaples: missingStaples };
-    }
-
     const queued = await processIgStoryDeps.listQueuedStories(5);
 
     for (const storyItem of queued) {

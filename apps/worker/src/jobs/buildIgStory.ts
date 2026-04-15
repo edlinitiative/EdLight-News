@@ -1,24 +1,15 @@
 /**
- * Worker job: buildIgStory (v2 — Morning Briefing)
+ * Worker job: buildIgStory (v3 — Optional Daily Summary)
  *
- * Runs once per day (self-gated) to build the morning briefing IG Story.
+ * Builds an optional daily summary IG Story once enough content exists.
+ * This is a SUPPLEMENT to per-post stories (which are published immediately
+ * when each carousel post succeeds in processIgScheduled).
  *
- * New story structure:
- *  Frame 1 — Taux du jour (pulled from today's taux ig_queue item)
- *  Frame 2 — Faits du jour (from today's utility items: facts + histoire)
- *  Frames 3-6 — Up to 4 highest-scored items not already scheduled as
- *               carousels, biased toward items with deadlines
- *  Frame 7 — CTA (@edlight.news) — auto-appended by the renderer
+ * The summary combines taux + facts + top headlines into a recap story.
+ * It runs at most once per day (self-gated by dateKey).
  *
- * Logic:
- *  1. Check if today's story already exists in ig_story_queue → skip.
- *  2. Pull taux data from today's ig_queue item (if posted).
- *  3. Pull today's utility items for facts frame.
- *  4. Pull highest-scored items NOT already scheduled for carousels.
- *  5. Format via buildDailySummaryStory → insert into ig_story_queue.
- *
- * Time gate: 05:30–09:59 Haiti time (morning briefing — wide window for
- *            Cloud Scheduler / GHA cron jitter).
+ * No time window restriction — the summary can be built at any time of day.
+ * Per-post stories handle the main IG Story presence throughout the day.
  */
 
 import { igQueueRepo, igStoryQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
@@ -38,16 +29,6 @@ const HAITI_TZ = "America/Port-au-Prince";
 function toHaitiDate(date: Date): Date {
   const haitiStr = date.toLocaleString("en-US", { timeZone: HAITI_TZ });
   return new Date(haitiStr);
-}
-
-function isInStoryWindow(): boolean {
-  const haiti = toHaitiDate(new Date());
-  const hour = haiti.getHours();
-  const minute = haiti.getMinutes();
-  // 05:30–09:59 Haiti time — wide window so the story still gets built
-  // even when Cloud Scheduler or GHA fires late. IG stories expire after
-  // 24h, so posting at 09:xx still leaves 15h of visibility.
-  return (hour > 5 || (hour === 5 && minute >= 30)) && hour < 10;
 }
 
 function todayDateKey(): string {
@@ -128,11 +109,6 @@ export interface BuildIgStoryResult {
 // ── Main job ───────────────────────────────────────────────────────────────
 
 export async function buildIgStory(): Promise<BuildIgStoryResult> {
-  // Time-gate
-  if (!isInStoryWindow()) {
-    return { queued: false, skipped: "outside-story-window" };
-  }
-
   const dateKey = todayDateKey();
 
   // Already created today?
