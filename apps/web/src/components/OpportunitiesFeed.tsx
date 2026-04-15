@@ -376,9 +376,9 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       <div>
         {/* Saved-only empty state */}
         {showSavedOnly && filtered.length === 0 && savedCount === 0 && (
-          <div className="rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/30 py-16 text-center dark:border-blue-800/40 dark:bg-blue-950/10">
-            <Heart className="mx-auto h-10 w-10 text-blue-300 dark:text-blue-600" />
-            <p className="mt-3 text-sm font-medium text-stone-600 dark:text-stone-400">
+          <div className="rounded-xl border-2 border-dashed border-[#c7c4d8]/30 bg-[#f9f2f0]/50 py-16 text-center dark:border-stone-700/40 dark:bg-stone-900/30">
+            <Heart className="mx-auto h-10 w-10 text-[#c7c4d8] dark:text-stone-600" />
+            <p className="mt-3 text-sm font-medium text-[#464555] dark:text-stone-400">
               {fr
                 ? "Vous n'avez pas encore sauvegardé d'opportunités."
                 : "Ou poko anrejistre okenn okazyon."}
@@ -393,7 +393,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
 
         {/* No results for filters */}
         {!showSavedOnly && filtered.length === 0 && (
-          <div className="rounded-lg border-2 border-dashed border-stone-200 bg-white py-14 text-center text-stone-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-500">
+          <div className="rounded-xl border-2 border-dashed border-[#c7c4d8]/20 bg-white py-14 text-center text-[#474948] dark:border-stone-700 dark:bg-stone-900 dark:text-stone-500">
             <p className="text-base font-medium">
               {fr
                 ? articles.length === 0
@@ -407,7 +407,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
         )}
 
         {showSavedOnly && filtered.length === 0 && savedCount > 0 && (
-          <div className="rounded-lg border-2 border-dashed border-stone-200 bg-white py-14 text-center text-stone-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-500">
+          <div className="rounded-xl border-2 border-dashed border-[#c7c4d8]/20 bg-white py-14 text-center text-[#474948] dark:border-stone-700 dark:bg-stone-900 dark:text-stone-500">
             <p className="text-base font-medium">
               {fr
                 ? "Aucune opportunité sauvegardée ne correspond aux filtres actifs."
@@ -418,7 +418,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
 
         {/* Cards */}
         {filtered.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((entry) => (
               <OpportunityCard
                 key={entry.article.id}

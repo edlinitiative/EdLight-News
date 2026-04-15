@@ -127,32 +127,32 @@ export function NavBar() {
     <>
       {/* ── Search overlay ────────────────────────────────────────── */}
       {searchOpen && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/40 backdrop-blur-sm pt-20 px-4" onClick={() => setSearchOpen(false)}>
+        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-on-surface/30 backdrop-blur-sm pt-20 px-4" onClick={() => setSearchOpen(false)}>
           <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 rounded-2xl border border-stone-200/80 bg-white shadow-2xl ring-1 ring-black/5 dark:border-stone-700 dark:bg-stone-900 dark:ring-white/5 p-4">
-              <Search className="h-5 w-5 shrink-0 text-stone-400" />
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 rounded-xl bg-surface-container-lowest shadow-ambient p-4" style={{ border: '1px solid rgba(202,196,208,0.12)' }}>
+              <Search className="h-5 w-5 shrink-0 text-on-surface-variant" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={fr ? "Rechercher des articles, opportunités…" : "Chèche atik, okazyon…"}
-                className="flex-1 bg-transparent text-base text-stone-900 placeholder-stone-400 outline-none dark:text-white"
+                className="flex-1 bg-transparent text-base text-on-surface placeholder-on-surface-variant/50 outline-none"
                 autoFocus
               />
               {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery("")} className="text-stone-400 hover:text-stone-600">
+                <button type="button" onClick={() => setSearchQuery("")} className="text-on-surface-variant hover:text-on-surface">
                   <X className="h-4 w-4" />
                 </button>
               )}
               <button
                 type="submit"
-                className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+                className="rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-white hover:bg-primary-container"
               >
                 {fr ? "Chercher" : "Chèche"}
               </button>
             </form>
-            <p className="mt-2 text-center text-xs text-stone-400">
+            <p className="mt-2 text-center text-xs text-on-surface-variant/60">
               {fr ? "Appuyez sur Échap pour fermer" : "Peze Esc pou fèmen"}
             </p>
           </div>
@@ -162,15 +162,16 @@ export function NavBar() {
       {/* ── Single sticky header ──────────────────────────────────── */}
       <header
         ref={navRef}
-        className="sticky top-0 z-50 border-b border-stone-200/50 bg-white/85 backdrop-blur-xl shadow-[0_1px_0_0_rgb(0,0,0,0.03)] dark:border-stone-800/40 dark:bg-stone-950/90 dark:shadow-none"
+        className="sticky top-0 z-50 bg-surface/80 backdrop-blur-xl shadow-nav dark:bg-surface/80"
+        style={{ borderBottom: '1px solid rgba(202, 196, 208, 0.12)' }}
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6 lg:px-8">
           {/* Brand — Home link */}
           <Link href={l("/")} className="flex shrink-0 items-baseline gap-0 mr-1">
-            <span className="text-lg font-black tracking-tight text-stone-900 dark:text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>
+            <span className="text-lg font-black tracking-tight text-on-surface" style={{ fontFamily: "var(--font-display, var(--font-sans))" }}>
               EdLight
             </span>
-            <span className="ml-1.5 rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
+            <span className="ml-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
               News
             </span>
           </Link>
@@ -188,20 +189,20 @@ export function NavBar() {
                     className={[
                       "relative whitespace-nowrap px-3 py-2 text-[13px] font-semibold transition-all duration-200",
                       active
-                        ? "text-stone-900 dark:text-white"
-                        : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200",
+                        ? "text-on-surface"
+                        : "text-on-surface-variant hover:text-on-surface",
                     ].join(" ")}
                   >
                     {link.label[language]}
                     {active && (
-                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-400" />
+                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-silk" />
                     )}
                   </Link>
                 );
               })}
             </div>
             {/* Divider */}
-            <div className="mx-2 h-4 w-px bg-stone-200 dark:bg-stone-700" />
+            <div className="mx-2 h-4 w-px" style={{ background: 'rgba(202,196,208,0.2)' }} />
             {/* Secondary */}
             <div className="flex items-center gap-0.5">
               {secondaryLinks.map((link) => {
@@ -213,13 +214,13 @@ export function NavBar() {
                     className={[
                       "relative whitespace-nowrap px-2.5 py-1.5 text-[12px] font-medium transition-colors",
                       active
-                        ? "text-stone-700 dark:text-stone-200"
-                        : "text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-300",
+                        ? "text-on-surface"
+                        : "text-on-surface-variant/70 hover:text-on-surface",
                     ].join(" ")}
                   >
                     {link.label[language]}
                     {active && (
-                      <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 rounded-full bg-stone-400 dark:bg-stone-500" />
+                      <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 rounded-full bg-on-surface-variant/40" />
                     )}
                   </Link>
                 );
@@ -232,7 +233,7 @@ export function NavBar() {
             {/* Search trigger */}
             <button
               onClick={() => setSearchOpen(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-on-surface-variant transition-colors hover:bg-surface-container-high"
               aria-label={fr ? "Rechercher" : "Chèche"}
               title={fr ? "Rechercher (⌘K)" : "Chèche (⌘K)"}
             >
@@ -242,7 +243,7 @@ export function NavBar() {
             <DarkModeToggle />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800 lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-on-surface-variant transition-colors hover:bg-surface-container-high lg:hidden"
               aria-label="Menu"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -260,27 +261,28 @@ export function NavBar() {
           />
           <div
             ref={mobilePanelRef}
-            className="absolute inset-y-0 right-0 top-14 w-72 overflow-y-auto border-l border-stone-200 bg-white shadow-xl dark:border-stone-800 dark:bg-stone-950"
+            className="absolute inset-y-0 right-0 top-14 w-72 overflow-y-auto bg-surface-container-lowest shadow-ambient dark:bg-surface-container-low"
+            style={{ borderLeft: '1px solid rgba(202,196,208,0.12)' }}
             role="dialog"
             aria-modal="true"
             aria-label={fr ? "Menu de navigation" : "Meni navigasyon"}
           >
             {/* Mobile search bar */}
-            <div className="border-b border-stone-100 p-3 dark:border-stone-800">
-              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 dark:border-stone-700 dark:bg-stone-900">
-                <Search className="h-4 w-4 shrink-0 text-stone-400" />
+            <div className="p-3" style={{ borderBottom: '1px solid rgba(202,196,208,0.1)' }}>
+              <form onSubmit={handleSearchSubmit} className="input-editorial flex items-center gap-2 rounded-lg px-3 py-2">
+                <Search className="h-4 w-4 shrink-0 text-on-surface-variant" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={fr ? "Rechercher…" : "Chèche…"}
-                  className="flex-1 bg-transparent text-sm text-stone-900 placeholder-stone-400 outline-none dark:text-white"
+                  className="flex-1 bg-transparent text-sm text-on-surface placeholder-on-surface-variant/50 outline-none"
                 />
               </form>
             </div>
 
             <div className="p-4">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              <p className="mb-2 text-label-sm uppercase tracking-widest text-on-surface-variant/60">
                 {fr ? "Navigation" : "Navigasyon"}
               </p>
               {/* Home link */}
@@ -290,8 +292,8 @@ export function NavBar() {
                 className={[
                   "flex rounded-md px-3 py-2.5 text-sm font-semibold transition-colors",
                   pathname === "/"
-                    ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
-                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
+                    ? "bg-surface-container-high text-on-surface"
+                    : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface",
                 ].join(" ")}
               >
                 {fr ? "Accueil" : "Akèy"}
@@ -307,8 +309,8 @@ export function NavBar() {
                       className={[
                         "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                         active
-                          ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
-                          : "text-stone-600 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
+                          ? "bg-surface-container-high text-on-surface"
+                          : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface",
                       ].join(" ")}
                     >
                       {link.label[language]}
@@ -317,9 +319,9 @@ export function NavBar() {
                 })}
               </nav>
 
-              <div className="my-3 border-t border-stone-100 dark:border-stone-800" />
+              <div className="my-3" style={{ borderTop: '1px solid rgba(202,196,208,0.1)' }} />
 
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+              <p className="mb-2 text-label-sm uppercase tracking-widest text-on-surface-variant/60">
                 {fr ? "Plus" : "Plis"}
               </p>
               <nav className="flex flex-col">
@@ -333,8 +335,8 @@ export function NavBar() {
                       className={[
                         "rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         active
-                          ? "bg-stone-100 text-stone-900 dark:bg-stone-800 dark:text-white"
-                          : "text-stone-500 hover:bg-stone-50 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-900 dark:hover:text-white",
+                          ? "bg-surface-container-high text-on-surface"
+                          : "text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface",
                       ].join(" ")}
                     >
                       {link.label[language]}

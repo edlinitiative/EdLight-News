@@ -8,7 +8,6 @@
 
 import { useRouter } from "next/navigation";
 import type { ContentLanguage } from "@edlight-news/types";
-import { ArrowRight, Globe, MapPin } from "lucide-react";
 
 interface PathTile {
   code: string;
@@ -16,8 +15,6 @@ interface PathTile {
   params: Record<string, string>;
   label: { fr: string; ht: string };
   description: { fr: string; ht: string };
-  color: string;
-  darkColor: string;
 }
 
 const PATHS: PathTile[] = [
@@ -30,8 +27,6 @@ const PATHS: PathTile[] = [
       fr: "Aides d'entrée, exemptions et programmes fédéraux.",
       ht: "Èd pou antre, egzanpsyon ak pwogram federal.",
     },
-    color: "bg-red-50 border-red-200 hover:bg-red-100/80",
-    darkColor: "dark:bg-red-950/15 dark:border-red-800/30 dark:hover:bg-red-950/25",
   },
   {
     code: "FR",
@@ -42,8 +37,6 @@ const PATHS: PathTile[] = [
       fr: "Eiffel, Campus France et bourses universitaires.",
       ht: "Eiffel, Campus France ak bous inivèsite.",
     },
-    color: "bg-blue-50 border-blue-200 hover:bg-blue-100/80",
-    darkColor: "dark:bg-blue-950/15 dark:border-blue-800/30 dark:hover:bg-blue-950/25",
   },
   {
     code: "UK",
@@ -54,8 +47,6 @@ const PATHS: PathTile[] = [
       fr: "Chevening, GREAT et bourses de mérite.",
       ht: "Chevening, GREAT ak bous merite.",
     },
-    color: "bg-indigo-50 border-indigo-200 hover:bg-indigo-100/80",
-    darkColor: "dark:bg-indigo-950/15 dark:border-indigo-800/30 dark:hover:bg-indigo-950/25",
   },
   {
     code: "Global",
@@ -66,8 +57,6 @@ const PATHS: PathTile[] = [
       fr: "Bourses sans restriction géographique.",
       ht: "Bous san restriksyon jewografik.",
     },
-    color: "bg-emerald-50 border-emerald-200 hover:bg-emerald-100/80",
-    darkColor: "dark:bg-emerald-950/15 dark:border-emerald-800/30 dark:hover:bg-emerald-950/25",
   },
 ];
 
@@ -87,13 +76,10 @@ export function ParcoursTiles({ lang }: ParcoursTilesProps) {
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-emerald-500" />
-        <h2 className="text-sm font-bold uppercase tracking-widest text-stone-800 dark:text-stone-200">
-          {fr ? "Parcours" : "Pakou"}
-        </h2>
-      </div>
-      <p className="text-sm text-stone-500 dark:text-stone-400">
+      <h2 className="text-sm font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-stone-200">
+        {fr ? "Parcours" : "Pakou"}
+      </h2>
+      <p className="text-sm text-[#474948] dark:text-stone-400">
         {fr
           ? "Choisissez une destination pour filtrer automatiquement les bourses."
           : "Chwazi yon destinasyon pou filtre bous yo otomatikman."}
@@ -105,18 +91,18 @@ export function ParcoursTiles({ lang }: ParcoursTilesProps) {
             key={tile.code}
             type="button"
             onClick={() => navigate(tile.params)}
-            className={`group flex flex-col items-start rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${tile.color} ${tile.darkColor}`}
+            className="group flex flex-col items-start rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 bg-white dark:bg-stone-900/60 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(29,27,26,0.05)] hover:border-[#3525cd]/20"
           >
             <span className="text-2xl">{tile.flag}</span>
-            <h3 className="mt-2 text-sm font-semibold text-stone-900 dark:text-white">
+            <h3 className="mt-2 text-sm font-bold font-display text-[#1d1b1a] dark:text-white">
               {fr ? tile.label.fr : tile.label.ht}
             </h3>
-            <p className="mt-1 flex-1 text-xs text-stone-500 dark:text-stone-400">
+            <p className="mt-1 flex-1 text-xs text-[#474948] dark:text-stone-400">
               {fr ? tile.description.fr : tile.description.ht}
             </p>
-            <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-blue-600 transition-all group-hover:gap-2 dark:text-blue-400">
+            <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[#3525cd] transition-all group-hover:gap-2 dark:text-[#c3c0ff]">
               {fr ? "Explorer" : "Eksplore"}
-              <ArrowRight className="h-3 w-3" />
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </span>
           </button>
         ))}

@@ -28,11 +28,12 @@ export function EditorialCard({
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700"
+      className="group flex flex-col overflow-hidden rounded-lg bg-surface-container-lowest shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-ambient dark:bg-surface-container-low"
+      style={{ border: '1px solid rgba(202,196,208,0.12)' }}
     >
       {/* Image */}
       {hasImage && (
-        <div className="relative aspect-[16/10] overflow-hidden bg-stone-100 dark:bg-stone-800">
+        <div className="relative aspect-[16/10] overflow-hidden bg-surface-container dark:bg-surface-container">
           <ImageWithFallback
             src={article.imageUrl!}
             alt={article.title}
@@ -41,7 +42,7 @@ export function EditorialCard({
           {/* Category overlay at bottom-left */}
           {label && (
             <div className="absolute bottom-3 left-3">
-              <span className="rounded-lg bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-stone-700 shadow-sm backdrop-blur-sm dark:bg-stone-900/90 dark:text-stone-300">
+              <span className="rounded-full bg-surface/90 px-2.5 py-1 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant shadow-soft backdrop-blur-sm">
                 {label}
               </span>
             </div>
@@ -53,37 +54,37 @@ export function EditorialCard({
       <div className="flex flex-1 flex-col gap-2.5 p-5">
         {/* Category (when no image) */}
         {!hasImage && label && (
-          <span className="w-fit rounded-lg bg-stone-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-stone-500 dark:bg-stone-800 dark:text-stone-400">
+          <span className="w-fit rounded-full bg-surface-container-highest px-2.5 py-0.5 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">
             {label}
           </span>
         )}
 
         {/* Title */}
         <h3
-          className="text-lg font-bold leading-snug tracking-tight text-stone-900 line-clamp-2 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400"
-          style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+          className="text-title-md font-bold leading-snug tracking-tight text-on-surface line-clamp-2 group-hover:text-primary"
+          style={{ fontFamily: "var(--font-display, var(--font-sans))" }}
         >
           {article.title}
         </h3>
 
         {/* Summary */}
         {article.summary && (
-          <p className="text-sm leading-relaxed text-stone-500 line-clamp-2 dark:text-stone-400">
+          <p className="text-body-md leading-relaxed text-on-surface-variant line-clamp-2">
             {article.summary}
           </p>
         )}
 
         {/* Footer */}
         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-          <div className="flex items-center gap-2 text-[11px] text-stone-400 dark:text-stone-500">
+          <div className="flex items-center gap-2 text-label-sm text-on-surface-variant/60">
             {article.sourceName && (
-              <span className="font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              <span className="font-semibold uppercase tracking-wider text-on-surface-variant">
                 {article.sourceName}
               </span>
             )}
             {article.publishedAt && (
               <>
-                {article.sourceName && <span className="text-stone-300 dark:text-stone-600">·</span>}
+                {article.sourceName && <span className="text-outline-variant">·</span>}
                 <span>{formatRelativeDate(article.publishedAt, lang)}</span>
               </>
             )}

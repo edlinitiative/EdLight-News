@@ -381,7 +381,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
                 <button
                   type="button"
                   onClick={() => setShowFullCatalogue(true)}
-                  className="w-full mt-8 py-4 border-2 border-brand-600/10 dark:border-brand-400/10 rounded-xl text-brand-600 dark:text-brand-400 font-bold text-sm hover:bg-brand-600 hover:text-white dark:hover:bg-brand-500 dark:hover:text-white transition-all duration-300 inline-flex items-center justify-center gap-2"
+                  className="w-full mt-8 py-4 border-2 border-[#3525cd]/10 dark:border-[#c3c0ff]/10 rounded-xl text-[#3525cd] dark:text-[#c3c0ff] font-bold text-sm hover:bg-[#3525cd] hover:text-white dark:hover:bg-[#4f46e5] dark:hover:text-white transition-all duration-300 inline-flex items-center justify-center gap-2"
                 >
                   <Archive className="h-4 w-4" />
                   {fr
@@ -408,12 +408,12 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
           {/* Catalogue header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h3 className="font-serif text-xl font-bold text-stone-900 dark:text-white">
+              <h3 className="font-display text-xl font-bold tracking-tight text-[#1d1b1a] dark:text-white">
                 {fr ? "Catalogue complet" : "Katalòg konplè"}
               </h3>
-              <span className="text-xs tabular-nums text-stone-500 dark:text-stone-400">
-                <span className="font-bold text-stone-800 dark:text-white">{filtered.length}</span>
-                <span className="text-stone-300 dark:text-stone-600">/</span>
+              <span className="text-xs tabular-nums text-[#474948] dark:text-stone-400">
+                <span className="font-bold text-[#1d1b1a] dark:text-white">{filtered.length}</span>
+                <span className="text-[#c7c4d8] dark:text-stone-600">/</span>
                 {scholarships.length}
               </span>
             </div>
@@ -426,7 +426,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
 
           {/* Empty states */}
           {filtered.length === 0 && (
-            <div className="rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 py-14 text-center text-stone-400 dark:text-stone-500">
+            <div className="rounded-xl border-2 border-dashed border-[#c7c4d8]/20 dark:border-stone-700 bg-white dark:bg-stone-900 py-14 text-center text-[#474948] dark:text-stone-500">
               <p className="text-base font-medium">
                 {fr
                   ? scholarships.length === 0
@@ -441,7 +441,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
 
           {/* Card grid */}
           {filtered.length > 0 && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((s) => (
                 <ScholarshipCard
                   key={s.id}
@@ -459,7 +459,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
             <button
               type="button"
               onClick={() => setShowFullCatalogue(false)}
-              className="mx-auto mt-4 flex items-center gap-1 text-xs font-medium text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+              className="mx-auto mt-4 flex items-center gap-1 text-xs font-medium text-[#474948] hover:text-[#1d1b1a] dark:hover:text-stone-300 transition-colors"
             >
               <ChevronDown className="h-3.5 w-3.5 rotate-180" />
               {fr ? "Réduire" : "Redwi"}

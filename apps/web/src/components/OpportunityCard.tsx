@@ -32,14 +32,14 @@ import type { DeadlineStatus } from "@/lib/opportunityDeadline";
 
 /** Category → fallback gradient CSS for cards without images */
 const FALLBACK_GRADIENTS: Record<string, string> = {
-  scholarship: "from-blue-800 to-purple-700",
-  opportunity: "from-purple-700 to-blue-600",
-  news:        "from-teal-700 to-blue-800",
-  event:       "from-blue-700 to-indigo-700",
-  resource:    "from-green-700 to-cyan-700",
-  local_news:  "from-blue-700 to-blue-900",
+  scholarship: "from-[#3525cd] to-[#4f46e5]",
+  opportunity: "from-[#4f46e5] to-[#0051d5]",
+  news:        "from-[#0051d5] to-[#316bf3]",
+  event:       "from-[#3525cd] to-[#316bf3]",
+  resource:    "from-[#474948] to-[#1d1b1a]",
+  local_news:  "from-[#0051d5] to-[#3525cd]",
 };
-const DEFAULT_FALLBACK_GRADIENT = "from-stone-700 to-stone-900";
+const DEFAULT_FALLBACK_GRADIENT = "from-[#474948] to-[#1d1b1a]";
 
 export interface OpportunityCardProps {
   article: FeedItem;
@@ -79,12 +79,12 @@ export function OpportunityCard({
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "content-card group flex flex-col overflow-hidden",
+        "group flex flex-col overflow-hidden bg-white dark:bg-stone-900/80 rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 shadow-[0_20px_40px_rgba(29,27,26,0.05)] hover:shadow-[0_20px_40px_rgba(29,27,26,0.1)] hover:-translate-y-1 transition-all duration-300",
         isExpired ? "opacity-80" : "",
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
-      <div className="relative aspect-[5/2] w-full overflow-hidden bg-stone-100">
+      <div className="relative aspect-[5/2] w-full overflow-hidden bg-[#f9f2f0]">
         {hasImage ? (
           <ImageWithFallback
             src={article.imageUrl!}
@@ -120,16 +120,16 @@ export function OpportunityCard({
         )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-3">
+      <div className="relative flex flex-1 flex-col p-4">
         {/* Category badge — uses derived subcategory */}
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <span
-            className={`rounded px-2 py-0.5 text-xs font-medium ${subCatColor}`}
+            className="rounded-full bg-[#e8e1df] px-2.5 py-0.5 text-xs font-semibold text-[#464555]"
           >
             {subCatLabel}
           </span>
           {classification && classification.confidence !== "high" && (
-            <span className="rounded bg-stone-50 px-1.5 py-0.5 text-[10px] text-stone-400">
+            <span className="rounded-full bg-[#f9f2f0] px-1.5 py-0.5 text-[10px] text-[#474948]">
               {classification.confidence === "medium" ? "~" : "?"}
             </span>
           )}
@@ -138,12 +138,12 @@ export function OpportunityCard({
         {/* Chips row: Level · Region · Deadline */}
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           {level && (
-            <span className="inline-flex items-center gap-1 rounded bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#f9f2f0] px-2 py-0.5 text-[11px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-300">
               <GraduationCap className="h-3 w-3" />
               {levelLabel(level, lang)}
             </span>
           )}
-          <span className="inline-flex items-center gap-1 rounded bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-600 dark:bg-sky-900/30 dark:text-sky-300">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#f9f2f0] px-2 py-0.5 text-[11px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-300">
             {region === "haiti" ? (
               <MapPin className="h-3 w-3" />
             ) : (
@@ -158,7 +158,7 @@ export function OpportunityCard({
             );
             return (
               <span
-                className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium ${badgeStyle(dlSt.badgeVariant)}`}
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${badgeStyle(dlSt.badgeVariant)}`}
               >
                 <CalendarClock className="h-3 w-3" />
                 {dlSt.badgeLabel}
@@ -166,24 +166,24 @@ export function OpportunityCard({
             );
           })()}
           {!isExpired && !deadline.missing && deadline.iso && (
-            <span className="text-[10px] text-stone-400 dark:text-stone-500">
+            <span className="text-[10px] text-[#474948] dark:text-stone-500">
               {getDeadlineStatus(article.deadline ?? deadline.iso, lang).humanLine}
             </span>
           )}
         </div>
 
         {/* Title */}
-        <h2 className="mb-1 text-[15px] font-semibold leading-snug group-hover:text-blue-600 dark:text-stone-100 dark:group-hover:text-blue-400 sm:text-base">
+        <h2 className="mb-1 text-[15px] font-bold font-display leading-snug text-[#1d1b1a] group-hover:text-[#3525cd] dark:text-stone-100 dark:group-hover:text-[#c3c0ff] sm:text-base">
           {article.title}
         </h2>
 
         {/* Summary */}
-        <p className="mb-2 line-clamp-2 text-sm text-stone-500 dark:text-stone-400">
+        <p className="mb-2 line-clamp-2 text-sm text-[#474948] dark:text-stone-400">
           {article.summary || article.body?.slice(0, 150) || ""}
         </p>
 
         {/* Footer */}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+        <div className="mt-auto border-t border-[#f3ecea] border-dashed pt-3 flex flex-wrap items-center gap-1.5 text-xs text-[#474948] dark:text-stone-500">
           {article.sourceName && <span>{article.sourceName}</span>}
           {article.sourceName && article.publishedAt && <span>·</span>}
           {article.publishedAt && (

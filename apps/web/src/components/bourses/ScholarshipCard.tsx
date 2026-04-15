@@ -185,44 +185,44 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
   return (
     <article
       id={`scholarship-${s.id}`}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md dark:bg-stone-900 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-xl bg-white p-6 shadow-[0_20px_40px_rgba(29,27,26,0.05)] transition-transform hover:-translate-y-1 dark:bg-stone-900 ${
         isDirectory
-          ? "border-l-4 border-l-indigo-300 border-stone-200 dark:border-l-indigo-600 dark:border-stone-700"
-          : "border-stone-200 dark:border-stone-700"
+          ? "border-l-4 border-l-[#316bf3] border border-[#c7c4d8]/15 dark:border-l-indigo-500 dark:border-stone-700"
+          : "border border-[#c7c4d8]/15 dark:border-stone-700"
       }`}
     >
-      {/* ── Decorative country-themed background ── */}
-      <div
-        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${bg.gradient} ${bg.darkGradient}`}
-        aria-hidden="true"
-      />
-      <span
-        className="pointer-events-none absolute -right-4 -top-2 select-none text-[7rem] leading-none opacity-[0.07] dark:opacity-[0.05] transition-transform duration-300 group-hover:scale-110"
-        aria-hidden="true"
-      >
-        {bg.emoji}
-      </span>
-
-      {/* ── Top row: Title + Funding chip + Save ── */}
-      <div className="flex items-start gap-2">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-bold leading-snug text-stone-900 dark:text-white">
-            {s.name}
-          </h3>
+      {/* ── Top row: Country icon + Urgency badge ── */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="h-14 w-14 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center p-2">
+          <span className="text-3xl select-none" aria-hidden="true">
+            {bg.emoji}
+          </span>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          {funding && (
-            <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${funding.color}`}>
-              {fr ? funding.fr : funding.ht}
+        <div className="flex items-center gap-1.5">
+          {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
+            <span className="bg-[#ffdad6] text-[#93000a] text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+              {dlStatus.badgeLabel}
+            </span>
+          ) : dlStatus && dlStatus.badgeVariant === "soon" ? (
+            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase dark:bg-amber-900/30 dark:text-amber-300">
+              {dlStatus.badgeLabel}
+            </span>
+          ) : (
+            <span className="bg-[#e8e1df] text-[#464555] text-[10px] font-bold px-3 py-1 rounded-full uppercase italic dark:bg-stone-700 dark:text-stone-300">
+              {elig === "yes"
+                ? (fr ? "Éligible Haïti" : "Elijib Ayiti")
+                : isDirectory
+                  ? (fr ? "Répertoire" : "Repètwa")
+                  : (fr ? "Candidature ouverte" : "Kandidati ouvèt")}
             </span>
           )}
           <button
             type="button"
             onClick={() => onToggleSave(s.id)}
-            className={`rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+            className={`rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
               saved
-                ? "text-blue-600 dark:text-blue-400"
-                : "text-stone-300 hover:text-stone-500 dark:text-stone-600 dark:hover:text-stone-400"
+                ? "text-[#3525cd] dark:text-[#c3c0ff]"
+                : "text-[#c7c4d8] hover:text-[#464555] dark:text-stone-600 dark:hover:text-stone-400"
             }`}
             title={saved ? (fr ? "Retirer des suivis" : "Retire nan swivi yo") : (fr ? "Sauvegarder" : "Anrejistre")}
             aria-label={saved ? "Remove from saved" : "Save scholarship"}
@@ -232,76 +232,22 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
         </div>
       </div>
 
-      {/* ── Second row: Deadline + Country + Eligibility ── */}
-      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-        {cl && (
-          <span className="inline-flex items-center rounded-md border border-stone-200 bg-stone-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
-            {cl.code}
-          </span>
-        )}
+      {/* ── Title ── */}
+      <h3 className="text-xl font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display">
+        {s.name}
+      </h3>
 
-        {dlText && (
-          <span className="inline-flex items-center gap-1 text-xs text-stone-600 dark:text-stone-400">
-            <CalendarDays className="h-3 w-3 text-blue-500" />
-            {dlText}
-          </span>
-        )}
-
-        {dlStatus && (
-          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeStyle(dlStatus.badgeVariant)}`}>
-            {dlStatus.badgeLabel}
-          </span>
-        )}
-
-        {dlStatus && dlStatus.daysLeft !== null && (
-          <span className="text-[11px] text-stone-400 dark:text-stone-500">
-            {dlStatus.humanLine}
-          </span>
-        )}
-
-        {elig === "yes" && (
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700 dark:bg-green-900/20 dark:text-green-300">
-            <CheckCircle className="h-3 w-3" />
-            {fr ? "Haïti: Oui" : "Ayiti: Wi"}
-          </span>
-        )}
-        {elig === "unknown" && (
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-500 dark:bg-stone-800 dark:text-stone-400">
-            <HelpCircle className="h-3 w-3" />
-            {fr ? "Haïti: À vérifier" : "Ayiti: Pou verifye"}
-          </span>
-        )}
-
-        {isDirectory && (
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-300">
-            <FolderOpen className="h-3 w-3" />
-            {fr ? "Répertoire" : "Repètwa"}
-          </span>
-        )}
-      </div>
-
-      {/* ── Levels ── */}
-      {s.level.length > 0 && (
-        <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
-          <BookOpen className="mr-1 inline h-3 w-3" />
-          {s.level.map((l) => {
-            const lbl = LEVEL_LABELS[l];
-            return lbl ? (fr ? lbl.fr : lbl.ht) : l;
-          }).join(" · ")}
-        </p>
-      )}
-
-      {/* ── Summary (clamped) ── */}
+      {/* ── Summary ── */}
       {s.eligibilitySummary && (
         <div className="mt-3">
-          <p className={`text-sm leading-relaxed text-stone-600 dark:text-stone-300 ${!expanded ? "line-clamp-2" : ""}`}>
+          <p className={`text-sm leading-relaxed text-[#464555] dark:text-stone-300 ${!expanded ? "line-clamp-2" : ""}`}>
             {s.eligibilitySummary}
           </p>
           {s.eligibilitySummary.length > 120 && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="mt-1 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              className="mt-1 text-xs font-medium text-[#3525cd] hover:text-[#4f46e5] dark:text-[#c3c0ff] dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
             >
               {expanded ? (fr ? "Réduire" : "Redwi") : (fr ? "Lire plus" : "Li plis")}
             </button>
@@ -309,11 +255,11 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
         </div>
       )}
 
-      {/* ── Tags ── */}
+      {/* ── Tags (compact) ── */}
       {s.tags && s.tags.length > 0 && (
-        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           {visibleTags.map((tag) => (
-            <span key={tag} className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+            <span key={tag} className="rounded-full bg-[#e8e1df] px-2 py-0.5 text-[11px] font-semibold text-[#464555] dark:bg-stone-800 dark:text-stone-400">
               {tag}
             </span>
           ))}
@@ -321,7 +267,7 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
             <button
               type="button"
               onClick={() => setTagsExpanded(true)}
-              className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-medium text-stone-500 hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-400 dark:hover:bg-stone-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+              className="rounded-full bg-[#e8e1df] px-2 py-0.5 text-[11px] font-medium text-[#464555] hover:bg-[#c7c4d8] dark:bg-stone-700 dark:text-stone-400 dark:hover:bg-stone-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
             >
               +{hiddenTagCount}
             </button>
@@ -332,53 +278,47 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       {/* Spacer to push footer down */}
       <div className="flex-1" />
 
-      {/* ── Footer: CTAs ── */}
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3 dark:border-stone-800">
-        {isDirectory ? (
-          <a
-            href={s.officialUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-stone-800 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
-          >
-            <ExternalLink className="h-3 w-3" />
-            {fr ? "Voir détails" : "Wè detay"}
-          </a>
-        ) : (
-          <>
-            <a
-              href={s.officialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-stone-800 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
-            >
-              {fr ? "Voir détails" : "Wè detay"}
-            </a>
-            {s.howToApplyUrl && (
-              <a
-                href={s.howToApplyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
-              >
-                {fr ? "Postuler" : "Aplike"}
-              </a>
-            )}
-          </>
-        )}
+      {/* ── Footer: dashed border + value + CTA ── */}
+      <div className="mt-8 pt-6 border-t border-[#f3ecea] border-dashed dark:border-stone-800 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-col">
+          <span className="text-xs font-bold text-[#474948] dark:text-stone-400 uppercase tracking-wide">
+            {funding ? (fr ? funding.fr : funding.ht) : s.fundingType}
+            {dlText && ` · ${dlText}`}
+          </span>
+          {s.level.length > 0 && (
+            <span className="text-[10px] text-[#464555] dark:text-stone-500 mt-0.5">
+              {s.level.map((l) => {
+                const lbl = LEVEL_LABELS[l];
+                return lbl ? (fr ? lbl.fr : lbl.ht) : l;
+              }).join(" · ")}
+            </span>
+          )}
+        </div>
+        <a
+          href={s.officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-1 group/cta hover:underline"
+        >
+          {isDirectory
+            ? (fr ? "EXPLORER" : "EKSPLORE")
+            : s.howToApplyUrl
+              ? (fr ? "POSTULER" : "APLIKE")
+              : (fr ? "VOIR DÉTAILS" : "WÈ DETAY")}
+          <span className="material-symbols-outlined text-sm group-hover/cta:translate-x-1 transition-transform">arrow_forward</span>
+        </a>
       </div>
 
       {/* ── Collapsible: Source & verification ── */}
-      <details className="mt-2.5">
-        <summary className="cursor-pointer list-none text-[11px] font-medium text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300">
+      <details className="mt-3">
+        <summary className="cursor-pointer list-none text-[11px] font-medium text-[#c7c4d8] transition-colors hover:text-[#464555] dark:text-stone-500 dark:hover:text-stone-300">
           <span className="inline-flex items-center gap-1">
             <Paperclip className="h-3 w-3" />
             {fr ? "Source & vérification" : "Sous & verifikasyon"}
             <ChevronDown className="h-3 w-3" />
           </span>
         </summary>
-        <div className="mt-2 space-y-2 rounded-lg border border-stone-100 bg-stone-50/70 p-2.5 text-xs dark:border-stone-800 dark:bg-stone-800/40">
-          {/* Source links */}
+        <div className="mt-2 space-y-2 rounded-lg border border-[#c7c4d8]/15 bg-[#f9f2f0]/70 p-2.5 text-xs dark:border-stone-800 dark:bg-stone-800/40">
           {s.sources.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {s.sources.map((src, i) => (
@@ -387,7 +327,7 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
                   href={src.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded bg-white px-1.5 py-0.5 text-[10px] text-stone-500 hover:text-blue-700 hover:underline dark:bg-stone-900 dark:text-stone-400 dark:hover:text-blue-300"
+                  className="rounded bg-white px-1.5 py-0.5 text-[10px] text-[#464555] hover:text-[#3525cd] hover:underline dark:bg-stone-900 dark:text-stone-400 dark:hover:text-[#c3c0ff]"
                 >
                   {src.label}
                 </a>
@@ -399,13 +339,12 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
               href={s.deadline.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[10px] text-blue-600 hover:underline dark:text-blue-400"
+              className="text-[10px] text-[#3525cd] hover:underline dark:text-[#c3c0ff]"
             >
               {fr ? "Source deadline" : "Sous dat limit"}
             </a>
           )}
-          {/* Verified / Updated badges */}
-          <div className="flex flex-wrap items-center gap-2 text-[10px] text-stone-400 dark:text-stone-500">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-[#c7c4d8] dark:text-stone-500">
             {s.verifiedAtISO && (
               <span className="inline-flex items-center gap-0.5">
                 <CheckCircle className="h-2.5 w-2.5 text-emerald-500" />

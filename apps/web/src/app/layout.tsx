@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Source_Serif_4, Source_Sans_3 } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
@@ -12,13 +12,16 @@ import { BackToTop } from "@/components/BackToTop";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
 import { RouteLanguageSync } from "@/components/RouteLanguageSync";
 
-const serif = Source_Serif_4({
+/* ── Manrope — authoritative, geometric headlines ────────── */
+const display = Manrope({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-serif",
+  variable: "--font-display",
   display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const sans = Source_Sans_3({
+/* ── Inter — neutral, high-legibility body copy ──────────── */
+const sans = Inter({
   subsets: ["latin", "latin-ext"],
   variable: "--font-sans",
   display: "swap",
@@ -38,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning className={`${serif.variable} ${sans.variable}`}>
+    <html lang="fr" suppressHydrationWarning className={`${display.variable} ${sans.variable}`}>
       <head>
         <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
         <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossOrigin="anonymous" />
@@ -68,7 +71,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="flex min-h-screen flex-col">
+      <body className="flex min-h-screen flex-col bg-surface text-on-surface">
         <ThemeProvider>
           <LanguageProvider>
             <Suspense fallback={null}>

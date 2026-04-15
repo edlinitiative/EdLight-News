@@ -56,24 +56,24 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
     const el = document.getElementById(`scholarship-${id}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el.classList.add("ring-2", "ring-blue-400", "ring-offset-2");
-      setTimeout(() => el.classList.remove("ring-2", "ring-blue-400", "ring-offset-2"), 2000);
+      el.classList.add("ring-2", "ring-[#3525cd]", "ring-offset-2");
+      setTimeout(() => el.classList.remove("ring-2", "ring-[#3525cd]", "ring-offset-2"), 2000);
     }
   }
 
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-stone-800 dark:text-stone-200">
-          <Clock className="h-4 w-4 text-amber-500" />
+        <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-stone-200">
+          <Clock className="h-4 w-4 text-[#93000a]" />
           {fr ? "Deadline bientôt" : "Dat limit byento"}
         </h2>
-        <span className="text-xs text-stone-400 dark:text-stone-500">
+        <span className="text-xs text-[#474948] dark:text-stone-500">
           {upcoming.length} {fr ? "à venir" : "k ap vini"}
         </span>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-stone-200 dark:scrollbar-thumb-stone-700 snap-x snap-mandatory">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#c7c4d8]/30 dark:scrollbar-thumb-stone-700 snap-x snap-mandatory">
         {upcoming.map((s) => {
           const st = getDeadlineStatus(s.deadline!.dateISO!, lang);
           const shortDate = formatDeadlineDateShort(s.deadline!.dateISO!, lang);
@@ -84,16 +84,16 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
           return (
             <div
               key={s.id}
-              className={`group flex min-w-[220px] max-w-[260px] snap-start flex-col justify-between rounded-xl border p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-md ${
+              className={`group flex min-w-[220px] max-w-[260px] snap-start flex-col justify-between rounded-xl border p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(29,27,26,0.08)] ${
                 isCritical
-                  ? "border-red-200 bg-red-50/60 dark:border-red-800/40 dark:bg-red-950/20"
+                  ? "border-[#ffdad6] bg-[#ffdad6]/30 dark:border-red-800/40 dark:bg-red-950/20"
                   : isUrgent
                     ? "border-amber-200 bg-amber-50/50 dark:border-amber-800/40 dark:bg-amber-950/15"
-                    : "border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900/60"
+                    : "border-[#c7c4d8]/15 bg-white dark:border-stone-700 dark:bg-stone-900/60"
               }`}
             >
               <div>
-                <p className="line-clamp-2 text-sm font-semibold leading-snug text-stone-900 dark:text-white">
+                <p className="line-clamp-2 text-sm font-bold font-display leading-snug text-[#1d1b1a] dark:text-white">
                   {s.name}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -103,7 +103,7 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
                     </span>
                   )}
                   {shortDate && (
-                    <span className="text-xs text-stone-500 dark:text-stone-400">
+                    <span className="text-xs text-[#474948] dark:text-stone-400">
                       {shortDate}
                     </span>
                   )}
@@ -111,14 +111,14 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
                     {st.badgeLabel}
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] text-stone-400 dark:text-stone-500">
+                <p className="mt-1 text-[11px] text-[#474948] dark:text-stone-500">
                   {st.humanLine}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => scrollToCard(s.id)}
-                className="mt-3 inline-flex items-center gap-1 self-start text-xs font-semibold text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                className="mt-3 inline-flex items-center gap-1 self-start text-xs font-bold text-[#3525cd] transition-colors hover:text-[#4f46e5] dark:text-[#c3c0ff] dark:hover:text-white"
               >
                 {fr ? "Voir" : "Wè"}
                 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

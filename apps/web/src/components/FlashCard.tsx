@@ -16,14 +16,14 @@ export function FlashCard({ article, lang, badge, bgColor }: FlashCardProps) {
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex flex-col gap-4 overflow-hidden rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md sm:flex-row sm:items-center sm:gap-5",
-        bgColor ?? "bg-stone-50 dark:bg-stone-800/50",
-        "border-stone-200/60 dark:border-stone-700/60",
+        "group flex flex-col gap-4 overflow-hidden rounded-lg p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-ambient sm:flex-row sm:items-center sm:gap-5",
+        bgColor ?? "bg-surface-container-low",
       ].join(" ")}
+      style={{ border: '1px solid rgba(202,196,208,0.1)' }}
     >
       {/* Image */}
       {article.imageUrl && (
-        <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden rounded-xl bg-stone-200 dark:bg-stone-700 sm:aspect-square sm:w-32">
+        <div className="relative aspect-[3/2] w-full shrink-0 overflow-hidden rounded-lg bg-surface-container sm:aspect-square sm:w-32">
           <ImageWithFallback
             src={article.imageUrl}
             alt={article.title}
@@ -34,30 +34,30 @@ export function FlashCard({ article, lang, badge, bgColor }: FlashCardProps) {
 
       <div className="min-w-0 flex-1 space-y-2">
         {badge && (
-          <span className="inline-block rounded-lg bg-white/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-stone-600 shadow-sm ring-1 ring-stone-200/50 dark:bg-stone-800 dark:text-stone-400 dark:ring-stone-600/30">
+          <span className="inline-block rounded-full bg-surface-container-highest px-2.5 py-0.5 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">
             {badge}
           </span>
         )}
         <h3
-          className="text-lg font-bold leading-snug tracking-tight text-stone-900 line-clamp-3 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400"
-          style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+          className="text-title-md font-bold leading-snug tracking-tight text-on-surface line-clamp-3 group-hover:text-primary"
+          style={{ fontFamily: "var(--font-display, var(--font-sans))" }}
         >
           {article.title}
         </h3>
         {article.summary && (
-          <p className="text-sm leading-relaxed text-stone-500 line-clamp-2 dark:text-stone-400">
+          <p className="text-body-md leading-relaxed text-on-surface-variant line-clamp-2">
             {article.summary}
           </p>
         )}
-        <div className="flex items-center gap-2 text-[11px] text-stone-400 dark:text-stone-500">
+        <div className="flex items-center gap-2 text-label-sm text-on-surface-variant/60">
           {article.sourceName && (
-            <span className="font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+            <span className="font-semibold uppercase tracking-wider text-on-surface-variant">
               {article.sourceName}
             </span>
           )}
           {article.publishedAt && (
             <>
-              {article.sourceName && <span className="text-stone-300 dark:text-stone-600">·</span>}
+              {article.sourceName && <span className="text-outline-variant">·</span>}
               <span>{formatRelativeDate(article.publishedAt, lang)}</span>
             </>
           )}

@@ -50,9 +50,9 @@ export function AppSidebar() {
   const { language: lang } = useLanguage();
 
   return (
-    <aside className="hidden lg:flex flex-col fixed left-0 top-[53px] h-screen w-64 bg-white dark:bg-stone-950 border-r border-stone-200 dark:border-stone-800 z-40 overflow-y-auto">
+    <aside className="hidden lg:flex flex-col fixed left-0 top-[53px] h-screen w-64 bg-surface-container-lowest z-40 overflow-y-auto" style={{ borderRight: '1px solid rgba(202,196,208,0.1)' }}>
       <nav className="flex-1 px-3 pt-6">
-        <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500">Navigation</p>
+        <p className="mb-2 px-3 text-label-sm uppercase tracking-[0.15em] text-on-surface-variant/60">Navigation</p>
         <ul className="space-y-0.5">
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href, pathname);
@@ -61,10 +61,10 @@ export function AppSidebar() {
                 <Link
                   href={withLangParam(href, lang)}
                   className={
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 " +
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-body-md font-medium transition-all duration-200 " +
                     (active
-                      ? "border-l-2 border-l-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400"
-                      : "border-l-2 border-l-transparent text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white")
+                      ? "border-l-2 border-l-primary bg-primary/5 text-primary"
+                      : "border-l-2 border-l-transparent text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface")
                   }
                 >
                   <Icon className="h-4 w-4 shrink-0" />

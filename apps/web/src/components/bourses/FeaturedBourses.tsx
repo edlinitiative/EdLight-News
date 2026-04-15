@@ -93,131 +93,103 @@ export function FeaturedBourses({
 
   return (
     <section className="space-y-6">
-      <div className="flex justify-between items-baseline">
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white">
-          {fr ? "Bourses en vedette" : "Bous an vedèt"}
-        </h2>
-        <div className="flex gap-2">
+      <header className="flex justify-between items-end">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#0051d5] dark:text-[#b4c5ff]">{fr ? "Bourses vérifiées" : "Bous verifye"}</span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tighter text-[#1d1b1a] dark:text-white mt-2 font-display">
+            {fr ? "Bourses en vedette" : "Bous an vedèt"}
+          </h2>
+        </div>
+        <div className="hidden sm:flex gap-2">
           <button
             type="button"
-            className="w-9 h-9 rounded-full border border-stone-200 dark:border-stone-700 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-stone-500 dark:text-stone-400"
+            className="w-9 h-9 rounded-full border border-[#c7c4d8]/20 dark:border-stone-700 flex items-center justify-center hover:bg-[#f9f2f0] dark:hover:bg-stone-800 transition-colors text-[#464555] dark:text-stone-400"
             aria-label="Previous"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             type="button"
-            className="w-9 h-9 rounded-full border border-stone-200 dark:border-stone-700 flex items-center justify-center hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors text-stone-500 dark:text-stone-400"
+            className="w-9 h-9 rounded-full border border-[#c7c4d8]/20 dark:border-stone-700 flex items-center justify-center hover:bg-[#f9f2f0] dark:hover:bg-stone-800 transition-colors text-[#464555] dark:text-stone-400"
             aria-label="Next"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {featured.map((s) => {
           const cl = COUNTRY_LABELS[s.country];
           const flag = COUNTRY_ICONS[s.country] ?? "🌍";
-          const grad = COUNTRY_GRADIENTS[s.country] ?? COUNTRY_GRADIENTS.Global;
           const fundingLabel = FUNDING_LABELS[s.fundingType];
           const dlStatus = s.deadline?.dateISO ? getDeadlineStatus(s.deadline.dateISO, lang) : null;
           const shortDate = s.deadline?.dateISO ? formatDeadlineDateShort(s.deadline.dateISO, lang) : null;
           const saved = savedIds.has(s.id);
 
           return (
-            <article key={s.id} className="group">
-              {/* ── Decorative gradient header ── */}
-              <div className={`relative aspect-[16/10] overflow-hidden rounded-xl mb-5 bg-gradient-to-br ${grad} dark:opacity-80 flex items-center justify-center`}>
-                <span
-                  className="text-[8rem] leading-none opacity-20 select-none transition-transform duration-500 group-hover:scale-110"
-                  aria-hidden="true"
-                >
-                  {flag}
-                </span>
-
-                {/* Badge */}
-                <div className="absolute top-4 left-4">
-                  <span className="bg-brand-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    {s.fundingType === "full"
-                      ? (fr ? "Sélection premier" : "Premye seleksyon")
-                      : (fr ? "Recommandée" : "Rekòmande")}
-                  </span>
+            <article key={s.id} className="bg-white dark:bg-stone-900 rounded-xl p-6 shadow-[0_20px_40px_rgba(29,27,26,0.05)] flex flex-col group border border-[#c7c4d8]/15 dark:border-stone-700 transition-transform hover:-translate-y-1">
+              {/* ── Top row: logo area + urgency badge ── */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="h-14 w-14 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center p-2">
+                  <span className="text-3xl select-none" aria-hidden="true">{flag}</span>
                 </div>
-
-                {/* Bookmark */}
-                <button
-                  type="button"
-                  onClick={() => onToggleSave(s.id)}
-                  className={`absolute top-4 right-4 rounded-full p-2 transition-colors backdrop-blur-sm ${
-                    saved
-                      ? "bg-brand-600/20 text-brand-600 dark:text-brand-400"
-                      : "bg-white/40 dark:bg-stone-900/40 text-stone-500 hover:text-stone-700 dark:text-stone-400"
-                  }`}
-                  aria-label={saved ? "Remove from saved" : "Save scholarship"}
-                >
-                  <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
-                </button>
-              </div>
-
-              {/* ── Meta row ── */}
-              <div className="flex flex-wrap gap-3 mb-3">
-                <span className="text-[11px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest">
-                  {cl ? (fr ? cl.fr : cl.ht) : s.country}
-                </span>
-                {shortDate && (
-                  <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400 flex items-center gap-1">
-                    <CalendarDays className="h-3 w-3" />
-                    {fr ? "Deadline:" : "Dat limit:"} {shortDate}
-                  </span>
-                )}
-                {dlStatus && (
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${badgeStyle(dlStatus.badgeVariant)}`}>
-                    {dlStatus.badgeLabel}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
+                    <span className="bg-[#ffdad6] text-[#93000a] text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+                      {dlStatus.badgeLabel}
+                    </span>
+                  ) : (
+                    <span className="bg-[#e8e1df] text-[#464555] text-[10px] font-bold px-3 py-1 rounded-full uppercase italic dark:bg-stone-700 dark:text-stone-300">
+                      {s.fundingType === "full"
+                        ? (fr ? "Sélection premier" : "Premye seleksyon")
+                        : (fr ? "Candidature ouverte" : "Kandidati ouvèt")}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onToggleSave(s.id)}
+                    className={`rounded-lg p-1.5 transition-colors ${
+                      saved
+                        ? "text-[#3525cd] dark:text-[#c3c0ff]"
+                        : "text-[#c7c4d8] hover:text-[#464555] dark:text-stone-600 dark:hover:text-stone-400"
+                    }`}
+                    aria-label={saved ? "Remove from saved" : "Save scholarship"}
+                  >
+                    <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
+                  </button>
+                </div>
               </div>
 
               {/* ── Title ── */}
-              <h3 className="font-serif text-xl sm:text-2xl font-bold mb-3 text-stone-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors cursor-pointer leading-tight">
+              <h3 className="text-xl font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display">
                 {s.name}
               </h3>
 
               {/* ── Summary ── */}
               {s.eligibilitySummary && (
-                <p className="text-stone-500 dark:text-stone-400 leading-relaxed mb-5 font-light text-sm line-clamp-2">
+                <p className="text-[#464555] dark:text-stone-400 text-sm mt-3 leading-relaxed line-clamp-2">
                   {s.eligibilitySummary}
                 </p>
               )}
 
-              {/* ── Levels ── */}
-              {s.level.length > 0 && (
-                <p className="text-xs text-stone-400 dark:text-stone-500 mb-5">
-                  {s.level.map((l) => {
-                    const lbl = LEVEL_LABELS[l];
-                    return lbl ? (fr ? lbl.fr : lbl.ht) : l;
-                  }).join(" · ")}
-                </p>
-              )}
+              {/* Spacer */}
+              <div className="flex-1" />
 
-              {/* ── Footer ── */}
-              <div className="flex items-center justify-between border-t border-stone-200/60 dark:border-stone-700/40 pt-5">
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase text-stone-400 dark:text-stone-500 font-bold tracking-wider">
-                    {fr ? "Financement" : "Finansman"}
-                  </span>
-                  <span className="font-bold text-stone-900 dark:text-white text-sm">
-                    {fundingLabel ? (fr ? fundingLabel.fr : fundingLabel.ht) : s.fundingType}
-                  </span>
-                </div>
+              {/* ── Footer: dashed border + value + CTA ── */}
+              <div className="mt-8 pt-6 border-t border-[#f3ecea] border-dashed dark:border-stone-800 flex justify-between items-center">
+                <span className="text-xs font-bold text-[#474948] dark:text-stone-400 uppercase">
+                  {fundingLabel ? (fr ? fundingLabel.fr : fundingLabel.ht) : s.fundingType}
+                  {shortDate && ` · ${shortDate}`}
+                </span>
                 <a
                   href={s.officialUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand-600 dark:text-brand-400 font-bold text-sm hover:underline inline-flex items-center gap-1"
+                  className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-1 group/cta"
                 >
-                  {fr ? "Voir détails" : "Wè detay"}
-                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  {fr ? "VOIR DÉTAILS" : "WÈ DETAY"}
+                  <span className="material-symbols-outlined text-sm group-hover/cta:translate-x-1 transition-transform">arrow_forward</span>
                 </a>
               </div>
             </article>

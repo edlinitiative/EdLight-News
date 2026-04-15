@@ -109,17 +109,18 @@ export function ArticleCard({
       className={[
         "group flex overflow-hidden transition-all duration-300",
         isFeatured
-          ? "flex-col rounded-2xl border border-stone-200/80 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700 sm:flex-row"
+          ? "flex-col rounded-lg bg-surface-container-lowest shadow-card hover:-translate-y-1 hover:shadow-ambient sm:flex-row"
           : isCompact
-            ? "items-start gap-4 rounded-xl border border-stone-100/80 bg-white/80 px-4 py-3.5 hover:-translate-y-px hover:border-stone-200 hover:bg-white hover:shadow-sm dark:border-stone-800 dark:bg-stone-900/80 dark:hover:border-stone-700 dark:hover:bg-stone-800"
-            : "flex-col rounded-2xl border border-stone-200/80 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-md dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700",
+            ? "items-start gap-4 rounded-lg px-4 py-3.5 bg-surface-container-lowest hover:-translate-y-px hover:bg-surface-container-low hover:shadow-soft"
+            : "flex-col rounded-lg bg-surface-container-lowest shadow-card hover:-translate-y-0.5 hover:shadow-ambient",
       ].join(" ")}
+      style={{ border: '1px solid rgba(202,196,208,0.12)' }}
     >
       {/* Image */}
       {showImage && !isCompact && (
         <div
           className={[
-            "relative shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-800",
+            "relative shrink-0 overflow-hidden bg-surface-container",
             isFeatured
               ? "aspect-video sm:aspect-auto sm:w-80"
               : "aspect-[16/10]",
@@ -132,7 +133,7 @@ export function ArticleCard({
           />
           {isFeatured && derived.label && (
             <div className="absolute bottom-3 left-3">
-              <span className="rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm">
+              <span className="rounded-full bg-primary px-2.5 py-1 text-label-sm font-bold uppercase tracking-wider text-white shadow-soft">
                 {derived.label}
               </span>
             </div>
@@ -147,7 +148,7 @@ export function ArticleCard({
 
       {/* Compact image thumbnail */}
       {showImage && isCompact && (
-        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
+        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-container">
           <ImageWithFallback
             src={article.imageUrl!}
             alt={article.title}
@@ -185,10 +186,10 @@ export function ArticleCard({
         {/* Title */}
         <h3
           className={[
-            "font-semibold leading-snug tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
+            "font-semibold leading-snug tracking-tight text-on-surface transition-colors group-hover:text-primary",
             isFeatured ? "text-xl sm:text-2xl" : isCompact ? "text-sm line-clamp-2" : "text-base line-clamp-2",
           ].join(" ")}
-          style={isFeatured ? { fontFamily: "var(--font-serif, Georgia, serif)" } : undefined}
+          style={isFeatured ? { fontFamily: "var(--font-display, var(--font-sans))" } : undefined}
         >
           {article.title}
         </h3>
@@ -196,7 +197,7 @@ export function ArticleCard({
         {/* Summary */}
         {article.summary && !isCompact && (
           <p className={[
-            "text-sm leading-relaxed text-stone-500 dark:text-stone-400",
+            "text-body-md leading-relaxed text-on-surface-variant",
             isFeatured ? "line-clamp-3" : "line-clamp-2",
           ].join(" ")}>
             {article.summary}
@@ -204,19 +205,19 @@ export function ArticleCard({
         )}
 
         {/* Footer */}
-        <div className="mt-auto flex items-center gap-2 pt-1.5 text-[11px] text-stone-400 dark:text-stone-500">
+        <div className="mt-auto flex items-center gap-2 pt-1.5 text-label-sm text-on-surface-variant/60">
           {article.sourceName && (
-            <span className="font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+            <span className="font-semibold uppercase tracking-wider text-on-surface-variant">
               {article.sourceName}
             </span>
           )}
           {article.sourceName && article.publishedAt && (
-            <span className="text-stone-300 dark:text-stone-600">·</span>
+            <span className="text-outline-variant">·</span>
           )}
           {article.publishedAt && (
             <span>{formatRelativeDate(article.publishedAt, lang)}</span>
           )}
-          <span className="text-stone-300 dark:text-stone-600">·</span>
+          <span className="text-outline-variant">·</span>
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {readTime} min

@@ -117,12 +117,12 @@ export const CATEGORY_LABELS: Record<FeedCategory, { fr: string; ht: string }> =
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  local_news:  "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  local_news:  "bg-[#eef0ff] text-[#3525cd] dark:bg-[#3525cd]/10 dark:text-[#c4bcff]",
   scholarship: "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
-  opportunity: "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  opportunity: "bg-[#eef0ff] text-[#3525cd] dark:bg-[#3525cd]/10 dark:text-[#c4bcff]",
   event:       "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300",
   resource:    "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300",
-  news:        "bg-stone-50 text-stone-700 dark:bg-stone-700 dark:text-stone-300",
+  news:        "bg-[#f4eeeb] text-[#49454f] dark:bg-[#2c2928] dark:text-[#cac4c0]",
   bourses:     "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
   concours:    "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
   stages:      "bg-cyan-50 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",

@@ -86,20 +86,20 @@ export function Footer() {
   const l = (href: string) => withLangParam(href, lang);
 
   return (
-    <footer className="relative border-t border-stone-200 bg-stone-950 dark:border-stone-800">
+    <footer className="relative bg-[#141211]">
       {/* Decorative top gradient */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-silk" />
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
 
         {/* Masthead in footer */}
-        <div className="mb-12 border-b border-stone-800/60 pb-10">
+        <div className="mb-12 pb-10" style={{ borderBottom: '1px solid rgba(202,196,208,0.1)' }}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tracking-tight text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>EdLight</span>
-                <span className="ml-2 rounded-md bg-blue-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-blue-400">News</span>
+                <span className="text-xl font-extrabold tracking-tight text-[#e7e1de]" style={{ fontFamily: "var(--font-display, var(--font-sans))" }}>EdLight</span>
+                <span className="ml-2 rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#c4bcff]">News</span>
               </div>
-              <p className="mt-2 max-w-sm text-sm leading-relaxed text-stone-400">
+              <p className="mt-2 max-w-sm text-body-md leading-relaxed text-[#948f8c]">
                 {T.tagline[lang]}
               </p>
             </div>
@@ -109,7 +109,8 @@ export function Footer() {
                 href="https://www.instagram.com/edlightnews"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-stone-700 px-4 py-2 text-sm font-medium text-stone-300 transition-colors hover:border-stone-500 hover:text-white"
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-body-md font-medium text-[#cac4c0] transition-colors hover:text-[#e7e1de]"
+                style={{ border: '1px solid rgba(202,196,208,0.15)' }}
               >
                 <Instagram className="h-4 w-4" />
                 @edlightnews
@@ -119,7 +120,7 @@ export function Footer() {
                 href="https://edlight.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-stone-500 transition-colors hover:text-stone-300"
+                className="inline-flex items-center gap-1.5 text-label-sm text-[#78716c] transition-colors hover:text-[#cac4c0]"
               >
                 <ExternalLink className="h-3 w-3" />
                 {lang === "fr" ? "Site EdLight principal" : "Sit prensipal EdLight"}
@@ -131,22 +132,22 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* About */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <p className="max-w-xs text-sm leading-relaxed text-stone-400">
+            <p className="max-w-xs text-body-md leading-relaxed text-[#948f8c]">
               {T.about[lang]}
             </p>
           </div>
 
           {/* Coverage sections */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            <h3 className="text-label-sm font-bold uppercase tracking-[0.2em] text-[#948f8c]">
               {T.headingCoverage[lang]}
             </h3>
-            <nav className="mt-3 flex flex-col gap-2 text-sm">
+            <nav className="mt-3 flex flex-col gap-2 text-body-md">
               {T.coverageLinks[lang].map((link) => (
                 <Link
                   key={link.href}
                   href={l(link.href)}
-                  className="footer-link w-fit text-stone-400 transition-colors hover:text-stone-200"
+                  className="footer-link w-fit text-[#78716c] transition-colors hover:text-[#e7e1de]"
                 >
                   {link.label}
                 </Link>
@@ -156,15 +157,15 @@ export function Footer() {
 
           {/* Opportunities */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            <h3 className="text-label-sm font-bold uppercase tracking-[0.2em] text-[#948f8c]">
               {T.headingOpportunities[lang]}
             </h3>
-            <nav className="mt-3 flex flex-col gap-2 text-sm">
+            <nav className="mt-3 flex flex-col gap-2 text-body-md">
               {T.opportunityLinks[lang].map((link) => (
                 <Link
                   key={link.href}
                   href={l(link.href)}
-                  className="footer-link w-fit text-stone-400 transition-colors hover:text-stone-200"
+                  className="footer-link w-fit text-[#78716c] transition-colors hover:text-[#e7e1de]"
                 >
                   {link.label}
                 </Link>
@@ -174,15 +175,15 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            <h3 className="text-label-sm font-bold uppercase tracking-[0.2em] text-[#948f8c]">
               {T.headingCompany[lang]}
             </h3>
-            <nav className="mt-3 flex flex-col gap-2 text-sm">
+            <nav className="mt-3 flex flex-col gap-2 text-body-md">
               {T.companyLinks[lang].map((link) => (
                 <Link
                   key={link.href}
                   href={l(link.href)}
-                  className="footer-link w-fit text-stone-400 transition-colors hover:text-stone-200"
+                  className="footer-link w-fit text-[#78716c] transition-colors hover:text-[#e7e1de]"
                 >
                   {link.label}
                 </Link>
@@ -192,11 +193,11 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800/60 pt-8">
-          <p className="text-xs text-stone-500">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 pt-8" style={{ borderTop: '1px solid rgba(202,196,208,0.1)' }}>
+          <p className="text-label-sm text-[#78716c]">
             © {new Date().getFullYear()} EdLight Initiative
           </p>
-          <p className="text-xs text-stone-600">
+          <p className="text-label-sm text-[#49454f]">
             {T.disclaimer[lang]}
           </p>
         </div>

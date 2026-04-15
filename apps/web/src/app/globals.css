@@ -6,21 +6,50 @@
 
 @layer base {
   :root {
-    --surface: #ffffff;
-    --surface-raised: #fafaf9;
-    --surface-overlay: #ffffff;
-    --text-primary: #1c1917;
-    --text-secondary: #57534e;
-    --text-muted: #a8a29e;
-    --border: #e7e5e4;
-    --border-hover: #d6d3d1;
-    --accent: #2563eb;
-    --accent-warm: #ea580c;
-    --news-red: #dc2626;
-    --news-blue: #1d4ed8;
-    --radius-card: 1.125rem;
-    --radius-card-lg: 1.5rem;
-    --radius-chip: 0.625rem;
+    /* ── Lumina Editorial — Surface Palette (warm gallery-white) ── */
+    --ed-surface:                   #fff8f5;
+    --ed-surface-dim:               #ded8d6;
+    --ed-surface-bright:            #fff8f5;
+    --ed-surface-container-lowest:  #ffffff;
+    --ed-surface-container-low:     #faf3f0;
+    --ed-surface-container:         #f4eeeb;
+    --ed-surface-container-high:    #eee8e5;
+    --ed-surface-container-highest: #e9e3e0;
+
+    /* ── On-surface ink (never pure black) ───────────────── */
+    --on-surface:         #1d1b1a;
+    --on-surface-variant: #49454f;
+
+    /* ── Outline ─────────────────────────────────────────── */
+    --outline:         #79747e;
+    --outline-variant: #cac4d0;
+
+    /* ── Primary ─────────────────────────────────────────── */
+    --primary:            #3525cd;
+    --primary-container:  #4f46e5;
+    --on-primary:         #ffffff;
+
+    /* ── Secondary ───────────────────────────────────────── */
+    --secondary:           #0051d5;
+    --secondary-container: #316bf3;
+
+    /* ── Legacy aliases (kept for backward compat) ───────── */
+    --surface:        var(--ed-surface);
+    --surface-raised: var(--ed-surface-container-low);
+    --surface-overlay: var(--ed-surface-container-lowest);
+    --text-primary:   var(--on-surface);
+    --text-secondary: var(--on-surface-variant);
+    --text-muted:     #9a9490;
+    --border:         var(--outline-variant);
+    --border-hover:   var(--outline);
+    --accent:         var(--primary);
+    --accent-warm:    #ea580c;
+    --news-red:       #dc2626;
+    --news-blue:      var(--secondary);
+
+    --radius-card:    0.5rem;
+    --radius-card-lg: 0.75rem;
+    --radius-chip:    9999px;        /* pill-shaped per spec */
     --spacing-section: 5rem;
     --spacing-section-sm: 3rem;
     color-scheme: light;
@@ -28,124 +57,244 @@
 
   html {
     scroll-behavior: smooth;
-    /* Prevent momentum scroll-chaining on mobile (stops "fling to bottom") */
     overscroll-behavior-y: contain;
   }
 
-  /* Anchored sections get breathing room under sticky nav */
   [id] {
     scroll-margin-top: 4rem;
   }
 
   .dark {
-    --surface: #0c0a09;
-    --surface-raised: #1c1917;
-    --surface-overlay: #292524;
-    --text-primary: #fafaf9;
-    --text-secondary: #a8a29e;
-    --text-muted: #78716c;
-    --border: #292524;
-    --border-hover: #44403c;
-    --accent: #3b82f6;
-    --accent-warm: #f97316;
-    --news-red: #ef4444;
-    --news-blue: #3b82f6;
-    --radius-card: 1.125rem;
-    --radius-card-lg: 1.5rem;
-    --radius-chip: 0.625rem;
-    --spacing-section: 5rem;
-    --spacing-section-sm: 3rem;
+    --ed-surface:                   #141211;
+    --ed-surface-dim:               #141211;
+    --ed-surface-bright:            #3b3836;
+    --ed-surface-container-lowest:  #0e0d0c;
+    --ed-surface-container-low:     #1d1b1a;
+    --ed-surface-container:         #211f1e;
+    --ed-surface-container-high:    #2c2928;
+    --ed-surface-container-highest: #373432;
+
+    --on-surface:         #e7e1de;
+    --on-surface-variant: #cac4c0;
+
+    --outline:         #948f8c;
+    --outline-variant: #49454f;
+
+    --primary:            #c4bcff;
+    --primary-container:  #3525cd;
+    --on-primary:         #1a0e8a;
+
+    --secondary:           #aac7ff;
+    --secondary-container: #0051d5;
+
+    --surface:        var(--ed-surface);
+    --surface-raised: var(--ed-surface-container-low);
+    --surface-overlay: var(--ed-surface-container);
+    --text-primary:   var(--on-surface);
+    --text-secondary: var(--on-surface-variant);
+    --text-muted:     #78716c;
+    --border:         var(--outline-variant);
+    --border-hover:   var(--outline);
+    --accent:         var(--primary);
+    --accent-warm:    #f97316;
+    --news-red:       #ef4444;
+    --news-blue:      var(--secondary);
     color-scheme: dark;
   }
 
   body {
-    @apply bg-stone-50 text-stone-900 antialiased;
+    @apply bg-surface text-on-surface antialiased;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.6;
     transition: background-color 0.3s ease, color 0.2s ease;
   }
 
   .dark body,
   body.dark-body {
-    @apply bg-[#0c0a09] text-stone-100;
+    @apply bg-surface text-on-surface;
+  }
+
+  /* Headings get Manrope (display font) */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.015em;
+    color: var(--on-surface);
   }
 
   ::selection {
-    @apply bg-blue-600/20 text-blue-900;
+    background: rgba(53, 37, 205, 0.15);
+    color: #1d1b1a;
   }
 
   .dark ::selection {
-    @apply bg-blue-400/20 text-blue-100;
+    background: rgba(196, 188, 255, 0.2);
+    color: #e7e1de;
   }
 
   :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
-    @apply outline-none ring-2 ring-blue-500/30 ring-offset-2 ring-offset-stone-50;
+    @apply outline-none ring-2 ring-offset-2;
+    ring-color: rgba(53, 37, 205, 0.35);
+    ring-offset-color: var(--ed-surface);
   }
 
   .dark :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
-    @apply ring-blue-400/25 ring-offset-[#0c0a09];
+    ring-color: rgba(196, 188, 255, 0.3);
+    ring-offset-color: var(--ed-surface);
   }
 }
 
 @layer components {
-  /* ── Card ────────────────────────────────────────────────── */
+  /* ═══════════════════════════════════════════════════════════
+     LUMINA EDITORIAL — Component Layer
+     ═══════════════════════════════════════════════════════════ */
+
+  /* ── Card (tonal layering, no borders per spec) ─────────── */
   .card {
-    @apply rounded-[var(--radius-card)] border border-stone-200/80 bg-white shadow-premium transition-all duration-300;
+    @apply rounded-lg bg-surface-container-lowest shadow-card transition-all duration-300;
+    border: 1px solid rgba(202, 196, 208, 0.15); /* ghost border */
   }
   @media (hover: hover) {
     .card:hover {
-      @apply shadow-premium-hover -translate-y-0.5;
+      @apply shadow-ambient -translate-y-0.5;
     }
     .dark .card:hover {
-      @apply border-stone-600 shadow-premium-dark-hover;
+      @apply shadow-premium-dark-hover;
     }
   }
   .dark .card {
-    @apply border-stone-800 bg-stone-900 shadow-premium-dark;
+    @apply bg-surface-container-low shadow-premium-dark;
+    border-color: rgba(73, 69, 79, 0.15);
   }
 
-  /* ── Section container ──────────────────────────────────── */
+  /* ── Section container (tonal shift, no border) ─────────── */
   .section-shell {
-    @apply rounded-[var(--radius-card-lg)] border border-stone-200/60 bg-white p-6 sm:p-8;
+    @apply rounded-xl bg-surface-container-low p-6 sm:p-8;
   }
   .dark .section-shell {
-    @apply border-stone-800 bg-stone-900;
+    @apply bg-surface-container-low;
   }
 
-  /* ── Glass panel (now solid) ─────────────────────────────── */
+  /* ── Glass panel (Lumina glassmorphism) ──────────────────── */
   .glass-panel {
-    @apply rounded-lg border border-stone-200 bg-white p-4;
+    @apply rounded-lg p-4;
+    background: rgba(255, 248, 245, 0.80);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   .dark .glass-panel {
-    @apply border-stone-800 bg-stone-950;
+    background: rgba(20, 18, 17, 0.80);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
-  /* ── Premium section (legacy alias) ─────────────────────── */
+  /* ── Premium section ────────────────────────────────────── */
   .premium-section {
     @apply section-shell;
   }
 
-  /* ── Content card (legacy alias) ────────────────────────── */
+  /* ── Content card ───────────────────────────────────────── */
   .content-card {
     @apply card;
   }
 
-  /* ── Badge ──────────────────────────────────────────────── */
+  /* ── Badge (pill-shaped chips per spec) ──────────────────── */
   .badge {
-    @apply inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-colors;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-label-sm uppercase transition-colors;
+    background: var(--ed-surface-container-highest);
+    color: var(--on-surface-variant);
   }
 
   /* ── Pill button ────────────────────────────────────────── */
   .pill {
-    @apply rounded-[var(--radius-chip)] px-4 py-1.5 text-sm font-medium transition-all duration-200;
+    @apply rounded-full px-4 py-1.5 text-body-sm font-medium transition-all duration-200;
   }
   .pill-active {
-    @apply bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900;
+    @apply text-primary-on;
+    background: var(--primary);
   }
   .pill-inactive {
-    @apply bg-stone-100 text-stone-600 hover:bg-stone-200 hover:shadow-sm;
+    background: var(--ed-surface-container-high);
+    color: var(--on-surface-variant);
+  }
+  .pill-inactive:hover {
+    background: var(--ed-surface-container-highest);
+  }
+  .dark .pill-active {
+    background: var(--primary);
+    color: var(--on-primary);
   }
   .dark .pill-inactive {
-    @apply bg-stone-800 text-stone-300 hover:bg-stone-700;
+    background: var(--ed-surface-container-high);
+    color: var(--on-surface-variant);
+  }
+
+  /* ── Buttons (Lumina spec) ──────────────────────────────── */
+  .btn-primary {
+    @apply rounded-md px-5 py-2.5 text-body-md font-semibold transition-colors duration-200;
+    background: var(--primary);
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background: #2c1fb8;
+  }
+  .btn-secondary {
+    @apply rounded-md px-5 py-2.5 text-body-md font-semibold transition-colors duration-200;
+    background: var(--ed-surface-container-high);
+    color: var(--primary);
+  }
+  .btn-secondary:hover {
+    background: var(--ed-surface-container-highest);
+  }
+  .btn-tertiary {
+    @apply px-2 py-1 text-body-md font-medium transition-colors duration-200;
+    color: var(--primary);
+    background: transparent;
+    border: none;
+    text-decoration: none;
+  }
+  .btn-tertiary:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ── Input fields (stationery style per spec) ───────────── */
+  .input-editorial {
+    @apply w-full px-3 py-2.5 text-body-md transition-all duration-200;
+    background: var(--ed-surface-container-low);
+    color: var(--on-surface);
+    border: none;
+    border-bottom: 2px solid var(--outline-variant);
+    border-radius: 0.25rem 0.25rem 0 0;
+  }
+  .input-editorial:focus {
+    outline: none;
+    border-bottom-color: var(--primary);
+  }
+  .dark .input-editorial {
+    background: var(--ed-surface-container-low);
+    color: var(--on-surface);
+    border-bottom-color: var(--outline-variant);
+  }
+  .dark .input-editorial:focus {
+    border-bottom-color: var(--primary);
+  }
+
+  /* ── Lead Quote (editorial special) ─────────────────────── */
+  .lead-quote {
+    @apply relative pl-6 text-headline-sm;
+    color: var(--on-surface);
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  }
+  .lead-quote::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--secondary-container);
+    border-radius: 2px;
   }
 
   /* ── Tab bar scrollbar ──────────────────────────────────── */
@@ -171,34 +320,33 @@
   }
   .tab-fade-left::before {
     left: 0;
-    background: linear-gradient(to right, var(--surface, white), transparent);
+    background: linear-gradient(to right, var(--ed-surface, #fff8f5), transparent);
   }
   .tab-fade-right::after {
     right: 0;
-    background: linear-gradient(to left, var(--surface, white), transparent);
+    background: linear-gradient(to left, var(--ed-surface, #fff8f5), transparent);
   }
 
   /* ── Subtle grid pattern ────────────────────────────────── */
   .bg-grid-soft {
     background-image:
-      linear-gradient(to right, rgb(120 113 108 / 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(120 113 108 / 0.06) 1px, transparent 1px);
+      linear-gradient(to right, rgba(29, 27, 26, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(29, 27, 26, 0.04) 1px, transparent 1px);
     background-size: 32px 32px;
   }
-
   .dark .bg-grid-soft {
     background-image:
-      linear-gradient(to right, rgb(68 64 60 / 0.15) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(68 64 60 / 0.15) 1px, transparent 1px);
+      linear-gradient(to right, rgba(231, 225, 222, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(231, 225, 222, 0.06) 1px, transparent 1px);
   }
 
   /* ── Dot pattern ────────────────────────────────────────── */
   .bg-dots {
-    background-image: radial-gradient(circle, rgb(120 113 108 / 0.12) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(29, 27, 26, 0.08) 1px, transparent 1px);
     background-size: 20px 20px;
   }
   .dark .bg-dots {
-    background-image: radial-gradient(circle, rgb(68 64 60 / 0.2) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(231, 225, 222, 0.1) 1px, transparent 1px);
   }
   /* White-dot variant — for dark/navy hero backgrounds */
   .bg-dots-white {
@@ -206,21 +354,23 @@
     background-size: 22px 22px;
   }
 
-  /* ── Gradient text utility ──────────────────────────────── */
+  /* ── Gradient text utility (uses Lumina primary) ────────── */
   .text-gradient {
-    @apply text-blue-600 dark:text-blue-400;
+    @apply text-primary dark:text-[#c4bcff];
   }
 
   /* ═══════════════════════════════════════════════════════════
-     NEWS PLATFORM — editorial styles
+     LUMINA EDITORIAL — news platform styles
      ═══════════════════════════════════════════════════════════ */
 
   /* ── Breaking / live badge ──────────────────────────────── */
   .badge-breaking {
-    @apply inline-flex items-center gap-1.5 rounded-sm bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-label-sm uppercase tracking-wider text-white;
+    background: #dc2626;
   }
   .badge-live {
-    @apply inline-flex items-center gap-1.5 rounded-sm bg-red-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-label-sm uppercase tracking-wider text-white;
+    background: #dc2626;
   }
   .badge-live::before {
     content: "";
@@ -230,62 +380,77 @@
 
   /* ── Edition badge ──────────────────────────────────────── */
   .badge-edition {
-    @apply inline-flex items-center gap-1 rounded-sm border border-stone-300 bg-stone-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-stone-500;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-label-sm uppercase tracking-wider;
+    background: var(--ed-surface-container-high);
+    color: var(--on-surface-variant);
   }
   .dark .badge-edition {
-    @apply border-stone-700 bg-stone-800 text-stone-400;
+    background: var(--ed-surface-container-high);
+    color: var(--on-surface-variant);
   }
 
-  /* ── Section rule (newspaper-style divider) ─────────────── */
+  /* ── Section rule — soft tonal shift, NOT a hard line ────── */
   .section-rule {
-    @apply border-t-2 border-stone-900 dark:border-stone-100;
+    border-top: 2px solid var(--on-surface);
+  }
+  .dark .section-rule {
+    border-top-color: var(--on-surface);
   }
   .section-rule-light {
-    @apply border-t border-stone-200 dark:border-stone-800;
+    border-top: 1px solid rgba(202, 196, 208, 0.2);
+  }
+  .dark .section-rule-light {
+    border-top-color: rgba(73, 69, 79, 0.2);
   }
 
-  /* ── Newspaper column divider ───────────────────────────── */
+  /* ── Newspaper column divider (ghost border) ────────────── */
   .col-divider {
-    @apply border-r border-stone-200 dark:border-stone-800;
+    border-right: 1px solid rgba(202, 196, 208, 0.15);
+  }
+  .dark .col-divider {
+    border-right-color: rgba(73, 69, 79, 0.15);
   }
 
-  /* ── Headline styles ────────────────────────────────────── */
+  /* ── Headline styles (Manrope display font) ─────────────── */
   .headline-lead {
-    @apply text-3xl font-extrabold leading-[1.15] tracking-tight text-stone-900 dark:text-white sm:text-4xl lg:text-5xl;
-    font-family: var(--font-serif, Georgia, serif);
+    @apply text-display-lg tracking-tight;
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+    color: var(--on-surface);
   }
   .headline-section {
-    @apply text-2xl font-bold leading-tight tracking-tight text-stone-900 dark:text-white;
-    font-family: var(--font-serif, Georgia, serif);
+    @apply text-headline-lg tracking-tight;
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+    color: var(--on-surface);
   }
   .headline-card {
-    @apply text-base font-semibold leading-snug tracking-tight text-stone-900 dark:text-white;
+    @apply text-title-sm font-semibold leading-snug tracking-tight;
+    color: var(--on-surface);
   }
 
-  /* ── Source attribution (newspaper style) ───────────────── */
+  /* ── Source attribution ─────────────────────────────────── */
   .source-line {
-    @apply flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500;
+    @apply flex items-center gap-1.5 text-label-sm;
+    color: var(--on-surface-variant);
   }
   .source-line .source-name {
-    @apply font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400;
+    @apply font-semibold uppercase tracking-wide;
+    color: var(--on-surface-variant);
   }
   .source-line .source-dot {
-    @apply text-stone-300 dark:text-stone-600;
+    color: var(--outline-variant);
   }
 
-  /* ── Nav link underline animation ───────────────────────── */
+  /* ── Nav link underline animation (uses primary) ────────── */
   .nav-link {
     @apply relative;
   }
   .nav-link::after {
     content: "";
-    @apply absolute inset-x-0 -bottom-px h-[2px] origin-left scale-x-0 bg-blue-600 transition-transform duration-200;
+    @apply absolute inset-x-0 -bottom-px h-[2px] origin-left scale-x-0 transition-transform duration-200;
+    background: var(--primary);
   }
   .nav-link:hover::after {
     @apply scale-x-100;
-  }
-  .dark .nav-link::after {
-    @apply bg-blue-400;
   }
 
   /* ── News ticker ────────────────────────────────────────── */
@@ -298,17 +463,18 @@
 
   /* ── Featured article overlay ───────────────────────────── */
   .featured-overlay {
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+    background: linear-gradient(to top, rgba(29, 27, 26, 0.85) 0%, rgba(29, 27, 26, 0.4) 40%, transparent 100%);
   }
 
   /* ── Reading time pill ──────────────────────────────────── */
   .reading-time {
-    @apply inline-flex items-center gap-1 text-[11px] text-stone-400 dark:text-stone-500;
+    @apply inline-flex items-center gap-1 text-label-sm;
+    color: var(--on-surface-variant);
   }
 
-  /* ── Category stripe (colored top border on cards) ──────── */
+  /* ── Category stripe (colored top accents on cards) ─────── */
   .card-stripe-blue {
-    @apply border-t-2 border-t-blue-600;
+    border-top: 2px solid var(--primary);
   }
   .card-stripe-red {
     @apply border-t-2 border-t-red-600;
@@ -320,17 +486,27 @@
     @apply border-t-2 border-t-orange-500;
   }
 
-  /* ── Compact news item (for sidebar lists) ──────────────── */
+  /* ── Compact news item (tonal separation, no border) ────── */
   .news-item-compact {
-    @apply flex gap-3 border-b border-stone-100 py-3 last:border-0 dark:border-stone-800;
+    @apply flex gap-3 py-4 last:pb-0;
+    border-bottom: 1px solid rgba(202, 196, 208, 0.1);
+  }
+  .news-item-compact:last-child {
+    border-bottom: none;
   }
   .news-item-compact:hover h3 {
-    @apply text-blue-600 dark:text-blue-400;
+    color: var(--primary);
+  }
+  .dark .news-item-compact {
+    border-bottom-color: rgba(73, 69, 79, 0.1);
+  }
+  .dark .news-item-compact:hover h3 {
+    color: var(--primary);
   }
 
-  /* ── Masthead (large news brand header) ─────────────────── */
+  /* ── Masthead ───────────────────────────────────────────── */
   .masthead-rule {
-    @apply border-b-[3px] border-double border-stone-900 dark:border-stone-100;
+    border-bottom: 3px double var(--on-surface);
   }
 
   /* ── Smooth entrance for page content ────────────────────── */
@@ -338,7 +514,7 @@
     animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  /* ── Staggered children (loading skeletons, card grids) ──── */
+  /* ── Staggered children ─────────────────────────────────── */
   .stagger-children > * {
     opacity: 0;
     animation: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -352,44 +528,55 @@
 
   /* ── Footer link hover underline ─────────────────────────── */
   .footer-link {
-    @apply relative text-stone-400 transition-colors hover:text-white;
+    @apply relative transition-colors;
+    color: var(--on-surface-variant);
+  }
+  .footer-link:hover {
+    color: var(--on-surface);
   }
   .footer-link::after {
     content: "";
-    @apply absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 bg-stone-500 transition-transform duration-200;
+    @apply absolute inset-x-0 -bottom-px h-px origin-left scale-x-0 transition-transform duration-200;
+    background: var(--outline);
   }
   .footer-link:hover::after {
     @apply scale-x-100;
   }
 
-  /* ── Premium card variants ─────────────────────────────── */
+  /* ── Premium card variants (tonal layering) ─────────────── */
   .card-featured {
-    @apply rounded-[var(--radius-card-lg)] border border-stone-200/80 bg-white shadow-premium transition-all duration-300;
+    @apply rounded-xl bg-surface-container-lowest shadow-ambient transition-all duration-300;
+    border: 1px solid rgba(202, 196, 208, 0.12);
   }
   @media (hover: hover) {
     .card-featured:hover {
-      @apply shadow-float -translate-y-1;
+      @apply shadow-ambient-lg -translate-y-1;
     }
   }
   .dark .card-featured {
-    @apply border-stone-800 bg-stone-900 shadow-premium-dark;
+    @apply bg-surface-container-low shadow-premium-dark;
+    border-color: rgba(73, 69, 79, 0.12);
   }
 
   /* ── Compact list row ───────────────────────────────────── */
   .card-compact {
-    @apply flex items-start gap-4 rounded-xl border border-stone-100 bg-white/80 px-4 py-3.5 transition-all duration-200;
+    @apply flex items-start gap-4 rounded-lg px-4 py-3.5 transition-all duration-200;
+    background: var(--ed-surface-container-lowest);
+    border: 1px solid rgba(202, 196, 208, 0.1);
   }
   @media (hover: hover) {
     .card-compact:hover {
-      @apply border-stone-200 bg-white shadow-sm -translate-y-px;
+      @apply shadow-soft -translate-y-px;
+      background: var(--ed-surface-container-low);
     }
   }
   .dark .card-compact {
-    @apply border-stone-800 bg-stone-900/80;
+    background: var(--ed-surface-container-low);
+    border-color: rgba(73, 69, 79, 0.1);
   }
   @media (hover: hover) {
     .dark .card-compact:hover {
-      @apply border-stone-700 bg-stone-800;
+      background: var(--ed-surface-container);
     }
   }
 
@@ -404,39 +591,55 @@
     @apply border-l-[3px] border-l-emerald-500;
   }
 
-  /* ── Section separator ──────────────────────────────────── */
+  /* ── Section separator (tonal, not a hard line) ─────────── */
   .section-separator {
-    @apply my-16 border-t border-stone-200/60 dark:border-stone-800/60 sm:my-20;
+    @apply my-16 sm:my-20;
+    border-top: 1px solid rgba(202, 196, 208, 0.15);
+  }
+  .dark .section-separator {
+    border-top-color: rgba(73, 69, 79, 0.15);
   }
 
   /* ── Premium stat card ──────────────────────────────────── */
   .stat-card {
-    @apply flex flex-col items-center gap-1 rounded-2xl border border-stone-100 bg-white p-4 text-center shadow-sm dark:border-stone-800 dark:bg-stone-900;
+    @apply flex flex-col items-center gap-1 rounded-xl p-4 text-center;
+    background: var(--ed-surface-container-lowest);
+    border: 1px solid rgba(202, 196, 208, 0.1);
   }
   .stat-card .stat-value {
-    @apply text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white;
+    @apply text-headline-md tracking-tight;
+    color: var(--on-surface);
   }
   .stat-card .stat-label {
-    @apply text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500;
+    @apply text-label-sm uppercase tracking-wider;
+    color: var(--on-surface-variant);
+  }
+  .dark .stat-card {
+    background: var(--ed-surface-container-low);
+    border-color: rgba(73, 69, 79, 0.1);
   }
 
   /* ── Trust badge ────────────────────────────────────────── */
   .trust-badge {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-label-sm font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400;
   }
 
   /* ── Segmented control ──────────────────────────────────── */
   .segmented-control {
-    @apply inline-flex rounded-xl border border-stone-200 bg-stone-100 p-1 dark:border-stone-700 dark:bg-stone-800;
+    @apply inline-flex rounded-xl p-1;
+    background: var(--ed-surface-container-high);
   }
   .segmented-control button {
-    @apply rounded-lg px-4 py-2 text-sm font-medium text-stone-500 transition-all duration-200 dark:text-stone-400;
+    @apply rounded-lg px-4 py-2 text-body-sm font-medium transition-all duration-200;
+    color: var(--on-surface-variant);
   }
   .segmented-control button[data-active="true"] {
-    @apply bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-white;
+    @apply shadow-soft;
+    background: var(--ed-surface-container-lowest);
+    color: var(--on-surface);
   }
   .segmented-control button:not([data-active="true"]):hover {
-    @apply text-stone-700 dark:text-stone-300;
+    color: var(--on-surface);
   }
 
   /* ── Category stripe colors ─────────────────────────────── */
@@ -447,7 +650,7 @@
     @apply border-t-2 border-t-orange-500;
   }
   .card-stripe-universities {
-    @apply border-t-2 border-t-indigo-500;
+    border-top: 2px solid var(--primary-container);
   }
   .card-stripe-resources {
     @apply border-t-2 border-t-violet-500;
@@ -457,5 +660,18 @@
   }
   .card-stripe-history {
     @apply border-t-2 border-t-rose-800;
+  }
+
+  /* ── Silk gradient utility (signature brand texture) ────── */
+  .bg-editorial-silk {
+    background: linear-gradient(135deg, #3525cd, #4f46e5);
+  }
+
+  /* ── Silk gradient on text ──────────────────────────────── */
+  .text-editorial-silk {
+    background: linear-gradient(135deg, #3525cd, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
