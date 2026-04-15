@@ -484,8 +484,10 @@ export function shortenText(text: string, max: number): string {
 // Char budgets derived from renderer zone configs (templateLimits.ts).
 // Keep in sync with the per-formatter constants (histoire.ts, news.ts, etc.).
 
-/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~140 safe chars. */
-const DECK_LINE_BUDGET  = 140;
+/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~150 safe chars.
+ *  Actual pixel capacity: 900/(34×0.52) × 3 ≈ 153. With word-wrap loss the
+ *  safe working limit is ~150. */
+const DECK_LINE_BUDGET  = 150;
 /** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~110 safe chars. */
 const COVER_BODY_BUDGET = 110;
 /** Detail body bullets: 32 px Inter, 900 px, 4-line clamp → ~160 safe chars. */

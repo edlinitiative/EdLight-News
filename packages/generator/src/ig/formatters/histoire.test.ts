@@ -204,6 +204,86 @@ describe("buildHistoireCarousel", () => {
     }
   });
 
+  it("long first sentence is trimmed at a clause boundary, not mid-word with '…'", () => {
+    // Regression test: French historical sentences often exceed 150 chars.
+    // The deck line must never show an ugly "…" truncation — it should
+    // either complete the sentence, cut at a natural clause boundary
+    // (ending with "."), or fall back to the event heading.
+    const longSentence =
+      "Le 15 avril 1825, le roi Charles X de France publie l'ordonnance reconnaissant l'indépendance d'Haïti en échange d'une indemnité de 150 millions de francs-or, imposant un fardeau économique qui marquera le pays pour des décennies.";
+
+    const result = buildHistoireCarousel(
+      makeItem({
+        publishedAt: {
+          seconds: Date.parse("2026-04-15T12:00:00.000Z") / 1000,
+          nanoseconds: 0,
+        } as any,
+      }),
+      {
+        frTitle: "Repères du 15 avril",
+        frSummary: "L'ordonnance de Charles X et l'indemnité imposée à Haïti.",
+        frSections: [
+          {
+            heading: "L'ordonnance de Charles X (1825)",
+            content: longSentence,
+          },
+        ],
+      },
+    );
+
+    const coverBullet = result.slides[0]!.bullets[0]!;
+    // Must NOT contain the ellipsis character — that's the ugly truncation
+    assert.ok(
+      !coverBullet.includes("…"),
+      `Cover deck line must not contain "…" truncation: "${coverBullet}"`,
+    );
+    // Must be either a complete sentence (ending with .) or the heading title
+    assert.ok(
+      coverBullet.length > 10,
+      `Cover deck line must not be too short: "${coverBullet}"`,
+    );
+  });
+
+  it("clause-boundary trimming produces a clean fragment when possible", () => {
+    // When a clause boundary exists within the budget, it should be used
+    // (ending with "." for a polished read) instead of falling back to
+    // the event heading.
+    const sentenceWithMidClause =
+      "En 1802, les forces haïtiennes se retirent de la Crête-à-Pierrot après trois semaines de résistance acharnée, marquant un tournant décisif dans la guerre d'indépendance.";
+
+    const result = buildHistoireCarousel(
+      makeItem({
+        publishedAt: {
+          seconds: Date.parse("2026-04-15T12:00:00.000Z") / 1000,
+          nanoseconds: 0,
+        } as any,
+      }),
+      {
+        frTitle: "Repères du 15 avril",
+        frSummary: "Résistance héroïque à la Crête-à-Pierrot.",
+        frSections: [
+          {
+            heading: "Retrait de la Crête-à-Pierrot",
+            content: sentenceWithMidClause,
+          },
+        ],
+      },
+    );
+
+    const coverBullet = result.slides[0]!.bullets[0]!;
+    // Must not contain "…"
+    assert.ok(
+      !coverBullet.includes("…"),
+      `Cover deck line must not contain "…": "${coverBullet}"`,
+    );
+    // Should end with sentence punctuation (clause cut + ".")
+    assert.match(
+      coverBullet,
+      /[.!?»]$/,
+      `Cover deck line should end with sentence punctuation: "${coverBullet}"`,
+    );
+  });
+
   it("builds the caption lead from the full summary instead of a shortened cover bullet", () => {
     const result = buildHistoireCarousel(
       makeItem({

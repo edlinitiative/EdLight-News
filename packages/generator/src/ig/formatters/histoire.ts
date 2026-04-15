@@ -51,8 +51,10 @@ const MAX_BULLETS_PER_SLIDE = 2;
 const DETAIL_BULLET_CHARS = 160;
 /** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~110 safe chars. */
 const COVER_BULLET_CHARS = 110;
-/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~140 safe chars. */
-const DECK_LINE_CHARS = 140;
+/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~150 safe chars.
+ *  Actual pixel capacity: 900/(34×0.52) × 3 ≈ 153 chars. With word-wrap loss
+ *  the safe working limit is ~150. */
+const DECK_LINE_CHARS = 150;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
@@ -319,6 +321,75 @@ function deriveSlideHeading(sentence: string, slideIndex: number): string {
  *   3. Sentence-split, filter junk, take the best 5 sentences.
  *   4. Join and pass to narrativeToSlides() for consistent slide layout.
  */
+/**
+ * Build a polished deck line for the histoire cover slide.
+ *
+ * Strategy (in priority order):
+ *   1. If the first sentence fits within the char budget → use it as-is.
+ *   2. If too long → find a natural clause boundary (comma, semicolon,
+ *      em-dash, or relative pronoun) that produces a complete-sounding
+ *      thought and trim there, ending with a period.
+ *   3. If no good clause boundary → fall back to the event heading/title,
+ *      which the LLM is instructed to keep under ~120 chars.
+ *
+ * This avoids the ugly "…" truncation that shortenText produces when
+ * splitting a single long sentence mid-phrase.
+ */
+function buildDeckLine(
+  firstSentence: string | null | undefined,
+  eventTitle: string | null | undefined,
+  maxChars: number,
+): string {
+  // ── Try the full first sentence ──────────────────────────────────────
+  if (firstSentence && firstSentence.length <= maxChars) {
+    return firstSentence;
+  }
+
+  // ── Sentence is too long → find a clause boundary ────────────────────
+  if (firstSentence && firstSentence.length > maxChars) {
+    const window = firstSentence.slice(0, maxChars);
+
+    // Look for clause separators: comma, semicolon, em/en-dash, or
+    // relative pronoun boundaries (qui/que/dont/où preceded by space).
+    // Accept boundaries from 40% onwards so we don't produce a tiny stub.
+    const clauseRe = /[,;]\s|\s[—–]\s|\s(?:qui|que|dont|où)\s/g;
+    let bestCut = -1;
+    let m: RegExpExecArray | null;
+    while ((m = clauseRe.exec(window)) !== null) {
+      if (m.index >= maxChars * 0.40) bestCut = m.index;
+    }
+
+    if (bestCut > 0) {
+      // Trim trailing punctuation/space and end with a period for a clean read.
+      const fragment = firstSentence.slice(0, bestCut).replace(/[,;:\s]+$/, "").trim();
+      if (fragment.length >= 40) {
+        // Add a period only if the fragment doesn't already end with sentence punct.
+        const ending = /[.!?»]$/.test(fragment) ? "" : ".";
+        return fragment + ending;
+      }
+    }
+
+    // Allow slight overshoot (15%) if the sentence ends just past the budget.
+    // This mirrors shortenText's "second chance" logic.
+    const overshoot = firstSentence.slice(0, Math.floor(maxChars * 1.15));
+    const sentEndRe = /[.!?][)"'»]?(?:\s|$)/g;
+    let firstPast: number | null = null;
+    while ((m = sentEndRe.exec(overshoot)) !== null) {
+      const cutAt = m.index + m[0].trimEnd().length;
+      if (cutAt > maxChars && firstPast === null) {
+        firstPast = cutAt;
+        break;
+      }
+    }
+    if (firstPast !== null) return firstSentence.slice(0, firstPast).trim();
+  }
+
+  // ── Fall back to the event heading / title ───────────────────────────
+  if (eventTitle) return shortenText(eventTitle, maxChars);
+
+  return "";
+}
+
 /** Returns true when ≥3 content words (len > 4) from sentence appear in coverText. */
 function overlapsCoverBullet(sentence: string, coverText: string): boolean {
   const words = (t: string) =>
@@ -457,12 +528,11 @@ export function buildHistoireCarousel(
         ).find((s) => s.length >= 20 && !isJunkSentence(s) && !isSourceLine(s))
       : null;
 
-  // Deck line (first bullet → supportLine): the main event's first sentence
-  const deckLine = mainEventFirstSentence
-    ? shortenText(mainEventFirstSentence, DECK_LINE_CHARS)
-    : mainEventRawTitle
-      ? shortenText(mainEventRawTitle, DECK_LINE_CHARS)
-      : "";
+  // Deck line (first bullet → supportLine): the main event's first sentence.
+  // French historical sentences are often elaborate and exceed the char budget.
+  // Instead of letting shortenText produce an ugly mid-sentence "…" truncation,
+  // we try clause boundaries first, then fall back to the event heading.
+  const deckLine = buildDeckLine(mainEventFirstSentence, mainEventRawTitle, DECK_LINE_CHARS);
 
   const coverBullets = deckLine ? [deckLine] : [];
 
