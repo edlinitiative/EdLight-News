@@ -83,7 +83,7 @@ export function StructuredSections({
                     className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
                     fallback={
                       <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-200 to-stone-300 dark:from-stone-700 dark:to-stone-600">
-                        <span className="text-xs font-bold tracking-wide text-stone-400 dark:text-stone-500">
+                        <span className="text-xs font-bold tracking-wide text-stone-400 dark:text-stone-300">
                           ED<span className="text-stone-300 dark:text-stone-600">LIGHT</span>
                         </span>
                       </div>
@@ -91,17 +91,17 @@ export function StructuredSections({
                   />
                 </div>
                 {(section.imageCaption || section.imageCredit) && (
-                  <figcaption className="mt-1.5 text-xs text-stone-400 dark:text-stone-500">
+                  <figcaption className="mt-1.5 text-xs text-stone-400 dark:text-stone-300">
                     {section.imageCaption}
                     {section.imageCredit && (
-                      <span className="ml-1 text-stone-400/70">— {section.imageCredit}</span>
+                      <span className="ml-1 text-stone-400/70 dark:text-stone-400">— {section.imageCredit}</span>
                     )}
                   </figcaption>
                 )}
               </figure>
             )}
 
-            <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-relaxed">
+            <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-relaxed prose-p:text-stone-700 dark:prose-p:text-stone-200 prose-li:text-stone-700 dark:prose-li:text-stone-200">
               <ReactMarkdown>{mainContent}</ReactMarkdown>
             </div>
 
@@ -122,8 +122,8 @@ export function StructuredSections({
             )}
 
             {sourceLine && (
-              <div className="mt-3 flex items-start gap-2 text-sm text-stone-500 dark:text-stone-400">
-                <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-400 dark:text-stone-500" />
+              <div className="mt-3 flex items-start gap-2 text-sm text-stone-500 dark:text-stone-300">
+                <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-400 dark:text-stone-300" />
                 <div className="prose-sm prose dark:prose-invert prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline prose-a:decoration-blue-300 dark:prose-a:decoration-blue-700 prose-a:underline-offset-2">
                   <ReactMarkdown
                     components={{

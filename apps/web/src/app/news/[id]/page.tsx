@@ -972,7 +972,7 @@ export default async function ArticlePage({
         <article className="min-w-0 flex-1 animate-fade-in">
 
           {/* ── Breadcrumb ─────────────────────────────────────────────── */}
-          <nav aria-label="Fil d'Ariane" className="mb-8 flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+          <nav aria-label="Fil d'Ariane" className="mb-8 flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-300">
             <Link href={`/?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
               {currentLang === "fr" ? "Accueil" : "Akèy"}
             </Link>
@@ -989,7 +989,7 @@ export default async function ArticlePage({
             {catLabel && !isOpinion && (
               <>
                 <ChevronRight className="h-3 w-3 shrink-0" />
-                <span className="text-stone-500 dark:text-stone-400 font-medium">{catLabel}</span>
+                <span className="text-stone-500 dark:text-stone-300 font-medium">{catLabel}</span>
               </>
             )}
           </nav>
@@ -1096,17 +1096,17 @@ export default async function ArticlePage({
               </h1>
 
               {/* Meta row — date, language, reading time */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-stone-400 dark:text-stone-500">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-stone-400 dark:text-stone-300">
                 <span className="uppercase tracking-wide text-label-sm">
                   {article.language === "fr" ? "Français" : "Kreyòl Ayisyen"}
                 </span>
                 {(pubDate || createdDate) && (
                   <>
-                    <span className="text-stone-300 dark:text-stone-600">·</span>
+                    <span className="text-stone-300 dark:text-stone-500">·</span>
                     <time>{pubDate || createdDate}</time>
                   </>
                 )}
-                <span className="text-stone-300 dark:text-stone-600">·</span>
+                <span className="text-stone-300 dark:text-stone-500">·</span>
                 <span>{currentLang === "fr" ? `${readingTime} min de lecture` : `${readingTime} min li`}</span>
               </div>
 
@@ -1195,7 +1195,7 @@ export default async function ArticlePage({
             {article.sections && article.sections.length > 0 ? (
               <StructuredSections sections={stripStructuredSourceSections(article.sections)} isHistory={isHistory} />
             ) : (
-              <div className="prose prose-lg dark:prose-invert prose-headings:font-display prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-[1.8] prose-p:text-stone-700 dark:prose-p:text-stone-300 prose-li:text-stone-700 dark:prose-li:text-stone-300">
+              <div className="prose prose-lg dark:prose-invert prose-headings:font-display prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-[1.8] prose-p:text-stone-700 dark:prose-p:text-stone-200 prose-li:text-stone-700 dark:prose-li:text-stone-200">
                 <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
               </div>
             )}
@@ -1269,7 +1269,7 @@ export default async function ArticlePage({
 
             {/* Quality flags */}
             {(item?.qualityFlags?.weakSource || item?.qualityFlags?.missingDeadline) && (
-              <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+              <p className="text-xs text-stone-400 dark:text-stone-300 italic">
                 {item.qualityFlags.weakSource &&
                   (currentLang === "fr"
                     ? "Source relayée via un agrégateur"

@@ -44,7 +44,7 @@ export function MetaBadges({
     badges.push({
       icon: <Calendar className="h-3 w-3" />,
       label: `${fr ? "Publié" : "Pibliye"} ${formatDate(publishedAt, lang)}`,
-      style: "inline-flex items-center gap-1.5 rounded-full bg-stone-50 px-2.5 py-1 text-[11px] font-medium text-stone-600 ring-1 ring-inset ring-stone-200/60 dark:bg-stone-800 dark:text-stone-400 dark:ring-stone-700/30",
+      style: "inline-flex items-center gap-1.5 rounded-full bg-stone-50 px-2.5 py-1 text-[11px] font-medium text-stone-600 ring-1 ring-inset ring-stone-200/60 dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-700/30",
     });
   }
 

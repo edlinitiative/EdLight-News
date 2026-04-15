@@ -67,13 +67,13 @@ const config: Config = {
         },
         /* ── On-surface (ink-on-paper) ──────────────────── */
         "on-surface": {
-          DEFAULT: "#1d1b1a",
-          variant: "#49454f",
+          DEFAULT: "var(--on-surface)",
+          variant: "var(--on-surface-variant)",
         },
         /* ── Outline ────────────────────────────────────── */
         outline: {
-          DEFAULT: "#79747e",
-          variant: "#cac4d0",
+          DEFAULT: "var(--outline)",
+          variant: "var(--outline-variant)",
         },
         /* ── Legacy aliases (keeps existing category usage) */
         brand: {
