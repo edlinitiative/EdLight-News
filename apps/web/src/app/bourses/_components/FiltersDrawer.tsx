@@ -83,14 +83,14 @@ export function FiltersDrawer({
         ].join(" ")}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-3.5 dark:border-stone-700">
-          <h2 className="text-sm font-bold text-stone-800 dark:text-stone-200">
+        <div className="flex items-center justify-between border-b border-[#c7c4d8]/15 px-5 py-3.5 dark:border-stone-700">
+          <h2 className="text-sm font-bold text-[#1d1b1a] dark:text-stone-200">
             {fr ? "Filtres avancés" : "Filtè avanse"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 dark:hover:bg-stone-800 dark:hover:text-stone-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            className="rounded-full p-1 text-[#474948] hover:bg-[#f9f2f0] hover:text-[#1d1b1a] dark:hover:bg-stone-800 dark:hover:text-stone-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -100,7 +100,7 @@ export function FiltersDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
           {groups.map((group) => (
             <div key={group.paramKey}>
-              <span className="text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#474948] dark:text-stone-500">
                 {group.title}
               </span>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -109,10 +109,10 @@ export function FiltersDrawer({
                     key={opt.key}
                     type="button"
                     onClick={() => onFilterChange(group.paramKey, opt.key)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
                       group.activeValue === opt.key
-                        ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                        : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                        ? "bg-[#3525cd] text-white shadow-sm dark:bg-[#c3c0ff] dark:text-[#1d1b1a]"
+                        : "border border-[#c7c4d8]/20 bg-white text-[#464555] hover:bg-[#f9f2f0] dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
                     }`}
                   >
                     {opt.label}
@@ -124,14 +124,14 @@ export function FiltersDrawer({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-stone-200 px-5 py-3.5 dark:border-stone-700">
+        <div className="border-t border-[#c7c4d8]/15 px-5 py-3.5 dark:border-stone-700">
           <button
             type="button"
             onClick={() => {
               onReset();
               onClose();
             }}
-            className="w-full rounded-xl border border-stone-200 bg-white py-2 text-xs font-semibold text-stone-600 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            className="w-full rounded-full border border-[#c7c4d8]/20 bg-white py-2 text-xs font-semibold text-[#464555] transition-colors hover:bg-[#f9f2f0] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
           >
             {fr ? "Réinitialiser" : "Reyinisyalize"}
           </button>

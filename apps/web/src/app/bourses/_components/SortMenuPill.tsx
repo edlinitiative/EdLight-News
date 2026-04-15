@@ -34,7 +34,7 @@ export function SortMenuPill({ sortMode, onSort, fr }: SortMenuPillProps) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-2.5 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#c7c4d8]/20 bg-white px-2.5 text-xs font-semibold text-[#464555] transition-colors hover:bg-[#f9f2f0] dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
       >
         <ArrowUpDown className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">{fr ? "Trier" : "Triye"}</span>
@@ -43,7 +43,7 @@ export function SortMenuPill({ sortMode, onSort, fr }: SortMenuPillProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-1.5 min-w-[170px] rounded-xl border border-stone-200 bg-white p-1 shadow-lg dark:border-stone-700 dark:bg-stone-800">
+        <div className="absolute right-0 top-full z-30 mt-1.5 min-w-[170px] rounded-xl border border-[#c7c4d8]/15 bg-white p-1 shadow-[0_20px_40px_rgba(29,27,26,0.1)] dark:border-stone-700 dark:bg-stone-800">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -54,8 +54,8 @@ export function SortMenuPill({ sortMode, onSort, fr }: SortMenuPillProps) {
               }}
               className={`w-full rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${
                 sortMode === opt.value
-                  ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
-                  : "text-stone-600 hover:bg-stone-50 dark:text-stone-300 dark:hover:bg-stone-700"
+                  ? "bg-[#3525cd] text-white dark:bg-[#c3c0ff] dark:text-[#1d1b1a]"
+                  : "text-[#464555] hover:bg-[#f9f2f0] dark:text-stone-300 dark:hover:bg-stone-700"
               }`}
             >
               {fr ? opt.fr : opt.ht}
