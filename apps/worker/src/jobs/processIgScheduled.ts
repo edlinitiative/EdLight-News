@@ -33,6 +33,12 @@ const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire", "bre
  * URL, renderer crashes) from cycling in an infinite retry loop every tick.
  */
 const MAX_RENDER_RETRIES = 3;
+const HAITI_TIMEZONE = "America/Port-au-Prince";
+const ACTIVE_SCHEDULED_STATUSES = new Set<IGQueueItem["status"]>([
+  "scheduled",
+  "scheduled_ready_for_manual",
+  "rendering",
+]);
 
 export interface ProcessIgScheduledResult {
   processed: number;
@@ -42,6 +48,45 @@ export interface ProcessIgScheduledResult {
   /** Per-post story frames published alongside carousel posts */
   storiesPublished: number;
   storiesFailed: number;
+}
+
+function toHaitiDayKey(value?: string | Date): string | null {
+  if (!value) return null;
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: HAITI_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+function isLastScheduledPostOfDay(
+  current: IGQueueItem,
+  allScheduled: IGQueueItem[],
+): boolean {
+  if (!current.scheduledFor) return true;
+
+  const currentDayKey = toHaitiDayKey(current.scheduledFor);
+  const currentTime = new Date(current.scheduledFor).getTime();
+  if (!currentDayKey || Number.isNaN(currentTime)) return true;
+
+  for (const candidate of allScheduled) {
+    if (candidate.id === current.id) continue;
+    if (!ACTIVE_SCHEDULED_STATUSES.has(candidate.status)) continue;
+    if (!candidate.scheduledFor) continue;
+
+    const candidateDayKey = toHaitiDayKey(candidate.scheduledFor);
+    if (candidateDayKey !== currentDayKey) continue;
+
+    const candidateTime = new Date(candidate.scheduledFor).getTime();
+    if (!Number.isNaN(candidateTime) && candidateTime > currentTime) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function isItemImageUsableForIG(item: Awaited<ReturnType<typeof itemsRepo.getItem>>): boolean {
@@ -90,6 +135,7 @@ function stripUnsafeSlideBackgrounds(
 async function publishStoryForPost(
   item: IGQueueItem,
   sourceItem: Awaited<ReturnType<typeof itemsRepo.getItem>>,
+  appendCta: boolean,
 ): Promise<{ posted: boolean; error?: string }> {
   try {
     // Build a single-slide story payload based on post type
@@ -163,7 +209,9 @@ async function publishStoryForPost(
       createdAt: null as any,
       updatedAt: null as any,
     };
-    const storyAssets = await generateStoryAssets(fakeStoryQueueItem, storyPayload);
+    const storyAssets = await generateStoryAssets(fakeStoryQueueItem, storyPayload, {
+      appendCta,
+    });
 
     if (storyAssets.mode !== "rendered" || storyAssets.slidePaths.length === 0) {
       return { posted: false, error: "Story render dry-run (no Chromium or creds)" };
@@ -504,7 +552,8 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
           // ── Per-post Story: immediately publish a story frame for this post ──
           // Each post gets its own story — no waiting for other posts.
           // If it fails, the carousel is still posted and the next post tries too.
-          const storyResult = await publishStoryForPost(item, sourceItem);
+          const appendCta = isLastScheduledPostOfDay(item, scheduled);
+          const storyResult = await publishStoryForPost(item, sourceItem, appendCta);
           if (storyResult.posted) {
             result.storiesPublished++;
           } else if (storyResult.error !== "dry-run") {

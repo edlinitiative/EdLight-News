@@ -41,9 +41,10 @@ export async function generateMetadata({
 export default async function HaitiPage({
   searchParams,
 }: {
-  searchParams: { lang?: string };
+  searchParams: { lang?: string; count?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
+  const initialVisibleCount = Number.parseInt(searchParams.count ?? "", 10);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -87,7 +88,11 @@ export default async function HaitiPage({
         ]}
       />
 
-      <HaitiFeed articles={articles} lang={lang} />
+      <HaitiFeed
+        articles={articles}
+        lang={lang}
+        initialVisibleCount={Number.isFinite(initialVisibleCount) ? initialVisibleCount : undefined}
+      />
     </div>
   );
 }

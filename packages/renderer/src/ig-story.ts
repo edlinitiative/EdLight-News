@@ -811,6 +811,14 @@ export interface StoryAssetResult {
   exportDir: string;
 }
 
+export interface GenerateStoryAssetOptions {
+  /**
+   * Whether to append the branded CTA closing frame.
+   * Defaults to true.
+   */
+  appendCta?: boolean;
+}
+
 /**
  * Generate story assets for an IG story queue item.
  *
@@ -822,6 +830,7 @@ export interface StoryAssetResult {
 export async function generateStoryAssets(
   queueItem: IGStoryQueueItem,
   payload: IGStoryPayload,
+  options?: GenerateStoryAssetOptions,
 ): Promise<StoryAssetResult> {
   const exportDir = `/tmp/ig_stories/${queueItem.id}`;
   mkdirSync(exportDir, { recursive: true });
@@ -829,7 +838,8 @@ export async function generateStoryAssets(
   const slidePaths: string[] = [];
   let mode: "rendered" | "dry-run" = "dry-run";
 
-  const totalSlides = payload.slides.length;
+  const shouldAppendCta = options?.appendCta ?? true;
+  const totalSlides = payload.slides.length + (shouldAppendCta ? 1 : 0);
 
   // Determine dominant accent (from the first content slide, fallback to default)
   const dominantAccent =
@@ -889,6 +899,25 @@ export async function generateStoryAssets(
         slidePaths.push(pngPath);
       }
 
+      if (shouldAppendCta) {
+        const ctaSlide: IGStorySlide = {
+          heading: "",
+          bullets: [],
+          accent: dominantAccent,
+          frameType: "cta",
+        };
+        const ctaHtml = buildStorySlideHTML(
+          ctaSlide,
+          payload.dateLabel,
+          totalSlides - 1,
+          totalSlides,
+          true,
+        );
+        const ctaPath = join(exportDir, "story_cta.png");
+        await renderFrameToFile(browser, ctaHtml, ctaPath);
+        slidePaths.push(ctaPath);
+      }
+
       mode = "rendered";
     } finally {
       await browser.close();
@@ -907,6 +936,25 @@ export async function generateStoryAssets(
       const htmlPath = join(exportDir, `story_${i + 1}.html`);
       writeFileSync(htmlPath, html, "utf-8");
       slidePaths.push(htmlPath);
+    }
+
+    if (shouldAppendCta) {
+      const ctaSlide: IGStorySlide = {
+        heading: "",
+        bullets: [],
+        accent: dominantAccent,
+        frameType: "cta",
+      };
+      const ctaHtml = buildStorySlideHTML(
+        ctaSlide,
+        payload.dateLabel,
+        totalSlides - 1,
+        totalSlides,
+        true,
+      );
+      const ctaPath = join(exportDir, "story_cta.html");
+      writeFileSync(ctaPath, ctaHtml, "utf-8");
+      slidePaths.push(ctaPath);
     }
 
   }

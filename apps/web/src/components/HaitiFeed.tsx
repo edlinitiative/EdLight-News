@@ -17,12 +17,20 @@ const PAGE_SIZE = 18;
 export interface HaitiFeedProps {
   articles: FeedItem[];
   lang: ContentLanguage;
+  initialVisibleCount?: number;
 }
 
-export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
+export function HaitiFeed({
+  articles,
+  lang,
+  initialVisibleCount = PAGE_SIZE,
+}: HaitiFeedProps) {
   const [sort, setSort] = useState<SortMode>("latest");
   const [filter, setFilter] = useState<GeoFilter>("all");
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [visibleCount, setVisibleCount] = useState(() => {
+    if (!Number.isFinite(initialVisibleCount)) return PAGE_SIZE;
+    return Math.max(PAGE_SIZE, Math.floor(initialVisibleCount));
+  });
 
   const fr = lang === "fr";
   const studentFocusedCount = articles.filter((a) => isStudentFocused(a)).length;
@@ -56,6 +64,8 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
 
   const visible = sorted.slice(0, visibleCount);
   const hasMore = visibleCount < sorted.length;
+  const nextVisibleCount = Math.min(visibleCount + PAGE_SIZE, sorted.length);
+  const loadMoreHref = `/haiti?lang=${lang}&count=${nextVisibleCount}`;
 
   if (sorted.length === 0) {
     return (
@@ -170,8 +180,12 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
       {/* Load more button */}
       {hasMore && (
         <div className="flex justify-center pt-2">
-          <button
-            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+          <a
+            href={loadMoreHref}
+            onClick={(e) => {
+              e.preventDefault();
+              setVisibleCount((c) => c + PAGE_SIZE);
+            }}
             className="group flex items-center gap-2 rounded-md border border-stone-200 bg-white px-6 py-3 text-sm font-medium text-stone-600 shadow-sm transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
           >
             {fr ? "Voir plus d\u2019articles" : "Wè plis atik"}
@@ -179,7 +193,7 @@ export function HaitiFeed({ articles, lang }: HaitiFeedProps) {
             <span className="text-xs text-stone-400 dark:text-stone-500">
               ({sorted.length - visibleCount} {fr ? "restants" : "ki rete"})
             </span>
-          </button>
+          </a>
         </div>
       )}
     </div>
