@@ -196,6 +196,7 @@ function mergeGroup(
   // ── Pick best image ───────────────────────────────────────────────────────
   // Rank: publisher (real photo) > wikidata > branded > screenshot > none
   const IMAGE_RANK: Record<string, number> = {
+    gemini_ai: 5,
     publisher: 4,
     wikidata: 3,
     branded: 2,

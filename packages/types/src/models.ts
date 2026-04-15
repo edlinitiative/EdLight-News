@@ -66,7 +66,8 @@ export type ImageSource =
   | "wikidata"
   | "branded"
   | "screenshot"
-  | "commons";
+  | "commons"
+  | "gemini_ai";
 
 /** Metadata about the article image */
 export interface ImageMeta {

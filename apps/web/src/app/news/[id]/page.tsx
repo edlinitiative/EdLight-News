@@ -826,6 +826,7 @@ export default async function ArticlePage({
   // across all duplicates.  The detail page must do the same so the hero
   // matches what the user saw on the card.
   const IMAGE_RANK: Record<string, number> = {
+    gemini_ai: 5,
     publisher: 4,
     wikidata: 3,
     branded: 2,

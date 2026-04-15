@@ -844,7 +844,7 @@ async function publishContent(
     geoTag: "HT" as const,
     ...(heroImage.imageUrl ? {
       imageUrl: heroImage.imageUrl,
-      imageSource: heroImage.imageSource as "wikidata",
+      imageSource: heroImage.imageSource,
       imageConfidence: heroImage.imageConfidence ?? 0.7,
       ...(heroImage.imageAttribution ? { imageAttribution: heroImage.imageAttribution } : {}),
     } : {
