@@ -426,13 +426,16 @@ export function validatePayloadForPublishing(
   }
 
   // PRD §7: Heading must be a short label, not a prose sentence.
-  // Standard posts: ≤80 chars. Histoire posts: ≤150 chars (historical event
-  // titles are naturally longer, e.g. treaties, battles, independence acts.
-  // Previous limit of 120 caused most histoire posts to trigger shouldHold
-  // and get trapped in manual-review limbo until they expired — never posting).
+  // Standard posts: ≤110 chars. Histoire posts: ≤150 chars (historical event
+  // titles are naturally longer, e.g. treaties, battles, independence acts).
+  // Limit raised from 80→110: the carousel renderer already handles this range
+  // with dynamic font shrinking (56px for 81–120 chars on inner slides, 64px on
+  // cover slides with 8-line clamp ≈ 128 chars max). The previous 80-char gate
+  // caused most French news headlines (naturally 80–100 chars) to trigger
+  // shouldHold and expire unposted.
   const DATA_MISSING_SLIDE_RE =
     /\b(pas|non)\s+(disponible|détaillé|précisé|mentionné|indiqué|fourni|spécifié|inclus?|abordé)\b/i;
-  const headingMaxChars = igType === "histoire" ? 150 : 80;
+  const headingMaxChars = igType === "histoire" ? 150 : 110;
 
   for (let i = 0; i < normalizedPayload.slides.length; i++) {
     const slide = normalizedPayload.slides[i]!;
@@ -467,8 +470,11 @@ export function validatePayloadForPublishing(
       if (key.length < 10) continue;
       const seenOn = bulletIndex.get(key);
       if (seenOn !== undefined && seenOn !== i) {
+        // Downgraded from error→warning: duplicate bullets are cosmetic,
+        // not post-breaking. Blocking on this caused items to get held,
+        // re-scheduled, and eventually expire without ever posting.
         issues.push({
-          severity: "error",
+          severity: "warning",
           message: `Slides ${
             seenOn + 1
           } et ${
