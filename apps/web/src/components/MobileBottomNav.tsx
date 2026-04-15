@@ -49,7 +49,7 @@ export function MobileBottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-surface/85 backdrop-blur-xl px-2 pb-4 flex justify-around items-center h-16" style={{ borderTop: '1px solid rgba(202,196,208,0.12)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-surface/85 backdrop-blur-xl px-2 flex justify-around items-center" style={{ borderTop: '1px solid rgba(202,196,208,0.12)', minHeight: '4rem', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
       {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
         const active = isActive(href);
         return (

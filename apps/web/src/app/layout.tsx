@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
@@ -26,6 +26,10 @@ const sans = Inter({
   variable: "--font-sans",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "EdLight News",
@@ -100,7 +104,7 @@ export default function RootLayout({
             <AppSidebar />
 
             <div className="flex flex-1 flex-col lg:pl-64">
-              <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-8 sm:px-6 lg:pb-20 lg:px-8">
+              <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-8 sm:px-6 lg:px-8" style={{ paddingBottom: 'max(5rem, calc(4rem + env(safe-area-inset-bottom)))' }}>
                 {children}
               </main>
               <div className="lg:pl-0">

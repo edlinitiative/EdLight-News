@@ -422,7 +422,7 @@
 
   /* ── Headline styles (Manrope display font) ─────────────── */
   .headline-lead {
-    @apply text-display-lg tracking-tight;
+    @apply text-headline-lg sm:text-display-md lg:text-display-lg tracking-tight;
     font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
     color: var(--on-surface);
   }

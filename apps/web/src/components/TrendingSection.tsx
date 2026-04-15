@@ -24,7 +24,7 @@ export function TrendingSection({ articles, lang }: TrendingSectionProps) {
   return (
     <section>
       <div className="mb-6 flex items-center gap-4">
-        <h2 className="flex shrink-0 items-center gap-2 text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white">
+        <h2 className="flex shrink-0 items-center gap-2 text-xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-2xl">
           <TrendingUp className="h-5 w-5 text-rose-500" />
           {fr ? "Tendances" : "Tandans"}
         </h2>
@@ -38,7 +38,7 @@ export function TrendingSection({ articles, lang }: TrendingSectionProps) {
       </div>
 
       {/* Horizontal scroll on mobile, grid on desktop */}
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide sm:grid sm:grid-cols-2 md:grid-cols-4 sm:overflow-visible">
+      <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar sm:grid sm:grid-cols-2 md:grid-cols-4 sm:overflow-visible">
         {articles.map((article, i) => (
           <Link
             key={article.id}

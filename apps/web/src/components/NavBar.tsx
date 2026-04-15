@@ -261,7 +261,7 @@ export function NavBar() {
           />
           <div
             ref={mobilePanelRef}
-            className="absolute inset-y-0 right-0 top-14 w-72 overflow-y-auto bg-surface-container-lowest shadow-ambient dark:bg-surface-container-low"
+            className="absolute inset-y-0 right-0 top-16 w-72 overflow-y-auto bg-surface-container-lowest shadow-ambient dark:bg-surface-container-low"
             style={{ borderLeft: '1px solid rgba(202,196,208,0.12)' }}
             role="dialog"
             aria-modal="true"

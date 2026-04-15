@@ -84,7 +84,7 @@ export function OpportunityCard({
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
-      <div className="relative aspect-[5/2] w-full overflow-hidden bg-[#f9f2f0]">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#f9f2f0] sm:aspect-[5/2]">
         {hasImage ? (
           <ImageWithFallback
             src={article.imageUrl!}

@@ -511,7 +511,7 @@ export default async function AccueilPage({
                         className="group mb-4 flex items-start gap-4"
                       >
                         {topWorld.imageUrl && (
-                          <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
+                          <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800 sm:h-24 sm:w-32">
                             <ImageWithFallback
                               src={topWorld.imageUrl}
                               alt={topWorld.title}
@@ -609,7 +609,7 @@ export default async function AccueilPage({
                         className="group mb-4 flex items-start gap-4"
                       >
                         {topBusiness.imageUrl && (
-                          <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
+                          <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800 sm:h-24 sm:w-32">
                             <ImageWithFallback
                               src={topBusiness.imageUrl}
                               alt={topBusiness.title}
