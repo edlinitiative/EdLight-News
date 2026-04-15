@@ -13,6 +13,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
         display: ["var(--font-display)", ...defaultTheme.fontFamily.sans],
+        serif: ['Playfair Display', ...defaultTheme.fontFamily.serif],
       },
       fontSize: {
         /* Lumina Editorial type scale */
@@ -114,6 +115,10 @@ const config: Config = {
           DEFAULT: '#1d1b1a',
           light: '#49454f',
         },
+        burgundy: '#6f2438',
+        gold: '#9a7a2f',
+        paper: '#fcf6f0',
+        muted: '#464555',
       },
       boxShadow: {
         /* ── Lumina Editorial — Ambient Shadows ──────────── */
@@ -135,6 +140,7 @@ const config: Config = {
         'premium-hover': '0 10px 25px -5px rgba(29, 27, 26, 0.07), 0 8px 10px -6px rgba(29, 27, 26, 0.03)',
         'premium-dark': '0 1px 3px 0 rgb(0 0 0 / 0.2)',
         'premium-dark-hover': '0 10px 25px -5px rgb(0 0 0 / 0.4)',
+        editorial: '0 20px 50px rgba(29, 27, 26, 0.08)',
       },
       borderRadius: {
         'sm': '0.25rem',
@@ -144,6 +150,8 @@ const config: Config = {
         '2xl': '1rem',
         '3xl': '1.5rem',
         "4xl": "2rem",
+        xl2: '1.25rem',
+        xl3: '1.75rem',
       },
       spacing: {
         "section": "5rem",

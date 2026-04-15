@@ -1,11 +1,13 @@
 /**
- * /histoire — Aujourd'hui dans l'histoire d'Haïti
+ * /histoire — Éphéméride haïtienne
  *
- * Layout (server component):
- *   Header: title + subtitle
- *   HistoireClient: hero date block → sticky WeekStrip → tabs → list → explore
+ * Premium editorial archive page. Server component handles:
+ *   - Metadata generation (SEO, OpenGraph)
+ *   - Data fetching (almanac entries, holidays) with ISR
+ *   - Serialization for client boundary
  *
- * Data: existing fetchers only — no backend changes.
+ * The HistoirePageShell client component orchestrates all visual
+ * sections: hero, date nav, spotlight, related events, themes, footer.
  */
 
 import type { Metadata } from "next";
@@ -17,9 +19,8 @@ import {
   fetchAllHolidays,
   getHaitiMonthDay,
 } from "@/lib/datasets";
-import { HistoireClient } from "./_components/HistoireClient";
+import { HistoirePageShell } from "./_components/HistoirePageShell";
 import { serializeEntry, serializeHoliday } from "./_components/shared";
-import { PageHeroCompact } from "@/components/PageHeroCompact";
 
 // Content changes once per day (~07:10 Haiti time); 3600 s is sufficient
 export const revalidate = 3600;
@@ -67,39 +68,16 @@ export default async function HistoirePage({
   }
 
   return (
-    <div className="space-y-0 pb-14">
-      {/* ─── Hero ────────────────────────────────────────────────── */}
-      <PageHeroCompact
-        tint="rose"
-        eyebrow={fr ? "Éphéméride haïtienne" : "Efemerid ayisyèn"}
-        title={fr ? "Chaque jour porte une page de l\u2019histoire d\u2019Haïti." : "Chak jou gen yon paj nan istwa Ayiti."}
-        description={
-          fr
-            ? "Explorez les événements historiques, fêtes nationales et personnalités marquantes, jour par jour, mois par mois."
-            : "Eksplore evènman istorik, fèt nasyonal ak pèsonalite enpòtan yo, jou pa jou, mwa pa mwa."
-        }
-        stats={[
-          {
-            value: monthEntries.length > 0 ? String(monthEntries.length) : "—",
-            label: fr ? "ce mois" : "mwa sa",
-          },
-          {
-            value: allHolidays.length > 0 ? String(allHolidays.length) : "—",
-            label: fr ? "fêtes" : "fèt",
-          },
-        ]}
-      />
-
-      {/* ─── Interactive content ──────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
-        <HistoireClient
+    <div className="-mx-4 -mt-8 sm:-mx-6 lg:-mx-8">
+      <div className="mx-auto max-w-screen-2xl px-6 pb-0 md:px-8">
+        <HistoirePageShell
           todayMD={todayMD}
           monthEntries={monthEntries.map(serializeEntry)}
           allHolidays={allHolidays.map(serializeHoliday)}
           prefetchedMonth={todayMonth}
           lang={lang}
         />
-      </section>
+      </div>
     </div>
   );
 }

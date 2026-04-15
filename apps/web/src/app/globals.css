@@ -103,7 +103,10 @@
   }
 
   body {
-    @apply bg-surface text-on-surface antialiased;
+    background-color: var(--ed-surface);
+    color: #1d1b1a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
     line-height: 1.6;
@@ -112,7 +115,8 @@
 
   .dark body,
   body.dark-body {
-    @apply bg-surface text-on-surface;
+    background-color: var(--ed-surface);
+    color: #e6e0e9;
   }
 
   /* Headings get Manrope (display font) */
@@ -151,28 +155,33 @@
 
   /* ── Card (tonal layering, no borders per spec) ─────────── */
   .card {
-    @apply rounded-lg bg-surface-container-lowest shadow-card transition-all duration-300;
+    @apply rounded-lg transition-all duration-300;
+    background-color: var(--ed-surface-container-lowest);
+    box-shadow: 0 1px 3px 0 rgba(29, 27, 26, 0.03);
     border: 1px solid rgba(202, 196, 208, 0.15); /* ghost border */
   }
   @media (hover: hover) {
     .card:hover {
-      @apply shadow-ambient -translate-y-0.5;
+      @apply -translate-y-0.5;
+      box-shadow: 0 20px 40px rgba(29, 27, 26, 0.05);
     }
     .dark .card:hover {
-      @apply shadow-premium-dark-hover;
+      box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.4);
     }
   }
   .dark .card {
-    @apply bg-surface-container-low shadow-premium-dark;
+    background-color: var(--ed-surface-container-low);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2);
     border-color: rgba(73, 69, 79, 0.15);
   }
 
   /* ── Section container (tonal shift, no border) ─────────── */
   .section-shell {
-    @apply rounded-xl bg-surface-container-low p-6 sm:p-8;
+    @apply rounded-xl p-6 sm:p-8;
+    background-color: var(--ed-surface-container-low);
   }
   .dark .section-shell {
-    @apply bg-surface-container-low;
+    background-color: var(--ed-surface-container-low);
   }
 
   /* ── Glass panel (Lumina glassmorphism) ──────────────────── */
@@ -210,7 +219,7 @@
     @apply rounded-full px-4 py-1.5 text-body-sm font-medium transition-all duration-200;
   }
   .pill-active {
-    @apply text-primary-on;
+    color: #ffffff;
     background: var(--primary);
   }
   .pill-inactive {
@@ -356,7 +365,7 @@
 
   /* ── Gradient text utility (uses Lumina primary) ────────── */
   .text-gradient {
-    @apply text-primary dark:text-[#c4bcff];
+    color: var(--primary);
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -545,16 +554,20 @@
 
   /* ── Premium card variants (tonal layering) ─────────────── */
   .card-featured {
-    @apply rounded-xl bg-surface-container-lowest shadow-ambient transition-all duration-300;
+    @apply rounded-xl transition-all duration-300;
+    background-color: var(--ed-surface-container-lowest);
+    box-shadow: 0 20px 40px rgba(29, 27, 26, 0.05);
     border: 1px solid rgba(202, 196, 208, 0.12);
   }
   @media (hover: hover) {
     .card-featured:hover {
-      @apply shadow-ambient-lg -translate-y-1;
+      @apply -translate-y-1;
+      box-shadow: 0 28px 56px rgba(29, 27, 26, 0.07);
     }
   }
   .dark .card-featured {
-    @apply bg-surface-container-low shadow-premium-dark;
+    background-color: var(--ed-surface-container-low);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2);
     border-color: rgba(73, 69, 79, 0.12);
   }
 
@@ -673,5 +686,30 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* ── Hide scrollbar (cross-browser) ─────────────────────── */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* ── Paper grain texture overlay ────────────────────────── */
+  .paper-grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  /* ── Font serif variable ────────────────────────────────── */
+  .font-serif {
+    font-family: var(--font-serif, 'Playfair Display', Georgia, 'Times New Roman', serif);
   }
 }
