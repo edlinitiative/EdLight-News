@@ -93,11 +93,11 @@ export default async function ParcoursPage({
               className="section-shell p-0"
             >
               {/* Pathway header */}
-              <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 p-6 dark:from-blue-900/20 dark:to-indigo-900/20">
+              <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white p-7 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-stone-900">
                 <div className="flex items-center gap-3">
                   {cl?.flag && <CountryFlag code={cl.flag} size="lg" />}
                   <div>
-                    <h2 className="text-xl font-bold tracking-tight dark:text-white">
+                    <h2 className="text-2xl font-bold tracking-tight dark:text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>
                       {fr ? p.title_fr : (p.title_ht ?? p.title_fr)}
                     </h2>
                     <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">
@@ -111,16 +111,16 @@ export default async function ParcoursPage({
               {p.steps && p.steps.length > 0 && (
                 <div className="relative divide-y dark:divide-stone-700/80">
                   {/* Vertical connector line behind step numbers */}
-                  <div className="absolute left-[1.125rem] top-6 bottom-6 w-px bg-blue-100 dark:bg-blue-900/30 sm:left-[1.375rem]" />
+                  <div className="absolute left-[1.125rem] top-6 bottom-6 w-0.5 bg-gradient-to-b from-blue-200 via-blue-100 to-transparent dark:from-blue-800/40 dark:via-blue-900/20 dark:to-transparent sm:left-[1.375rem]" />
 
                   {p.steps.map((step, idx) => (
-                      <div key={idx} className="relative flex gap-4 p-4 sm:p-5">
+                      <div key={idx} className="relative flex gap-5 p-5 sm:p-6">
                         {/* Step number */}
-                        <div className="relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700 ring-4 ring-white dark:bg-blue-900/30 dark:text-blue-300 dark:ring-stone-900">
+                        <div className="relative mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-700 shadow-sm ring-4 ring-white dark:bg-blue-900/40 dark:text-blue-300 dark:ring-stone-900">
                           {idx + 1}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-semibold tracking-tight dark:text-white">
+                          <h3 className="text-base font-bold tracking-tight dark:text-white">
                             {fr ? step.title_fr : (step.title_ht ?? step.title_fr)}
                           </h3>
                           <p className="mt-1 text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
@@ -134,7 +134,7 @@ export default async function ParcoursPage({
 
               {/* Sources */}
               {p.sources && p.sources.length > 0 && (
-                <div className="border-t bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900">
+                <div className="border-t border-stone-100 bg-stone-50/80 p-5 dark:border-stone-800 dark:bg-stone-900/50">
                   <p className="text-xs font-medium text-stone-400 dark:text-stone-500 uppercase">
                     {fr ? "Sources" : "Sous"}
                   </p>

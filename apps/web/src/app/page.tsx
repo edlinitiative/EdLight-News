@@ -260,7 +260,7 @@ export default async function AccueilPage({
       {/* ══════════════════════════════════════════════════════════════════════
           2. LATEST NEWS WIRE — Editorial cards with grayscale→color hover
          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-stone-50/80 py-16 dark:bg-stone-900/30">
+      <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-gradient-to-b from-stone-50/80 to-white py-16 dark:from-stone-900/40 dark:to-stone-950 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow={fr ? "Fil d'actualité" : "Fil aktyalite"}
@@ -302,7 +302,7 @@ export default async function AccueilPage({
           3. TRENDING — Horizontal scroll / grid
          ══════════════════════════════════════════════════════════════════════ */}
       {trendingArticles.length > 0 && (
-        <section className="-mx-4 sm:-mx-6 lg:-mx-8 py-16">
+        <section className="-mx-4 sm:-mx-6 lg:-mx-8 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <TrendingSection articles={trendingArticles} lang={lang} />
           </div>
@@ -313,7 +313,7 @@ export default async function AccueilPage({
           4. OPPORTUNITIES & SCHOLARSHIPS — Bento-inspired layout
          ══════════════════════════════════════════════════════════════════════ */}
       {(featuredOpp !== null || moreOpps.length > 0 || closingScholarships.length > 0) && (
-        <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-indigo-50/40 py-16 dark:bg-indigo-950/10">
+        <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-gradient-to-b from-indigo-50/40 via-indigo-50/20 to-white py-16 dark:from-indigo-950/15 dark:via-indigo-950/5 dark:to-stone-950 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <SectionHeader
               eyebrow={fr ? "Bourses & Carrières" : "Bous & Karyè"}
@@ -453,7 +453,7 @@ export default async function AccueilPage({
              Left: Haiti + World  |  Right: Education + Business
          ══════════════════════════════════════════════════════════════════════ */}
       {(topHaiti !== null || topWorld !== null || topEdu !== null || topBusiness !== null) && (
-        <section className="-mx-4 sm:-mx-6 lg:-mx-8 py-20">
+        <section className="-mx-4 sm:-mx-6 lg:-mx-8 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-16 lg:grid-cols-2">
 
@@ -662,7 +662,7 @@ export default async function AccueilPage({
           6. EDITOR'S PICKS — Premium editorial cards on alternating bg
          ══════════════════════════════════════════════════════════════════════ */}
       {editorPicks.length > 0 && (
-        <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-stone-50/80 py-16 dark:bg-stone-900/30">
+        <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-gradient-to-b from-stone-50/80 to-white py-16 dark:from-stone-900/40 dark:to-stone-950 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <SectionHeader
               eyebrow={fr ? "Sélection éditoriale" : "Seleksyon editoryal"}
@@ -687,7 +687,7 @@ export default async function AccueilPage({
       {/* ══════════════════════════════════════════════════════════════════════
           7. STAY UPDATED — Newsletter + Instagram (premium dark band)
          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 border-t border-stone-200 bg-stone-900 py-16 dark:border-stone-700 dark:bg-stone-950">
+      <section className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden border-t border-stone-200 bg-stone-900 py-16 dark:border-stone-700 dark:bg-stone-950 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
 

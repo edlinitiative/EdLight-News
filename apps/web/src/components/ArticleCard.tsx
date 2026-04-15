@@ -107,58 +107,75 @@ export function ArticleCard({
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex overflow-hidden card",
-        isFeatured ? "flex-col sm:flex-row" : "flex-col",
+        "group flex overflow-hidden transition-all duration-300",
+        isFeatured
+          ? "flex-col rounded-2xl border border-stone-200/80 bg-white shadow-sm hover:-translate-y-1 hover:shadow-lg dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700 sm:flex-row"
+          : isCompact
+            ? "items-start gap-4 rounded-xl border border-stone-100/80 bg-white/80 px-4 py-3.5 hover:-translate-y-px hover:border-stone-200 hover:bg-white hover:shadow-sm dark:border-stone-800 dark:bg-stone-900/80 dark:hover:border-stone-700 dark:hover:bg-stone-800"
+            : "flex-col rounded-2xl border border-stone-200/80 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-md dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700",
       ].join(" ")}
     >
       {/* Image */}
-      {showImage && (
+      {showImage && !isCompact && (
         <div
           className={[
             "relative shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-800",
             isFeatured
               ? "aspect-video sm:aspect-auto sm:w-80"
-              : isCompact
-                ? "aspect-[2/1]"
-                : "aspect-video",
+              : "aspect-[16/10]",
           ].join(" ")}
         >
           <ImageWithFallback
             src={article.imageUrl!}
             alt={article.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
           />
-          {/* Category overlay on featured */}
           {isFeatured && derived.label && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
-              <span className="rounded-sm bg-blue-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
+            <div className="absolute bottom-3 left-3">
+              <span className="rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm">
                 {derived.label}
               </span>
             </div>
           )}
           {article.imageSource === "wikidata" && (
-            <span className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[11px] text-white/70">
+            <span className="absolute bottom-2 right-2 rounded-md bg-black/50 px-1.5 py-0.5 text-[10px] text-white/60 backdrop-blur-sm">
               Wikimedia
             </span>
           )}
         </div>
       )}
 
+      {/* Compact image thumbnail */}
+      {showImage && isCompact && (
+        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
+          <ImageWithFallback
+            src={article.imageUrl!}
+            alt={article.title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+          />
+        </div>
+      )}
+
       {/* Content */}
-      <div className={["flex flex-1 flex-col gap-1.5", isFeatured ? "p-5" : isCompact ? "p-3.5" : "p-4"].join(" ")}>
-        {/* Top row: category + deadline */}
+      <div className={[
+        "flex flex-1 flex-col",
+        isFeatured ? "gap-2.5 p-6" : isCompact ? "min-w-0 gap-1.5" : "gap-2 p-5",
+      ].join(" ")}>
+        {/* Badges row */}
         <div className="flex flex-wrap items-center gap-2">
           {!isFeatured && derived.label && (
-            <span className={`badge ${derived.color}`}>{derived.label}</span>
+            <span className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset ring-stone-200/50 dark:ring-stone-700/50 ${derived.color}`}>
+              {derived.label}
+            </span>
           )}
           {article.itemType === "synthesis" && (
-            <span className="badge bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-inset ring-emerald-200/50 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-800/30">
               {fr ? "Synthèse" : "Sentèz"}
               {article.sourceCount ? ` · ${article.sourceCount}` : ""}
             </span>
           )}
           {article.geoTag === "HT" && derived.label !== (fr ? "Haïti" : "Ayiti") && (
-            <span className="badge bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400">
+            <span className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700 ring-1 ring-inset ring-red-200/50 dark:bg-red-950/30 dark:text-red-400 dark:ring-red-800/30">
               {fr ? "Haïti" : "Ayiti"}
             </span>
           )}
@@ -171,41 +188,44 @@ export function ArticleCard({
             "font-semibold leading-snug tracking-tight text-stone-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400",
             isFeatured ? "text-xl sm:text-2xl" : isCompact ? "text-sm line-clamp-2" : "text-base line-clamp-2",
           ].join(" ")}
+          style={isFeatured ? { fontFamily: "var(--font-serif, Georgia, serif)" } : undefined}
         >
           {article.title}
         </h3>
 
         {/* Summary */}
-        {article.summary && (
+        {article.summary && !isCompact && (
           <p className={[
             "text-sm leading-relaxed text-stone-500 dark:text-stone-400",
-            isFeatured ? "line-clamp-3" : isCompact ? "line-clamp-1" : "line-clamp-2",
+            isFeatured ? "line-clamp-3" : "line-clamp-2",
           ].join(" ")}>
             {article.summary}
           </p>
         )}
 
-        {/* Footer — newspaper style source line */}
-        <div className="source-line mt-auto pt-1.5">
+        {/* Footer */}
+        <div className="mt-auto flex items-center gap-2 pt-1.5 text-[11px] text-stone-400 dark:text-stone-500">
           {article.sourceName && (
-            <span className="source-name">{article.sourceName}</span>
+            <span className="font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
+              {article.sourceName}
+            </span>
           )}
           {article.sourceName && article.publishedAt && (
-            <span className="source-dot">·</span>
+            <span className="text-stone-300 dark:text-stone-600">·</span>
           )}
           {article.publishedAt && (
             <span>{formatRelativeDate(article.publishedAt, lang)}</span>
           )}
-          {(article.sourceName || article.publishedAt) && (
-            <span className="source-dot">·</span>
-          )}
-          <span className="reading-time">
+          <span className="text-stone-300 dark:text-stone-600">·</span>
+          <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {readTime} min
           </span>
-          <span className="ml-auto">
-            <BookmarkButton articleId={article.id} lang={lang} />
-          </span>
+          {!isCompact && (
+            <span className="ml-auto">
+              <BookmarkButton articleId={article.id} lang={lang} />
+            </span>
+          )}
         </div>
       </div>
     </Link>

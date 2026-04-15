@@ -65,7 +65,7 @@ export default async function OpinionPage({
   return (
     <div className="space-y-8">
       <PageHero
-        variant="opinion"
+        variant="news"
         eyebrow={fr ? "Analyse & Perspectives" : "Analiz & Pèspektiv"}
         title={
           fr

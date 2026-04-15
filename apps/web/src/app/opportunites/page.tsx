@@ -95,7 +95,7 @@ export default async function OpportunitesPage({
   return (
     <div className="space-y-8">
       <PageHero
-        variant="opportunities"
+        variant="resources"
         eyebrow={fr ? "Concours, stages, programmes" : "Konkou, estaj, pwogram"}
         title={fr ? "Les opportunités à saisir cette saison." : "Okazyon pou pwofite sezon sa a."}
         description={

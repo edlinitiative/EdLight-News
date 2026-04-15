@@ -26,7 +26,7 @@ export function MetaBadges({
       label: variant === "full"
         ? `${fr ? "Vérifié" : "Verifye"} ${formatDate(verifiedAt, lang)}`
         : fr ? "Vérifié" : "Verifye",
-      style: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
+      style: "inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200/60 dark:bg-emerald-950/30 dark:text-emerald-400 dark:ring-emerald-800/30",
     });
   }
 
@@ -36,7 +36,7 @@ export function MetaBadges({
       label: variant === "full"
         ? `${fr ? "Mis à jour" : "Mizajou"} ${formatDate(updatedAt, lang)}`
         : fr ? "Mis à jour" : "Mizajou",
-      style: "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
+      style: "inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700 ring-1 ring-inset ring-blue-200/60 dark:bg-blue-950/30 dark:text-blue-400 dark:ring-blue-800/30",
     });
   }
 
@@ -44,7 +44,7 @@ export function MetaBadges({
     badges.push({
       icon: <Calendar className="h-3 w-3" />,
       label: `${fr ? "Publié" : "Pibliye"} ${formatDate(publishedAt, lang)}`,
-      style: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+      style: "inline-flex items-center gap-1.5 rounded-full bg-stone-50 px-2.5 py-1 text-[11px] font-medium text-stone-600 ring-1 ring-inset ring-stone-200/60 dark:bg-stone-800 dark:text-stone-400 dark:ring-stone-700/30",
     });
   }
 
@@ -53,7 +53,7 @@ export function MetaBadges({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {badges.map((b, i) => (
-        <span key={i} className={`badge ${b.style}`}>
+        <span key={i} className={`trust-badge ${b.style}`}>
           {b.icon}
           {b.label}
         </span>

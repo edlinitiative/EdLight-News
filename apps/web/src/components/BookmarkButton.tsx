@@ -54,16 +54,17 @@ export function BookmarkButton({
         type="button"
         onClick={handleToggle}
         className={[
-          "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
           saved
-            ? "bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:hover:bg-amber-900/40"
-            : "bg-stone-100 text-stone-500 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700",
+            ? "group inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600 transition-all duration-200 hover:border-blue-300 hover:bg-blue-100 active:scale-95 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:border-blue-700 dark:hover:bg-blue-900/40"
+            : "group inline-flex items-center gap-1.5 rounded-full border border-stone-200/80 px-3 py-1.5 text-xs font-medium text-stone-500 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95 dark:border-stone-700 dark:text-stone-400 dark:hover:border-blue-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400",
         ].join(" ")}
         aria-label={label}
         title={label}
       >
         <Bookmark
-          className={`h-3.5 w-3.5 ${saved ? "fill-amber-500 text-amber-500" : ""}`}
+          className={saved
+            ? "h-3.5 w-3.5 fill-blue-600 text-blue-600 transition-all duration-300 dark:fill-blue-400 dark:text-blue-400"
+            : "h-3.5 w-3.5 text-stone-400 transition-all duration-300 group-hover:text-blue-600 dark:text-stone-500 dark:group-hover:text-blue-400"}
         />
         {saved ? (fr ? "Sauvegardé" : "Sove") : (fr ? "Sauvegarder" : "Sove")}
       </button>
@@ -75,17 +76,14 @@ export function BookmarkButton({
     <button
       type="button"
       onClick={handleToggle}
-      className={[
-        "inline-flex h-7 w-7 items-center justify-center rounded-full transition-colors",
-        saved
-          ? "text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30"
-          : "text-stone-300 hover:bg-stone-100 hover:text-stone-500 dark:text-stone-600 dark:hover:bg-stone-800 dark:hover:text-stone-400",
-      ].join(" ")}
+      className="group rounded-full p-1.5 transition-all duration-200 hover:bg-stone-100 active:scale-90 dark:hover:bg-stone-800"
       aria-label={label}
       title={label}
     >
       <Bookmark
-        className={`h-4 w-4 ${saved ? "fill-amber-500" : ""}`}
+        className={saved
+          ? "h-4 w-4 fill-blue-600 text-blue-600 transition-all duration-300 dark:fill-blue-400 dark:text-blue-400"
+          : "h-4 w-4 text-stone-400 transition-all duration-300 group-hover:text-stone-600 dark:text-stone-500 dark:group-hover:text-stone-300"}
       />
     </button>
   );

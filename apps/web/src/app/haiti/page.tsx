@@ -81,7 +81,7 @@ export default async function HaitiPage({
   return (
     <div className="space-y-7">
       <PageHero
-        variant="haiti"
+        variant="news"
         eyebrow={fr ? "Edition locale" : "Edisyon lokal"}
         title={fr ? "L'actualité étudiante vue depuis Haïti." : "Aktyalite etidyan an dirèk depi Ayiti."}
         description={

@@ -100,9 +100,17 @@ export default async function SuccesPage({
           defaultSort="relevance"
         />
       ) : (
-        <div className="section-shell border-2 border-dashed py-24 text-center text-stone-400 dark:text-stone-500">
-          <p className="text-lg font-medium">
+        <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-dashed border-stone-200 py-20 text-center dark:border-stone-700">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/30">
+            <Award className="h-8 w-8 text-emerald-400" />
+          </div>
+          <p className="text-lg font-medium text-stone-400 dark:text-stone-500">
             {fr ? "Aucun profil publié récemment." : "Pa gen pwofil pibliye dènyèman."}
+          </p>
+          <p className="max-w-sm text-sm text-stone-400 dark:text-stone-500">
+            {fr
+              ? "Les histoires de succès arrivent bientôt. Restez connecté."
+              : "Istwa siksè yo ap vini byento. Rete konekte."}
           </p>
         </div>
       )}

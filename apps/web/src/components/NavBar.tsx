@@ -127,9 +127,9 @@ export function NavBar() {
     <>
       {/* ── Search overlay ────────────────────────────────────────── */}
       {searchOpen && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 pt-20 px-4" onClick={() => setSearchOpen(false)}>
+        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/40 backdrop-blur-sm pt-20 px-4" onClick={() => setSearchOpen(false)}>
           <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
-            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white shadow-2xl dark:border-stone-700 dark:bg-stone-900 p-3">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 rounded-2xl border border-stone-200/80 bg-white shadow-2xl ring-1 ring-black/5 dark:border-stone-700 dark:bg-stone-900 dark:ring-white/5 p-4">
               <Search className="h-5 w-5 shrink-0 text-stone-400" />
               <input
                 ref={searchInputRef}
@@ -162,15 +162,15 @@ export function NavBar() {
       {/* ── Single sticky header ──────────────────────────────────── */}
       <header
         ref={navRef}
-        className="sticky top-0 z-50 border-b border-stone-200/70 bg-white/80 backdrop-blur-md dark:border-stone-800/60 dark:bg-stone-950/85"
+        className="sticky top-0 z-50 border-b border-stone-200/50 bg-white/85 backdrop-blur-xl shadow-[0_1px_0_0_rgb(0,0,0,0.03)] dark:border-stone-800/40 dark:bg-stone-950/90 dark:shadow-none"
       >
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-5 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6 lg:px-8">
           {/* Brand — Home link */}
           <Link href={l("/")} className="flex shrink-0 items-baseline gap-0 mr-1">
-            <span className="text-[17px] font-black tracking-tight text-stone-900 dark:text-white">
+            <span className="text-lg font-black tracking-tight text-stone-900 dark:text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>
               EdLight
             </span>
-            <span className="ml-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400">
+            <span className="ml-1.5 rounded-md bg-blue-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
               News
             </span>
           </Link>
@@ -186,15 +186,15 @@ export function NavBar() {
                     key={link.href}
                     href={l(link.href)}
                     className={[
-                      "relative whitespace-nowrap px-3 py-1.5 text-[13px] font-semibold transition-colors",
+                      "relative whitespace-nowrap px-3 py-2 text-[13px] font-semibold transition-all duration-200",
                       active
                         ? "text-stone-900 dark:text-white"
-                        : "text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white",
+                        : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200",
                     ].join(" ")}
                   >
                     {link.label[language]}
                     {active && (
-                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-blue-500" />
+                      <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-400" />
                     )}
                   </Link>
                 );

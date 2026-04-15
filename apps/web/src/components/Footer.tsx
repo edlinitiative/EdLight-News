@@ -86,16 +86,18 @@ export function Footer() {
   const l = (href: string) => withLangParam(href, lang);
 
   return (
-    <footer className="border-t-2 border-stone-300 bg-stone-950 dark:border-stone-700 dark:bg-stone-950">
+    <footer className="relative border-t border-stone-200 bg-stone-950 dark:border-stone-800">
+      {/* Decorative top gradient */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
 
         {/* Masthead in footer */}
-        <div className="mb-10 border-b border-stone-800 pb-8">
+        <div className="mb-12 border-b border-stone-800/60 pb-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tracking-tight text-white">EdLight</span>
-                <span className="ml-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-400">News</span>
+                <span className="text-xl font-extrabold tracking-tight text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>EdLight</span>
+                <span className="ml-2 rounded-md bg-blue-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-blue-400">News</span>
               </div>
               <p className="mt-2 max-w-sm text-sm leading-relaxed text-stone-400">
                 {T.tagline[lang]}
@@ -136,7 +138,7 @@ export function Footer() {
 
           {/* Coverage sections */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
               {T.headingCoverage[lang]}
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
@@ -154,7 +156,7 @@ export function Footer() {
 
           {/* Opportunities */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
               {T.headingOpportunities[lang]}
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
@@ -172,7 +174,7 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-stone-500">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-stone-400">
               {T.headingCompany[lang]}
             </h3>
             <nav className="mt-3 flex flex-col gap-2 text-sm">
@@ -190,7 +192,7 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800 pt-6">
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-stone-800/60 pt-8">
           <p className="text-xs text-stone-500">
             © {new Date().getFullYear()} EdLight Initiative
           </p>

@@ -2,234 +2,196 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 type HeroVariant =
-  | "home"
   | "news"
-  | "haiti"
-  | "resources"
-  | "success"
-  | "bourses"
-  | "opportunities"
   | "calendar"
-  | "pathways"
+  | "resources"
   | "universities"
+  | "success"
+  | "pathways"
   | "history"
-  | "opinion";
+  | "default";
 
-interface PageHeroStat {
-  label: string;
-  value: string;
+interface PageHeroProps {
+  variant?: HeroVariant;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  icon?: ReactNode;
+  actions?: { href: string; label: string }[];
+  stats?: { value: string; label: string }[];
+  children?: ReactNode;
 }
 
-interface PageHeroAction {
-  href: string;
-  label: string;
-}
-
-interface PageHeroTheme {
-  /** Tailwind classes for the eyebrow icon box */
-  iconBg: string;
-  /** Tailwind classes for the icon itself */
-  iconColor: string;
-  /** Gradient classes for the background strip */
-  heroBg: string;
-  /** Primary CTA button classes */
-  primaryAction: string;
-  /** Accent colour for stat values */
-  statColor: string;
-}
-
-const HERO_THEMES: Record<HeroVariant, PageHeroTheme> = {
-  home: {
-    iconBg: "bg-blue-600/10 ring-1 ring-blue-600/20",
-    iconColor: "text-blue-600 dark:text-blue-400",
-    heroBg: "from-blue-50/80 via-white to-white dark:from-blue-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-500/20",
-    statColor: "text-blue-600 dark:text-blue-400",
-  },
+const VARIANT_STYLES: Record<
+  HeroVariant,
+  { bg: string; accent: string; eyebrowColor: string; iconBg: string }
+> = {
   news: {
-    iconBg: "bg-stone-900/10 ring-1 ring-stone-900/10 dark:bg-stone-100/10 dark:ring-white/10",
-    iconColor: "text-stone-900 dark:text-stone-100",
-    heroBg: "from-stone-100/60 via-white to-white dark:from-stone-900/50 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-stone-900 text-white hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white",
-    statColor: "text-stone-800 dark:text-stone-100",
-  },
-  haiti: {
-    iconBg: "bg-red-600/10 ring-1 ring-red-600/20",
-    iconColor: "text-red-600 dark:text-red-400",
-    heroBg: "from-red-50/70 via-white to-white dark:from-red-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-500/20",
-    statColor: "text-red-600 dark:text-red-400",
-  },
-  resources: {
-    iconBg: "bg-emerald-600/10 ring-1 ring-emerald-600/20",
-    iconColor: "text-emerald-600 dark:text-emerald-400",
-    heroBg: "from-emerald-50/70 via-white to-white dark:from-emerald-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-500/20",
-    statColor: "text-emerald-600 dark:text-emerald-400",
-  },
-  success: {
-    iconBg: "bg-amber-500/10 ring-1 ring-amber-500/20",
-    iconColor: "text-amber-600 dark:text-amber-400",
-    heroBg: "from-amber-50/70 via-white to-white dark:from-amber-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-amber-500 text-stone-950 hover:bg-amber-400 shadow-sm shadow-amber-500/20",
-    statColor: "text-amber-600 dark:text-amber-400",
-  },
-  bourses: {
-    iconBg: "bg-indigo-600/10 ring-1 ring-indigo-600/20",
-    iconColor: "text-indigo-600 dark:text-indigo-400",
-    heroBg: "from-indigo-50/70 via-white to-white dark:from-indigo-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm shadow-indigo-500/20",
-    statColor: "text-indigo-600 dark:text-indigo-400",
-  },
-  opportunities: {
-    iconBg: "bg-orange-500/10 ring-1 ring-orange-500/20",
-    iconColor: "text-orange-600 dark:text-orange-400",
-    heroBg: "from-orange-50/70 via-white to-white dark:from-orange-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20",
-    statColor: "text-orange-600 dark:text-orange-400",
+    bg: "bg-gradient-to-br from-blue-50/80 via-white to-slate-50 dark:from-blue-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-blue-600 to-blue-400",
+    eyebrowColor: "text-blue-600 dark:text-blue-400",
+    iconBg: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
   },
   calendar: {
-    iconBg: "bg-cyan-600/10 ring-1 ring-cyan-600/20",
-    iconColor: "text-cyan-600 dark:text-cyan-400",
-    heroBg: "from-cyan-50/70 via-white to-white dark:from-cyan-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-cyan-600 text-white hover:bg-cyan-700 shadow-sm shadow-cyan-500/20",
-    statColor: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-gradient-to-br from-orange-50/80 via-white to-amber-50/50 dark:from-orange-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-orange-500 to-amber-400",
+    eyebrowColor: "text-orange-600 dark:text-orange-400",
+    iconBg: "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400",
   },
-  pathways: {
-    iconBg: "bg-violet-600/10 ring-1 ring-violet-600/20",
-    iconColor: "text-violet-600 dark:text-violet-400",
-    heroBg: "from-violet-50/70 via-white to-white dark:from-violet-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-violet-600 text-white hover:bg-violet-700 shadow-sm shadow-violet-500/20",
-    statColor: "text-violet-600 dark:text-violet-400",
+  resources: {
+    bg: "bg-gradient-to-br from-violet-50/80 via-white to-purple-50/50 dark:from-violet-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-violet-600 to-purple-400",
+    eyebrowColor: "text-violet-600 dark:text-violet-400",
+    iconBg: "bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-400",
   },
   universities: {
-    iconBg: "bg-teal-600/10 ring-1 ring-teal-600/20",
-    iconColor: "text-teal-600 dark:text-teal-400",
-    heroBg: "from-teal-50/70 via-white to-white dark:from-teal-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-teal-600 text-white hover:bg-teal-700 shadow-sm shadow-teal-500/20",
-    statColor: "text-teal-600 dark:text-teal-400",
+    bg: "bg-gradient-to-br from-indigo-50/80 via-white to-teal-50/50 dark:from-indigo-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-indigo-600 to-teal-400",
+    eyebrowColor: "text-indigo-600 dark:text-indigo-400",
+    iconBg: "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400",
+  },
+  success: {
+    bg: "bg-gradient-to-br from-emerald-50/80 via-white to-green-50/50 dark:from-emerald-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-emerald-600 to-green-400",
+    eyebrowColor: "text-emerald-600 dark:text-emerald-400",
+    iconBg: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400",
+  },
+  pathways: {
+    bg: "bg-gradient-to-br from-sky-50/80 via-white to-blue-50/50 dark:from-sky-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-sky-600 to-blue-400",
+    eyebrowColor: "text-sky-600 dark:text-sky-400",
+    iconBg: "bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400",
   },
   history: {
-    iconBg: "bg-amber-700/10 ring-1 ring-amber-700/25",
-    iconColor: "text-amber-800 dark:text-amber-400",
-    heroBg: "from-amber-50/60 via-stone-50/40 to-white dark:from-amber-950/30 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-stone-900 text-white hover:bg-stone-800 shadow-sm dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white",
-    statColor: "text-amber-800 dark:text-amber-400",
+    bg: "bg-gradient-to-br from-rose-50/80 via-white to-amber-50/50 dark:from-rose-950/20 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-rose-800 to-amber-600",
+    eyebrowColor: "text-rose-800 dark:text-rose-400",
+    iconBg: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-400",
   },
-  opinion: {
-    iconBg: "bg-rose-600/10 ring-1 ring-rose-600/20",
-    iconColor: "text-rose-600 dark:text-rose-400",
-    heroBg: "from-rose-50/70 via-white to-white dark:from-rose-950/20 dark:via-stone-950 dark:to-stone-950",
-    primaryAction: "bg-rose-600 text-white hover:bg-rose-700 shadow-sm shadow-rose-500/20",
-    statColor: "text-rose-600 dark:text-rose-400",
+  default: {
+    bg: "bg-gradient-to-br from-stone-50 via-white to-stone-50 dark:from-stone-900 dark:via-stone-900 dark:to-stone-900",
+    accent: "from-stone-600 to-stone-400",
+    eyebrowColor: "text-stone-500 dark:text-stone-400",
+    iconBg: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
   },
 };
 
-export interface PageHeroProps {
-  variant: HeroVariant;
-  eyebrow: string;
-  title: string;
-  description: string;
-  icon: ReactNode;
-  stats?: PageHeroStat[];
-  actions?: PageHeroAction[];
-  children?: ReactNode;
-  aside?: ReactNode;
-}
-
 export function PageHero({
-  variant,
+  variant = "default",
   eyebrow,
   title,
   description,
   icon,
-  stats = [],
-  actions = [],
+  actions,
+  stats,
   children,
-  aside,
 }: PageHeroProps) {
-  const theme = HERO_THEMES[variant];
-  const hasSide = stats.length > 0 || !!aside;
+  const styles = VARIANT_STYLES[variant];
 
   return (
     <section
-      className={`-mx-4 sm:-mx-6 lg:-mx-8 border-b border-stone-200/80 bg-gradient-to-br ${theme.heroBg} dark:border-stone-800/60`}
+      className={[
+        "relative -mx-4 overflow-hidden rounded-none px-4 py-12 sm:-mx-6 sm:rounded-3xl sm:px-8 md:py-16 lg:-mx-8 lg:px-12",
+        styles.bg,
+      ].join(" ")}
     >
-      <div className="px-4 pb-8 pt-7 sm:px-6 sm:pb-10 sm:pt-9 lg:px-8">
-        <div
-          className={`grid gap-8 ${hasSide ? "lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end" : ""}`}
-        >
-          <div className="space-y-4">
-            {/* Eyebrow */}
+      {/* Decorative dot pattern */}
+      <div className="pointer-events-none absolute inset-0 bg-dots opacity-40" />
+
+      <div className="relative z-10 mx-auto max-w-5xl">
+        <div className="grid gap-8 lg:grid-cols-[1fr,auto] lg:items-center lg:gap-12">
+          {/* Left: Content */}
+          <div className="space-y-5">
+            {/* Eyebrow + icon */}
             <div className="flex items-center gap-3">
-              <span
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${theme.iconBg} ${theme.iconColor}`}
-              >
-                {icon}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-400 dark:text-stone-500">
-                {eyebrow}
-              </span>
+              {icon && (
+                <div
+                  className={[
+                    "flex h-10 w-10 items-center justify-center rounded-xl",
+                    styles.iconBg,
+                  ].join(" ")}
+                >
+                  {icon}
+                </div>
+              )}
+              {eyebrow && (
+                <p
+                  className={[
+                    "text-[11px] font-bold uppercase tracking-[0.15em]",
+                    styles.eyebrowColor,
+                  ].join(" ")}
+                >
+                  {eyebrow}
+                </p>
+              )}
             </div>
 
-            {/* Title + description */}
-            <div className="max-w-3xl space-y-2">
-              <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-3xl lg:text-4xl">
-                {title}
-              </h1>
-              <p className="max-w-2xl text-sm leading-relaxed text-stone-500 dark:text-stone-400 sm:text-base">
+            {/* Title */}
+            <h1
+              className="text-3xl font-extrabold leading-[1.15] tracking-tight text-stone-900 dark:text-white sm:text-4xl lg:text-[2.75rem]"
+              style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
+            >
+              {title}
+            </h1>
+
+            {/* Description */}
+            {description && (
+              <p className="max-w-xl text-base leading-relaxed text-stone-600 dark:text-stone-300 sm:text-lg">
                 {description}
               </p>
-            </div>
-
-            {children}
+            )}
 
             {/* Actions */}
-            {actions.length > 0 && (
-              <div className="flex flex-wrap gap-3 pt-1">
-                {actions.map((action, index) => (
+            {actions && actions.length > 0 && (
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {actions.map((action, i) => (
                   <Link
                     key={action.href}
                     href={action.href}
-                    className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                      index === 0
-                        ? theme.primaryAction
-                        : "border border-stone-200 bg-white/70 text-stone-700 hover:bg-white dark:border-stone-700 dark:bg-stone-800/60 dark:text-stone-200 dark:hover:bg-stone-800"
-                    }`}
+                    className={
+                      i === 0
+                        ? "inline-flex items-center gap-2 rounded-full bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-stone-800 hover:shadow-lg active:scale-[0.98] dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
+                        : "inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white/80 px-5 py-2.5 text-sm font-semibold text-stone-700 transition-all hover:border-stone-400 hover:bg-white hover:shadow-sm dark:border-stone-600 dark:bg-stone-800/80 dark:text-stone-300 dark:hover:border-stone-500 dark:hover:bg-stone-800"
+                    }
                   >
                     {action.label}
                   </Link>
                 ))}
               </div>
             )}
+
+            {/* Children */}
+            {children && <div className="pt-2">{children}</div>}
           </div>
 
-          {/* Stats sidebar */}
-          {hasSide && (
-            <div className="space-y-3">
-              {stats.length > 0 && (
-                <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-2">
-                  {stats.map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="rounded-xl border border-stone-200/80 bg-white/70 p-3.5 dark:border-stone-700/60 dark:bg-stone-900/60"
-                    >
-                      <p className={`text-2xl font-extrabold tabular-nums ${theme.statColor}`}>
-                        {stat.value}
-                      </p>
-                      <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                        {stat.label}
-                      </p>
-                    </div>
-                  ))}
+          {/* Right: Stats */}
+          {stats && stats.length > 0 && (
+            <div className="flex gap-3 lg:flex-col lg:gap-4">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="flex min-w-[6rem] flex-1 flex-col items-center gap-1 rounded-2xl border border-stone-200/80 bg-white/90 px-4 py-4 shadow-sm backdrop-blur-sm dark:border-stone-700 dark:bg-stone-800/90 lg:min-w-[8rem]"
+                >
+                  <span className="text-2xl font-extrabold tabular-nums tracking-tight text-stone-900 dark:text-white">
+                    {stat.value}
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                    {stat.label}
+                  </span>
                 </div>
-              )}
-
-              {aside}
+              ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Bottom gradient accent line */}
+      <div
+        className={[
+          "absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r",
+          styles.accent,
+        ].join(" ")}
+      />
     </section>
   );
 }

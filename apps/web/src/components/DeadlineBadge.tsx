@@ -1,9 +1,8 @@
 import type { ContentLanguage } from "@edlight-news/types";
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
 import {
   getDeadlineStatus,
   formatDeadlineDateShort,
-  badgeStyle,
 } from "@/lib/ui/deadlines";
 
 /* Supports three call patterns:
@@ -29,6 +28,17 @@ interface DirectProps extends DeadlineBadgeBaseProps {
 
 export type DeadlineBadgeProps = ItemProps | DirectProps;
 
+/** Urgency-based color scheme matching DeadlinePill. */
+function urgencyColors(daysLeft: number): string {
+  if (daysLeft <= 7) {
+    return "bg-red-50 text-red-700 ring-red-200/60 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-800/30";
+  }
+  if (daysLeft <= 21) {
+    return "bg-amber-50 text-amber-700 ring-amber-200/60 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/30";
+  }
+  return "bg-emerald-50 text-emerald-700 ring-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800/30";
+}
+
 export function DeadlineBadge(props: DeadlineBadgeProps) {
   const { lang, windowDays = 30 } = props;
 
@@ -53,11 +63,19 @@ export function DeadlineBadge(props: DeadlineBadgeProps) {
     ? (lang === "fr" ? props.prefix.fr : props.prefix.ht) + " · "
     : "";
 
+  const colors = urgencyColors(st.daysLeft);
+  const Icon = st.daysLeft <= 7 ? AlertTriangle : Clock;
+
   return (
     <span className="inline-flex flex-col items-start gap-0.5">
       {/* Badge */}
-      <span className={`badge ${badgeStyle(st.badgeVariant)}`}>
-        <Clock className="h-3 w-3" />
+      <span
+        className={[
+          "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ring-inset tabular-nums transition-colors",
+          colors,
+        ].join(" ")}
+      >
+        <Icon className="h-3 w-3" />
         {prefixText}{st.badgeLabel}
       </span>
       {/* Date + human countdown */}

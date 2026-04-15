@@ -110,10 +110,10 @@ export default async function UniversitesPage({
             </span>
             <Link
               href={l("/universites")}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
                 !filterCountry
-                  ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                  : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+                  ? "bg-stone-900 text-white shadow-md ring-2 ring-stone-900/20 dark:bg-white dark:text-stone-900 dark:ring-white/20"
+                  : "border border-stone-200/80 bg-white text-stone-600 shadow-sm hover:border-stone-300 hover:bg-stone-50 hover:shadow-md dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
               }`}
             >
               {fr ? "Tous" : "Tout"}
@@ -124,10 +124,10 @@ export default async function UniversitesPage({
                 <Link
                   key={c}
                   href={l(`/universites?country=${c}`)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
                     filterCountry === c
-                      ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
-                      : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+                      ? "bg-stone-900 text-white shadow-md ring-2 ring-stone-900/20 dark:bg-white dark:text-stone-900 dark:ring-white/20"
+                      : "border border-stone-200/80 bg-white text-stone-600 shadow-sm hover:border-stone-300 hover:bg-stone-50 hover:shadow-md dark:border-stone-600 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
                   }`}
                 >
                   {label?.flag && <CountryFlag code={label.flag} />} {fr ? label?.fr : label?.ht}
@@ -143,25 +143,25 @@ export default async function UniversitesPage({
               const cl = COUNTRY_LABELS[countryKey];
               return (
                 <section key={countryKey} className="space-y-4">
-                  <h2 className="relative z-10 flex items-center gap-2 text-xl font-bold tracking-tight dark:text-white">
+                  <h2 className="relative z-10 flex items-center gap-3 text-2xl font-bold tracking-tight dark:text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>
                     {cl?.flag && <CountryFlag code={cl.flag} size="lg" />} {fr ? cl?.fr : cl?.ht}{" "}
                     <span className="text-sm font-normal text-stone-400 dark:text-stone-500">
                       ({unis.length})
                     </span>
                   </h2>
-                  <div className="relative z-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="relative z-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                     {unis.map((uni) => {
                       const tuition = uni.tuitionBand ? TUITION_LABELS[uni.tuitionBand] : null;
                       return (
                         <div
                           key={uni.id}
-                          className="content-card flex flex-col p-5"
+                          className="flex flex-col rounded-2xl border border-stone-200/80 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700"
                         >
                           <div className="flex items-start justify-between">
-                            <h3 className="font-semibold leading-tight dark:text-white">{uni.name}</h3>
+                            <h3 className="text-lg font-bold leading-tight tracking-tight dark:text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>{uni.name}</h3>
                             {uni.haitianFriendly && (
                               <span
-                                className="ml-2 flex shrink-0 items-center gap-0.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                className="ml-2 flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-800/30"
                                 title={fr ? "Accueil haïtien" : "Akèy ayisyen"}
                               >
                                 <CheckCircle className="h-3 w-3" /> HT

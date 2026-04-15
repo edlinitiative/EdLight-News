@@ -18,6 +18,11 @@
     --accent-warm: #ea580c;
     --news-red: #dc2626;
     --news-blue: #1d4ed8;
+    --radius-card: 1.125rem;
+    --radius-card-lg: 1.5rem;
+    --radius-chip: 0.625rem;
+    --spacing-section: 5rem;
+    --spacing-section-sm: 3rem;
     color-scheme: light;
   }
 
@@ -45,6 +50,11 @@
     --accent-warm: #f97316;
     --news-red: #ef4444;
     --news-blue: #3b82f6;
+    --radius-card: 1.125rem;
+    --radius-card-lg: 1.5rem;
+    --radius-chip: 0.625rem;
+    --spacing-section: 5rem;
+    --spacing-section-sm: 3rem;
     color-scheme: dark;
   }
 
@@ -79,23 +89,23 @@
 @layer components {
   /* ── Card ────────────────────────────────────────────────── */
   .card {
-    @apply rounded-lg border border-stone-200 bg-white shadow-sm transition-shadow duration-200;
+    @apply rounded-[var(--radius-card)] border border-stone-200/80 bg-white shadow-premium transition-all duration-300;
   }
   @media (hover: hover) {
     .card:hover {
-      @apply shadow-md;
+      @apply shadow-premium-hover -translate-y-0.5;
     }
     .dark .card:hover {
-      @apply border-stone-600;
+      @apply border-stone-600 shadow-premium-dark-hover;
     }
   }
   .dark .card {
-    @apply border-stone-800 bg-stone-900 shadow-none;
+    @apply border-stone-800 bg-stone-900 shadow-premium-dark;
   }
 
   /* ── Section container ──────────────────────────────────── */
   .section-shell {
-    @apply rounded-lg border border-stone-200 bg-white p-5 sm:p-6;
+    @apply rounded-[var(--radius-card-lg)] border border-stone-200/60 bg-white p-6 sm:p-8;
   }
   .dark .section-shell {
     @apply border-stone-800 bg-stone-900;
@@ -121,18 +131,18 @@
 
   /* ── Badge ──────────────────────────────────────────────── */
   .badge {
-    @apply inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide;
+    @apply inline-flex items-center gap-1 rounded-[var(--radius-chip)] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-colors;
   }
 
   /* ── Pill button ────────────────────────────────────────── */
   .pill {
-    @apply rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors duration-150;
+    @apply rounded-[var(--radius-chip)] px-4 py-1.5 text-sm font-medium transition-all duration-200;
   }
   .pill-active {
-    @apply bg-stone-900 text-white dark:bg-white dark:text-stone-900;
+    @apply bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900;
   }
   .pill-inactive {
-    @apply bg-stone-100 text-stone-600 hover:bg-stone-200;
+    @apply bg-stone-100 text-stone-600 hover:bg-stone-200 hover:shadow-sm;
   }
   .dark .pill-inactive {
     @apply bg-stone-800 text-stone-300 hover:bg-stone-700;
@@ -241,13 +251,15 @@
 
   /* ── Headline styles ────────────────────────────────────── */
   .headline-lead {
-    @apply text-2xl font-extrabold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-3xl lg:text-4xl;
+    @apply text-3xl font-extrabold leading-[1.15] tracking-tight text-stone-900 dark:text-white sm:text-4xl lg:text-5xl;
+    font-family: var(--font-serif, Georgia, serif);
   }
   .headline-section {
-    @apply text-xl font-bold leading-tight tracking-tight text-stone-900 dark:text-white sm:text-2xl;
+    @apply text-2xl font-bold leading-tight tracking-tight text-stone-900 dark:text-white;
+    font-family: var(--font-serif, Georgia, serif);
   }
   .headline-card {
-    @apply text-base font-semibold leading-snug text-stone-900 dark:text-white;
+    @apply text-base font-semibold leading-snug tracking-tight text-stone-900 dark:text-white;
   }
 
   /* ── Source attribution (newspaper style) ───────────────── */
@@ -348,5 +360,102 @@
   }
   .footer-link:hover::after {
     @apply scale-x-100;
+  }
+
+  /* ── Premium card variants ─────────────────────────────── */
+  .card-featured {
+    @apply rounded-[var(--radius-card-lg)] border border-stone-200/80 bg-white shadow-premium transition-all duration-300;
+  }
+  @media (hover: hover) {
+    .card-featured:hover {
+      @apply shadow-float -translate-y-1;
+    }
+  }
+  .dark .card-featured {
+    @apply border-stone-800 bg-stone-900 shadow-premium-dark;
+  }
+
+  /* ── Compact list row ───────────────────────────────────── */
+  .card-compact {
+    @apply flex items-start gap-4 rounded-xl border border-stone-100 bg-white/80 px-4 py-3.5 transition-all duration-200;
+  }
+  @media (hover: hover) {
+    .card-compact:hover {
+      @apply border-stone-200 bg-white shadow-sm -translate-y-px;
+    }
+  }
+  .dark .card-compact {
+    @apply border-stone-800 bg-stone-900/80;
+  }
+  @media (hover: hover) {
+    .dark .card-compact:hover {
+      @apply border-stone-700 bg-stone-800;
+    }
+  }
+
+  /* ── Urgency states ─────────────────────────────────────── */
+  .urgency-high {
+    @apply border-l-[3px] border-l-red-500;
+  }
+  .urgency-medium {
+    @apply border-l-[3px] border-l-amber-500;
+  }
+  .urgency-low {
+    @apply border-l-[3px] border-l-emerald-500;
+  }
+
+  /* ── Section separator ──────────────────────────────────── */
+  .section-separator {
+    @apply my-16 border-t border-stone-200/60 dark:border-stone-800/60 sm:my-20;
+  }
+
+  /* ── Premium stat card ──────────────────────────────────── */
+  .stat-card {
+    @apply flex flex-col items-center gap-1 rounded-2xl border border-stone-100 bg-white p-4 text-center shadow-sm dark:border-stone-800 dark:bg-stone-900;
+  }
+  .stat-card .stat-value {
+    @apply text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white;
+  }
+  .stat-card .stat-label {
+    @apply text-xs font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500;
+  }
+
+  /* ── Trust badge ────────────────────────────────────────── */
+  .trust-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400;
+  }
+
+  /* ── Segmented control ──────────────────────────────────── */
+  .segmented-control {
+    @apply inline-flex rounded-xl border border-stone-200 bg-stone-100 p-1 dark:border-stone-700 dark:bg-stone-800;
+  }
+  .segmented-control button {
+    @apply rounded-lg px-4 py-2 text-sm font-medium text-stone-500 transition-all duration-200 dark:text-stone-400;
+  }
+  .segmented-control button[data-active="true"] {
+    @apply bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-white;
+  }
+  .segmented-control button:not([data-active="true"]):hover {
+    @apply text-stone-700 dark:text-stone-300;
+  }
+
+  /* ── Category stripe colors ─────────────────────────────── */
+  .card-stripe-bourses {
+    @apply border-t-2 border-t-amber-500;
+  }
+  .card-stripe-calendar {
+    @apply border-t-2 border-t-orange-500;
+  }
+  .card-stripe-universities {
+    @apply border-t-2 border-t-indigo-500;
+  }
+  .card-stripe-resources {
+    @apply border-t-2 border-t-violet-500;
+  }
+  .card-stripe-success {
+    @apply border-t-2 border-t-emerald-500;
+  }
+  .card-stripe-history {
+    @apply border-t-2 border-t-rose-800;
   }
 }

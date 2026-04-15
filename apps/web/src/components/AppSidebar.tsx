@@ -51,16 +51,18 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-[53px] h-screen w-64 bg-white dark:bg-stone-950 border-r border-stone-200 dark:border-stone-800 z-40 overflow-y-auto">
-      <div className="px-5 pt-5 pb-4">
+      <div className="px-5 pt-6 pb-5">
         <Link
           href={withLangParam("/", lang)}
-          className="text-xs font-semibold text-stone-400 dark:text-stone-500 tracking-wide uppercase hover:text-stone-700 dark:hover:text-stone-300 transition-colors"
+          className="group inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
         >
-          EdLight News
+          <span className="font-serif text-lg font-bold tracking-tight text-stone-900 dark:text-stone-100">EdLight</span>
+          <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">News</span>
         </Link>
       </div>
 
       <nav className="flex-1 px-3">
+        <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500">Navigation</p>
         <ul className="space-y-0.5">
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href, pathname);
@@ -69,10 +71,10 @@ export function AppSidebar() {
                 <Link
                   href={withLangParam(href, lang)}
                   className={
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors " +
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 " +
                     (active
-                      ? "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400"
-                      : "text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white")
+                      ? "border-l-2 border-l-blue-600 bg-blue-50/50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400"
+                      : "border-l-2 border-l-transparent text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-white")
                   }
                 >
                   <Icon className="h-4 w-4 shrink-0" />

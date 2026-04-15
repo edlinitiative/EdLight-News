@@ -67,7 +67,7 @@ export default async function NewsPage({
   const haitiCount = articles.filter((article) => article.geoTag === "HT").length;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {/* Daily exchange-rate widget (UI-only feature) */}
       <TauxDuJourWidget lang={language} data={taux} />
 
@@ -103,7 +103,7 @@ export default async function NewsPage({
           ].map((chip) => (
             <span
               key={chip}
-              className="rounded-md border border-stone-200 bg-white px-3 py-1 font-medium text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
+              className="rounded-full border border-stone-200/80 bg-white px-3.5 py-1 text-xs font-semibold text-stone-600 shadow-sm ring-1 ring-inset ring-stone-200/50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-600/30"
             >
               {chip}
             </span>
@@ -113,7 +113,14 @@ export default async function NewsPage({
 
       <Suspense
         fallback={
-          <div className="section-shell h-96 animate-pulse bg-stone-100 dark:bg-stone-800" />
+          <div className="space-y-4">
+            <div className="h-64 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-800" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-48 animate-pulse rounded-2xl bg-stone-100 dark:bg-stone-800" />
+              ))}
+            </div>
+          </div>
         }
       >
         <NewsFeed articles={articles} serverLang={language} preRanked />

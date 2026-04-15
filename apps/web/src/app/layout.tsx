@@ -86,7 +86,7 @@ export default function RootLayout({
             <AppSidebar />
 
             <div className="flex flex-1 flex-col lg:pl-64">
-              <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-16 lg:px-8">
+              <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-8 sm:px-6 lg:pb-20 lg:px-8">
                 {children}
               </main>
               <div className="lg:pl-0">
