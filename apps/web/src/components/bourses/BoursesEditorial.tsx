@@ -1,0 +1,482 @@
+"use client";
+
+/**
+ * BoursesEditorial — Client orchestrator for the redesigned /bourses page.
+ *
+ * Manages shared state (search, filters, saved scholarships) and composes:
+ *   1) BoursesSearchBar — unified search & quick-filter bar
+ *   2) ActiveFilterChips — removable filter pills
+ *   3) FeaturedBourses — 2-col featured scholarship cards
+ *   4) BoursesFeed + BoursesSidebar — 8/4 grid feed layout
+ *   5) Full catalogue toggle with ScholarshipCard grid
+ *   6) FiltersDrawer — advanced filter slide-out
+ *
+ * All filter state is URL-driven for shareable links and presets.
+ */
+
+import { useMemo, useCallback, useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import type {
+  ContentLanguage,
+  DatasetCountry,
+  AcademicLevel,
+} from "@edlight-news/types";
+import { ChevronDown, Archive, Heart } from "lucide-react";
+import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
+import { getSavedIds, toggleSaved, matchesSearch } from "@/lib/bourses-ui";
+import type { SerializedScholarship } from "@/components/BoursesFilters";
+import { parseISODateSafe, daysUntil as daysUntilFromDate } from "@/lib/deadlines";
+
+import { BoursesSearchBar } from "@/components/bourses/BoursesSearchBar";
+import { FeaturedBourses } from "@/components/bourses/FeaturedBourses";
+import { BoursesFeed } from "@/components/bourses/BoursesFeed";
+import { BoursesSidebar } from "@/components/bourses/BoursesSidebar";
+import { ScholarshipCard } from "@/components/bourses/ScholarshipCard";
+import { ActiveFilterChips } from "@/app/bourses/_components/ActiveFilterChips";
+import { FiltersDrawer } from "@/app/bourses/_components/FiltersDrawer";
+import { SortMenuPill } from "@/app/bourses/_components/SortMenuPill";
+import type { FilterGroup } from "@/app/bourses/_components/FiltersDrawer";
+import type { ActiveFilter } from "@/app/bourses/_components/ActiveFilterChips";
+
+// ── Labels ──────────────────────────────────────────────────────────────────
+
+const FUNDING_FILTER_CHIPS: { key: string; fr: string; ht: string }[] = [
+  { key: "all",          fr: "Tous",       ht: "Tout" },
+  { key: "full",         fr: "Complet",    ht: "Konplè" },
+  { key: "partial",      fr: "Partiel",    ht: "Pasyèl" },
+  { key: "tuition-only", fr: "Scolarité",  ht: "Frè etid" },
+  { key: "unknown",      fr: "Inconnu",    ht: "Enkonni" },
+];
+
+const ELIGIBILITY_FILTER_CHIPS: { key: string; fr: string; ht: string }[] = [
+  { key: "all",     fr: "Tous",         ht: "Tout" },
+  { key: "yes",     fr: "Oui",          ht: "Wi" },
+  { key: "unknown", fr: "À vérifier",   ht: "Pou verifye" },
+];
+
+const TYPE_FILTER_CHIPS: { key: string; fr: string; ht: string }[] = [
+  { key: "all",        fr: "Tous",        ht: "Tout" },
+  { key: "program",    fr: "Programmes",  ht: "Pwogram" },
+  { key: "directory",  fr: "Répertoires", ht: "Repètwa" },
+];
+
+const LEVEL_LABELS: Record<AcademicLevel, { fr: string; ht: string }> = {
+  bachelor:       { fr: "Bachelor",          ht: "Lisans" },
+  master:         { fr: "Master",            ht: "Metriz" },
+  phd:            { fr: "PhD",               ht: "Doktora" },
+  short_programs: { fr: "Courts programmes", ht: "Pwogram kout" },
+};
+
+const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string; code: string }> = {
+  US: { fr: "États-Unis",       ht: "Etazini",        code: "US" },
+  CA: { fr: "Canada",           ht: "Kanada",         code: "CA" },
+  FR: { fr: "France",           ht: "Frans",          code: "FR" },
+  UK: { fr: "Royaume-Uni",      ht: "Wayòm Ini",     code: "UK" },
+  DO: { fr: "Rép. Dominicaine", ht: "Rep. Dominikèn", code: "DO" },
+  MX: { fr: "Mexique",          ht: "Meksik",         code: "MX" },
+  CN: { fr: "Chine",            ht: "Lachin",         code: "CN" },
+  RU: { fr: "Russie",           ht: "Larisi",         code: "RU" },
+  HT: { fr: "Haïti",            ht: "Ayiti",          code: "HT" },
+  Global: { fr: "International", ht: "Entènasyonal",  code: "GL" },
+};
+
+type SortMode = "deadline" | "latest" | "relevance";
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function daysUntil(dateISO: string): number {
+  const date = parseISODateSafe(dateISO);
+  return date ? daysUntilFromDate(date) : 9999;
+}
+
+function fundingFilterMatch(s: SerializedScholarship, key: string): boolean {
+  if (key === "all") return true;
+  if (key === "partial") return s.fundingType === "partial" || s.fundingType === "stipend";
+  return s.fundingType === key;
+}
+
+// ── Component ───────────────────────────────────────────────────────────────
+
+interface BoursesEditorialProps {
+  scholarships: SerializedScholarship[];
+  lang: ContentLanguage;
+}
+
+export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) {
+  const fr = lang === "fr";
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // ── Local UI state ────────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showFullCatalogue, setShowFullCatalogue] = useState(false);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setSavedIds(getSavedIds());
+  }, []);
+
+  const handleToggleSave = useCallback((id: string) => {
+    const next = toggleSaved(id);
+    setSavedIds(new Set(next));
+  }, []);
+
+  // ── URL-driven filter state ───────────────────────────────────────────────
+  const fundingFilter = searchParams.get("funding") ?? "all";
+  const levelFilter = searchParams.get("level") ?? "all";
+  const countryFilter = searchParams.get("country") ?? "all";
+  const eligibilityFilter = searchParams.get("eligibility") ?? "all";
+  const typeFilter = searchParams.get("type") ?? "all";
+  const sortMode: SortMode = (
+    ["deadline", "latest", "relevance"].includes(searchParams.get("sort") ?? "")
+      ? (searchParams.get("sort") as SortMode)
+      : "deadline"
+  );
+
+  const setFilter = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value === "all" || value === "deadline") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+      if (lang !== "fr" && !params.has("lang")) params.set("lang", lang);
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    },
+    [searchParams, pathname, router, lang],
+  );
+
+  const clearAll = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    FILTER_PARAM_KEYS.forEach((k) => params.delete(k));
+    if (lang !== "fr") params.set("lang", lang);
+    setSearchQuery("");
+    router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+  }, [lang, pathname, router, searchParams]);
+
+  // ── Derived data ──────────────────────────────────────────────────────────
+  const availableCountries = useMemo(() => {
+    const s = new Set(scholarships.map((sc) => sc.country));
+    return Array.from(s).sort();
+  }, [scholarships]);
+
+  const availableLevels = useMemo(() => {
+    const s = new Set(scholarships.flatMap((sc) => sc.level));
+    return Array.from(s).sort();
+  }, [scholarships]);
+
+  const filtered = useMemo(() => {
+    let items = scholarships.filter((s) => {
+      if (!fundingFilterMatch(s, fundingFilter)) return false;
+      if (levelFilter !== "all" && !s.level.includes(levelFilter as AcademicLevel)) return false;
+      if (countryFilter !== "all" && s.country !== countryFilter) return false;
+      if (eligibilityFilter !== "all") {
+        const elig = s.haitianEligibility ?? "unknown";
+        if (eligibilityFilter === "yes" && elig !== "yes") return false;
+        if (eligibilityFilter === "unknown" && elig !== "unknown") return false;
+      }
+      if (typeFilter !== "all") {
+        const kind = s.kind ?? "program";
+        if (typeFilter !== kind) return false;
+      }
+      return true;
+    });
+
+    if (searchQuery.trim()) {
+      items = items.filter((s) => matchesSearch(s, searchQuery));
+    }
+
+    items = [...items].sort((a, b) => {
+      if (sortMode === "deadline") {
+        const aISO = a.deadline?.dateISO ?? "";
+        const bISO = b.deadline?.dateISO ?? "";
+        const aDays = aISO ? daysUntil(aISO) : 9999;
+        const bDays = bISO ? daysUntil(bISO) : 9999;
+        const aClosing = aDays >= 0 && aDays <= 30 ? 0 : 1;
+        const bClosing = bDays >= 0 && bDays <= 30 ? 0 : 1;
+        if (aClosing !== bClosing) return aClosing - bClosing;
+        if (aISO && bISO) return aISO.localeCompare(bISO);
+        if (aISO) return -1;
+        if (bISO) return 1;
+        return (b.verifiedAtISO ?? "").localeCompare(a.verifiedAtISO ?? "");
+      }
+      if (sortMode === "latest") {
+        return (b.verifiedAtISO ?? "").localeCompare(a.verifiedAtISO ?? "");
+      }
+      const kindOrder: Record<string, number> = { program: 0, directory: 1 };
+      const fundingOrder: Record<string, number> = { full: 0, partial: 1, stipend: 2, "tuition-only": 3, unknown: 4 };
+      const aKind = kindOrder[a.kind ?? "program"] ?? 0;
+      const bKind = kindOrder[b.kind ?? "program"] ?? 0;
+      if (aKind !== bKind) return aKind - bKind;
+      return (fundingOrder[a.fundingType] ?? 4) - (fundingOrder[b.fundingType] ?? 4);
+    });
+
+    return items;
+  }, [scholarships, fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, sortMode, searchQuery]);
+
+  const hasFilters = useMemo(() => {
+    return (
+      fundingFilter !== "all" ||
+      levelFilter !== "all" ||
+      countryFilter !== "all" ||
+      eligibilityFilter !== "all" ||
+      typeFilter !== "all" ||
+      searchQuery.trim().length > 0
+    );
+  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, searchQuery]);
+
+  // ── Derived props for sub-components ──────────────────────────────────────
+
+  const drawerFilterCount = useMemo(
+    () => [typeFilter !== "all", fundingFilter !== "all", eligibilityFilter !== "all"].filter(Boolean).length,
+    [typeFilter, fundingFilter, eligibilityFilter],
+  );
+
+  const countryOptions = useMemo(
+    () =>
+      availableCountries.map((c) => {
+        const cl = COUNTRY_LABELS[c as DatasetCountry];
+        return { value: c, label: cl ? `${cl.code} · ${fr ? cl.fr : cl.ht}` : c };
+      }),
+    [availableCountries, fr],
+  );
+
+  const levelOptions = useMemo(
+    () =>
+      availableLevels.map((l) => {
+        const ll = LEVEL_LABELS[l as AcademicLevel];
+        return { value: l, label: ll ? (fr ? ll.fr : ll.ht) : l };
+      }),
+    [availableLevels, fr],
+  );
+
+  const activeFilters = useMemo<ActiveFilter[]>(() => {
+    const out: ActiveFilter[] = [];
+    if (countryFilter !== "all") {
+      const cl = COUNTRY_LABELS[countryFilter as DatasetCountry];
+      out.push({ key: "country", label: `${fr ? "Pays" : "Peyi"}: ${cl ? (fr ? cl.fr : cl.ht) : countryFilter}` });
+    }
+    if (levelFilter !== "all") {
+      const ll = LEVEL_LABELS[levelFilter as AcademicLevel];
+      out.push({ key: "level", label: `${fr ? "Niveau" : "Nivo"}: ${ll ? (fr ? ll.fr : ll.ht) : levelFilter}` });
+    }
+    if (fundingFilter !== "all") {
+      const fl = FUNDING_FILTER_CHIPS.find((c) => c.key === fundingFilter);
+      out.push({ key: "funding", label: `${fr ? "Financement" : "Finansman"}: ${fl ? (fr ? fl.fr : fl.ht) : fundingFilter}` });
+    }
+    if (typeFilter !== "all") {
+      const tl = TYPE_FILTER_CHIPS.find((c) => c.key === typeFilter);
+      out.push({ key: "type", label: `Type: ${tl ? (fr ? tl.fr : tl.ht) : typeFilter}` });
+    }
+    if (eligibilityFilter !== "all") {
+      const el = ELIGIBILITY_FILTER_CHIPS.find((c) => c.key === eligibilityFilter);
+      out.push({ key: "eligibility", label: `${fr ? "Haïti" : "Ayiti"}: ${el ? (fr ? el.fr : el.ht) : eligibilityFilter}` });
+    }
+    return out;
+  }, [countryFilter, levelFilter, fundingFilter, typeFilter, eligibilityFilter, fr]);
+
+  const drawerGroups = useMemo<FilterGroup[]>(
+    () => [
+      {
+        paramKey: "type",
+        title: fr ? "Type" : "Tip",
+        options: TYPE_FILTER_CHIPS.map((c) => ({ key: c.key, label: fr ? c.fr : c.ht })),
+        activeValue: typeFilter,
+      },
+      {
+        paramKey: "funding",
+        title: fr ? "Financement" : "Finansman",
+        options: FUNDING_FILTER_CHIPS.map((c) => ({ key: c.key, label: fr ? c.fr : c.ht })),
+        activeValue: fundingFilter,
+      },
+      {
+        paramKey: "eligibility",
+        title: fr ? "Éligible Haïti" : "Elijib Ayiti",
+        options: ELIGIBILITY_FILTER_CHIPS.map((c) => ({ key: c.key, label: fr ? c.fr : c.ht })),
+        activeValue: eligibilityFilter,
+      },
+    ],
+    [fr, typeFilter, fundingFilter, eligibilityFilter],
+  );
+
+  // ── Featured scholarship IDs (for excluding from feed) ────────────────────
+  const featuredIds = useMemo(() => {
+    const featured = filtered
+      .filter((s) => s.kind !== "directory")
+      .sort((a, b) => {
+        const fundingOrder: Record<string, number> = { full: 0, partial: 1, stipend: 2, "tuition-only": 3, unknown: 4 };
+        const fa = fundingOrder[a.fundingType] ?? 4;
+        const fb = fundingOrder[b.fundingType] ?? 4;
+        if (fa !== fb) return fa - fb;
+        const aISO = a.deadline?.dateISO ?? "9999";
+        const bISO = b.deadline?.dateISO ?? "9999";
+        return aISO.localeCompare(bISO);
+      })
+      .slice(0, 2);
+    return new Set(featured.map((s) => s.id));
+  }, [filtered]);
+
+  // Handle tag clicks from sidebar
+  const handleTagClick = useCallback((tag: string) => {
+    setSearchQuery(tag);
+  }, []);
+
+  return (
+    <div className="space-y-12">
+      {/* ── Search & Filter Bar ── */}
+      <section>
+        <BoursesSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          countryFilter={countryFilter}
+          levelFilter={levelFilter}
+          onFilterChange={setFilter}
+          countryOptions={countryOptions}
+          levelOptions={levelOptions}
+          onOpenDrawer={() => setFiltersOpen(true)}
+          drawerFilterCount={drawerFilterCount}
+          fr={fr}
+        />
+        <div className="mt-3">
+          <ActiveFilterChips
+            filters={activeFilters}
+            onRemove={(key) => setFilter(key, "all")}
+            onClearAll={clearAll}
+            fr={fr}
+          />
+        </div>
+      </section>
+
+      {/* ── Featured Bourses (hidden when filters are active — show catalogue instead) ── */}
+      {!hasFilters && filtered.length >= 2 && (
+        <FeaturedBourses
+          scholarships={filtered}
+          lang={lang}
+          savedIds={savedIds}
+          onToggleSave={handleToggleSave}
+        />
+      )}
+
+      {/* ── Feed + Sidebar (editorial layout) ── */}
+      {!hasFilters && (
+        <section>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+            <div className="lg:col-span-8">
+              <BoursesFeed
+                scholarships={filtered}
+                lang={lang}
+                excludeIds={featuredIds}
+                savedIds={savedIds}
+                onToggleSave={handleToggleSave}
+                maxItems={6}
+              />
+
+              {/* ── View Full Archive CTA ── */}
+              {filtered.length > 8 && (
+                <button
+                  type="button"
+                  onClick={() => setShowFullCatalogue(true)}
+                  className="w-full mt-8 py-4 border-2 border-brand-600/10 dark:border-brand-400/10 rounded-xl text-brand-600 dark:text-brand-400 font-bold text-sm hover:bg-brand-600 hover:text-white dark:hover:bg-brand-500 dark:hover:text-white transition-all duration-300 inline-flex items-center justify-center gap-2"
+                >
+                  <Archive className="h-4 w-4" />
+                  {fr
+                    ? `Voir l'archive complète (${filtered.length}+ bourses)`
+                    : `Wè achiv konplè a (${filtered.length}+ bous)`}
+                </button>
+              )}
+            </div>
+
+            <div className="lg:col-span-4">
+              <BoursesSidebar
+                scholarships={scholarships}
+                lang={lang}
+                onTagClick={handleTagClick}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Full Catalogue (shown when filters active or user clicked "View Archive") ── */}
+      {(hasFilters || showFullCatalogue) && (
+        <section id="catalogue" className="space-y-4">
+          {/* Catalogue header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h3 className="font-serif text-xl font-bold text-stone-900 dark:text-white">
+                {fr ? "Catalogue complet" : "Katalòg konplè"}
+              </h3>
+              <span className="text-xs tabular-nums text-stone-500 dark:text-stone-400">
+                <span className="font-bold text-stone-800 dark:text-white">{filtered.length}</span>
+                <span className="text-stone-300 dark:text-stone-600">/</span>
+                {scholarships.length}
+              </span>
+            </div>
+            <SortMenuPill
+              sortMode={sortMode}
+              onSort={(m) => setFilter("sort", m)}
+              fr={fr}
+            />
+          </div>
+
+          {/* Empty states */}
+          {filtered.length === 0 && (
+            <div className="rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 py-14 text-center text-stone-400 dark:text-stone-500">
+              <p className="text-base font-medium">
+                {fr
+                  ? scholarships.length === 0
+                    ? "Base de données en construction…"
+                    : "Aucun résultat pour ces filtres."
+                  : scholarships.length === 0
+                    ? "Baz done an konstriksyon…"
+                    : "Pa gen rezilta pou filtr sa yo."}
+              </p>
+            </div>
+          )}
+
+          {/* Card grid */}
+          {filtered.length > 0 && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((s) => (
+                <ScholarshipCard
+                  key={s.id}
+                  scholarship={s}
+                  lang={lang}
+                  saved={savedIds.has(s.id)}
+                  onToggleSave={handleToggleSave}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Collapse button */}
+          {showFullCatalogue && !hasFilters && (
+            <button
+              type="button"
+              onClick={() => setShowFullCatalogue(false)}
+              className="mx-auto mt-4 flex items-center gap-1 text-xs font-medium text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition-colors"
+            >
+              <ChevronDown className="h-3.5 w-3.5 rotate-180" />
+              {fr ? "Réduire" : "Redwi"}
+            </button>
+          )}
+        </section>
+      )}
+
+      {/* ── Filters drawer ── */}
+      <FiltersDrawer
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        groups={drawerGroups}
+        onFilterChange={setFilter}
+        onReset={clearAll}
+        fr={fr}
+      />
+    </div>
+  );
+}
