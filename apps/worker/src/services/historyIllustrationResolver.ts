@@ -243,6 +243,7 @@ const HISTORY_OVERRIDE_HINTS: OverrideHint[] = [
   },
   {
     test: /daniel\s+fignol[eé]/i,
+    commonsFile: "File:Daniel Fignolé speaking to supporters at Institut Mopique.jpg",
     wikipediaFr: "Daniel Fignolé",
     wikipediaEn: "Daniel Fignolé",
     commonsQuery: "Daniel Fignolé",
