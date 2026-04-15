@@ -1,14 +1,4 @@
-/* ── Existing data-driven components ─────────────────────── */
-export { HistoireClient } from "./HistoireClient";
-export { WeekStrip } from "./WeekStrip";
-export { HeroFact } from "./HeroFact";
-export { HistoryList } from "./HistoryList";
-export { HistoryCard } from "./HistoryCard";
-export { SourcesAccordion } from "./SourcesAccordion";
-export { ExplorePanel } from "./ExplorePanel";
-export { EmptyState } from "./EmptyState";
-
-/* ── Redesigned editorial components ─────────────────────── */
+/* ── Data-driven components (used by HistoirePageShell) ──── */
 export { HistoirePageShell } from "./HistoirePageShell";
 export { HistoryHero } from "./HistoryHero";
 export { DateNavigator } from "./DateNavigator";
@@ -17,6 +7,8 @@ export { RelatedEventsSection } from "./RelatedEventsSection";
 export { RelatedEventCard } from "./RelatedEventCard";
 export { ThemeCollections } from "./ThemeCollections";
 export { ThemeCollectionCard } from "./ThemeCollectionCard";
-export { HistoryFooter } from "./HistoryFooter";
-export { HistoryPageHeader } from "./HistoryPageHeader";
 export { SectionHeader } from "./SectionHeader";
+
+/* ── Shared sub-components still used internally ─────────── */
+export { ExplorePanel } from "./ExplorePanel";
+export { EmptyState } from "./EmptyState";

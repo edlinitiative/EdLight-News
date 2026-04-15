@@ -1,46 +1,68 @@
-/**
- * ThemeCollectionCard — immersive card for thematic archive collections.
- *
- * Full-bleed background image with gradient overlay.
- * Text content floats at the bottom with a call-to-action button.
- * Hover effect scales the background image.
- */
-
+import type { ContentLanguage } from "@edlight-news/types";
 import type { ThemeCollection } from "./data";
 
 interface ThemeCollectionCardProps {
   theme: ThemeCollection;
+  lang: ContentLanguage;
+  onExploreClick?: () => void;
 }
 
-export function ThemeCollectionCard({ theme }: ThemeCollectionCardProps) {
+const gradientByTag: Record<string, string> = {
+  politics: "bg-gradient-to-br from-stone-800 to-stone-950",
+  resistance: "bg-gradient-to-br from-rose-900 to-rose-950",
+  culture: "bg-gradient-to-br from-indigo-900 to-indigo-950",
+};
+
+export function ThemeCollectionCard({
+  theme,
+  lang,
+  onExploreClick,
+}: ThemeCollectionCardProps) {
+  const fr = lang === "fr";
+  const gradient =
+    gradientByTag[theme.tag] ??
+    "bg-gradient-to-br from-stone-800 to-stone-950";
+
   return (
-    <article className="group relative min-h-[380px] overflow-hidden rounded-[1.75rem] border border-black/5 dark:border-stone-700/40">
-      {/* Background image */}
-      <img
-        src={theme.imageUrl}
-        alt={theme.imageAlt}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
-        loading="lazy"
-      />
-
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/25" />
-
+    <div
+      className={`relative flex flex-col justify-end min-h-[380px] rounded-2xl overflow-hidden p-8 ${gradient}`}
+    >
       {/* Content */}
-      <div className="relative flex h-full min-h-[380px] flex-col justify-end p-8 text-white">
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/70">
-          Thème
-        </p>
-        <h3 className="mb-3 font-display text-3xl font-bold">
-          {theme.title}
+      <div className="relative z-10 flex flex-col gap-4 text-white">
+        {/* Eyebrow */}
+        <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
+          {fr ? "Thème" : "Tèm"}
+        </span>
+
+        {/* Title */}
+        <h3 className="font-serif text-2xl md:text-3xl font-bold leading-tight">
+          {fr ? theme.title.fr : theme.title.ht}
         </h3>
-        <p className="mb-6 leading-7 text-white/75">
-          {theme.description}
+
+        {/* Description */}
+        <p className="text-sm leading-relaxed text-white/80 line-clamp-3">
+          {fr ? theme.description.fr : theme.description.ht}
         </p>
-        <button className="w-fit rounded-full border border-white/25 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] transition-colors hover:bg-white hover:text-[#1d1b1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50">
-          Accéder aux archives
-        </button>
+
+        {/* Button */}
+        {onExploreClick ? (
+          <button
+            type="button"
+            onClick={onExploreClick}
+            className="mt-2 self-start rounded-full border border-white/40 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+          >
+            {fr ? "Explorer ce thème" : "Eksplore tèm sa a"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="mt-2 self-start rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-white/40 cursor-not-allowed"
+          >
+            {fr ? "Explorer ce thème" : "Eksplore tèm sa a"}
+          </button>
+        )}
       </div>
-    </article>
+    </div>
   );
 }

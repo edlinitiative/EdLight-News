@@ -51,7 +51,6 @@ export default async function HistoirePage({
   searchParams: { lang?: string };
 }) {
   const lang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
-  const fr = lang === "fr";
 
   const todayMD = getHaitiMonthDay();
   const todayMonth = todayMD.split("-")[0]!;
