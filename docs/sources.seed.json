@@ -6,7 +6,8 @@
     "language": "fr",
     "pollCadenceSec": 1800,
     "priority": "hot",
-    "igImageSafe": false
+    "igImageSafe": false,
+    "active": false
   },
   {
     "name": "AyiboPost",

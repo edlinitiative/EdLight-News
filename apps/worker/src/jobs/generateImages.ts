@@ -4,8 +4,9 @@
  * For each item that needs an image, tries these strategies in order:
  * 1. Publisher image (og:image, twitter:image, JSON-LD) — already set in process step
  * 2. Wikidata portrait (for public personalities detected in title)
- * 3. Branded card (EdLight-styled gradient card)
- * 4. Screenshot fallback (smart article element screenshot)
+ * 3. Tiered editorial search (Brave → Unsplash → LoC → Wikimedia)
+ * 4. Branded card (EdLight-styled gradient card)
+ * 5. Screenshot fallback (smart article element screenshot)
  *
  * Bounded work per tick so it never blocks the pipeline.
  */
@@ -22,6 +23,7 @@ import {
 } from "@edlight-news/scraper";
 import type { Item, ImageSource, ImageAttribution, EntityRef } from "@edlight-news/types";
 import { detectPersonName, fetchWikidataImage } from "../services/wikidata.js";
+import { findTieredImage } from "../services/tieredImagePipeline.js";
 
 const IMAGE_BATCH_LIMIT = parseInt(
   process.env.IMAGE_BATCH_LIMIT ?? "5",
@@ -41,6 +43,7 @@ const MIN_PUBLISHER_SHORTEST_SIDE = 700;
 export interface ImagePipelineResult {
   publisher: number;
   wikidata: number;
+  tiered: number;
   branded: number;
   screenshotted: number;
   failed: number;
@@ -53,6 +56,7 @@ export async function generateImages(): Promise<ImagePipelineResult> {
   const result: ImagePipelineResult = {
     publisher: 0,
     wikidata: 0,
+    tiered: 0,
     branded: 0,
     screenshotted: 0,
     failed: 0,
@@ -80,7 +84,7 @@ export async function generateImages(): Promise<ImagePipelineResult> {
   }
 
   console.log(
-    `[images] publisher=${result.publisher} wikidata=${result.wikidata} branded=${result.branded} screenshot=${result.screenshotted} failed=${result.failed}`,
+    `[images] publisher=${result.publisher} wikidata=${result.wikidata} tiered=${result.tiered} branded=${result.branded} screenshot=${result.screenshotted} failed=${result.failed}`,
   );
   return result;
 }
@@ -207,7 +211,64 @@ async function processItemImage(
     }
   }
 
-  // ── Strategy 3: Branded card ────────────────────────────────────────
+  // ── Strategy 3: Tiered editorial search (Brave → Unsplash → LoC → Wikimedia)
+  // Finds high-quality editorial or stock images. Especially important for
+  // sources whose publisher images are low-quality (e.g. branded canvases,
+  // watermarked thumbnails). Unsplash images are premium & properly licensed.
+  if (!skipPublisherAndScreenshot) {
+    try {
+      const tieredResult = await findTieredImage(item, 25);
+      if (tieredResult && tieredResult.width >= MIN_PUBLISHER_WIDTH) {
+        const downloaded = await downloadImage(tieredResult.url);
+        if (downloaded && downloaded.buffer.length > 5_000) {
+          const ext = tieredResult.url.includes(".png") ? "png" : "jpg";
+          const storagePath = `images/items/${item.id}_tiered.${ext}`;
+          const publicUrl = await uploadImageBuffer(
+            storagePath,
+            downloaded.buffer,
+            downloaded.contentType,
+          );
+
+          const meta: Record<string, unknown> = {
+            fetchedAt: new Date().toISOString(),
+            originalImageUrl: tieredResult.url,
+            source: tieredResult.source,
+            tier: tieredResult.tier,
+            score: tieredResult.score,
+          };
+          if (downloaded.width) meta.width = downloaded.width;
+          if (downloaded.height) meta.height = downloaded.height;
+
+          await itemsRepo.updateItem(item.id, {
+            imageUrl: publicUrl,
+            imageSource: (tieredResult.source === "unsplash" ? "commons" : "commons") as ImageSource,
+            imageConfidence: Math.min(tieredResult.score / 100, 0.95),
+            imageMeta: meta as Item["imageMeta"],
+            ...(tieredResult.author
+              ? {
+                  imageAttribution: {
+                    name: tieredResult.author,
+                    license: tieredResult.license,
+                    url: tieredResult.sourceUrl,
+                  },
+                }
+              : {}),
+          });
+
+          result.tiered++;
+          console.log(
+            `[images] tiered image for item ${item.id} (${tieredResult.source}/${tieredResult.tier}, score=${tieredResult.score.toFixed(1)})`,
+          );
+          return true;
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[images] tiered search failed for ${item.id}: ${msg}`);
+    }
+  }
+
+  // ── Strategy 4: Branded card ────────────────────────────────────────
   try {
     const pubAt = item.publishedAt as
       | { seconds?: number; _seconds?: number }
@@ -252,7 +313,7 @@ async function processItemImage(
     );
   }
 
-  // ── Strategy 4: Screenshot fallback ─────────────────────────────────
+  // ── Strategy 5: Screenshot fallback ─────────────────────────────────
   // Skip if this item is being re-processed (already had a screenshot) to
   // avoid an infinite reprocessing loop.
   // Also skip for snackable utility items — screenshots of source pages are
