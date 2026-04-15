@@ -28,6 +28,7 @@ import { fetchEnrichedFeed } from "@/lib/content";
 import type { FeedItem } from "@/components/news-feed";
 import { ArticleSideRail } from "./_components/ArticleSideRail";
 import { RelatedArticles } from "./_components/RelatedArticles";
+import { MobileProgressBar } from "./_components/MobileProgressBar";
 
 export const revalidate = 60;
 const BASE_URL = "https://news.edlight.org";
@@ -346,7 +347,7 @@ function StructuredSections({
                   <figcaption className="mt-1.5 text-xs text-stone-400 dark:text-stone-500">
                     {section.imageCaption}
                     {section.imageCredit && (
-                      <span className="ml-1 text-stone-400/70">— {section.imageCredit}</span>
+                      <span className="ml-1 text-stone-400/70 dark:text-stone-500/70">— {section.imageCredit}</span>
                     )}
                   </figcaption>
                 )}
@@ -657,7 +658,7 @@ function EdLightAttribution({ lang }: { lang: ContentLanguage }) {
   const fr = lang === "fr";
   return (
     <div className="flex items-start gap-4 rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-silk text-white font-black text-sm tracking-tight select-none shadow-sm">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-silk text-white font-black text-sm tracking-tight select-none shadow-sm dark:shadow-none">
         EL
       </div>
       <div className="min-w-0 flex-1">
@@ -697,7 +698,7 @@ function NextPrevNav({
             href={`/news/${prev.id}?lang=${lang}`}
             className="group flex h-full flex-col gap-1.5 rounded-2xl border border-stone-200/80 bg-white p-4 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-stone-700/60 dark:bg-stone-900 dark:hover:shadow-card-dark-hover"
           >
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               <ChevronLeft className="h-3 w-3" />
               {fr ? "Pr\u00e9c\u00e9dent" : "Anvan"}
             </span>
@@ -713,7 +714,7 @@ function NextPrevNav({
             href={`/news/${next.id}?lang=${lang}`}
             className="group flex h-full w-full flex-col items-end gap-1.5 rounded-2xl border border-stone-200/80 bg-white p-4 text-right transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-stone-700/60 dark:bg-stone-900 dark:hover:shadow-card-dark-hover"
           >
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               {fr ? "Suivant" : "Apre"}
               <ChevronRight className="h-3 w-3" />
             </span>
@@ -949,6 +950,9 @@ export default async function ArticlePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      {/* ── Mobile reading progress bar (below xl) ──────────────────── */}
+      <MobileProgressBar />
+
       {/* ═══════════════════════════════════════════════════════════════════
           TWO-COLUMN LAYOUT: Side rail (xl+) + Main article column
           ═══════════════════════════════════════════════════════════════════ */}
@@ -1136,7 +1140,7 @@ export default async function ArticlePage({
             <p className={`mb-8 leading-relaxed ${
               isHistory
                 ? "text-body-lg text-stone-600 dark:text-stone-300 border-l-4 border-amber-400 pl-5 italic"
-                : "text-lg text-stone-600 dark:text-stone-300 border-l-4 border-primary/30 pl-5"
+                : "text-lg text-stone-600 dark:text-stone-300 border-l-4 border-primary/30 dark:border-primary/50 pl-5"
             }`}>
               {article.summary}
             </p>
@@ -1226,7 +1230,7 @@ export default async function ArticlePage({
                 </div>
                 <Link
                   href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-                  className="shrink-0 rounded-xl bg-silk px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-silk-hover hover:shadow-md"
+                  className="shrink-0 rounded-xl bg-silk px-4 py-2 text-xs font-semibold text-white shadow-sm dark:shadow-none transition hover:bg-silk-hover hover:shadow-md"
                 >
                   {article.language === "fr" ? "Lire →" : "Li →"}
                 </Link>

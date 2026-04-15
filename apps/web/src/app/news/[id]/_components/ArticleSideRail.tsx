@@ -132,7 +132,7 @@ export function ArticleSideRail({
         href={`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 transition-all hover:bg-[#25D366]/10 hover:text-[#25D366] hover:shadow-sm dark:bg-stone-800 dark:hover:bg-[#25D366]/20"
+        className="group flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 dark:text-stone-400 transition-all hover:bg-[#25D366]/10 hover:text-[#25D366] hover:shadow-sm dark:bg-stone-800 dark:hover:bg-[#25D366]/20"
         aria-label={fr ? "Partager sur WhatsApp" : "Pataje sou WhatsApp"}
         title="WhatsApp"
       >
@@ -144,7 +144,7 @@ export function ArticleSideRail({
         href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 transition-all hover:bg-[#1877F2]/10 hover:text-[#1877F2] hover:shadow-sm dark:bg-stone-800 dark:hover:bg-[#1877F2]/20"
+        className="group flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 dark:text-stone-400 transition-all hover:bg-[#1877F2]/10 hover:text-[#1877F2] hover:shadow-sm dark:bg-stone-800 dark:hover:bg-[#1877F2]/20"
         aria-label={fr ? "Partager sur Facebook" : "Pataje sou Facebook"}
         title="Facebook"
       >
@@ -156,7 +156,7 @@ export function ArticleSideRail({
         href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 transition-all hover:bg-stone-200 hover:text-stone-800 hover:shadow-sm dark:bg-stone-800 dark:hover:bg-stone-700 dark:hover:text-stone-200"
+        className="group flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 dark:text-stone-400 transition-all hover:bg-stone-200 hover:text-stone-800 hover:shadow-sm dark:bg-stone-800 dark:hover:bg-stone-700 dark:hover:text-stone-200"
         aria-label={fr ? "Partager sur X" : "Pataje sou X"}
         title="X"
       >
@@ -169,7 +169,7 @@ export function ArticleSideRail({
         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:shadow-sm ${
           copied
             ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
-            : "bg-stone-50 text-stone-500 hover:bg-stone-200 hover:text-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700 dark:hover:text-stone-300"
+            : "bg-stone-50 text-stone-500 dark:text-stone-400 hover:bg-stone-200 hover:text-stone-700 dark:bg-stone-800 dark:hover:bg-stone-700 dark:hover:text-stone-300"
         }`}
         aria-label={fr ? "Copier le lien" : "Kopye lyen"}
         title={copied ? (fr ? "Copié !" : "Kopye !") : (fr ? "Copier le lien" : "Kopye lyen")}
@@ -185,7 +185,7 @@ export function ArticleSideRail({
         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all hover:shadow-sm ${
           saved
             ? "bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400"
-            : "bg-stone-50 text-stone-500 hover:bg-blue-50 hover:text-blue-600 dark:bg-stone-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
+            : "bg-stone-50 text-stone-500 dark:text-stone-400 hover:bg-blue-50 hover:text-blue-600 dark:bg-stone-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
         }`}
         aria-label={saved ? (fr ? "Retirer des favoris" : "Retire nan favori") : (fr ? "Sauvegarder" : "Sove")}
         title={saved ? (fr ? "Sauvegardé" : "Sove") : (fr ? "Sauvegarder" : "Sove")}
@@ -199,7 +199,7 @@ export function ArticleSideRail({
           href={sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 transition-all hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm dark:bg-stone-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-500 dark:text-stone-400 transition-all hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm dark:bg-stone-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400"
           aria-label={fr ? "Source officielle" : "Sous ofisyèl"}
           title={sourceDomain ?? (fr ? "Source" : "Sous")}
         >
@@ -212,7 +212,7 @@ export function ArticleSideRail({
       {/* Back to top */}
       <button
         onClick={scrollToTop}
-        className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-400 transition-all hover:bg-stone-200 hover:text-stone-600 hover:shadow-sm dark:bg-stone-800 dark:hover:bg-stone-700 dark:hover:text-stone-300"
+        className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-50 text-stone-400 dark:text-stone-400 transition-all hover:bg-stone-200 hover:text-stone-600 hover:shadow-sm dark:bg-stone-800 dark:hover:bg-stone-700 dark:hover:text-stone-300"
         aria-label={fr ? "Retour en haut" : "Retounen anlè"}
         title={fr ? "Retour en haut" : "Retounen anlè"}
       >
