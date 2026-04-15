@@ -167,13 +167,29 @@ export function NavBar() {
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6 lg:px-8">
           {/* Brand — Home link */}
-          <Link href={l("/")} className="flex shrink-0 items-baseline gap-0 mr-1">
-            <span className="text-lg font-black tracking-tight text-on-surface" style={{ fontFamily: "var(--font-display, var(--font-sans))" }}>
-              EdLight
-            </span>
-            <span className="ml-1.5 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
-              News
-            </span>
+          <Link href={l("/")} className="group flex shrink-0 items-center gap-0 mr-1">
+            <div className="flex items-center">
+              {/* Monogram mark */}
+              <span
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-on-surface text-[13px] font-black text-surface dark:bg-[#e7e1de] dark:text-[#1c1b1f]"
+                style={{ fontFamily: "var(--font-display, var(--font-sans))" }}
+                aria-hidden="true"
+              >
+                E
+              </span>
+              {/* Wordmark */}
+              <div className="ml-2 flex flex-col leading-none">
+                <span
+                  className="text-[15px] font-extrabold tracking-[-0.02em] text-on-surface"
+                  style={{ fontFamily: "var(--font-display, var(--font-sans))" }}
+                >
+                  EdLight <span className="font-semibold text-primary dark:text-[#c4bcff]">News</span>
+                </span>
+                <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.28em] text-on-surface-variant/50">
+                  Haïti &middot; Actualités
+                </span>
+              </div>
+            </div>
           </Link>
 
           {/* Desktop nav — primary links prominent, secondary links muted */}

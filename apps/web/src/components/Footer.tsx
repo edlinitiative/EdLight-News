@@ -95,9 +95,22 @@ export function Footer() {
         <div className="mb-12 pb-10" style={{ borderBottom: '1px solid rgba(202,196,208,0.1)' }}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tracking-tight text-[#e7e1de]" style={{ fontFamily: "var(--font-display, var(--font-sans))" }}>EdLight</span>
-                <span className="ml-2 rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#c4bcff]">News</span>
+              <div className="flex items-center gap-0">
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e7e1de] text-sm font-black text-[#1c1b1f]"
+                  style={{ fontFamily: "var(--font-display, var(--font-sans))" }}
+                  aria-hidden="true"
+                >
+                  E
+                </span>
+                <div className="ml-2.5 flex flex-col leading-none">
+                  <span className="text-lg font-extrabold tracking-[-0.02em] text-[#e7e1de]" style={{ fontFamily: "var(--font-display, var(--font-sans))" }}>
+                    EdLight <span className="font-semibold text-[#c4bcff]">News</span>
+                  </span>
+                  <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.28em] text-[#948f8c]">
+                    Haïti &middot; Actualités
+                  </span>
+                </div>
               </div>
               <p className="mt-2 max-w-sm text-body-md leading-relaxed text-[#948f8c]">
                 {T.tagline[lang]}
