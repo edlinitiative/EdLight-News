@@ -24,6 +24,7 @@ import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
 import { processIgScheduled } from "../jobs/processIgScheduled.js";
 import { processIgStory } from "../jobs/processIgStory.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
+import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
 async function main() {
   const startMs = Date.now();
@@ -105,6 +106,12 @@ async function main() {
     console.log("[ig] storyProcess:", JSON.stringify(igStoryProcess, null, 2));
   } catch (err) {
     console.warn("[ig] error:", err instanceof Error ? err.message : err);
+  }
+
+  // Ping Google if any content was published
+  if (published > 0) {
+    console.log("\n=== Ping Google Sitemap ===");
+    await pingSearchEngines();
   }
 
   const durationMs = Date.now() - startMs;

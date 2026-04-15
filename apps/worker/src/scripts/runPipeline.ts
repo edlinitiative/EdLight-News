@@ -16,6 +16,7 @@ import { processRawItems } from "../services/process.js";
 import { generateForItems } from "../services/generate.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
+import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
 async function main() {
   console.log("=== Ingest Step ===");
@@ -33,6 +34,11 @@ async function main() {
   console.log("\n=== Publish Step ===");
   const published = await contentVersionsRepo.publishEligibleDrafts();
   console.log(`Published ${published} eligible drafts`);
+
+  if (published > 0) {
+    console.log("\n=== Ping Google Sitemap ===");
+    await pingSearchEngines();
+  }
 
   console.log("\n=== Image Generation Step ===");
   try {

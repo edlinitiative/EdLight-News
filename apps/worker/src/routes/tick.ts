@@ -17,6 +17,7 @@ import { buildWaQueue } from "../jobs/buildWaQueue.js";
 import { scheduleWaPost } from "../jobs/scheduleWaPost.js";
 import { processWaScheduled } from "../jobs/processWaScheduled.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
+import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
 export const tickRouter = Router();
 
@@ -178,6 +179,15 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     } catch (err) {
       console.error("[tick] processWaScheduled error:", err);
       waResult.process = { error: String(err) };
+    }
+
+    // Ping Google if any content was published this tick
+    const anyPublished =
+      published > 0 ||
+      utilityResult.published > 0 ||
+      historyResult.published;
+    if (anyPublished) {
+      await pingSearchEngines();
     }
 
     const durationMs = Date.now() - startMs;
