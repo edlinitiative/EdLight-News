@@ -110,7 +110,7 @@ export default function OGImage() {
             textTransform: "uppercase",
           }}
         >
-          news.edlight.org
+          EdLight News
         </span>
       </div>
     ),

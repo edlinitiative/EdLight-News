@@ -29,10 +29,14 @@ const sans = Inter({
 
 export const metadata: Metadata = {
   title: "EdLight News",
+  applicationName: "EdLight News",
   description:
     "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
   icons: { icon: "/icon.svg" },
   metadataBase: new URL("https://news.edlight.org"),
+  openGraph: {
+    siteName: "EdLight News",
+  },
 };
 
 export default function RootLayout({
