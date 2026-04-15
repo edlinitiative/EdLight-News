@@ -373,9 +373,9 @@ function hasRealOpportunityFields(item: Item): boolean {
 
   const hasStructuredOppSignals =
     (opp.coverage?.trim().length ?? 0) > 10 ||
-    (opp.financingType?.trim().length ?? 0) > 2 ||
-    (opp.provider?.trim().length ?? 0) > 2 ||
-    (opp.levels?.length ?? 0) > 0;
+    (opp.howToApply?.trim().length ?? 0) > 20 ||
+    (opp.deadline?.trim().length ?? 0) > 0 ||
+    (opp.eligibility?.length ?? 0) >= 2;
 
   return hasStructuredOppSignals;
 }
