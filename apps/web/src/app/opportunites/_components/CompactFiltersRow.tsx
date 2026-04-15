@@ -43,7 +43,7 @@ export function CompactFiltersRow({
       <div className="flex flex-wrap items-center gap-2">
         {/* Search — full width on mobile, flexible on desktop */}
         <div className="relative w-full min-w-0 sm:w-auto sm:flex-1 sm:min-w-[200px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#474948]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#474948] dark:text-stone-500" />
           <input
             type="search"
             value={searchQuery}
@@ -55,7 +55,7 @@ export function CompactFiltersRow({
             <button
               type="button"
               onClick={() => onSearchChange("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#474948] hover:text-[#1d1b1a] dark:hover:text-stone-300"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#474948] hover:text-[#1d1b1a] dark:text-stone-500 dark:hover:text-stone-300"
               aria-label="Clear"
             >
               <X className="h-3.5 w-3.5" />

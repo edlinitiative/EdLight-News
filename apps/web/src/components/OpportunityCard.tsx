@@ -124,12 +124,12 @@ export function OpportunityCard({
         {/* Category badge — uses derived subcategory */}
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <span
-            className="rounded-full bg-[#e8e1df] px-2.5 py-0.5 text-xs font-semibold text-[#464555]"
+            className="rounded-full bg-[#e8e1df] px-2.5 py-0.5 text-xs font-semibold text-[#464555] dark:bg-stone-800 dark:text-stone-300"
           >
             {subCatLabel}
           </span>
           {classification && classification.confidence !== "high" && (
-            <span className="rounded-full bg-[#f9f2f0] px-1.5 py-0.5 text-[10px] text-[#474948]">
+            <span className="rounded-full bg-[#f9f2f0] px-1.5 py-0.5 text-[10px] text-[#474948] dark:bg-stone-800 dark:text-stone-400">
               {classification.confidence === "medium" ? "~" : "?"}
             </span>
           )}

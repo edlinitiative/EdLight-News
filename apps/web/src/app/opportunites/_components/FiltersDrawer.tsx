@@ -90,7 +90,7 @@ export function FiltersDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1 text-[#474948] hover:bg-[#f9f2f0] hover:text-[#1d1b1a] dark:hover:bg-stone-800 dark:hover:text-stone-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
+            className="rounded-full p-1 text-[#474948] hover:bg-[#f9f2f0] hover:text-[#1d1b1a] dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
           >
             <X className="h-5 w-5" />
           </button>

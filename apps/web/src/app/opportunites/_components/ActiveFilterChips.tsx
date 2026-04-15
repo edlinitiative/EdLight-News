@@ -35,7 +35,7 @@ export function ActiveFilterChips({
           <button
             type="button"
             onClick={() => onRemove(f.key)}
-            className="ml-0.5 rounded-full p-0.5 text-[#474948] hover:bg-[#e8e1df] hover:text-[#1d1b1a] dark:hover:bg-stone-700 dark:hover:text-stone-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
+            className="ml-0.5 rounded-full p-0.5 text-[#474948] hover:bg-[#e8e1df] hover:text-[#1d1b1a] dark:text-stone-400 dark:hover:bg-stone-700 dark:hover:text-stone-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
             aria-label={`Remove ${f.label}`}
           >
             <X className="h-3 w-3" />

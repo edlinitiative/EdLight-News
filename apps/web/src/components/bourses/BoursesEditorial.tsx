@@ -459,7 +459,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
             <button
               type="button"
               onClick={() => setShowFullCatalogue(false)}
-              className="mx-auto mt-4 flex items-center gap-1 text-xs font-medium text-[#474948] hover:text-[#1d1b1a] dark:hover:text-stone-300 transition-colors"
+              className="mx-auto mt-4 flex items-center gap-1 text-xs font-medium text-[#474948] hover:text-[#1d1b1a] dark:text-stone-400 dark:hover:text-stone-300 transition-colors"
             >
               <ChevronDown className="h-3.5 w-3.5 rotate-180" />
               {fr ? "Réduire" : "Redwi"}

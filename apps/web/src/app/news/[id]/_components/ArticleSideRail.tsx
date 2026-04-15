@@ -108,7 +108,7 @@ export function ArticleSideRail({
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="text-stone-100 dark:text-stone-800"
+            className="text-stone-200 dark:text-stone-700"
           />
           <circle
             cx="18" cy="18" r="15.9"

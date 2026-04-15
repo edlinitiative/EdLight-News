@@ -191,28 +191,28 @@ export function ReportIssueButton({
         >
           <div
             ref={modalRef}
-            className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl"
+            className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-stone-900"
             role="dialog"
             aria-modal="true"
             aria-label={fr ? "Signaler une erreur" : "Siyale yon erè"}
           >
-            <h3 className="text-lg font-semibold text-stone-900">
+            <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
               {fr ? "Signaler une erreur" : "Siyale yon erè"}
             </h3>
-            <p className="mt-1 text-sm text-stone-500">
+            <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
               {fr
                 ? "Aidez-nous à améliorer cette page."
                 : "Ede nou amelyore paj sa a."}
             </p>
 
             {/* Reason selector */}
-            <label className="mt-4 block text-sm font-medium text-stone-700">
+            <label className="mt-4 block text-sm font-medium text-stone-700 dark:text-stone-300">
               {fr ? "Type d'erreur" : "Tip erè"}
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as FeedbackReason)}
-              className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
             >
               {REASON_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -222,7 +222,7 @@ export function ReportIssueButton({
             </select>
 
             {/* Note */}
-            <label className="mt-3 block text-sm font-medium text-stone-700">
+            <label className="mt-3 block text-sm font-medium text-stone-700 dark:text-stone-300">
               {fr ? "Détails (optionnel)" : "Detay (opsyonèl)"}
             </label>
             <textarea
@@ -235,9 +235,9 @@ export function ReportIssueButton({
                   ? "Décrivez brièvement l'erreur…"
                   : "Dekri erè a brèvman…"
               }
-              className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2 text-sm shadow-sm placeholder:text-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2 text-sm shadow-sm placeholder:text-stone-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:placeholder:text-stone-500"
             />
-            <p className="mt-1 text-right text-xs text-stone-400">
+            <p className="mt-1 text-right text-xs text-stone-400 dark:text-stone-500">
               {note.length}/500
             </p>
 
@@ -246,7 +246,7 @@ export function ReportIssueButton({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800"
               >
                 {fr ? "Annuler" : "Anile"}
               </button>

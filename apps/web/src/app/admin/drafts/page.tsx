@@ -23,22 +23,22 @@ const STATUS_CONFIG: Record<
 > = {
   draft: {
     label: { fr: "Brouillon", ht: "Bouyon" },
-    color: "bg-stone-100 text-stone-800",
+    color: "bg-stone-100 text-stone-800 dark:bg-stone-700/60 dark:text-stone-200",
     icon: Clock,
   },
   submitted: {
     label: { fr: "Soumis", ht: "Soumèt" },
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
     icon: Eye,
   },
   approved: {
     label: { fr: "Approuvé", ht: "Apwouve" },
-    color: "bg-green-100 text-green-800",
+    color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
     icon: CheckCircle,
   },
   rejected: {
     label: { fr: "Rejeté", ht: "Rejte" },
-    color: "bg-red-100 text-red-800",
+    color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     icon: XCircle,
   },
 };
@@ -48,11 +48,11 @@ const STATUS_CONFIG: Record<
 function ComingSoon({ fr }: { fr: boolean }) {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-20 text-center">
-      <FileEdit className="mx-auto h-16 w-16 text-stone-300" />
-      <h1 className="text-3xl font-bold text-stone-800">
+      <FileEdit className="mx-auto h-16 w-16 text-stone-300 dark:text-stone-600" />
+      <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-100">
         {fr ? "Programme Contributeur" : "Pwogram Kontribitè"}
       </h1>
-      <p className="text-lg text-stone-500">
+      <p className="text-lg text-stone-500 dark:text-stone-400">
         {fr
           ? "Bientôt, vous pourrez soumettre des articles, guides et fiches pour aider les étudiants haïtiens. Revenez vite !"
           : "Byento, w ap kapab soumèt atik, gid ak fich pou ede elèv ayisyen yo. Tounen vit !"}
@@ -99,7 +99,7 @@ async function DraftList({ fr }: { fr: boolean }) {
           <FileEdit className="mr-2 inline h-6 w-6 text-blue-600" />
           {fr ? "Gestion des brouillons" : "Jesyon bouyon yo"}
         </h1>
-        <span className="rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600">
+        <span className="rounded-full bg-stone-100 px-3 py-1 text-sm text-stone-600 dark:bg-stone-800 dark:text-stone-300">
           {allDrafts.length} {fr ? "brouillons" : "bouyon"}
         </span>
       </div>
@@ -134,14 +134,14 @@ async function DraftList({ fr }: { fr: boolean }) {
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               <cfg.icon className="h-4 w-4" />
               {fr ? cfg.label.fr : cfg.label.ht}
-              <span className="text-sm font-normal text-stone-400">
+              <span className="text-sm font-normal text-stone-400 dark:text-stone-500">
                 ({drafts.length})
               </span>
             </h2>
 
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-lg border dark:border-stone-700">
               <table className="w-full text-left text-sm">
-                <thead className="border-b bg-stone-50 text-xs text-stone-500">
+                <thead className="border-b bg-stone-50 text-xs text-stone-500 dark:border-stone-700 dark:bg-stone-800/70 dark:text-stone-300">
                   <tr>
                     <th className="px-4 py-2">{fr ? "Titre" : "Tit"}</th>
                     <th className="px-4 py-2">{fr ? "Auteur" : "Otè"}</th>
@@ -149,21 +149,21 @@ async function DraftList({ fr }: { fr: boolean }) {
                     <th className="px-4 py-2">{fr ? "Créé le" : "Kreye"}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y dark:divide-stone-700">
                   {drafts.map((d) => (
-                    <tr key={d.id} className="hover:bg-stone-50">
-                      <td className="px-4 py-2 font-medium text-stone-900">
+                    <tr key={d.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                      <td className="px-4 py-2 font-medium text-stone-900 dark:text-stone-100">
                         {d.title_fr}
                       </td>
-                      <td className="px-4 py-2 text-stone-600">
+                      <td className="px-4 py-2 text-stone-600 dark:text-stone-300">
                         {d.authorId}
                       </td>
                       <td className="px-4 py-2">
-                        <span className="rounded bg-stone-100 px-2 py-0.5 text-xs">
+                        <span className="rounded bg-stone-100 px-2 py-0.5 text-xs dark:bg-stone-800 dark:text-stone-300">
                           {d.series ?? "—"}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-stone-500 text-xs">
+                      <td className="px-4 py-2 text-xs text-stone-500 dark:text-stone-400">
                         {d.createdAt
                           ? new Date(
                               typeof d.createdAt === "string"
@@ -188,7 +188,7 @@ async function DraftList({ fr }: { fr: boolean }) {
       })}
 
       {allDrafts.length === 0 && (
-        <div className="rounded-lg border-2 border-dashed py-12 text-center text-stone-400">
+        <div className="rounded-lg border-2 border-dashed py-12 text-center text-stone-400 dark:border-stone-700 dark:text-stone-500">
           <FileEdit className="mx-auto mb-3 h-10 w-10" />
           <p>{fr ? "Aucun brouillon pour le moment." : "Pa gen bouyon pou kounye a."}</p>
         </div>
