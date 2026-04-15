@@ -136,6 +136,7 @@ jobs:
             GOOGLE_CSE_CX=${{ secrets.GOOGLE_CSE_CX }}
             Unsplash_ACCESS_KEY=${{ secrets.UNSPLASH_ACCESS_KEY }}
             WORKER_API_KEY=${{ secrets.WORKER_API_KEY }}
+            GOOGLE_VISION_API_KEY=${{ secrets.GOOGLE_VISION_API_KEY }}
             PROCESS_BATCH_LIMIT=10
             GENERATE_BATCH_LIMIT=3
             IMAGE_BATCH_LIMIT=5
