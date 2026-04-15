@@ -26,6 +26,8 @@ import { OpinionHeader } from "@/components/OpinionHeader";
 import { AuthorBlock } from "@/components/AuthorBlock";
 import { fetchEnrichedFeed } from "@/lib/content";
 import type { FeedItem } from "@/components/news-feed";
+import { ArticleSideRail } from "./_components/ArticleSideRail";
+import { RelatedArticles } from "./_components/RelatedArticles";
 
 export const revalidate = 60;
 const BASE_URL = "https://news.edlight.org";
@@ -102,19 +104,15 @@ const SOURCE_HEADING_RE =
 /** Remove trailing source-like sections from a Markdown body string. */
 function stripMarkdownSourceSections(md: string | undefined | null): string {
   if (!md) return "";
-  // Split on ## headings – keep everything before the first source heading
-  // that is *not* followed by a non-source heading (i.e. strip trailing
-  // source sections only, so body content that merely mentions "source" in
-  // a mid-article heading is preserved).
   const lines = md.split("\n");
   let cutIndex = -1;
   for (let i = lines.length - 1; i >= 0; i--) {
     const m = lines[i].match(/^##\s+(.+)/);
     if (m) {
       if (SOURCE_HEADING_RE.test(m[1].trim())) {
-        cutIndex = i; // keep searching upward for consecutive source sections
+        cutIndex = i;
       } else {
-        break; // hit a non-source heading, stop
+        break;
       }
     }
   }
@@ -132,12 +130,12 @@ function stripStructuredSourceSections(
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function SourceLinks({ item }: { item: Item | null }) {
+function SourceLinks({ item, lang }: { item: Item | null; lang: ContentLanguage }) {
   if (!item?.source?.originalUrl && !item?.canonicalUrl) return null;
+  const fr = lang === "fr";
 
   const originalUrl = item.source?.originalUrl ?? item.canonicalUrl;
   const aggregatorUrl = item.source?.aggregatorUrl;
-  const sourceName = item.source?.name ?? "Source";
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -145,19 +143,19 @@ function SourceLinks({ item }: { item: Item | null }) {
         href={originalUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-3 py-1.5 font-medium text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-800"
+        className="inline-flex items-center gap-1.5 rounded-xl bg-blue-50 px-4 py-2 font-medium text-blue-700 ring-1 ring-inset ring-blue-100 transition-all hover:bg-blue-100 hover:shadow-sm dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800/40 dark:hover:bg-blue-800"
       >
-        <span>Source officielle</span>
-        <span className="text-xs text-stone-400 dark:text-stone-500">({extractDomain(originalUrl)})</span>
+        <span>{fr ? "Source officielle" : "Sous ofisyèl"}</span>
+        <span className="text-xs text-blue-400 dark:text-blue-500">({extractDomain(originalUrl)})</span>
       </a>
       {aggregatorUrl && aggregatorUrl !== originalUrl && (
         <a
           href={aggregatorUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 rounded-md bg-stone-50 px-3 py-1.5 text-stone-600 hover:bg-stone-100 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-stone-50 px-4 py-2 text-stone-600 ring-1 ring-inset ring-stone-200/60 transition-all hover:bg-stone-100 hover:shadow-sm dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-700 dark:hover:bg-stone-700"
         >
-          <span>Via agrégateur</span>
+          <span>{fr ? "Via agrégateur" : "Via agregatè"}</span>
           <span className="text-xs text-stone-400 dark:text-stone-500">({extractDomain(aggregatorUrl)})</span>
         </a>
       )}
@@ -219,12 +217,12 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
   if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-lg border bg-purple-50/50 p-5 dark:border-stone-700 dark:bg-purple-900/20">
-      <h2 className="mb-3 text-base font-semibold dark:text-white">
+    <div className="rounded-2xl border border-purple-100 bg-purple-50/50 p-6 dark:border-stone-700 dark:bg-purple-900/20">
+      <h2 className="mb-4 text-title-sm dark:text-white">
         <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Fiche Bourse" : "Fich Bous"}
       </h2>
-      <dl className="space-y-2">
+      <dl className="space-y-3">
         {rows.map(({ label, value }, i) => (
           <div key={i} className="grid grid-cols-[minmax(0,100px)_1fr] sm:grid-cols-[140px_1fr] gap-2 text-sm">
             <dt className="font-medium text-stone-600 dark:text-stone-400">{label}</dt>
@@ -249,8 +247,8 @@ function RelatedUpdates({
   if (others.length === 0) return null;
 
   return (
-    <section className="rounded-lg border p-4 dark:border-stone-700">
-      <h2 className="mb-3 text-base font-semibold dark:text-white">
+    <section className="rounded-2xl border border-stone-200/80 p-5 dark:border-stone-700">
+      <h2 className="mb-3 text-title-sm dark:text-white">
         {lang === "fr" ? "Mises à jour liées" : "Mizajou ki gen rapò"}
       </h2>
       <ul className="space-y-2">
@@ -280,7 +278,6 @@ function SynthesisBadge({
 }) {
   if (item.itemType !== "synthesis") return null;
   const sourceCount = item.synthesisMeta?.sourceCount ?? 0;
-  const cvTags = item.sourceList; // placeholder, tags come from CV not item
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -304,8 +301,6 @@ function StructuredSections({
   return (
     <div className={isHistory ? "space-y-10" : "space-y-6"}>
       {sections.map((section, i) => {
-        // Split content to extract student takeaway and source lines
-        // so we can render them as styled callouts instead of raw markdown.
         const { mainContent, takeaway, sourceLine } = isHistory
           ? extractHistoryParts(section.content)
           : { mainContent: section.content, takeaway: null, sourceLine: null };
@@ -315,11 +310,10 @@ function StructuredSections({
             key={i}
             className={
               isHistory
-                ? "relative rounded-xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-700 dark:bg-stone-800"
+                ? "relative rounded-2xl border border-stone-200 bg-white p-6 shadow-premium dark:border-stone-700 dark:bg-stone-800 dark:shadow-premium-dark"
                 : ""
             }
           >
-            {/* Section heading */}
             <h2
               className={
                 isHistory
@@ -330,9 +324,8 @@ function StructuredSections({
               {section.heading}
             </h2>
 
-            {/* Section illustration */}
             {section.imageUrl && (
-              <figure className="mb-4 overflow-hidden rounded-lg">
+              <figure className="mb-4 overflow-hidden rounded-xl">
                 <div className="relative aspect-[2/1] w-full bg-stone-100 dark:bg-stone-700">
                   <ImageWithFallback
                     src={section.imageUrl}
@@ -360,14 +353,12 @@ function StructuredSections({
               </figure>
             )}
 
-            {/* Main body text */}
             <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-relaxed">
               <ReactMarkdown>{mainContent}</ReactMarkdown>
             </div>
 
-            {/* Student takeaway callout */}
             {takeaway && (
-              <div className="mt-4 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
+              <div className="mt-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
                 <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-400" />
                 <div className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
                   <span className="font-semibold">{takeaway.label}</span>{" "}
@@ -382,7 +373,6 @@ function StructuredSections({
               </div>
             )}
 
-            {/* Source citation badge */}
             {sourceLine && (
               <div className="mt-3 flex items-start gap-2 text-sm text-stone-500 dark:text-stone-400">
                 <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-400 dark:text-stone-500" />
@@ -398,7 +388,6 @@ function StructuredSections({
               </div>
             )}
 
-            {/* Divider between sections (except last) */}
             {isHistory && i < sections.length - 1 && (
               <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
                 <div className="h-2 w-2 rounded-full bg-stone-300 dark:bg-stone-600" />
@@ -423,7 +412,6 @@ function extractHistoryParts(content: string): {
   let sourceLine: string | null = null;
 
   for (const line of lines) {
-    // Match 💡 **Pour les étudiants :** ... or 💡 **Pou etidyan yo :** ...
     const takeawayMatch = line.match(
       /^\s*💡\s*\*\*(.+?)\s*[:\u00a0]\*\*\s*(.+)/,
     );
@@ -431,7 +419,6 @@ function extractHistoryParts(content: string): {
       takeaway = { label: takeawayMatch[1]!.trim(), text: takeawayMatch[2]!.trim() };
       continue;
     }
-    // Match 📚 Sources : ... or 📚 Sous : ...
     const sourceMatch = line.match(/^\s*📚\s*(.+)/);
     if (sourceMatch) {
       sourceLine = sourceMatch[1]!.trim();
@@ -458,8 +445,8 @@ function SynthesisSourcesList({
   if (!sourceList || sourceList.length === 0) return null;
 
   return (
-    <section className="rounded-lg border bg-stone-50 p-5 dark:border-stone-700 dark:bg-stone-800">
-      <h2 className="mb-3 text-base font-semibold dark:text-white">
+    <section className="rounded-2xl border border-stone-200/80 bg-stone-50 p-6 dark:border-stone-700 dark:bg-stone-800">
+      <h2 className="mb-3 text-title-sm dark:text-white">
         <Newspaper className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr"
           ? `Sources (${sourceList.length})`
@@ -531,8 +518,8 @@ function UtilityFactsFiche({
   if (!hasContent) return null;
 
   return (
-    <div className="rounded-lg border bg-violet-50/50 p-5 dark:border-stone-700 dark:bg-violet-900/20">
-      <h2 className="mb-3 text-base font-semibold dark:text-white">
+    <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-6 dark:border-stone-700 dark:bg-violet-900/20">
+      <h2 className="mb-4 text-title-sm dark:text-white">
         <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Informations clés" : "Enfòmasyon kle"}
       </h2>
@@ -614,8 +601,8 @@ function UtilitySourceCitations({
   const cites = (article as any).sourceCitations as { name: string; url: string }[] | undefined;
   if (!cites || cites.length === 0) return null;
   return (
-    <section className="rounded-lg border bg-stone-50 p-5 dark:border-stone-700 dark:bg-stone-800">
-      <h2 className="mb-3 text-base font-semibold dark:text-white">
+    <section className="rounded-2xl border border-stone-200/80 bg-stone-50 p-6 dark:border-stone-700 dark:bg-stone-800">
+      <h2 className="mb-3 text-title-sm dark:text-white">
         <Paperclip className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Sources consultées" : "Sous konsilte"}
       </h2>
@@ -647,7 +634,7 @@ function WhatChangedNote({
 }) {
   if (!whatChanged) return null;
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-900/20">
       <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
         <RefreshCw className="mr-1.5 inline-block h-4 w-4" />
         {lang === "fr" ? "Dernière mise à jour :" : "Dènye mizajou :"}
@@ -669,20 +656,20 @@ function estimateReadingTime(body: string | null | undefined, sections: ContentS
 function EdLightAttribution({ lang }: { lang: ContentLanguage }) {
   const fr = lang === "fr";
   return (
-    <div className="flex items-start gap-4 rounded-xl border border-stone-200 bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-900">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white font-black text-sm tracking-tight select-none">
+    <div className="flex items-start gap-4 rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-silk text-white font-black text-sm tracking-tight select-none shadow-sm">
         EL
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-stone-900 dark:text-white">EdLight News</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-stone-500 dark:text-stone-400">
+        <p className="text-title-sm text-stone-900 dark:text-white">EdLight News</p>
+        <p className="mt-1 text-body-sm leading-relaxed text-stone-500 dark:text-stone-400">
           {fr
             ? "Plateforme d\u2019information et d\u2019opportunit\u00e9s pour la jeunesse ha\u00eftienne et la diaspora. Synth\u00e8ses v\u00e9rifi\u00e9es, actualit\u00e9s et ressources publi\u00e9es quotidiennement."
             : "Platf\u00f2m enf\u00f2masyon ak okazyon pou j\u00e8n ayisyen yo ak dyaspora a. Sent\u00e8z verifye, nouv\u00e8l ak resous pibliye chak jou."}
         </p>
         <Link
           href={`/about?lang=${lang}`}
-          className="mt-1.5 inline-block text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+          className="mt-2 inline-block text-body-sm font-semibold text-primary hover:underline dark:text-blue-400"
         >
           {fr ? "En savoir plus \u2192" : "Aprann plis \u2192"}
         </Link>
@@ -703,18 +690,18 @@ function NextPrevNav({
   if (!prev && !next) return null;
   const fr = lang === "fr";
   return (
-    <div className="grid grid-cols-2 gap-3 border-t pt-5 dark:border-stone-800">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div>
         {prev && (
           <Link
             href={`/news/${prev.id}?lang=${lang}`}
-            className="group flex flex-col gap-1 rounded-xl border border-stone-200 p-3 transition-shadow hover:shadow-sm dark:border-stone-700"
+            className="group flex h-full flex-col gap-1.5 rounded-2xl border border-stone-200/80 bg-white p-4 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-stone-700/60 dark:bg-stone-900 dark:hover:shadow-card-dark-hover"
           >
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400">
               <ChevronLeft className="h-3 w-3" />
               {fr ? "Pr\u00e9c\u00e9dent" : "Anvan"}
             </span>
-            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 group-hover:text-blue-700 dark:text-stone-100 dark:group-hover:text-blue-400">
+            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 transition-colors group-hover:text-primary dark:text-stone-100 dark:group-hover:text-blue-400">
               {prev.title}
             </span>
           </Link>
@@ -724,13 +711,13 @@ function NextPrevNav({
         {next && (
           <Link
             href={`/news/${next.id}?lang=${lang}`}
-            className="group flex w-full flex-col items-end gap-1 rounded-xl border border-stone-200 p-3 text-right transition-shadow hover:shadow-sm dark:border-stone-700"
+            className="group flex h-full w-full flex-col items-end gap-1.5 rounded-2xl border border-stone-200/80 bg-white p-4 text-right transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-stone-700/60 dark:bg-stone-900 dark:hover:shadow-card-dark-hover"
           >
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400">
               {fr ? "Suivant" : "Apre"}
               <ChevronRight className="h-3 w-3" />
             </span>
-            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 group-hover:text-blue-700 dark:text-stone-100 dark:group-hover:text-blue-400">
+            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 transition-colors group-hover:text-primary dark:text-stone-100 dark:group-hover:text-blue-400">
               {next.title}
             </span>
           </Link>
@@ -776,8 +763,7 @@ export default async function ArticlePage({
     (s) => s.language === otherLang && s.channel === "web",
   );
 
-  // Find related articles by dedupeGroupId (wrapped in try/catch —
-  // the composite index may not yet exist in Firestore)
+  // Find related articles by dedupeGroupId
   let relatedArticles: ContentVersion[] = [];
   let dedupeGroupItems: Item[] = [];
   try {
@@ -799,21 +785,20 @@ export default async function ArticlePage({
       }
     }
   } catch (err) {
-    // Firestore index may not exist yet — degrade gracefully
     console.warn("[news/[id]] Failed to fetch related articles:", err);
   }
 
-  // Next/prev articles — fetch recent feed, pick 2 adjacent articles
+  // Next/prev articles + feed for "related by category"
   let prevArticle: FeedItem | null = null;
   let nextArticle: FeedItem | null = null;
+  let recentFeed: FeedItem[] = [];
   try {
-    const recentFeed = await fetchEnrichedFeed(currentLang, 20);
+    recentFeed = await fetchEnrichedFeed(currentLang, 40);
     const idx = recentFeed.findIndex((a) => a.itemId === article.itemId || a.id === article.id || a.id === article.itemId);
     if (idx !== -1) {
       prevArticle = recentFeed[idx - 1] ?? null;
       nextArticle = recentFeed[idx + 1] ?? null;
     } else {
-      // current not in top 20 — just offer 2 most recent
       nextArticle = recentFeed[0] ?? null;
       prevArticle = recentFeed[1] ?? null;
     }
@@ -821,10 +806,18 @@ export default async function ArticlePage({
     // non-critical — degrade silently
   }
 
-  // ── Pick best image across dedup group (same logic as ranking.ts) ──────
-  // The card feed runs mergeGroup() which selects the highest-quality image
-  // across all duplicates.  The detail page must do the same so the hero
-  // matches what the user saw on the card.
+  // Build "related by category" recommendations from the feed
+  const categoryRelated = recentFeed
+    .filter((a) =>
+      a.id !== article.id &&
+      a.itemId !== article.itemId &&
+      (a.category === (item?.category ?? "") || a.geoTag === item?.geoTag) &&
+      a.id !== prevArticle?.id &&
+      a.id !== nextArticle?.id
+    )
+    .slice(0, 3);
+
+  // ── Pick best image across dedup group ────────────────────────────────
   const IMAGE_RANK: Record<string, number> = {
     gemini_ai: 5,
     publisher: 4,
@@ -836,8 +829,6 @@ export default async function ArticlePage({
   let heroImageSource = item?.imageSource ?? null;
   let heroImageAttribution = item?.imageAttribution ?? null;
   if (dedupeGroupItems.length > 0) {
-    // Start from -1 (same as mergeGroup in ranking.ts) so the
-    // best image is picked identically to what the feed cards show.
     let bestScore = -1;
     for (const sibling of dedupeGroupItems) {
       if (!sibling.imageUrl) continue;
@@ -856,14 +847,11 @@ export default async function ArticlePage({
   const isOpinion = item?.itemType === "opinion";
   const isHistory = isUtility && item?.utilityMeta?.utilityType === "history";
 
-  // Derive subcategory using the classifier for opportunity items
+  // Derive subcategory
   const OPPORTUNITY_CATEGORIES = new Set([
     "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
   ]);
 
-  // Smell test: only apply classifier when content actually looks like an
-  // opportunity — prevents general news articles with stale opp-adjacent
-  // categories (e.g. crime news with category "concours") from mis-labelling.
   const passesSmellTest =
     contentLooksLikeOpportunity(article.title ?? "", article.summary);
 
@@ -892,10 +880,6 @@ export default async function ArticlePage({
   const isBourses = derivedSubCat === "bourses" || (!derivedSubCat &&
     (item?.category === "scholarship" || item?.category === "opportunity"));
 
-  // Use derived subcategory colour for opportunity items, fall back to legacy.
-  // When an opp-adjacent category failed the smell test, remap to avoid
-  // misleading "Concours"/"Stages" labels on general news articles.
-  // Also remap utility daily-fact items stored as "resource" → local_news/news.
   const rawCat = item?.category ?? "";
   const isUtilityDailyFact = rawCat === "resource" && item?.itemType === "utility" && item?.utilityMeta?.utilityType === "daily_fact";
   const fallbackCat = isUtilityDailyFact
@@ -910,7 +894,7 @@ export default async function ArticlePage({
     ? SUBCAT_LABELS[derivedSubCat][currentLang]
     : categoryLabel(fallbackCat, currentLang);
 
-  // Timestamp to date
+  // Dates
   const pubAt = item?.publishedAt as { seconds?: number; _seconds?: number } | null | undefined;
   const pubSecs = pubAt?.seconds ?? (pubAt as Record<string, number> | null)?._seconds;
   const pubDate = pubSecs ? formatDate({ seconds: pubSecs }, currentLang) : null;
@@ -919,12 +903,17 @@ export default async function ArticlePage({
   const createdSecs = createdAt?.seconds ?? (createdAt as Record<string, number> | undefined)?._seconds;
   const createdDate = createdSecs ? formatDate({ seconds: createdSecs }, currentLang) : null;
 
-  // Last major update date (synthesis only)
   const lmuAt = item?.lastMajorUpdateAt as { seconds?: number; _seconds?: number } | null | undefined;
   const lmuSecs = lmuAt?.seconds ?? (lmuAt as Record<string, number> | null)?._seconds;
   const lastUpdateDate = lmuSecs ? formatDate({ seconds: lmuSecs }, currentLang) : null;
 
-  // JSON-LD structured data for NewsArticle
+  const readingTime = estimateReadingTime(article.body, article.sections);
+
+  // Source URL for side rail
+  const sourceUrl = item?.source?.originalUrl ?? item?.canonicalUrl ?? null;
+  const sourceDomain = sourceUrl ? extractDomain(sourceUrl) : null;
+
+  // JSON-LD
   const publishedISO = pubSecs ? new Date(pubSecs * 1000).toISOString() : null;
   const createdISO = createdSecs ? new Date(createdSecs * 1000).toISOString() : null;
   const jsonLd = {
@@ -952,344 +941,388 @@ export default async function ArticlePage({
   };
 
   return (
-    <article className="mx-auto max-w-3xl space-y-8">
+    <>
       <PageLanguageSync lang={currentLang} />
       <ViewTracker itemId={article.itemId} />
-      {/* Breadcrumb */}
-      <nav aria-label="Fil d'Ariane" className="-mb-2 flex items-center gap-1 text-xs text-stone-400 dark:text-stone-500">
-        <Link href={`/?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
-          {currentLang === "fr" ? "Accueil" : "Akèy"}
-        </Link>
-        <ChevronRight className="h-3 w-3 shrink-0" />
-        {isOpinion ? (
-          <Link href={`/opinion?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
-            {currentLang === "fr" ? "Opinion" : "Opinyon"}
-          </Link>
-        ) : (
-          <Link href={`/news?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
-            {currentLang === "fr" ? "Actualités" : "Nouvèl"}
-          </Link>
-        )}
-        {catLabel && !isOpinion && (
-          <>
-            <ChevronRight className="h-3 w-3 shrink-0" />
-            <span className="text-stone-500 dark:text-stone-400 font-medium">{catLabel}</span>
-          </>
-        )}
-      </nav>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Hero image — best image from dedup group (mirrors card logic).
-          For utility items (daily fact, etc.) with only a branded card,
-          skip the hero entirely — the generated gradient card adds no value.
-          For branded-source images on non-utility articles, render a polished
-          CSS hero instead of the static PNG (crisp at all sizes, dark-mode aware).
-          For real images, use the CSS hero as a graceful fallback. */}
-      {heroImageUrl && !(isUtility && heroImageSource === "branded") && (
-        heroImageSource === "branded" ? (
-          <BrandedHero
-            title={article.title}
-            category={fallbackCat}
-            sourceName={item?.source?.name}
-            className={isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"}
-          />
-        ) : (
-          <div className={`relative w-full overflow-hidden rounded-xl bg-stone-100 dark:bg-stone-800 ${
-            isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
-          }`}>
-            <ImageWithFallback
-              src={heroImageUrl}
-              alt={article.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 768px"
-              className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
-              fallback={
-                <BrandedHero
-                  title={article.title}
-                  category={fallbackCat}
-                  sourceName={item?.source?.name}
-                  className="h-full w-full"
-                />
-              }
-            />
-            {/* Dark gradient overlay for history hero (text legibility) */}
-            {isHistory && (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-            )}
-            {/* Image credit label */}
-            {heroImageSource === "publisher" && (
-              <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-                {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
-              </span>
-            )}
-            {heroImageSource === "wikidata" && (
-              <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-                {heroImageAttribution?.name
-                  ? `Photo : ${heroImageAttribution.name}`
-                  : "Wikimedia Commons"}
-                {heroImageAttribution?.license
-                  ? ` (${heroImageAttribution.license})`
-                  : ""}
-              </span>
-            )}
-            {heroImageSource === "screenshot" && (
-              <span className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-0.5 text-xs text-white/70">
-                {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
-              </span>
-            )}
-          </div>
-        )
-      )}
-      {/* No image at all — show CSS branded hero as graceful placeholder */}
-      {!heroImageUrl && !isUtility && (
-        <BrandedHero
-          title={article.title}
-          category={fallbackCat}
-          sourceName={item?.source?.name}
-          className="aspect-video"
-        />
-      )}
 
-      {/* Top meta badges */}
-      {isOpinion ? (
-        <OpinionHeader
-          title={article.title}
-          summary={article.summary}
-          item={item}
-          lang={currentLang}
-          publishedDate={pubDate || createdDate}
-          readingTime={estimateReadingTime(article.body, article.sections)}
-        />
-      ) : (
-      <>
-      <div className="flex flex-wrap items-center gap-2">
-        {(derivedSubCat || item?.category) && (
-          <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${catColor}`}>
-            {catLabel}
-          </span>
-        )}
-        {isSynthesis && item && <SynthesisBadge item={item} lang={currentLang} />}
-        {isUtility && item && <UtilityBadge item={item} lang={currentLang} />}
-        {item?.geoTag === "HT" && fallbackCat !== "local_news" && (
-          <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/20 dark:text-red-300">
-            <MapPin className="mr-0.5 inline-block h-3 w-3" />{currentLang === "fr" ? "Haïti" : "Ayiti"}
-          </span>
-        )}
-        <span className="text-xs text-stone-400 uppercase dark:text-stone-500">
-          {article.language === "fr" ? "Français" : "Kreyòl Ayisyen"}
-        </span>
-        {/* Inline date for compact layout */}
-        {(pubDate || createdDate) && (
-          <span className="text-xs text-stone-400 dark:text-stone-500">
-            · {pubDate || createdDate}
-          </span>
-        )}
-        {/* Reading time */}
-        {(() => {
-          const mins = estimateReadingTime(article.body, article.sections);
-          return (
-            <span className="text-xs text-stone-400 dark:text-stone-500">
-              · {currentLang === "fr" ? `${mins} min` : `${mins} min li`}
-            </span>
-          );
-        })()}
-      </div>
+      {/* ═══════════════════════════════════════════════════════════════════
+          TWO-COLUMN LAYOUT: Side rail (xl+) + Main article column
+          ═══════════════════════════════════════════════════════════════════ */}
+      <div className="relative mx-auto max-w-4xl xl:flex xl:gap-10">
 
-      {/* Title */}
-      <h1 className={`font-bold leading-tight dark:text-white ${
-        isHistory ? "text-2xl sm:text-3xl" : "text-3xl"
-      }`}>{article.title}</h1>
-
-      {/* Trust badges (utility/history articles) */}
-      {isUtility && item && (
-        <MetaBadges
-          verifiedAt={item.updatedAt}
-          updatedAt={item.lastMajorUpdateAt}
-          publishedAt={item.publishedAt ?? article.createdAt}
-          lang={currentLang}
-          variant="full"
-        />
-      )}
-
-      {/* Synthesis update date */}
-      {isSynthesis && lastUpdateDate && (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400">
-          {currentLang === "fr" ? "Mis à jour le" : "Mizajou"} {lastUpdateDate}
-        </p>
-      )}
-
-      {/* Source links (non-synthesis, non-history only) */}
-      {!isSynthesis && !isHistory && <SourceLinks item={item} />}
-
-      {/* Summary — for history articles, render as a styled lead paragraph */}
-      {article.summary && (
-        <p className={`leading-relaxed ${
-          isHistory
-            ? "text-base text-stone-600 dark:text-stone-300 border-l-4 border-amber-400 pl-4 italic"
-            : "text-lg text-stone-600 dark:text-stone-300"
-        }`}>
-          {article.summary}
-        </p>
-      )}
-      </>
-      )}
-
-      {/* Share buttons + Bookmark */}
-      <div className="flex items-center gap-3">
-        <ShareButtons
-          url={shareUrl}
-          title={article.title}
+        {/* ── Sticky side rail (xl+ only) ───────────────────────────────── */}
+        <ArticleSideRail
+          articleId={article.id}
+          shareUrl={shareUrl}
+          shareTitle={article.title}
+          sourceUrl={sourceUrl}
+          sourceDomain={sourceDomain}
           lang={currentLang}
         />
-        <BookmarkButton articleId={article.id} lang={currentLang} variant="button" />
-      </div>
 
-      {/* Author byline (when authorSlug is set on the item) */}
-      {item?.authorSlug && (
-        <AuthorBlock
-          name={item.source?.name ?? "EdLight News"}
-          slug={item.authorSlug}
-          lang={currentLang}
-          variant="full"
-        />
-      )}
+        {/* ── Main article column ───────────────────────────────────────── */}
+        <article className="min-w-0 flex-1 animate-fade-in">
 
-      {/* What changed note (synthesis living updates) */}
-      {isSynthesis && (
-        <WhatChangedNote
-          whatChanged={article.whatChanged}
-          lang={currentLang}
-        />
-      )}
-
-      {/* Bourses structured fiche */}
-      {isBourses && !isUtility && item && <BoursesFiche item={item} lang={currentLang} />}
-
-      {/* Utility facts fiche */}
-      {isUtility && item && <UtilityFactsFiche item={item} lang={currentLang} />}
-
-      {/* Body: structured sections for synthesis/utility, markdown for regular */}
-      <div className="border-t border-stone-200 pt-6 dark:border-stone-800">
-      {article.sections && article.sections.length > 0 ? (
-        <StructuredSections sections={stripStructuredSourceSections(article.sections)} isHistory={isHistory} />
-      ) : (
-        <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none">
-          <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
-        </div>
-      )}
-      </div>
-
-      {/* Utility source citations */}
-      {isUtility && (
-        <UtilitySourceCitations article={article} lang={currentLang} />
-      )}
-
-      {/* Synthesis sources list */}
-      {isSynthesis && item && (
-        <SynthesisSourcesList item={item} lang={currentLang} />
-      )}
-
-      {/* Switch language link */}
-      {siblingVersion && (
-        <div className="flex items-start justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 dark:border-blue-900/40 dark:bg-blue-950/20">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400">
-              {article.language === "fr" ? "Disponible en Kreyòl" : "Disponib an Fransè"}
-            </p>
-            <Link
-              href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-              className="mt-0.5 block text-sm font-medium text-stone-700 underline-offset-2 hover:underline dark:text-stone-200"
-            >
-              {siblingVersion.title}
+          {/* ── Breadcrumb ─────────────────────────────────────────────── */}
+          <nav aria-label="Fil d'Ariane" className="mb-8 flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+            <Link href={`/?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+              {currentLang === "fr" ? "Accueil" : "Akèy"}
             </Link>
+            <ChevronRight className="h-3 w-3 shrink-0" />
+            {isOpinion ? (
+              <Link href={`/opinion?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+                {currentLang === "fr" ? "Opinion" : "Opinyon"}
+              </Link>
+            ) : (
+              <Link href={`/news?lang=${currentLang}`} className="hover:text-stone-700 dark:hover:text-stone-300 transition-colors">
+                {currentLang === "fr" ? "Actualités" : "Nouvèl"}
+              </Link>
+            )}
+            {catLabel && !isOpinion && (
+              <>
+                <ChevronRight className="h-3 w-3 shrink-0" />
+                <span className="text-stone-500 dark:text-stone-400 font-medium">{catLabel}</span>
+              </>
+            )}
+          </nav>
+
+          {/* ── Hero image ─────────────────────────────────────────────── */}
+          {heroImageUrl && !(isUtility && heroImageSource === "branded") ? (
+            heroImageSource === "branded" ? (
+              <BrandedHero
+                title={article.title}
+                category={fallbackCat}
+                sourceName={item?.source?.name}
+                className={`mb-10 ${isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"}`}
+              />
+            ) : (
+              <div className={`relative mb-10 w-full overflow-hidden rounded-2xl bg-stone-100 shadow-premium dark:bg-stone-800 dark:shadow-premium-dark ${
+                isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
+              }`}>
+                <ImageWithFallback
+                  src={heroImageUrl}
+                  alt={article.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 768px"
+                  className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
+                  fallback={
+                    <BrandedHero
+                      title={article.title}
+                      category={fallbackCat}
+                      sourceName={item?.source?.name}
+                      className="h-full w-full"
+                    />
+                  }
+                />
+                {isHistory && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                )}
+                {heroImageSource === "publisher" && (
+                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                    {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
+                  </span>
+                )}
+                {heroImageSource === "wikidata" && (
+                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                    {heroImageAttribution?.name
+                      ? `Photo : ${heroImageAttribution.name}`
+                      : "Wikimedia Commons"}
+                    {heroImageAttribution?.license
+                      ? ` (${heroImageAttribution.license})`
+                      : ""}
+                  </span>
+                )}
+                {heroImageSource === "screenshot" && (
+                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                    {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
+                  </span>
+                )}
+              </div>
+            )
+          ) : !heroImageUrl && !isUtility ? (
+            <BrandedHero
+              title={article.title}
+              category={fallbackCat}
+              sourceName={item?.source?.name}
+              className="mb-10 aspect-video"
+            />
+          ) : null}
+
+          {/* ══════════════════════════════════════════════════════════════
+              PREMIUM TITLE ZONE
+              ══════════════════════════════════════════════════════════════ */}
+          {isOpinion ? (
+            <div className="mb-10">
+              <OpinionHeader
+                title={article.title}
+                summary={article.summary}
+                item={item}
+                lang={currentLang}
+                publishedDate={pubDate || createdDate}
+                readingTime={readingTime}
+              />
+            </div>
+          ) : (
+            <header className="mb-10 space-y-5">
+              {/* Eyebrow: category + type badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                {(derivedSubCat || item?.category) && (
+                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${catColor}`}>
+                    {catLabel}
+                  </span>
+                )}
+                {isSynthesis && item && <SynthesisBadge item={item} lang={currentLang} />}
+                {isUtility && item && <UtilityBadge item={item} lang={currentLang} />}
+                {item?.geoTag === "HT" && fallbackCat !== "local_news" && (
+                  <span className="inline-block rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 dark:bg-red-900/20 dark:text-red-300">
+                    <MapPin className="mr-0.5 inline-block h-3 w-3" />{currentLang === "fr" ? "Haïti" : "Ayiti"}
+                  </span>
+                )}
+              </div>
+
+              {/* Title — large editorial headline */}
+              <h1 className={`font-display font-bold leading-[1.15] tracking-tight text-on-surface ${
+                isHistory ? "text-headline-lg" : "text-headline-lg sm:text-display-md"
+              }`}>
+                {article.title}
+              </h1>
+
+              {/* Meta row — date, language, reading time */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm text-stone-400 dark:text-stone-500">
+                <span className="uppercase tracking-wide text-label-sm">
+                  {article.language === "fr" ? "Français" : "Kreyòl Ayisyen"}
+                </span>
+                {(pubDate || createdDate) && (
+                  <>
+                    <span className="text-stone-300 dark:text-stone-600">·</span>
+                    <time>{pubDate || createdDate}</time>
+                  </>
+                )}
+                <span className="text-stone-300 dark:text-stone-600">·</span>
+                <span>{currentLang === "fr" ? `${readingTime} min de lecture` : `${readingTime} min li`}</span>
+              </div>
+
+              {/* ── Trust badges — on ALL article types ──────────────── */}
+              <MetaBadges
+                verifiedAt={item?.updatedAt}
+                updatedAt={item?.lastMajorUpdateAt}
+                publishedAt={item?.publishedAt ?? article.createdAt}
+                lang={currentLang}
+                variant="full"
+              />
+
+              {/* Synthesis update date */}
+              {isSynthesis && lastUpdateDate && (
+                <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                  {currentLang === "fr" ? "Mis à jour le" : "Mizajou"} {lastUpdateDate}
+                </p>
+              )}
+            </header>
+          )}
+
+          {/* ── Source links (non-synthesis, non-history) ───────────────── */}
+          {!isSynthesis && !isHistory && (
+            <div className="mb-8">
+              <SourceLinks item={item} lang={currentLang} />
+            </div>
+          )}
+
+          {/* ── Summary / lede ──────────────────────────────────────────── */}
+          {article.summary && (
+            <p className={`mb-8 leading-relaxed ${
+              isHistory
+                ? "text-body-lg text-stone-600 dark:text-stone-300 border-l-4 border-amber-400 pl-5 italic"
+                : "text-lg text-stone-600 dark:text-stone-300 border-l-4 border-primary/30 pl-5"
+            }`}>
+              {article.summary}
+            </p>
+          )}
+
+          {/* ── Share buttons + Bookmark (mobile/tablet — hidden on xl+) ─ */}
+          <div className="mb-8 flex items-center gap-3 xl:hidden">
+            <ShareButtons
+              url={shareUrl}
+              title={article.title}
+              lang={currentLang}
+            />
+            <BookmarkButton articleId={article.id} lang={currentLang} variant="button" />
           </div>
-          <Link
-            href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-            className="shrink-0 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500"
-          >
-            {article.language === "fr" ? "Lire →" : "Li →"}
-          </Link>
-        </div>
-      )}
 
-      {/* Related updates from same dedupeGroupId */}
-      {relatedArticles.length > 0 && (
-        <RelatedUpdates
-          articles={relatedArticles}
-          currentId={article.id}
-          lang={currentLang}
-        />
-      )}
+          {/* Author byline */}
+          {item?.authorSlug && (
+            <div className="mb-8">
+              <AuthorBlock
+                name={item.source?.name ?? "EdLight News"}
+                slug={item.authorSlug}
+                lang={currentLang}
+                variant="full"
+              />
+            </div>
+          )}
 
-      {/* Legacy citations (for older items without source object).
-         Skip for utility / synthesis — they render dedicated source components above. */}
-      {!isSynthesis && !isUtility && !item?.source && (article.citations?.length ?? 0) > 0 && (
-        <section className="border-t pt-4 dark:border-stone-700">
-          <h2 className="text-base font-semibold dark:text-white">Sources</h2>
-          <ul className="mt-2 space-y-1">
-            {(article.citations ?? []).map((c, i) => (
-              <li key={i}>
-                <a
-                  href={c.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+          {/* What changed note (synthesis) */}
+          {isSynthesis && (
+            <div className="mb-8">
+              <WhatChangedNote
+                whatChanged={article.whatChanged}
+                lang={currentLang}
+              />
+            </div>
+          )}
+
+          {/* Bourses structured fiche */}
+          {isBourses && !isUtility && item && (
+            <div className="mb-8"><BoursesFiche item={item} lang={currentLang} /></div>
+          )}
+
+          {/* Utility facts fiche */}
+          {isUtility && item && (
+            <div className="mb-8"><UtilityFactsFiche item={item} lang={currentLang} /></div>
+          )}
+
+          {/* ══════════════════════════════════════════════════════════════
+              ARTICLE BODY
+              ══════════════════════════════════════════════════════════════ */}
+          <div id="article-body" className="border-t border-stone-200/80 pt-10 dark:border-stone-800">
+            {article.sections && article.sections.length > 0 ? (
+              <StructuredSections sections={stripStructuredSourceSections(article.sections)} isHistory={isHistory} />
+            ) : (
+              <div className="prose prose-lg dark:prose-invert prose-headings:font-display prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-[1.8] prose-p:text-stone-700 dark:prose-p:text-stone-300 prose-li:text-stone-700 dark:prose-li:text-stone-300">
+                <ReactMarkdown>{stripMarkdownSourceSections(article.body)}</ReactMarkdown>
+              </div>
+            )}
+          </div>
+
+          {/* ── Post-body sections ─────────────────────────────────────── */}
+          <div className="mt-12 space-y-8">
+
+            {/* Utility source citations */}
+            {isUtility && (
+              <UtilitySourceCitations article={article} lang={currentLang} />
+            )}
+
+            {/* Synthesis sources list */}
+            {isSynthesis && item && (
+              <SynthesisSourcesList item={item} lang={currentLang} />
+            )}
+
+            {/* Language switch CTA */}
+            {siblingVersion && (
+              <div className="flex items-start justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400">
+                    {article.language === "fr" ? "Disponible en Kreyòl" : "Disponib an Fransè"}
+                  </p>
+                  <Link
+                    href={`/news/${siblingVersion.id}?lang=${otherLang}`}
+                    className="mt-1 block text-sm font-medium text-stone-700 underline-offset-2 hover:underline dark:text-stone-200"
+                  >
+                    {siblingVersion.title}
+                  </Link>
+                </div>
+                <Link
+                  href={`/news/${siblingVersion.id}?lang=${otherLang}`}
+                  className="shrink-0 rounded-xl bg-silk px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-silk-hover hover:shadow-md"
                 >
-                  {c.sourceName}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+                  {article.language === "fr" ? "Lire →" : "Li →"}
+                </Link>
+              </div>
+            )}
 
-      {/* Subtle quality info for weak source / missing deadline */}
-      {(item?.qualityFlags?.weakSource || item?.qualityFlags?.missingDeadline) && (
-        <p className="text-xs text-stone-400 dark:text-stone-500 italic">
-          {item.qualityFlags.weakSource &&
-            (currentLang === "fr"
-              ? "Source relayée via un agrégateur"
-              : "Sous relaye atravè yon agregatè")}
-          {item.qualityFlags.weakSource && item.qualityFlags.missingDeadline && " · "}
-          {item.qualityFlags.missingDeadline &&
-            (currentLang === "fr"
-              ? "Date limite à confirmer"
-              : "Dat limit pou konfime")}
-        </p>
-      )}
+            {/* Related updates from same dedupeGroupId */}
+            {relatedArticles.length > 0 && (
+              <RelatedUpdates
+                articles={relatedArticles}
+                currentId={article.id}
+                lang={currentLang}
+              />
+            )}
 
-      {/* EdLight News attribution */}
-      <EdLightAttribution lang={currentLang} />
+            {/* Legacy citations */}
+            {!isSynthesis && !isUtility && !item?.source && (article.citations?.length ?? 0) > 0 && (
+              <section className="border-t border-stone-200/60 pt-5 dark:border-stone-700">
+                <h2 className="text-title-sm dark:text-white">Sources</h2>
+                <ul className="mt-2 space-y-1">
+                  {(article.citations ?? []).map((c, i) => (
+                    <li key={i}>
+                      <a
+                        href={c.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        {c.sourceName}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-      {/* Next / Previous navigation */}
-      <NextPrevNav prev={prevArticle} next={nextArticle} lang={currentLang} />
+            {/* Quality flags */}
+            {(item?.qualityFlags?.weakSource || item?.qualityFlags?.missingDeadline) && (
+              <p className="text-xs text-stone-400 dark:text-stone-500 italic">
+                {item.qualityFlags.weakSource &&
+                  (currentLang === "fr"
+                    ? "Source relayée via un agrégateur"
+                    : "Sous relaye atravè yon agregatè")}
+                {item.qualityFlags.weakSource && item.qualityFlags.missingDeadline && " · "}
+                {item.qualityFlags.missingDeadline &&
+                  (currentLang === "fr"
+                    ? "Date limite à confirmer"
+                    : "Dat limit pou konfime")}
+              </p>
+            )}
+          </div>
 
-      {/* Report issue button */}
-      <div className="border-t pt-4 dark:border-stone-700">
-        <ReportIssueButton
-          itemId={article.itemId || article.id}
-          lang={currentLang}
-        />
+          {/* ══════════════════════════════════════════════════════════════
+              RELATED ARTICLES — thematic recommendations
+              ══════════════════════════════════════════════════════════════ */}
+          {categoryRelated.length > 0 && (
+            <div className="mt-14">
+              <RelatedArticles articles={categoryRelated} lang={currentLang} />
+            </div>
+          )}
+
+          {/* ── Footer zone ───────────────────────────────────────────── */}
+          <div className="mt-14 space-y-8">
+            {/* EdLight attribution */}
+            <EdLightAttribution lang={currentLang} />
+
+            {/* Previous / Next navigation */}
+            <NextPrevNav prev={prevArticle} next={nextArticle} lang={currentLang} />
+
+            {/* Report issue */}
+            <div className="border-t border-stone-200/60 pt-5 dark:border-stone-700">
+              <ReportIssueButton
+                itemId={article.itemId || article.id}
+                lang={currentLang}
+              />
+            </div>
+
+            {/* Bottom back-link */}
+            <div className="flex items-center justify-between border-t border-stone-200/60 pt-6 pb-4 dark:border-stone-800">
+              <Link
+                href={`/news?lang=${currentLang}`}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 transition-colors hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
+              </Link>
+              <Link
+                href={`/?lang=${currentLang}`}
+                className="text-xs text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+              >
+                EdLight News
+              </Link>
+            </div>
+          </div>
+        </article>
       </div>
-
-      {/* Bottom back-link */}
-      <div className="flex items-center justify-between border-t pt-5 dark:border-stone-800">
-        <Link
-          href={`/news?lang=${currentLang}`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-500 transition-colors hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {currentLang === "fr" ? "Retour aux actualités" : "Retounen nan nouvèl yo"}
-        </Link>
-        <Link
-          href={`/?lang=${currentLang}`}
-          className="text-xs text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
-        >
-          EdLight News
-        </Link>
-      </div>
-    </article>
+    </>
   );
 }
