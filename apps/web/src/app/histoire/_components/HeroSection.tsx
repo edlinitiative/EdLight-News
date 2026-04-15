@@ -7,6 +7,7 @@
  * serif headline, and "En savoir plus" CTA that opens the detail panel.
  */
 
+import Image from "next/image";
 import { ArrowRight, BookOpen } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import type { SerializableAlmanacEntry } from "./shared";
@@ -44,10 +45,13 @@ export function HeroSection({
     <section className="relative min-h-[560px] overflow-hidden rounded-b-[2rem] md:min-h-[640px]">
       {/* ── Background image or gradient ────────────────── */}
       {imageUrl ? (
-        <img
+        <Image
           src={imageUrl}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-[2s] hover:scale-[1.02]"
+          fill
+          priority
+          className="object-cover transition-transform duration-[2s] hover:scale-[1.02]"
+          sizes="100vw"
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a0e08] via-[#2d1a12] to-[#1a0e2a]" />

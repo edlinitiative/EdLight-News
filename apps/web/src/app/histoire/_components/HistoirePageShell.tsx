@@ -115,7 +115,10 @@ export function HistoirePageShell({
   }, [selectedMonth, ensureMonthLoaded]);
 
   // ── Derived data ──────────────────────────────────────────
-  const currentMonthEntries = entriesByMonth[selectedMonth] ?? [];
+  const currentMonthEntries = useMemo(
+    () => entriesByMonth[selectedMonth] ?? [],
+    [entriesByMonth, selectedMonth],
+  );
 
   const todayEntries = useMemo(
     () => currentMonthEntries.filter((e) => e.monthDay === selectedDate),

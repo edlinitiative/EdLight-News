@@ -21,6 +21,15 @@ const PLAYWRIGHT_EXTERNALS = [
   "@edlight-news/renderer",
 ];
 
+// sharp ships multiple optional native/wasm runtime packages that webpack
+// attempts to resolve during static analysis. Keep sharp fully external on the
+// server to avoid noisy optional-dependency warnings in production builds.
+const SHARP_EXTERNALS = [
+  "sharp",
+  "@img/sharp-libvips-dev",
+  "@img/sharp-wasm32",
+];
+
 const nextConfig = {
   // Allow images from Firebase Storage, Wikimedia Commons, and common publisher CDNs
   images: {
@@ -54,9 +63,23 @@ const nextConfig = {
     serverComponentsExternalPackages: [
       ...FIREBASE_EXTERNALS,
       ...PLAYWRIGHT_EXTERNALS,
+      ...SHARP_EXTERNALS,
     ],
   },
   webpack(config, { isServer }) {
+    // Prefer TS source files over co-located compiled JS artifacts.
+    // This repo keeps both in src/, and stale JS can shadow newer TS exports.
+    const existingExtensions = Array.isArray(config.resolve.extensions)
+      ? config.resolve.extensions
+      : [];
+    config.resolve.extensions = [
+      ".ts",
+      ".tsx",
+      ".js",
+      ".jsx",
+      ...existingExtensions,
+    ].filter((value, index, arr) => arr.indexOf(value) === index);
+
     // When Next.js transpiles workspace packages from TypeScript source,
     // imports like './admin.js' need to resolve to './admin.ts'.
     config.resolve.extensionAlias = {
@@ -87,6 +110,9 @@ const nextConfig = {
               (pkg) => request === pkg || request.startsWith(pkg + "/")
             ) ||
             PLAYWRIGHT_EXTERNALS.some(
+              (pkg) => request === pkg || request.startsWith(pkg + "/")
+            ) ||
+            SHARP_EXTERNALS.some(
               (pkg) => request === pkg || request.startsWith(pkg + "/")
             )
           ) {

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useRef, memo } from "react";
 import { useTheme } from "@/lib/theme-context";
 
@@ -113,12 +114,12 @@ export const GeminiHeroImage = memo(function GeminiHeroImage({
   // ── Success ────────────────────────────────────────────────────────────
   return (
     <div className={`relative overflow-hidden rounded-xl ${className}`}>
-      <img
+      <Image
         src={imageUrl}
         alt=""
-        loading="lazy"
-        decoding="async"
-        className="h-full w-full object-cover"
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, 50vw"
       />
       {/* Subtle bottom gradient overlay */}
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />

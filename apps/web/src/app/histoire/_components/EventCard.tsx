@@ -10,6 +10,7 @@
  * hover lift + shadow, keyboard-accessible, ARIA button role.
  */
 
+import Image from "next/image";
 import { Globe } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import { TAG_LABELS } from "./shared";
@@ -63,11 +64,12 @@ export function EventCard({ entry, lang, onClick, index }: EventCardProps) {
       {/* ── Image ───────────────────────────────────────── */}
       <div className="relative aspect-[16/10] overflow-hidden bg-stone-100 dark:bg-stone-700">
         {imageUrl ? (
-          <img
+          <Image
             src={imageUrl}
             alt={title}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#6f2438]/10 to-[#9a7a2f]/10 dark:from-[#6f2438]/20 dark:to-[#9a7a2f]/20">

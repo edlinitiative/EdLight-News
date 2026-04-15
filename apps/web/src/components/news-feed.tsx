@@ -27,6 +27,25 @@ export type FeedMode = "student" | "all";
 const LS_MODE_KEY = "edlight-feed-mode";
 const PAGE_SIZE = 18;
 
+// Fixed category pills — always visible even if count is 0
+const FIXED_NEWS_PILLS: FeedCategory[] = [
+  "all",
+  "news",
+  "local_news",
+  "scholarship",
+  "resource",
+];
+
+// Category filter — "scholarship" pill matches all opportunity subcategories
+const OPPORTUNITY_CATS = new Set([
+  "scholarship",
+  "opportunity",
+  "bourses",
+  "concours",
+  "stages",
+  "programmes",
+]);
+
 function readPersistedMode(): FeedMode {
   if (typeof window === "undefined") return "student";
   try {
@@ -356,25 +375,6 @@ export function NewsFeed({
   /** True when student mode actually hid some items */
   const studentModeFiltered =
     feedMode === "student" && studentFiltered.length < qualityFiltered.length;
-
-  // Fixed category pills — always visible even if count is 0
-  const FIXED_NEWS_PILLS: FeedCategory[] = [
-    "all",
-    "news",
-    "local_news",
-    "scholarship",
-    "resource",
-  ];
-
-  // Category filter — "scholarship" pill matches all opportunity subcategories
-  const OPPORTUNITY_CATS = new Set([
-    "scholarship",
-    "opportunity",
-    "bourses",
-    "concours",
-    "stages",
-    "programmes",
-  ]);
 
   const categoryFiltered = useMemo(() => {
     if (activeCategory === "all") return studentFiltered;

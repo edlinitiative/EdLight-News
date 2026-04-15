@@ -11,6 +11,7 @@
  * slide-in animation, responsive (full-width on mobile).
  */
 
+import Image from "next/image";
 import { useEffect, useRef, useCallback } from "react";
 import {
   X,
@@ -139,10 +140,12 @@ function EventDetailContent({
       {/* ── Image ─────────────────────────────────────── */}
       {imageUrl ? (
         <div className="relative aspect-[16/9] w-full overflow-hidden">
-          <img
+          <Image
             src={imageUrl}
             alt={title}
-            className="h-full w-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 800px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           {isWikiImage && (

@@ -7,6 +7,7 @@
 
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import {
   Users,
@@ -293,9 +294,12 @@ export default function ContributorsPage() {
             >
               {/* Avatar */}
               {c.photoUrl ? (
-                <img
+                <Image
                   src={c.photoUrl}
                   alt={c.displayName}
+                  width={40}
+                  height={40}
+                  unoptimized
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (

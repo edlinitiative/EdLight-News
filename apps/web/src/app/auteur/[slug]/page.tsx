@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Feather, ExternalLink } from "lucide-react";
 import { contributorProfilesRepo, itemsRepo, contentVersionsRepo } from "@edlight-news/firebase";
 import { getLangFromSearchParams, fetchEnrichedFeed } from "@/lib/content";
@@ -95,9 +96,12 @@ export default async function ContributorPage({
       {/* Profile header */}
       <header className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
         {contributor.photoUrl ? (
-          <img
+          <Image
             src={contributor.photoUrl}
             alt={contributor.displayName}
+            width={96}
+            height={96}
+            unoptimized
             className="h-24 w-24 rounded-full object-cover ring-4 ring-blue-100 dark:ring-blue-900/30"
           />
         ) : (
