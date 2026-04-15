@@ -51,17 +51,7 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col fixed left-0 top-[53px] h-screen w-64 bg-white dark:bg-stone-950 border-r border-stone-200 dark:border-stone-800 z-40 overflow-y-auto">
-      <div className="px-5 pt-6 pb-5">
-        <Link
-          href={withLangParam("/", lang)}
-          className="group inline-flex items-center gap-1.5 transition-opacity hover:opacity-80"
-        >
-          <span className="font-serif text-lg font-bold tracking-tight text-stone-900 dark:text-stone-100">EdLight</span>
-          <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">News</span>
-        </Link>
-      </div>
-
-      <nav className="flex-1 px-3">
+      <nav className="flex-1 px-3 pt-6">
         <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-stone-400 dark:text-stone-500">Navigation</p>
         <ul className="space-y-0.5">
           {NAV_LINKS.map(({ href, label, icon: Icon }) => {
