@@ -6,10 +6,8 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
-import { Search } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
-import { PageHero } from "@/components/PageHero";
 import { buildOgMetadata } from "@/lib/og";
 import { SearchFeed } from "@/components/SearchFeed";
 
@@ -56,26 +54,7 @@ export default async function SearchPage({
 
   return (
     <div className="pb-20">
-      <PageHero
-        variant="news"
-        icon={<Search className="h-5 w-5" />}
-        eyebrow={fr ? "Recherche" : "Rechèch"}
-        title={fr ? "Rechercher" : "Chèche"}
-        description={
-          fr
-            ? "Articles, bourses, opportunités, explainers — tout EdLight News."
-            : "Atik, bous, okazyon, eksplikasyon — tout EdLight News."
-        }
-        stats={[
-          {
-            value: String(ranked.length),
-            label: fr ? "articles indexés" : "atik endekse",
-          },
-        ]}
-      />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mt-8">
-        <SearchFeed articles={ranked} lang={lang} initialQuery={searchParams.q ?? ""} />
-      </div>
+      <SearchFeed articles={ranked} lang={lang} initialQuery={searchParams.q ?? ""} />
     </div>
   );
 }

@@ -11,7 +11,6 @@
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { getLangFromSearchParams } from "@/lib/content";
-import { Landmark } from "lucide-react";
 import { buildOgMetadata } from "@/lib/og";
 import {
   fetchAlmanacByMonth,
@@ -20,7 +19,7 @@ import {
 } from "@/lib/datasets";
 import { HistoireClient } from "./_components/HistoireClient";
 import { serializeEntry, serializeHoliday } from "./_components/shared";
-import { PageHero } from "@/components/PageHero";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 
 // Content changes once per day (~07:10 Haiti time); 3600 s is sufficient
 export const revalidate = 3600;
@@ -67,39 +66,27 @@ export default async function HistoirePage({
     console.error("[EdLight] /histoire fetch failed:", err);
   }
 
-  const l = (href: string) => `${href}?lang=${lang}`;
-
   return (
     <div className="space-y-0 pb-14">
       {/* ─── Hero ────────────────────────────────────────────────── */}
-      <PageHero
-        variant="history"
+      <PageHeroCompact
+        tint="rose"
         eyebrow={fr ? "Éphéméride haïtienne" : "Efemerid ayisyèn"}
-        title={
-          fr
-            ? "Chaque jour porte une page de l\u2019histoire d\u2019Haïti."
-            : "Chak jou gen yon paj nan istwa Ayiti."
-        }
+        title={fr ? "Chaque jour porte une page de l\u2019histoire d\u2019Haïti." : "Chak jou gen yon paj nan istwa Ayiti."}
         description={
           fr
             ? "Explorez les événements historiques, fêtes nationales et personnalités marquantes, jour par jour, mois par mois."
             : "Eksplore evènman istorik, fèt nasyonal ak pèsonalite enpòtan yo, jou pa jou, mwa pa mwa."
         }
-        icon={<Landmark className="h-5 w-5" />}
-        actions={[
-          { href: l("/haiti"), label: fr ? "Haïti en direct" : "Ayiti dirèk" },
-          { href: l("/news"), label: fr ? "Retour aux actualités" : "Retounen nan nouvèl" },
-        ]}
         stats={[
           {
             value: monthEntries.length > 0 ? String(monthEntries.length) : "—",
-            label: fr ? "événements ce mois" : "evènman mwa sa",
+            label: fr ? "ce mois" : "mwa sa",
           },
           {
             value: allHolidays.length > 0 ? String(allHolidays.length) : "—",
-            label: fr ? "fêtes nationales" : "fèt nasyonal",
+            label: fr ? "fêtes" : "fèt",
           },
-          { value: "12", label: fr ? "mois explorés" : "mwa ekspore" },
         ]}
       />
 

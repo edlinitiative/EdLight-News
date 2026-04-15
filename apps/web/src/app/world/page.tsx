@@ -11,9 +11,8 @@ import { Globe } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { NewsFeed } from "@/components/news-feed";
-import { PageHero } from "@/components/PageHero";
+import { PageHeader } from "@/components/PageHeader";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 
 export const revalidate = 300;
@@ -54,7 +53,6 @@ export default async function WorldPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
   const fr = lang === "fr";
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
@@ -93,20 +91,10 @@ export default async function WorldPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="news"
-        eyebrow={fr ? "Actualités internationales" : "Nouvèl entènasyonal"}
+      <PageHeader
+        eyebrow={fr ? "Monde" : "Mond"}
         title={fr ? "Le monde, pour les lecteurs haïtiens." : "Mond lan, pou lektè ayisyen yo."}
-        description={
-          fr
-            ? "Géopolitique, économie mondiale, innovation, droits humains — une lecture internationale utile et accessible."
-            : "Jewopolitik, ekonomi mondyal, inovasyon, dwa moun — yon lekti entènasyonal itil ak aksesib."
-        }
-        icon={<Globe className="h-5 w-5" />}
-        actions={[
-          { href: l("/haiti"), label: fr ? "Voir Haïti" : "Wè Ayiti" },
-          { href: l("/news"), label: fr ? "Toutes les actualités" : "Tout nouvèl yo" },
-        ]}
+        icon={<Globe className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "articles" : "atik" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },

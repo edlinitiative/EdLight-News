@@ -41,7 +41,6 @@ export function PageHeader({
         )}
         <h1
           className="text-2xl font-extrabold tracking-tight text-stone-900 dark:text-white sm:text-3xl"
-          style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
         >
           {title}
         </h1>

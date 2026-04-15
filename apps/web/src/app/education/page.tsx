@@ -10,9 +10,8 @@ import { BookOpen } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { NewsFeed } from "@/components/news-feed";
-import { PageHero } from "@/components/PageHero";
+import { PageHeader } from "@/components/PageHeader";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -54,7 +53,6 @@ export default async function EducationPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
   const fr = lang === "fr";
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
@@ -84,24 +82,14 @@ export default async function EducationPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="resources"
-        eyebrow={fr ? "Politique et actualité éducatives" : "Politik ak aktualite edikasyon"}
+      <PageHeader
+        eyebrow={fr ? "Éducation" : "Edikasyon"}
         title={
           fr
             ? "L'éducation au cœur de l'actualité."
             : "Edikasyon nan kè aktualite a."
         }
-        description={
-          fr
-            ? "Universités, réformes éducatives, politiques d'accès et tendances mondiales de l'enseignement."
-            : "Inivèsite, refòm edikasyon, politik aksè ak tandans mondyal ansèyman."
-        }
-        icon={<BookOpen className="h-5 w-5" />}
-        actions={[
-          { href: l("/bourses"), label: fr ? "Voir les bourses" : "Wè bous yo" },
-          { href: l("/opportunites"), label: fr ? "Opportunités" : "Okazyon" },
-        ]}
+        icon={<BookOpen className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "articles" : "atik" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },

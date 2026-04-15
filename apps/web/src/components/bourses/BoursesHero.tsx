@@ -32,7 +32,7 @@ export function BoursesHero({
               {fr ? "Intelligence académique" : "Entèlijans akademik"}
             </span>
 
-            <h1 className="font-serif text-4xl sm:text-5xl leading-[1.1] font-extrabold tracking-tight text-stone-900 dark:text-white">
+            <h1 className="text-4xl sm:text-5xl leading-[1.1] font-extrabold tracking-tight text-stone-900 dark:text-white">
               {fr ? (
                 <>L&apos;architecture de <br /><span className="text-brand-600 dark:text-brand-400 italic">l&apos;opportunité mondiale.</span></>
               ) : (
@@ -53,7 +53,7 @@ export function BoursesHero({
               <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-[0.15em]">
                 {fr ? "Mises à jour" : "Mizajou"}
               </span>
-              <span className="text-3xl font-serif font-extrabold text-stone-900 dark:text-white tabular-nums">
+              <span className="text-3xl font-extrabold text-stone-900 dark:text-white tabular-nums">
                 {totalCount}+
               </span>
               <span className="text-xs text-stone-500 dark:text-stone-400">

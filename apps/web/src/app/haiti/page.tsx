@@ -12,12 +12,11 @@ import type { ContentLanguage } from "@edlight-news/types";
 import { MapPin } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
-import { getItemGeo, isStudentFocused } from "@/lib/itemGeo";
+import { getItemGeo } from "@/lib/itemGeo";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { HaitiFeed } from "@/components/HaitiFeed";
 import { buildOgMetadata } from "@/lib/og";
-import { PageHero } from "@/components/PageHero";
-import { withLangParam } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 export const revalidate = 300;
 
@@ -45,7 +44,6 @@ export default async function HaitiPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -75,28 +73,16 @@ export default async function HaitiPage({
   const articles = ranked.filter((a) => !isTauxDuJourArticle(a));
 
   const fr = lang === "fr";
-  const studentFocusedCount = articles.filter((article) => isStudentFocused(article)).length;
   const sourceCount = new Set(articles.map((article) => article.sourceName).filter(Boolean)).size;
 
   return (
     <div className="space-y-7">
-      <PageHero
-        variant="news"
-        eyebrow={fr ? "Edition locale" : "Edisyon lokal"}
+      <PageHeader
+        eyebrow={fr ? "Haïti" : "Ayiti"}
         title={fr ? "L'actualité étudiante vue depuis Haïti." : "Aktyalite etidyan an dirèk depi Ayiti."}
-        description={
-          fr
-            ? "Un flux resserré sur les annonces, examens, campus et nouvelles locales qui comptent vraiment pour les étudiants haïtiens."
-            : "Yon fil pi sere sou anons, egzamen, kanpis ak nouvèl lokal ki vrèman enpòtan pou elèv ayisyen yo."
-        }
-        icon={<MapPin className="h-5 w-5" />}
-        actions={[
-          { href: l("/news"), label: fr ? "Tout le fil" : "Tout fil la" },
-          { href: l("/calendrier"), label: fr ? "Voir le calendrier" : "Wè kalandriye a" },
-        ]}
+        icon={<MapPin className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "articles" : "atik" },
-          { value: String(studentFocusedCount), label: fr ? "mode étudiants" : "mòd etidyan" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },
         ]}
       />

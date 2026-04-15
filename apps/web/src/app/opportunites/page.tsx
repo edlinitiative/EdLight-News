@@ -12,14 +12,12 @@
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Suspense } from "react";
-import { Briefcase } from "lucide-react";
-import { PageHero } from "@/components/PageHero";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -47,7 +45,6 @@ export default async function OpportunitesPage({
   searchParams: { lang?: string; [key: string]: string | string[] | undefined };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -94,24 +91,18 @@ export default async function OpportunitesPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="resources"
-        eyebrow={fr ? "Concours, stages, programmes" : "Konkou, estaj, pwogram"}
+      <PageHeroCompact
+        tint="amber"
+        eyebrow={fr ? "Opportunités" : "Okazyon"}
         title={fr ? "Les opportunités à saisir cette saison." : "Okazyon pou pwofite sezon sa a."}
         description={
           fr
             ? "Un catalogue plus large que les bourses : concours, stages, programmes et appels utiles à filtrer selon votre objectif."
             : "Yon katalòg ki pi laj pase bous yo: konkou, estaj, pwogram ak lòt apèl itil pou filtre selon objektif ou."
         }
-        icon={<Briefcase className="h-5 w-5" />}
-        actions={[
-          { href: l("/bourses"), label: fr ? "Comparer avec les bourses" : "Konpare ak bous yo" },
-          { href: l("/ressources"), label: fr ? "Voir les ressources" : "Wè resous yo" },
-        ]}
         stats={[
           { value: String(articles.length), label: fr ? "opportunités" : "okazyon" },
-          { value: String(deadlineCount), label: fr ? "avec deadline" : "ak dat limit" },
-          { value: String(utilityCount), label: fr ? "formats radar" : "fòma radar" },
+          { value: String(deadlineCount), label: fr ? "deadlines" : "dat limit" },
         ]}
       />
 

@@ -7,14 +7,12 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
-import { Compass } from "lucide-react";
 import Link from "next/link";
-import { PageHero } from "@/components/PageHero";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { getLangFromSearchParams } from "@/lib/content";
 import { fetchAllPathways, COUNTRY_LABELS } from "@/lib/datasets";
 import { CountryFlag } from "@/components/CountryFlag";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 900;
 
@@ -43,7 +41,6 @@ export default async function ParcoursPage({
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
   const fr = lang === "fr";
-  const l = (href: string) => withLangParam(href, lang);
 
   let pathways: Awaited<ReturnType<typeof fetchAllPathways>>;
   try {
@@ -58,24 +55,15 @@ export default async function ParcoursPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="pathways"
-        eyebrow={fr ? "Étudier à l'étranger, pas à pas" : "Etidye aletranje, etap pa etap"}
-        title={
-          fr
-            ? "Choisir un parcours avant de choisir une destination."
-            : "Chwazi yon pakou anvan w chwazi yon destinasyon."
-        }
+      <PageHeroCompact
+        tint="sky"
+        eyebrow={fr ? "Parcours" : "Pakou"}
+        title={fr ? "Choisir un parcours avant de choisir une destination." : "Chwazi yon pakou anvan w chwazi yon destinasyon."}
         description={
           fr
             ? "Des guides séquencés pour comprendre les étapes, le rythme et les décisions-clés avant de postuler."
             : "Gid ki byen sekans pou konprann etap yo, ritm nan ak desizyon kle yo anvan w aplike."
         }
-        icon={<Compass className="h-5 w-5" />}
-        actions={[
-          { href: l("/universites"), label: fr ? "Voir les universités" : "Wè inivèsite yo" },
-          { href: l("/bourses"), label: fr ? "Chercher une bourse" : "Chèche yon bous" },
-        ]}
         stats={[
           { value: String(pathways.length), label: fr ? "parcours" : "pakou" },
           { value: String(countryCount), label: fr ? "pays" : "peyi" },
@@ -97,7 +85,7 @@ export default async function ParcoursPage({
                 <div className="flex items-center gap-3">
                   {cl?.flag && <CountryFlag code={cl.flag} size="lg" />}
                   <div>
-                    <h2 className="text-2xl font-bold tracking-tight dark:text-white" style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}>
+                    <h2 className="text-2xl font-bold tracking-tight dark:text-white">
                       {fr ? p.title_fr : (p.title_ht ?? p.title_fr)}
                     </h2>
                     <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">

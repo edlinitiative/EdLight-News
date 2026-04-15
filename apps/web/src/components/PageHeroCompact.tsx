@@ -83,7 +83,6 @@ export function PageHeroCompact({
 
             <h1
               className="text-3xl sm:text-4xl leading-[1.1] font-extrabold tracking-tight text-stone-900 dark:text-white"
-              style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
             >
               {title}
               {titleAccent && (

@@ -8,9 +8,8 @@ import { Cpu } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { NewsFeed } from "@/components/news-feed";
-import { PageHero } from "@/components/PageHero";
+import { PageHeader } from "@/components/PageHeader";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -55,7 +54,6 @@ export default async function TechnologyPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
   const fr = lang === "fr";
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
@@ -85,24 +83,14 @@ export default async function TechnologyPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="news"
-        eyebrow={fr ? "Technologie & Innovation" : "Teknoloji & Inovasyon"}
+      <PageHeader
+        eyebrow={fr ? "Technologie" : "Teknoloji"}
         title={
           fr
             ? "La tech qui transforme le monde haïtien."
             : "Teknoloji ki ap transfòme mond ayisyen an."
         }
-        description={
-          fr
-            ? "Intelligence artificielle, numérique, innovation et leur impact sur l'éducation, l'emploi et la société haïtienne."
-            : "Entèlijans atifisyèl, dijital, inovasyon ak enpak yo sou edikasyon, travay ak sosyete ayisyen an."
-        }
-        icon={<Cpu className="h-5 w-5" />}
-        actions={[
-          { href: l("/explainers"), label: fr ? "Voir les explainers" : "Wè eksplike yo" },
-          { href: l("/news"), label: fr ? "Toutes les actualités" : "Tout nouvèl yo" },
-        ]}
+        icon={<Cpu className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "articles" : "atik" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },

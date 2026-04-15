@@ -9,12 +9,11 @@
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Award } from "lucide-react";
-import { PageHero } from "@/components/PageHero";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { fetchEnrichedFeed, getLangFromSearchParams, isSuccessArticle } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -42,7 +41,6 @@ export default async function SuccesPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -68,28 +66,18 @@ export default async function SuccesPage({
 
   return (
     <div className="space-y-7">
-      <PageHero
-        variant="success"
+      <PageHeroCompact
+        tint="emerald"
         eyebrow={fr ? "Portraits et trajectoires" : "Pòtrè ak trajè"}
-        title={
-          fr
-            ? "Les parcours qui élargissent l'horizon."
-            : "Pakou ki louvri plis pòt devan nou."
-        }
+        title={fr ? "Les parcours qui élargissent l'horizon." : "Pakou ki louvri plis pòt devan nou."}
         description={
           fr
             ? "Des histoires de réussite, de leadership et de persévérance pour montrer ce qui est possible dans la communauté haïtienne."
             : "Istwa siksè, lidèchip ak pèseverans pou montre sa ki posib nan kominote ayisyèn nan."
         }
-        icon={<Award className="h-5 w-5" />}
-        actions={[
-          { href: l("/news"), label: fr ? "Retour au fil" : "Retounen nan fil la" },
-          { href: l("/ressources"), label: fr ? "Voir les ressources" : "Wè resous yo" },
-        ]}
         stats={[
           { value: String(articles.length), label: fr ? "récits" : "istwa" },
           { value: String(profileCount), label: fr ? "portraits" : "pòtrè" },
-          { value: String(storyCount), label: fr ? "articles" : "atik" },
         ]}
       />
 

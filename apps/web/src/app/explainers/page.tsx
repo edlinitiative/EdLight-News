@@ -10,9 +10,8 @@ import { Lightbulb } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { NewsFeed } from "@/components/news-feed";
-import { PageHero } from "@/components/PageHero";
+import { PageHeader } from "@/components/PageHeader";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -65,7 +64,6 @@ export default async function ExplainersPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
   const fr = lang === "fr";
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
@@ -88,24 +86,14 @@ export default async function ExplainersPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="news"
-        eyebrow={fr ? "Explainers & Analyses" : "Eksplikasyon & Analiz"}
+      <PageHeader
+        eyebrow={fr ? "Explainers" : "Eksplikasyon"}
         title={
           fr
             ? "Comprendre les enjeux qui comptent."
             : "Konprann pwoblèm ki enpòtan yo."
         }
-        description={
-          fr
-            ? "Des dossiers clairs, des analyses structurées et des synthèses sur les sujets complexes qui touchent Haïti et le monde."
-            : "Dosye klè, analiz estriktire ak sentèz sou sijè konplèks ki touche Ayiti ak mond lan."
-        }
-        icon={<Lightbulb className="h-5 w-5" />}
-        actions={[
-          { href: l("/news"), label: fr ? "Dernières actualités" : "Dènye nouvèl" },
-          { href: l("/education"), label: fr ? "Éducation" : "Edikasyon" },
-        ]}
+        icon={<Lightbulb className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "explainers" : "eksplikasyon" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },

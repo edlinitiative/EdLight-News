@@ -11,9 +11,8 @@ import { Feather } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { NewsFeed } from "@/components/news-feed";
-import { PageHero } from "@/components/PageHero";
+import { PageHeader } from "@/components/PageHeader";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -41,7 +40,6 @@ export default async function OpinionPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
   const fr = lang === "fr";
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
@@ -64,24 +62,14 @@ export default async function OpinionPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="news"
-        eyebrow={fr ? "Analyse & Perspectives" : "Analiz & Pèspektiv"}
+      <PageHeader
+        eyebrow={fr ? "Opinion" : "Opinyon"}
         title={
           fr
             ? "Opinions éclairées sur les sujets qui comptent."
             : "Opinyon klere sou sijè ki enpòtan yo."
         }
-        description={
-          fr
-            ? "Analyses, commentaires et perspectives de la rédaction sur l'éducation, la société et l'avenir en Haïti."
-            : "Analiz, kòmantè ak pèspektiv redaksyon an sou edikasyon, sosyete ak avni an Ayiti."
-        }
-        icon={<Feather className="h-5 w-5" />}
-        actions={[
-          { href: l("/news"), label: fr ? "Tout le fil" : "Tout fil la" },
-          { href: l("/explainers"), label: fr ? "Explainers" : "Eksplike" },
-        ]}
+        icon={<Feather className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "articles" : "atik" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },

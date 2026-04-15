@@ -8,9 +8,8 @@ import { TrendingUp } from "lucide-react";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { NewsFeed } from "@/components/news-feed";
-import { PageHero } from "@/components/PageHero";
+import { PageHeader } from "@/components/PageHeader";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -53,7 +52,6 @@ export default async function BusinessPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
   const fr = lang === "fr";
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
@@ -83,24 +81,14 @@ export default async function BusinessPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="success"
-        eyebrow={fr ? "Business & Économie" : "Biznis & Ekonomi"}
+      <PageHeader
+        eyebrow={fr ? "Business" : "Biznis"}
         title={
           fr
             ? "Économie, entrepreneuriat et carrières."
             : "Ekonomi, antreprenèrya ak karyè."
         }
-        description={
-          fr
-            ? "Actualités économiques haïtiennes et mondiales, conseils carrière, entrepreneuriat et tendances des marchés."
-            : "Nouvèl ekonomik ayisyen ak mondyal, konsèy karyè, antreprenèrya ak tandans mache yo."
-        }
-        icon={<TrendingUp className="h-5 w-5" />}
-        actions={[
-          { href: l("/opportunites"), label: fr ? "Voir les opportunités" : "Wè okazyon yo" },
-          { href: l("/news"), label: fr ? "Toutes les actualités" : "Tout nouvèl yo" },
-        ]}
+        icon={<TrendingUp className="h-4 w-4" />}
         stats={[
           { value: String(articles.length), label: fr ? "articles" : "atik" },
           { value: String(sourceCount), label: fr ? "sources" : "sous" },

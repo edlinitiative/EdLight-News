@@ -10,7 +10,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { CalendarDays, ExternalLink, Clock3, Globe2, FileText, ChevronRight } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
-import { PageHero } from "@/components/PageHero";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import {
   fetchCalendarData,
   getLangFromSearchParams,
@@ -167,28 +167,18 @@ export default async function CalendrierPage({
 
   return (
     <div className="space-y-10">
-      <PageHero
-        variant="calendar"
-        eyebrow={fr ? "Dates à ne pas manquer" : "Dat pou pa rate"}
-        title={
-          fr
-            ? "Examens, inscriptions et deadlines au même endroit."
-            : "Egzamen, enskripsyon ak dat limit yo nan yon sèl kote."
-        }
+      <PageHeroCompact
+        tint="orange"
+        eyebrow={fr ? "Calendrier" : "Kalandriye"}
+        title={fr ? "Examens, inscriptions et deadlines au même endroit." : "Egzamen, enskripsyon ak dat limit yo nan yon sèl kote."}
         description={
           fr
             ? "Gardez une vue claire sur les échéances haïtiennes, les bourses internationales et les rappels qui structurent l'année."
             : "Kenbe yon vizyon klè sou dat limit ayisyen yo, bous entènasyonal yo ak rapèl ki estriktire ane a."
         }
-        icon={<CalendarDays className="h-5 w-5" />}
-        actions={[
-          { href: l("/closing-soon"), label: fr ? "Voir l'urgence" : "Wè ijan yo" },
-          { href: l("/bourses"), label: fr ? "Explorer les bourses" : "Eksplore bous yo" },
-        ]}
         stats={[
-          { value: String(haitiItems.length), label: fr ? "événements HT" : "evènman HT" },
-          { value: String(intlItems.length), label: fr ? "deadlines intl." : "dat limit intl." },
-          { value: String(upcomingLegacy.length), label: fr ? "sources articles" : "sous atik" },
+          { value: String(haitiItems.length), label: fr ? "HT" : "HT" },
+          { value: String(intlItems.length), label: fr ? "intl." : "intl." },
         ]}
       />
 

@@ -9,13 +9,11 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
-import { BookOpen } from "lucide-react";
-import { PageHero } from "@/components/PageHero";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { SectionFeed } from "@/components/SectionFeed";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam } from "@/lib/utils";
 
 export const revalidate = 300;
 
@@ -53,7 +51,6 @@ export default async function RessourcesPage({
   searchParams: { lang?: string };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
-  const l = (href: string) => withLangParam(href, lang);
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
@@ -83,27 +80,18 @@ export default async function RessourcesPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="resources"
-        eyebrow={fr ? "Guides et repères" : "Gid ak referans"}
-        title={
-          fr
-            ? "Des ressources pratiques pour avancer plus vite."
-            : "Resous pratik pou avanse pi vit."
-        }
+      <PageHeroCompact
+        tint="violet"
+        eyebrow={fr ? "Bibliothèque" : "Bibliyotèk"}
+        title={fr ? "Des ressources pratiques pour avancer plus vite." : "Resous pratik pou avanse pi vit."}
         description={
           fr
             ? "Guides, carrière, études à l'étranger, histoire et contenu utilitaire pour passer de l'information à l'action."
             : "Gid, karyè, etid aletranje, istwa ak kontni itil pou pase soti nan enfòmasyon rive nan aksyon."
         }
-        icon={<BookOpen className="h-5 w-5" />}
-        actions={[
-          { href: l("/parcours"), label: fr ? "Explorer les parcours" : "Eksplore pakou yo" },
-          { href: l("/histoire"), label: fr ? "Voir l'histoire" : "Wè istwa a" },
-        ]}
         stats={[
           { value: String(articles.length), label: fr ? "ressources" : "resous" },
-          { value: String(utilityCount), label: fr ? "formats utiles" : "fòma itil" },
+          { value: String(utilityCount), label: fr ? "utiles" : "itil" },
           { value: String(seriesCount), label: fr ? "séries" : "seri" },
         ]}
       />

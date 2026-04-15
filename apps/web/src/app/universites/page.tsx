@@ -7,8 +7,8 @@
 
 import type { Metadata } from "next";
 import type { ContentLanguage, DatasetCountry } from "@edlight-news/types";
-import { School, DollarSign, Languages, Paperclip, CheckCircle, Globe2 } from "lucide-react";
-import { PageHero } from "@/components/PageHero";
+import { DollarSign, Languages, Paperclip, CheckCircle, Globe2 } from "lucide-react";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchUniversitiesGrouped,
@@ -76,24 +76,15 @@ export default async function UniversitesPage({
 
   return (
     <div className="space-y-8">
-      <PageHero
-        variant="universities"
-        eyebrow={fr ? "Explorer les destinations" : "Eksplore destinasyon yo"}
-        title={
-          fr
-            ? "Comparer les universités avant d'ouvrir dix onglets."
-            : "Konpare inivèsite yo anvan ou louvri dis onglet."
-        }
+      <PageHeroCompact
+        tint="indigo"
+        eyebrow={fr ? "Universités" : "Inivèsite"}
+        title={fr ? "Comparer les universités avant d'ouvrir dix onglets." : "Konpare inivèsite yo anvan ou louvri dis onglet."}
         description={
           fr
             ? "Un répertoire plus lisible pour repérer les campus, les coûts, les langues et les portes d'entrée les plus utiles aux étudiants haïtiens."
             : "Yon repètwa ki pi klè pou remake kanpis yo, depans yo, lang yo ak pòt antre ki pi itil pou etidyan ayisyen yo."
         }
-        icon={<School className="h-5 w-5" />}
-        actions={[
-          { href: l("/parcours"), label: fr ? "Voir les parcours" : "Wè pakou yo" },
-          { href: l("/bourses"), label: fr ? "Chercher une bourse" : "Chèche yon bous" },
-        ]}
         stats={[
           { value: String(totalCount), label: fr ? "universités" : "inivèsite" },
           { value: String(countryCount), label: fr ? "pays" : "peyi" },
