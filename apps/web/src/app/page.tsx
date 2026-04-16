@@ -1,8 +1,13 @@
 /**
- * Accueil — Premium editorial homepage.
+ * Accueil — Editorial news homepage (NYT-style).
  *
- * Layout: Hero Editorial → Latest News Wire → Trending → Opportunities
- *         → Category Intelligence → Editor's Picks → Stay Updated
+ * Minimalist, text-driven layout:
+ *  - Compact hero image + lead article
+ *  - Latest news feed (no images)
+ *  - Breaking news brief (text snippets)
+ *  - Opportunities (compact list, no images)
+ *  - Trending (simple titles)
+ *  - Newsletter CTA
  */
 
 import Link from "next/link";
