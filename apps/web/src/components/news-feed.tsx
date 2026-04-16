@@ -298,7 +298,6 @@ export function NewsFeed({
   };
 
   // State
-  const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("latest");
   const [showLegacy, setShowLegacy] = useState(false);
   const [activeCategory, setActiveCategory] = useState<FeedCategory>(
@@ -410,15 +409,7 @@ export function NewsFeed({
   }, [studentFiltered]);
 
   // Search filter
-  const searchFiltered = useMemo(() => {
-    if (!search.trim()) return categoryFiltered;
-    const q = search.toLowerCase();
-    return categoryFiltered.filter(
-      (a) =>
-        a.title.toLowerCase().includes(q) ||
-        (a.summary ?? "").toLowerCase().includes(q),
-    );
-  }, [categoryFiltered, search]);
+  const searchFiltered = categoryFiltered;
 
   // Sort
   const sorted = useMemo(() => {
@@ -451,8 +442,8 @@ export function NewsFeed({
 
   // Pagination: show items in pages
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  // Reset visible count when filters / search change
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [activeCategory, search, sort, feedMode]);
+  // Reset visible count when filters / sort change
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [activeCategory, sort, feedMode]);
   const visible = sorted.slice(0, visibleCount);
   const hasMore = visibleCount < sorted.length;
 
@@ -469,7 +460,7 @@ export function NewsFeed({
     <section className="space-y-5">
       {/* Controls bar — compact single row */}
       <div className="flex flex-col gap-2.5">
-        {/* Row 1: mode toggle + search + sort */}
+        {/* Row 1: mode toggle + sort */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="inline-flex shrink-0 rounded-lg border border-stone-200 bg-stone-100 p-0.5 dark:border-stone-700 dark:bg-stone-800">
             {(["student", "all"] as const).map((mode) => {
@@ -499,28 +490,8 @@ export function NewsFeed({
             })}
           </div>
 
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={lang === "fr" ? "Rechercher…" : "Chèche…"}
-              className="w-full rounded-lg border border-stone-200 bg-white px-3 py-1.5 pl-8 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
-            />
-            <svg
-              className="absolute left-2.5 top-2 h-3.5 w-3.5 text-stone-400 dark:text-stone-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
+          <div className="sm:flex-1" />
+
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
@@ -591,13 +562,9 @@ export function NewsFeed({
       {sorted.length === 0 && (
         <div className="section-shell border-2 border-dashed p-8 text-center text-stone-500 dark:text-stone-400">
           <p className="text-lg">
-            {search
-              ? lang === "fr"
-                ? "Aucun résultat pour cette recherche."
-                : "Pa gen rezilta pou rechèch sa a."
-              : lang === "fr"
-                ? "Aucun article pour le moment."
-                : "Pa gen atik pou kounye a."}
+            {lang === "fr"
+              ? "Aucun article pour le moment."
+              : "Pa gen atik pou kounye a."}
           </p>
         </div>
       )}

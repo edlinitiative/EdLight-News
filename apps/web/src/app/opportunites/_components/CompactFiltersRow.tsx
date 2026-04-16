@@ -1,11 +1,9 @@
 "use client";
 
-import { Search, X, SlidersHorizontal, Bookmark } from "lucide-react";
+import { SlidersHorizontal, Bookmark } from "lucide-react";
 import { SortMenuPill } from "./SortMenuPill";
 
 interface CompactFiltersRowProps {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
   sortMode: string;
   onSortChange: (key: string, value: string) => void;
   subcategoryFilter: string;
@@ -22,8 +20,6 @@ interface CompactFiltersRowProps {
 }
 
 export function CompactFiltersRow({
-  searchQuery,
-  onSearchChange,
   sortMode,
   onSortChange,
   subcategoryFilter,
@@ -41,28 +37,6 @@ export function CompactFiltersRow({
   return (
     <div className="sticky top-16 z-20 rounded-xl border border-[#c7c4d8]/15 bg-white px-3 py-2.5 shadow-[0_20px_40px_rgba(29,27,26,0.03)] dark:border-stone-700 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-2">
-        {/* Search — full width on mobile, flexible on desktop */}
-        <div className="relative w-full min-w-0 sm:w-auto sm:flex-1 sm:min-w-[200px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#474948] dark:text-stone-500" />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={fr ? "Rechercher…" : "Chèche…"}
-            className="w-full rounded-full border border-[#c7c4d8]/20 bg-[#f9f2f0] py-1.5 pl-8 pr-8 text-sm text-[#1d1b1a] placeholder:text-[#474948] focus:border-[#3525cd]/30 focus:outline-none focus:ring-2 focus:ring-[#3525cd]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder:text-stone-500 dark:focus:border-[#c3c0ff] dark:focus:ring-[#c3c0ff]/20"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => onSearchChange("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#474948] hover:text-[#1d1b1a] dark:text-stone-500 dark:hover:text-stone-300"
-              aria-label="Clear"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-
         {/* Type / Subcategory */}
         <select
           value={subcategoryFilter}

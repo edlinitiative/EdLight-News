@@ -82,7 +82,6 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   const searchParams = useSearchParams();
 
   // ── Local UI state ──────────────────────────────────────────────────────
-  const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showSavedOnly, setShowSavedOnly] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
@@ -130,7 +129,6 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
     const params = new URLSearchParams(searchParams.toString());
     OPPORTUNITY_FILTER_PARAM_KEYS.forEach((k) => params.delete(k));
     if (lang !== "fr") params.set("lang", lang);
-    setSearchQuery("");
     setShowSavedOnly(false);
     router.replace(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
   }, [lang, pathname, router, searchParams]);
@@ -202,13 +200,6 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       );
     }
 
-    // Client-side text search
-    if (searchQuery.trim()) {
-      items = items.filter((e) =>
-        matchesSearch(e.article.title ?? "", e.article.summary, searchQuery),
-      );
-    }
-
     // Saved-only filter
     if (showSavedOnly) {
       items = items.filter((e) => savedIds.has(e.article.id));
@@ -253,7 +244,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
     });
 
     return items;
-  }, [enriched, subcategoryFilter, deadlineFilter, expiredFilter, sortMode, searchQuery, showSavedOnly, savedIds]);
+  }, [enriched, subcategoryFilter, deadlineFilter, expiredFilter, sortMode, showSavedOnly, savedIds]);
 
   const savedCount = savedIds.size;
 
@@ -332,8 +323,6 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
     <div className="space-y-3" id="catalogue">
       {/* ── Compact filter row (sticky) ── */}
       <CompactFiltersRow
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
         sortMode={sortMode}
         onSortChange={setFilter}
         subcategoryFilter={subcategoryFilter}
