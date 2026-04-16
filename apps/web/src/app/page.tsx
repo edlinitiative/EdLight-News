@@ -258,261 +258,231 @@ export default async function AccueilPage({
     <div className="pb-20">
 
       {/* ══════════════════════════════════════════════════════════════════════
-          1. HERO EDITORIAL — Asymmetric lead + Today's Essentials sidebar
+          1. COMPACT HERO — Single lead article (minimal image)
          ══════════════════════════════════════════════════════════════════════ */}
-      <HeroEditorial lead={leadArticle} secondary={secondaryHero} lang={lang} />
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          2. LATEST NEWS WIRE — Editorial cards with grayscale→color hover
-         ══════════════════════════════════════════════════════════════════════ */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-gradient-to-b from-stone-50/80 to-white py-16 dark:from-stone-900/40 dark:to-stone-950 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            eyebrow={fr ? "Fil d'actualité" : "Fil aktyalite"}
-            title={fr ? "Dernières nouvelles" : "Dènye nouvèl"}
-            href={lq("/news")}
-            linkLabel={fr ? "Voir tout" : "Wè tout"}
-          />
-          {latestNews.length > 0 ? (
-            <>
-              {/* Top row — premium editorial cards */}
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                {latestNews.slice(0, 3).map((article) => (
-                  <EditorialCard
-                    key={article.id}
-                    article={article}
-                    lang={lang}
-                    displayCategory={displayCategory(article)}
-                  />
-                ))}
-              </div>
-              {/* Second row — compact ArticleCards for remaining items */}
-              {latestNews.length > 3 && (
-                <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {latestNews.slice(3, 6).map((article) => (
-                    <ArticleCard key={article.id} article={article} lang={lang} variant="compact" />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="py-8 text-center text-stone-400">
-              {fr ? "Aucun article disponible." : "Pa gen atik disponib."}
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          3. TRENDING — Horizontal scroll / grid
-         ══════════════════════════════════════════════════════════════════════ */}
-      {trendingArticles.length > 0 && (
-        <section className="-mx-4 sm:-mx-6 lg:-mx-8 py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <TrendingSection articles={trendingArticles} lang={lang} />
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          4. OPPORTUNITIES & SCHOLARSHIPS — Bento-inspired layout
-         ══════════════════════════════════════════════════════════════════════ */}
-      {(featuredOpp !== null || moreOpps.length > 0 || closingScholarships.length > 0) && (
-        <section className="-mx-4 sm:-mx-6 lg:-mx-8 bg-gradient-to-b from-indigo-50/40 via-indigo-50/20 to-white py-16 dark:from-indigo-950/15 dark:via-indigo-950/5 dark:to-stone-950 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              eyebrow={fr ? "Bourses & Carrières" : "Bous & Karyè"}
-              title={fr ? "Opportunités" : "Okazyon"}
-              href={lq("/opportunites")}
-              linkLabel={fr ? "Toutes les opportunités" : "Tout okazyon yo"}
-            />
-
-            <div className="grid gap-8 lg:grid-cols-12">
-              {/* Featured opportunity — spans 7 cols */}
-              {featuredOpp && (
-                <div className="lg:col-span-7">
-                  <Link
-                    href={lq(`/news/${featuredOpp.id}`)}
-                    className="group block overflow-hidden rounded-xl border border-indigo-100 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-indigo-900/30 dark:bg-stone-900"
-                  >
-                    {featuredOpp.imageUrl && (
-                      <div className="relative aspect-video overflow-hidden bg-stone-100 dark:bg-stone-800">
-                        <ImageWithFallback
-                          src={featuredOpp.imageUrl}
-                          alt={featuredOpp.title}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                        />
-                      </div>
+      {leadArticle && (
+        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-6 lg:grid-cols-12">
+              {/* Lead article — text and image side by side */}
+              <div className="lg:col-span-8">
+                <Link
+                  href={lq(`/news/${leadArticle.id}`)}
+                  className="group block"
+                >
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-widest text-stone-400 dark:text-stone-600">
+                      {fr ? "À la une" : "Alaune"}
+                    </p>
+                    <h1
+                      className="text-3xl font-bold leading-tight text-stone-900 dark:text-white group-hover:text-primary transition-colors sm:text-4xl"
+                      style={{ fontFamily: "var(--font-display, var(--font-sans))" }}
+                    >
+                      {leadArticle.title}
+                    </h1>
+                    {leadArticle.summary && (
+                      <p className="text-lg leading-relaxed text-stone-600 dark:text-stone-400 pt-2">
+                        {leadArticle.summary}
+                      </p>
                     )}
-                    <div className="flex flex-col gap-3 p-6">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <CategoryBadge category={displayCategory(featuredOpp)} lang={lang} pill />
-                        <DeadlinePill deadline={featuredOpp.deadline} lang={lang} />
-                      </div>
-                      <h3
-                        className="text-xl font-bold leading-snug tracking-tight text-stone-900 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-400 sm:text-2xl"
-                        style={{ fontFamily: "var(--font-serif, Georgia, serif)" }}
-                      >
-                        {featuredOpp.title}
-                      </h3>
-                      {featuredOpp.summary && (
-                        <p className="text-sm leading-relaxed text-stone-500 line-clamp-3 dark:text-stone-400">
-                          {featuredOpp.summary}
-                        </p>
+                    <div className="pt-3 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-500">
+                      {leadArticle.sourceName && (
+                        <span className="font-semibold uppercase">{leadArticle.sourceName}</span>
                       )}
-                      <div className="mt-2 flex items-center gap-3 text-sm">
-                        {featuredOpp.sourceName && (
-                          <span className="font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-                            via {featuredOpp.sourceName}
-                          </span>
-                        )}
-                        {featuredOpp.publishedAt && (
-                          <span className="text-stone-400">
-                            {formatRelativeDate(featuredOpp.publishedAt, lang)}
-                          </span>
-                        )}
-                      </div>
+                      {leadArticle.publishedAt && (
+                        <>
+                          <span>·</span>
+                          <span>{formatRelativeDate(leadArticle.publishedAt, lang)}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Lead image — right side, small and clean */}
+              {leadArticle.imageUrl && (
+                <div className="lg:col-span-4">
+                  <Link href={lq(`/news/${leadArticle.id}`)} className="group block">
+                    <div className="relative aspect-[4/3] overflow-hidden rounded bg-stone-100 dark:bg-stone-800">
+                      <ImageWithFallback
+                        src={leadArticle.imageUrl}
+                        alt={leadArticle.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      />
                     </div>
                   </Link>
                 </div>
               )}
-
-              {/* Smaller opportunity cards — 5 cols */}
-              <div className={featuredOpp ? "lg:col-span-5" : "lg:col-span-12"}>
-                {moreOpps.length > 0 && (
-                  <div className="space-y-3">
-                    {moreOpps.map((opp) => (
-                      <Link
-                        key={opp.id}
-                        href={lq(`/news/${opp.id}`)}
-                        className="group flex items-start gap-4 rounded-xl border border-stone-100 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
-                      >
-                        {opp.imageUrl && (
-                          <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800">
-                            <ImageWithFallback
-                              src={opp.imageUrl}
-                              alt={opp.title}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <CategoryBadge category={displayCategory(opp)} lang={lang} pill />
-                            <DeadlinePill deadline={opp.deadline} lang={lang} />
-                          </div>
-                          <h4 className="text-sm font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-400">
-                            {opp.title}
-                          </h4>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* Closing-soon scholarships fallback */}
-                {featuredOpp === null && moreOpps.length === 0 && closingScholarships.length > 0 && (
-                  <div className="space-y-3">
-                    {closingScholarships.slice(0, 5).map((s) => (
-                      <Link
-                        key={s.id}
-                        href={lq("/bourses")}
-                        className="group flex items-start gap-3 rounded-xl border border-stone-100 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-stone-800 dark:bg-stone-900"
-                      >
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="rounded-full bg-purple-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-purple-700 dark:bg-purple-950/30 dark:text-purple-300">
-                              {fr ? "Bourse" : "Bous"}
-                            </span>
-                            {s.deadline?.dateISO && (
-                              <DeadlinePill deadline={s.deadline.dateISO} lang={lang} />
-                            )}
-                          </div>
-                          <h4 className="text-sm font-bold leading-snug text-stone-900 line-clamp-2 group-hover:text-indigo-700 dark:text-white dark:group-hover:text-indigo-400">
-                            {s.name}
-                          </h4>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="mt-10 text-center">
-              <Link
-                href={lq("/opportunites")}
-                className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-8 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-md transition-all hover:bg-indigo-500 hover:shadow-lg active:scale-95"
-              >
-                {fr ? "Voir toutes les opportunités" : "Wè tout okazyon yo"}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
             </div>
           </div>
         </section>
       )}
 
+      {/* ══════════════════════════════════════════════════════════════════════
+          2. LATEST NEWS — Text-driven list, NO images (NYT-style feed)
+         ══════════════════════════════════════════════════════════════════════ */}
+      {latestNews.length > 0 && (
+        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-stone-900 dark:text-white">
+                {fr ? "Dernières actualités" : "Dènye nouvèl"}
+              </h2>
+              <Link
+                href={lq("/news")}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition"
+              >
+                {fr ? "Voir tout" : "Wè tout"} →
+              </Link>
+            </div>
 
+            {/* List of articles — text only */}
+            <ul className="space-y-4">
+              {latestNews.slice(0, 5).map((article) => (
+                <li key={article.id} className="border-b border-stone-100 dark:border-stone-800/50 pb-4 last:border-0">
+                  <Link
+                    href={lq(`/news/${article.id}`)}
+                    className="group block"
+                  >
+                    <h3 className="text-base font-bold leading-tight text-stone-900 dark:text-white group-hover:text-primary transition-colors">
+                      {article.title}
+                    </h3>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-500">
+                      {article.sourceName && (
+                        <span className="font-semibold uppercase">{article.sourceName}</span>
+                      )}
+                      {article.publishedAt && (
+                        <>
+                          <span>·</span>
+                          <span>{formatRelativeDate(article.publishedAt, lang)}</span>
+                        </>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          7. STAY UPDATED — Newsletter + Instagram (premium dark band)
+          3. TRENDING — Most Read (simple title list)
          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden border-t border-stone-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 py-16 dark:border-stone-700 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-blue-900 sm:py-20">
-        {/* Decorative gradient orb */}
-        <div className="pointer-events-none absolute inset-0 opacity-20">
-          <div className="absolute -right-1/4 -top-1/4 h-96 w-96 rounded-full bg-blue-500 blur-3xl"></div>
-          <div className="absolute -bottom-1/4 -left-1/4 h-96 w-96 rounded-full bg-indigo-500 blur-3xl"></div>
-        </div>
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 z-10">
-          <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
+      {trendingArticles.length > 0 && (
+        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <h2 className="mb-6 text-lg font-bold text-stone-900 dark:text-white">
+              {fr ? "À lire maintenant" : "Pou li kounye a"}
+            </h2>
+            <ul className="grid gap-6 sm:grid-cols-2">
+              {trendingArticles.slice(0, 4).map((article, idx) => (
+                <li key={article.id}>
+                  <Link
+                    href={lq(`/news/${article.id}`)}
+                    className="group block"
+                  >
+                    <p className="text-3xl font-bold text-stone-300 dark:text-stone-700 mb-1">
+                      {String(idx + 1).padStart(2, "0")}
+                    </p>
+                    <h3 className="text-sm font-bold leading-tight text-stone-900 dark:text-white group-hover:text-primary transition-colors">
+                      {article.title}
+                    </h3>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
-            {/* ── Newsletter panel ── */}
-            <div className="flex flex-col gap-5">
-              <div>
-                <span className="inline-block rounded-full bg-blue-500/20 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-300">
-                  {fr ? "Newsletter" : "Nyouzletè"}
-                </span>
-                <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                  {fr ? "Restez informé" : "Rete enfòme"}
-                </h2>
-                <p className="mt-3 text-sm leading-relaxed text-stone-400">
-                  {fr
-                    ? "Bourses, actualités et opportunités sélectionnées — directement dans votre boîte mail, gratuitement."
-                    : "Bous, nouvèl ak okazyon chwazi — dirèkteman nan bwat imèl ou, gratis."}
-                </p>
-              </div>
-              <div className="[&_input]:border-stone-700 [&_input]:bg-stone-800 [&_input]:text-white [&_input]:placeholder-stone-500 [&_button]:bg-blue-500 [&_button]:hover:bg-blue-400 [&_p]:text-stone-500">
-                <NewsletterForm lang={lang} variant="homepage" />
-              </div>
-            </div>
-
-            {/* ── Instagram panel ── */}
-            <div className="flex flex-col items-center justify-center gap-5 rounded-2xl border border-stone-700 bg-stone-800/50 p-8 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-lg shadow-fuchsia-500/20">
-                <Instagram className="h-7 w-7 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-extrabold tracking-tight text-white">
-                  {fr ? "Suivez-nous sur Instagram" : "Swiv nou sou Instagram"}
-                </h3>
-                <p className="mt-1 text-sm text-stone-400">
-                  {fr
-                    ? "Bourses et actualités en visuels — chaque jour."
-                    : "Bous ak nouvèl an vizyal — chak jou."}
-                </p>
-              </div>
-              <a
-                href="https://www.instagram.com/edlightnews/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-600 to-pink-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-fuchsia-500/20 transition hover:opacity-90 active:scale-95"
+      {/* ══════════════════════════════════════════════════════════════════════
+          4. OPPORTUNITIES — Compact text list, minimal design
+         ══════════════════════════════════════════════════════════════════════ */}
+      {(featuredOpp !== null || moreOpps.length > 0) && (
+        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-stone-900 dark:text-white">
+                {fr ? "Opportunités à saisir" : "Okazyon pou pwofite"}
+              </h2>
+              <Link
+                href={lq("/opportunites")}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition"
               >
-                <Instagram className="h-4 w-4" />
-                @edlightnews
-              </a>
+                {fr ? "Voir tout" : "Wè tout"} →
+              </Link>
             </div>
 
+            {/* Featured opportunity — highlight */}
+            {featuredOpp && (
+              <div className="mb-6 pb-6 border-b border-stone-100 dark:border-stone-800/50">
+                <Link
+                  href={lq(`/news/${featuredOpp.id}`)}
+                  className="group block"
+                >
+                  <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">
+                    {fr ? "À saisir" : "Pou sezi"}
+                  </p>
+                  <h3 className="text-base font-bold leading-tight text-stone-900 dark:text-white group-hover:text-primary transition-colors">
+                    {featuredOpp.title}
+                  </h3>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-500">
+                    {featuredOpp.deadline && (
+                      <span className="font-semibold text-orange-600 dark:text-orange-400">
+                        Deadline: {formatRelativeDate(featuredOpp.deadline, lang)}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              </div>
+            )}
+
+            {/* More opportunities — simple list */}
+            {moreOpps.length > 0 && (
+              <ul className="space-y-3">
+                {moreOpps.slice(0, 4).map((opp) => (
+                  <li key={opp.id} className="border-b border-stone-100 dark:border-stone-800/50 pb-3 last:border-0">
+                    <Link
+                      href={lq(`/news/${opp.id}`)}
+                      className="group block"
+                    >
+                      <h4 className="text-sm font-bold text-stone-900 dark:text-white group-hover:text-primary transition-colors">
+                        {opp.title}
+                      </h4>
+                      {opp.deadline && (
+                        <p className="mt-1 text-xs text-orange-600 dark:text-orange-400">
+                          {fr ? "Date limite:" : "Dat limit:"} {formatRelativeDate(opp.deadline, lang)}
+                        </p>
+                      )}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          5. NEWSLETTER — Clean, minimal CTA
+         ══════════════════════════════════════════════════════════════════════ */}
+      <section className="border-t border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/30 py-12">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-stone-400 dark:text-stone-600 mb-2">
+            {fr ? "Newsletter" : "Nyouzletè"}
+          </p>
+          <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-3">
+            {fr ? "Restez informé" : "Rete enfòme"}
+          </h2>
+          <p className="text-sm text-stone-600 dark:text-stone-400 mb-6">
+            {fr
+              ? "Recevez les meilleures actualités et bourses — une fois par semaine."
+              : "Resevwa pi bon nouvèl ak bous — yon fwa pa semèn."}
+          </p>
+          <div className="max-w-sm mx-auto [&_input]:border-stone-300 [&_input]:bg-white [&_input]:text-stone-900 [&_input]:placeholder-stone-500 [&_button]:bg-stone-900 [&_button]:hover:bg-stone-800 dark:[&_input]:border-stone-700 dark:[&_input]:bg-stone-800 dark:[&_input]:text-white dark:[&_button]:bg-white dark:[&_button]:text-stone-900 dark:[&_button]:hover:bg-stone-100">
+            <NewsletterForm lang={lang} variant="homepage" />
           </div>
         </div>
       </section>
