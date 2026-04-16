@@ -6,7 +6,6 @@ import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
-import { AppSidebar } from "@/components/AppSidebar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { BackToTop } from "@/components/BackToTop";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
@@ -101,9 +100,8 @@ export default function RootLayout({
             </a>
 
             <NavBar />
-            <AppSidebar />
 
-            <div className="flex flex-1 flex-col lg:pl-64">
+            <div className="flex flex-1 flex-col">
               <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-8 sm:px-6 lg:px-8" style={{ paddingBottom: 'max(5rem, calc(4rem + env(safe-area-inset-bottom)))' }}>
                 {children}
               </main>
