@@ -28,8 +28,7 @@ export function EditorialCard({
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
-      className="group flex flex-col overflow-hidden rounded-lg bg-surface-container-lowest shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-ambient dark:bg-surface-container-low"
-      style={{ border: '1px solid rgba(202,196,208,0.12)' }}
+      className="group flex flex-col overflow-hidden transition-all duration-300"
     >
       {/* Image */}
       {hasImage && (
@@ -51,7 +50,7 @@ export function EditorialCard({
       )}
 
       {/* Content */}
-      <div className="flex flex-1 flex-col gap-2.5 p-5">
+      <div className="flex flex-1 flex-col gap-2 p-0">
         {/* Category (when no image) */}
         {!hasImage && label && (
           <span className="w-fit rounded-full bg-surface-container-highest px-2.5 py-0.5 text-label-sm font-bold uppercase tracking-wider text-on-surface-variant">

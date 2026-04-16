@@ -109,12 +109,11 @@ export function ArticleCard({
       className={[
         "group flex overflow-hidden transition-all duration-300",
         isFeatured
-          ? "flex-col rounded-lg bg-surface-container-lowest shadow-card hover:-translate-y-1 hover:shadow-ambient sm:flex-row"
+          ? "flex-col sm:flex-row gap-6"
           : isCompact
-            ? "items-start gap-4 rounded-lg px-4 py-3.5 bg-surface-container-lowest hover:-translate-y-px hover:bg-surface-container-low hover:shadow-soft"
-            : "flex-col rounded-lg bg-surface-container-lowest shadow-card hover:-translate-y-0.5 hover:shadow-ambient",
+            ? "items-start gap-4 border-b border-stone-200 px-0 py-4 dark:border-stone-800"
+            : "flex-col gap-3",
       ].join(" ")}
-      style={{ border: '1px solid rgba(202,196,208,0.12)' }}
     >
       {/* Image */}
       {showImage && !isCompact && (
@@ -160,7 +159,7 @@ export function ArticleCard({
       {/* Content */}
       <div className={[
         "flex flex-1 flex-col",
-        isFeatured ? "gap-2.5 p-6" : isCompact ? "min-w-0 gap-1.5" : "gap-2 p-5",
+        isFeatured ? "gap-2.5 p-0" : isCompact ? "min-w-0 gap-1.5" : "gap-2 p-0",
       ].join(" ")}>
         {/* Badges row */}
         <div className="flex flex-wrap items-center gap-2">

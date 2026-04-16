@@ -453,8 +453,13 @@ export default async function AccueilPage({
       {/* ══════════════════════════════════════════════════════════════════════
           7. STAY UPDATED — Newsletter + Instagram (premium dark band)
          ══════════════════════════════════════════════════════════════════════ */}
-      <section className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden border-t border-stone-200 bg-stone-900 py-16 dark:border-stone-700 dark:bg-stone-950 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <section className="-mx-4 sm:-mx-6 lg:-mx-8 relative overflow-hidden border-t border-stone-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 py-16 dark:border-stone-700 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-blue-900 sm:py-20">
+        {/* Decorative gradient orb */}
+        <div className="pointer-events-none absolute inset-0 opacity-20">
+          <div className="absolute -right-1/4 -top-1/4 h-96 w-96 rounded-full bg-blue-500 blur-3xl"></div>
+          <div className="absolute -bottom-1/4 -left-1/4 h-96 w-96 rounded-full bg-indigo-500 blur-3xl"></div>
+        </div>
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 z-10">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
 
             {/* ── Newsletter panel ── */}

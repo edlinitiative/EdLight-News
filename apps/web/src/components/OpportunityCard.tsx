@@ -79,8 +79,8 @@ export function OpportunityCard({
     <Link
       href={`/news/${article.id}?lang=${lang}`}
       className={[
-        "group flex flex-col overflow-hidden bg-white dark:bg-stone-900/80 rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 shadow-[0_20px_40px_rgba(29,27,26,0.05)] hover:shadow-[0_20px_40px_rgba(29,27,26,0.1)] hover:-translate-y-1 transition-all duration-300",
-        isExpired ? "opacity-80" : "",
+        "group flex flex-col overflow-hidden transition-all duration-300",
+        isExpired ? "opacity-75" : "",
       ].join(" ")}
     >
       {/* Image / gradient thumbnail */}
@@ -120,7 +120,7 @@ export function OpportunityCard({
         )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-4">
+      <div className="relative flex flex-1 flex-col p-0">
         {/* Category badge — uses derived subcategory */}
         <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
           <span
