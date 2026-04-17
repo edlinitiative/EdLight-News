@@ -40,11 +40,5 @@ export function isTauxDuJourArticle(item: TauxFilterInput): boolean {
     return true;
   }
 
-  // Catch "taux" articles even without exchange keywords
-  // (broader filter for "taux"-only articles from financial publishers)
-  if (text.includes("taux") && text.includes("brh")) {
-    return true;
-  }
-
   return false;
 }
