@@ -9,11 +9,8 @@
  * with a link to the BRH page.
  */
 
-"use client";
-
 import type { ContentLanguage } from "@edlight-news/types";
-import { BarChart3, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { BarChart3 } from "lucide-react";
 
 // ── Minimal UI type (no backend dependency) ─────────────────────────────────
 
@@ -78,46 +75,37 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
   const t = STRINGS[lang] ?? STRINGS.fr;
   const hasData = data && data.usdReference != null;
   const sourceUrl = data?.sourceUrl ?? BRH_URL;
-  const [expanded, setExpanded] = useState(false);
-
-  // Check if there are any detailed rates to show
-  const hasDetailedRates =
-    (data?.bankBuy != null || data?.bankSell != null) ||
-    (data?.informalBuy != null || data?.informalSell != null);
 
   return (
-    <div className="relative overflow-hidden rounded-lg border border-amber-200/30 bg-gradient-to-br from-amber-50/50 to-white dark:border-amber-700/20 dark:from-amber-950/20 dark:to-stone-900 shadow-md dark:shadow-lg">
-      {/* Premium accent bar */}
-      <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-blue-500" />
+    <div className="relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
+      {/* Top accent bar */}
+      <div className="h-0.5 bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-500" />
 
-      <div className="px-4 py-2.5">
+      <div className="px-4 py-3 sm:px-5">
+        {/* Header row */}
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white sm:text-sm">
+            <BarChart3 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+            {t.title}
+          </h2>
+          {/* "Aujourd'hui" / "Mis à jour" badge */}
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+            {data?.updatedAt || data?.date ? t.badgeUpdated : t.badge}
+          </span>
+        </div>
+
         {hasData ? (
-          /* ── Premium compact rate display ──────────────────────────── */
-          <>
-            {/* Header with title and badge */}
-            <div className="flex items-center justify-between gap-2 mb-1.5">
-              <h2 className="flex items-center gap-1.5 text-[13px] font-bold text-stone-900 dark:text-white">
-                <BarChart3 className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                {t.title}
-              </h2>
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100/60 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                <span className="h-1 w-1 rounded-full bg-amber-500 animate-pulse" />
-                {data?.updatedAt || data?.date ? t.badgeUpdated : t.badge}
+          /* ── Active state: flat inline rates ────────────────────────── */
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-5 sm:gap-y-1.5">
+            {/* Reference rate (prominent) */}
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-white sm:text-2xl">
+                {data!.usdReference}
               </span>
-            </div>
-
-            {/* Main rate display - compact horizontal layout */}
-            <div className="flex items-baseline justify-between gap-2">
-              <div className="flex items-baseline gap-1 flex-1">
-                <span className="text-lg font-extrabold tabular-nums text-stone-900 dark:text-white">
-                  {data!.usdReference}
-                </span>
-                <span className="text-[10px] font-medium text-stone-500 dark:text-stone-400">
-                  {t.htgPer}
-                </span>
-              </div>
-
-              {/* Daily variation badge */}
+              <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
+                {t.htgPer}
+              </span>
               {data!.dailyVariation && (() => {
                 const raw = data!.dailyVariation.replace(",", ".").replace("%", "").trim();
                 const num = parseFloat(raw);
@@ -125,112 +113,113 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
                 const up = num > 0;
                 return (
                   <span
-                    className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold tabular-nums flex-shrink-0 ${
+                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] font-semibold tabular-nums ${
                       up
-                        ? "bg-red-50/70 text-red-600 dark:bg-red-950/40 dark:text-red-400"
-                        : "bg-emerald-50/70 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                        ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
+                        : "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
                     }`}
                   >
                     {up ? "↑" : "↓"} {data!.dailyVariation}
                   </span>
                 );
               })()}
+              {data!.weeklyVariation && (() => {
+                const raw = data!.weeklyVariation.replace(",", ".").replace("%", "").trim();
+                const num = parseFloat(raw);
+                if (!Number.isFinite(num) || num === 0) return null;
+                const up = num > 0;
+                return (
+                  <span
+                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] tabular-nums ${
+                      up
+                        ? "text-red-400 dark:text-red-500"
+                        : "text-emerald-400 dark:text-emerald-500"
+                    }`}
+                    title={lang === "fr" ? "Variation hebdomadaire" : "Varyasyon semèn"}
+                  >
+                    {t.weekLabel} {up ? "↑" : "↓"} {data!.weeklyVariation}
+                  </span>
+                );
+              })()}
             </div>
 
-            {/* Expandable detailed rates */}
-            {hasDetailedRates && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="mt-2 w-full flex items-center justify-between text-[11px] font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 transition-colors py-1 -mx-1 px-1"
-              >
-                <span>
-                  {expanded ? "−" : "+"} {lang === "fr" ? "Détails" : "Detay"}
+            {/* Divider */}
+            <span className="hidden text-stone-200 dark:text-stone-700 sm:inline">|</span>
+
+            {/* Bank rates */}
+            {(data!.bankBuy != null || data!.bankSell != null) && (
+              <div className="flex items-baseline gap-2 text-xs tabular-nums">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                  {t.bankTitle}
                 </span>
-                <ChevronDown
-                  className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`}
-                />
-              </button>
-            )}
-
-            {expanded && hasDetailedRates && (
-              <div className="mt-2 pt-2 border-t border-amber-100/50 dark:border-amber-900/30 space-y-1.5">
-                {/* Bank rates */}
-                {(data!.bankBuy != null || data!.bankSell != null) && (
-                  <div className="flex items-baseline justify-between text-[11px]">
-                    <span className="font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                      {t.bankTitle}
-                    </span>
-                    <div className="flex gap-2 tabular-nums">
-                      {data!.bankBuy != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-stone-500 dark:text-stone-400">{t.buy}</span> {data!.bankBuy}
-                        </span>
-                      )}
-                      {data!.bankSell != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-stone-500 dark:text-stone-400">{t.sell}</span> {data!.bankSell}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                {data!.bankBuy != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.buy}</span> {data!.bankBuy}
+                  </span>
                 )}
-
-                {/* Informal rates */}
-                {(data!.informalBuy != null || data!.informalSell != null) && (
-                  <div className="flex items-baseline justify-between text-[11px]">
-                    <span className="font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                      {t.informalTitle}
-                    </span>
-                    <div className="flex gap-2 tabular-nums">
-                      {data!.informalBuy != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-stone-500 dark:text-stone-400">{t.buy}</span> {data!.informalBuy}
-                        </span>
-                      )}
-                      {data!.informalSell != null && (
-                        <span className="text-stone-700 dark:text-stone-300">
-                          <span className="text-stone-500 dark:text-stone-400">{t.sell}</span> {data!.informalSell}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                {data!.bankSell != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.sell}</span> {data!.bankSell}
+                  </span>
                 )}
               </div>
             )}
 
-            {/* Source footer */}
-            <div className="mt-2 pt-1.5 border-t border-amber-100/50 dark:border-amber-900/30">
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[10px] text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
-              >
-                {t.source}
-              </a>
-            </div>
-          </>
+            {/* Informal rates */}
+            {(data!.informalBuy != null || data!.informalSell != null) && (
+              <div className="flex items-baseline gap-2 text-xs tabular-nums">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
+                  {t.informalTitle}
+                </span>
+                {data!.informalBuy != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.buy}</span> {data!.informalBuy}
+                  </span>
+                )}
+                {data!.informalSell != null && (
+                  <span className="text-stone-600 dark:text-stone-300">
+                    <span className="text-stone-400 dark:text-stone-500">{t.sell}</span> {data!.informalSell}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Date */}
+            {data!.date && (
+              <span className="text-[11px] text-stone-400 dark:text-stone-500">
+                {data!.date}
+              </span>
+            )}
+          </div>
         ) : (
           /* ── Placeholder / empty state ─────────────────────────────── */
-          <div className="flex items-center gap-2">
-            <div>
-              <p className="text-[13px] font-semibold text-stone-700 dark:text-stone-200 mb-0.5">
-                {t.title}
-              </p>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">
-                {t.unavailable}
-              </p>
-            </div>
+          <div className="mt-2 flex items-center gap-3">
+            <span className="text-sm font-medium text-stone-400 dark:text-stone-500">—</span>
+            <p className="text-sm text-stone-500 dark:text-stone-400">
+              {t.unavailable}
+            </p>
             <a
               href={BRH_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto shrink-0 text-[11px] font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400 transition-colors"
+              className="ml-auto shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
             >
-              {t.seeOnBrh}
+              {t.seeOnBrh} ↗
             </a>
           </div>
         )}
+
+        {/* Source footer */}
+        <div className="mt-2 border-t border-stone-100 pt-1.5 dark:border-stone-800">
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+          >
+            {t.source} ↗
+          </a>
+        </div>
       </div>
     </div>
   );
