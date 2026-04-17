@@ -707,7 +707,11 @@ export function isRoundupTitle(title: string): boolean {
  */
 function isTauxDuJourArticle(item: Item): boolean {
   const text = `${item.title} ${item.summary}`.toLowerCase();
+  
+  // Strong match: the exact phrase "taux du jour"
   if (text.includes("taux du jour")) return true;
+  
+  // Composite match: "taux" + exchange-specific keyword
   if (
     text.includes("taux") &&
     (/\busd\b/.test(text) ||
@@ -719,6 +723,13 @@ function isTauxDuJourArticle(item: Item): boolean {
   ) {
     return true;
   }
+  
+  // Catch "taux" articles even without exchange keywords
+  // (broader filter for "taux"-only articles from financial publishers)
+  if (text.includes("taux") && text.includes("brh")) {
+    return true;
+  }
+  
   return false;
 }
 
