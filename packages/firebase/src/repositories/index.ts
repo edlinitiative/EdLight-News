@@ -21,3 +21,6 @@ export * as historyPublishLogRepo from "./history-publish-log.js";
 export * as igQueueRepo from "./ig-queue.js";
 export * as igStoryQueueRepo from "./ig-story-queue.js";
 export * as waQueueRepo from "./wa-queue.js";
+export * as fbQueueRepo from "./fb-queue.js";
+export * as thQueueRepo from "./th-queue.js";
+export * as xQueueRepo from "./x-queue.js";

@@ -24,4 +24,7 @@ export {
   igQueueRepo,
   igStoryQueueRepo,
   waQueueRepo,
+  fbQueueRepo,
+  thQueueRepo,
+  xQueueRepo,
 } from "./repositories/index.js";

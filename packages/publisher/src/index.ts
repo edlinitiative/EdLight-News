@@ -7,7 +7,7 @@
  * Processes entries from the publish_queue collection.
  */
 
-import type { PublishQueueEntry, IGQueueItem, IGFormattedPayload, WaQueueItem, WaMessagePayload } from "@edlight-news/types";
+import type { PublishQueueEntry, IGQueueItem, IGFormattedPayload, WaQueueItem, WaMessagePayload, FbQueueItem, FbMessagePayload, ThQueueItem, ThMessagePayload, XQueueItem, XMessagePayload } from "@edlight-news/types";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -499,5 +499,287 @@ export async function publishToWhatsApp(
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[publisher] WA publish failed: ${msg}`);
     return { sent: false, dryRun: false, error: msg };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Facebook Page publishing (Graph API) ───────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getFBCredentials(): { accessToken: string; pageId: string } | null {
+  const accessToken = process.env.FB_PAGE_ACCESS_TOKEN;
+  const pageId = process.env.FB_PAGE_ID;
+  if (!accessToken || !pageId) return null;
+  return { accessToken, pageId };
+}
+
+export interface FBPublishResult {
+  posted: boolean;
+  fbPostId?: string;
+  dryRun: boolean;
+  error?: string;
+}
+
+/**
+ * Publish to a Facebook Page via Graph API.
+ *
+ * Two modes:
+ *   1. Link post — `message` + `link` → FB auto-generates preview card
+ *   2. Photo post — `url` + `caption` (when imageUrl is set and no linkUrl)
+ *
+ * Falls back to dry-run if FB_PAGE_ACCESS_TOKEN / FB_PAGE_ID are not set.
+ */
+export async function publishToFacebook(
+  queueItem: FbQueueItem,
+  payload: FbMessagePayload,
+): Promise<FBPublishResult> {
+  const creds = getFBCredentials();
+
+  if (!creds) {
+    console.log(`[publisher] FB dry-run: ${queueItem.id} — "${payload.text.slice(0, 80)}…"`);
+    return { posted: false, dryRun: true };
+  }
+
+  try {
+    const { accessToken, pageId } = creds;
+    const apiHost = "graph.facebook.com";
+    const apiVersion = "v21.0";
+
+    let endpoint: string;
+    const params: Record<string, string> = { access_token: accessToken };
+
+    if (payload.linkUrl) {
+      // Link post — FB generates the preview card from the URL
+      endpoint = `https://${apiHost}/${apiVersion}/${pageId}/feed`;
+      params.message = payload.text;
+      params.link = payload.linkUrl;
+    } else if (payload.imageUrl) {
+      // Photo post
+      endpoint = `https://${apiHost}/${apiVersion}/${pageId}/photos`;
+      params.url = payload.imageUrl;
+      params.caption = payload.text;
+    } else {
+      // Text-only post
+      endpoint = `https://${apiHost}/${apiVersion}/${pageId}/feed`;
+      params.message = payload.text;
+    }
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: new URLSearchParams(params),
+    });
+
+    const data = (await res.json()) as {
+      id?: string;
+      post_id?: string;
+      error?: { message: string; code: number };
+    };
+
+    if (data.error) {
+      throw new Error(`FB API error (${data.error.code}): ${data.error.message}`);
+    }
+
+    const postId = data.post_id ?? data.id;
+    if (postId) {
+      console.log(`[publisher] FB post published: ${postId}`);
+      return { posted: true, fbPostId: postId, dryRun: false };
+    }
+
+    throw new Error("FB API returned no post ID and no error");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[publisher] FB publish failed: ${msg}`);
+    return { posted: false, dryRun: false, error: msg };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Threads publishing (Threads API) ───────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getThreadsCredentials(): { accessToken: string; userId: string } | null {
+  const accessToken = process.env.THREADS_ACCESS_TOKEN;
+  const userId = process.env.THREADS_USER_ID;
+  if (!accessToken || !userId) return null;
+  return { accessToken, userId };
+}
+
+export interface ThPublishResult {
+  posted: boolean;
+  thPostId?: string;
+  dryRun: boolean;
+  error?: string;
+}
+
+/**
+ * Publish to Threads via the Threads Publishing API.
+ *
+ * Uses the same two-step container flow as Instagram:
+ *   1. POST /threads — create media container
+ *   2. POST /threads_publish — publish the container
+ *
+ * Falls back to dry-run if THREADS_ACCESS_TOKEN / THREADS_USER_ID are not set.
+ */
+export async function publishToThreads(
+  queueItem: ThQueueItem,
+  payload: ThMessagePayload,
+): Promise<ThPublishResult> {
+  const creds = getThreadsCredentials();
+
+  if (!creds) {
+    console.log(`[publisher] Threads dry-run: ${queueItem.id} — "${payload.text.slice(0, 80)}…"`);
+    return { posted: false, dryRun: true };
+  }
+
+  try {
+    const { accessToken, userId } = creds;
+    const apiHost = "graph.threads.net";
+    const apiVersion = "v1.0";
+    const baseUrl = `https://${apiHost}/${apiVersion}/${userId}`;
+    const authHeader = `Bearer ${accessToken}`;
+
+    async function thPost(
+      url: string,
+      params: Record<string, string>,
+    ): Promise<{ id?: string; error?: { message: string; code?: number } }> {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: authHeader },
+        body: new URLSearchParams(params),
+      });
+      return (await res.json()) as { id?: string; error?: { message: string } };
+    }
+
+    async function thGet(
+      url: string,
+    ): Promise<{ status?: string; id?: string; error?: { message: string } }> {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { Authorization: authHeader },
+      });
+      return (await res.json()) as any;
+    }
+
+    async function waitForContainer(containerId: string): Promise<void> {
+      const apiBase = `https://${apiHost}/${apiVersion}`;
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const status = await thGet(`${apiBase}/${containerId}?fields=status`);
+        const code = status.status ?? "UNKNOWN";
+        console.log(`[publisher] Threads container ${containerId}: ${code} (attempt ${attempt + 1})`);
+        if (code === "FINISHED") return;
+        if (code === "ERROR" || code === "EXPIRED") {
+          throw new Error(`Threads container ${containerId} status: ${code}`);
+        }
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+      throw new Error(`Threads container ${containerId} did not become FINISHED in time`);
+    }
+
+    // Step 1: Create media container
+    const containerParams: Record<string, string> = { text: payload.text };
+    if (payload.imageUrl) {
+      containerParams.media_type = "IMAGE";
+      containerParams.image_url = payload.imageUrl;
+    } else {
+      containerParams.media_type = "TEXT";
+    }
+
+    const containerData = await thPost(`${baseUrl}/threads`, containerParams);
+    if (containerData.error) {
+      throw new Error(`Threads API error: ${containerData.error.message}`);
+    }
+    const containerId = containerData.id!;
+    console.log(`[publisher] Threads container created: ${containerId}`);
+
+    // Wait for container to finish processing
+    await waitForContainer(containerId);
+
+    // Step 2: Publish
+    const publishData = await thPost(`${baseUrl}/threads_publish`, {
+      creation_id: containerId,
+    });
+    if (publishData.error) {
+      throw new Error(`Threads publish error: ${publishData.error.message}`);
+    }
+
+    console.log(`[publisher] Threads post published: ${publishData.id}`);
+    return { posted: true, thPostId: publishData.id, dryRun: false };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[publisher] Threads publish failed: ${msg}`);
+    return { posted: false, dryRun: false, error: msg };
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── X (Twitter) publishing (X API v2) ──────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getXCredentials(): { bearerToken: string } | null {
+  const bearerToken = process.env.X_BEARER_TOKEN;
+  if (!bearerToken) return null;
+  return { bearerToken };
+}
+
+export interface XPublishResult {
+  posted: boolean;
+  xTweetId?: string;
+  dryRun: boolean;
+  error?: string;
+}
+
+/**
+ * Publish a tweet via the X API v2.
+ *
+ *   POST https://api.x.com/2/tweets
+ *
+ * Text-only in v1. Media upload (images) can be added later via the
+ * upload.twitter.com/1.1/media/upload.json endpoint.
+ *
+ * Falls back to dry-run if X_BEARER_TOKEN is not set.
+ */
+export async function publishToX(
+  queueItem: XQueueItem,
+  payload: XMessagePayload,
+): Promise<XPublishResult> {
+  const creds = getXCredentials();
+
+  if (!creds) {
+    console.log(`[publisher] X dry-run: ${queueItem.id} — "${payload.text.slice(0, 80)}…"`);
+    return { posted: false, dryRun: true };
+  }
+
+  try {
+    const { bearerToken } = creds;
+
+    const res = await fetch("https://api.x.com/2/tweets", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${bearerToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: payload.text }),
+    });
+
+    const data = (await res.json()) as {
+      data?: { id: string; text: string };
+      errors?: { message: string; title: string }[];
+    };
+
+    if (data.errors && data.errors.length > 0) {
+      throw new Error(`X API error: ${data.errors[0]!.message}`);
+    }
+
+    const tweetId = data.data?.id;
+    if (tweetId) {
+      console.log(`[publisher] X tweet published: ${tweetId}`);
+      return { posted: true, xTweetId: tweetId, dryRun: false };
+    }
+
+    throw new Error("X API returned no tweet ID and no error");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[publisher] X publish failed: ${msg}`);
+    return { posted: false, dryRun: false, error: msg };
   }
 }

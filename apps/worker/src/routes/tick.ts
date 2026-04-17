@@ -16,6 +16,15 @@ import { processIgStory } from "../jobs/processIgStory.js";
 import { buildWaQueue } from "../jobs/buildWaQueue.js";
 import { scheduleWaPost } from "../jobs/scheduleWaPost.js";
 import { processWaScheduled } from "../jobs/processWaScheduled.js";
+import { buildFbQueue } from "../jobs/buildFbQueue.js";
+import { scheduleFbPost } from "../jobs/scheduleFbPost.js";
+import { processFbScheduled } from "../jobs/processFbScheduled.js";
+import { buildThQueue } from "../jobs/buildThQueue.js";
+import { scheduleThPost } from "../jobs/scheduleThPost.js";
+import { processThScheduled } from "../jobs/processThScheduled.js";
+import { buildXQueue } from "../jobs/buildXQueue.js";
+import { scheduleXPost } from "../jobs/scheduleXPost.js";
+import { processXScheduled } from "../jobs/processXScheduled.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -181,6 +190,90 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       waResult.process = { error: String(err) };
     }
 
+    // Step 12: Facebook pipeline — build queue, schedule, and send
+    let fbResult: { buildQueue: any; schedule: any; process: any } = {
+      buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 },
+      schedule: { scheduled: 0, skippedCap: 0 },
+      process: { processed: 0, sent: 0, failed: 0, skipped: 0, dryRun: 0 },
+    };
+
+    try {
+      fbResult.buildQueue = await buildFbQueue();
+    } catch (err) {
+      console.error("[tick] buildFbQueue error:", err);
+      fbResult.buildQueue = { error: String(err) };
+    }
+
+    try {
+      fbResult.schedule = await scheduleFbPost();
+    } catch (err) {
+      console.error("[tick] scheduleFbPost error:", err);
+      fbResult.schedule = { error: String(err) };
+    }
+
+    try {
+      fbResult.process = await processFbScheduled();
+    } catch (err) {
+      console.error("[tick] processFbScheduled error:", err);
+      fbResult.process = { error: String(err) };
+    }
+
+    // Step 13: Threads pipeline — build queue, schedule, and send
+    let thResult: { buildQueue: any; schedule: any; process: any } = {
+      buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 },
+      schedule: { scheduled: 0, skippedCap: 0 },
+      process: { processed: 0, sent: 0, failed: 0, skipped: 0, dryRun: 0 },
+    };
+
+    try {
+      thResult.buildQueue = await buildThQueue();
+    } catch (err) {
+      console.error("[tick] buildThQueue error:", err);
+      thResult.buildQueue = { error: String(err) };
+    }
+
+    try {
+      thResult.schedule = await scheduleThPost();
+    } catch (err) {
+      console.error("[tick] scheduleThPost error:", err);
+      thResult.schedule = { error: String(err) };
+    }
+
+    try {
+      thResult.process = await processThScheduled();
+    } catch (err) {
+      console.error("[tick] processThScheduled error:", err);
+      thResult.process = { error: String(err) };
+    }
+
+    // Step 14: X (Twitter) pipeline — build queue, schedule, and send
+    let xResult: { buildQueue: any; schedule: any; process: any } = {
+      buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 },
+      schedule: { scheduled: 0, skippedCap: 0 },
+      process: { processed: 0, sent: 0, failed: 0, skipped: 0, dryRun: 0 },
+    };
+
+    try {
+      xResult.buildQueue = await buildXQueue();
+    } catch (err) {
+      console.error("[tick] buildXQueue error:", err);
+      xResult.buildQueue = { error: String(err) };
+    }
+
+    try {
+      xResult.schedule = await scheduleXPost();
+    } catch (err) {
+      console.error("[tick] scheduleXPost error:", err);
+      xResult.schedule = { error: String(err) };
+    }
+
+    try {
+      xResult.process = await processXScheduled();
+    } catch (err) {
+      console.error("[tick] processXScheduled error:", err);
+      xResult.process = { error: String(err) };
+    }
+
     // Ping Google if any content was published this tick
     const anyPublished =
       published > 0 ||
@@ -191,7 +284,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
 
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, historyResult, igResult, waResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, historyResult, igResult, waResult, fbResult, thResult, xResult });
 
     res.json({
       ok: true,
@@ -208,6 +301,9 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         history: historyResult,
         instagram: igResult,
         whatsapp: waResult,
+        facebook: fbResult,
+        threads: thResult,
+        x: xResult,
       },
     });
   } catch (err) {

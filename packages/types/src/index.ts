@@ -106,6 +106,18 @@ export type {
   WaQueueStatus,
   WaMessagePayload,
   WaQueueItem,
+  // Facebook pipeline types
+  FbQueueStatus,
+  FbMessagePayload,
+  FbQueueItem,
+  // Threads pipeline types
+  ThQueueStatus,
+  ThMessagePayload,
+  ThQueueItem,
+  // X (Twitter) pipeline types
+  XQueueStatus,
+  XMessagePayload,
+  XQueueItem,
 } from "./models.js";
 
 export {
@@ -219,6 +231,21 @@ export {
   waMessagePayloadSchema,
   waQueueItemSchema,
   createWaQueueItemSchema,
+  // Facebook pipeline schemas
+  fbQueueStatusSchema,
+  fbMessagePayloadSchema,
+  fbQueueItemSchema,
+  createFbQueueItemSchema,
+  // Threads pipeline schemas
+  thQueueStatusSchema,
+  thMessagePayloadSchema,
+  thQueueItemSchema,
+  createThQueueItemSchema,
+  // X (Twitter) pipeline schemas
+  xQueueStatusSchema,
+  xMessagePayloadSchema,
+  xQueueItemSchema,
+  createXQueueItemSchema,
 } from "./schemas.js";
 
 export type {
@@ -249,4 +276,10 @@ export type {
   CreateIGStoryQueueItem,
   // WhatsApp create types
   CreateWaQueueItem,
+  // Facebook create types
+  CreateFbQueueItem,
+  // Threads create types
+  CreateThQueueItem,
+  // X (Twitter) create types
+  CreateXQueueItem,
 } from "./schemas.js";

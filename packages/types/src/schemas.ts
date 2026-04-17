@@ -1107,6 +1107,126 @@ export const createWaQueueItemSchema = waQueueItemSchema.omit({
 
 export type CreateWaQueueItem = z.infer<typeof createWaQueueItemSchema>;
 
+// ── Facebook pipeline schemas ──────────────────────────────────────────────
+
+export const fbQueueStatusSchema = z.enum([
+  "queued",
+  "scheduled",
+  "sending",
+  "sent",
+  "failed",
+  "skipped",
+]);
+
+export const fbMessagePayloadSchema = z.object({
+  text: z.string().min(1),
+  linkUrl: z.string().url().optional(),
+  imageUrl: z.string().url().optional(),
+});
+
+export const fbQueueItemSchema = z.object({
+  id: z.string().min(1),
+  sourceContentId: z.string().min(1),
+  score: z.number().min(0).max(100),
+  status: fbQueueStatusSchema,
+  scheduledFor: z.string().optional(),
+  queuedDate: z.string().optional(),
+  sendRetries: z.number().int().min(0).optional(),
+  fbPostId: z.string().optional(),
+  reasons: z.array(z.string()),
+  payload: fbMessagePayloadSchema.optional(),
+  error: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createFbQueueItemSchema = fbQueueItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateFbQueueItem = z.infer<typeof createFbQueueItemSchema>;
+
+// ── Threads pipeline schemas ───────────────────────────────────────────────
+
+export const thQueueStatusSchema = z.enum([
+  "queued",
+  "scheduled",
+  "sending",
+  "sent",
+  "failed",
+  "skipped",
+]);
+
+export const thMessagePayloadSchema = z.object({
+  text: z.string().min(1),
+  imageUrl: z.string().url().optional(),
+});
+
+export const thQueueItemSchema = z.object({
+  id: z.string().min(1),
+  sourceContentId: z.string().min(1),
+  score: z.number().min(0).max(100),
+  status: thQueueStatusSchema,
+  scheduledFor: z.string().optional(),
+  queuedDate: z.string().optional(),
+  sendRetries: z.number().int().min(0).optional(),
+  thPostId: z.string().optional(),
+  reasons: z.array(z.string()),
+  payload: thMessagePayloadSchema.optional(),
+  error: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createThQueueItemSchema = thQueueItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateThQueueItem = z.infer<typeof createThQueueItemSchema>;
+
+// ── X (Twitter) pipeline schemas ───────────────────────────────────────────
+
+export const xQueueStatusSchema = z.enum([
+  "queued",
+  "scheduled",
+  "sending",
+  "sent",
+  "failed",
+  "skipped",
+]);
+
+export const xMessagePayloadSchema = z.object({
+  text: z.string().min(1),
+});
+
+export const xQueueItemSchema = z.object({
+  id: z.string().min(1),
+  sourceContentId: z.string().min(1),
+  score: z.number().min(0).max(100),
+  status: xQueueStatusSchema,
+  scheduledFor: z.string().optional(),
+  queuedDate: z.string().optional(),
+  sendRetries: z.number().int().min(0).optional(),
+  xTweetId: z.string().optional(),
+  reasons: z.array(z.string()),
+  payload: xMessagePayloadSchema.optional(),
+  error: z.string().optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createXQueueItemSchema = xQueueItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateXQueueItem = z.infer<typeof createXQueueItemSchema>;
+
 // ── Inferred create types for datasets ─────────────────────────────────────
 
 export type CreateUniversity = z.infer<typeof createUniversitySchema>;

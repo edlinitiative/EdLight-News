@@ -799,6 +799,120 @@ export interface WaQueueItem {
   updatedAt: Timestamp;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Facebook pipeline types ────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+export type FbQueueStatus =
+  | "queued"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "failed"
+  | "skipped";
+
+/** The formatted message payload ready to publish via Facebook Graph API. */
+export interface FbMessagePayload {
+  /** Text body of the Facebook post. */
+  text: string;
+  /** Article URL — FB auto-generates a link preview card. */
+  linkUrl?: string;
+  /** Optional public image URL for photo posts (used when no link preview). */
+  imageUrl?: string;
+}
+
+/** Firestore collection: fb_queue */
+export interface FbQueueItem {
+  id: string;
+  sourceContentId: string;
+  score: number;
+  status: FbQueueStatus;
+  scheduledFor?: string;
+  queuedDate?: string;
+  sendRetries?: number;
+  /** Facebook post ID returned by the API after successful publish. */
+  fbPostId?: string;
+  reasons: string[];
+  payload?: FbMessagePayload;
+  error?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Threads pipeline types ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+export type ThQueueStatus =
+  | "queued"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "failed"
+  | "skipped";
+
+/** The formatted message payload ready to publish via Threads API. */
+export interface ThMessagePayload {
+  /** Text body of the Threads post (max 500 chars). Links go inline. */
+  text: string;
+  /** Optional public image URL for image posts. */
+  imageUrl?: string;
+}
+
+/** Firestore collection: th_queue */
+export interface ThQueueItem {
+  id: string;
+  sourceContentId: string;
+  score: number;
+  status: ThQueueStatus;
+  scheduledFor?: string;
+  queuedDate?: string;
+  sendRetries?: number;
+  /** Threads media ID returned by the API after successful publish. */
+  thPostId?: string;
+  reasons: string[];
+  payload?: ThMessagePayload;
+  error?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── X (Twitter) pipeline types ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+export type XQueueStatus =
+  | "queued"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "failed"
+  | "skipped";
+
+/** The formatted message payload ready to publish via X API v2. */
+export interface XMessagePayload {
+  /** Tweet text (max 280 chars). Links and hashtags embedded inline. */
+  text: string;
+}
+
+/** Firestore collection: x_queue */
+export interface XQueueItem {
+  id: string;
+  sourceContentId: string;
+  score: number;
+  status: XQueueStatus;
+  scheduledFor?: string;
+  queuedDate?: string;
+  sendRetries?: number;
+  /** Tweet ID returned by the X API after successful publish. */
+  xTweetId?: string;
+  reasons: string[];
+  payload?: XMessagePayload;
+  error?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // ── Shared enums for datasets ──────────────────────────────────────────────
 
 export type DatasetCountry =
