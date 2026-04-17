@@ -384,22 +384,24 @@ export default async function AccueilPage({
               <div className="absolute inset-0 z-0 bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950/60 dark:from-stone-950 dark:via-stone-900 dark:to-amber-950/40" />
             )}
 
-            {/* Content — centred vertically and horizontally */}
-            <div className="relative z-10 flex min-h-[340px] sm:min-h-[420px] flex-col items-center justify-center py-16 px-4 text-center sm:px-8">
-              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400/90">
-                {fr ? "Aujourd'hui dans l'histoire" : "Jodi a nan istwa"}
-              </p>
-              <h2 className="max-w-2xl text-2xl font-extrabold leading-snug tracking-tight text-white group-hover:text-amber-100 transition-colors sm:text-4xl">
-                {histoireArticle.title}
-              </h2>
-              {histoireArticle.summary && (
-                <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base line-clamp-3">
-                  {histoireArticle.summary}
+            {/* Content — centred vertically and horizontally, constrained width */}
+            <div className="relative z-10 flex min-h-[340px] sm:min-h-[420px] flex-col items-center justify-center py-12 px-4 text-center sm:px-8">
+              <div className="max-w-4xl w-full">
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-amber-400/90 whitespace-nowrap overflow-hidden text-ellipsis">
+                  {fr ? "Histoire du jour" : "Istwa jodi a"}
                 </p>
-              )}
-              <span className="mt-8 inline-flex items-center gap-1.5 rounded-full border border-white/30 px-5 py-2 text-xs font-semibold uppercase tracking-widest text-white/80 transition group-hover:bg-white/10">
-                {fr ? "Lire l'histoire" : "Li istwa a"} →
-              </span>
+                <h2 className="max-w-3xl mx-auto text-xl sm:text-3xl font-extrabold leading-tight tracking-tight text-white group-hover:text-amber-100 transition-colors">
+                  {histoireArticle.title}
+                </h2>
+                {histoireArticle.summary && (
+                  <p className="mt-4 max-w-2xl mx-auto text-sm leading-relaxed text-white/70 sm:text-base line-clamp-3">
+                    {histoireArticle.summary}
+                  </p>
+                )}
+                <span className="mt-8 inline-flex items-center gap-1.5 rounded-full border border-white/30 px-5 py-2 text-xs font-semibold uppercase tracking-widest text-white/80 transition group-hover:bg-white/10">
+                  {fr ? "Lire" : "Li"} →
+                </span>
+              </div>
             </div>
           </Link>
         </section>
