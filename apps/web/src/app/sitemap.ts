@@ -23,6 +23,7 @@ function toISO(ts: unknown): string | undefined {
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date().toISOString();
+  const ARTICLE_LIMIT = 2500;
 
   /* ── Static routes ──────────────────────────────────────────────── */
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -74,11 +75,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     } = await import("@edlight-news/firebase");
 
     // Fetch all dynamic content in parallel
-    const [articles, scholarships, contributors] = await Promise.all([
-      contentVersionsRepo.listPublishedForWeb("fr", 500).catch(() => []),
+    const [articlesFr, articlesHt, scholarships, contributors] = await Promise.all([
+      contentVersionsRepo.listPublishedForWeb("fr", ARTICLE_LIMIT).catch(() => []),
+      contentVersionsRepo.listPublishedForWeb("ht", ARTICLE_LIMIT).catch(() => []),
       scholarshipsRepo.listAll().catch(() => []),
       contributorProfilesRepo.listAll().catch(() => []),
     ]);
+
+    const articles = [...articlesFr, ...articlesHt];
 
     // Published articles → /news/[id]
     articleRoutes = articles.map(

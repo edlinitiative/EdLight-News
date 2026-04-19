@@ -37,6 +37,23 @@ export const metadata: Metadata = {
     "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
   icons: { icon: "/icon.svg" },
   metadataBase: new URL("https://news.edlight.org"),
+  alternates: {
+    canonical: "https://news.edlight.org",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
   openGraph: {
     siteName: "EdLight News",
   },
@@ -74,6 +91,7 @@ export default function RootLayout({
                 "@type": "Organization",
                 name: "EdLight Initiative",
                 url: "https://edlight.org",
+                logo: "https://news.edlight.org/icon.svg",
               },
               inLanguage: ["fr", "ht"],
               potentialAction: {
