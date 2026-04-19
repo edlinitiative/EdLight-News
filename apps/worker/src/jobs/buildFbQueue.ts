@@ -9,7 +9,11 @@
  * Facebook link posts auto-generate preview cards from the article URL.
  */
 
-import { itemsRepo, fbQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
+import {
+  itemsRepo,
+  fbQueueRepo,
+  contentVersionsRepo,
+} from "@edlight-news/firebase";
 import type { Item, FbMessagePayload } from "@edlight-news/types";
 
 const HAITI_TZ = "America/Port-au-Prince";
@@ -34,15 +38,60 @@ function getHaitiDateKey(date: Date = new Date()): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
+type SocialTopic =
+  | "scholarship"
+  | "opportunity"
+  | "education"
+  | "news"
+  | "other";
+
+function topicForSocial(item: Item): SocialTopic {
+  const category = item.category?.toLowerCase() ?? "";
+  const vertical = item.vertical?.toLowerCase() ?? "";
+
+  if (
+    category === "scholarship" ||
+    category === "bourses" ||
+    vertical === "bourses"
+  ) {
+    return "scholarship";
+  }
+  if (
+    category === "opportunity" ||
+    category === "concours" ||
+    category === "stages" ||
+    category === "programmes" ||
+    vertical === "opportunites"
+  ) {
+    return "opportunity";
+  }
+  if (vertical === "education") {
+    return "education";
+  }
+  if (
+    category === "news" ||
+    category === "local_news" ||
+    vertical === "news" ||
+    vertical === "haiti" ||
+    vertical === "world" ||
+    vertical === "business" ||
+    vertical === "technology" ||
+    vertical === "explainers"
+  ) {
+    return "news";
+  }
+  return "other";
+}
+
 /**
  * Scoring heuristic for Facebook eligibility.
  */
 function scoreForFb(item: Item): number {
   let score = 0;
 
-  const cat = item.category?.toLowerCase() ?? "";
-  if (cat === "scholarship" || cat === "opportunity") score += 60;
-  else if (cat === "education" || cat === "news") score += 50;
+  const topic = topicForSocial(item);
+  if (topic === "scholarship" || topic === "opportunity") score += 60;
+  else if (topic === "education" || topic === "news") score += 50;
   else score += 30;
 
   if (item.imageUrl) score += 10;
@@ -57,9 +106,7 @@ function scoreForFb(item: Item): number {
  * Uses the French content version. FB link posts auto-generate
  * a preview card with the article's OpenGraph image and title.
  */
-async function composeFbMessage(
-  item: Item,
-): Promise<FbMessagePayload | null> {
+async function composeFbMessage(item: Item): Promise<FbMessagePayload | null> {
   let frTitle: string | undefined;
   let frSummary: string | undefined;
 
@@ -81,22 +128,25 @@ async function composeFbMessage(
 
   const articleUrl = `${SITE_URL}/news/${item.id}`;
 
-  const cat = item.category?.toLowerCase() ?? "";
+  const topic = topicForSocial(item);
   const emoji =
-    cat === "scholarship" ? "🎓" :
-    cat === "opportunity" ? "🚀" :
-    cat === "education" ? "📚" :
-    cat === "news" ? "📰" :
-    "📢";
+    topic === "scholarship"
+      ? "🎓"
+      : topic === "opportunity"
+        ? "🚀"
+        : topic === "education"
+          ? "📚"
+          : topic === "news"
+            ? "📰"
+            : "📢";
 
   const lines: string[] = [];
   lines.push(`${emoji} ${title}`);
 
   if (summary) {
     // FB supports longer posts — use up to 400 chars of summary
-    const shortSummary = summary.length > 400
-      ? summary.slice(0, 397) + "…"
-      : summary;
+    const shortSummary =
+      summary.length > 400 ? summary.slice(0, 397) + "…" : summary;
     lines.push("");
     lines.push(shortSummary);
   }
@@ -137,15 +187,17 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
 
     const items: Item[] = recentItems.filter((item) => {
       if (!item.createdAt) return false;
-      const createdAt = typeof item.createdAt === "object" && "seconds" in item.createdAt
-        ? new Date((item.createdAt as any).seconds * 1000)
-        : new Date();
+      const createdAt =
+        typeof item.createdAt === "object" && "seconds" in item.createdAt
+          ? new Date((item.createdAt as any).seconds * 1000)
+          : new Date();
       return createdAt >= cutoff;
     });
 
     const queueWindowCutoff = new Date();
     queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 3);
-    const existingSourceIds = await fbQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
+    const existingSourceIds =
+      await fbQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
     let newItemsQueued = 0;
 
@@ -166,8 +218,10 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
         }
 
         // Skip internal / utility items (histoire, taux) — those are IG-only
-        if (item.canonicalUrl?.startsWith("edlight://histoire/") ||
-            item.canonicalUrl?.startsWith("edlight://utility/")) {
+        if (
+          item.canonicalUrl?.startsWith("edlight://histoire/") ||
+          item.canonicalUrl?.startsWith("edlight://utility/")
+        ) {
           result.skipped++;
           continue;
         }
@@ -183,15 +237,22 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           score,
           status: "queued",
           queuedDate: haitiToday,
-          reasons: [`Auto-queued: score=${score}, category=${item.category ?? "unknown"}`],
+          reasons: [
+            `Auto-queued: score=${score}, category=${item.category ?? "unknown"}`,
+          ],
           payload,
         });
 
         newItemsQueued++;
         result.queued++;
-        console.log(`[buildFbQueue] Queued: ${item.id} (score=${score}, category=${item.category})`);
+        console.log(
+          `[buildFbQueue] Queued: ${item.id} (score=${score}, category=${item.category})`,
+        );
       } catch (err) {
-        console.error(`[buildFbQueue] Error processing ${item.id}:`, err instanceof Error ? err.message : err);
+        console.error(
+          `[buildFbQueue] Error processing ${item.id}:`,
+          err instanceof Error ? err.message : err,
+        );
         result.errors++;
       }
     }

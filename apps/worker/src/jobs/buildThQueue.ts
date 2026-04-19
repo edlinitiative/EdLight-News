@@ -9,7 +9,11 @@
  * Threads has no link preview cards; links are embedded inline in text.
  */
 
-import { itemsRepo, thQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
+import {
+  itemsRepo,
+  thQueueRepo,
+  contentVersionsRepo,
+} from "@edlight-news/firebase";
 import type { Item, ThMessagePayload } from "@edlight-news/types";
 
 const HAITI_TZ = "America/Port-au-Prince";
@@ -37,15 +41,60 @@ function getHaitiDateKey(date: Date = new Date()): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
+type SocialTopic =
+  | "scholarship"
+  | "opportunity"
+  | "education"
+  | "news"
+  | "other";
+
+function topicForSocial(item: Item): SocialTopic {
+  const category = item.category?.toLowerCase() ?? "";
+  const vertical = item.vertical?.toLowerCase() ?? "";
+
+  if (
+    category === "scholarship" ||
+    category === "bourses" ||
+    vertical === "bourses"
+  ) {
+    return "scholarship";
+  }
+  if (
+    category === "opportunity" ||
+    category === "concours" ||
+    category === "stages" ||
+    category === "programmes" ||
+    vertical === "opportunites"
+  ) {
+    return "opportunity";
+  }
+  if (vertical === "education") {
+    return "education";
+  }
+  if (
+    category === "news" ||
+    category === "local_news" ||
+    vertical === "news" ||
+    vertical === "haiti" ||
+    vertical === "world" ||
+    vertical === "business" ||
+    vertical === "technology" ||
+    vertical === "explainers"
+  ) {
+    return "news";
+  }
+  return "other";
+}
+
 /**
  * Scoring heuristic for Threads eligibility.
  */
 function scoreForTh(item: Item): number {
   let score = 0;
 
-  const cat = item.category?.toLowerCase() ?? "";
-  if (cat === "scholarship" || cat === "opportunity") score += 60;
-  else if (cat === "education" || cat === "news") score += 50;
+  const topic = topicForSocial(item);
+  if (topic === "scholarship" || topic === "opportunity") score += 60;
+  else if (topic === "education" || topic === "news") score += 50;
   else score += 30;
 
   if (item.imageUrl) score += 10;
@@ -59,9 +108,7 @@ function scoreForTh(item: Item): number {
  * Compose a Threads post payload for a content item.
  * Conversational tone, max 500 chars, inline link.
  */
-async function composeThMessage(
-  item: Item,
-): Promise<ThMessagePayload | null> {
+async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
   let frTitle: string | undefined;
   let frSummary: string | undefined;
 
@@ -83,12 +130,15 @@ async function composeThMessage(
 
   const articleUrl = `${SITE_URL}/news/${item.id}`;
 
-  const cat = item.category?.toLowerCase() ?? "";
+  const topic = topicForSocial(item);
   const hashtags =
-    cat === "scholarship" ? "#Haïti #Bourses" :
-    cat === "opportunity" ? "#Haïti #Opportunités" :
-    cat === "education" ? "#Haïti #Éducation" :
-    "#Haïti #Actualités";
+    topic === "scholarship"
+      ? "#Haïti #Bourses"
+      : topic === "opportunity"
+        ? "#Haïti #Opportunités"
+        : topic === "education"
+          ? "#Haïti #Éducation"
+          : "#Haïti #Actualités";
 
   // Build the post: punchy title, context, link, hashtags
   // Budget: 500 chars total
@@ -100,14 +150,16 @@ async function composeThMessage(
   const truncatedTitle = title.length > 150 ? title.slice(0, 147) + "…" : title;
   const titleLine = truncatedTitle;
 
-  const remainingBudget = MAX_TEXT_LENGTH - titleLine.length - fixedOverhead - 2; // 2 for newline between title and summary
+  const remainingBudget =
+    MAX_TEXT_LENGTH - titleLine.length - fixedOverhead - 2; // 2 for newline between title and summary
 
   const lines: string[] = [titleLine];
 
   if (summary && remainingBudget > 40) {
-    const shortSummary = summary.length > remainingBudget
-      ? summary.slice(0, remainingBudget - 1) + "…"
-      : summary;
+    const shortSummary =
+      summary.length > remainingBudget
+        ? summary.slice(0, remainingBudget - 1) + "…"
+        : summary;
     lines.push("");
     lines.push(shortSummary);
   }
@@ -151,15 +203,17 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
 
     const items: Item[] = recentItems.filter((item) => {
       if (!item.createdAt) return false;
-      const createdAt = typeof item.createdAt === "object" && "seconds" in item.createdAt
-        ? new Date((item.createdAt as any).seconds * 1000)
-        : new Date();
+      const createdAt =
+        typeof item.createdAt === "object" && "seconds" in item.createdAt
+          ? new Date((item.createdAt as any).seconds * 1000)
+          : new Date();
       return createdAt >= cutoff;
     });
 
     const queueWindowCutoff = new Date();
     queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 3);
-    const existingSourceIds = await thQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
+    const existingSourceIds =
+      await thQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
     let newItemsQueued = 0;
 
@@ -180,8 +234,10 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
         }
 
         // Skip internal / utility items (histoire, taux) — those are IG-only
-        if (item.canonicalUrl?.startsWith("edlight://histoire/") ||
-            item.canonicalUrl?.startsWith("edlight://utility/")) {
+        if (
+          item.canonicalUrl?.startsWith("edlight://histoire/") ||
+          item.canonicalUrl?.startsWith("edlight://utility/")
+        ) {
           result.skipped++;
           continue;
         }
@@ -197,15 +253,22 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
           score,
           status: "queued",
           queuedDate: haitiToday,
-          reasons: [`Auto-queued: score=${score}, category=${item.category ?? "unknown"}`],
+          reasons: [
+            `Auto-queued: score=${score}, category=${item.category ?? "unknown"}`,
+          ],
           payload,
         });
 
         newItemsQueued++;
         result.queued++;
-        console.log(`[buildThQueue] Queued: ${item.id} (score=${score}, category=${item.category})`);
+        console.log(
+          `[buildThQueue] Queued: ${item.id} (score=${score}, category=${item.category})`,
+        );
       } catch (err) {
-        console.error(`[buildThQueue] Error processing ${item.id}:`, err instanceof Error ? err.message : err);
+        console.error(
+          `[buildThQueue] Error processing ${item.id}:`,
+          err instanceof Error ? err.message : err,
+        );
         result.errors++;
       }
     }

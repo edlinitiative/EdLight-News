@@ -80,6 +80,32 @@ jobs:
             --field-config field-path=status,order=ascending \
             --field-config field-path=updatedAt,order=ascending \
             --quiet 2>/dev/null || true
+          for COLLECTION in fb_queue; do
+            gcloud firestore indexes composite create \
+              --project=${{ env.PROJECT_ID }} \
+              --collection-group=$COLLECTION \
+              --field-config field-path=status,order=ascending \
+              --field-config field-path=score,order=descending \
+              --quiet 2>/dev/null || true
+            gcloud firestore indexes composite create \
+              --project=${{ env.PROJECT_ID }} \
+              --collection-group=$COLLECTION \
+              --field-config field-path=status,order=ascending \
+              --field-config field-path=scheduledFor,order=ascending \
+              --quiet 2>/dev/null || true
+            gcloud firestore indexes composite create \
+              --project=${{ env.PROJECT_ID }} \
+              --collection-group=$COLLECTION \
+              --field-config field-path=status,order=ascending \
+              --field-config field-path=updatedAt,order=descending \
+              --quiet 2>/dev/null || true
+            gcloud firestore indexes composite create \
+              --project=${{ env.PROJECT_ID }} \
+              --collection-group=$COLLECTION \
+              --field-config field-path=status,order=ascending \
+              --field-config field-path=updatedAt,order=ascending \
+              --quiet 2>/dev/null || true
+          done
           echo "Firestore indexes ensured"
 
       # ── Build & push Docker image ──────────────────────────────────────────
@@ -124,6 +150,8 @@ jobs:
             IG_ACCESS_TOKEN=${{ secrets.IG_ACCESS_TOKEN }}
             IG_USER_ID=${{ secrets.IG_USER_ID }}
             IG_API_HOST=${{ secrets.IG_API_HOST }}
+            FB_PAGE_ACCESS_TOKEN=${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+            FB_PAGE_ID=${{ secrets.FB_PAGE_ID }}
             LLM_PROVIDER=mistral
             MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
             OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}

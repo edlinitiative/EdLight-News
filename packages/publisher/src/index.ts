@@ -715,10 +715,10 @@ export async function publishToThreads(
 // ── X (Twitter) publishing (X API v2) ──────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 
-function getXCredentials(): { bearerToken: string } | null {
-  const bearerToken = process.env.X_BEARER_TOKEN;
-  if (!bearerToken) return null;
-  return { bearerToken };
+function getXCredentials(): { accessToken: string } | null {
+  const accessToken = process.env.X_ACCESS_TOKEN || process.env.X_BEARER_TOKEN;
+  if (!accessToken) return null;
+  return { accessToken };
 }
 
 export interface XPublishResult {
@@ -736,7 +736,8 @@ export interface XPublishResult {
  * Text-only in v1. Media upload (images) can be added later via the
  * upload.twitter.com/1.1/media/upload.json endpoint.
  *
- * Falls back to dry-run if X_BEARER_TOKEN is not set.
+ * Requires a user-context OAuth token with tweet.write scope.
+ * Falls back to dry-run if X_ACCESS_TOKEN / X_BEARER_TOKEN is not set.
  */
 export async function publishToX(
   queueItem: XQueueItem,
@@ -750,12 +751,12 @@ export async function publishToX(
   }
 
   try {
-    const { bearerToken } = creds;
+    const { accessToken } = creds;
 
     const res = await fetch("https://api.x.com/2/tweets", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${bearerToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ text: payload.text }),

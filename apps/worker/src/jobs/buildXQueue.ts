@@ -9,7 +9,11 @@
  * Text-only v1; media upload can be added later.
  */
 
-import { itemsRepo, xQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
+import {
+  itemsRepo,
+  xQueueRepo,
+  contentVersionsRepo,
+} from "@edlight-news/firebase";
 import type { Item, XMessagePayload } from "@edlight-news/types";
 
 const HAITI_TZ = "America/Port-au-Prince";
@@ -37,15 +41,60 @@ function getHaitiDateKey(date: Date = new Date()): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
+type SocialTopic =
+  | "scholarship"
+  | "opportunity"
+  | "education"
+  | "news"
+  | "other";
+
+function topicForSocial(item: Item): SocialTopic {
+  const category = item.category?.toLowerCase() ?? "";
+  const vertical = item.vertical?.toLowerCase() ?? "";
+
+  if (
+    category === "scholarship" ||
+    category === "bourses" ||
+    vertical === "bourses"
+  ) {
+    return "scholarship";
+  }
+  if (
+    category === "opportunity" ||
+    category === "concours" ||
+    category === "stages" ||
+    category === "programmes" ||
+    vertical === "opportunites"
+  ) {
+    return "opportunity";
+  }
+  if (vertical === "education") {
+    return "education";
+  }
+  if (
+    category === "news" ||
+    category === "local_news" ||
+    vertical === "news" ||
+    vertical === "haiti" ||
+    vertical === "world" ||
+    vertical === "business" ||
+    vertical === "technology" ||
+    vertical === "explainers"
+  ) {
+    return "news";
+  }
+  return "other";
+}
+
 /**
  * Scoring heuristic for X eligibility.
  */
 function scoreForX(item: Item): number {
   let score = 0;
 
-  const cat = item.category?.toLowerCase() ?? "";
-  if (cat === "scholarship" || cat === "opportunity") score += 60;
-  else if (cat === "education" || cat === "news") score += 50;
+  const topic = topicForSocial(item);
+  if (topic === "scholarship" || topic === "opportunity") score += 60;
+  else if (topic === "education" || topic === "news") score += 50;
   else score += 30;
 
   if (item.imageUrl) score += 10;
@@ -59,9 +108,7 @@ function scoreForX(item: Item): number {
  * Compose an X (Twitter) post payload for a content item.
  * Ultra-short: headline + link + 2 hashtags, max 280 chars.
  */
-async function composeXMessage(
-  item: Item,
-): Promise<XMessagePayload | null> {
+async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
   let frTitle: string | undefined;
 
   try {
@@ -80,12 +127,15 @@ async function composeXMessage(
 
   const articleUrl = `${SITE_URL}/news/${item.id}`;
 
-  const cat = item.category?.toLowerCase() ?? "";
+  const topic = topicForSocial(item);
   const hashtags =
-    cat === "scholarship" ? "#Haiti #Bourses" :
-    cat === "opportunity" ? "#Haiti #Opportunités" :
-    cat === "education" ? "#Haiti #Éducation" :
-    "#Haiti #EdLightNews";
+    topic === "scholarship"
+      ? "#Haiti #Bourses"
+      : topic === "opportunity"
+        ? "#Haiti #Opportunités"
+        : topic === "education"
+          ? "#Haiti #Éducation"
+          : "#Haiti #EdLightNews";
 
   // Budget: 280 chars total
   // Fixed: \n\n + url + \n\n + hashtags
@@ -94,9 +144,10 @@ async function composeXMessage(
 
   if (headlineBudget < 20) return null; // Can't fit a meaningful headline
 
-  const truncatedTitle = title.length > headlineBudget
-    ? title.slice(0, headlineBudget - 1) + "…"
-    : title;
+  const truncatedTitle =
+    title.length > headlineBudget
+      ? title.slice(0, headlineBudget - 1) + "…"
+      : title;
 
   const text = `${truncatedTitle}${fixedParts}`;
 
@@ -129,15 +180,17 @@ export async function buildXQueue(): Promise<BuildXQueueResult> {
 
     const items: Item[] = recentItems.filter((item) => {
       if (!item.createdAt) return false;
-      const createdAt = typeof item.createdAt === "object" && "seconds" in item.createdAt
-        ? new Date((item.createdAt as any).seconds * 1000)
-        : new Date();
+      const createdAt =
+        typeof item.createdAt === "object" && "seconds" in item.createdAt
+          ? new Date((item.createdAt as any).seconds * 1000)
+          : new Date();
       return createdAt >= cutoff;
     });
 
     const queueWindowCutoff = new Date();
     queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 3);
-    const existingSourceIds = await xQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
+    const existingSourceIds =
+      await xQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
     let newItemsQueued = 0;
 
@@ -158,8 +211,10 @@ export async function buildXQueue(): Promise<BuildXQueueResult> {
         }
 
         // Skip internal / utility items (histoire, taux) — those are IG-only
-        if (item.canonicalUrl?.startsWith("edlight://histoire/") ||
-            item.canonicalUrl?.startsWith("edlight://utility/")) {
+        if (
+          item.canonicalUrl?.startsWith("edlight://histoire/") ||
+          item.canonicalUrl?.startsWith("edlight://utility/")
+        ) {
           result.skipped++;
           continue;
         }
@@ -175,15 +230,22 @@ export async function buildXQueue(): Promise<BuildXQueueResult> {
           score,
           status: "queued",
           queuedDate: haitiToday,
-          reasons: [`Auto-queued: score=${score}, category=${item.category ?? "unknown"}`],
+          reasons: [
+            `Auto-queued: score=${score}, category=${item.category ?? "unknown"}`,
+          ],
           payload,
         });
 
         newItemsQueued++;
         result.queued++;
-        console.log(`[buildXQueue] Queued: ${item.id} (score=${score}, category=${item.category})`);
+        console.log(
+          `[buildXQueue] Queued: ${item.id} (score=${score}, category=${item.category})`,
+        );
       } catch (err) {
-        console.error(`[buildXQueue] Error processing ${item.id}:`, err instanceof Error ? err.message : err);
+        console.error(
+          `[buildXQueue] Error processing ${item.id}:`,
+          err instanceof Error ? err.message : err,
+        );
         result.errors++;
       }
     }
