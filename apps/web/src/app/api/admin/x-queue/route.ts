@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { fbQueueRepo, getDb } from "@edlight-news/firebase";
+import { xQueueRepo, getDb } from "@edlight-news/firebase";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ function timestampToIso(value: unknown): string | null {
     return new Date(value._seconds * 1000).toISOString();
   }
   if (typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
-    return value.toDate().toISOString();
+    return (value as { toDate(): Date }).toDate().toISOString();
   }
   return null;
 }
@@ -31,9 +31,7 @@ function docToArticle(doc: FirebaseFirestore.DocumentSnapshot): ArticleContext |
   if (!doc.exists) return null;
   const data = doc.data();
   if (!data) return null;
-
   const firstCitation = Array.isArray(data.citations) ? data.citations[0] : null;
-
   return {
     itemId: doc.id,
     title: data.title ?? null,
@@ -54,37 +52,32 @@ async function loadArticleContexts(
 ): Promise<Map<string, ArticleContext>> {
   const uniqueIds = [...new Set(itemIds.filter(Boolean))];
   if (uniqueIds.length === 0) return new Map();
-
   const refs = uniqueIds.map((id) => db.collection("items").doc(id));
   const snaps = await db.getAll(...refs);
   const articles = new Map<string, ArticleContext>();
-
   for (const snap of snaps) {
     const article = docToArticle(snap);
     if (article) articles.set(snap.id, article);
   }
-
   return articles;
 }
 
-/** Map a Firestore doc to our admin API shape. */
 function docToItem(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   const data = doc.data();
-
   return {
     id: doc.id,
-    sourceContentId: data.sourceContentId,
-    article: null,
-    score: data.score,
-    status: data.status,
-    scheduledFor: data.scheduledFor ?? null,
-    reasons: data.reasons ?? [],
+    sourceContentId: data.sourceContentId as string,
+    article: null as ArticleContext | null,
+    score: data.score as number,
+    status: data.status as string,
+    scheduledFor: (data.scheduledFor as string | null) ?? null,
+    reasons: (data.reasons as string[]) ?? [],
     text: data.payload?.text ?? null,
     imageUrl: data.payload?.imageUrl ?? null,
     linkUrl: data.payload?.linkUrl ?? null,
-    fbPostId: data.fbPostId ?? null,
-    sendRetries: data.sendRetries ?? 0,
-    error: data.error ?? null,
+    xTweetId: (data.xTweetId as string | null) ?? null,
+    sendRetries: (data.sendRetries as number) ?? 0,
+    error: (data.error as string | null) ?? null,
     createdAt: timestampToIso(data.createdAt),
     updatedAt: timestampToIso(data.updatedAt),
   };
@@ -95,7 +88,7 @@ export async function GET() {
     const db = getDb();
 
     const recentSnap = await db
-      .collection("fb_queue")
+      .collection("x_queue")
       .orderBy("createdAt", "desc")
       .limit(250)
       .get();
@@ -103,14 +96,14 @@ export async function GET() {
     let activeDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
     try {
       const activeSnap = await db
-        .collection("fb_queue")
+        .collection("x_queue")
         .where("status", "in", ["scheduled", "sending"])
         .orderBy("scheduledFor", "asc")
         .limit(50)
         .get();
       activeDocs = activeSnap.docs;
     } catch (err) {
-      console.warn("[api/admin/fb-queue] activeSnap query failed (missing index?):", err);
+      console.warn("[api/admin/x-queue] activeSnap query failed (missing index?):", err);
     }
 
     const seen = new Set<string>();
@@ -122,7 +115,6 @@ export async function GET() {
         items.push(docToItem(doc));
       }
     }
-
     for (const doc of recentSnap.docs) {
       if (!seen.has(doc.id)) {
         seen.add(doc.id);
@@ -141,7 +133,7 @@ export async function GET() {
 
     let totalDocs = items.length;
     try {
-      const countSnap = await db.collection("fb_queue").count().get();
+      const countSnap = await db.collection("x_queue").count().get();
       totalDocs = countSnap.data().count;
     } catch {
       // Non-critical.
@@ -158,16 +150,16 @@ export async function GET() {
 
     return NextResponse.json({ items: enrichedItems, counts: { ...counts, totalDocs } });
   } catch (err) {
-    console.error("[api/admin/fb-queue] GET error:", err);
+    console.error("[api/admin/x-queue] GET error:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to load Facebook queue" },
+      { error: err instanceof Error ? err.message : "Failed to load X queue" },
       { status: 500 },
     );
   }
 }
 
 /**
- * PATCH /api/admin/fb-queue
+ * PATCH /api/admin/x-queue
  * Actions: skip, requeue, publish_now
  */
 export async function PATCH(req: NextRequest) {
@@ -189,24 +181,24 @@ export async function PATCH(req: NextRequest) {
 
     if (action === "publish_now") {
       const now = new Date().toISOString();
-      await fbQueueRepo.setScheduled(id, now);
+      await xQueueRepo.setScheduled(id, now);
       return NextResponse.json({
         ok: true,
         action,
         scheduledFor: now,
-        message: "Scheduled for immediate Facebook publishing on the next tick.",
+        message: "Scheduled for immediate X publishing on the next tick.",
       });
     }
 
     if (action === "skip") {
-      await fbQueueRepo.updateStatus(id, "skipped", {
+      await xQueueRepo.updateStatus(id, "skipped", {
         reasons: ["Manually skipped via admin"],
       });
       return NextResponse.json({ ok: true, action });
     }
 
     if (action === "requeue") {
-      await fbQueueRepo.updateStatus(id, "queued", {
+      await xQueueRepo.updateStatus(id, "queued", {
         sendRetries: 0,
         error: null,
       });
@@ -215,7 +207,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (err) {
-    console.error("[api/admin/fb-queue] PATCH error:", err);
+    console.error("[api/admin/x-queue] PATCH error:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to perform action" },
       { status: 500 },

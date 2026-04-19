@@ -8,13 +8,13 @@ import {
   ExternalLink,
   RefreshCw,
   RotateCcw,
-  Share2,
   Trash2,
+  Twitter,
   XCircle,
   Zap,
 } from "lucide-react";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
-import type { FBQueueCounts, FBQueueEntry } from "@/types/admin";
+import Image from "next/image";
+import type { XQueueCounts, XQueueEntry } from "@/types/admin";
 
 const STATUS_COLORS: Record<string, string> = {
   queued: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -56,7 +56,7 @@ function CountCard({ label, value, color }: { label: string; value: number; colo
   );
 }
 
-function compactDate(value: string | null) {
+function compactDate(value: string | null): string | null {
   if (!value) return null;
   return new Date(value).toLocaleDateString("fr-FR", {
     timeZone: "America/Port-au-Prince",
@@ -89,7 +89,7 @@ function QueueCard({
   entry,
   onAction,
 }: {
-  entry: FBQueueEntry;
+  entry: XQueueEntry;
   onAction: (id: string, action: string) => Promise<void>;
 }) {
   const [showFullText, setShowFullText] = useState(false);
@@ -105,9 +105,9 @@ function QueueCard({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border-t-4 border-blue-600 bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900">
+    <div className="overflow-hidden rounded-xl border-t-4 border-stone-800 bg-white shadow-sm transition hover:shadow-md dark:border-stone-300 dark:bg-stone-900">
       <div className="flex items-center gap-2 px-3 py-2">
-        <Share2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <Twitter className="h-4 w-4 text-stone-800 dark:text-stone-300" />
         <ScoreBadge score={entry.score} />
         <StatusBadge status={entry.status} />
         {entry.sendRetries > 0 && (
@@ -116,13 +116,13 @@ function QueueCard({
             {entry.sendRetries} retries
           </span>
         )}
-        {entry.fbPostId && (
+        {entry.xTweetId && (
           <a
-            href={`https://www.facebook.com/${entry.fbPostId}`}
+            href={`https://x.com/i/web/status/${entry.xTweetId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-stone-400 hover:text-blue-500"
-            title="View on Facebook"
+            className="ml-auto text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+            title="View on X"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
@@ -132,12 +132,13 @@ function QueueCard({
       {entry.article && (
         <div className="flex gap-3 border-t border-stone-100 px-3 py-3 dark:border-stone-800">
           {entry.article.imageUrl && (
-            <ImageWithFallback
+            <Image
               src={entry.article.imageUrl}
               alt=""
               width={64}
               height={64}
               className="h-16 w-16 shrink-0 rounded-md object-cover"
+              unoptimized
             />
           )}
           <div className="min-w-0 flex-1">
@@ -195,7 +196,7 @@ function QueueCard({
               href={entry.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline dark:text-blue-400"
+              className="flex items-center gap-1 text-[10px] text-stone-700 hover:underline dark:text-stone-300"
             >
               <ExternalLink className="h-3 w-3 shrink-0" />
               <span className="truncate">{entry.linkUrl}</span>
@@ -228,7 +229,7 @@ function QueueCard({
               <button
                 disabled={busy}
                 onClick={() => void handleAction("publish_now")}
-                className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-300"
+                className="flex items-center gap-1 rounded-md bg-stone-100 px-2 py-1 text-[11px] font-medium text-stone-700 transition hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-700 dark:text-stone-200"
                 title="Publish on the next worker tick"
               >
                 <Zap className="h-3 w-3" /> Publish Now
@@ -279,9 +280,9 @@ function QueueCard({
 const STATUS_FILTERS = ["all", "queued", "scheduled", "sending", "sent", "failed", "skipped"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
-export default function FBQueuePage() {
-  const [entries, setEntries] = useState<FBQueueEntry[]>([]);
-  const [counts, setCounts] = useState<FBQueueCounts | null>(null);
+export default function XQueuePage() {
+  const [entries, setEntries] = useState<XQueueEntry[]>([]);
+  const [counts, setCounts] = useState<XQueueCounts | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -292,13 +293,13 @@ export default function FBQueuePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/fb-queue");
+      const res = await fetch("/api/admin/x-queue");
       const data = await res.json();
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to load");
-      setEntries(data.items as FBQueueEntry[]);
-      setCounts(data.counts as FBQueueCounts);
+      setEntries(data.items as XQueueEntry[]);
+      setCounts(data.counts as XQueueCounts);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Facebook queue");
+      setError(err instanceof Error ? err.message : "Failed to load X queue");
     } finally {
       setLoading(false);
     }
@@ -310,7 +311,7 @@ export default function FBQueuePage() {
 
   const performAction = useCallback(async (id: string, action: string) => {
     try {
-      const res = await fetch("/api/admin/fb-queue", {
+      const res = await fetch("/api/admin/x-queue", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action }),
@@ -327,7 +328,7 @@ export default function FBQueuePage() {
     setPurging(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/fb-queue/purge", { method: "POST" });
+      const res = await fetch("/api/admin/x-queue/purge", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Purge failed");
       setPurgeConfirm(false);
@@ -348,9 +349,9 @@ export default function FBQueuePage() {
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Facebook Queue</h1>
+          <h1 className="text-2xl font-bold">X Queue</h1>
           <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-            Page posts prepared for Facebook distribution
+            Tweets prepared for X (Twitter) distribution
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -421,7 +422,7 @@ export default function FBQueuePage() {
       {loading && <p className="text-sm text-stone-400">Loading...</p>}
 
       {!loading && filtered.length === 0 && (
-        <p className="text-sm text-stone-400">No Facebook queue items found.</p>
+        <p className="text-sm text-stone-400">No X queue items found.</p>
       )}
 
       {!loading && filtered.length > 0 && (

@@ -107,26 +107,34 @@ function scoreForFb(item: Item): number {
  * a preview card with the article's OpenGraph image and title.
  */
 async function composeFbMessage(item: Item): Promise<FbMessagePayload | null> {
-  let frTitle: string | undefined;
-  let frSummary: string | undefined;
+  let title = item.title;
+  let summary = (item as any).summary ?? "";
+  let articleVersionId: string | null = null;
+  let articleLanguage: "fr" | "ht" = "fr";
 
   try {
     const versions = await contentVersionsRepo.listByItemId(item.id);
-    const fr = versions.find((v) => v.language === "fr");
-    if (fr) {
-      frTitle = fr.title;
-      frSummary = fr.summary;
+    const webVersions = versions.filter((v) => v.channel === "web");
+    const selected =
+      webVersions.find((v) => v.language === "fr" && v.status === "published") ??
+      webVersions.find((v) => v.language === "fr") ??
+      webVersions.find((v) => v.status === "published") ??
+      webVersions[0];
+
+    if (selected) {
+      articleVersionId = selected.id;
+      articleLanguage = selected.language === "ht" ? "ht" : "fr";
+      title = selected.title || title;
+      summary = selected.summary || summary;
     }
   } catch {
-    // Versions unavailable — use raw item fields
+    // Versions unavailable — skip because Facebook should link to a live web article.
   }
 
-  const title = frTitle ?? item.title;
-  const summary = frSummary ?? (item as any).summary ?? "";
-
   if (!title || title.length < 10) return null;
+  if (!articleVersionId) return null;
 
-  const articleUrl = `${SITE_URL}/news/${item.id}`;
+  const articleUrl = `${SITE_URL}/news/${articleVersionId}?lang=${articleLanguage}`;
 
   const topic = topicForSocial(item);
   const emoji =

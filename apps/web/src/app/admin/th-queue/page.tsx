@@ -3,18 +3,18 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   AlertTriangle,
+  AtSign,
   Check,
   Copy,
   ExternalLink,
   RefreshCw,
   RotateCcw,
-  Share2,
   Trash2,
   XCircle,
   Zap,
 } from "lucide-react";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
-import type { FBQueueCounts, FBQueueEntry } from "@/types/admin";
+import Image from "next/image";
+import type { THQueueCounts, THQueueEntry } from "@/types/admin";
 
 const STATUS_COLORS: Record<string, string> = {
   queued: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -89,7 +89,7 @@ function QueueCard({
   entry,
   onAction,
 }: {
-  entry: FBQueueEntry;
+  entry: THQueueEntry;
   onAction: (id: string, action: string) => Promise<void>;
 }) {
   const [showFullText, setShowFullText] = useState(false);
@@ -105,9 +105,9 @@ function QueueCard({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border-t-4 border-blue-600 bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900">
+    <div className="overflow-hidden rounded-xl border-t-4 border-purple-600 bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900">
       <div className="flex items-center gap-2 px-3 py-2">
-        <Share2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AtSign className="h-4 w-4 text-purple-600 dark:text-purple-400" />
         <ScoreBadge score={entry.score} />
         <StatusBadge status={entry.status} />
         {entry.sendRetries > 0 && (
@@ -116,13 +116,13 @@ function QueueCard({
             {entry.sendRetries} retries
           </span>
         )}
-        {entry.fbPostId && (
+        {entry.thPostId && (
           <a
-            href={`https://www.facebook.com/${entry.fbPostId}`}
+            href={`https://www.threads.net/post/${entry.thPostId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-stone-400 hover:text-blue-500"
-            title="View on Facebook"
+            className="ml-auto text-stone-400 hover:text-purple-500"
+            title="View on Threads"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
@@ -132,12 +132,13 @@ function QueueCard({
       {entry.article && (
         <div className="flex gap-3 border-t border-stone-100 px-3 py-3 dark:border-stone-800">
           {entry.article.imageUrl && (
-            <ImageWithFallback
+            <Image
               src={entry.article.imageUrl}
               alt=""
               width={64}
               height={64}
               className="h-16 w-16 shrink-0 rounded-md object-cover"
+              unoptimized
             />
           )}
           <div className="min-w-0 flex-1">
@@ -195,7 +196,7 @@ function QueueCard({
               href={entry.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] text-blue-600 hover:underline dark:text-blue-400"
+              className="flex items-center gap-1 text-[10px] text-purple-600 hover:underline dark:text-purple-400"
             >
               <ExternalLink className="h-3 w-3 shrink-0" />
               <span className="truncate">{entry.linkUrl}</span>
@@ -228,7 +229,7 @@ function QueueCard({
               <button
                 disabled={busy}
                 onClick={() => void handleAction("publish_now")}
-                className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:bg-blue-900/30 dark:text-blue-300"
+                className="flex items-center gap-1 rounded-md bg-purple-50 px-2 py-1 text-[11px] font-medium text-purple-700 transition hover:bg-purple-100 disabled:opacity-50 dark:bg-purple-900/30 dark:text-purple-300"
                 title="Publish on the next worker tick"
               >
                 <Zap className="h-3 w-3" /> Publish Now
@@ -279,9 +280,9 @@ function QueueCard({
 const STATUS_FILTERS = ["all", "queued", "scheduled", "sending", "sent", "failed", "skipped"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
-export default function FBQueuePage() {
-  const [entries, setEntries] = useState<FBQueueEntry[]>([]);
-  const [counts, setCounts] = useState<FBQueueCounts | null>(null);
+export default function THQueuePage() {
+  const [entries, setEntries] = useState<THQueueEntry[]>([]);
+  const [counts, setCounts] = useState<THQueueCounts | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -292,13 +293,13 @@ export default function FBQueuePage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/fb-queue");
+      const res = await fetch("/api/admin/th-queue");
       const data = await res.json();
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to load");
-      setEntries(data.items as FBQueueEntry[]);
-      setCounts(data.counts as FBQueueCounts);
+      setEntries(data.items as THQueueEntry[]);
+      setCounts(data.counts as THQueueCounts);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load Facebook queue");
+      setError(err instanceof Error ? err.message : "Failed to load Threads queue");
     } finally {
       setLoading(false);
     }
@@ -310,7 +311,7 @@ export default function FBQueuePage() {
 
   const performAction = useCallback(async (id: string, action: string) => {
     try {
-      const res = await fetch("/api/admin/fb-queue", {
+      const res = await fetch("/api/admin/th-queue", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action }),
@@ -327,7 +328,7 @@ export default function FBQueuePage() {
     setPurging(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/fb-queue/purge", { method: "POST" });
+      const res = await fetch("/api/admin/th-queue/purge", { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Purge failed");
       setPurgeConfirm(false);
@@ -348,9 +349,9 @@ export default function FBQueuePage() {
     <section className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Facebook Queue</h1>
+          <h1 className="text-2xl font-bold">Threads Queue</h1>
           <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">
-            Page posts prepared for Facebook distribution
+            Posts prepared for Threads distribution
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -421,7 +422,7 @@ export default function FBQueuePage() {
       {loading && <p className="text-sm text-stone-400">Loading...</p>}
 
       {!loading && filtered.length === 0 && (
-        <p className="text-sm text-stone-400">No Facebook queue items found.</p>
+        <p className="text-sm text-stone-400">No Threads queue items found.</p>
       )}
 
       {!loading && filtered.length > 0 && (

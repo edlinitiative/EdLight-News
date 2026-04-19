@@ -52,6 +52,14 @@ async function fetchStats(): Promise<AdminStats> {
     fbScheduled,
     fbSending,
     fbFailed,
+    thQueued,
+    thScheduled,
+    thSending,
+    thFailed,
+    xQueued,
+    xScheduled,
+    xSending,
+    xFailed,
   ] = await Promise.all([
     db.collection("items").count().get(),
     db.collection("items").where("imageSource", "in", ["publisher", "wikidata", "branded", "screenshot"]).count().get(),
@@ -63,6 +71,14 @@ async function fetchStats(): Promise<AdminStats> {
     db.collection("fb_queue").where("status", "==", "scheduled").count().get(),
     db.collection("fb_queue").where("status", "==", "sending").count().get(),
     db.collection("fb_queue").where("status", "==", "failed").count().get(),
+    db.collection("th_queue").where("status", "==", "queued").count().get(),
+    db.collection("th_queue").where("status", "==", "scheduled").count().get(),
+    db.collection("th_queue").where("status", "==", "sending").count().get(),
+    db.collection("th_queue").where("status", "==", "failed").count().get(),
+    db.collection("x_queue").where("status", "==", "queued").count().get(),
+    db.collection("x_queue").where("status", "==", "scheduled").count().get(),
+    db.collection("x_queue").where("status", "==", "sending").count().get(),
+    db.collection("x_queue").where("status", "==", "failed").count().get(),
   ]);
 
   return {
@@ -83,6 +99,18 @@ async function fetchStats(): Promise<AdminStats> {
       scheduled: fbScheduled.data().count,
       sending: fbSending.data().count,
       failed: fbFailed.data().count,
+    },
+    threadsQueue: {
+      queued: thQueued.data().count,
+      scheduled: thScheduled.data().count,
+      sending: thSending.data().count,
+      failed: thFailed.data().count,
+    },
+    xQueue: {
+      queued: xQueued.data().count,
+      scheduled: xScheduled.data().count,
+      sending: xSending.data().count,
+      failed: xFailed.data().count,
     },
   };
 }
@@ -111,7 +139,7 @@ export default async function AdminPage() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-400">
           Overview
         </h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-8">
           <StatCard label="Active sources" value={stats.sources.active} />
           <StatCard label="Items" value={stats.items.total} />
           <StatCard
@@ -141,6 +169,28 @@ export default async function AdminPage() {
                 : "bg-white dark:bg-stone-800"
             }
             href="/admin/fb-queue"
+          />
+          <StatCard
+            label="Threads queue"
+            value={stats.threadsQueue.queued}
+            sub={`${stats.threadsQueue.scheduled} scheduled · ${stats.threadsQueue.failed} failed`}
+            color={
+              stats.threadsQueue.queued > 0 || stats.threadsQueue.scheduled > 0
+                ? "bg-purple-50 dark:bg-purple-950/30"
+                : "bg-white dark:bg-stone-800"
+            }
+            href="/admin/th-queue"
+          />
+          <StatCard
+            label="X queue"
+            value={stats.xQueue.queued}
+            sub={`${stats.xQueue.scheduled} scheduled · ${stats.xQueue.failed} failed`}
+            color={
+              stats.xQueue.queued > 0 || stats.xQueue.scheduled > 0
+                ? "bg-stone-100 dark:bg-stone-700/30"
+                : "bg-white dark:bg-stone-800"
+            }
+            href="/admin/x-queue"
           />
         </div>
       </div>

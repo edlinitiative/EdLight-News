@@ -12,6 +12,8 @@ export interface AdminStats {
   contentVersions: { total: number; published: number; draft: number };
   sources: { active: number };
   facebookQueue: { queued: number; scheduled: number; sending: number; failed: number };
+  threadsQueue: { queued: number; scheduled: number; sending: number; failed: number };
+  xQueue: { queued: number; scheduled: number; sending: number; failed: number };
 }
 
 export interface TickResult {
@@ -121,6 +123,18 @@ export interface WAQueueCounts {
 export interface FBQueueEntry {
   id: string;
   sourceContentId: string;
+  article: {
+    itemId: string;
+    title: string | null;
+    summary: string | null;
+    category: string | null;
+    vertical: string | null;
+    sourceName: string | null;
+    sourceUrl: string | null;
+    canonicalUrl: string | null;
+    imageUrl: string | null;
+    publishedAt: string | null;
+  } | null;
   score: number;
   status: string;
   scheduledFor: string | null;
@@ -136,6 +150,88 @@ export interface FBQueueEntry {
 }
 
 export interface FBQueueCounts {
+  queued: number;
+  scheduled: number;
+  sending: number;
+  sent: number;
+  failed: number;
+  skipped: number;
+  totalDocs: number;
+}
+
+// ── Threads Queue ────────────────────────────────────────────────────────────
+
+export interface THQueueEntry {
+  id: string;
+  sourceContentId: string;
+  article: {
+    itemId: string;
+    title: string | null;
+    summary: string | null;
+    category: string | null;
+    vertical: string | null;
+    sourceName: string | null;
+    sourceUrl: string | null;
+    canonicalUrl: string | null;
+    imageUrl: string | null;
+    publishedAt: string | null;
+  } | null;
+  score: number;
+  status: string;
+  scheduledFor: string | null;
+  reasons: string[];
+  text: string | null;
+  imageUrl: string | null;
+  linkUrl: string | null;
+  thPostId: string | null;
+  sendRetries: number;
+  error: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface THQueueCounts {
+  queued: number;
+  scheduled: number;
+  sending: number;
+  sent: number;
+  failed: number;
+  skipped: number;
+  totalDocs: number;
+}
+
+// ── X (Twitter) Queue ────────────────────────────────────────────────────────
+
+export interface XQueueEntry {
+  id: string;
+  sourceContentId: string;
+  article: {
+    itemId: string;
+    title: string | null;
+    summary: string | null;
+    category: string | null;
+    vertical: string | null;
+    sourceName: string | null;
+    sourceUrl: string | null;
+    canonicalUrl: string | null;
+    imageUrl: string | null;
+    publishedAt: string | null;
+  } | null;
+  score: number;
+  status: string;
+  scheduledFor: string | null;
+  reasons: string[];
+  text: string | null;
+  imageUrl: string | null;
+  linkUrl: string | null;
+  xTweetId: string | null;
+  sendRetries: number;
+  error: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface XQueueCounts {
   queued: number;
   scheduled: number;
   sending: number;

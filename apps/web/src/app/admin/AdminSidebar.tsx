@@ -11,6 +11,8 @@ import {
   Send,
   MessageCircle,
   Share2,
+  AtSign,
+  Twitter,
   Users,
 } from "lucide-react";
 
@@ -24,6 +26,8 @@ const NAV_ITEMS = [
   { href: "/admin/ig-publish", label: "IG Publish", Icon: Send },
   { href: "/admin/wa-queue", label: "WA Queue", Icon: MessageCircle },
   { href: "/admin/fb-queue", label: "FB Queue", Icon: Share2 },
+  { href: "/admin/th-queue", label: "TH Queue", Icon: AtSign },
+  { href: "/admin/x-queue", label: "X Queue", Icon: Twitter },
 ] as const;
 
 export function AdminSidebar() {
