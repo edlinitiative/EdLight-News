@@ -74,10 +74,11 @@ export interface StoryFactsInput {
   backgroundImage?: string;
 }
 
-const STORY_MAX_FACTS = 5;
+const STORY_MAX_FACTS = 4;
 const STORY_MAX_FACT_FRAMES = 2;
-const STORY_MAX_FACTS_PER_FRAME = 3;
-const STORY_FACT_FRAME_CHAR_BUDGET = 420;
+// 2 facts per frame keeps each story scannable in ≤5 seconds
+const STORY_MAX_FACTS_PER_FRAME = 2;
+const STORY_FACT_FRAME_CHAR_BUDGET = 300;
 const STORY_MAX_HEADLINES = 4;
 const STORY_HEADLINE_MAX_WORDS = 16;
 const STORY_HEADLINE_MAX_CHARS = 118;

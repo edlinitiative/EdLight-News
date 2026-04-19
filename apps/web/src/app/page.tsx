@@ -12,20 +12,10 @@
 
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, Instagram } from "lucide-react";
 import type { ContentLanguage } from "@edlight-news/types";
 import { fetchEnrichedFeed, fetchTrending, getLangFromSearchParams } from "@/lib/content";
-import { fetchScholarshipsClosingSoon } from "@/lib/datasets";
-import { TrendingSection } from "@/components/TrendingSection";
-import { ArticleCard } from "@/components/ArticleCard";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { NewsletterForm } from "@/components/NewsletterForm";
-import { HeroEditorial } from "@/components/HeroEditorial";
-import { EditorialCard } from "@/components/EditorialCard";
-import { FlashCard } from "@/components/FlashCard";
-import { SectionHeader } from "@/components/SectionHeader";
-import { CategoryBadge } from "@/components/CategoryBadge";
-import { DeadlinePill } from "@/components/DeadlinePill";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
@@ -88,36 +78,6 @@ function isHaiti(a: FeedItem): boolean {
   return HAITI_TITLE_RE.test(blob);
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-/**
- * Compute the display category for an article, remapping misleading
- * upstream categories so the badge shown to the user is accurate.
- *
- * Handles two known data-quality issues:
- *  1. HaitiFactOfTheDay utility items stored with category="resource"
- *     — these are daily news, not educational resources.
- *  2. Opportunity-adjacent categories (bourses, concours, stages, programmes)
- *     on articles that aren't actually opportunities (classifier false positives).
- */
-function displayCategory(a: FeedItem): string {
-  const cat = a.category ?? "";
-  // Utility daily-fact items are news, not resources
-  if (cat === "resource" && a.itemType === "utility" && a.utilityType === "daily_fact") {
-    return a.geoTag === "HT" ? "local_news" : "news";
-  }
-  // Opportunity-adjacent categories on non-opportunity articles → remap.
-  // Use content smell test (not isOpportunity() which also checks the category
-  // set, creating a tautology that prevents the remap from ever firing).
-  if (OPPORTUNITY_CATS.has(cat)) {
-    const looksLikeOpp = contentLooksLikeOpportunity(a.title ?? "", a.summary);
-    if (!looksLikeOpp) {
-      return a.geoTag === "HT" || a.vertical === "haiti" ? "local_news" : "news";
-    }
-  }
-  return cat;
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AccueilPage({
@@ -142,9 +102,8 @@ export default async function AccueilPage({
     }
   };
 
-  const [rawFeed, closingScholarships, trendingArticles] = await Promise.all([
+  const [rawFeed, trendingArticles] = await Promise.all([
     safeFetch(() => fetchEnrichedFeed(lang, 80), [], "enrichedFeed"),
-    safeFetch(() => fetchScholarshipsClosingSoon(60), [], "scholarships"),
     safeFetch(() => fetchTrending(lang, 8), [], "trending"),
   ]);
 
@@ -160,9 +119,6 @@ export default async function AccueilPage({
 
   // ── Segment the feed ──────────────────────────────────────────────────────
   const opportunities = rankedFeed.filter(isOpportunity);
-  const haitiArticles = rankedFeed.filter((a) => isHaiti(a) && !isOpportunity(a));
-  // General news: not opportunities, not haiti-specific
-  const generalNews = rankedFeed.filter((a) => !isOpportunity(a) && !isHaiti(a));
 
   // Hero: pick top articles with images first, prefer non-opportunity
   const heroPool = rankedFeed.filter((a) => !isOpportunity(a));
@@ -179,7 +135,7 @@ export default async function AccueilPage({
     .filter((a) => !isOpportunity(a) && a.itemType !== "utility")
     .slice(0, 6);
 
-  // Histoire du jour — most recent HaitiHistory or daily_fact utility item
+  // Histoire du jour — most recent history utility item
   const histoireArticle = filteredFeed.find(
     (a) =>
       a.itemType === "utility" &&
@@ -190,85 +146,18 @@ export default async function AccueilPage({
   const featuredOpp = opportunities[0] ?? null;
   const moreOpps = opportunities.slice(1, 6);
 
-  // World articles (international, non-Haiti)
-  const WORLD_KEYWORDS = [
-    "international", "géopolitique", "diplomatie", "monde", "world",
-    "global", "ONU", "nations unies", "conflict", "conflit",
-    "migration", "climat", "économie mondiale",
-  ];
-  const worldArticles = rankedFeed.filter(
-    (a) =>
-      !isOpportunity(a) &&
-      !isHaiti(a) &&
-      (a.vertical === "world" ||
-        a.geoTag === "Global" ||
-        (a.category === "news" &&
-          WORLD_KEYWORDS.some((kw) =>
-            `${a.title ?? ""} ${a.summary ?? ""}`.toLowerCase().includes(kw.toLowerCase()),
-          ))),
-  );
-
-  // Education articles — use word-boundary regex to avoid substring matches
-  // (e.g. "informations" should not match "formation").
-  // Dropped "étudiant" (too ambiguous: music articles "inspire les étudiants")
-  // and "formation" (matches "information", military training, etc.).
-  const EDUCATION_RE = /\b(?:universit[eé]|education|[eé]ducation|enseignement|school|lyc[eé]e|academic|iniv[eè]site|edikasyon|UEH|MENFP|facult[eé]|scolaire)\b/i;
-  const educationArticles = rankedFeed.filter(
-    (a) =>
-      !isOpportunity(a) &&
-      (a.vertical === "education" ||
-        EDUCATION_RE.test(`${a.title ?? ""} ${a.summary ?? ""}`)),
-  );
-
-  // Business articles — word-boundary regex to avoid false positives.
-  // Dropped ambiguous terms: "marché" (physical markets / street vendors),
-  // "finance/financement" (crime financing), "commerce" (street commerce).
-  const BUSINESS_RE = /\b(?:[eé]conomie|economy|business|entreprise|startup|carri[eè]re|investissement|entrepreneurship|ekonomi|biznis|PIB|croissance\s+[eé]conomique)\b/i;
-  const businessArticles = rankedFeed.filter(
-    (a) =>
-      !isOpportunity(a) &&
-      (a.vertical === "business" ||
-        BUSINESS_RE.test(`${a.title ?? ""} ${a.summary ?? ""}`)),
-  );
-
-  // Category highlights
-  const topHaiti = haitiArticles[0] ?? null;
-  const moreHaiti = haitiArticles.slice(1, 4);
-  const topWorld = worldArticles[0] ?? null;
-  const moreWorld = worldArticles.slice(1, 4);
-  const topEdu = educationArticles[0] ?? null;
-  const moreEdu = educationArticles.slice(1, 4);
-  const topBusiness = businessArticles[0] ?? null;
-  const moreBusiness = businessArticles.slice(1, 4);
-
-  // Editor's picks: high-quality articles not yet shown in other sections
-  const shownIds = new Set(
-    [
-      leadArticle?.id,
-      ...secondaryHero.map((a) => a.id),
-      ...latestNews.map((a) => a.id),
-      featuredOpp?.id,
-      ...moreOpps.map((a) => a.id),
-      topHaiti?.id, ...moreHaiti.map((a) => a.id),
-      topWorld?.id, ...moreWorld.map((a) => a.id),
-      topEdu?.id, ...moreEdu.map((a) => a.id),
-      topBusiness?.id, ...moreBusiness.map((a) => a.id),
-    ].filter(Boolean),
-  );
-  const editorPicks = rankedFeed
-    .filter((a) => !shownIds.has(a.id) && a.imageUrl)
-    .slice(0, 4);
-
   // ── Render ────────────────────────────────────────────────────────────────
 
   // Today's date label for the editorial dateline
-  const todayLabel = new Date().toLocaleDateString(fr ? "fr-FR" : "fr-HT", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "America/Port-au-Prince",
-  });
+  const todayLabel = new Date()
+    .toLocaleDateString(fr ? "fr-FR" : "ht-HT", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "America/Port-au-Prince",
+    })
+    .replace(/^./, (char) => char.toUpperCase());
 
   return (
     <div className="pb-20">

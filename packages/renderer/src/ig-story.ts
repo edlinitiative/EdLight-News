@@ -206,13 +206,13 @@ function getStoryFactsMetrics(slide: IGStorySlide): StoryFactsMetrics {
   }
 
   return {
-    titleSize: 50,
-    factFont: 22,
-    factGap: 20,
-    panelPaddingY: 38,
-    panelPaddingX: 36,
-    numberSize: 17,
-    numberRing: 36,
+    titleSize: 52,
+    factFont: 24,
+    factGap: 22,
+    panelPaddingY: 44,
+    panelPaddingX: 40,
+    numberSize: 18,
+    numberRing: 38,
   };
 }
 
@@ -344,7 +344,7 @@ body {
 .rate { font-family:${FONT_HEADLINE}; font-size:120px; font-weight:900; letter-spacing:-3px; color:${accent}; line-height:1; margin-bottom:8px; }
 .unit { font-size:24px; font-weight:500; opacity:0.35; letter-spacing:1.5px; margin-bottom:32px; }
 .date-line { font-size:16px; font-weight:600; opacity:0.50; letter-spacing:1px; margin-bottom:40px; }
-.mk { font-size:20px; font-weight:500; opacity:0.55; margin-bottom:12px; line-height:1.4; }
+.mk { font-size:20px; font-weight:600; opacity:0.75; margin-bottom:12px; line-height:1.4; }
 .bm { position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0; font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px; display:flex; justify-content:center; align-items:center; gap:8px; }
 .bm .el { color:rgba(255,255,255,0.65); }
 .bm .nw { color:${accent}; }
@@ -557,7 +557,7 @@ body {
   margin-bottom:${metrics.headingSpacing}px; text-shadow:0 2px 20px rgba(0,0,0,0.8);
 }
 .dek {
-  font-size:${metrics.summarySize}px; line-height:1.60; opacity:0.95; font-weight:500;
+  font-size:${metrics.summarySize}px; line-height:1.60; opacity:1; font-weight:500;
   margin-bottom:${content.meta.length > 0 ? metrics.summarySpacing : 0}px;
   text-shadow:0 1px 12px rgba(0,0,0,0.72);
 }
@@ -574,8 +574,8 @@ body {
   border:1px solid rgba(255,255,255,0.08);
 }
 .src {
-  margin-top:20px; font-size:14px; font-weight:600;
-  opacity:0.52; letter-spacing:0.5px;
+  margin-top:20px; font-size:15px; font-weight:600;
+  opacity:0.65; letter-spacing:0.5px;
 }
 .bm {
   position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
