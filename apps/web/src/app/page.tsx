@@ -233,7 +233,7 @@ export default async function AccueilPage({
 
       {/* ── Dateline bar ─────────────────────────────────────────────────── */}
       <div className="border-b border-stone-200 dark:border-stone-800 py-2">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex items-center gap-4">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex items-center gap-4">
           <p className="shrink-0 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-600 capitalize">
             {todayLabel}
           </p>
@@ -251,7 +251,7 @@ export default async function AccueilPage({
          ══════════════════════════════════════════════════════════════════════ */}
       {leadArticle && (
         <section className="border-b border-stone-200 dark:border-stone-800 py-8 sm:py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
 
               {/* ── Lead article (8 cols) ── */}
@@ -355,7 +355,7 @@ export default async function AccueilPage({
          ══════════════════════════════════════════════════════════════════════ */}
       {newsGrid.length > 0 && (
         <section className="border-b border-stone-200 dark:border-stone-800 py-8">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <SectionRule
               label={fr ? "Actualités" : "Nouvèl"}
               href={lq("/news")}
@@ -409,7 +409,7 @@ export default async function AccueilPage({
          ══════════════════════════════════════════════════════════════════════ */}
       {(latestNews.length > 0 || trendingStories.length > 0) && (
         <section className="border-b border-stone-200 dark:border-stone-800 py-8">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-12">
 
               {/* Latest — dense text list */}
@@ -498,7 +498,7 @@ export default async function AccueilPage({
       {histoireArticle && (
         <section className="border-b border-stone-200 dark:border-stone-800">
           <Link href={lq("/histoire")} className="group block bg-stone-950 px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-5xl flex items-center gap-6 sm:gap-10">
+            <div className="mx-auto max-w-6xl flex items-center gap-6 sm:gap-10">
               <div className="shrink-0">
                 <span className="block text-[10px] font-black uppercase tracking-[0.22em] text-amber-400 mb-1">
                   {fr ? "Histoire du jour" : "Istwa jodi a"}
@@ -532,7 +532,7 @@ export default async function AccueilPage({
          ══════════════════════════════════════════════════════════════════════ */}
       {(featuredOpp !== null || moreOpps.length > 0) && (
         <section className="border-b border-stone-200 dark:border-stone-800 py-8">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <SectionRule
               label={fr ? "Opportunités" : "Okazyon"}
               href={lq("/opportunites")}
