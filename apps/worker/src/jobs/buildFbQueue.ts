@@ -45,6 +45,28 @@ type SocialTopic =
   | "news"
   | "other";
 
+function toDateMaybe(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "object" && value !== null && "seconds" in value) {
+    const seconds = (value as { seconds?: unknown }).seconds;
+    if (typeof seconds === "number") return new Date(seconds * 1000);
+  }
+  return null;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function smallHash(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i++) {
+    h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
 function topicForSocial(item: Item): SocialTopic {
   const category = item.category?.toLowerCase() ?? "";
   const vertical = item.vertical?.toLowerCase() ?? "";
@@ -83,22 +105,77 @@ function topicForSocial(item: Item): SocialTopic {
   return "other";
 }
 
-/**
- * Scoring heuristic for Facebook eligibility.
- */
-function scoreForFb(item: Item): number {
+function scoreForFb(item: Item): { score: number; reasons: string[] } {
+  const reasons: string[] = [];
   let score = 0;
 
   const topic = topicForSocial(item);
-  if (topic === "scholarship" || topic === "opportunity") score += 60;
-  else if (topic === "education" || topic === "news") score += 50;
-  else score += 30;
+  const topicBase: Record<SocialTopic, number> = {
+    scholarship: 55,
+    opportunity: 52,
+    education: 48,
+    news: 45,
+    other: 34,
+  };
+  score += topicBase[topic];
+  reasons.push(`topic=${topic} (+${topicBase[topic]})`);
 
-  if (item.imageUrl) score += 10;
-  if (item.citations && item.citations.length > 0) score += 10;
-  if (item.viewCount && item.viewCount > 10) score += 10;
+  const sourceQualityByImageSource: Record<string, number> = {
+    gemini_ai: 8,
+    publisher: 7,
+    wikidata: 4,
+    branded: 1,
+    screenshot: 0,
+  };
+  const imageBonus = item.imageUrl
+    ? (sourceQualityByImageSource[item.imageSource ?? ""] ?? 3)
+    : 0;
+  score += imageBonus;
+  reasons.push(`image=${item.imageSource ?? "none"} (+${imageBonus})`);
 
-  return Math.min(score, 100);
+  const citationsCount = Array.isArray(item.citations) ? item.citations.length : 0;
+  const citationBonus = clamp(citationsCount * 2, 0, 8);
+  score += citationBonus;
+  reasons.push(`citations=${citationsCount} (+${citationBonus})`);
+
+  const views = typeof item.viewCount === "number" ? item.viewCount : 0;
+  const viewBonus = clamp(Math.floor(Math.log10(views + 1) * 4), 0, 8);
+  score += viewBonus;
+  reasons.push(`views=${views} (+${viewBonus})`);
+
+  const createdAt = toDateMaybe((item as { createdAt?: unknown }).createdAt);
+  if (createdAt) {
+    const ageHours = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
+    const freshnessBonus = ageHours <= 6 ? 8 : ageHours <= 24 ? 6 : ageHours <= 48 ? 3 : 0;
+    score += freshnessBonus;
+    reasons.push(`freshness=${ageHours.toFixed(1)}h (+${freshnessBonus})`);
+  }
+
+  const titleLen = item.title?.trim().length ?? 0;
+  const titleBonus = titleLen >= 50 && titleLen <= 120 ? 5 : titleLen >= 30 ? 3 : 0;
+  score += titleBonus;
+  reasons.push(`title_len=${titleLen} (+${titleBonus})`);
+
+  const deadlineRaw = (item as { opportunity?: { deadline?: string | null } }).opportunity?.deadline;
+  if ((topic === "scholarship" || topic === "opportunity") && deadlineRaw) {
+    const deadline = new Date(deadlineRaw);
+    if (!Number.isNaN(deadline.getTime())) {
+      const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      const urgencyBonus = daysLeft <= 2 ? 8 : daysLeft <= 7 ? 5 : daysLeft <= 14 ? 2 : 0;
+      score += urgencyBonus;
+      reasons.push(`deadline=${daysLeft}d (+${urgencyBonus})`);
+    }
+  }
+
+  // Deterministic tie-breaker for better queue spread (0..4).
+  const tieBreaker = smallHash(item.id) % 5;
+  score += tieBreaker;
+  reasons.push(`tie_breaker=+${tieBreaker}`);
+
+  const finalScore = clamp(Math.round(score), 0, 100);
+  reasons.push(`final=${finalScore}`);
+
+  return { score: finalScore, reasons };
 }
 
 /**
@@ -114,11 +191,9 @@ async function composeFbMessage(item: Item): Promise<FbMessagePayload | null> {
 
   try {
     const versions = await contentVersionsRepo.listByItemId(item.id);
-    const webVersions = versions.filter((v) => v.channel === "web");
+    const webVersions = versions.filter((v) => v.channel === "web" && v.status === "published");
     const selected =
-      webVersions.find((v) => v.language === "fr" && v.status === "published") ??
       webVersions.find((v) => v.language === "fr") ??
-      webVersions.find((v) => v.status === "published") ??
       webVersions[0];
 
     if (selected) {
@@ -137,30 +212,35 @@ async function composeFbMessage(item: Item): Promise<FbMessagePayload | null> {
   const articleUrl = `${SITE_URL}/news/${articleVersionId}?lang=${articleLanguage}`;
 
   const topic = topicForSocial(item);
-  const emoji =
+  const hook =
     topic === "scholarship"
-      ? "🎓"
+      ? "Bourse à surveiller"
       : topic === "opportunity"
-        ? "🚀"
+        ? "Opportunité à saisir"
         : topic === "education"
-          ? "📚"
+          ? "À retenir pour les étudiants"
           : topic === "news"
-            ? "📰"
-            : "📢";
+            ? "À la une"
+            : "À lire";
 
   const lines: string[] = [];
-  lines.push(`${emoji} ${title}`);
+  lines.push(`${hook} : ${title}`);
 
   if (summary) {
-    // FB supports longer posts — use up to 400 chars of summary
+    const normalizedSummary = String(summary).replace(/\s+/g, " ").trim();
     const shortSummary =
-      summary.length > 400 ? summary.slice(0, 397) + "…" : summary;
+      normalizedSummary.length > 320 ? normalizedSummary.slice(0, 317) + "…" : normalizedSummary;
     lines.push("");
     lines.push(shortSummary);
   }
 
+  if (item.source?.name) {
+    lines.push("");
+    lines.push(`Source : ${item.source.name}`);
+  }
+
   lines.push("");
-  lines.push("📲 EdLight News — L'actu haïtienne, chaque jour.");
+  lines.push("Lire l'article complet sur EdLight News.");
 
   return {
     text: lines.join("\n"),
@@ -210,11 +290,14 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
     let newItemsQueued = 0;
 
     const scoredItems = items
-      .map((item) => ({ item, score: scoreForFb(item) }))
+      .map((item) => {
+        const scored = scoreForFb(item);
+        return { item, score: scored.score, reasons: scored.reasons };
+      })
       .filter((si) => si.score >= MIN_SCORE_THRESHOLD)
       .sort((a, b) => b.score - a.score);
 
-    for (const { item, score } of scoredItems) {
+    for (const { item, score, reasons } of scoredItems) {
       if (newItemsQueued >= MAX_NEW_ITEMS_PER_RUN) break;
 
       result.evaluated++;
@@ -245,9 +328,7 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           score,
           status: "queued",
           queuedDate: haitiToday,
-          reasons: [
-            `Auto-queued: score=${score}, category=${item.category ?? "unknown"}`,
-          ],
+          reasons,
           payload,
         });
 

@@ -33,8 +33,35 @@ import { MobileProgressBar } from "./_components/MobileProgressBar";
 export const revalidate = 60;
 const BASE_URL = "https://news.edlight.org";
 
-async function getArticle(id: string): Promise<ContentVersion | null> {
-  return contentVersionsRepo.getContentVersion(id);
+function selectPreferredWebVersion(
+  versions: ContentVersion[],
+  preferredLang: ContentLanguage = "fr",
+): ContentVersion | null {
+  const publishedWeb = versions.filter((v) => v.channel === "web" && v.status === "published");
+  if (publishedWeb.length === 0) return null;
+
+  return (
+    publishedWeb.find((v) => v.language === preferredLang) ??
+    publishedWeb.find((v) => v.language === "fr") ??
+    publishedWeb[0] ??
+    null
+  );
+}
+
+async function getArticle(
+  id: string,
+  preferredLang: ContentLanguage = "fr",
+): Promise<ContentVersion | null> {
+  const byVersionId = await contentVersionsRepo.getContentVersion(id);
+  if (byVersionId) return byVersionId;
+
+  // Backward-compat: some shared links still use itemId (/news/:itemId).
+  try {
+    const versions = await contentVersionsRepo.listByItemId(id);
+    return selectPreferredWebVersion(versions, preferredLang);
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({
@@ -42,7 +69,7 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }): Promise<Metadata> {
-  const article = await getArticle(params.id);
+  const article = await getArticle(params.id, "fr");
   if (!article) return { title: "Not found" };
 
   // Fetch item image for OG metadata (lightweight)
@@ -737,7 +764,8 @@ export default async function ArticlePage({
   params: { id: string };
   searchParams: { lang?: string };
 }) {
-  const article = await getArticle(params.id);
+  const preferredLang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
+  const article = await getArticle(params.id, preferredLang);
   if (!article) notFound();
 
   const currentLang: ContentLanguage =
