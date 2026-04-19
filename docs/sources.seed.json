@@ -19,6 +19,15 @@
     "igImageSafe": false
   },
   {
+    "name": "Le Relief Haïti",
+    "type": "rss",
+    "url": "https://lereliefhaiti.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 1800,
+    "priority": "hot",
+    "igImageSafe": false
+  },
+  {
     "name": "Le Nouvelliste",
     "type": "html",
     "url": "https://lenouvelliste.com/",
