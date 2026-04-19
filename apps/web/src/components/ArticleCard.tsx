@@ -111,8 +111,8 @@ export function ArticleCard({
         isFeatured
           ? "flex-col sm:flex-row gap-6"
           : isCompact
-            ? "items-start gap-4 border-b border-stone-200 px-0 py-4 dark:border-stone-800"
-            : "flex-col gap-3",
+            ? "items-start gap-3 border-b border-stone-200 px-0 py-3 dark:border-stone-800"
+            : "flex-col gap-2.5",
       ].join(" ")}
     >
       {/* Image */}
@@ -159,7 +159,7 @@ export function ArticleCard({
       {/* Content */}
       <div className={[
         "flex flex-1 flex-col",
-        isFeatured ? "gap-2.5 p-0" : isCompact ? "min-w-0 gap-1.5" : "gap-2 p-0",
+        isFeatured ? "gap-2.5 p-0" : isCompact ? "min-w-0 gap-1.5" : "gap-1.5 p-0",
       ].join(" ")}>
         {/* Badges row */}
         <div className="flex flex-wrap items-center gap-2">
@@ -197,7 +197,7 @@ export function ArticleCard({
         {article.summary && !isCompact && (
           <p className={[
             "text-body-md leading-relaxed text-on-surface-variant",
-            isFeatured ? "line-clamp-3" : "line-clamp-2",
+            isFeatured ? "line-clamp-3" : "hidden sm:block line-clamp-2",
           ].join(" ")}>
             {article.summary}
           </p>
@@ -216,8 +216,8 @@ export function ArticleCard({
           {article.publishedAt && (
             <span>{formatRelativeDate(article.publishedAt, lang)}</span>
           )}
-          <span className="text-outline-variant">·</span>
-          <span className="inline-flex items-center gap-1">
+          <span className="hidden sm:inline text-outline-variant">·</span>
+          <span className="hidden sm:inline-flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {readTime} min
           </span>

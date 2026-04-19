@@ -49,14 +49,14 @@ export function SectionFeed({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-5">
+    <div className="space-y-4">
+      <div className="rounded-lg border border-stone-200 bg-white p-3 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="space-y-1">
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-stone-500 dark:text-stone-400">
               {lang === "fr" ? "Sélection EdLight" : "Seleksyon EdLight"}
             </p>
-            <p className="text-sm text-stone-600 dark:text-stone-300">
+            <p className="hidden text-sm text-stone-600 dark:text-stone-300 sm:block">
               {sorted.length} {lang === "fr" ? "articles disponibles dans cette rubrique." : "atik disponib nan ribrik sa a."}
             </p>
           </div>
@@ -70,7 +70,7 @@ export function SectionFeed({
                 key={opt}
                 onClick={() => setSort(opt)}
                 className={[
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
+                  "rounded-md px-2.5 py-1.5 text-xs sm:text-sm font-medium transition",
                   sort === opt
                     ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
                     : "border border-stone-200 bg-white text-stone-600 hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
@@ -90,7 +90,7 @@ export function SectionFeed({
       </div>
 
       {/* Grid — first item is featured (full width) */}
-      <StaggerGrid className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <StaggerGrid className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((article, i) => (
           <StaggerItem
             key={article.id}

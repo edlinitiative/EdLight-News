@@ -188,7 +188,7 @@
 
   /* ── Section container (tonal shift, no border) ─────────── */
   .section-shell {
-    @apply rounded-xl p-6 sm:p-8;
+    @apply rounded-xl p-4 sm:p-6;
     background-color: var(--ed-surface-container-low);
   }
   .dark .section-shell {
