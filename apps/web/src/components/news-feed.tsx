@@ -462,7 +462,7 @@ export function NewsFeed({
       <div className="flex flex-col gap-2.5">
         {/* Row 1: mode toggle + sort */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="inline-flex shrink-0 rounded-lg border border-stone-200 bg-stone-100 p-0.5 dark:border-stone-700 dark:bg-stone-800">
+          <div className="hidden shrink-0 rounded-lg border border-stone-200 bg-stone-100 p-0.5 dark:border-stone-700 dark:bg-stone-800 sm:inline-flex">
             {(["student", "all"] as const).map((mode) => {
               const isActive = mode === feedMode;
               const label =
@@ -495,7 +495,7 @@ export function NewsFeed({
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="shrink-0 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
+            className="shrink-0 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-base sm:text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
           >
             {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
               <option key={opt} value={opt}>
@@ -506,7 +506,7 @@ export function NewsFeed({
         </div>
 
         {/* Row 2: category pills */}
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1 tab-scroll">
           {FIXED_NEWS_PILLS.map((cat) => {
             const label = CATEGORY_LABELS[cat]?.[lang] ?? cat;
             const count = pillCounts[cat] ?? 0;
@@ -516,7 +516,7 @@ export function NewsFeed({
                 key={cat}
                 onClick={() => handleCategory(cat)}
                 className={
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition " +
+                  "shrink-0 rounded-md px-2.5 py-1 text-xs font-medium transition " +
                   (isActive
                     ? "bg-stone-900 text-white shadow-sm dark:bg-white dark:text-stone-900"
                     : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700")
@@ -529,7 +529,7 @@ export function NewsFeed({
           })}
           {/* Legacy toggle — inline */}
           {!preRanked && legacyCount > 0 && (
-            <label className="ml-auto flex items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500">
+            <label className="ml-auto hidden items-center gap-1.5 text-xs text-stone-400 dark:text-stone-500 sm:flex">
               <input
                 type="checkbox"
                 checked={showLegacy}

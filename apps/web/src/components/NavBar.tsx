@@ -276,7 +276,7 @@ export function NavBar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={fr ? "Rechercher…" : "Chèche…"}
-                  className="flex-1 bg-transparent text-sm text-on-surface placeholder-on-surface-variant/50 outline-none"
+                  className="flex-1 bg-transparent text-base sm:text-sm text-on-surface placeholder-on-surface-variant/50 outline-none"
                 />
               </form>
             </div>

@@ -35,13 +35,13 @@ export function CompactFiltersRow({
   fr,
 }: CompactFiltersRowProps) {
   return (
-    <div className="sticky top-16 z-20 rounded-xl border border-[#c7c4d8]/15 bg-white px-3 py-2.5 shadow-[0_20px_40px_rgba(29,27,26,0.03)] dark:border-stone-700 dark:bg-stone-900">
+    <div className="sticky top-16 z-20 rounded-xl border border-[#c7c4d8]/15 bg-white px-2.5 py-2 shadow-[0_20px_40px_rgba(29,27,26,0.03)] dark:border-stone-700 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-2">
         {/* Type / Subcategory */}
         <select
           value={subcategoryFilter}
           onChange={(e) => onFilterChange("subcategory", e.target.value)}
-          className="h-8 appearance-none rounded-full border border-[#c7c4d8]/20 bg-white pl-2.5 pr-7 text-xs font-medium text-[#464555] focus:border-[#3525cd]/30 focus:outline-none focus:ring-2 focus:ring-[#3525cd]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-[#c3c0ff]"
+          className="hidden h-8 appearance-none rounded-full border border-[#c7c4d8]/20 bg-white pl-2.5 pr-7 text-xs font-medium text-[#464555] focus:border-[#3525cd]/30 focus:outline-none focus:ring-2 focus:ring-[#3525cd]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-[#c3c0ff] sm:block"
         >
           <option value="all">{fr ? "📋 Type" : "📋 Tip"}</option>
           {subcategoryOptions.map((o) => (
@@ -92,14 +92,16 @@ export function CompactFiltersRow({
         </button>
 
         {/* Sort pill / menu */}
-        <SortMenuPill
-          sortMode={sortMode}
-          onSort={(m: string) => onSortChange("sort", m)}
-          fr={fr}
-        />
+        <div className="hidden sm:block">
+          <SortMenuPill
+            sortMode={sortMode}
+            onSort={(m: string) => onSortChange("sort", m)}
+            fr={fr}
+          />
+        </div>
 
         {/* Result count — pushed right */}
-        <span className="ml-auto text-xs tabular-nums text-[#474948] dark:text-stone-400">
+        <span className="ml-auto hidden text-xs tabular-nums text-[#474948] dark:text-stone-400 sm:inline">
           <span className="font-bold text-[#1d1b1a] dark:text-white">{resultCount}</span>
           <span className="text-[#c7c4d8] dark:text-stone-600">/</span>
           {totalCount}

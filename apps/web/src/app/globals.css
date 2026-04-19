@@ -146,6 +146,17 @@
     ring-color: rgba(196, 188, 255, 0.3);
     ring-offset-color: var(--ed-surface);
   }
+
+  /* iOS Safari: prevent auto-zoom on form focus (requires >=16px) */
+  @media (max-width: 768px) {
+    :where(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+      select,
+      textarea
+    ) {
+      font-size: 16px !important;
+    }
+  }
 }
 
 @layer components {

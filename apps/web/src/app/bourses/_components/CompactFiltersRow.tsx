@@ -46,7 +46,7 @@ export function CompactFiltersRow({
   fr,
 }: CompactFiltersRowProps) {
   return (
-    <div className="sticky top-16 z-20 rounded-lg border border-stone-200 bg-white px-3 py-2.5 shadow-sm dark:border-stone-700 dark:bg-stone-900">
+    <div className="sticky top-16 z-20 rounded-lg border border-stone-200 bg-white px-2.5 py-2 shadow-sm dark:border-stone-700 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-2">
         {/* Search — full width on mobile, flexible on desktop */}
         <div className="relative w-full min-w-0 sm:w-auto sm:flex-1 sm:min-w-[200px]">
@@ -56,7 +56,7 @@ export function CompactFiltersRow({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={fr ? "Rechercher…" : "Chèche…"}
-            className="w-full rounded-lg border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-8 text-sm text-stone-900 placeholder:text-stone-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder:text-stone-500 dark:focus:border-blue-600 dark:focus:ring-blue-800/40"
+            className="w-full rounded-lg border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-8 text-base sm:text-sm text-stone-900 placeholder:text-stone-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder:text-stone-500 dark:focus:border-blue-600 dark:focus:ring-blue-800/40"
           />
           {searchQuery && (
             <button
@@ -74,7 +74,7 @@ export function CompactFiltersRow({
         <select
           value={countryFilter}
           onChange={(e) => onFilterChange("country", e.target.value)}
-          className="h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600"
+          className="hidden h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600 sm:block"
         >
           <option value="all">{fr ? "🌍 Pays" : "🌍 Peyi"}</option>
           {countryOptions.map((o) => (
@@ -88,7 +88,7 @@ export function CompactFiltersRow({
         <select
           value={levelFilter}
           onChange={(e) => onFilterChange("level", e.target.value)}
-          className="h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600"
+          className="hidden h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600 sm:block"
         >
           <option value="all">{fr ? "Niveau" : "Nivo"}</option>
           {levelOptions.map((o) => (
@@ -139,14 +139,16 @@ export function CompactFiltersRow({
         </button>
 
         {/* Sort pill / menu */}
-        <SortMenuPill
-          sortMode={sortMode}
-          onSort={(m) => onFilterChange("sort", m)}
-          fr={fr}
-        />
+        <div className="hidden sm:block">
+          <SortMenuPill
+            sortMode={sortMode}
+            onSort={(m) => onFilterChange("sort", m)}
+            fr={fr}
+          />
+        </div>
 
         {/* Result count — pushed right */}
-        <span className="ml-auto text-xs tabular-nums text-stone-500 dark:text-stone-400">
+        <span className="ml-auto hidden text-xs tabular-nums text-stone-500 dark:text-stone-400 sm:inline">
           <span className="font-bold text-stone-800 dark:text-white">{resultCount}</span>
           <span className="text-stone-300 dark:text-stone-600">/</span>
           {totalCount}

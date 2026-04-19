@@ -105,7 +105,7 @@ export function SearchFeed({ articles, lang, initialQuery = "" }: Props) {
               ? "Rechercher des articles, bourses, opportunités…"
               : "Chèche atik, bous, okazyon…"
           }
-          className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-11 pr-10 text-sm text-stone-900 placeholder-stone-400 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-stone-700 dark:bg-stone-900 dark:text-white dark:placeholder-stone-500"
+          className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-11 pr-10 text-base sm:text-sm text-stone-900 placeholder-stone-400 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-stone-700 dark:bg-stone-900 dark:text-white dark:placeholder-stone-500"
           autoFocus
         />
         {query && (
@@ -119,13 +119,13 @@ export function SearchFeed({ articles, lang, initialQuery = "" }: Props) {
       </div>
 
       {/* Category filters */}
-      <div className="flex flex-wrap gap-2">
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 tab-scroll">
         {CATEGORY_FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setCategory(f.id)}
             className={[
-              "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+              "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition",
               category === f.id
                 ? "bg-blue-600 text-white shadow"
                 : "bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
