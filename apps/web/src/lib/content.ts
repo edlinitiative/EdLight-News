@@ -6,7 +6,7 @@
  */
 
 import { unstable_cache } from "next/cache";
-import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
+import { contentVersionsRepo, getDb, itemsRepo } from "@edlight-news/firebase";
 import { formatContentVersion } from "@edlight-news/generator";
 import type {
   ContentLanguage,
@@ -70,15 +70,26 @@ export async function fetchItemsByIds(
 ): Promise<Map<string, Item>> {
   const unique = [...new Set(itemIds)];
   const itemMap = new Map<string, Item>();
+  const db = getDb();
 
   for (let i = 0; i < unique.length; i += chunkSize) {
     const batch = unique.slice(i, i + chunkSize);
-    const results = await Promise.allSettled(
-      batch.map((id) => itemsRepo.getItem(id)),
-    );
-    for (const r of results) {
-      if (r.status === "fulfilled" && r.value) {
-        itemMap.set(r.value.id, r.value);
+    try {
+      const refs = batch.map((id) => db.collection("items").doc(id));
+      const snaps = await db.getAll(...refs);
+      for (const snap of snaps) {
+        if (!snap.exists) continue;
+        itemMap.set(snap.id, { id: snap.id, ...snap.data() } as Item);
+      }
+    } catch {
+      // Fallback safety net if batch get fails for any reason.
+      const results = await Promise.allSettled(
+        batch.map((id) => itemsRepo.getItem(id)),
+      );
+      for (const r of results) {
+        if (r.status === "fulfilled" && r.value) {
+          itemMap.set(r.value.id, r.value);
+        }
       }
     }
   }
