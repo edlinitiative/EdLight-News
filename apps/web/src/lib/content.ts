@@ -200,7 +200,6 @@ export const fetchEnrichedFeed = unstable_cache(
  */
 export const fetchTrending = unstable_cache(
   async (lang: ContentLanguage, limit: number = 8): Promise<EnrichedArticle[]> => {
-    const { getDb } = await import("@edlight-news/firebase");
     const db = getDb();
 
     // Query items with highest viewCount
@@ -217,20 +216,24 @@ export const fetchTrending = unstable_cache(
     const itemMap = new Map(items.map((i) => [i.id, i]));
     const itemIds = items.map((i) => i.id);
 
-    // Find matching content_versions for these items
+    // Find matching content_versions for these items.
+    // Use chunked parallel requests (instead of sequential) to reduce tail latency.
     const cvs: import("@edlight-news/types").ContentVersion[] = [];
-    const { contentVersionsRepo } = await import("@edlight-news/firebase");
-    for (const itemId of itemIds) {
-      try {
-        const versions = await contentVersionsRepo.listByItemId(itemId);
-        const match = versions.find(
+    const chunkSize = 8;
+    for (let i = 0; i < itemIds.length && cvs.length < limit; i += chunkSize) {
+      const chunk = itemIds.slice(i, i + chunkSize);
+      const settled = await Promise.allSettled(
+        chunk.map((itemId) => contentVersionsRepo.listByItemId(itemId)),
+      );
+
+      for (const r of settled) {
+        if (r.status !== "fulfilled") continue;
+        const match = r.value.find(
           (v) => v.language === lang && v.channel === "web" && v.status === "published",
         );
         if (match) cvs.push(match);
-      } catch {
-        // skip items without content_versions
+        if (cvs.length >= limit) break;
       }
-      if (cvs.length >= limit) break;
     }
 
     return enrichArticles(cvs, itemMap).slice(0, limit);
