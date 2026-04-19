@@ -4,10 +4,7 @@ import Link from "next/link";
 export function EdLightAttribution({ lang }: { lang: ContentLanguage }) {
   const fr = lang === "fr";
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-silk text-white font-black text-sm tracking-tight select-none shadow-sm">
-        EL
-      </div>
+    <div className="rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800">
       <div className="min-w-0 flex-1">
         <p className="text-title-sm text-stone-900 dark:text-white">EdLight News</p>
         <p className="mt-1 text-body-sm leading-relaxed text-stone-500 dark:text-stone-400">
