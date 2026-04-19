@@ -3,6 +3,8 @@ import { fbQueueRepo, getDb } from "@edlight-news/firebase";
 
 export const dynamic = "force-dynamic";
 
+const NO_STORE = { headers: { "Cache-Control": "no-store" } };
+
 type ArticleContext = {
   itemId: string;
   title: string | null;
@@ -94,24 +96,32 @@ export async function GET() {
   try {
     const db = getDb();
 
-    const recentSnap = await db
+    const recentPromise = db
       .collection("fb_queue")
       .orderBy("createdAt", "desc")
       .limit(250)
       .get();
 
-    let activeDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
-    try {
-      const activeSnap = await db
-        .collection("fb_queue")
-        .where("status", "in", ["scheduled", "sending"])
-        .orderBy("scheduledFor", "asc")
-        .limit(50)
-        .get();
-      activeDocs = activeSnap.docs;
-    } catch (err) {
-      console.warn("[api/admin/fb-queue] activeSnap query failed (missing index?):", err);
-    }
+    const activePromise = db
+      .collection("fb_queue")
+      .where("status", "in", ["scheduled", "sending"])
+      .orderBy("scheduledFor", "asc")
+      .limit(50)
+      .get()
+      .catch((err) => {
+        console.warn("[api/admin/fb-queue] activeSnap query failed (missing index?):", err);
+        return null;
+      });
+
+    const countPromise = db.collection("fb_queue").count().get().catch(() => null);
+
+    const [recentSnap, activeSnap, countSnap] = await Promise.all([
+      recentPromise,
+      activePromise,
+      countPromise,
+    ]);
+
+    const activeDocs = activeSnap?.docs ?? [];
 
     const seen = new Set<string>();
     const items: ReturnType<typeof docToItem>[] = [];
@@ -139,13 +149,7 @@ export async function GET() {
       skipped: items.filter((i) => i.status === "skipped").length,
     };
 
-    let totalDocs = items.length;
-    try {
-      const countSnap = await db.collection("fb_queue").count().get();
-      totalDocs = countSnap.data().count;
-    } catch {
-      // Non-critical.
-    }
+    const totalDocs = countSnap?.data().count ?? items.length;
 
     const articleById = await loadArticleContexts(
       db,
@@ -156,12 +160,12 @@ export async function GET() {
       article: articleById.get(item.sourceContentId) ?? null,
     }));
 
-    return NextResponse.json({ items: enrichedItems, counts: { ...counts, totalDocs } });
+    return NextResponse.json({ items: enrichedItems, counts: { ...counts, totalDocs } }, NO_STORE);
   } catch (err) {
     console.error("[api/admin/fb-queue] GET error:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to load Facebook queue" },
-      { status: 500 },
+      { status: 500, headers: NO_STORE.headers },
     );
   }
 }

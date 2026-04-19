@@ -4,6 +4,8 @@ import { waQueueRepo } from "@edlight-news/firebase";
 
 export const dynamic = "force-dynamic";
 
+const NO_STORE = { headers: { "Cache-Control": "no-store" } };
+
 /** Map a Firestore doc to our admin API shape. */
 function docToItem(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   const data = doc.data();
@@ -34,26 +36,32 @@ export async function GET() {
   try {
     const db = getDb();
 
-    // Main query: most recent 250 items by createdAt
-    const recentSnap = await db
+    const recentPromise = db
       .collection("wa_queue")
       .orderBy("createdAt", "desc")
       .limit(250)
       .get();
 
-    // Second query: scheduled/sending items
-    let activeDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
-    try {
-      const activeSnap = await db
-        .collection("wa_queue")
-        .where("status", "in", ["scheduled", "sending"])
-        .orderBy("scheduledFor", "asc")
-        .limit(50)
-        .get();
-      activeDocs = activeSnap.docs;
-    } catch (e) {
-      console.warn("[api/admin/wa-queue] activeSnap query failed (missing index?):", e);
-    }
+    const activePromise = db
+      .collection("wa_queue")
+      .where("status", "in", ["scheduled", "sending"])
+      .orderBy("scheduledFor", "asc")
+      .limit(50)
+      .get()
+      .catch((e) => {
+        console.warn("[api/admin/wa-queue] activeSnap query failed (missing index?):", e);
+        return null;
+      });
+
+    const countPromise = db.collection("wa_queue").count().get().catch(() => null);
+
+    const [recentSnap, activeSnap, countSnap] = await Promise.all([
+      recentPromise,
+      activePromise,
+      countPromise,
+    ]);
+
+    const activeDocs = activeSnap?.docs ?? [];
 
     // Merge and deduplicate by doc ID
     const seen = new Set<string>();
@@ -82,20 +90,14 @@ export async function GET() {
       skipped: items.filter((i) => i.status === "skipped").length,
     };
 
-    let totalDocs = items.length;
-    try {
-      const countSnap = await db.collection("wa_queue").count().get();
-      totalDocs = countSnap.data().count;
-    } catch {
-      // Non-critical
-    }
+    const totalDocs = countSnap?.data().count ?? items.length;
 
-    return NextResponse.json({ items, counts: { ...counts, totalDocs } });
+    return NextResponse.json({ items, counts: { ...counts, totalDocs } }, NO_STORE);
   } catch (err) {
     console.error("[api/admin/wa-queue] GET error:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to load WA queue" },
-      { status: 500 },
+      { status: 500, headers: NO_STORE.headers },
     );
   }
 }

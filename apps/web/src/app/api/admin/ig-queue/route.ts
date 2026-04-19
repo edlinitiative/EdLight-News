@@ -4,6 +4,8 @@ import { igQueueRepo } from "@edlight-news/firebase";
 
 export const dynamic = "force-dynamic";
 
+const NO_STORE = { headers: { "Cache-Control": "no-store" } };
+
 /** Map a Firestore doc to our admin API shape. */
 function docToItem(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   const data = doc.data();
@@ -46,27 +48,33 @@ export async function GET() {
   try {
     const db = getDb();
 
-    // Main query: most recent 250 items by createdAt
-    const recentSnap = await db
+    const recentPromise = db
       .collection("ig_queue")
       .orderBy("createdAt", "desc")
       .limit(250)
       .get();
 
-    // Second query: scheduled/rendering items (may not be in the 250-item window)
-    let activeDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
-    try {
-      const activeSnap = await db
-        .collection("ig_queue")
-        .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
-        .orderBy("scheduledFor", "asc")
-        .limit(50)
-        .get();
-      activeDocs = activeSnap.docs;
-    } catch (e) {
-      // Index may not be deployed yet — fall back gracefully
-      console.warn("[api/admin/ig-queue] activeSnap query failed (missing index?):", e);
-    }
+    const activePromise = db
+      .collection("ig_queue")
+      .where("status", "in", ["scheduled", "scheduled_ready_for_manual", "rendering"])
+      .orderBy("scheduledFor", "asc")
+      .limit(50)
+      .get()
+      .catch((e) => {
+        // Index may not be deployed yet — fall back gracefully
+        console.warn("[api/admin/ig-queue] activeSnap query failed (missing index?):", e);
+        return null;
+      });
+
+    const countPromise = db.collection("ig_queue").count().get().catch(() => null);
+
+    const [recentSnap, activeSnap, countSnap] = await Promise.all([
+      recentPromise,
+      activePromise,
+      countPromise,
+    ]);
+
+    const activeDocs = activeSnap?.docs ?? [];
 
     // Merge and deduplicate by doc ID
     const seen = new Set<string>();
@@ -96,21 +104,14 @@ export async function GET() {
       expired: items.filter((i) => i.status === "expired").length,
     };
 
-    // Total doc count — 1 cheap read; used as a collection-health proxy in the UI
-    let totalDocs = items.length;
-    try {
-      const countSnap = await db.collection("ig_queue").count().get();
-      totalDocs = countSnap.data().count;
-    } catch {
-      // Non-critical — fall back to the in-view count
-    }
+    const totalDocs = countSnap?.data().count ?? items.length;
 
-    return NextResponse.json({ items, counts: { ...counts, totalDocs } });
+    return NextResponse.json({ items, counts: { ...counts, totalDocs } }, NO_STORE);
   } catch (err) {
     console.error("[api/admin/ig-queue] GET error:", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to load IG queue" },
-      { status: 500 },
+      { status: 500, headers: NO_STORE.headers },
     );
   }
 }
