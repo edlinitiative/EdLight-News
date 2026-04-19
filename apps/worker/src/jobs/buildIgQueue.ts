@@ -22,6 +22,12 @@ import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
+// Credibility-first image policy:
+// - strict mode ON by default: only keep publisher image or exact/partial reverse-image matches
+// - generic keyword substitutions (tiered/commons) are opt-in via env
+const IG_STRICT_IMAGE_ACCURACY = process.env.IG_STRICT_IMAGE_ACCURACY !== "false";
+const IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION =
+  process.env.IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION === "true";
 
 /**
  * Maximum number of NEW eligible items to queue per tick.
@@ -299,15 +305,26 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           // ── Step 1: HQ image search (same image, higher resolution) ──────
           // Uses article metadata (title, entities, source) to search Brave
           // for the same photo at ≥1080px. Zero extra cost — no AI vision.
-          if (item.imageUrl) {
+          if (!overrideImageUrl) {
             try {
               const hqMatch = await findHighResVersion(item);
               if (hqMatch && hqMatch.width >= 1080) {
-                overrideImageUrl = hqMatch.url;
-                console.log(
-                  `[buildIgQueue] reverse image search found HQ match for ${item.id}: ` +
-                  `${hqMatch.source} (${hqMatch.width}×${hqMatch.height}, score=${hqMatch.score.toFixed(1)})`,
-                );
+                const isStrictApproved =
+                  !IG_STRICT_IMAGE_ACCURACY ||
+                  hqMatch.sourceType === "vision_exact" ||
+                  hqMatch.sourceType === "vision_partial";
+
+                if (isStrictApproved) {
+                  overrideImageUrl = hqMatch.url;
+                  console.log(
+                    `[buildIgQueue] reverse image search found HQ match for ${item.id}: ` +
+                    `${hqMatch.source} (${hqMatch.width}×${hqMatch.height}, ${hqMatch.sourceType}, score=${hqMatch.score.toFixed(1)})`,
+                  );
+                } else {
+                  console.log(
+                    `[buildIgQueue] strict image mode rejected non-exact reverse match for ${item.id}: ${hqMatch.sourceType}`,
+                  );
+                }
               }
             } catch (err) {
               console.warn(
@@ -321,7 +338,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           // Searches Brave → Unsplash → LoC → Wikimedia by title keywords.
           // This is the fallback that CAN return unrelated images, so we only
           // use it when we truly have no usable publisher image.
-          if (!overrideImageUrl) {
+          if (!overrideImageUrl && !IG_STRICT_IMAGE_ACCURACY && IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION) {
             try {
               const tieredResult = await findTieredImage(item);
               if (tieredResult && tieredResult.width >= 1080) {
@@ -337,7 +354,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           }
 
           // ── Step 3: Commons-only fallback ──────────────────────────────────
-          if (!overrideImageUrl) {
+          if (!overrideImageUrl && !IG_STRICT_IMAGE_ACCURACY && IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION) {
             try {
               const freeImage = await findFreeImage(item);
               if (freeImage) {
@@ -346,6 +363,12 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
             } catch (err) {
               console.warn(`[buildIgQueue] free image search failed for ${item.id}:`, err instanceof Error ? err.message : err);
             }
+          }
+
+          if (!overrideImageUrl && IG_STRICT_IMAGE_ACCURACY) {
+            console.log(
+              `[buildIgQueue] strict image mode: no exact replacement for ${item.id}; keeping gradient fallback instead of keyword image`,
+            );
           }
 
           // Only mark igImageSafe=false when we actually have a replacement.

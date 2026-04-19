@@ -34,6 +34,8 @@ const EPHEMERAL_IG_TYPES = new Set<IGPostType>(["news", "taux", "histoire", "bre
  */
 const MAX_RENDER_RETRIES = 3;
 const HAITI_TIMEZONE = "America/Port-au-Prince";
+const IG_ALLOW_CONTEXTUAL_IMAGE_FALLBACK =
+  process.env.IG_ALLOW_CONTEXTUAL_IMAGE_FALLBACK === "true";
 const ACTIVE_SCHEDULED_STATUSES = new Set<IGQueueItem["status"]>([
   "scheduled",
   "scheduled_ready_for_manual",
@@ -137,22 +139,30 @@ async function publishStoryForPost(
   sourceItem: Awaited<ReturnType<typeof itemsRepo.getItem>>,
   appendCta: boolean,
 ): Promise<{ posted: boolean; error?: string }> {
-  try {
-    // Build a single-slide story payload based on post type
-    let storyPayload: IGStoryPayload;
-
-    if (item.igType === "taux" && item.payload?.slides?.[0]) {
-      const coverSlide = item.payload.slides[0];
-      const tauxInput: StoryTauxInput = {
-        rate: coverSlide.heading,
-        dateLabel: coverSlide.footer ?? new Date().toLocaleDateString("fr-FR"),
-        bullets: coverSlide.bullets.slice(0, 2),
-        backgroundImage: coverSlide.backgroundImage,
-      };
-      storyPayload = buildStorySlideForPost(undefined, tauxInput);
-    } else if (item.igType === "utility" || item.igType === "histoire") {
-      // Build a facts-style frame for utility/histoire
-      const factsInput: StoryFactsInput = {
+            } else {
+              // No image anywhere.
+              // Credibility mode: keep branded gradients instead of generating
+              // potentially off-topic AI images.
+              if (!IG_ALLOW_CONTEXTUAL_IMAGE_FALLBACK) {
+                console.log(
+                  `[processIgScheduled] contextual image fallback disabled for ${item.id}; keeping gradient background`,
+                );
+              } else {
+                try {
+                  const generated = await generateContextualImage(sourceItem);
+                  if (generated?.url) {
+                    for (const slide of slidesNeedingImage) {
+                      slide.backgroundImage = generated.url;
+                    }
+                    console.log(
+                      `[processIgScheduled] filled ${slidesNeedingImage.length} slide background(s) for ${item.id}`,
+                    );
+                  }
+                } catch (imageErr) {
+                  const msg = imageErr instanceof Error ? imageErr.message : String(imageErr);
+                  console.warn(`[processIgScheduled] contextual image fallback failed for ${item.id}: ${msg}`);
+                }
+              }
         facts: sourceItem?.summary
           ? [sourceItem.summary.slice(0, 360)]
           : item.payload?.slides?.[0]?.bullets ?? [],
@@ -441,24 +451,30 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
             }
           }
 
-          // Attempt Gemini fallback for newly-emptied slides
+          // Attempt Gemini fallback for newly-emptied slides (opt-in only)
           const emptiedSlides = publishPayload.slides.filter((s) => !s.backgroundImage);
           if (emptiedSlides.length > 0 && sourceItem) {
-            try {
-              const generated = await generateContextualImage(sourceItem);
-              if (generated?.url) {
-                for (const slide of emptiedSlides) {
-                  slide.backgroundImage = generated.url;
+            if (!IG_ALLOW_CONTEXTUAL_IMAGE_FALLBACK) {
+              console.log(
+                `[processIgScheduled] Gemini fallback disabled after broken URL cleanup for ${item.id}; keeping gradient background`,
+              );
+            } else {
+              try {
+                const generated = await generateContextualImage(sourceItem);
+                if (generated?.url) {
+                  for (const slide of emptiedSlides) {
+                    slide.backgroundImage = generated.url;
+                  }
+                  console.log(
+                    `[processIgScheduled] replaced ${brokenUrls.size} broken URL(s) with Gemini image for ${item.id}`,
+                  );
                 }
-                console.log(
-                  `[processIgScheduled] replaced ${brokenUrls.size} broken URL(s) with Gemini image for ${item.id}`,
+              } catch (genErr) {
+                const genMsg = genErr instanceof Error ? genErr.message : String(genErr);
+                console.warn(
+                  `[processIgScheduled] Gemini fallback after broken URL failed for ${item.id}: ${genMsg}`,
                 );
               }
-            } catch (genErr) {
-              const genMsg = genErr instanceof Error ? genErr.message : String(genErr);
-              console.warn(
-                `[processIgScheduled] Gemini fallback after broken URL failed for ${item.id}: ${genMsg}`,
-              );
             }
           }
         }
