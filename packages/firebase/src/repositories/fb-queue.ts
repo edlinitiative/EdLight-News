@@ -9,6 +9,27 @@ function collection() {
   return getDb().collection(COLLECTION);
 }
 
+function toDate(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  if (typeof value === "object" && value !== null && "toDate" in value) {
+    const toDateFn = (value as { toDate?: unknown }).toDate;
+    if (typeof toDateFn === "function") {
+      const parsed = (toDateFn as () => Date)();
+      return parsed instanceof Date && !Number.isNaN(parsed.getTime()) ? parsed : null;
+    }
+  }
+  if (typeof value === "object" && value !== null && "seconds" in value) {
+    const seconds = (value as { seconds?: unknown }).seconds;
+    if (typeof seconds === "number") return new Date(seconds * 1000);
+  }
+  return null;
+}
+
 // ── Create ──────────────────────────────────────────────────────────────────
 
 export async function createFbQueueItem(data: CreateFbQueueItem): Promise<FbQueueItem> {
@@ -61,10 +82,12 @@ export async function listByStatus(
 ): Promise<FbQueueItem[]> {
   const snap = await collection()
     .where("status", "==", status)
-    .orderBy("score", "desc")
-    .limit(limit)
+    .limit(Math.max(limit * 4, 80))
     .get();
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as FbQueueItem);
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as FbQueueItem)
+    .sort((a, b) => (Number(b.score ?? 0) - Number(a.score ?? 0)))
+    .slice(0, limit);
 }
 
 export async function listQueuedByScore(limit = 20): Promise<FbQueueItem[]> {
@@ -72,12 +95,21 @@ export async function listQueuedByScore(limit = 20): Promise<FbQueueItem[]> {
 }
 
 export async function listScheduled(limit = 10): Promise<FbQueueItem[]> {
+  // Avoid hard dependency on composite index (status + scheduledFor).
+  // We fetch scheduled docs and sort in-memory.
   const snap = await collection()
     .where("status", "==", "scheduled" satisfies FbQueueStatus)
-    .orderBy("scheduledFor", "asc")
-    .limit(limit)
+    .limit(Math.max(limit * 4, 40))
     .get();
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as FbQueueItem);
+
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as FbQueueItem)
+    .sort((a, b) => {
+      const aTime = toDate(a.scheduledFor)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      const bTime = toDate(b.scheduledFor)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+      return aTime - bTime;
+    })
+    .slice(0, limit);
 }
 
 // ── Haiti timezone helpers ──────────────────────────────────────────────────
@@ -118,23 +150,31 @@ function haitiDayBounds(date: Date = new Date()): { startTs: Timestamp; endTs: T
 
 export async function countSentToday(): Promise<number> {
   const { startTs } = haitiDayBounds();
+  // Avoid composite index dependency (status + updatedAt) by filtering in-memory.
   const snap = await collection()
     .where("status", "==", "sent" satisfies FbQueueStatus)
-    .where("updatedAt", ">=", startTs)
-    .count()
+    .limit(500)
     .get();
-  return snap.data().count;
+  return snap.docs.filter((doc) => {
+    const updatedAt = toDate(doc.data().updatedAt);
+    return updatedAt ? updatedAt.getTime() >= startTs.toDate().getTime() : false;
+  }).length;
 }
 
 export async function countScheduledToday(): Promise<number> {
   const { startISO, endISO } = haitiDayBounds();
-  const snap = await collection()
-    .where("status", "in", ["scheduled", "sending"])
-    .where("scheduledFor", ">=", startISO)
-    .where("scheduledFor", "<", endISO)
-    .count()
-    .get();
-  return snap.data().count;
+  // Avoid composite index dependency (status + scheduledFor range).
+  const [scheduledSnap, sendingSnap] = await Promise.all([
+    collection().where("status", "==", "scheduled" satisfies FbQueueStatus).limit(500).get(),
+    collection().where("status", "==", "sending" satisfies FbQueueStatus).limit(500).get(),
+  ]);
+
+  const allDocs = [...scheduledSnap.docs, ...sendingSnap.docs];
+  return allDocs.filter((doc) => {
+    const scheduledFor = doc.data().scheduledFor as string | undefined;
+    if (!scheduledFor) return false;
+    return scheduledFor >= startISO && scheduledFor < endISO;
+  }).length;
 }
 
 // ── Update ──────────────────────────────────────────────────────────────────
