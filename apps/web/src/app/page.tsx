@@ -26,7 +26,7 @@ import { CategoryBadge } from "@/components/CategoryBadge";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
-import { withLangParam, formatRelativeDate } from "@/lib/utils";
+import { withLangParam, formatRelativeDate, categoryLabel } from "@/lib/utils";
 import { rankFeed } from "@/lib/ranking";
 import type { FeedItem } from "@/components/news-feed";
 
@@ -68,6 +68,31 @@ function isOpportunity(a: FeedItem): boolean {
     a.vertical === "opportunites" || OPPORTUNITY_CATS.has(a.category ?? "");
   if (!catIsOpp) return false;
   return contentLooksLikeOpportunity(a.title ?? "", a.summary);
+}
+
+function normalizedCategory(a: FeedItem): string | null {
+  const cat = a.category ?? "";
+  if (!cat) return null;
+
+  const haitiLike = a.geoTag === "HT" || a.vertical === "haiti";
+
+  // Prevent misclassified opportunity tags on regular news.
+  if ((a.vertical === "opportunites" || OPPORTUNITY_CATS.has(cat)) && !isOpportunity(a)) {
+    return haitiLike ? "local_news" : "news";
+  }
+
+  // Utility facts often come through as "resource" but read like news.
+  if (cat === "resource" && a.itemType === "utility" && a.utilityType === "daily_fact") {
+    return haitiLike ? "local_news" : "news";
+  }
+
+  return cat;
+}
+
+function categoryTagText(a: FeedItem, lang: ContentLanguage): string | null {
+  const key = normalizedCategory(a);
+  if (!key) return null;
+  return categoryLabel(key, lang);
 }
 
 /** Thin rule with centred label + optional "voir tout" link */
@@ -274,10 +299,12 @@ export default async function AccueilPage({
                       <span className="text-stone-500">{formatRelativeDate(leadArticle.publishedAt, lang)}</span>
                     </>
                   )}
-                  {leadArticle.category && (
+                  {categoryTagText(leadArticle, lang) && (
                     <>
                       <span className="text-stone-300 dark:text-stone-700">·</span>
-                      <CategoryBadge category={leadArticle.category} lang={lang} />
+                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+                        {categoryTagText(leadArticle, lang)}
+                      </span>
                     </>
                   )}
                 </div>
@@ -291,9 +318,11 @@ export default async function AccueilPage({
                     {secondaryHero.map((article) => (
                       <li key={article.id} className="py-4 first:pt-0 last:pb-0">
                         <Link href={lq(`/news/${article.id}`)} className="group block">
-                          {article.category && (
+                          {categoryTagText(article, lang) && (
                             <div className="mb-1.5">
-                              <CategoryBadge category={article.category} lang={lang} />
+                              <span className="inline-block text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+                                {categoryTagText(article, lang)}
+                              </span>
                             </div>
                           )}
                           <h3 className="font-serif text-[15px] font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
@@ -346,9 +375,11 @@ export default async function AccueilPage({
                   ].join(" ")}
                 >
                   <Link href={lq(`/news/${article.id}`)} className="group block">
-                    {article.category && (
+                    {categoryTagText(article, lang) && (
                       <div className="mb-1.5">
-                        <CategoryBadge category={article.category} lang={lang} />
+                        <span className="inline-block text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+                          {categoryTagText(article, lang)}
+                        </span>
                       </div>
                     )}
                     <h3 className="font-serif text-base font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
@@ -393,27 +424,25 @@ export default async function AccueilPage({
                     {latestNews.map((article, idx) => (
                       <li key={article.id} className="py-3 first:pt-0 last:pb-0">
                         <Link href={lq(`/news/${article.id}`)} className="group block">
-                          <div className="flex items-start gap-3">
-                            {article.category && (
-                              <div className="shrink-0 pt-0.5">
-                                <CategoryBadge category={article.category} lang={lang} />
-                              </div>
+                          <div className="min-w-0">
+                            {categoryTagText(article, lang) && (
+                              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
+                                {categoryTagText(article, lang)}
+                              </p>
                             )}
-                            <div className="min-w-0">
-                              <h3
-                                className={[
-                                  "font-serif font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors",
-                                  idx < 2 ? "text-[15px] sm:text-base" : "text-sm",
-                                ].join(" ")}
-                              >
-                                {article.title}
-                              </h3>
-                              {idx === 0 && article.summary && (
-                                <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400 line-clamp-2">
-                                  {article.summary}
-                                </p>
-                              )}
-                            </div>
+                            <h3
+                              className={[
+                                "font-serif font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors",
+                                idx < 2 ? "text-[15px] sm:text-base" : "text-sm",
+                              ].join(" ")}
+                            >
+                              {article.title}
+                            </h3>
+                            {idx === 0 && article.summary && (
+                              <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400 line-clamp-2">
+                                {article.summary}
+                              </p>
+                            )}
                           </div>
                           <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600 pl-0">
                             {article.sourceName}
