@@ -11,6 +11,7 @@ export interface AdminStats {
   items: { total: number; withImages: number };
   contentVersions: { total: number; published: number; draft: number };
   sources: { active: number };
+  facebookQueue: { queued: number; scheduled: number; sending: number; failed: number };
 }
 
 export interface TickResult {
@@ -106,6 +107,35 @@ export interface WAQueueEntry {
 }
 
 export interface WAQueueCounts {
+  queued: number;
+  scheduled: number;
+  sending: number;
+  sent: number;
+  failed: number;
+  skipped: number;
+  totalDocs: number;
+}
+
+// ── Facebook Queue ──────────────────────────────────────────────────────────
+
+export interface FBQueueEntry {
+  id: string;
+  sourceContentId: string;
+  score: number;
+  status: string;
+  scheduledFor: string | null;
+  reasons: string[];
+  text: string | null;
+  imageUrl: string | null;
+  linkUrl: string | null;
+  fbPostId: string | null;
+  sendRetries: number;
+  error: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface FBQueueCounts {
   queued: number;
   scheduled: number;
   sending: number;

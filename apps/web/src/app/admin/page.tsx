@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getDb } from "@edlight-news/firebase";
 import { PipelineControl } from "./_PipelineControl";
 import type { AdminStats } from "@/types/admin";
@@ -11,18 +12,28 @@ function StatCard({
   value,
   sub,
   color = "bg-white dark:bg-stone-800",
+  href,
 }: {
   label: string;
   value: number | string;
   sub?: string;
   color?: string;
+  href?: string;
 }) {
-  return (
+  const content = (
     <div className={`rounded-xl border border-stone-200 p-5 dark:border-stone-700 ${color}`}>
       <p className="text-sm text-stone-500 dark:text-stone-400">{label}</p>
       <p className="mt-1 text-3xl font-bold tabular-nums dark:text-white">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-stone-400 dark:text-stone-500">{sub}</p>}
     </div>
+  );
+
+  if (!href) return content;
+
+  return (
+    <Link href={href} className="block transition hover:-translate-y-0.5 hover:shadow-sm">
+      {content}
+    </Link>
   );
 }
 
@@ -37,6 +48,10 @@ async function fetchStats(): Promise<AdminStats> {
     cvsPublished,
     cvsDraft,
     sourcesActive,
+    fbQueued,
+    fbScheduled,
+    fbSending,
+    fbFailed,
   ] = await Promise.all([
     db.collection("items").count().get(),
     db.collection("items").where("imageSource", "in", ["publisher", "wikidata", "branded", "screenshot"]).count().get(),
@@ -44,6 +59,10 @@ async function fetchStats(): Promise<AdminStats> {
     db.collection("content_versions").where("status", "==", "published").count().get(),
     db.collection("content_versions").where("status", "==", "draft").count().get(),
     db.collection("sources").where("active", "==", true).count().get(),
+    db.collection("fb_queue").where("status", "==", "queued").count().get(),
+    db.collection("fb_queue").where("status", "==", "scheduled").count().get(),
+    db.collection("fb_queue").where("status", "==", "sending").count().get(),
+    db.collection("fb_queue").where("status", "==", "failed").count().get(),
   ]);
 
   return {
@@ -58,6 +77,12 @@ async function fetchStats(): Promise<AdminStats> {
     },
     sources: {
       active: sourcesActive.data().count,
+    },
+    facebookQueue: {
+      queued: fbQueued.data().count,
+      scheduled: fbScheduled.data().count,
+      sending: fbSending.data().count,
+      failed: fbFailed.data().count,
     },
   };
 }
@@ -86,7 +111,7 @@ export default async function AdminPage() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-400">
           Overview
         </h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard label="Active sources" value={stats.sources.active} />
           <StatCard label="Items" value={stats.items.total} />
           <StatCard
@@ -105,6 +130,17 @@ export default async function AdminPage() {
             label="With images"
             value={`${stats.items.withImages} (${imagesPct}%)`}
             sub={`of ${stats.items.total} items`}
+          />
+          <StatCard
+            label="Facebook queue"
+            value={stats.facebookQueue.queued}
+            sub={`${stats.facebookQueue.scheduled} scheduled · ${stats.facebookQueue.failed} failed`}
+            color={
+              stats.facebookQueue.queued > 0 || stats.facebookQueue.scheduled > 0
+                ? "bg-blue-50 dark:bg-blue-950/30"
+                : "bg-white dark:bg-stone-800"
+            }
+            href="/admin/fb-queue"
           />
         </div>
       </div>
