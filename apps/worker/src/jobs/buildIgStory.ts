@@ -315,15 +315,12 @@ function topCandidatesImage(items: any[]): string | undefined {
   return undefined;
 }
 
-// Stories are viewed for ~5 seconds — keep each fact tight and punchy.
-const STORY_FACT_SOFT_LIMIT = 200;
+const STORY_FACT_SOFT_LIMIT = 360;
 
 export function buildFactLine(item: Item): string | null {
-  // Prefer title for story facts — it's shorter and designed to be scanned quickly.
-  // Fall back to summary only when no title is available.
-  const candidate = item.title && item.title.length >= 10
-    ? item.title
-    : item.summary;
+  const candidate = item.summary && item.summary.length >= 24
+    ? item.summary
+    : item.title;
   if (!candidate) return null;
 
   const cleaned = candidate
@@ -340,11 +337,11 @@ export function buildFactLine(item: Item): string | null {
     slice.lastIndexOf("! "),
     slice.lastIndexOf("? "),
   );
-  if (sentenceEnd > 80) {
+  if (sentenceEnd > 140) {
     return cleaned.slice(0, sentenceEnd + 1).trim();
   }
 
   // Fall back to word boundary
   const lastSpace = slice.lastIndexOf(" ");
-  return (lastSpace > 80 ? slice.slice(0, lastSpace) : slice).trim();
+  return (lastSpace > 140 ? slice.slice(0, lastSpace) : slice).trim();
 }

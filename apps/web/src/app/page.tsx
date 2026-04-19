@@ -125,6 +125,7 @@ export default async function AccueilPage({
   const heroWithImage = heroPool.filter((a) => !!a.imageUrl);
   const heroFallback = heroPool.filter((a) => !a.imageUrl);
   const heroArticles = [...heroWithImage, ...heroFallback].slice(0, 4);
+  const heroIds = new Set(heroArticles.map((a) => a.id));
 
   const leadArticle = heroArticles[0] ?? null;
   const secondaryHero = heroArticles.slice(1, 4);
@@ -132,8 +133,9 @@ export default async function AccueilPage({
   // Latest news: chronological (most recent first), skip opportunities and
   // utility items so the section feels like a real "breaking news" feed.
   const latestNews = filteredFeed
-    .filter((a) => !isOpportunity(a) && a.itemType !== "utility")
+    .filter((a) => !heroIds.has(a.id) && !isOpportunity(a) && a.itemType !== "utility")
     .slice(0, 6);
+  const latestNewsIds = new Set(latestNews.map((a) => a.id));
 
   // Histoire du jour — most recent history utility item
   const histoireArticle = filteredFeed.find(
@@ -145,6 +147,33 @@ export default async function AccueilPage({
   // Opportunities spotlight
   const featuredOpp = opportunities[0] ?? null;
   const moreOpps = opportunities.slice(1, 6);
+  const trendingStories = (() => {
+    const deduped = trendingArticles.filter(
+      (a) => !heroIds.has(a.id) && !latestNewsIds.has(a.id),
+    );
+    if (deduped.length >= 3) return deduped.slice(0, 5);
+
+    return trendingArticles
+      .filter((a) => !heroIds.has(a.id))
+      .slice(0, 5);
+  })();
+  const editionLinks = [
+    {
+      href: lq("/news"),
+      label: fr ? "Actualités" : "Nouvèl",
+      value: latestNews.length,
+    },
+    {
+      href: lq("/opportunites"),
+      label: fr ? "Opportunités" : "Okazyon",
+      value: opportunities.length,
+    },
+    {
+      href: lq("/histoire"),
+      label: fr ? "Histoire" : "Istwa",
+      value: histoireArticle ? 1 : 0,
+    },
+  ];
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -177,6 +206,58 @@ export default async function AccueilPage({
         </div>
       </div>
 
+      <section className="border-b border-stone-200 dark:border-stone-800 py-8 sm:py-10">
+        <div className="mx-auto grid max-w-4xl gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-8">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400 dark:text-stone-600">
+              {fr ? "Édition du jour" : "Edisyon jodi a"}
+            </p>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-stone-600 dark:text-stone-400 sm:text-lg">
+              {fr
+                ? "Une lecture claire de l'actualité, des opportunités et des repères utiles pour les étudiants haïtiens et la diaspora."
+                : "Yon lekti klè sou nouvèl, okazyon ak repè itil pou elèv ayisyen yo ak dyaspora a."}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href={lq("/news")}
+                className="inline-flex items-center rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-900 transition hover:border-stone-400 hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:border-stone-600 dark:hover:bg-stone-900"
+              >
+                {fr ? "Lire les actualités" : "Li nouvèl yo"}
+              </Link>
+              <Link
+                href={lq("/opportunites")}
+                className="inline-flex items-center rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-900 transition hover:border-stone-400 hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:border-stone-600 dark:hover:bg-stone-900"
+              >
+                {fr ? "Voir les opportunités" : "Wè okazyon yo"}
+              </Link>
+              <Link
+                href={lq("/histoire")}
+                className="inline-flex items-center rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-900 transition hover:border-stone-400 hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:hover:border-stone-600 dark:hover:bg-stone-900"
+              >
+                {fr ? "Explorer l'histoire" : "Eksplore istwa a"}
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 lg:grid-cols-1 lg:gap-2.5">
+            {editionLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 transition hover:border-stone-300 hover:bg-white dark:border-stone-800 dark:bg-stone-900/50 dark:hover:border-stone-700"
+              >
+                <p className="text-xl font-black tracking-tight text-stone-900 dark:text-white">
+                  {link.value}
+                </p>
+                <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400">
+                  {link.label}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ══════════════════════════════════════════════════════════════════════
           1. HERO — Lead article, tall and editorial
          ══════════════════════════════════════════════════════════════════════ */}
@@ -201,6 +282,11 @@ export default async function AccueilPage({
                         {leadArticle.summary}
                       </p>
                     )}
+                    <div className="pt-1">
+                      <span className="inline-flex items-center rounded-full border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-900 transition group-hover:border-stone-400 group-hover:bg-stone-50 dark:border-stone-700 dark:text-white dark:group-hover:border-stone-600 dark:group-hover:bg-stone-900">
+                        {fr ? "Lire l'article" : "Li atik la"}
+                      </span>
+                    </div>
                     <div className="pt-1 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-500">
                       {leadArticle.sourceName && (
                         <span className="font-bold uppercase tracking-wider">{leadArticle.sourceName}</span>
@@ -299,7 +385,7 @@ export default async function AccueilPage({
       {/* ══════════════════════════════════════════════════════════════════════
           3. LATEST + TRENDING — Two-column editorial layout
          ══════════════════════════════════════════════════════════════════════ */}
-      {(latestNews.length > 0 || trendingArticles.length > 0) && (
+      {(latestNews.length > 0 || trendingStories.length > 0) && (
         <section className="border-b border-stone-200 dark:border-stone-800 py-10">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-12">
@@ -346,21 +432,32 @@ export default async function AccueilPage({
               )}
 
               {/* Trending — 4-col sidebar */}
-              {trendingArticles.length > 0 && (
+              {trendingStories.length > 0 && (
                 <div className="lg:col-span-4 lg:border-l lg:border-stone-200 lg:dark:border-stone-800 lg:pl-8">
                   <h2 className="mb-5 text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-white border-b-2 border-stone-900 dark:border-white pb-1">
                     {fr ? "Les plus lus" : "Plis li yo"}
                   </h2>
                   <ol className="space-y-5">
-                    {trendingArticles.slice(0, 5).map((article, idx) => (
+                    {trendingStories.map((article, idx) => (
                       <li key={article.id}>
                         <Link href={lq(`/news/${article.id}`)} className="group flex gap-3">
-                          <span className="shrink-0 text-2xl font-black leading-none text-stone-200 dark:text-stone-800 mt-0.5">
+                          <span className="mt-0.5 shrink-0 text-2xl font-black leading-none text-stone-200 dark:text-stone-800">
                             {idx + 1}
                           </span>
-                          <h3 className="text-sm font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
-                            {article.title}
-                          </h3>
+                          <div>
+                            <h3 className="text-sm font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
+                              {article.title}
+                            </h3>
+                            {(article.sourceName || article.publishedAt) && (
+                              <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-500">
+                                {article.sourceName && (
+                                  <span className="font-semibold uppercase tracking-wider">{article.sourceName}</span>
+                                )}
+                                {article.sourceName && article.publishedAt && <span> · </span>}
+                                {article.publishedAt && formatRelativeDate(article.publishedAt, lang)}
+                              </p>
+                            )}
+                          </div>
                         </Link>
                       </li>
                     ))}

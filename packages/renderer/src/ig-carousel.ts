@@ -145,21 +145,21 @@ function glowCss(accent: string): string {
   return `.bg-glow {
   position:absolute; inset:0;
   background:
-    radial-gradient(ellipse at 15% 85%, ${accent}12 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 15%, ${accent}0a 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%);
+    radial-gradient(ellipse at 15% 85%, ${accent}1e 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 15%, ${accent}14 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 70%);
 }
 .accent-bar {
   position:absolute; left:0; top:0; width:100%; height:100%;
   background:
-    linear-gradient(135deg, ${accent}08 0%, transparent 40%),
-    linear-gradient(315deg, ${accent}06 0%, transparent 35%);
+    linear-gradient(135deg, ${accent}10 0%, transparent 40%),
+    linear-gradient(315deg, ${accent}0a 0%, transparent 35%);
   pointer-events:none;
 }`;
 }
 
 function pillCss(accent: string): string {
-  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-family:${FONT_HEADLINE}; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:12px 28px; border-radius:4px; }`;
+  return `.pill { display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-family:${FONT_HEADLINE}; font-size:${TYPE.label}px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:12px 28px; border-radius:999px; }`;
 }
 
 function brandHtml(accent: string, size = 18): string {
@@ -190,8 +190,8 @@ function bottomBarHtml(
 }
 
 function bottomCss(): string {
-  return `.bottom { display:flex; justify-content:space-between; align-items:flex-end; padding-top:16px; border-top:1px solid rgba(255,255,255,0.10); }
-.src { font-size:${TYPE.source}px; opacity:0.3; max-width:60%; line-height:1.4; font-weight:400; }`;
+  return `.bottom { display:flex; justify-content:space-between; align-items:flex-end; padding-top:16px; border-top:1px solid rgba(255,255,255,0.15); }
+.src { font-size:${TYPE.source}px; opacity:0.45; max-width:60%; line-height:1.4; font-weight:400; }`;
 }
 
 function buildHistoryNarrativeHtml(
@@ -366,7 +366,7 @@ ${
 }
 ${isFirst ? `.accent-rule { width:64px; height:4px; background:${accent}; border-radius:2px; margin-bottom:20px; flex-shrink:0; }` : ""}
 .h { font-family:${FONT_HEADLINE}; font-size:${hSize}px; font-weight:900; line-height:1.05; letter-spacing:-1.5px; text-shadow:0 2px 40px rgba(0,0,0,0.85), 0 1px 8px rgba(0,0,0,0.6); margin-bottom:${isFirst ? "24" : "28"}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${hClamp}; -webkit-box-orient:vertical; flex-shrink:0; }
-.bt { font-size:${isFirst ? 26 : TYPE.body}px; font-weight:${isFirst ? 400 : 500}; line-height:1.48; opacity:${isFirst ? 0.85 : 0.92}; text-shadow:0 1px 16px rgba(0,0,0,0.8); margin-bottom:8px; max-height:${isFirst ? 280 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 5 : 6}; -webkit-box-orient:vertical; flex-shrink:1; }
+.bt { font-size:${isFirst ? 26 : TYPE.body}px; font-weight:${isFirst ? 500 : 500}; line-height:1.48; opacity:${isFirst ? 0.88 : 0.92}; text-shadow:0 1px 16px rgba(0,0,0,0.8); margin-bottom:8px; max-height:${isFirst ? 280 : 320}px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:${isFirst ? 5 : 6}; -webkit-box-orient:vertical; flex-shrink:1; }
 ${
   isHistory
     ? `.history-lede {
@@ -399,7 +399,7 @@ ${
 .history-note-copy {
   font-size:${isFirst ? 22 : 21}px;
   line-height:1.54;
-  font-weight:500;
+  font-weight:600;
   opacity:0.93;
   text-shadow:0 2px 28px rgba(0,0,0,0.97), 0 1px 6px rgba(0,0,0,0.85);
 }`
@@ -484,7 +484,7 @@ body { width:${CANVAS.width}px; height:${CANVAS.height}px; font-family:${FONT_BO
   background:${accent}; color:#000;
   font-family:${FONT_HEADLINE}; font-size:26px; font-weight:900;
   letter-spacing:3px; text-transform:uppercase;
-  padding:20px 52px; border-radius:10px;
+  padding:20px 52px; border-radius:999px;
   box-shadow:0 10px 40px ${accent}66;
 }
 .src { text-align:center; font-size:15px; opacity:0.25; font-weight:400; }
@@ -577,7 +577,7 @@ ${
     : ""
 }
 .h { font-family:${FONT_HEADLINE}; font-size:${TYPE.headlineInner}px; font-weight:800; line-height:1.10; letter-spacing:-0.5px; margin-bottom:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; text-shadow:0 2px 20px rgba(0,0,0,0.9); }
-.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.95; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}88; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 12px rgba(0,0,0,0.8); }
+.bt { font-size:${TYPE.body}px; font-weight:400; line-height:1.50; opacity:0.95; margin-bottom:20px; padding-left:18px; border-left:6px solid ${accent}cc; max-height:420px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:8; -webkit-box-orient:vertical; text-shadow:0 1px 12px rgba(0,0,0,0.8); }
 ${
   isHistory
     ? `.history-lede {
@@ -607,7 +607,7 @@ ${
 .history-note-copy {
   font-size:21px;
   line-height:1.54;
-  font-weight:500;
+  font-weight:600;
   opacity:0.93;
   text-shadow:0 2px 28px rgba(0,0,0,0.97), 0 1px 6px rgba(0,0,0,0.85);
 }`
@@ -697,7 +697,7 @@ ${isFirst ? topBrandCss(accent) : ""}
 .center { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:16px; }
 .stat { font-family:${FONT_HEADLINE}; font-size:${TYPE.stat}px; font-weight:900; line-height:1; letter-spacing:-3px; color:${accent}; text-shadow:0 4px 60px rgba(0,0,0,0.5); }
 .stat-desc { font-size:${TYPE.body}px; font-weight:500; opacity:0.7; max-width:80%; line-height:1.35; }
-.stat-heading { font-family:${FONT_HEADLINE}; font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
+.stat-heading { font-family:${FONT_HEADLINE}; font-size:20px; font-weight:600; opacity:0.58; letter-spacing:3px; text-transform:uppercase; }
 ${bottomCss()}
 </style></head>
 <body>
@@ -747,9 +747,9 @@ ${topBrandCss(accent)}
 .rate { text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center; gap:10px; }
 .rate-label { font-family:${FONT_HEADLINE}; font-size:20px; font-weight:600; opacity:0.45; letter-spacing:3px; text-transform:uppercase; }
 .rate-value { font-family:${FONT_HEADLINE}; font-size:140px; font-weight:900; letter-spacing:-4px; color:${accent}; line-height:1; }
-.rate-unit { font-size:30px; font-weight:500; opacity:0.40; margin-top:12px; letter-spacing:1.5px; }
+.rate-unit { font-size:30px; font-weight:500; opacity:0.52; margin-top:12px; letter-spacing:1.5px; }
 .meta { display:flex; justify-content:center; gap:40px; margin-top:36px; }
-.meta span { font-size:22px; opacity:0.55; font-weight:500; }
+.meta span { font-size:22px; opacity:0.72; font-weight:500; }
 ${bottomCss()}
 </style></head>
 <body>
