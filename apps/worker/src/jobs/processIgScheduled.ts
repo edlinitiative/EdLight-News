@@ -139,30 +139,22 @@ async function publishStoryForPost(
   sourceItem: Awaited<ReturnType<typeof itemsRepo.getItem>>,
   appendCta: boolean,
 ): Promise<{ posted: boolean; error?: string }> {
-            } else {
-              // No image anywhere.
-              // Credibility mode: keep branded gradients instead of generating
-              // potentially off-topic AI images.
-              if (!IG_ALLOW_CONTEXTUAL_IMAGE_FALLBACK) {
-                console.log(
-                  `[processIgScheduled] contextual image fallback disabled for ${item.id}; keeping gradient background`,
-                );
-              } else {
-                try {
-                  const generated = await generateContextualImage(sourceItem);
-                  if (generated?.url) {
-                    for (const slide of slidesNeedingImage) {
-                      slide.backgroundImage = generated.url;
-                    }
-                    console.log(
-                      `[processIgScheduled] filled ${slidesNeedingImage.length} slide background(s) for ${item.id}`,
-                    );
-                  }
-                } catch (imageErr) {
-                  const msg = imageErr instanceof Error ? imageErr.message : String(imageErr);
-                  console.warn(`[processIgScheduled] contextual image fallback failed for ${item.id}: ${msg}`);
-                }
-              }
+  try {
+    // Build a single-slide story payload based on post type
+    let storyPayload: IGStoryPayload;
+
+    if (item.igType === "taux" && item.payload?.slides?.[0]) {
+      const coverSlide = item.payload.slides[0];
+      const tauxInput: StoryTauxInput = {
+        rate: coverSlide.heading,
+        dateLabel: coverSlide.footer ?? new Date().toLocaleDateString("fr-FR"),
+        bullets: coverSlide.bullets.slice(0, 2),
+        backgroundImage: coverSlide.backgroundImage,
+      };
+      storyPayload = buildStorySlideForPost(undefined, tauxInput);
+    } else if (item.igType === "utility" || item.igType === "histoire") {
+      // Build a facts-style frame for utility/histoire
+      const factsInput: StoryFactsInput = {
         facts: sourceItem?.summary
           ? [sourceItem.summary.slice(0, 360)]
           : item.payload?.slides?.[0]?.bullets ?? [],
