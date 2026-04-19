@@ -35,11 +35,10 @@ export function buildOpportunityCarousel(item: Item, bi?: BilingualText): IGForm
   const coverage = item.opportunity?.coverage
     ? ensureFrenchOpportunityCopy(item.opportunity.coverage, "")
     : "";
-  const geoLabel = item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : item.geoTag ? "International" : "";
   const deadlineLabel = deadlineStr ? `Date limite — ${formatDeadline(deadlineStr)}` : "";
 
   // ── Slide 1: Hero cover — title + geo/deadline context (mirrors scholarship) ──
-  const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
+  const coverContext = [deadlineLabel].filter(Boolean).join("  ·  ");
   slides.push({
     heading: shortenHeadline(title, 14),
     bullets: coverContext ? [coverContext] : [],

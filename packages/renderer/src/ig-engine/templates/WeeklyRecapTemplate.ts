@@ -76,7 +76,6 @@ ${base(bg)}
 .story-count { display:inline-flex;align-items:center;gap:14px;margin-top:12px; }
 .count-badge { background:${accent};color:#000;font-family:${fonts.headline};font-size:32px;font-weight:900;padding:8px 20px;border-radius:4px; }
 .count-text { font-family:${fonts.body};font-size:26px;opacity:0.65; }
-.swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
@@ -87,7 +86,6 @@ ${premiumAtmosphereHtml(accent)}
     <p class="week-label">Résumé de la semaine</p>
     <p class="headline">${escapeHtml(slide.headline)}</p>
     ${storyCount > 0 ? `<div class="story-count"><span class="count-badge">${storyCount}</span><span class="count-text">histoires à retenir</span></div>` : ""}
-    <p class="swipe">Glissez pour lire →</p>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
 </div>

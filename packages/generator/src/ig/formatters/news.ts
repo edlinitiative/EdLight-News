@@ -108,7 +108,6 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     }
   }
 
-  const geoLabel = item.geoTag === "HT" ? "Haïti" : item.geoTag === "Diaspora" ? "Diaspora" : "International";
   const imageUrl = item.imageUrl ?? undefined;
 
   // ── Slide 1: Hero cover — big bold headline only (Bloomberg style) ──
@@ -116,7 +115,6 @@ export function buildNewsCarousel(item: Item, bi?: BilingualText): IGFormattedPa
     heading: shortenHeadline(title, 18),
     bullets: [],
     layout: "headline",
-    footer: geoLabel,
     ...(imageUrl ? { backgroundImage: imageUrl } : {}),
   });
 

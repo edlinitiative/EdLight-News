@@ -27,13 +27,6 @@ export function buildBreakingNewsPost(item: Item, bi?: BilingualText): IGFormatt
   const summary = bi?.frSummary ?? item.summary ?? "";
   const imageUrl = item.imageUrl ?? undefined;
 
-  const geoLabel =
-    item.geoTag === "HT"
-      ? "Haïti"
-      : item.geoTag === "Diaspora"
-        ? "Diaspora"
-        : "International";
-
   // Supporting one-liner: first 10 words of summary
   // (supportLine box is 900×110px at 30px — fits ~2 lines; keep margin)
   const words = summary.split(/\s+/).filter(Boolean);
@@ -47,7 +40,7 @@ export function buildBreakingNewsPost(item: Item, bi?: BilingualText): IGFormatt
       heading: shortenHeadline(title, 10),
       bullets: supporting ? [supporting] : [],
       layout: "headline",
-      footer: `${geoLabel} · ${buildSourceFooter(item)}`,
+      footer: buildSourceFooter(item),
       ...(imageUrl ? { backgroundImage: imageUrl } : {}),
     },
   ];

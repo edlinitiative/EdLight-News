@@ -98,7 +98,6 @@ ${baseReset(bg, bodyBg)}
 .cover-facts { display:flex;flex-direction:column;gap:12px;margin-top:4px; }
 .cover-fact { display:flex;gap:14px;align-items:flex-start;font-family:${fonts.body};font-size:${factZone.fontSize}px;font-weight:400;line-height:${factZone.lineHeight};opacity:0.78;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${factZone.limits.perBulletMaxLines ?? 2};-webkit-box-orient:vertical; }
 .fact-dot { width:7px;height:7px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:11px; }
-.swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:12px; }
 </style></head><body>
 <div class="overlay"></div>
 ${premiumAtmosphereHtml(accent)}
@@ -111,7 +110,6 @@ ${premiumAtmosphereHtml(accent)}
     ${hasDeck ? `<div class="deck-rule"></div>
     <p class="deck">${escapeHtml(slide.supportLine!)}</p>` : ''}
     ${coverFacts.length > 0 ? `<div class="cover-facts">${coverFacts.map(f => `<div class="cover-fact"><div class="fact-dot"></div><span style="flex:1">${escapeHtml(f)}</span></div>`).join('')}</div>` : ''}
-    <p class="swipe">Glissez pour en savoir plus →</p>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
 </div>

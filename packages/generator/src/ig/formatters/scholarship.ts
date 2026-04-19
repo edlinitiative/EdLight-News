@@ -44,14 +44,6 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
         "Financement disponible selon le programme",
       )
     : "";
-  const geoLabel =
-    item.geoTag
-      ? item.geoTag === "HT"
-        ? "Haïti"
-        : item.geoTag === "Diaspora"
-          ? "Diaspora"
-          : "International"
-      : "";
   const deadlineLabel = deadlineStr
     ? `Date limite — ${formatDeadline(deadlineStr)}`
     : "";
@@ -59,7 +51,7 @@ export function buildScholarshipCarousel(item: Item, bi?: BilingualText): IGForm
   // ── Slide 1: Hero cover (generous headline limit to avoid 3-dots) ──
   const coverSub: string[] = [];
   if (coverage) coverSub.push(`Couverture — ${coverage}`);
-  const coverContext = [geoLabel, deadlineLabel].filter(Boolean).join("  ·  ");
+  const coverContext = [deadlineLabel].filter(Boolean).join("  ·  ");
   if (coverContext) coverSub.push(coverContext);
   slides.push({
     heading: shortenHeadline(title, 14),

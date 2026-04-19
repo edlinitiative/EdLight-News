@@ -73,7 +73,6 @@ ${base(bg)}
 .explainer-label { font-family:${fonts.headline};font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:4px;opacity:0.45; }
 .headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:${hlZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 5};-webkit-box-orient:vertical; }
 .deck { font-family:${fonts.body};font-size:${deckZone.fontSize}px;font-weight:400;line-height:${deckZone.lineHeight};opacity:0.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${deckZone.limits.maxLines ?? 2};-webkit-box-orient:vertical; }
-.slide-nav { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
@@ -84,7 +83,6 @@ ${premiumAtmosphereHtml(accent)}
     <p class="explainer-label">Comprendre</p>
     <p class="headline">${escapeHtml(slide.headline)}</p>
     ${slide.supportLine ? `<p class="deck">${escapeHtml(slide.supportLine)}</p>` : ""}
-    <p class="slide-nav">Glissez pour lire →</p>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
 </div>

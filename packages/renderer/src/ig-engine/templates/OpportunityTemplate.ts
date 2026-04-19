@@ -81,7 +81,6 @@ ${base(bg, bodyBg)}
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
 .mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px;padding-bottom:80px; }
 .headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:${hlZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 4};-webkit-box-orient:vertical; }
-.swipe { font-family:${fonts.headline};font-size:18px;font-weight:600;opacity:0.35;letter-spacing:2px;text-transform:uppercase;margin-top:8px; }
 </style></head><body>
 <div class="overlay"></div>
 ${premiumAtmosphereHtml(accent)}
@@ -92,7 +91,6 @@ ${premiumAtmosphereHtml(accent)}
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
     ${slide.supportLine ? `<p style="font-family:${fonts.body};font-size:28px;opacity:0.7;line-height:1.4">${escapeHtml(slide.supportLine)}</p>` : ""}
-    <p class="swipe">Glissez pour les détails →</p>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
 </div>
