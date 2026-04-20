@@ -19,6 +19,9 @@ import { processWaScheduled } from "../jobs/processWaScheduled.js";
 import { buildFbQueue } from "../jobs/buildFbQueue.js";
 import { scheduleFbPost } from "../jobs/scheduleFbPost.js";
 import { processFbScheduled } from "../jobs/processFbScheduled.js";
+import { buildThQueue } from "../jobs/buildThQueue.js";
+import { scheduleThPost } from "../jobs/scheduleThPost.js";
+import { processThScheduled } from "../jobs/processThScheduled.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -212,8 +215,33 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       fbResult.process = { error: String(err) };
     }
 
-    // Step 13: Threads pipeline — paused until credentials/product setup is ready
-    const thResult = { paused: true, reason: "threads-paused" };
+    // Step 13: Threads pipeline — build queue, schedule, and process
+    let thResult: { buildQueue: any; schedule: any; process: any } = {
+      buildQueue: { evaluated: 0, queued: 0, skipped: 0, alreadyExists: 0, errors: 0 },
+      schedule: { scheduled: 0, skipped: "" },
+      process: { processed: 0, sent: 0, failed: 0, skipped: 0, dryRun: 0 },
+    };
+
+    try {
+      thResult.buildQueue = await buildThQueue();
+    } catch (err) {
+      console.error("[tick] buildThQueue error:", err);
+      thResult.buildQueue = { error: String(err) };
+    }
+
+    try {
+      thResult.schedule = await scheduleThPost();
+    } catch (err) {
+      console.error("[tick] scheduleThPost error:", err);
+      thResult.schedule = { error: String(err) };
+    }
+
+    try {
+      thResult.process = await processThScheduled();
+    } catch (err) {
+      console.error("[tick] processThScheduled error:", err);
+      thResult.process = { error: String(err) };
+    }
 
     // Step 14: X (Twitter) pipeline — paused until credentials/product setup is ready
     const xResult = { paused: true, reason: "x-paused" };
