@@ -1087,22 +1087,29 @@ export default async function ArticlePage({
               const w = heroImageMeta?.width;
               const h = heroImageMeta?.height;
               const naturalRatio = w && h ? w / h : null;
+              // Histoire illustrations are always tall portraits (~928x1152)
+              // but legacy items may not carry imageMeta. Force the portrait
+              // branch for histoire even when meta is missing, falling back
+              // to a sensible 4:5 ratio.
               const isPortraitImage =
-                naturalRatio !== null && naturalRatio < 0.95;
+                (naturalRatio !== null && naturalRatio < 0.95) ||
+                (isHistory && naturalRatio === null);
+              const portraitRatio =
+                naturalRatio !== null ? naturalRatio : 4 / 5;
 
               if (isPortraitImage) {
                 return (
                   <figure className="mb-10">
                     <div
                       className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl bg-stone-100 shadow-premium dark:bg-stone-800 dark:shadow-premium-dark"
-                      style={{ aspectRatio: `${naturalRatio}` }}
+                      style={{ aspectRatio: `${portraitRatio}` }}
                     >
                       <ImageWithFallback
                         src={heroImageUrl}
                         alt={article.title}
                         fill
                         sizes="(max-width: 640px) 90vw, 384px"
-                        className="object-cover"
+                        className="object-contain"
                         fallback={
                           <BrandedHero
                             title={article.title}
