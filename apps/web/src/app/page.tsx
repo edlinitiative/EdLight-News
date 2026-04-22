@@ -528,7 +528,10 @@ export default async function AccueilPage({
          ══════════════════════════════════════════════════════════════════════ */}
       {histoireArticle && (
         <section className="border-b border-stone-200 dark:border-stone-800">
-          <Link href={lq("/histoire")} className="group block bg-stone-950 px-4 py-8 sm:px-6 lg:px-8">
+          <Link
+            href={lq(`/news/${histoireArticle.id}`)}
+            className="group block bg-stone-950 px-4 py-8 sm:px-6 lg:px-8"
+          >
             <div className="mx-auto max-w-6xl flex items-center gap-6 sm:gap-10">
               <div className="shrink-0">
                 <span className="block text-[10px] font-black uppercase tracking-[0.22em] text-amber-400 mb-1">
@@ -541,7 +544,7 @@ export default async function AccueilPage({
                 </span>
               </div>
               <div className="flex-1 min-w-0 border-l border-stone-800 pl-6 sm:pl-10">
-                <h2 className="font-serif text-lg font-bold leading-snug text-white group-hover:text-amber-100 transition-colors sm:text-xl line-clamp-2">
+                <h2 className="font-serif text-base font-bold leading-snug text-white group-hover:text-amber-100 transition-colors sm:text-lg line-clamp-1">
                   {histoireArticle.title}
                 </h2>
                 {histoireArticle.summary && (
