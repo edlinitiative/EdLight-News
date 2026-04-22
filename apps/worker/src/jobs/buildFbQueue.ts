@@ -15,6 +15,10 @@ import {
   contentVersionsRepo,
 } from "@edlight-news/firebase";
 import type { Item, FbMessagePayload } from "@edlight-news/types";
+import {
+  isStockMarketFalsePositive,
+  lacksScholarshipEvidence,
+} from "../services/classify.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
@@ -211,7 +215,27 @@ async function composeFbMessage(item: Item): Promise<FbMessagePayload | null> {
 
   const articleUrl = `${SITE_URL}/news/${articleVersionId}?lang=${articleLanguage}`;
 
-  const topic = topicForSocial(item);
+  // ── Final-line-of-defense topic guard ──────────────────────────────────
+  // The composer trusts item.category / item.vertical to pick the hook
+  // (e.g. "Bourse à surveiller"). If anything upstream mis-tagged the
+  // item, we still don't want to ship a misleading hook to Facebook.
+  // Re-validate scholarship-flavored topics here against the article body
+  // and downgrade to "news" when there's no scholarship evidence.
+  let topic = topicForSocial(item);
+  if (topic === "scholarship") {
+    const corpus = `${title} ${summary} ${item.extractedText ?? ""}`;
+    if (
+      isStockMarketFalsePositive(corpus) ||
+      lacksScholarshipEvidence(corpus)
+    ) {
+      console.warn(
+        `[buildFbQueue] Downgrading scholarship → news for item ${item.id} ` +
+          `(no scholarship evidence). Title: "${title.slice(0, 80)}"`,
+      );
+      topic = "news";
+    }
+  }
+
   const hook =
     topic === "scholarship"
       ? "Bourse à surveiller"

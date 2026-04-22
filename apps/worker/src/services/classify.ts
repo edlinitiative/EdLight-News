@@ -182,7 +182,11 @@ const SCHOLARSHIP_CONFIRMATION_KEYWORDS = [
   "bourse de merite", "bourse de recherche", "bourse complete",
   "bourse partielle", "bourse doctorale", "bourse universitaire",
   "bourse fulbright", "bourse erasmus", "bourse chevening",
-  "boursier", "boursiere", "boursiers", "boursieres",
+  // NOTE: bare "boursier(e)(s)" stems are intentionally NOT listed here —
+  // they are ambiguous (finance: "indices boursiers", "marche boursier")
+  // and would hide stock-market false positives from the disambiguation
+  // gate below. Genuine scholarship boursiers are still captured via
+  // "etudiant", "candidat", "fulbright", "bourse d'etud", etc.
   // Application / eligibility context
   "candidat", "candidature", "postuler", "appel a candidatures",
   "deadline", "date limite", "eligibilit", "dossier de candidature",
@@ -213,8 +217,29 @@ function hasScholarshipContext(normalizedText: string): boolean {
  * i.e. when a "bourses" classification is almost certainly a false
  * positive caused by the FR/EN ambiguity of the word "bourse".
  */
+/**
+ * Subset of STOCK_MARKET_KEYWORDS that are unambiguous finance tokens —
+ * they essentially never appear in genuine scholarship coverage. When any
+ * of these are present, the article is finance, period.
+ */
+const UNAMBIGUOUS_FINANCE_KEYWORDS = [
+  "bourse de new york", "bourse de paris", "bourse de tokyo",
+  "bourse de londres", "bourse de hong kong", "bourse de shanghai",
+  "bourse de toronto", "bourse de francfort",
+  "wall street", "nasdaq", "nyse", "dow jones", "s&p 500", "s & p 500",
+  "cac 40", "ftse", "nikkei", "hang seng", "euronext",
+  "introduction en bourse", "entree en bourse", "cotee en bourse",
+  "cote en bourse", "stock exchange", "stock market",
+] as const;
+
 export function isStockMarketFalsePositive(text: string): boolean {
   const normalized = normalizeText(text);
+  // Hard short-circuit: a named exchange/index = finance, period.
+  if (UNAMBIGUOUS_FINANCE_KEYWORDS.some((kw) => normalized.includes(kw))) {
+    return true;
+  }
+  // Otherwise: weaker stock-market vocab is only a false positive when no
+  // scholarship context is present.
   return looksLikeStockMarket(normalized) && !hasScholarshipContext(normalized);
 }
 
@@ -427,9 +452,9 @@ export function classifyItem(
   // Rule: if the text reads like stock-market coverage AND has no
   // scholarship-specific context, drop the opportunity classification.
   if (category === "bourses") {
-    const isStockMarket = looksLikeStockMarket(combinedText);
-    const hasScholarship = hasScholarshipContext(combinedText);
-    if (isStockMarket && !hasScholarship) {
+    // Use the public helper so the unambiguous-exchange short-circuit
+    // (Wall Street, NYSE, Dow Jones, CAC 40, etc.) applies here too.
+    if (isStockMarketFalsePositive(combinedText)) {
       console.warn(
         `[classify] Skipped "bourses" classification — text looks like stock-market coverage. ` +
           `Title: "${title.slice(0, 80)}"`,
