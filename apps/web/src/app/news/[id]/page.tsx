@@ -1099,16 +1099,26 @@ export default async function ArticlePage({
 
               if (isPortraitImage) {
                 return (
-                  <figure className="mb-10">
+                  <figure
+                    className={[
+                      // On mobile: centred portrait card above the title.
+                      // On lg+: floats to the right of the header so the
+                      // title, meta and lede wrap elegantly around it like
+                      // a magazine portrait inset.
+                      "mb-6",
+                      "mx-auto max-w-[14rem]",
+                      "lg:float-right lg:ml-8 lg:mb-4 lg:mt-1 lg:w-56 lg:max-w-none",
+                    ].join(" ")}
+                  >
                     <div
-                      className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl bg-stone-100 shadow-premium dark:bg-stone-800 dark:shadow-premium-dark"
+                      className="relative w-full overflow-hidden rounded-xl bg-stone-100 shadow-premium ring-1 ring-stone-200/60 dark:bg-stone-800 dark:shadow-premium-dark dark:ring-stone-700/60"
                       style={{ aspectRatio: `${portraitRatio}` }}
                     >
                       <ImageWithFallback
                         src={heroImageUrl}
                         alt={article.title}
                         fill
-                        sizes="(max-width: 640px) 90vw, 384px"
+                        sizes="(max-width: 1024px) 224px, 224px"
                         className="object-contain"
                         fallback={
                           <BrandedHero
@@ -1120,12 +1130,12 @@ export default async function ArticlePage({
                         }
                       />
                       {heroImageSource === "publisher" && (
-                        <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                        <span className="absolute bottom-2 right-2 rounded-md bg-black/50 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm">
                           {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
                         </span>
                       )}
                       {heroImageSource === "wikidata" && (
-                        <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                        <span className="absolute bottom-2 right-2 rounded-md bg-black/50 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm">
                           {heroImageAttribution?.name
                             ? `Photo : ${heroImageAttribution.name}`
                             : "Wikimedia Commons"}
@@ -1135,7 +1145,7 @@ export default async function ArticlePage({
                         </span>
                       )}
                       {heroImageSource === "screenshot" && (
-                        <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                        <span className="absolute bottom-2 right-2 rounded-md bg-black/50 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-sm">
                           {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
                         </span>
                       )}
