@@ -99,6 +99,8 @@ export interface FeedItem {
   imageSource?: string;
   /** Image attribution info (e.g., Wikidata) */
   imageAttribution?: { name?: string; url?: string; license?: string };
+  /** Natural pixel dimensions of imageUrl, used to render boxes at the true aspect ratio */
+  imageMeta?: { width?: number; height?: number };
   // synthesis fields
   /** Item type: "source" (default), "synthesis", or "utility" (student-focused) */
   itemType?: string;

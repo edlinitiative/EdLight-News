@@ -259,18 +259,33 @@ export default async function AccueilPage({
                 {/* À la une label */}
                 <ColumnHeader label={fr ? "À la une" : "Alaune"} />
 
-                {/* Compact image — only if available, kept modest */}
-                {leadArticle.imageUrl && (
-                  <Link href={lq(`/news/${leadArticle.id}`)} className="group mb-4 block">
-                    <div className="relative aspect-[16/7] overflow-hidden rounded-md bg-stone-100 dark:bg-stone-900">
-                      <ImageWithFallback
-                        src={leadArticle.imageUrl}
-                        alt={leadArticle.title}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                      />
-                    </div>
-                  </Link>
-                )}
+                {/* Compact image — only if available, sized to the photo's true
+                    aspect ratio (clamped) so wide histoire panels and standard
+                    16:9 photos both render without awkward cropping. */}
+                {leadArticle.imageUrl && (() => {
+                  const w = leadArticle.imageMeta?.width;
+                  const h = leadArticle.imageMeta?.height;
+                  // Clamp to [16/9, 2.4/1] — wide enough for histoire panoramas,
+                  // tall enough that a square thumb doesn't dominate the layout.
+                  const ratio =
+                    w && h ? Math.min(2.4, Math.max(16 / 9, w / h)) : 16 / 7;
+                  return (
+                    <Link href={lq(`/news/${leadArticle.id}`)} className="group mb-4 block">
+                      <div
+                        className="relative overflow-hidden rounded-md bg-stone-100 dark:bg-stone-900"
+                        style={{ aspectRatio: `${ratio}` }}
+                      >
+                        <ImageWithFallback
+                          src={leadArticle.imageUrl}
+                          alt={leadArticle.title}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 768px"
+                          className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                        />
+                      </div>
+                    </Link>
+                  );
+                })()}
 
                 {/* Headline */}
                 <Link href={lq(`/news/${leadArticle.id}`)} className="group block">
