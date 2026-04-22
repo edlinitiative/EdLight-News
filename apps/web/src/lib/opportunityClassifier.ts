@@ -225,6 +225,24 @@ export function contentLooksLikeOpportunity(
   return SMELL_REGEXES.some((re) => re.test(blob));
 }
 
+/**
+ * Returns true when an opportunity is *still actionable*:
+ *  - no deadline → keep (evergreen / unknown)
+ *  - deadline in the future (with 1-day grace for tz/locale) → keep
+ *  - deadline already past → drop (expired)
+ *
+ * Used by /opportunites and the homepage Opportunités carousel so users
+ * never see scholarships they can no longer apply to.
+ */
+export function isOpportunityStillOpen(deadline?: string | null): boolean {
+  if (!deadline) return true;
+  const d = new Date(deadline);
+  if (Number.isNaN(d.getTime())) return true;
+  // 1-day grace window: deadline counts as open through end-of-day.
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  return d.getTime() >= cutoff;
+}
+
 // ── Matching helpers ─────────────────────────────────────────────────────────
 
 /**
