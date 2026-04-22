@@ -19,6 +19,8 @@ import { findFreeImage } from "../services/commonsImageSearch.js";
 import { findTieredImage } from "../services/tieredImagePipeline.js";
 import { findHighResVersion } from "../services/reverseImageSearch.js";
 import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
+import { findImageWithLlm } from "../services/llmImageFinder.js";
+import { validatePublisherImage } from "../services/llmPublisherImageValidator.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
@@ -28,6 +30,12 @@ const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
 const IG_STRICT_IMAGE_ACCURACY = process.env.IG_STRICT_IMAGE_ACCURACY !== "false";
 const IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION =
   process.env.IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION === "true";
+// LLM-orchestrated image finder (Flash-Lite). Off by default; opt-in.
+const IG_LLM_IMAGE_FINDER = process.env.IG_LLM_IMAGE_FINDER === "true";
+// Validate the publisher image with a single vision call before trusting it.
+// Catches "right size, wrong photo" cases (recurring column headers, generic
+// stock illustrations the publisher reuses across unrelated articles, etc.).
+const IG_LLM_VALIDATE_PUBLISHER = process.env.IG_LLM_VALIDATE_PUBLISHER === "true";
 
 /**
  * Maximum number of NEW eligible items to queue per tick.
@@ -280,7 +288,35 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // *something* → always overrode the publisher image → IG showed
         // random keyword-matched images instead of the article's real photo.
         let overrideImageUrl: string | undefined;
-        const publisherImageUsable = isItemImageUsableForIG(item);
+        let publisherImageUsable = isItemImageUsableForIG(item);
+
+        // ── Optional: vision-validate the publisher image ────────────────
+        // Catches "right size, wrong photo" — recurring column headers,
+        // generic vertical illustrations, default share images that pass the
+        // dimension/CDN gates but are not actually about THIS article.
+        if (publisherImageUsable && igImageSafe && IG_LLM_VALIDATE_PUBLISHER) {
+          try {
+            const v = await validatePublisherImage(item);
+            if (v && (!v.match || v.confidence < 0.5)) {
+              console.log(
+                `[buildIgQueue] LLM rejected publisher image for ${item.id}: ` +
+                `match=${v.match} confidence=${v.confidence.toFixed(2)} — ${v.reason}`,
+              );
+              publisherImageUsable = false;
+              igImageSafe = false; // forces formatter to drop the bad photo
+            } else if (v) {
+              console.log(
+                `[buildIgQueue] LLM approved publisher image for ${item.id} ` +
+                `(confidence ${v.confidence.toFixed(2)})`,
+              );
+            }
+          } catch (err) {
+            console.warn(
+              `[buildIgQueue] publisher image validation failed for ${item.id}:`,
+              err instanceof Error ? err.message : err,
+            );
+          }
+        }
 
         if (publisherImageUsable && igImageSafe) {
           // Publisher image passes all IG quality checks — use it as-is.
@@ -334,7 +370,35 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
             }
           }
 
-          // ── Step 2: Tiered keyword search (only if reverse search failed) ──
+          // ── Step 2: LLM-orchestrated image finder ──────────────────────
+          // Flash-Lite crafts queries → Brave gathers candidates → Flash-Lite
+          // vision validates each. Only emits a URL when a candidate passes
+          // a strict topic/entity match. Safe even in strict mode because the
+          // vision validator IS the strict accuracy check.
+          if (!overrideImageUrl && IG_LLM_IMAGE_FINDER) {
+            try {
+              const llmResult = await findImageWithLlm(item);
+              if (llmResult.url) {
+                overrideImageUrl = llmResult.url;
+                console.log(
+                  `[buildIgQueue] LLM finder picked image for ${item.id}: ${llmResult.source} ` +
+                  `(${llmResult.width}×${llmResult.height}) cost≈$${llmResult.estCostUsd.toFixed(5)} — ${llmResult.reason}`,
+                );
+              } else {
+                console.log(
+                  `[buildIgQueue] LLM finder found no match for ${item.id}: ${llmResult.reason} ` +
+                  `(cost≈$${llmResult.estCostUsd.toFixed(5)})`,
+                );
+              }
+            } catch (err) {
+              console.warn(
+                `[buildIgQueue] LLM image finder failed for ${item.id}:`,
+                err instanceof Error ? err.message : err,
+              );
+            }
+          }
+
+          // ── Step 3: Tiered keyword search (only if reverse search failed) ──
           // Searches Brave → Unsplash → LoC → Wikimedia by title keywords.
           // This is the fallback that CAN return unrelated images, so we only
           // use it when we truly have no usable publisher image.
@@ -353,7 +417,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
             }
           }
 
-          // ── Step 3: Commons-only fallback ──────────────────────────────────
+          // ── Step 4: Commons-only fallback ──────────────────────────────────
           if (!overrideImageUrl && !IG_STRICT_IMAGE_ACCURACY && IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION) {
             try {
               const freeImage = await findFreeImage(item);

@@ -31,7 +31,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "EdLight News",
+  title: {
+    default: "EdLight News",
+    template: "%s | EdLight News",
+  },
   applicationName: "EdLight News",
   description:
     "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
@@ -55,7 +58,19 @@ export const metadata: Metadata = {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },
   openGraph: {
+    type: "website",
     siteName: "EdLight News",
+    title: "EdLight News",
+    description:
+      "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
+    url: "https://news.edlight.org",
+    locale: "fr_HT",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EdLight News",
+    description:
+      "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
   },
 };
 
@@ -84,14 +99,18 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "EdLight News",
-              url: "https://news.edlight.org",
+              alternateName: ["EdLight News Haïti", "EdLight"],
+              url: "https://news.edlight.org/",
               description:
                 "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
               publisher: {
-                "@type": "Organization",
+                "@type": "NewsMediaOrganization",
                 name: "EdLight Initiative",
                 url: "https://edlight.org",
-                logo: "https://news.edlight.org/icon.svg",
+                logo: {
+                  "@type": "ImageObject",
+                  url: "https://news.edlight.org/icon.svg",
+                },
               },
               inLanguage: ["fr", "ht"],
               potentialAction: {

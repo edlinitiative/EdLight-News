@@ -14,7 +14,7 @@ import type { ContentChannel, ContentLanguage, ContentStatus, ItemCategory, Qual
 export type { GeminiWebDraft } from "./schema.js";
 export { geminiWebDraftSchema } from "./schema.js";
 
-export { callGemini, callLLM } from "./client.js";
+export { callGemini, callLLM, getGenAI } from "./client.js";
 export type { LLMProvider, LLMOptions } from "./client.js";
 
 // ── Re-export synthesis module ──────────────────────────────────────────────

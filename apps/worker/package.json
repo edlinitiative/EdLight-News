@@ -41,6 +41,7 @@
     "ig:refresh-captions": "tsx src/scripts/refreshIgCaptions.ts",
     "ig:regen-editorial-bg": "tsx src/scripts/regenerateEditorialBg.ts",
     "ig:backfill-editorial-bg": "tsx src/scripts/backfillEditorialBg.ts",
+    "ig:demo-llm-finder": "tsx src/scripts/demoLlmImageFinder.ts",
     "backfill:narrative": "tsx src/scripts/backfillNarrative.ts",
     "backfill:classification": "tsx src/scripts/backfillClassification.ts",
     "backfill:verticals": "tsx src/scripts/backfillVerticals.ts"
