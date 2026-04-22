@@ -972,9 +972,9 @@ export default async function ArticlePage({
       url: "https://news.edlight.org",
       logo: {
         "@type": "ImageObject",
-        url: "https://news.edlight.org/icon.svg",
-        width: 512,
-        height: 512,
+        url: "https://news.edlight.org/logo.png",
+        width: 600,
+        height: 60,
       },
     },
     mainEntityOfPage: {

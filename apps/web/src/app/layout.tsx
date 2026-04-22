@@ -109,7 +109,9 @@ export default function RootLayout({
                 url: "https://edlight.org",
                 logo: {
                   "@type": "ImageObject",
-                  url: "https://news.edlight.org/icon.svg",
+                  url: "https://news.edlight.org/logo.png",
+                  width: 600,
+                  height: 60,
                 },
               },
               inLanguage: ["fr", "ht"],
