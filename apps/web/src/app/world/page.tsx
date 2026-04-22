@@ -69,6 +69,7 @@ export default async function WorldPage({
   ]);
 
   const worldPool = allArticles.filter((a) => {
+    if (a.itemType === "utility") return false;
     if (isTauxDuJourArticle(a)) return false;
     if (a.geoTag === "HT" || a.category === "local_news") return false;
     if (OPPORTUNITY_CATS.has(a.category ?? "") || a.vertical === "opportunites") return false;

@@ -68,6 +68,7 @@ export default async function EducationPage({
   ]);
 
   const educationPool = allArticles.filter((a) => {
+    if (a.itemType === "utility") return false;
     if (OPPORTUNITY_CATS.has(a.category ?? "") || a.vertical === "opportunites") return false;
     return isEducationArticle(a);
   });

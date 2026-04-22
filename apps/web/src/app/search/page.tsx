@@ -41,7 +41,10 @@ export default async function SearchPage({
 
   let articles: Awaited<ReturnType<typeof fetchEnrichedFeed>> = [];
   try {
-    articles = await fetchEnrichedFeed(lang, 300);
+    const all = await fetchEnrichedFeed(lang, 300);
+    // Utility items (histoire du jour, daily facts, scholarship radar) live
+    // on dedicated surfaces and shouldn't pollute generic search results.
+    articles = all.filter((a) => a.itemType !== "utility");
   } catch (err) {
     console.error("[EdLight] /search fetch failed:", err);
   }

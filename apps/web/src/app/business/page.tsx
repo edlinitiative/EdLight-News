@@ -67,6 +67,7 @@ export default async function BusinessPage({
   ]);
 
   const businessPool = allArticles.filter((a) => {
+    if (a.itemType === "utility") return false;
     if (OPPORTUNITY_CATS.has(a.category ?? "") || a.vertical === "opportunites") return false;
     return isBusinessArticle(a);
   });
