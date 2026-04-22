@@ -17,9 +17,9 @@ function toDate(value: unknown): Date | null {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
   if (typeof value === "object" && value !== null && "toDate" in value) {
-    const toDateFn = (value as { toDate?: unknown }).toDate;
-    if (typeof toDateFn === "function") {
-      const parsed = (toDateFn as () => Date)();
+    const timestampLike = value as { toDate?: unknown };
+    if (typeof timestampLike.toDate === "function") {
+      const parsed = timestampLike.toDate();
       return parsed instanceof Date && !Number.isNaN(parsed.getTime()) ? parsed : null;
     }
   }
@@ -108,6 +108,30 @@ export async function listScheduled(limit = 10): Promise<FbQueueItem[]> {
       const aTime = toDate(a.scheduledFor)?.getTime() ?? Number.MAX_SAFE_INTEGER;
       const bTime = toDate(b.scheduledFor)?.getTime() ?? Number.MAX_SAFE_INTEGER;
       return aTime - bTime;
+    })
+    .slice(0, limit);
+}
+
+/**
+ * Fetch FB queue items sent within the last `sinceHours` hours.
+ * Used by the scheduler for topic-dedup / cool-off enforcement.
+ */
+export async function listRecentSent(sinceHours = 24, limit = 50): Promise<FbQueueItem[]> {
+  const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000);
+  const snap = await collection()
+    .where("status", "==", "sent" satisfies FbQueueStatus)
+    .limit(Math.max(limit * 4, 100))
+    .get();
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as FbQueueItem)
+    .filter((item) => {
+      const updatedAt = toDate(item.updatedAt);
+      return updatedAt ? updatedAt.getTime() >= since.getTime() : false;
+    })
+    .sort((a, b) => {
+      const aTime = toDate(a.updatedAt)?.getTime() ?? 0;
+      const bTime = toDate(b.updatedAt)?.getTime() ?? 0;
+      return bTime - aTime;
     })
     .slice(0, limit);
 }
