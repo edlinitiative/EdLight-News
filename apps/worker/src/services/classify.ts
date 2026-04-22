@@ -218,6 +218,46 @@ export function isStockMarketFalsePositive(text: string): boolean {
   return looksLikeStockMarket(normalized) && !hasScholarshipContext(normalized);
 }
 
+/**
+ * Strict scholarship-confirmation keywords. A genuine "bourses" item MUST
+ * contain at least one of these. They are deliberately narrow: each one is
+ * unambiguous on its own — unlike weak signals such as "candidat",
+ * "deadline" or "appel" which appear in plenty of non-scholarship contexts
+ * (UN succession, military recruitment, political nominations, etc.).
+ *
+ * Stored accent-stripped for matching against `normalizeText` output.
+ */
+const STRICT_SCHOLARSHIP_KEYWORDS = [
+  // The actual word "bourse" + its stems (covers bourses, boursier, boursière)
+  "bours",
+  // English equivalents
+  "scholarship", "fellowship",
+  // Funding vocabulary
+  "tuition", "frais de scolarite", "financement d'etud",
+  // Named programmes that are unambiguously academic
+  "fulbright", "chevening", "erasmus", "daad", "mext",
+  "campus france", "samuel huntington", "mastercard foundation",
+  // Strong academic-application phrases
+  "bourse d'etud", "bourse de merite", "bourse de recherche",
+  "bourse complete", "bourse partielle", "bourse doctorale",
+  "appel a candidatures pour bourse", "programme de bourse",
+] as const;
+
+/**
+ * Returns true when an item currently classified as a scholarship-like
+ * opportunity (`bourses`, `scholarship`) does NOT contain any strict
+ * scholarship-specific token. Such items are almost always false
+ * positives caused by weak signals (candidat, deadline, appel à
+ * candidatures for non-academic positions, etc.).
+ *
+ * Use this as a final gate before publishing scholarship-flavored
+ * content to social channels.
+ */
+export function lacksScholarshipEvidence(text: string): boolean {
+  const normalized = normalizeText(text);
+  return !STRICT_SCHOLARSHIP_KEYWORDS.some((kw) => normalized.includes(kw));
+}
+
 const HAITI_ENTITIES = [
   "haiti",
   "haïti",
@@ -392,6 +432,23 @@ export function classifyItem(
     if (isStockMarket && !hasScholarship) {
       console.warn(
         `[classify] Skipped "bourses" classification — text looks like stock-market coverage. ` +
+          `Title: "${title.slice(0, 80)}"`,
+      );
+      return { isOpportunity: false, isSuccessStory };
+    }
+
+    // Stricter scholarship gate: a real "bourses" item MUST contain at
+    // least one strict scholarship-specific token (the actual word
+    // "bourse" / "scholarship" / "fellowship", a named programme like
+    // Fulbright / Erasmus, or financial-aid vocabulary like "tuition" /
+    // "frais de scolarité"). Without any of these, "candidat" / "deadline" /
+    // "appel à candidatures" alone are too weak — they fire on UN
+    // succession races, military recruitment, political appointments…
+    if (
+      !STRICT_SCHOLARSHIP_KEYWORDS.some((kw) => combinedText.includes(kw))
+    ) {
+      console.warn(
+        `[classify] Skipped "bourses" classification — no strict scholarship keyword. ` +
           `Title: "${title.slice(0, 80)}"`,
       );
       return { isOpportunity: false, isSuccessStory };

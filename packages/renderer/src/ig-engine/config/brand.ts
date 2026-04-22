@@ -48,6 +48,8 @@ export const BRAND = {
   fonts: {
     headline: "'DM Sans', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     body: "'Inter', -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    /** Editorial serif for histoire/long-form storytelling slides. */
+    editorial: "'Playfair Display', 'Georgia', 'Times New Roman', serif",
   },
 
   /** Category pill labels (primarily French/Creole) */
@@ -87,7 +89,7 @@ export function getBrandLabel(contentType: string): string {
 export const GOOGLE_FONTS_LINK =
   `<link rel="preconnect" href="https://fonts.googleapis.com">` +
   `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>` +
-  `<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800;9..40,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">`;
+  `<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800;9..40,900&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;0,800;0,900;1,500;1,700&display=swap" rel="stylesheet">`;
 
 // ── Shared HTML helpers ───────────────────────────────────────────────────────
 

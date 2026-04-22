@@ -55,8 +55,8 @@ export function buildNewsCarouselSlide(
 
   if (variant === "data") return buildDataSlide(slide, accent, bg, label, slideIndex, totalSlides);
   if (variant === "cta") return buildCtaSlide(slide, accent, bg, totalSlides);
-  if (slideIndex === 0) return buildCoverSlide(slide, accent, bg, label, totalSlides);
-  return buildDetailSlide(slide, accent, bg, label, slideIndex, totalSlides);
+  if (slideIndex === 0) return buildCoverSlide(slide, accent, bg, label, totalSlides, contentType);
+  return buildDetailSlide(slide, accent, bg, label, slideIndex, totalSlides, contentType);
 }
 
 // ── Cover slide ───────────────────────────────────────────────────────────────
@@ -67,21 +67,45 @@ function buildCoverSlide(
   bg: string,
   label: string,
   totalSlides: number,
+  contentType: string,
 ): string {
+  const editorial = contentType === "history";
   const hasImage = Boolean(slide.imageUrl);
   const bodyBg = hasImage ? `${bg} url('${slide.imageUrl}') center/cover no-repeat` : bg;
+  // Editorial covers: lighter top, deeper bottom — lets the photo breathe like a magazine spread.
   const overlay = hasImage
-    ? `linear-gradient(to bottom, ${bg}dd 0%, ${bg}55 35%, ${bg}99 65%, ${bg}f5 100%)`
+    ? (editorial
+        ? `linear-gradient(to bottom, ${bg}55 0%, ${bg}1a 40%, ${bg}b8 78%, ${bg}f5 100%)`
+        : `linear-gradient(to bottom, ${bg}dd 0%, ${bg}55 35%, ${bg}99 65%, ${bg}f5 100%)`)
     : `radial-gradient(ellipse at 50% 110%, ${bg}cc 0%, transparent 65%)`;
 
   const cfg = getTemplateConfig("news-carousel");
   const hlZone = resolveZone(cfg, "headline", "cover")!;
   const hasDeck = Boolean(slide.supportLine);
-  const hlSize = resolveEffectiveFontSize(hlZone, slide.headline);
+  // Editorial: bump up the dynamic headline size (~15%) for a more dramatic display feel.
+  const baseHlSize = resolveEffectiveFontSize(hlZone, slide.headline);
+  const hlSize = editorial ? Math.round(baseHlSize * 1.18) : baseHlSize;
   const hlClamp = hasDeck ? Math.min(hlZone.limits.maxLines ?? 3, 3) : (hlZone.limits.maxLines ?? 6);
   const deckZone = resolveZone(cfg, "supportLine", "cover")!;
   const factZone = resolveZone(cfg, "body", "cover")!;
   const coverFacts = slide.body ? slide.body.split(/\n|•/).map(s => s.trim()).filter(Boolean) : [];
+
+  // Headline font — editorial uses Playfair Display serif.
+  const hlFont = editorial ? BRAND.fonts.editorial : fonts.headline;
+  const hlWeight = editorial ? 800 : 900;
+  const hlLetter = editorial ? "-1px" : "-0.5px";
+  const hlLineH = editorial ? 1.02 : hlZone.lineHeight;
+  // Editorial deck is italic serif — reads like a magazine standfirst.
+  const deckFont = editorial ? BRAND.fonts.editorial : fonts.body;
+  const deckStyle = editorial ? "italic" : "normal";
+  const deckWeight = editorial ? 500 : 500;
+  const deckOpacity = editorial ? 0.95 : 0.88;
+  const deckSize = editorial ? Math.round(deckZone.fontSize * 1.12) : deckZone.fontSize;
+
+  // Editorial kicker replaces the bold pill: thin uppercase rule + label.
+  const topMark = editorial
+    ? `<div class="kicker"><span class="kicker-rule"></span><span class="kicker-label">${escapeHtml(label)}</span></div>`
+    : `<span class="pill">${escapeHtml(label)}</span>`;
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
@@ -90,11 +114,14 @@ ${baseReset(bg, bodyBg)}
 .canvas { position:absolute;inset:0;display:flex;flex-direction:column;padding:92px 90px 100px;justify-content:space-between; }
 .top { display:flex;justify-content:space-between;align-items:flex-start; }
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
+.kicker { display:inline-flex;align-items:center;gap:18px; }
+.kicker-rule { width:42px;height:2px;background:${accent}; }
+.kicker-label { font-family:${fonts.headline};font-size:18px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:${accent}; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
-.mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding-bottom:${hasDeck ? '40' : '80'}px; }
-.headline { font-family:${fonts.headline};font-size:${hlSize}px;font-weight:900;line-height:${hlZone.lineHeight};letter-spacing:-0.5px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlClamp};-webkit-box-orient:vertical; }
+.mid { flex:1;display:flex;flex-direction:column;justify-content:${editorial ? 'flex-end' : 'center'};gap:${editorial ? '28' : '20'}px;padding-bottom:${hasDeck ? '40' : '80'}px; }
+.headline { font-family:${hlFont};font-size:${hlSize}px;font-weight:${hlWeight};line-height:${hlLineH};letter-spacing:${hlLetter};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlClamp};-webkit-box-orient:vertical;${editorial ? 'text-shadow:0 2px 32px rgba(0,0,0,0.55);' : ''} }
 .deck-rule { width:72px;height:3px;background:${accent};border-radius:2px;margin:4px 0; }
-.deck { font-family:${fonts.body};font-size:${deckZone.fontSize}px;font-weight:500;line-height:${deckZone.lineHeight};opacity:0.88;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${deckZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
+.deck { font-family:${deckFont};font-size:${deckSize}px;font-style:${deckStyle};font-weight:${deckWeight};line-height:${deckZone.lineHeight};opacity:${deckOpacity};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${deckZone.limits.maxLines ?? 3};-webkit-box-orient:vertical;${editorial ? 'text-shadow:0 1px 16px rgba(0,0,0,0.5);' : ''} }
 .cover-facts { display:flex;flex-direction:column;gap:12px;margin-top:4px; }
 .cover-fact { display:flex;gap:14px;align-items:flex-start;font-family:${fonts.body};font-size:${factZone.fontSize}px;font-weight:400;line-height:${factZone.lineHeight};opacity:0.78;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${factZone.limits.perBulletMaxLines ?? 2};-webkit-box-orient:vertical; }
 .fact-dot { width:7px;height:7px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:11px; }
@@ -103,11 +130,11 @@ ${baseReset(bg, bodyBg)}
 ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
-    <span class="pill">${escapeHtml(label)}</span>
+    ${topMark}
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
-    ${hasDeck ? `<div class="deck-rule"></div>
+    ${hasDeck ? `${editorial ? '' : '<div class="deck-rule"></div>'}
     <p class="deck">${escapeHtml(slide.supportLine!)}</p>` : ''}
     ${coverFacts.length > 0 ? `<div class="cover-facts">${coverFacts.map(f => `<div class="cover-fact"><div class="fact-dot"></div><span style="flex:1">${escapeHtml(f)}</span></div>`).join('')}</div>` : ''}
   </div>
@@ -125,7 +152,9 @@ function buildDetailSlide(
   label: string,
   slideIndex: number,
   totalSlides: number,
+  contentType: string,
 ): string {
+  const editorial = contentType === "history";
   const cfg = getTemplateConfig("news-carousel");
   const hlZone = resolveZone(cfg, "headline", "detail")!;
   const bodyZone = resolveZone(cfg, "body", "detail")!;
@@ -137,32 +166,53 @@ function buildDetailSlide(
     ? slide.body!.split(/\n|•/).map(s => s.trim()).filter(Boolean)
     : [];
 
+  // Editorial sizing bumps: bigger, airier text for storytelling.
+  const hlFont = editorial ? BRAND.fonts.editorial : fonts.headline;
+  const hlSize = editorial ? Math.round(hlZone.fontSize * 1.20) : hlZone.fontSize;
+  const hlWeight = editorial ? 700 : 800;
+  const hlLineH = editorial ? 1.08 : hlZone.lineHeight;
+  const bodySize = editorial ? Math.round(bodyZone.fontSize * 1.18) : bodyZone.fontSize;
+  const bodyLineH = editorial ? 1.65 : bodyZone.lineHeight;
+  const bodyFont = editorial ? BRAND.fonts.editorial : fonts.body;
+  const bodyWeight = editorial ? 500 : 400;
+  // Drop cap for the first non-bulleted paragraph on editorial detail slides.
+  const useDropCap = editorial && !hasBullets && Boolean(slide.body);
+
+  // Editorial kicker (thin rule + label) instead of the loud accent pill.
+  const topMark = editorial
+    ? `<div class="kicker"><span class="kicker-rule"></span><span class="kicker-label">${escapeHtml(label)}</span></div>`
+    : `<span class="pill">${escapeHtml(label)}</span>`;
+
   return `<!DOCTYPE html><html><head><meta charset="utf-8">${GOOGLE_FONTS_LINK}
 <style>
 ${baseReset(bg)}
 .canvas { position:absolute;inset:0;display:flex;flex-direction:column;padding:92px 90px 100px;justify-content:space-between; }
 .top { display:flex;justify-content:space-between;align-items:flex-start; }
 .pill { display:inline-flex;align-items:center;background:${accent};color:#000;font-family:${fonts.headline};font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:3px;padding:10px 24px;border-radius:4px; }
+.kicker { display:inline-flex;align-items:center;gap:18px; }
+.kicker-rule { width:42px;height:2px;background:${accent}; }
+.kicker-label { font-family:${fonts.headline};font-size:18px;font-weight:700;letter-spacing:5px;text-transform:uppercase;color:${accent}; }
 .counter { font-family:${fonts.headline};font-size:17px;font-weight:600;opacity:0.3;letter-spacing:1px; }
-.mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px; }
-.headline { font-family:${fonts.headline};font-size:${hlZone.fontSize}px;font-weight:800;line-height:${hlZone.lineHeight};letter-spacing:-0.3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
+.mid { flex:1;display:flex;flex-direction:column;justify-content:center;gap:${editorial ? '36' : '28'}px; }
+.headline { font-family:${hlFont};font-size:${hlSize}px;font-weight:${hlWeight};line-height:${hlLineH};letter-spacing:-0.3px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${hlZone.limits.maxLines ?? 3};-webkit-box-orient:vertical; }
 .body { display:flex;flex-direction:column;gap:16px; }
-.bullet { display:flex;gap:16px;align-items:flex-start;font-family:${fonts.body};font-size:${bodyZone.fontSize}px;font-weight:400;line-height:${bodyZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical; }
+.bullet { display:flex;gap:16px;align-items:flex-start;font-family:${bodyFont};font-size:${bodySize}px;font-weight:${bodyWeight};line-height:${bodyLineH};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical; }
 .bullet-dot { width:8px;height:8px;border-radius:50%;background:${accent};flex-shrink:0;margin-top:12px; }
 .divider { width:60px;height:3px;background:${accent};border-radius:2px; }
+.dropcap::first-letter { font-family:${BRAND.fonts.editorial};font-size:${Math.round(bodySize * 3.0)}px;font-weight:800;color:${accent};float:left;line-height:0.88;padding:8px 14px 0 0;margin-top:6px; }
 </style></head><body>
 ${premiumAtmosphereHtml(accent)}
 <div class="canvas">
   <div class="top">
-    <span class="pill">${escapeHtml(label)}</span>
+    ${topMark}
   </div>
   <div class="mid">
     <p class="headline">${escapeHtml(slide.headline)}</p>
-    <div class="divider"></div>
+    ${editorial ? '' : '<div class="divider"></div>'}
     <div class="body">
       ${bullets.length
-        ? bullets.map(b => `<div style="display:flex;gap:16px;align-items:flex-start"><div class="bullet-dot"></div><span style="font-family:${fonts.body};font-size:${bodyZone.fontSize}px;font-weight:400;line-height:${bodyZone.lineHeight};flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical">${escapeHtml(b)}</span></div>`).join("")
-        : slide.body ? `<p style="font-family:${fonts.body};font-size:${bodyZone.fontSize}px;line-height:${bodyZone.lineHeight};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.maxLines ?? 8};-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
+        ? bullets.map(b => `<div style="display:flex;gap:16px;align-items:flex-start"><div class="bullet-dot"></div><span style="font-family:${bodyFont};font-size:${bodySize}px;font-weight:${bodyWeight};line-height:${bodyLineH};flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.perBulletMaxLines ?? 3};-webkit-box-orient:vertical">${escapeHtml(b)}</span></div>`).join("")
+        : slide.body ? `<p class="${useDropCap ? 'dropcap' : ''}" style="font-family:${bodyFont};font-size:${bodySize}px;font-weight:${bodyWeight};line-height:${bodyLineH};overflow:hidden;display:-webkit-box;-webkit-line-clamp:${bodyZone.limits.maxLines ?? 8};-webkit-box-orient:vertical">${escapeHtml(slide.body)}</p>` : ""}
     </div>
   </div>
   ${footerBarHtml(slide.sourceLine, accent, fonts.body)}
