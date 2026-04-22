@@ -46,7 +46,11 @@ export default async function NewsPage({
       return [] as Awaited<ReturnType<typeof fetchEnrichedFeed>>;
     }),
   ]);
-  const enriched = enrichedRaw;
+  // Drop utility items (histoire du jour, daily facts, scholarship radar,
+  // etc.). They have dedicated surfaces (/histoire, /opportunites, /ressources)
+  // and their summaries are structured chronologies that don't render as
+  // standalone news cards.
+  const enriched = enrichedRaw.filter((a) => a.itemType !== "utility");
 
   // Server-side ranking:
   //   - drop offMission items

@@ -69,6 +69,7 @@ export default async function TechnologyPage({
   ]);
 
   const techPool = allArticles.filter((a) => {
+    if (a.itemType === "utility") return false;
     if (OPPORTUNITY_CATS.has(a.category ?? "") || a.vertical === "opportunites") return false;
     return isTechArticle(a);
   });

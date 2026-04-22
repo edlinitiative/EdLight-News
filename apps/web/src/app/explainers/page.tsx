@@ -74,7 +74,9 @@ export default async function ExplainersPage({
     allArticles = [];
   }
 
-  const explainersPool = allArticles.filter((a) => isExplainerArticle(a));
+  const explainersPool = allArticles.filter(
+    (a) => a.itemType !== "utility" && isExplainerArticle(a),
+  );
 
   const articles = rankAndDeduplicate(explainersPool, {
     audienceFitThreshold: 0.25,

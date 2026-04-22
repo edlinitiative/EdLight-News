@@ -822,7 +822,14 @@ export default async function ArticlePage({
   let nextArticle: FeedItem | null = null;
   let recentFeed: FeedItem[] = [];
   try {
-    recentFeed = await fetchEnrichedFeed(currentLang, 40);
+    const rawRecent = await fetchEnrichedFeed(currentLang, 40);
+    // Drop utility items so prev/next + related-by-category never serves a
+    // histoire-du-jour / daily-fact card from a regular news article.
+    // (For utility articles themselves we keep utility neighbours by allowing
+    // the current article through.)
+    recentFeed = rawRecent.filter(
+      (a) => a.itemType !== "utility" || a.id === article.id || a.itemId === article.itemId,
+    );
     const idx = recentFeed.findIndex((a) => a.itemId === article.itemId || a.id === article.id || a.id === article.itemId);
     if (idx !== -1) {
       prevArticle = recentFeed[idx - 1] ?? null;
