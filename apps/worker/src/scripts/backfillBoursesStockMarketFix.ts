@@ -44,7 +44,10 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { getDb } from "@edlight-news/firebase";
 import type { Item } from "@edlight-news/types";
-import { isStockMarketFalsePositive } from "../services/classify.js";
+import {
+  isStockMarketFalsePositive,
+  lacksScholarshipEvidence,
+} from "../services/classify.js";
 
 // ── Load .env ───────────────────────────────────────────────────────────────
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -116,7 +119,16 @@ async function main() {
       if (!combinedText) continue;
 
       try {
-        if (!isStockMarketFalsePositive(combinedText)) {
+        // Two independent false-positive signals — either one is enough.
+        const stockMarket = isStockMarketFalsePositive(combinedText);
+        const noScholarshipEvidence = lacksScholarshipEvidence(combinedText);
+        const reason = stockMarket
+          ? "stock_market_false_positive"
+          : noScholarshipEvidence
+            ? "no_strict_scholarship_keyword"
+            : null;
+
+        if (!reason) {
           totalCleanBourses++;
           continue;
         }
@@ -128,7 +140,7 @@ async function main() {
         const titlePreview = (item.title ?? "(untitled)").slice(0, 70);
         console.log(
           `\n  🔄 ${item.id}  "${titlePreview}…"` +
-            `\n     bourses → ${newCategory}` +
+            `\n     bourses → ${newCategory}  (${reason})` +
             (item.vertical ? `  (clearing vertical=${item.vertical})` : ""),
         );
 
@@ -156,6 +168,7 @@ async function main() {
           const itemPatch: Record<string, unknown> = {
             category: newCategory,
             boursesFixupAt: FieldValue.serverTimestamp(),
+            boursesFixupReason: reason,
           };
           if (item.vertical === "opportunites") {
             itemPatch.vertical = FieldValue.delete();
