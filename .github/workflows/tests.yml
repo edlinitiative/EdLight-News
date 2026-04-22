@@ -16,7 +16,10 @@ on:
 
 jobs:
   test:
-    name: Lint + typecheck + tests
+    # NOTE: this name is referenced by the `main` branch protection rule
+    # ("Test (worker + generator)") — keep them in sync or required checks
+    # will hang forever in "Expected — waiting for status to be reported".
+    name: Test (worker + generator)
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
