@@ -100,4 +100,34 @@ describe("classifyItem - bourses disambiguation regression suite", () => {
     assert.equal(result.isOpportunity, true);
     assert.equal(result.category, "bourses");
   });
+
+  // ── Negative-signal gate (achievement / editorial false positives) ────
+  // Production cases observed on /opportunites — single-keyword gate hits
+  // ("doctorat", "concours") were turning person-profile and opinion pieces
+  // into "Programmes" / "Concours" opportunities.
+  it("does NOT tag 'la ministre obtient un doctorat' as an opportunity", () => {
+    const result = classifyItem(
+      "La ministre Sandra Paulemon obtient un doctorat en politiques publiques",
+      "La ministre haïtienne Sandra Paulemon a obtenu un doctorat en politiques publiques avec la mention « Excellent ».",
+      "Sa thèse compare les réformes de gouvernance en Haïti et en Colombie.",
+    );
+    assert.equal(
+      result.isOpportunity,
+      false,
+      "past-achievement profile must not be opportunity",
+    );
+  });
+
+  it("does NOT tag a 'lettre ouverte … salue la victoire' opinion as an opportunity", () => {
+    const result = classifyItem(
+      "Lettre ouverte à Ariana Milagro Lafond : un appel à l'unité nationale",
+      "Une lettre d'un citoyen haïtien salue la victoire d'Ariana Milagro Lafond à un concours international. L'auteur appelle à la réouverture des routes et à l'unité.",
+      "",
+    );
+    assert.equal(
+      result.isOpportunity,
+      false,
+      "editorial / commentary must not be opportunity",
+    );
+  });
 });

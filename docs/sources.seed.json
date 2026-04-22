@@ -602,5 +602,414 @@
     "pollCadenceSec": 14400,
     "priority": "normal",
     "igImageSafe": false
+  },
+
+  {
+    "_group": "opportunities",
+    "_comment": "Aggregator — posts 5-10 fully-funded scholarships/day from international programmes, strong coverage of developing-country applicants",
+    "name": "ScholarshipPositions.com",
+    "type": "rss",
+    "url": "https://scholarshippositions.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Aggregator focused on Africa & Caribbean, lists Gates, Rhodes, Fulbright, Commonwealth etc. with deadline info",
+    "name": "OppCentral — Scholarships & Fellowships",
+    "type": "rss",
+    "url": "https://oppcentral.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Global scholarship aggregator — strong on fully-funded masters & PhD for developing countries",
+    "name": "Scholarship Roar",
+    "type": "rss",
+    "url": "https://scholarshiproar.com/feed/",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal"
+  },
+
+  {
+    "_group": "opportunities",
+    "_comment": "Gates Cambridge: fully-funded postgrad at Cambridge for non-UK students — very prestigious for Haitian diaspora",
+    "name": "Gates Cambridge Scholarships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22gates+cambridge%22+scholarship+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Rhodes Scholarships at Oxford — covers Caribbean & Latin America",
+    "name": "Rhodes Scholarships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22rhodes+scholarship%22+Haiti+OR+Caribbean+OR+%22Latin+America%22+OR+francophone&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Rhodes House news & announcements feed — official source for Rhodes Scholarship calls",
+    "name": "Rhodes House — News",
+    "type": "html",
+    "url": "https://www.rhodeshouse.ox.ac.uk/news/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".card a, article a, .listing-item a",
+      "articleBody": ".entry-content, .post-content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Fulbright general programme — broader than Haiti embassy page; covers US-funded awards open to Haitian nationals globally",
+    "name": "Fulbright — Scholarships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=fulbright+scholarship+Haiti+OR+Caribbean+OR+%22Latin+America%22+OR+francophone+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Mastercard Foundation Scholars Program — primarily Africa & diaspora; many Haitian students eligible through partner universities",
+    "name": "Mastercard Foundation Scholars (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22mastercard+foundation+scholars%22+OR+%22mastercard+foundation+scholarship%22&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Mastercard Foundation official news RSS",
+    "name": "Mastercard Foundation — News",
+    "type": "rss",
+    "url": "https://mastercardfdn.org/feed/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "DAAD (Germany) — major funder of Caribbean & Haitian scholars; offers EPOS, dev-country masters, and bilateral programmes",
+    "name": "DAAD — Scholarships Haiti & Caribbean (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=DAAD+scholarship+Haiti+OR+Caribbean+OR+%22Am%C3%A9rique+Latine%22+OR+%22Latin+America%22&hl=fr&gl=DE&ceid=DE:fr",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "DAAD official scholarships page — lists open calls including developing-country and regional programmes",
+    "name": "DAAD — Scholarships for Developing Countries",
+    "type": "html",
+    "url": "https://www.daad.de/en/study-and-research-in-germany/scholarships/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".c-teaser a, .card a, article a",
+      "articleBody": ".c-article__body, .content, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Erasmus Mundus Joint Masters — EU-funded; several programmes open to Caribbean & Haitian students",
+    "name": "Erasmus Mundus (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22erasmus+mundus%22+scholarship+Haiti+OR+Caribbean+OR+%22Latin+America%22+OR+francophone&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "European Commission EMJMD catalogue — official list of open Erasmus Mundus programmes",
+    "name": "Erasmus Mundus — EMJMD Catalogue",
+    "type": "html",
+    "url": "https://www.eacea.ec.europa.eu/scholarships/emjmd-catalogue_en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".views-row a, .listing a, table a",
+      "articleBody": ".field--name-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Commonwealth Scholarships (CSC/UK) — targets low/middle income Commonwealth & associate countries; Caribbean quota each year",
+    "name": "Commonwealth Scholarships — CSC (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22commonwealth+scholarship%22+OR+%22commonwealth+fellowship%22+Haiti+OR+Caribbean+OR+francophone&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Commonwealth Scholarships Commission news — official announcements of calls and results",
+    "name": "Commonwealth Scholarships Commission — News",
+    "type": "html",
+    "url": "https://cscuk.fcdo.gov.uk/news/",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot",
+    "selectors": {
+      "listItem": ".card a, .listing-item a, article a",
+      "articleBody": ".govuk-prose-scope, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Schwarzman Scholars at Tsinghua University — fully-funded masters in Beijing, open to all nationalities",
+    "name": "Schwarzman Scholars (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22schwarzman+scholars%22+scholarship+application&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Rotary Peace Fellowships — fully-funded MA/certificate at partner universities; open to Haiti & Caribbean",
+    "name": "Rotary Peace Fellowships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22rotary+peace+fellow%22+OR+%22rotary+peace+scholarship%22+application+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Aga Khan Foundation International Scholarship — for students from developing countries in post-graduate studies",
+    "name": "Aga Khan Foundation Scholarships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22aga+khan+foundation%22+scholarship+OR+fellowship+Haiti+OR+Caribbean+OR+%22Latin+America%22&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Ford Foundation International Fellowships Program — focuses on social justice, historically strong in Haiti & Caribbean",
+    "name": "Ford Foundation Fellowships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22ford+foundation%22+fellowship+OR+scholarship+Haiti+OR+Caribbean+OR+%22Latin+America%22&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Open Society Foundations fellowships and grants — covers human rights, education, journalism in Haiti & region",
+    "name": "Open Society Foundations — Fellowships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22open+society%22+fellowship+OR+scholarship+Haiti+OR+Caribbean+OR+%22Latin+America%22&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "World Bank Scholarships Program (WBSP) & Robert S. McNamara Fellowships — developing countries focus",
+    "name": "World Bank Scholarships Program (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22world+bank+scholarship%22+OR+%22mcnamara+fellowship%22+OR+%22world+bank+fellowship%22+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Joint Japan/World Bank Graduate Scholarship Program (JJ/WBGSP) — fully funded, developing countries",
+    "name": "Joint Japan World Bank Scholarship (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22japan+world+bank%22+scholarship+OR+%22JJ%2FWBGSP%22+application&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "IDB/BID specific scholarships and training programs — separate from the general IDB Haiti news source",
+    "name": "IDB Scholarships & Fellowships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22inter-american+development+bank%22+OR+IDB+scholarship+OR+fellowship+Haiti+OR+Caribbean+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "LASPAU — administers US-funded fellowships for Latin America & Caribbean on behalf of USAID/US universities",
+    "name": "LASPAU — Latin America & Caribbean Fellowships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=LASPAU+scholarship+OR+fellowship+%22Latin+America%22+OR+Caribbean+Haiti&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Türkiye Bursları (Turkish Government Scholarship) — full scholarships for international students including Haitian applicants; popular in Caribbean",
+    "name": "Türkiye Bursları — Turkish Government Scholarship (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22t%C3%BCrkiye+burslari%22+OR+%22turkish+scholarship%22+Haiti+OR+Caribbean+OR+Africa+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Türkiye Bursları official news — direct application portal announcements",
+    "name": "Türkiye Bursları — Annonces officielles",
+    "type": "html",
+    "url": "https://www.turkiyeburslari.gov.tr/en/news",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal",
+    "selectors": {
+      "listItem": ".card a, .news-item a, article a",
+      "articleBody": ".content, .article-body, main .content",
+      "title": "h1"
+    }
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Chinese Government Scholarship (CSC) — fully-funded undergrad/postgrad in China; Haiti has bilateral agreement",
+    "name": "Chinese Government Scholarship CSC (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22chinese+government+scholarship%22+OR+%22CSC+scholarship%22+Haiti+OR+Caribbean+OR+%22Am%C3%A9rique+latine%22&hl=fr&gl=FR&ceid=FR:fr",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "hot"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Korean Government Scholarship (KGSP/GKS) — fully-funded undergraduate & graduate in Korea; open to Caribbean",
+    "name": "Korean Government Scholarship KGSP (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=KGSP+OR+%22korean+government+scholarship%22+Haiti+OR+Caribbean+OR+%22Latin+America%22+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Australia Awards — DFAT-funded; Caribbean basin eligible; strong engineering & public policy tracks",
+    "name": "Australia Awards Scholarships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22australia+awards%22+scholarship+Haiti+OR+Caribbean+OR+%22Latin+America%22&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "OFID (OPEC Fund) Scholarships — annual programme for developing countries, including Caribbean",
+    "name": "OFID — OPEC Fund Scholarships (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=OFID+OR+%22OPEC+fund%22+scholarship+Haiti+OR+Caribbean+OR+%22developing+countries%22&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "CIDA/Global Affairs Canada scholarships and development fellowships targeting Caribbean & Haiti",
+    "name": "Global Affairs Canada — Bourses Amériques (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22global+affairs+canada%22+OR+%22affaires+mondiales+canada%22+bourse+OR+scholarship+Haiti+OR+Cara%C3%AFbes+OR+Caribbean&hl=fr&gl=CA&ceid=CA:fr",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "PADF (Pan American Development Foundation) — runs USAID-funded training, fellowships and youth programmes for Caribbean",
+    "name": "PADF — Pan American Development Foundation (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=PADF+OR+%22pan+american+development%22+Haiti+OR+Caribbean+scholarship+OR+fellowship+OR+programme&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "COLFUTURO — Colombia's main fellowship programme for postgrad abroad; many Haitian diaspora in Colombia are eligible",
+    "name": "COLFUTURO — Becas Colombia (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=COLFUTURO+beca+OR+bourse+%22Am%C3%A9rica+Latina%22+OR+Haiti+2026+OR+2027&hl=es&gl=CO&ceid=CO:es",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "ANID Chile (ex-CONICYT) — postgrad scholarships open to Latin America & Caribbean nationals",
+    "name": "ANID Chile — Becas Latinoamérica (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=ANID+OR+CONICYT+beca+OR+scholarship+%22Am%C3%A9rica+Latina%22+OR+Caribbean+Haiti+2026+OR+2027&hl=es&gl=CL&ceid=CL:es",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "SENESCYT Ecuador — national scholarship programme; some tracks open to Haitian diaspora and Latin America",
+    "name": "SENESCYT Ecuador — Becas (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=SENESCYT+beca+OR+scholarship+Haiti+OR+%22Am%C3%A9rica+Latina%22+2026+OR+2027&hl=es&gl=EC&ceid=EC:es",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "CAPES Brazil — postgraduate fellowships for international students; Brazil-Haiti student agreements exist",
+    "name": "CAPES Brazil — Bourses internationales (via Google News)",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=CAPES+bourse+OR+bolsa+OR+fellowship+Haiti+OR+Cara%C3%AFbes+OR+francophone+2026+OR+2027&hl=fr&gl=BR&ceid=BR:fr",
+    "language": "fr",
+    "pollCadenceSec": 86400,
+    "priority": "normal"
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "Broader Latin America + Caribbean scholarship sweep — Spanish-language signals for Haitian diaspora in LATAM",
+    "name": "Google News — Becas Latinoamérica & Caraïbes",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=beca+OR+scholarship+%22Am%C3%A9rica+Latina%22+OR+Caribe+Haiti+2026+OR+2027&hl=es&gl=US&ceid=US:es",
+    "language": "fr",
+    "pollCadenceSec": 14400,
+    "priority": "normal",
+    "igImageSafe": false
+  },
+  {
+    "_group": "opportunities",
+    "_comment": "General fully-funded international scholarships — English-language signal sweep for programmes open to Haiti nationals",
+    "name": "Google News — Fully Funded Scholarships International",
+    "type": "rss",
+    "url": "https://news.google.com/rss/search?q=%22fully+funded%22+scholarship+Haiti+OR+Caribbean+OR+%22developing+countries%22+2026+OR+2027&hl=en&gl=US&ceid=US:en",
+    "language": "fr",
+    "pollCadenceSec": 7200,
+    "priority": "hot",
+    "igImageSafe": false
   }
 ]
