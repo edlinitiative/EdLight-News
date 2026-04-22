@@ -155,133 +155,21 @@ const OPPORTUNITY_GATE_RE = buildWBRegexes(OPPORTUNITY_GATE_KW);
 // gets classified as a scholarship and surfaces on Facebook with the hook
 // "Bourse à surveiller" — which is wrong and embarrassing.
 //
-// The keyword lists below are matched against accent-stripped, lowercased text
-// (see `normalizeText`) so they must already be in that form.
+// The keyword lists and helpers below live in @edlight-news/generator so
+// the LLM post-validator (validate-classification.ts) and the FB composer
+// (buildFbQueue.ts) all share a single source of truth and can never drift.
 
-const STOCK_MARKET_KEYWORDS = [
-  // Named exchanges (FR + EN)
-  "bourse de new york", "bourse de paris", "bourse de tokyo",
-  "bourse de londres", "bourse de hong kong", "bourse de shanghai",
-  "bourse de toronto", "bourse de francfort",
-  "wall street", "nasdaq", "nyse", "dow jones", "s&p 500", "s & p 500",
-  "cac 40", "ftse", "nikkei", "hang seng", "euronext",
-  // Market vocabulary (FR)
-  "marche boursier", "marches boursiers", "place boursiere", "places boursieres",
-  "indice boursier", "indices boursiers", "valeur boursiere", "valeurs boursieres",
-  "capitalisation boursiere", "introduction en bourse", "entree en bourse",
-  "cotation", "cotee en bourse", "cote en bourse", "actionnaire", "actionnaires",
-  "obligataire", "obligation d'etat", "matieres premieres",
-  // Market vocabulary (EN)
-  "stock market", "stock exchange", "stock price", "share price",
-  "shares fell", "shares rose", "shares jumped", "ipo", "listed company",
-] as const;
+import {
+  isStockMarketFalsePositive as sharedIsStockMarketFalsePositive,
+  lacksScholarshipEvidence as sharedLacksScholarshipEvidence,
+  STRICT_SCHOLARSHIP_KEYWORDS,
+} from "@edlight-news/generator";
 
-const SCHOLARSHIP_CONFIRMATION_KEYWORDS = [
-  // Direct scholarship phrases (accent-stripped)
-  "bourse d'etud", "bourse d etud", "bourses d'etud", "bourses d etud",
-  "bourse de merite", "bourse de recherche", "bourse complete",
-  "bourse partielle", "bourse doctorale", "bourse universitaire",
-  "bourse fulbright", "bourse erasmus", "bourse chevening",
-  // NOTE: bare "boursier(e)(s)" stems are intentionally NOT listed here —
-  // they are ambiguous (finance: "indices boursiers", "marche boursier")
-  // and would hide stock-market false positives from the disambiguation
-  // gate below. Genuine scholarship boursiers are still captured via
-  // "etudiant", "candidat", "fulbright", "bourse d'etud", etc.
-  // Application / eligibility context
-  "candidat", "candidature", "postuler", "appel a candidatures",
-  "deadline", "date limite", "eligibilit", "dossier de candidature",
-  // Academic context that disambiguates
-  "etudiant", "etudiante", "etudiants", "etudiantes",
-  "universite", "universites", "faculte", "diplom",
-  "master", "licence", "doctorat", "phd", "fellowship", "scholarship",
-  "tuition", "frais de scolarite", "prise en charge", "financement d'etud",
-  // Well-known scholarship programmes
-  "fulbright", "chevening", "erasmus", "daad", "mext",
-] as const;
+// Re-export so existing call sites (jobs/buildFbQueue.ts, scripts/*) keep
+// importing from "../services/classify.js" without churn.
+export const isStockMarketFalsePositive = sharedIsStockMarketFalsePositive;
+export const lacksScholarshipEvidence = sharedLacksScholarshipEvidence;
 
-function looksLikeStockMarket(normalizedText: string): boolean {
-  return STOCK_MARKET_KEYWORDS.some((kw) => normalizedText.includes(kw));
-}
-
-function hasScholarshipContext(normalizedText: string): boolean {
-  return SCHOLARSHIP_CONFIRMATION_KEYWORDS.some((kw) =>
-    normalizedText.includes(kw),
-  );
-}
-
-/**
- * Public disambiguation helper for re-classifying historical items.
- *
- * Returns true when the given (raw, un-normalised) text reads like
- * stock-market coverage and lacks any scholarship-specific context —
- * i.e. when a "bourses" classification is almost certainly a false
- * positive caused by the FR/EN ambiguity of the word "bourse".
- */
-/**
- * Subset of STOCK_MARKET_KEYWORDS that are unambiguous finance tokens —
- * they essentially never appear in genuine scholarship coverage. When any
- * of these are present, the article is finance, period.
- */
-const UNAMBIGUOUS_FINANCE_KEYWORDS = [
-  "bourse de new york", "bourse de paris", "bourse de tokyo",
-  "bourse de londres", "bourse de hong kong", "bourse de shanghai",
-  "bourse de toronto", "bourse de francfort",
-  "wall street", "nasdaq", "nyse", "dow jones", "s&p 500", "s & p 500",
-  "cac 40", "ftse", "nikkei", "hang seng", "euronext",
-  "introduction en bourse", "entree en bourse", "cotee en bourse",
-  "cote en bourse", "stock exchange", "stock market",
-] as const;
-
-export function isStockMarketFalsePositive(text: string): boolean {
-  const normalized = normalizeText(text);
-  // Hard short-circuit: a named exchange/index = finance, period.
-  if (UNAMBIGUOUS_FINANCE_KEYWORDS.some((kw) => normalized.includes(kw))) {
-    return true;
-  }
-  // Otherwise: weaker stock-market vocab is only a false positive when no
-  // scholarship context is present.
-  return looksLikeStockMarket(normalized) && !hasScholarshipContext(normalized);
-}
-
-/**
- * Strict scholarship-confirmation keywords. A genuine "bourses" item MUST
- * contain at least one of these. They are deliberately narrow: each one is
- * unambiguous on its own — unlike weak signals such as "candidat",
- * "deadline" or "appel" which appear in plenty of non-scholarship contexts
- * (UN succession, military recruitment, political nominations, etc.).
- *
- * Stored accent-stripped for matching against `normalizeText` output.
- */
-const STRICT_SCHOLARSHIP_KEYWORDS = [
-  // The actual word "bourse" + its stems (covers bourses, boursier, boursière)
-  "bours",
-  // English equivalents
-  "scholarship", "fellowship",
-  // Funding vocabulary
-  "tuition", "frais de scolarite", "financement d'etud",
-  // Named programmes that are unambiguously academic
-  "fulbright", "chevening", "erasmus", "daad", "mext",
-  "campus france", "samuel huntington", "mastercard foundation",
-  // Strong academic-application phrases
-  "bourse d'etud", "bourse de merite", "bourse de recherche",
-  "bourse complete", "bourse partielle", "bourse doctorale",
-  "appel a candidatures pour bourse", "programme de bourse",
-] as const;
-
-/**
- * Returns true when an item currently classified as a scholarship-like
- * opportunity (`bourses`, `scholarship`) does NOT contain any strict
- * scholarship-specific token. Such items are almost always false
- * positives caused by weak signals (candidat, deadline, appel à
- * candidatures for non-academic positions, etc.).
- *
- * Use this as a final gate before publishing scholarship-flavored
- * content to social channels.
- */
-export function lacksScholarshipEvidence(text: string): boolean {
-  const normalized = normalizeText(text);
-  return !STRICT_SCHOLARSHIP_KEYWORDS.some((kw) => normalized.includes(kw));
-}
 
 const HAITI_ENTITIES = [
   "haiti",

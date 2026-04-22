@@ -92,6 +92,15 @@ export type {
 
 // ── Re-export classification validation module ─────────────────────────────
 export { validateAndFixCategory } from "./validate-classification.js";
+export {
+  isStockMarketFalsePositive,
+  lacksScholarshipEvidence,
+  STOCK_MARKET_KEYWORDS,
+  UNAMBIGUOUS_FINANCE_KEYWORDS,
+  SCHOLARSHIP_CONFIRMATION_KEYWORDS,
+  STRICT_SCHOLARSHIP_KEYWORDS,
+  normalizeForDisambiguation,
+} from "./disambiguation.js";
 
 // ── Re-export dataset content module ────────────────────────────────────────
 export {

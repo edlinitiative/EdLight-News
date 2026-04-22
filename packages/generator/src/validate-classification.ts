@@ -6,7 +6,7 @@
  *
  * Reclassification is logged as a warning so we can track model drift.
  */
-
+import { isStockMarketFalsePositive } from "./disambiguation.js";
 // ── Keyword lists ───────────────────────────────────────────────────────────
 
 /** Keywords that strongly signal hard news / breaking events */
@@ -90,42 +90,9 @@ const OPPORTUNITY_CATEGORIES = new Set([
   "programmes",
 ]);
 
-/**
- * Stock-market vocabulary used to disambiguate "bourse" (which means BOTH
- * "scholarship" AND "stock exchange" in French). Lowercased; no accent
- * normalisation needed because we lowercase the input before matching.
- */
-const STOCK_MARKET_KEYWORDS: readonly string[] = [
-  // Named exchanges
-  "bourse de new york", "bourse de paris", "bourse de tokyo",
-  "bourse de londres", "bourse de hong kong", "bourse de shanghai",
-  "wall street", "nasdaq", "nyse", "dow jones", "s&p 500",
-  "cac 40", "ftse", "nikkei", "hang seng", "euronext",
-  // Market vocabulary (FR)
-  "marché boursier", "marchés boursiers", "place boursière",
-  "indice boursier", "valeur boursière", "capitalisation boursière",
-  "introduction en bourse", "entrée en bourse", "cotation",
-  "cotée en bourse", "actionnaire", "obligataire",
-  // Market vocabulary (EN)
-  "stock market", "stock exchange", "stock price", "share price",
-  "ipo",
-];
-
-/**
- * Phrases that confirm "bourse" really means "scholarship" (not stock market).
- */
-const SCHOLARSHIP_CONFIRMATION_KEYWORDS: readonly string[] = [
-  "bourse d'étud", "bourse d étud", "bourses d'étud", "bourses d étud",
-  "bourse de mérite", "bourse de recherche", "bourse complète",
-  "bourse partielle", "bourse doctorale", "bourse universitaire",
-  "boursier", "boursière", "boursiers", "boursières",
-  "candidat", "candidature", "postuler", "appel à candidatures",
-  "deadline", "date limite", "éligibilit",
-  "étudiant", "université", "faculté", "diplôm",
-  "master", "licence", "doctorat", "phd", "fellowship", "scholarship",
-  "tuition", "frais de scolarité", "prise en charge", "financement d'étud",
-  "fulbright", "chevening", "erasmus",
-];
+// Stock-market vs scholarship disambiguation lives in disambiguation.ts —
+// see isStockMarketFalsePositive() imported above. Keeping it centralised
+// avoids drift between this validator and apps/worker/src/services/classify.ts.
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -175,14 +142,10 @@ export function validateAndFixCategory(input: {
   // ── Rule 0: opportunity category but content is stock-market coverage ──
   // "Bourse" (FR) means BOTH "scholarship" AND "stock exchange". Catch the
   // common false positive where a finance article gets tagged as a bourse.
+  // Delegates to the shared disambiguation helper so this rule stays in
+  // sync with apps/worker/src/services/classify.ts.
   if (category === "bourses" || category === "scholarship") {
-    const isStockMarket = STOCK_MARKET_KEYWORDS.some((kw) =>
-      combinedLower.includes(kw),
-    );
-    const hasScholarship = SCHOLARSHIP_CONFIRMATION_KEYWORDS.some((kw) =>
-      combinedLower.includes(kw),
-    );
-    if (isStockMarket && !hasScholarship) {
+    if (isStockMarketFalsePositive(combined)) {
       const corrected = mentionsHaiti(combined) ? "local_news" : "news";
       console.warn(
         `[validate-classification] Reclassified "${category}" → "${corrected}" ` +
