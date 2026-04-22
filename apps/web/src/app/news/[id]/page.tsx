@@ -945,28 +945,72 @@ export default async function ArticlePage({
   // JSON-LD
   const publishedISO = pubSecs ? new Date(pubSecs * 1000).toISOString() : null;
   const createdISO = createdSecs ? new Date(createdSecs * 1000).toISOString() : null;
+  const modifiedISO = lmuSecs
+    ? new Date(lmuSecs * 1000).toISOString()
+    : (publishedISO ?? createdISO ?? undefined);
+  const articleUrl = `https://news.edlight.org/news/${article.id}`;
+  const sourceName = item?.source?.name;
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    headline: article.title,
+    "@type": isOpinion ? "OpinionNewsArticle" : "NewsArticle",
+    headline: (article.title ?? "").slice(0, 110),
     description: article.summary || article.body?.slice(0, 160) || "",
     ...(heroImageUrl ? { image: [heroImageUrl] } : {}),
     datePublished: publishedISO ?? createdISO ?? undefined,
-    ...(lmuSecs ? { dateModified: new Date(lmuSecs * 1000).toISOString() } : {}),
-    author: {
-      "@type": "Organization",
-      name: item?.source?.name ?? "EdLight News",
-    },
+    dateModified: modifiedISO,
+    author: [
+      {
+        "@type": sourceName ? "Organization" : "Organization",
+        name: sourceName ?? "EdLight News",
+        ...(sourceUrl ? { url: sourceUrl } : {}),
+      },
+    ],
     publisher: {
-      "@type": "Organization",
+      "@type": "NewsMediaOrganization",
       name: "EdLight News",
       url: "https://news.edlight.org",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://news.edlight.org/icon.svg",
+        width: 512,
+        height: 512,
+      },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://news.edlight.org/news/${article.id}`,
+      "@id": articleUrl,
     },
+    url: articleUrl,
     inLanguage: article.language === "fr" ? "fr" : "ht",
+    isAccessibleForFree: true,
+    ...(catLabel ? { articleSection: catLabel } : {}),
+  };
+
+  // BreadcrumbList — its own rich result type
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "EdLight News",
+        item: "https://news.edlight.org",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: catLabel ?? "Actualités",
+        item: `https://news.edlight.org/news`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: article.title,
+        item: articleUrl,
+      },
+    ],
   };
 
   return (
@@ -976,6 +1020,10 @@ export default async function ArticlePage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       {/* ── Mobile reading progress bar (below xl) ──────────────────── */}
