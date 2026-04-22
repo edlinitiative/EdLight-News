@@ -857,6 +857,7 @@ export default async function ArticlePage({
   let heroImageUrl = item?.imageUrl ?? null;
   let heroImageSource = item?.imageSource ?? null;
   let heroImageAttribution = item?.imageAttribution ?? null;
+  let heroImageMeta = item?.imageMeta ?? null;
   if (dedupeGroupItems.length > 0) {
     let bestScore = -1;
     for (const sibling of dedupeGroupItems) {
@@ -867,6 +868,7 @@ export default async function ArticlePage({
         heroImageUrl = sibling.imageUrl;
         heroImageSource = sibling.imageSource ?? null;
         heroImageAttribution = sibling.imageAttribution ?? null;
+        heroImageMeta = sibling.imageMeta ?? null;
       }
     }
   }
@@ -1079,50 +1081,108 @@ export default async function ArticlePage({
                 sourceName={item?.source?.name}
                 className={`mb-10 ${isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"}`}
               />
-            ) : (
-              <div className={`relative mb-10 w-full overflow-hidden rounded-2xl bg-stone-100 shadow-premium dark:bg-stone-800 dark:shadow-premium-dark ${
-                isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
-              }`}>
-                <ImageWithFallback
-                  src={heroImageUrl}
-                  alt={article.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 768px"
-                  className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
-                  fallback={
-                    <BrandedHero
-                      title={article.title}
-                      category={fallbackCat}
-                      sourceName={item?.source?.name}
-                      className="h-full w-full"
-                    />
-                  }
-                />
-                {isHistory && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                )}
-                {heroImageSource === "publisher" && (
-                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
-                    {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
-                  </span>
-                )}
-                {heroImageSource === "wikidata" && (
-                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
-                    {heroImageAttribution?.name
-                      ? `Photo : ${heroImageAttribution.name}`
-                      : "Wikimedia Commons"}
-                    {heroImageAttribution?.license
-                      ? ` (${heroImageAttribution.license})`
-                      : ""}
-                  </span>
-                )}
-                {heroImageSource === "screenshot" && (
-                  <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
-                    {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
-                  </span>
-                )}
-              </div>
-            )
+            ) : (() => {
+              // Portrait-image branch: don't crop, render a centred card whose
+              // box matches the image's natural aspect ratio.
+              const w = heroImageMeta?.width;
+              const h = heroImageMeta?.height;
+              const naturalRatio = w && h ? w / h : null;
+              const isPortraitImage =
+                naturalRatio !== null && naturalRatio < 0.95;
+
+              if (isPortraitImage) {
+                return (
+                  <figure className="mb-10">
+                    <div
+                      className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl bg-stone-100 shadow-premium dark:bg-stone-800 dark:shadow-premium-dark"
+                      style={{ aspectRatio: `${naturalRatio}` }}
+                    >
+                      <ImageWithFallback
+                        src={heroImageUrl}
+                        alt={article.title}
+                        fill
+                        sizes="(max-width: 640px) 90vw, 384px"
+                        className="object-cover"
+                        fallback={
+                          <BrandedHero
+                            title={article.title}
+                            category={fallbackCat}
+                            sourceName={item?.source?.name}
+                            className="h-full w-full"
+                          />
+                        }
+                      />
+                      {heroImageSource === "publisher" && (
+                        <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                          {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
+                        </span>
+                      )}
+                      {heroImageSource === "wikidata" && (
+                        <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                          {heroImageAttribution?.name
+                            ? `Photo : ${heroImageAttribution.name}`
+                            : "Wikimedia Commons"}
+                          {heroImageAttribution?.license
+                            ? ` (${heroImageAttribution.license})`
+                            : ""}
+                        </span>
+                      )}
+                      {heroImageSource === "screenshot" && (
+                        <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                          {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
+                        </span>
+                      )}
+                    </div>
+                  </figure>
+                );
+              }
+
+              // Default landscape branch (unchanged behaviour).
+              return (
+                <div className={`relative mb-10 w-full overflow-hidden rounded-2xl bg-stone-100 shadow-premium dark:bg-stone-800 dark:shadow-premium-dark ${
+                  isHistory ? "aspect-[2.4/1]" : isUtility ? "aspect-[2/1]" : "aspect-video"
+                }`}>
+                  <ImageWithFallback
+                    src={heroImageUrl}
+                    alt={article.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 768px"
+                    className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
+                    fallback={
+                      <BrandedHero
+                        title={article.title}
+                        category={fallbackCat}
+                        sourceName={item?.source?.name}
+                        className="h-full w-full"
+                      />
+                    }
+                  />
+                  {isHistory && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  )}
+                  {heroImageSource === "publisher" && (
+                    <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                      {currentLang === "fr" ? "Image : source" : "Imaj : sous"}
+                    </span>
+                  )}
+                  {heroImageSource === "wikidata" && (
+                    <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                      {heroImageAttribution?.name
+                        ? `Photo : ${heroImageAttribution.name}`
+                        : "Wikimedia Commons"}
+                      {heroImageAttribution?.license
+                        ? ` (${heroImageAttribution.license})`
+                        : ""}
+                    </span>
+                  )}
+                  {heroImageSource === "screenshot" && (
+                    <span className="absolute bottom-2.5 right-2.5 rounded-lg bg-black/50 px-2.5 py-1 text-[11px] text-white/80 backdrop-blur-sm">
+                      {currentLang === "fr" ? "Capture : source" : "Kapta : sous"}
+                    </span>
+                  )}
+                </div>
+              );
+            })()
           ) : !heroImageUrl && !isUtility ? (
             <BrandedHero
               title={article.title}
