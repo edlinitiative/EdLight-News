@@ -15,11 +15,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    # NOTE: this name is referenced by the `main` branch protection rule
-    # ("Test (worker + generator)") — keep them in sync or required checks
-    # will hang forever in "Expected — waiting for status to be reported".
-    name: Test (worker + generator)
+  # ────────────────────────────────────────────────────────────────────────
+  # Two jobs intentionally — the `main` branch protection rule requires
+  # BOTH of these check names to report success:
+  #   • "Lint + typecheck + tests"
+  #   • "Test (worker + generator)"
+  # If either is renamed, the required check will hang forever in
+  # "Expected — waiting for status to be reported". Keep the `name:`
+  # values below in sync with the protection rule.
+  # ────────────────────────────────────────────────────────────────────────
+
+  lint-typecheck:
+    name: Lint + typecheck + tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -46,6 +53,29 @@ jobs:
       # before downstream packages typecheck or test against them.
       - name: Typecheck (all packages)
         run: pnpm turbo typecheck
+
+  test:
+    name: Test (worker + generator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Worker tests (classify regression suite, etc.)
         run: pnpm turbo test --filter=@edlight-news/worker
