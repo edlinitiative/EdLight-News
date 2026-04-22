@@ -363,7 +363,14 @@ export async function processIgScheduled(): Promise<ProcessIgScheduledResult> {
             // where the cover uses a clean branded gradient while content slides carry
             // the contextual image), propagate the first content slide's image to the
             // cover so all slides stay visually consistent \u2014 "use the rest's picture".
+            //
+            // IMPORTANT: exclude the CTA slide from this lookup. CTA slides carry a
+            // branded promo image (e.g. news-cta.jpg = Citadelle Laferrière) that is
+            // intentionally generic and topically unrelated to the article. Treating
+            // it as a content image causes wrong-photo bugs (e.g. Fils-Aimé/FMI post
+            // ending up with Citadelle on every slide).
             const firstContentImage = publishPayload.slides
+              .filter((s) => s.layout !== "cta")
               .slice(1)
               .find((s) => s.backgroundImage)?.backgroundImage;
 
