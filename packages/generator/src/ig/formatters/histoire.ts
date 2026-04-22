@@ -710,7 +710,9 @@ export function buildHistoireCarousel(
   // ══════════════════════════════════════════════════════════════════════
   const sourceLine = buildSourceLine(item);
   const sourceFooter = buildSourceFooter(item);
-  const premiumHistoryCTA = "Suivez EdLight News pour d'autres repères historiques.";
+  // Editorial closing line — reads like a magazine signoff, not a marketing CTA.
+  const premiumHistoryCTA =
+    "Parce que comprendre notre passé, c'est éclairer notre avenir.";
 
   // Source attribution on the last content slide (before CTA), so attribution
   // is visible even for users who don't read the caption.
@@ -719,8 +721,8 @@ export function buildHistoireCarousel(
   }
 
   slides.push({
-    heading: "Suivez-nous pour plus de repères historiques",
-    bullets: ["L'histoire d'Haïti, chaque jour."],
+    heading: "L'histoire d'Haïti, racontée chaque jour.",
+    bullets: ["Suivez @edlightnews pour d'autres repères."],
     layout: "cta",
     backgroundImage: HISTOIRE_CTA_IMAGE,
   });
