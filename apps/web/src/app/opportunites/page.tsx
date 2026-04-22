@@ -16,7 +16,7 @@ import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
-import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
+import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
@@ -76,7 +76,8 @@ export default async function OpportunitesPage({
       (a.vertical === "opportunites" ||
         OPPORTUNITY_CATEGORIES.has(a.category ?? "") ||
         (a.itemType === "utility" && a.series === "ScholarshipRadar")) &&
-      looksLikeOpportunity(a),
+      looksLikeOpportunity(a) &&
+      isOpportunityStillOpen(a.deadline),
   );
 
   const articles = rankAndDeduplicate(opportunityPool, {

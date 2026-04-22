@@ -24,7 +24,7 @@ import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
-import { contentLooksLikeOpportunity } from "@/lib/opportunityClassifier";
+import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
 import { withLangParam, formatRelativeDate, categoryLabel } from "@/lib/utils";
 import { rankFeed } from "@/lib/ranking";
@@ -67,6 +67,7 @@ function isOpportunity(a: FeedItem): boolean {
   const catIsOpp =
     a.vertical === "opportunites" || OPPORTUNITY_CATS.has(a.category ?? "");
   if (!catIsOpp) return false;
+  if (!isOpportunityStillOpen(a.deadline)) return false;
   return contentLooksLikeOpportunity(a.title ?? "", a.summary);
 }
 
