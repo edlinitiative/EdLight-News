@@ -9,6 +9,7 @@ import {
   isAggregatorUrl,
 } from "./scoring.js";
 import { classifyItem } from "./classify.js";
+import { mirrorPublisherImage } from "./mirrorPublisherImage.js";
 
 /** Max raw_items to process per tick (article extraction can be slow) */
 const BATCH_LIMIT = parseInt(process.env.PROCESS_BATCH_LIMIT ?? "10", 10);
@@ -140,6 +141,15 @@ export async function processRawItems(): Promise<{
       // Upsert item keyed by canonical URL (deduplicates across sources)
       const summary = raw.description?.trim() || title;
 
+      // Mirror the publisher image into our own bucket so display does not
+      // depend on publisher uptime / hot-link blocking. Falls back to the
+      // original URL if the mirror fetch fails.
+      let storedImageUrl: string | null = null;
+      if (publisherImageUrl && publisherImageConfidence >= 0.6) {
+        const mirror = await mirrorPublisherImage(publisherImageUrl);
+        storedImageUrl = mirror?.url ?? publisherImageUrl;
+      }
+
       const { item, created } = await itemsRepo.upsertItemByCanonicalUrl({
         rawItemId: raw.id,
         sourceId: raw.sourceId,
@@ -164,10 +174,12 @@ export async function processRawItems(): Promise<{
         publishedAt: raw.publishedAt,
         // success story tagging (deterministic keyword match)
         ...(classification.isSuccessStory ? { successTag: true } : {}),
-        // image fields — set when publisher provides og:image with sufficient confidence
-        ...(publisherImageUrl && publisherImageConfidence >= 0.6
+        // image fields — set when publisher provides og:image with sufficient confidence.
+        // `imageUrl` points at our mirrored copy (or the original if mirroring failed);
+        // `imageMeta.originalImageUrl` always preserves the publisher source for attribution.
+        ...(publisherImageUrl && publisherImageConfidence >= 0.6 && storedImageUrl
           ? {
-              imageUrl: publisherImageUrl,
+              imageUrl: storedImageUrl,
               imageSource: "publisher" as const,
               imageConfidence: publisherImageConfidence,
               imageMeta: {
