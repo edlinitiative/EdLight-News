@@ -154,6 +154,9 @@ export function enrichArticles(
       imageUrl: item?.imageUrl ?? null,
       imageSource: item?.imageSource,
       imageAttribution: item?.imageAttribution,
+      imageMeta: item?.imageMeta
+        ? { width: item.imageMeta.width, height: item.imageMeta.height }
+        : undefined,
       // synthesis fields
       itemType: item?.itemType,
       utilityType: item?.utilityMeta?.utilityType,
