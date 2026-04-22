@@ -55,8 +55,14 @@ export default async function HaitiPage({
   }
 
   // ── Candidate pool: same broad query as before ──────────────────────────
+  // Exclude utility items (histoire du jour, daily facts, scholarship radar,
+  // etc.). Their summaries are structured chronologies / data dumps that
+  // don't render meaningfully as standalone news cards — they have their own
+  // dedicated surfaces (e.g. /histoire, the homepage histoire band).
   const candidatePool = allArticles.filter(
-    (a) => a.vertical === "haiti" || a.geoTag === "HT" || a.category === "local_news",
+    (a) =>
+      a.itemType !== "utility" &&
+      (a.vertical === "haiti" || a.geoTag === "HT" || a.category === "local_news"),
   );
 
   // ── Hard geo filter: only truly Haiti-related items survive ─────────────
