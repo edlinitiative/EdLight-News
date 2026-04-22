@@ -142,6 +142,43 @@ async function main() {
         }
       }
 
+      // ── Stale-payload guard ──────────────────────────────────────────
+      // Even if the item is *now* correctly classified, the FB row's
+      // payload.text was composed at queue-build time and stored verbatim.
+      // If that frozen text starts with a scholarship/opportunity hook
+      // but the item's current category no longer matches, the row will
+      // ship the wrong hook to Facebook. Cancel it so the next tick can
+      // recompose with the correct hook.
+      if (!mustFix) {
+        const isScholarshipHook =
+          row.payloadText.includes("Bourse à surveiller") ||
+          row.payloadText.includes("Opportunité à saisir");
+        const itemIsOpportunity =
+          category === "bourses" ||
+          category === "scholarship" ||
+          category === "stages" ||
+          category === "concours" ||
+          category === "programmes" ||
+          item.vertical === "opportunites";
+
+        if (isScholarshipHook && !itemIsOpportunity) {
+          mustFix = true;
+          reason = "stale_scholarship_payload";
+          // Don't touch the item — it's already correct. Only cancel the row.
+          newCategory = null;
+        } else if (
+          row.payloadText.includes("Bourse à surveiller") &&
+          (isStockMarketFalsePositive(combined) ||
+            lacksScholarshipEvidence(combined))
+        ) {
+          // Item still tagged opportunity but content fails the strict
+          // checks → reclassify item AND cancel row.
+          mustFix = true;
+          reason = "stale_payload_failed_recheck";
+          newCategory = item.geoTag === "HT" ? "local_news" : "news";
+        }
+      }
+
       if (!mustFix) {
         kept++;
         continue;
@@ -149,33 +186,36 @@ async function main() {
 
       console.log(
         `\n  🔄 fb_queue ${row.id} → cancel (${reason})` +
-          `\n     item=${row.sourceContentId}  ${category} → ${newCategory}` +
+          `\n     item=${row.sourceContentId}  ${category}` +
+          (newCategory ? ` → ${newCategory}` : " (item kept, payload stale)") +
           `\n     "${title.slice(0, 80)}…"`,
       );
 
       if (!DRY_RUN) {
         const batch = db.batch();
 
-        // a) Patch the item: flip category, drop opportunity scaffolding
-        const itemPatch: Record<string, unknown> = {
-          category: newCategory,
-          fbQueueFixupAt: FieldValue.serverTimestamp(),
-          fbQueueFixupReason: reason,
-        };
-        if (item.vertical === "opportunites") {
-          itemPatch.vertical = FieldValue.delete();
-        }
-        if (item.opportunity !== undefined) {
-          itemPatch.opportunity = FieldValue.delete();
-        }
-        batch.update(itemsCol.doc(row.sourceContentId), itemPatch);
+        // a) Patch the item ONLY when its category is still wrong.
+        if (newCategory) {
+          const itemPatch: Record<string, unknown> = {
+            category: newCategory,
+            fbQueueFixupAt: FieldValue.serverTimestamp(),
+            fbQueueFixupReason: reason,
+          };
+          if (item.vertical === "opportunites") {
+            itemPatch.vertical = FieldValue.delete();
+          }
+          if (item.opportunity !== undefined) {
+            itemPatch.opportunity = FieldValue.delete();
+          }
+          batch.update(itemsCol.doc(row.sourceContentId), itemPatch);
 
-        // b) Patch content_versions for the item
-        const cvSnap = await cvsCol
-          .where("itemId", "==", row.sourceContentId)
-          .get();
-        for (const cvDoc of cvSnap.docs) {
-          batch.update(cvDoc.ref, { category: newCategory });
+          // b) Patch content_versions for the item
+          const cvSnap = await cvsCol
+            .where("itemId", "==", row.sourceContentId)
+            .get();
+          for (const cvDoc of cvSnap.docs) {
+            batch.update(cvDoc.ref, { category: newCategory });
+          }
         }
 
         // c) Cancel the FB row itself
