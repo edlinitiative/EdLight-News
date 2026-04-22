@@ -147,6 +147,77 @@ const OPPORTUNITY_GATE_KW = [
 ] as const;
 const OPPORTUNITY_GATE_RE = buildWBRegexes(OPPORTUNITY_GATE_KW);
 
+// ── Stock-market disambiguation ──────────────────────────────────────────────
+//
+// "Bourse" in French is ambiguous: it means BOTH "scholarship" (bourse d'études)
+// AND "stock exchange" (la Bourse de Paris, en Bourse, introduction en Bourse).
+// Without disambiguation, a finance article like "La Bourse de New York chute"
+// gets classified as a scholarship and surfaces on Facebook with the hook
+// "Bourse à surveiller" — which is wrong and embarrassing.
+//
+// The keyword lists below are matched against accent-stripped, lowercased text
+// (see `normalizeText`) so they must already be in that form.
+
+const STOCK_MARKET_KEYWORDS = [
+  // Named exchanges (FR + EN)
+  "bourse de new york", "bourse de paris", "bourse de tokyo",
+  "bourse de londres", "bourse de hong kong", "bourse de shanghai",
+  "bourse de toronto", "bourse de francfort",
+  "wall street", "nasdaq", "nyse", "dow jones", "s&p 500", "s & p 500",
+  "cac 40", "ftse", "nikkei", "hang seng", "euronext",
+  // Market vocabulary (FR)
+  "marche boursier", "marches boursiers", "place boursiere", "places boursieres",
+  "indice boursier", "indices boursiers", "valeur boursiere", "valeurs boursieres",
+  "capitalisation boursiere", "introduction en bourse", "entree en bourse",
+  "cotation", "cotee en bourse", "cote en bourse", "actionnaire", "actionnaires",
+  "obligataire", "obligation d'etat", "matieres premieres",
+  // Market vocabulary (EN)
+  "stock market", "stock exchange", "stock price", "share price",
+  "shares fell", "shares rose", "shares jumped", "ipo", "listed company",
+] as const;
+
+const SCHOLARSHIP_CONFIRMATION_KEYWORDS = [
+  // Direct scholarship phrases (accent-stripped)
+  "bourse d'etud", "bourse d etud", "bourses d'etud", "bourses d etud",
+  "bourse de merite", "bourse de recherche", "bourse complete",
+  "bourse partielle", "bourse doctorale", "bourse universitaire",
+  "bourse fulbright", "bourse erasmus", "bourse chevening",
+  "boursier", "boursiere", "boursiers", "boursieres",
+  // Application / eligibility context
+  "candidat", "candidature", "postuler", "appel a candidatures",
+  "deadline", "date limite", "eligibilit", "dossier de candidature",
+  // Academic context that disambiguates
+  "etudiant", "etudiante", "etudiants", "etudiantes",
+  "universite", "universites", "faculte", "diplom",
+  "master", "licence", "doctorat", "phd", "fellowship", "scholarship",
+  "tuition", "frais de scolarite", "prise en charge", "financement d'etud",
+  // Well-known scholarship programmes
+  "fulbright", "chevening", "erasmus", "daad", "mext",
+] as const;
+
+function looksLikeStockMarket(normalizedText: string): boolean {
+  return STOCK_MARKET_KEYWORDS.some((kw) => normalizedText.includes(kw));
+}
+
+function hasScholarshipContext(normalizedText: string): boolean {
+  return SCHOLARSHIP_CONFIRMATION_KEYWORDS.some((kw) =>
+    normalizedText.includes(kw),
+  );
+}
+
+/**
+ * Public disambiguation helper for re-classifying historical items.
+ *
+ * Returns true when the given (raw, un-normalised) text reads like
+ * stock-market coverage and lacks any scholarship-specific context —
+ * i.e. when a "bourses" classification is almost certainly a false
+ * positive caused by the FR/EN ambiguity of the word "bourse".
+ */
+export function isStockMarketFalsePositive(text: string): boolean {
+  const normalized = normalizeText(text);
+  return looksLikeStockMarket(normalized) && !hasScholarshipContext(normalized);
+}
+
 const HAITI_ENTITIES = [
   "haiti",
   "haïti",
@@ -306,6 +377,25 @@ export function classifyItem(
     category = "concours";
   } else {
     category = "programmes";
+  }
+
+  // ── Disambiguate "bourses" vs stock-market false positives ────────────
+  // "Bourse" in French = both "scholarship" AND "stock exchange". A finance
+  // article like "La Bourse de New York chute" would otherwise be tagged as
+  // a scholarship and surface on Facebook with "Bourse à surveiller".
+  //
+  // Rule: if the text reads like stock-market coverage AND has no
+  // scholarship-specific context, drop the opportunity classification.
+  if (category === "bourses") {
+    const isStockMarket = looksLikeStockMarket(combinedText);
+    const hasScholarship = hasScholarshipContext(combinedText);
+    if (isStockMarket && !hasScholarship) {
+      console.warn(
+        `[classify] Skipped "bourses" classification — text looks like stock-market coverage. ` +
+          `Title: "${title.slice(0, 80)}"`,
+      );
+      return { isOpportunity: false, isSuccessStory };
+    }
   }
 
   // ── Extract deadline ──────────────────────────────────────────────────
