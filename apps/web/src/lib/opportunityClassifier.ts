@@ -194,8 +194,15 @@ const SMELL_REGEXES: RegExp[] = (() => {
  *  - Electoral/political context (inscription des *électeurs*, processus *électoral*)
  *  - Winner/result announcements (remporte, lauréat, gagné un concours)
  *  - Crime/security context (assassinat, complot, arrêté, accusé)
+ *  - Past-tense achievement reports ("obtient un doctorat", "décroche son master")
+ *    — these report on people who already received the credential; they are
+ *    NOT opportunities for our readers to apply to.
+ *  - Editorial / opinion pieces ("lettre ouverte", "tribune libre")
+ *  - Political appeals ("appel à l'unité nationale")
+ *  - Commentary on someone else's win ("salue la victoire", "félicite")
  */
-const NEGATIVE_RE = /\b(?:electora[l]|electeur|electeurs|scrutin|vote|mandat|depute|parlement|senat(?:eur)?|remporte|laureat|gagne|gagnant|proclam|sacr[e]e?\s+champion|arrestation|assassin|complot|accuse|condamn|gang|armee|militaire|tir|fusillade|enlev|kidnapp)/i;
+const NEGATIVE_RE =
+  /\b(?:electora[l]|electeur|electeurs|scrutin|vote|mandat|depute|parlement|senat(?:eur)?|remporte|laureat|gagne|gagnant|proclam|sacr[e]e?\s+champion|arrestation|assassin|complot|accuse|condamn|gang|armee|militaire|tir|fusillade|enlev|kidnapp|lettre\s+ouverte|tribune\s+libre|appel\s+a\s+l['\s]?(?:unite|paix|dialogue|reconciliation)|salue\s+(?:la\s+)?victoire|felicit\w*\s+(?:la|le|les)?\s*(?:laureat|gagnant|vainqueur|equipe|champion)|(?:obtient|obtenu|decroche|recoit|recu)\s+(?:un|son|une|sa|le|la|leur|ses|leurs)\s+(?:doctorat|master|licence|diplome|mba|phd|prix|bourse|distinction|titre)|a\s+(?:obtenu|recu|decroche|remporte)\s+(?:un|son|une|sa|le|la|leur)\s+(?:doctorat|master|licence|diplome|mba|phd|prix|bourse))/i;
 
 /**
  * Quick smell test: does the title/summary actually contain opportunity
@@ -216,6 +223,24 @@ export function contentLooksLikeOpportunity(
   const blob = normalise(`${title} ${summary ?? ""}`);
   if (NEGATIVE_RE.test(blob)) return false;
   return SMELL_REGEXES.some((re) => re.test(blob));
+}
+
+/**
+ * Returns true when an opportunity is *still actionable*:
+ *  - no deadline → keep (evergreen / unknown)
+ *  - deadline in the future (with 1-day grace for tz/locale) → keep
+ *  - deadline already past → drop (expired)
+ *
+ * Used by /opportunites and the homepage Opportunités carousel so users
+ * never see scholarships they can no longer apply to.
+ */
+export function isOpportunityStillOpen(deadline?: string | null): boolean {
+  if (!deadline) return true;
+  const d = new Date(deadline);
+  if (Number.isNaN(d.getTime())) return true;
+  // 1-day grace window: deadline counts as open through end-of-day.
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  return d.getTime() >= cutoff;
 }
 
 // ── Matching helpers ─────────────────────────────────────────────────────────

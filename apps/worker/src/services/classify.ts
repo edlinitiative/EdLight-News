@@ -147,6 +147,28 @@ const OPPORTUNITY_GATE_KW = [
 ] as const;
 const OPPORTUNITY_GATE_RE = buildWBRegexes(OPPORTUNITY_GATE_KW);
 
+/**
+ * Negative-signal regex for the opportunity gate.
+ *
+ * Even when a gate keyword fires, these patterns indicate the article is
+ * *news about* a credential / contest rather than an *opportunity to apply*.
+ * Mirrors the web-side `NEGATIVE_RE` in `opportunityClassifier.ts` so both
+ * the ingest pipeline and the rendering surface agree on what counts.
+ *
+ * Catches things like:
+ *   ✗ "La ministre obtient un doctorat" — past achievement, person profile
+ *   ✗ "Lettre ouverte … appel à l'unité nationale" — opinion / editorial
+ *   ✗ "Salue la victoire de X à un concours international" — commentary
+ *   ✗ "Le lauréat remporte le prix" — winner announcement, not call
+ */
+const OPPORTUNITY_NEGATIVE_RE =
+  /\b(?:lettre\s+ouverte|tribune\s+libre|appel\s+a\s+l['\s]?(?:unite|paix|dialogue|reconciliation)|salue\s+(?:la\s+)?victoire|felicit\w*\s+(?:la|le|les)?\s*(?:laureat|gagnant|vainqueur|equipe|champion)|(?:obtient|obtenu|decroche|recoit|recu)\s+(?:un|son|une|sa|le|la|leur|ses|leurs)\s+(?:doctorat|master|licence|diplome|mba|phd|prix|bourse|distinction|titre)|a\s+(?:obtenu|recu|decroche|remporte)\s+(?:un|son|une|sa|le|la|leur)\s+(?:doctorat|master|licence|diplome|mba|phd|prix|bourse))/i;
+
+/** Whether the text matches any opportunity-negative signal. */
+function matchesNegativeOpportunitySignal(normalizedText: string): boolean {
+  return OPPORTUNITY_NEGATIVE_RE.test(normalizedText);
+}
+
 // ── Stock-market disambiguation ──────────────────────────────────────────────
 //
 // "Bourse" in French is ambiguous: it means BOTH "scholarship" (bourse d'études)
@@ -315,6 +337,20 @@ export function classifyItem(
   // Uses a conservative gate with word-boundary regex to prevent general
   // news articles from being misclassified as opportunities.
   if (!matchesAnyWB(combinedText, OPPORTUNITY_GATE_RE)) {
+    return { isOpportunity: false, isSuccessStory };
+  }
+
+  // ── Negative gate: news *about* opportunities, not opportunities ───────
+  // Even if a gate keyword matches (e.g. "doctorat", "concours"), reject
+  // when the text is clearly a past-achievement report, an editorial /
+  // opinion piece, or political commentary. These regularly slip past the
+  // positive gate via single-keyword hits ("obtient un doctorat",
+  // "salue la victoire à un concours", "lettre ouverte … appel à l'unité").
+  if (matchesNegativeOpportunitySignal(combinedText)) {
+    console.warn(
+      `[classify] Skipped opportunity classification — negative signal matched. ` +
+        `Title: "${title.slice(0, 80)}"`,
+    );
     return { isOpportunity: false, isSuccessStory };
   }
 
