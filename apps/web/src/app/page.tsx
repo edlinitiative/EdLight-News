@@ -172,7 +172,14 @@ export default async function AccueilPage({
 
   // ── Segments ──────────────────────────────────────────────────────────────
   const opportunities = rankedFeed.filter(isOpportunity);
-  const newsPool = rankedFeed.filter((a) => !isOpportunity(a));
+  // Utility items (histoire du jour, daily facts, etc.) have their own
+  // dedicated bands further down the page and carry summaries that read
+  // poorly out of context (e.g. histoire summaries are a chronology of
+  // multiple events, not a deck for a single story). Keep them out of the
+  // lead / secondary / news-grid pool so real news takes those slots.
+  const newsPool = rankedFeed.filter(
+    (a) => !isOpportunity(a) && a.itemType !== "utility",
+  );
 
   // Lead: prefer articles with images
   const leadArticle = newsPool.find((a) => !!a.imageUrl) ?? newsPool[0] ?? null;
