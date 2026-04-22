@@ -168,6 +168,8 @@ jobs:
             PROCESS_BATCH_LIMIT=10
             GENERATE_BATCH_LIMIT=3
             IMAGE_BATCH_LIMIT=5
+            IG_LLM_VALIDATE_PUBLISHER=true
+            IG_LLM_IMAGE_FINDER=true
 
       - name: Get service URL
         id: service_url
