@@ -240,61 +240,65 @@ body {
   background: ${DEFAULT_DARK} ${slide.backgroundImage ? `url('${slide.backgroundImage}') center/cover no-repeat` : ""};
   color:#fff; overflow:hidden; position:relative;
 }
-/* Aggressive multi-stop overlay — readable on any image brightness */
+/* Editorial bottom-anchored gradient — keeps the photo readable up top
+   and pools darkness around the headline for legibility, no panel needed. */
 .overlay {
   position:absolute; inset:0;
   background: linear-gradient(180deg,
-    rgba(0,0,0,0.50) 0%,
-    rgba(0,0,0,0.20) 20%,
-    rgba(0,0,0,0.10) 40%,
-    rgba(0,0,0,0.45) 60%,
-    rgba(0,0,0,0.85) 85%,
-    rgba(0,0,0,0.92) 100%);
+    rgba(0,0,0,0.45) 0%,
+    rgba(0,0,0,0.18) 22%,
+    rgba(0,0,0,0.08) 42%,
+    rgba(0,0,0,0.40) 60%,
+    rgba(0,0,0,0.82) 80%,
+    rgba(0,0,0,0.94) 100%);
 }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:flex-end;
-  padding:${SAFE_TOP + 20}px 72px ${SAFE_BOTTOM + 20}px;
+  padding:${SAFE_TOP + 20}px 88px ${SAFE_BOTTOM + 24}px;
 }
-.date {
-  font-family:${FONT_HEADLINE}; font-size:16px; font-weight:700; text-transform:uppercase;
-  letter-spacing:5px; opacity:0.7; margin-bottom:24px;
+/* Top-left kicker: accent rule + uppercase date, like a wire dateline. */
+.kicker {
+  position:absolute; top:${SAFE_TOP + 8}px; left:88px;
+  display:flex; align-items:center; gap:14px;
+  font-family:${FONT_HEADLINE}; font-size:16px; font-weight:800;
+  text-transform:uppercase; letter-spacing:4px;
+  color:${accent};
+  text-shadow:0 2px 14px rgba(0,0,0,0.5);
 }
-.dot {
-  display:inline-block; width:10px; height:10px;
-  background:${accent}; border-radius:50%; margin-right:12px; vertical-align:middle;
-}
+.kicker .bar { width:36px; height:3px; background:${accent}; border-radius:2px; }
 .h {
-  font-family:${FONT_HEADLINE}; font-size:68px; font-weight:900; line-height:1.05; letter-spacing:-1.5px;
-  text-shadow:0 4px 50px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.6);
-  margin-bottom:28px;
+  font-family:${FONT_HEADLINE}; font-size:74px; font-weight:900; line-height:1.02; letter-spacing:-2px;
+  text-shadow:0 4px 50px rgba(0,0,0,0.92), 0 2px 8px rgba(0,0,0,0.7);
+  margin-bottom:26px;
 }
 .sub ul { list-style:none; }
 .sub li {
-  font-size:22px; font-weight:500; line-height:1.55; opacity:0.9;
-  text-shadow:0 2px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.4);
-  margin-bottom:8px;
+  font-size:23px; font-weight:500; line-height:1.55; opacity:0.92;
+  text-shadow:0 2px 16px rgba(0,0,0,0.78), 0 1px 4px rgba(0,0,0,0.5);
+  margin-bottom:6px;
 }
 .bm {
-  margin-top:40px; font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800;
-  letter-spacing:3.5px; display:flex; align-items:center; gap:8px;
+  position:absolute; bottom:${SAFE_BOTTOM - 8}px; left:0; right:0;
+  text-align:center;
+  font-family:${FONT_HEADLINE}; font-size:18px; font-weight:800; letter-spacing:5px;
 }
-.bm .el { color:rgba(255,255,255,0.72); }
-.bm .nw { color:${accent}; }
+.bm .el { color:rgba(255,255,255,0.78); }
+.bm .nw { color:${accent}; margin-left:6px; }
 </style></head>
 <body>
 <div class="overlay"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
+<div class="kicker"><span class="bar"></span>${escapeHtml(dateLabel)}</div>
 <div class="c">
-  <div class="date"><span class="dot"></span>${escapeHtml(dateLabel)}</div>
   <div class="h">${escapeHtml(slide.heading)}</div>
   <div class="sub"><ul>${bulletsHtml}</ul></div>
-  <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </div>
+<div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
 
-// ── Taux frame (premium navy/gold financial card) ─────────────────────────
+// ── Taux frame (editorial financial moment, no card) ──────────────────────
 
 function buildTauxFrameHTML(
   slide: IGStorySlide,
@@ -306,7 +310,7 @@ function buildTauxFrameHTML(
   const rate = slide.heading; // e.g. "131.2589"
   const bgCss = slide.backgroundImage
     ? `background:#0a1628 url('${slide.backgroundImage}') center/cover no-repeat;`
-    : "background: linear-gradient(180deg, #0a1628 0%, #0d2137 40%, #0a1628 100%);";
+    : "background: radial-gradient(ellipse at 50% 35%, #102842 0%, #0a1628 55%, #060f1c 100%);";
   // bullets[0] = rate date label, rest are optional market bullets
   const rateDate = slide.bullets[0] ?? dateLabel;
   const marketBullets = slide.bullets.slice(1);
@@ -325,49 +329,89 @@ body {
   ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
-.img-overlay { position:absolute; inset:0; background:linear-gradient(180deg, rgba(5,10,24,0.48) 0%, rgba(5,10,24,0.38) 30%, rgba(5,10,24,0.72) 75%, rgba(5,10,24,0.88) 100%); }
-.glow { position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); width:700px; height:700px; background:radial-gradient(circle, rgba(234,179,8,0.10) 0%, transparent 70%); }
+.img-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,
+    rgba(5,10,24,0.62) 0%,
+    rgba(5,10,24,0.50) 35%,
+    rgba(5,10,24,0.78) 75%,
+    rgba(5,10,24,0.92) 100%);
+}
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center; align-items:center;
-  padding:${SAFE_TOP + 40}px 72px ${SAFE_BOTTOM + 40}px;
+  padding:${SAFE_TOP + 40}px 88px ${SAFE_BOTTOM + 60}px;
   text-align:center;
 }
-.card {
-  width:100%; max-width:820px; padding:54px 52px; border-radius:34px;
-  background:linear-gradient(180deg, rgba(7,18,35,0.78) 0%, rgba(7,18,35,0.88) 100%);
-  backdrop-filter:blur(10px); box-shadow:0 28px 80px rgba(0,0,0,0.26);
-  border:1px solid rgba(255,255,255,0.08);
+.kicker {
+  display:flex; align-items:center; gap:14px;
+  font-family:${FONT_HEADLINE};
+  color:${accent}; font-size:18px; font-weight:800;
+  text-transform:uppercase; letter-spacing:5px;
+  margin-bottom:28px;
 }
-.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:10px 24px; border-radius:999px; margin-bottom:28px; }
-.rate-label { font-family:${FONT_HEADLINE}; font-size:18px; font-weight:600; opacity:0.40; letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
-.rate { font-family:${FONT_HEADLINE}; font-size:120px; font-weight:900; letter-spacing:-3px; color:${accent}; line-height:1; margin-bottom:8px; }
-.unit { font-size:24px; font-weight:500; opacity:0.35; letter-spacing:1.5px; margin-bottom:32px; }
-.date-line { font-size:16px; font-weight:600; opacity:0.50; letter-spacing:1px; margin-bottom:40px; }
-.mk { font-size:20px; font-weight:600; opacity:0.75; margin-bottom:12px; line-height:1.4; }
-.bm { position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0; font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px; display:flex; justify-content:center; align-items:center; gap:8px; }
+.kicker .bar { width:36px; height:3px; background:${accent}; border-radius:2px; }
+.rate-label {
+  font-family:${FONT_HEADLINE};
+  font-size:16px; font-weight:600;
+  opacity:0.55; letter-spacing:4px;
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+.rate {
+  font-family:${FONT_HEADLINE};
+  font-size:200px; font-weight:900;
+  letter-spacing:-7px;
+  color:${accent};
+  line-height:0.95;
+  margin-bottom:14px;
+  text-shadow:0 6px 60px rgba(234,179,8,0.20);
+}
+.unit {
+  font-family:${FONT_HEADLINE};
+  font-size:22px; font-weight:700;
+  opacity:0.55; letter-spacing:6px;
+  text-transform:uppercase;
+  margin-bottom:42px;
+}
+.rule {
+  width:80px; height:2px; background:rgba(255,255,255,0.22);
+  margin:0 auto 30px;
+}
+.date-line {
+  font-size:17px; font-weight:600; opacity:0.55; letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:24px;
+}
+.mk {
+  font-size:21px; font-weight:600; opacity:0.78;
+  margin-bottom:10px; line-height:1.4;
+}
+.bm {
+  position:absolute; bottom:${SAFE_BOTTOM - 8}px; left:0; right:0;
+  text-align:center;
+  font-family:${FONT_HEADLINE}; font-size:18px; font-weight:800; letter-spacing:5px;
+}
 .bm .el { color:rgba(255,255,255,0.65); }
-.bm .nw { color:${accent}; }
+.bm .nw { color:${accent}; margin-left:6px; }
 </style></head>
 <body>
 ${slide.backgroundImage ? '<div class="img-overlay"></div>' : ""}
-<div class="glow"></div>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <div class="card">
-    <span class="pill">TAUX DU JOUR</span>
-    <div class="rate-label">TAUX DE RÉFÉRENCE BRH</div>
-    <div class="rate">${escapeHtml(rate)}</div>
-    <div class="unit">HTG / 1 USD</div>
-    <div class="date-line">${escapeHtml(rateDate)}</div>
-    ${marketHtml}
-  </div>
+  <div class="kicker"><span class="bar"></span>TAUX DU JOUR</div>
+  <div class="rate-label">Taux de référence BRH</div>
+  <div class="rate">${escapeHtml(rate)}</div>
+  <div class="unit">HTG / 1 USD</div>
+  <div class="rule"></div>
+  <div class="date-line">${escapeHtml(rateDate)}</div>
+  ${marketHtml}
 </div>
 <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
 
-// ── Facts frame (green-accented "Le saviez-vous ?" card) ──────────────────
+// ── Facts frame (editorial "Le saviez-vous ?" — flat, no card) ───────────
 
 function buildFactsFrameHTML(
   slide: IGStorySlide,
@@ -381,13 +425,13 @@ function buildFactsFrameHTML(
   const bgCss = hasImage
     ? `background:#040e09 url('${slide.backgroundImage}') center/cover no-repeat;`
     : `background:
-        radial-gradient(ellipse at 15% 15%, ${accent}18 0%, transparent 45%),
-        radial-gradient(ellipse at 85% 85%, ${accent}0D 0%, transparent 50%),
+        radial-gradient(ellipse at 18% 18%, ${accent}1F 0%, transparent 48%),
+        radial-gradient(ellipse at 82% 82%, ${accent}0F 0%, transparent 50%),
         #040e09;`;
   const factsHtml = slide.bullets
     .map(
       (f, i) =>
-        `<div class="fact"><span class="fn">${i + 1}</span><span class="ft">${escapeHtml(f)}</span></div>`,
+        `<div class="fact"><span class="fn">${String(i + 1).padStart(2, "0")}</span><span class="ft">${escapeHtml(f)}</span></div>`,
     )
     .join("\n");
 
@@ -405,74 +449,73 @@ body {
 .img-overlay {
   position:absolute; inset:0;
   background:linear-gradient(180deg,
-    rgba(2,10,7,0.32) 0%,
-    rgba(2,10,7,0.16) 18%,
-    rgba(2,10,7,0.40) 44%,
-    rgba(2,10,7,0.78) 74%,
-    rgba(2,10,7,0.92) 100%);
-}
-.img-vignette {
-  position:absolute; inset:0;
-  background:radial-gradient(circle at 18% 18%, ${accent}12 0%, transparent 34%),
-             radial-gradient(circle at 82% 82%, rgba(0,0,0,0.18) 0%, transparent 42%);
+    rgba(2,10,7,0.55) 0%,
+    rgba(2,10,7,0.32) 22%,
+    rgba(2,10,7,0.46) 50%,
+    rgba(2,10,7,0.82) 78%,
+    rgba(2,10,7,0.94) 100%);
 }
 .c {
   position:relative; z-index:1; height:100%;
   display:flex; flex-direction:column; justify-content:center;
-  padding:${SAFE_TOP + 20}px 80px ${SAFE_BOTTOM + 60}px 100px;
+  padding:${SAFE_TOP + 30}px 88px ${SAFE_BOTTOM + 60}px;
 }
-	.top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
-	.pill { font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px; background:${accent}; color:#000; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:3px; padding:9px 20px; border-radius:999px; }
-	.panel {
-	  max-width: 900px;
-	  padding:${metrics.panelPaddingY}px ${metrics.panelPaddingX}px ${metrics.panelPaddingY - 4}px;
-	  border-radius:36px;
-	  background:linear-gradient(180deg, rgba(5,16,11,0.76) 0%, rgba(5,16,11,0.92) 100%);
-	  border:1px solid rgba(255,255,255,0.08);
-	  box-shadow:0 28px 74px rgba(0,0,0,0.26);
-	  backdrop-filter:blur(18px);
-	}
-	.rule {
-	  width:72px; height:4px; border-radius:999px; background:${accent};
-	  margin-bottom:18px;
-	}
-	.h { font-family:${FONT_HEADLINE}; font-size:${metrics.titleSize}px; font-weight:900; line-height:1.08; letter-spacing:-0.8px; margin-bottom:22px; color:#fff; }
-	.fact {
-	  display:flex; gap:${metrics.factGap}px; align-items:flex-start;
-	  padding:${metrics.factGap}px 0;
-	}
-	.fact + .fact {
-	  border-top:1px solid rgba(255,255,255,0.08);
-	}
-	.fn {
-	  font-family:${FONT_HEADLINE}; flex-shrink:0;
-	  width:${metrics.numberRing}px; height:${metrics.numberRing}px;
-	  background:${accent}24; color:${accent}; font-size:${metrics.numberSize}px; font-weight:800;
-	  border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:4px;
-	  box-shadow:0 0 0 5px ${accent}12;
-	}
-	.ft { font-size:${metrics.factFont}px; line-height:1.6; opacity:0.94; font-weight:500; }
-	.bm {
-	  position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
-	  display:flex; justify-content:center; align-items:center; gap:8px;
-  font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px;
+.kicker {
+  display:flex; align-items:center; gap:14px;
+  font-family:${FONT_HEADLINE};
+  color:${accent}; font-size:18px; font-weight:800;
+  text-transform:uppercase; letter-spacing:5px;
+  margin-bottom:30px;
+  text-shadow:0 2px 14px rgba(0,0,0,0.5);
 }
-.bm .el { color:rgba(255,255,255,0.72); }
-.bm .nw { color:${accent}; }
+.kicker .bar { width:36px; height:3px; background:${accent}; border-radius:2px; }
+/* .panel kept as a logical wrapper (referenced by tests) — no visual chrome. */
+.panel { max-width:920px; }
+.h {
+  font-family:${FONT_HEADLINE};
+  font-size:${metrics.titleSize + 4}px; font-weight:900;
+  line-height:1.05; letter-spacing:-1.2px;
+  margin-bottom:36px;
+  text-shadow:0 2px 24px rgba(0,0,0,0.7);
+  color:#fff;
+}
+.fact {
+  display:flex; gap:${metrics.factGap + 2}px; align-items:flex-start;
+  padding:${metrics.factGap + 2}px 0;
+}
+.fact + .fact {
+  border-top:1px solid rgba(255,255,255,0.12);
+}
+.fn {
+  font-family:${FONT_HEADLINE}; flex-shrink:0;
+  width:48px;
+  color:${accent}; font-size:${metrics.numberSize + 2}px; font-weight:800;
+  letter-spacing:1px;
+  margin-top:4px;
+}
+.ft {
+  font-size:${metrics.factFont + 1}px; line-height:1.55;
+  opacity:0.96; font-weight:500;
+  text-shadow:0 1px 10px rgba(0,0,0,0.55);
+}
+.bm {
+  position:absolute; bottom:${SAFE_BOTTOM - 8}px; left:0; right:0;
+  text-align:center;
+  font-family:${FONT_HEADLINE}; font-size:18px; font-weight:800; letter-spacing:5px;
+}
+.bm .el { color:rgba(255,255,255,0.78); }
+.bm .nw { color:${accent}; margin-left:6px; }
 </style></head>
 <body>
-${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
+${hasImage ? '<div class="img-overlay"></div>' : ""}
 ${buildProgressDots(slideIndex, totalSlides, accent)}
-	<div class="c">
-	  <div class="top">
-	    <span class="pill">${escapeHtml(eyebrow)}</span>
-	  </div>
-	  <div class="panel">
-	    <div class="rule"></div>
-	    <div class="h">${escapeHtml(slide.heading)}</div>
-	    ${factsHtml}
-	  </div>
-	</div>
+<div class="c">
+  <div class="kicker"><span class="bar"></span>${escapeHtml(eyebrow)}</div>
+  <div class="panel">
+    <div class="h">${escapeHtml(slide.heading)}</div>
+    ${factsHtml}
+  </div>
+</div>
 <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
@@ -491,15 +534,12 @@ function buildHeadlineFrameHTML(
   const metrics = getStoryHeadlineMetrics(content);
   const bgCss = hasImage
     ? `background:${dark} url('${slide.backgroundImage}') center/cover no-repeat;`
-    : `background: radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.03) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 80%, ${accent}08 0%, transparent 50%),
+    : `background: radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.04) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, ${accent}10 0%, transparent 50%),
               ${dark};`;
-  const panelBackground = hasImage
-    ? "linear-gradient(180deg, rgba(7,12,20,0.80) 0%, rgba(7,12,20,0.92) 100%)"
-    : "linear-gradient(180deg, rgba(7,12,20,0.76) 0%, rgba(7,12,20,0.88) 100%)";
-  const metaHtml = content.meta
-    .map((entry) => `<span class="chip">${escapeHtml(entry)}</span>`)
-    .join("\n");
+  const metaInline = content.meta
+    .map((entry) => escapeHtml(entry))
+    .join('<span class="dot">·</span>');
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -512,99 +552,81 @@ body {
   ${bgCss}
   color:#fff; overflow:hidden; position:relative;
 }
-/* Aggressive overlay for strong text contrast over any background image */
+/* Editorial bottom-anchored gradient — no panel, type sits on the photo
+   with strong text-shadows for legibility (Reuters/Bloomberg approach). */
 .img-overlay { position:absolute; inset:0; background:linear-gradient(180deg,
-  rgba(0,0,0,0.42) 0%,
-  rgba(0,0,0,0.22) 16%,
-  rgba(0,0,0,0.42) 40%,
+  rgba(0,0,0,0.40) 0%,
+  rgba(0,0,0,0.18) 18%,
+  rgba(0,0,0,0.32) 42%,
   rgba(0,0,0,0.72) 66%,
   rgba(0,0,0,0.90) 84%,
   rgba(0,0,0,0.96) 100%); }
-.img-vignette { position:absolute; inset:0; background:
-  radial-gradient(circle at 18% 18%, ${accent}10 0%, transparent 30%),
-  radial-gradient(circle at 82% 78%, rgba(255,255,255,0.04) 0%, transparent 34%); }
 .c {
   position:relative; z-index:1;
   height:100%; display:flex; flex-direction:column; justify-content:flex-end;
-  padding:${SAFE_TOP + 24}px 76px ${SAFE_BOTTOM + 84}px 88px;
+  padding:${SAFE_TOP + 24}px 88px ${SAFE_BOTTOM + 28}px;
 }
-.top {
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:18px;
+.kicker {
+  display:flex; align-items:center; gap:14px;
+  font-family:${FONT_HEADLINE};
+  color:${accent}; font-size:${metrics.eyebrowSize + 2}px; font-weight:800;
+  text-transform:uppercase; letter-spacing:5px;
+  margin-bottom:24px;
+  text-shadow:0 2px 14px rgba(0,0,0,0.55);
 }
-.cat {
-  font-family:${FONT_HEADLINE}; display:inline-flex; align-items:center; gap:8px;
-  color:${accent}; background:rgba(0,0,0,0.42);
-  border:1px solid rgba(255,255,255,0.10);
-  font-size:${metrics.eyebrowSize}px; font-weight:800; text-transform:uppercase; letter-spacing:3px;
-  padding:9px 18px; border-radius:999px;
-}
-.panel {
-  max-width: 900px;
-  padding:${metrics.panelPaddingY}px ${metrics.panelPaddingX}px;
-  border-radius:36px;
-  background:${panelBackground};
-  border:1px solid rgba(255,255,255,0.08);
-  box-shadow:0 28px 80px rgba(0,0,0,0.26);
-  backdrop-filter:blur(18px);
-}
-.rule {
-  width:72px; height:4px; border-radius:999px; background:${accent};
-  margin-bottom:20px;
-}
+.kicker .bar { width:36px; height:3px; background:${accent}; border-radius:2px; }
 .h {
-  font-family:${FONT_HEADLINE}; font-size:${metrics.headingSize}px; font-weight:900; line-height:1.03; letter-spacing:-1.1px;
-  margin-bottom:${metrics.headingSpacing}px; text-shadow:0 2px 20px rgba(0,0,0,0.8);
+  font-family:${FONT_HEADLINE};
+  font-size:${metrics.headingSize + 6}px; font-weight:900;
+  line-height:1.02; letter-spacing:-1.4px;
+  margin-bottom:${metrics.headingSpacing}px;
+  text-shadow:0 4px 32px rgba(0,0,0,0.92), 0 2px 10px rgba(0,0,0,0.7);
 }
 .dek {
-  font-size:${metrics.summarySize}px; line-height:1.60; opacity:1; font-weight:500;
+  font-size:${metrics.summarySize + 1}px; line-height:1.55; opacity:0.96; font-weight:500;
   margin-bottom:${content.meta.length > 0 ? metrics.summarySpacing : 0}px;
-  text-shadow:0 1px 12px rgba(0,0,0,0.72);
+  text-shadow:0 2px 16px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.5);
+  max-width:880px;
 }
 .meta {
-  display:flex; flex-wrap:wrap; gap:${metrics.metaGap}px;
-  margin-top:${content.subheading ? 0 : 6}px;
+  font-family:${FONT_HEADLINE};
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  font-size:${metrics.metaSize}px; line-height:1.4; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase;
+  color:rgba(255,255,255,0.85);
+  margin-top:${content.subheading ? 4 : 8}px;
+  text-shadow:0 2px 12px rgba(0,0,0,0.65);
 }
-.chip {
-  font-size:${metrics.metaSize}px; line-height:1.3; font-weight:600;
-  color:rgba(255,255,255,0.92);
-  padding:10px 16px;
-  border-radius:999px;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.08);
-}
+.meta .dot { color:${accent}; opacity:0.9; }
 .src {
-  margin-top:20px; font-size:15px; font-weight:600;
-  opacity:0.65; letter-spacing:0.5px;
+  margin-top:18px; font-size:15px; font-weight:600;
+  opacity:0.62; letter-spacing:1px;
+  text-transform:uppercase;
+  text-shadow:0 1px 8px rgba(0,0,0,0.7);
 }
 .bm {
-  position:absolute; bottom:${SAFE_BOTTOM + 18}px; left:0; right:0;
-  display:flex; justify-content:center; align-items:center; gap:8px;
-  font-family:${FONT_HEADLINE}; font-size:20px; font-weight:800; letter-spacing:3.5px;
+  position:absolute; bottom:${SAFE_BOTTOM - 8}px; left:0; right:0;
+  text-align:center;
+  font-family:${FONT_HEADLINE}; font-size:18px; font-weight:800; letter-spacing:5px;
 }
-.bm .el { color:rgba(255,255,255,0.72); }
-.bm .nw { color:${accent}; }
+.bm .el { color:rgba(255,255,255,0.78); }
+.bm .nw { color:${accent}; margin-left:6px; }
 </style></head>
 <body>
-${hasImage ? '<div class="img-overlay"></div><div class="img-vignette"></div>' : ""}
+${hasImage ? '<div class="img-overlay"></div>' : ""}
 ${buildProgressDots(slideIndex, totalSlides, accent)}
 <div class="c">
-  <div class="top">
-    <div class="cat">${escapeHtml(content.eyebrow)}</div>
-  </div>
-  <div class="panel">
-    <div class="rule"></div>
-    <div class="h">${escapeHtml(content.heading)}</div>
-    ${content.subheading ? `<div class="dek">${escapeHtml(content.subheading)}</div>` : ""}
-    ${content.meta.length > 0 ? `<div class="meta">${metaHtml}</div>` : ""}
-    ${content.footer ? `<div class="src">${escapeHtml(content.footer)}</div>` : ""}
-  </div>
+  <div class="kicker"><span class="bar"></span>${escapeHtml(content.eyebrow)}</div>
+  <div class="h">${escapeHtml(content.heading)}</div>
+  ${content.subheading ? `<div class="dek">${escapeHtml(content.subheading)}</div>` : ""}
+  ${content.meta.length > 0 ? `<div class="meta">${metaInline}</div>` : ""}
+  ${content.footer ? `<div class="src">${escapeHtml(content.footer)}</div>` : ""}
 </div>
 <div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
 </body></html>`;
 }
 
-// ── CTA closing frame ─────────────────────────────────────────────────────
+// ── CTA closing frame (editorial colophon, no shell) ─────────────────────
 
 function buildCtaFrameHTML(
   accent: string,
@@ -620,134 +642,94 @@ body {
   width:1080px; height:1920px;
   font-family: ${FONT_BODY};
   background:
-    radial-gradient(circle at 18% 20%, ${accent}18 0%, transparent 28%),
-    radial-gradient(circle at 82% 76%, rgba(255,255,255,0.05) 0%, transparent 34%),
-    linear-gradient(180deg, #08121e 0%, #071018 56%, #060f0b 100%);
+    radial-gradient(ellipse at 20% 25%, ${accent}1A 0%, transparent 38%),
+    radial-gradient(ellipse at 80% 78%, rgba(255,255,255,0.04) 0%, transparent 40%),
+    linear-gradient(180deg, #08121e 0%, #061018 56%, #060f0b 100%);
   color:#fff; overflow:hidden; position:relative;
-}
-.glow {
-  position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.34) 44%, rgba(0,0,0,0.58) 100%);
 }
 .c {
   position:relative; z-index:1; height:100%;
-  display:flex; align-items:center; justify-content:center;
-  padding:${SAFE_TOP - 20}px 86px ${SAFE_BOTTOM + 40}px;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:${SAFE_TOP + 20}px 100px ${SAFE_BOTTOM + 40}px;
 }
-.shell {
-  width:100%; max-width:860px;
-  padding:56px 52px 44px;
-  border-radius:40px;
-  background:linear-gradient(180deg, rgba(8,18,30,0.82) 0%, rgba(8,18,30,0.92) 100%);
-  border:1px solid rgba(255,255,255,0.09);
-  box-shadow:0 34px 90px rgba(0,0,0,0.26);
-  backdrop-filter:blur(18px);
-}
-.eyebrow {
-  display:inline-flex; align-items:center;
-  padding:10px 18px;
-  border-radius:999px;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.08);
-  color:${accent};
+.kicker {
+  display:flex; align-items:center; gap:14px;
   font-family:${FONT_HEADLINE};
-  font-size:14px;
-  font-weight:800;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  margin-bottom:26px;
+  color:${accent}; font-size:18px; font-weight:800;
+  text-transform:uppercase; letter-spacing:5px;
+  margin-bottom:36px;
 }
+.kicker .bar { width:36px; height:3px; background:${accent}; border-radius:2px; }
 .logo {
-  font-family:${FONT_HEADLINE}; font-size:40px; font-weight:900; letter-spacing:4px; margin-bottom:18px;
-  display:flex; align-items:center; gap:10px;
+  font-family:${FONT_HEADLINE};
+  font-size:54px; font-weight:900; letter-spacing:6px;
+  margin-bottom:18px;
+  display:flex; align-items:baseline; gap:12px;
 }
 .logo .el { color:#fff; }
 .logo .nw { color:${accent}; }
 .line {
-  width:72px; height:4px; background:${accent}; opacity:0.7;
-  margin:0 0 28px; border-radius:999px;
+  width:96px; height:3px; background:${accent};
+  margin:0 0 36px; border-radius:2px;
 }
 .headline {
   font-family:${FONT_HEADLINE};
-  font-size:62px;
-  font-weight:900;
-  line-height:1.02;
-  letter-spacing:-1.2px;
-  margin-bottom:22px;
-  text-shadow:0 2px 24px rgba(0,0,0,0.42);
+  font-size:68px; font-weight:900;
+  line-height:1.04; letter-spacing:-1.6px;
+  margin-bottom:28px; max-width:760px;
 }
 .summary {
-  font-size:25px;
-  font-weight:500;
-  line-height:1.62;
-  opacity:0.88;
-  max-width:680px;
-  margin-bottom:28px;
+  font-size:26px; font-weight:500; line-height:1.55;
+  opacity:0.86; max-width:720px;
+  margin-bottom:42px;
 }
 .tags {
-  display:flex; flex-wrap:wrap; gap:12px;
-  margin-bottom:32px;
-}
-.tag {
-  padding:12px 18px;
-  border-radius:999px;
-  background:rgba(255,255,255,0.06);
-  border:1px solid rgba(255,255,255,0.08);
   font-family:${FONT_HEADLINE};
-  font-size:15px;
-  font-weight:800;
-  letter-spacing:2px;
-  text-transform:uppercase;
+  display:flex; flex-wrap:wrap; align-items:center; gap:14px;
+  font-size:17px; font-weight:800; letter-spacing:3px; text-transform:uppercase;
+  color:rgba(255,255,255,0.72);
+  margin-bottom:48px;
 }
-.handle-row {
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  margin-bottom:18px;
+.tags .dot { color:${accent}; opacity:0.9; }
+.handle-block {
+  border-top:1px solid rgba(255,255,255,0.14);
+  padding-top:30px;
+  display:flex; align-items:baseline; justify-content:space-between; gap:16px;
 }
 .handle {
-  display:inline-flex; align-items:center; justify-content:center;
-  padding:16px 24px;
-  border-radius:999px;
-  background:${accent};
-  color:#04110c;
   font-family:${FONT_HEADLINE};
-  font-size:22px;
-  font-weight:900;
-  letter-spacing:1px;
+  font-size:36px; font-weight:900; letter-spacing:0;
+  color:${accent};
 }
 .note {
-  font-size:17px;
-  font-weight:600;
-  letter-spacing:0.6px;
-  color:rgba(255,255,255,0.58);
+  font-family:${FONT_HEADLINE};
+  font-size:15px; font-weight:700; letter-spacing:3px;
+  color:rgba(255,255,255,0.55);
   text-transform:uppercase;
 }
 .kreyol {
-  font-size:21px;
-  line-height:1.58;
-  opacity:0.58;
+  margin-top:26px;
+  font-size:21px; line-height:1.55; opacity:0.55; max-width:760px;
 }
 </style></head>
 <body>
 ${buildProgressDots(slideIndex, totalSlides, accent)}
-<div class="glow"></div>
 <div class="c">
-  <div class="shell">
-    <div class="eyebrow">Édition quotidienne</div>
-    <div class="logo"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
-    <div class="line"></div>
-    <div class="headline">Votre briefing étudiant, chaque matin.</div>
-    <div class="summary">Actualités, bourses et repères pensés pour les élèves et étudiants haïtiens.</div>
-    <div class="tags">
-      <span class="tag">Actualités</span>
-      <span class="tag">Bourses</span>
-      <span class="tag">Repères</span>
-    </div>
-    <div class="handle-row">
-      <div class="handle">@edlight.news</div>
-      <div class="note">En story chaque matin</div>
-    </div>
-    <div class="kreyol">Nouvèl, opòtinite ak repè pou elèv ak etidyan ayisyen, chak jou.</div>
+  <div class="kicker"><span class="bar"></span>Édition quotidienne</div>
+  <div class="logo"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
+  <div class="line"></div>
+  <div class="headline">Votre briefing étudiant, chaque matin.</div>
+  <div class="summary">Actualités, bourses et repères pensés pour les élèves et étudiants haïtiens.</div>
+  <div class="tags">
+    <span>Actualités</span><span class="dot">·</span>
+    <span>Bourses</span><span class="dot">·</span>
+    <span>Repères</span>
   </div>
+  <div class="handle-block">
+    <div class="handle">@edlight.news</div>
+    <div class="note">En story chaque matin</div>
+  </div>
+  <div class="kreyol">Nouvèl, opòtinite ak repè pou elèv ak etidyan ayisyen, chak jou.</div>
 </div>
 </body></html>`;
 }

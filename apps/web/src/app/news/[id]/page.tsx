@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import type { Metadata } from "next";
 import ReactMarkdown from "react-markdown";
-import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle, Lightbulb, BookOpen, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { ClipboardList, Calendar, Newspaper, Paperclip, RefreshCw, MapPin, CheckCircle, XCircle, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { contentVersionsRepo, itemsRepo } from "@edlight-news/firebase";
 import type { ContentVersion, ContentLanguage, Item, ContentSection } from "@edlight-news/types";
 import {
@@ -245,20 +245,20 @@ function BoursesFiche({ item, lang }: { item: Item; lang: ContentLanguage }) {
   if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-purple-100 bg-purple-50/50 p-6 dark:border-stone-700 dark:bg-purple-900/20">
-      <h2 className="mb-4 text-title-sm dark:text-white">
-        <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
+    <section className="border-t border-stone-200 pt-5 dark:border-stone-700">
+      <h2 className="mb-4 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+        <ClipboardList className="h-3.5 w-3.5" />
         {lang === "fr" ? "Fiche Bourse" : "Fich Bous"}
       </h2>
-      <dl className="space-y-3">
+      <dl className="divide-y divide-stone-100 dark:divide-stone-800">
         {rows.map(({ label, value }, i) => (
-          <div key={i} className="grid grid-cols-[minmax(0,100px)_1fr] sm:grid-cols-[140px_1fr] gap-2 text-sm">
-            <dt className="font-medium text-stone-600 dark:text-stone-400">{label}</dt>
-            <dd>{value}</dd>
+          <div key={i} className="grid grid-cols-[minmax(0,100px)_1fr] sm:grid-cols-[160px_1fr] gap-3 py-2.5 text-sm">
+            <dt className="font-medium text-stone-500 dark:text-stone-400">{label}</dt>
+            <dd className="text-stone-800 dark:text-stone-200">{value}</dd>
           </div>
         ))}
       </dl>
-    </div>
+    </section>
   );
 }
 
@@ -275,16 +275,16 @@ function RelatedUpdates({
   if (others.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-stone-200/80 p-5 dark:border-stone-700">
-      <h2 className="mb-3 text-title-sm dark:text-white">
+    <section className="border-t border-stone-200 pt-5 dark:border-stone-700">
+      <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
         {lang === "fr" ? "Mises à jour liées" : "Mizajou ki gen rapò"}
       </h2>
-      <ul className="space-y-2">
+      <ul className="divide-y divide-stone-100 dark:divide-stone-800">
         {others.map((a) => (
-          <li key={a.id}>
+          <li key={a.id} className="py-2">
             <Link
               href={`/news/${a.id}?lang=${lang}`}
-              className="text-sm text-blue-700 hover:underline dark:text-blue-400"
+              className="text-sm text-stone-800 hover:text-primary dark:text-stone-200 dark:hover:text-blue-400"
             >
               {a.title}
             </Link>
@@ -327,34 +327,32 @@ function StructuredSections({
   if (!sections || sections.length === 0) return null;
 
   return (
-    <div className={isHistory ? "space-y-10" : "space-y-6"}>
+    <div className={isHistory ? "space-y-14" : "space-y-6"}>
       {sections.map((section, i) => {
         const { mainContent, takeaway, sourceLine } = isHistory
           ? extractHistoryParts(section.content)
           : { mainContent: section.content, takeaway: null, sourceLine: null };
 
         return (
-          <section
-            key={i}
-            className={
-              isHistory
-                ? "relative rounded-2xl border border-stone-200 bg-white p-6 shadow-premium dark:border-stone-700 dark:bg-stone-800 dark:shadow-premium-dark"
-                : ""
-            }
-          >
-            <h2
-              className={
-                isHistory
-                  ? "mb-4 text-xl font-bold leading-snug text-stone-900 dark:text-white"
-                  : "mb-2 text-xl font-bold dark:text-white"
-              }
-            >
-              {section.heading}
-            </h2>
+          <section key={i} className="relative">
+            {isHistory ? (
+              <div className="mb-5">
+                <span className="block text-[11px] font-bold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-500">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h2 className="mt-1.5 font-display text-2xl font-bold leading-tight tracking-tight text-stone-900 sm:text-3xl dark:text-white">
+                  {section.heading}
+                </h2>
+              </div>
+            ) : (
+              <h2 className="mb-2 text-xl font-bold dark:text-white">
+                {section.heading}
+              </h2>
+            )}
 
             {section.imageUrl && (
-              <figure className="mb-4 overflow-hidden rounded-xl">
-                <div className="relative aspect-[2/1] w-full bg-stone-100 dark:bg-stone-700">
+              <figure className={isHistory ? "mb-6 overflow-hidden" : "mb-4 overflow-hidden rounded-xl"}>
+                <div className={`relative aspect-[2/1] w-full bg-stone-100 dark:bg-stone-700 ${isHistory ? "rounded-xl" : ""}`}>
                   <ImageWithFallback
                     src={section.imageUrl}
                     alt={section.imageCaption || section.heading}
@@ -371,7 +369,7 @@ function StructuredSections({
                   />
                 </div>
                 {(section.imageCaption || section.imageCredit) && (
-                  <figcaption className="mt-1.5 text-xs text-stone-400 dark:text-stone-500">
+                  <figcaption className="mt-2 text-xs text-stone-400 dark:text-stone-500">
                     {section.imageCaption}
                     {section.imageCredit && (
                       <span className="ml-1 text-stone-400/70 dark:text-stone-500/70">— {section.imageCredit}</span>
@@ -381,15 +379,22 @@ function StructuredSections({
               </figure>
             )}
 
-            <div className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-relaxed">
+            <div
+              className={
+                isHistory
+                  ? "prose prose-lg dark:prose-invert max-w-none prose-headings:font-display prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-p:leading-[1.8] prose-p:text-stone-700 dark:prose-p:text-stone-200 prose-li:text-stone-700 dark:prose-li:text-stone-200"
+                  : "prose prose-lg dark:prose-invert prose-headings:font-bold prose-a:text-blue-700 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline max-w-none prose-p:leading-relaxed"
+              }
+            >
               <ReactMarkdown>{mainContent}</ReactMarkdown>
             </div>
 
             {takeaway && (
-              <div className="mt-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
-                <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-400" />
-                <div className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
-                  <span className="font-semibold">{takeaway.label}</span>{" "}
+              <blockquote className="mt-6 border-l-2 border-amber-400 pl-5 dark:border-amber-500">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-500">
+                  {takeaway.label}
+                </p>
+                <div className="mt-1.5 font-display text-lg italic leading-snug text-stone-800 dark:text-stone-100 [&_p]:m-0">
                   <ReactMarkdown
                     components={{
                       p: ({ children }) => <span>{children}</span>,
@@ -398,27 +403,24 @@ function StructuredSections({
                     {takeaway.text}
                   </ReactMarkdown>
                 </div>
-              </div>
+              </blockquote>
             )}
 
             {sourceLine && (
-              <div className="mt-3 flex items-start gap-2 text-sm text-stone-500 dark:text-stone-400">
-                <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-stone-400 dark:text-stone-500" />
-                <div className="prose-sm prose dark:prose-invert prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:underline prose-a:decoration-blue-300 dark:prose-a:decoration-blue-700 prose-a:underline-offset-2">
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <span>{children}</span>,
-                    }}
-                  >
-                    {sourceLine}
-                  </ReactMarkdown>
-                </div>
-              </div>
+              <p className="mt-4 text-xs italic text-stone-400 dark:text-stone-500 [&_a]:text-stone-500 [&_a]:underline [&_a]:decoration-stone-300 [&_a]:underline-offset-2 dark:[&_a]:text-stone-400">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <span>{children}</span>,
+                  }}
+                >
+                  {sourceLine}
+                </ReactMarkdown>
+              </p>
             )}
 
             {isHistory && i < sections.length - 1 && (
-              <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
-                <div className="h-2 w-2 rounded-full bg-stone-300 dark:bg-stone-600" />
+              <div className="mt-14 flex justify-center" aria-hidden="true">
+                <span className="text-stone-300 tracking-[0.5em] text-sm dark:text-stone-600">• • •</span>
               </div>
             )}
           </section>
@@ -473,9 +475,9 @@ function SynthesisSourcesList({
   if (!sourceList || sourceList.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-stone-200/80 bg-stone-50 p-6 dark:border-stone-700 dark:bg-stone-800">
-      <h2 className="mb-3 text-title-sm dark:text-white">
-        <Newspaper className="mr-1.5 inline-block h-4 w-4" />
+    <section className="border-t border-stone-200 pt-5 dark:border-stone-700">
+      <h2 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+        <Newspaper className="h-3.5 w-3.5" />
         {lang === "fr"
           ? `Sources (${sourceList.length})`
           : `Sous (${sourceList.length})`}
@@ -546,9 +548,9 @@ function UtilityFactsFiche({
   if (!hasContent) return null;
 
   return (
-    <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-6 dark:border-stone-700 dark:bg-violet-900/20">
-      <h2 className="mb-4 text-title-sm dark:text-white">
-        <ClipboardList className="mr-1.5 inline-block h-4 w-4" />
+    <section className="border-t border-stone-200 pt-5 dark:border-stone-700">
+      <h2 className="mb-4 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+        <ClipboardList className="h-3.5 w-3.5" />
         {lang === "fr" ? "Informations clés" : "Enfòmasyon kle"}
       </h2>
       <dl className="space-y-3">
@@ -615,7 +617,7 @@ function UtilityFactsFiche({
           </div>
         )}
       </dl>
-    </div>
+    </section>
   );
 }
 
@@ -629,9 +631,9 @@ function UtilitySourceCitations({
   const cites = (article as any).sourceCitations as { name: string; url: string }[] | undefined;
   if (!cites || cites.length === 0) return null;
   return (
-    <section className="rounded-2xl border border-stone-200/80 bg-stone-50 p-6 dark:border-stone-700 dark:bg-stone-800">
-      <h2 className="mb-3 text-title-sm dark:text-white">
-        <Paperclip className="mr-1.5 inline-block h-4 w-4" />
+    <section className="border-t border-stone-200 pt-5 dark:border-stone-700">
+      <h2 className="mb-3 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+        <Paperclip className="h-3.5 w-3.5" />
         {lang === "fr" ? "Sources consultées" : "Sous konsilte"}
       </h2>
       <ul className="space-y-2">
@@ -662,12 +664,12 @@ function WhatChangedNote({
 }) {
   if (!whatChanged) return null;
   return (
-    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-900/20">
-      <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
-        <RefreshCw className="mr-1.5 inline-block h-4 w-4" />
-        {lang === "fr" ? "Dernière mise à jour :" : "Dènye mizajou :"}
+    <div className="border-l-2 border-blue-400 pl-4 dark:border-blue-500">
+      <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
+        <RefreshCw className="h-3 w-3" />
+        {lang === "fr" ? "Dernière mise à jour" : "Dènye mizajou"}
       </p>
-      <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">{whatChanged}</p>
+      <p className="mt-1.5 text-sm leading-relaxed text-stone-700 dark:text-stone-300">{whatChanged}</p>
     </div>
   );
 }
@@ -684,24 +686,21 @@ function estimateReadingTime(body: string | null | undefined, sections: ContentS
 function EdLightAttribution({ lang }: { lang: ContentLanguage }) {
   const fr = lang === "fr";
   return (
-    <div className="flex items-start gap-4 rounded-2xl border border-stone-200/80 bg-gradient-to-br from-stone-50 to-white p-5 dark:border-stone-700 dark:from-stone-900 dark:to-stone-800">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-silk text-white font-black text-sm tracking-tight select-none shadow-sm dark:shadow-none">
-        EL
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-title-sm text-stone-900 dark:text-white">EdLight News</p>
-        <p className="mt-1 text-body-sm leading-relaxed text-stone-500 dark:text-stone-400">
-          {fr
-            ? "Plateforme d\u2019information et d\u2019opportunit\u00e9s pour la jeunesse ha\u00eftienne et la diaspora. Synth\u00e8ses v\u00e9rifi\u00e9es, actualit\u00e9s et ressources publi\u00e9es quotidiennement."
-            : "Platf\u00f2m enf\u00f2masyon ak okazyon pou j\u00e8n ayisyen yo ak dyaspora a. Sent\u00e8z verifye, nouv\u00e8l ak resous pibliye chak jou."}
-        </p>
+    <div className="border-t border-stone-200 pt-5 dark:border-stone-700">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+        EdLight News
+      </p>
+      <p className="mt-2 max-w-2xl text-body-sm leading-relaxed text-stone-500 dark:text-stone-400">
+        {fr
+          ? "Plateforme d\u2019information et d\u2019opportunit\u00e9s pour la jeunesse ha\u00eftienne et la diaspora. Synth\u00e8ses v\u00e9rifi\u00e9es, actualit\u00e9s et ressources publi\u00e9es quotidiennement."
+          : "Platf\u00f2m enf\u00f2masyon ak okazyon pou j\u00e8n ayisyen yo ak dyaspora a. Sent\u00e8z verifye, nouv\u00e8l ak resous pibliye chak jou."}{" "}
         <Link
           href={`/about?lang=${lang}`}
-          className="mt-2 inline-block text-body-sm font-semibold text-primary hover:underline dark:text-blue-400"
+          className="font-semibold text-primary hover:underline dark:text-blue-400"
         >
           {fr ? "En savoir plus \u2192" : "Aprann plis \u2192"}
         </Link>
-      </div>
+      </p>
     </div>
   );
 }
@@ -718,40 +717,40 @@ function NextPrevNav({
   if (!prev && !next) return null;
   const fr = lang === "fr";
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <nav className="grid grid-cols-1 gap-6 border-t border-stone-200 pt-5 sm:grid-cols-2 dark:border-stone-700">
       <div>
         {prev && (
           <Link
             href={`/news/${prev.id}?lang=${lang}`}
-            className="group flex h-full flex-col gap-1.5 rounded-2xl border border-stone-200/80 bg-white p-4 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-stone-700/60 dark:bg-stone-900 dark:hover:shadow-card-dark-hover"
+            className="group block"
           >
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
               <ChevronLeft className="h-3 w-3" />
               {fr ? "Pr\u00e9c\u00e9dent" : "Anvan"}
             </span>
-            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 transition-colors group-hover:text-primary dark:text-stone-100 dark:group-hover:text-blue-400">
+            <span className="mt-1.5 line-clamp-3 text-base font-semibold leading-snug text-stone-800 transition-colors group-hover:text-primary dark:text-stone-100 dark:group-hover:text-blue-400">
               {prev.title}
             </span>
           </Link>
         )}
       </div>
-      <div className="flex flex-col items-end">
+      <div className="sm:text-right">
         {next && (
           <Link
             href={`/news/${next.id}?lang=${lang}`}
-            className="group flex h-full w-full flex-col items-end gap-1.5 rounded-2xl border border-stone-200/80 bg-white p-4 text-right transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 dark:border-stone-700/60 dark:bg-stone-900 dark:hover:shadow-card-dark-hover"
+            className="group block"
           >
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-stone-400 sm:justify-end dark:text-stone-500">
               {fr ? "Suivant" : "Apre"}
               <ChevronRight className="h-3 w-3" />
             </span>
-            <span className="line-clamp-2 text-sm font-semibold leading-snug text-stone-800 transition-colors group-hover:text-primary dark:text-stone-100 dark:group-hover:text-blue-400">
+            <span className="mt-1.5 line-clamp-3 text-base font-semibold leading-snug text-stone-800 transition-colors group-hover:text-primary dark:text-stone-100 dark:group-hover:text-blue-400">
               {next.title}
             </span>
           </Link>
         )}
       </div>
-    </div>
+    </nav>
   );
 }
 
@@ -1299,8 +1298,8 @@ export default async function ArticlePage({
           {article.summary && (
             <p className={`mb-8 leading-relaxed ${
               isHistory
-                ? "text-body-lg text-stone-600 dark:text-stone-300 border-l-4 border-amber-400 pl-5 italic"
-                : "text-lg text-stone-600 dark:text-stone-300 border-l-4 border-primary/30 dark:border-primary/50 pl-5"
+                ? "text-body-lg italic text-stone-600 border-l-2 border-amber-400 pl-4 dark:text-stone-300"
+                : "text-xl font-light tracking-[-0.005em] text-stone-700 dark:text-stone-300"
             }`}>
               {article.summary}
             </p>
@@ -1343,10 +1342,20 @@ export default async function ArticlePage({
             <div className="mb-8"><BoursesFiche item={item} lang={currentLang} /></div>
           )}
 
-          {/* Utility facts fiche */}
-          {isUtility && item && (
-            <div className="mb-8"><UtilityFactsFiche item={item} lang={currentLang} /></div>
-          )}
+          {/* Utility facts fiche — only for opportunity-relevant utility
+              types (deadlines/scholarships/internships/admissions). We skip
+              history, daily_fact and generic guides so deadline rows never
+              leak onto cultural / educational stories. */}
+          {isUtility && item && (() => {
+            const ut = item.utilityMeta?.utilityType;
+            const opportunityUtilityTypes = new Set([
+              "deadline", "scholarship", "internship", "admissions",
+            ]);
+            if (!ut || !opportunityUtilityTypes.has(ut)) return null;
+            return (
+              <div className="mb-8"><UtilityFactsFiche item={item} lang={currentLang} /></div>
+            );
+          })()}
 
           {/* ══════════════════════════════════════════════════════════════
               ARTICLE BODY
@@ -1376,21 +1385,21 @@ export default async function ArticlePage({
 
             {/* Language switch CTA */}
             {siblingVersion && (
-              <div className="flex items-start justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 px-5 py-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-stone-200 pt-5 dark:border-stone-700">
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-500 dark:text-blue-400">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
                     {article.language === "fr" ? "Disponible en Kreyòl" : "Disponib an Fransè"}
                   </p>
                   <Link
                     href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-                    className="mt-1 block text-sm font-medium text-stone-700 underline-offset-2 hover:underline dark:text-stone-200"
+                    className="mt-1 block text-sm font-medium text-stone-800 underline decoration-stone-300 underline-offset-4 hover:decoration-primary dark:text-stone-200 dark:decoration-stone-600"
                   >
                     {siblingVersion.title}
                   </Link>
                 </div>
                 <Link
                   href={`/news/${siblingVersion.id}?lang=${otherLang}`}
-                  className="shrink-0 rounded-xl bg-silk px-4 py-2 text-xs font-semibold text-white shadow-sm dark:shadow-none transition hover:bg-silk-hover hover:shadow-md"
+                  className="shrink-0 text-xs font-semibold text-primary hover:underline dark:text-blue-400"
                 >
                   {article.language === "fr" ? "Lire →" : "Li →"}
                 </Link>
@@ -1427,20 +1436,26 @@ export default async function ArticlePage({
               </section>
             )}
 
-            {/* Quality flags */}
-            {(item?.qualityFlags?.weakSource || item?.qualityFlags?.missingDeadline) && (
-              <p className="text-xs text-stone-400 dark:text-stone-300 italic">
-                {item.qualityFlags.weakSource &&
-                  (currentLang === "fr"
-                    ? "Source relayée via un agrégateur"
-                    : "Sous relaye atravè yon agregatè")}
-                {item.qualityFlags.weakSource && item.qualityFlags.missingDeadline && " · "}
-                {item.qualityFlags.missingDeadline &&
-                  (currentLang === "fr"
-                    ? "Date limite à confirmer"
-                    : "Dat limit pou konfime")}
-              </p>
-            )}
+            {/* Quality flags — deadline disclaimer only for opportunities. */}
+            {(() => {
+              const showWeakSource = !!item?.qualityFlags?.weakSource;
+              const showMissingDeadline =
+                !!item?.qualityFlags?.missingDeadline && (isOpportunity || isBourses);
+              if (!showWeakSource && !showMissingDeadline) return null;
+              return (
+                <p className="text-xs italic text-stone-400 dark:text-stone-300">
+                  {showWeakSource &&
+                    (currentLang === "fr"
+                      ? "Source relayée via un agrégateur"
+                      : "Sous relaye atravè yon agregatè")}
+                  {showWeakSource && showMissingDeadline && " · "}
+                  {showMissingDeadline &&
+                    (currentLang === "fr"
+                      ? "Date limite à confirmer"
+                      : "Dat limit pou konfime")}
+                </p>
+              );
+            })()}
           </div>
 
           {/* ══════════════════════════════════════════════════════════════
