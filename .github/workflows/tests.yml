@@ -38,11 +38,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # turbo respects the ^build dep graph declared in turbo.json so
+      # workspace packages (@edlight-news/firebase, /types, …) are built
+      # before downstream packages typecheck or test against them.
       - name: Typecheck (all packages)
         run: pnpm turbo typecheck
 
       - name: Worker tests (classify regression suite, etc.)
-        run: pnpm --filter @edlight-news/worker test
+        run: pnpm turbo test --filter=@edlight-news/worker
 
       - name: Generator tests (IG formatters, normalize, etc.)
-        run: pnpm --filter @edlight-news/generator test
+        run: pnpm turbo test --filter=@edlight-news/generator

@@ -54,14 +54,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck worker
-        run: pnpm --filter @edlight-news/worker typecheck
+      # turbo respects the ^build dep graph declared in turbo.json,
+      # so workspace packages (@edlight-news/firebase, /types, …) are
+      # built before the worker is type-checked or tested.
+      - name: Typecheck worker (with deps)
+        run: pnpm turbo typecheck --filter=@edlight-news/worker
 
-      - name: Run worker tests
-        run: pnpm --filter @edlight-news/worker test
+      - name: Test worker (with deps)
+        run: pnpm turbo test --filter=@edlight-news/worker
 
-      - name: Run generator tests
-        run: pnpm --filter @edlight-news/generator test
+      - name: Test generator (with deps)
+        run: pnpm turbo test --filter=@edlight-news/generator
 
   deploy:
     name: Build & Deploy

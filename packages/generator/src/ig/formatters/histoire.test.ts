@@ -129,10 +129,10 @@ describe("buildHistoireCarousel", () => {
     );
     assert.equal(
       result.slides[result.slides.length - 1]!.heading,
-      "Suivez-nous pour plus de repères historiques",
+      "L'histoire d'Haïti, racontée chaque jour.",
     );
     assert.deepEqual(result.slides[result.slides.length - 1]!.bullets, [
-      "L'histoire d'Haïti, chaque jour.",
+      "Suivez @edlightnews pour d'autres repères.",
     ]);
     assert.equal(result.slides[result.slides.length - 1]!.layout, "cta");
     assert.equal(
@@ -142,7 +142,7 @@ describe("buildHistoireCarousel", () => {
     );
     assert.ok(
       result.caption.includes(
-        "Suivez EdLight News pour d'autres repères historiques.",
+        "Parce que comprendre notre passé, c'est éclairer notre avenir.",
       ),
       "Expected the premium history CTA in the caption",
     );
