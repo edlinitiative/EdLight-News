@@ -260,27 +260,43 @@ export default async function AccueilPage({
                 <ColumnHeader label={fr ? "À la une" : "Alaune"} />
 
                 {/* Compact image — only if available, sized to the photo's true
-                    aspect ratio (clamped) so wide histoire panels and standard
-                    16:9 photos both render without awkward cropping. */}
+                    aspect ratio so portrait illustrations (e.g. histoire) render
+                    in a portrait box and panoramas stay wide. We clamp to
+                    [3/4, 2.4/1] to avoid pathological extremes, and use
+                    object-contain so nothing is ever cropped — the box
+                    matches the image, not the other way around. */}
                 {leadArticle.imageUrl && (() => {
                   const w = leadArticle.imageMeta?.width;
                   const h = leadArticle.imageMeta?.height;
-                  // Clamp to [16/9, 2.4/1] — wide enough for histoire panoramas,
-                  // tall enough that a square thumb doesn't dominate the layout.
+                  const natural = w && h ? w / h : null;
+                  // Clamp: portraits as tall as 3:4, panoramas as wide as 2.4:1.
                   const ratio =
-                    w && h ? Math.min(2.4, Math.max(16 / 9, w / h)) : 16 / 7;
+                    natural !== null
+                      ? Math.min(2.4, Math.max(3 / 4, natural))
+                      : 16 / 9;
+                  const isPortrait = natural !== null && natural < 1;
                   return (
                     <Link href={lq(`/news/${leadArticle.id}`)} className="group mb-4 block">
                       <div
-                        className="relative overflow-hidden rounded-md bg-stone-100 dark:bg-stone-900"
+                        className={[
+                          "relative overflow-hidden rounded-md bg-stone-100 dark:bg-stone-900",
+                          // Portrait illustrations would otherwise dominate the
+                          // 8-col lead — keep them centred and capped at a
+                          // sensible width so the headline still leads visually.
+                          isPortrait ? "mx-auto max-w-sm" : "",
+                        ].join(" ")}
                         style={{ aspectRatio: `${ratio}` }}
                       >
                         <ImageWithFallback
                           src={leadArticle.imageUrl}
                           alt={leadArticle.title}
                           fill
-                          sizes="(max-width: 1024px) 100vw, 768px"
-                          className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                          sizes={
+                            isPortrait
+                              ? "(max-width: 640px) 90vw, 384px"
+                              : "(max-width: 1024px) 100vw, 768px"
+                          }
+                          className="object-contain transition-transform duration-700 group-hover:scale-[1.02]"
                         />
                       </div>
                     </Link>
