@@ -86,7 +86,72 @@ describe("buildStorySlideHTML", () => {
     assert.ok(html.includes("panel"), "Should keep the editorial panel");
   });
 
-  it("does not render story progress bars at the top", () => {
+  it("dispatches history frameType to editorial almanach card", () => {
+    const slide: IGStorySlide = {
+      heading: "1804 — Indépendance d'Haïti",
+      bullets: [
+        "Le 1er janvier, Dessalines proclame l'indépendance à Gonaïves.",
+        "Première république noire libre du monde.",
+      ],
+      eyebrow: "HISTOIRE",
+      subheading:
+        "Le 1er janvier, Dessalines proclame l'indépendance à Gonaïves.",
+      meta: ["Première république noire libre du monde."],
+      footer: "Source: AyiboPost",
+      accent: "#f59e0b",
+      frameType: "history",
+    };
+    const html = buildStorySlideHTML(slide, "1 janvier 2026", 0, 2);
+
+    assert.ok(html.includes("HISTOIRE"), "Should contain HISTOIRE eyebrow");
+    assert.ok(
+      html.includes("1804 — Indépendance"),
+      "Should contain the heading",
+    );
+    assert.ok(
+      html.includes("history-lede"),
+      "Should use the editorial history-lede treatment (parity with carousel)",
+    );
+    assert.ok(
+      html.includes("history-note-copy"),
+      "Should use the editorial history-note-copy class (parity with carousel)",
+    );
+    assert.ok(
+      !html.includes("backdrop-filter"),
+      "History frame must not use glassmorphism (matches carousel)",
+    );
+    assert.ok(
+      html.includes("Playfair Display"),
+      "Should set the editorial serif for the lede",
+    );
+    assert.ok(
+      html.includes("AyiboPost"),
+      "Should render the source attribution footer",
+    );
+  });
+
+  it("history frame supports an utility (fact-of-the-day) variant", () => {
+    const slide: IGStorySlide = {
+      heading: "Le saviez-vous ?",
+      bullets: ["Le créole haïtien compte deux registres officiels."],
+      eyebrow: "LE SAVIEZ-VOUS ?",
+      subheading: "Le créole haïtien compte deux registres officiels.",
+      accent: "#34d399",
+      frameType: "history",
+    };
+    const html = buildStorySlideHTML(slide, "13 mars 2026", 0, 2);
+
+    assert.ok(
+      html.includes("LE SAVIEZ-VOUS ?"),
+      "Should contain the utility eyebrow",
+    );
+    assert.ok(
+      html.includes("history-lede"),
+      "Utility variant should reuse the editorial history layout",
+    );
+  });
+
+  it("taux frame does not render top progress markers", () => {
     const slide: IGStorySlide = {
       heading: "131.2589",
       bullets: ["13 mars 2026"],
@@ -169,7 +234,7 @@ describe("buildStorySlideHTML", () => {
     };
     const html = buildStorySlideHTML(slide, "13 mars 2026", 5, 6, false);
     assert.ok(
-      html.includes("@edlight.news"),
+      html.includes("@edlightnews"),
       "CTA via frameType should have handle",
     );
   });

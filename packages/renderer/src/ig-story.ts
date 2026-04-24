@@ -520,6 +520,196 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
 </body></html>`;
 }
 
+// ── History frame (editorial almanach — Playfair lede + accent rule) ─────
+//
+// Used for HaitiHistory ("histoire") and HaitiFactOfTheDay ("utility")
+// per-post stories. Mirrors the polished `history-lede` / `history-note-copy`
+// treatment the carousel renderer already ships, so a story frame and its
+// matching carousel feel like the same publication.
+//
+// Visual language:
+//   - Dark warm surface (#120b06 for histoire, #060f0b for fact-of-the-day)
+//   - Orange/emerald accent rule + label (HISTOIRE / LE SAVIEZ-VOUS ?)
+//   - Playfair Display serif lede paragraph (the headline reads like a wire)
+//   - Accent left-border on supporting notes (no glassmorphism, no panel)
+//   - Optional background photo with a deep editorial gradient
+
+const HISTORY_DEFAULT_ACCENT = "#f59e0b";
+const HISTORY_DEFAULT_DARK = "#120b06";
+/** Editorial serif aligned with the carousel's history treatment. */
+const FONT_EDITORIAL =
+  "'Playfair Display', 'Georgia', 'Times New Roman', serif";
+
+interface StoryHistoryContent {
+  eyebrow: string;
+  heading: string;
+  lede: string;
+  notes: string[];
+  footer: string;
+}
+
+function resolveStoryHistoryContent(slide: IGStorySlide): StoryHistoryContent {
+  const cleanedBullets: string[] = [];
+  let derivedFooter = "";
+  for (const bullet of slide.bullets) {
+    const trimmed = bullet.trim();
+    if (!trimmed) continue;
+    if (/^Source:/i.test(trimmed)) {
+      derivedFooter = trimmed;
+    } else {
+      cleanedBullets.push(trimmed);
+    }
+  }
+
+  const lede = (slide.subheading ?? cleanedBullets[0] ?? "").trim();
+  const notes = (
+    slide.meta && slide.meta.length > 0
+      ? slide.meta
+      : cleanedBullets.slice(lede ? 1 : 0)
+  )
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return {
+    eyebrow: (slide.eyebrow ?? "HISTOIRE").trim() || "HISTOIRE",
+    heading: slide.heading,
+    lede,
+    notes,
+    footer: (slide.footer ?? derivedFooter).trim(),
+  };
+}
+
+function buildHistoryFrameHTML(
+  slide: IGStorySlide,
+  slideIndex: number,
+  totalSlides: number,
+): string {
+  const accent = slide.accent ?? HISTORY_DEFAULT_ACCENT;
+  const dark = HISTORY_DEFAULT_DARK;
+  const content = resolveStoryHistoryContent(slide);
+  const hasImage = !!slide.backgroundImage;
+
+  // Density-aware sizing so a long lede never clips the safe zone.
+  const ledeLen = content.lede.length;
+  const headingLen = content.heading.length;
+  const ledeSize = ledeLen > 220 ? 26 : ledeLen > 140 ? 30 : 34;
+  const headingSize = headingLen > 80 ? 56 : headingLen > 50 ? 64 : 72;
+
+  const bgCss = hasImage
+    ? `background:${dark} url('${slide.backgroundImage}') center/cover no-repeat;`
+    : `background:
+        radial-gradient(ellipse at 22% 18%, ${accent}26 0%, transparent 52%),
+        radial-gradient(ellipse at 78% 86%, ${accent}14 0%, transparent 55%),
+        ${dark};`;
+
+  const notesHtml = content.notes
+    .map(
+      (note) =>
+        `<div class="history-note"><span class="history-note-mark"></span><span class="history-note-copy">${escapeHtml(note)}</span></div>`,
+    )
+    .join("\n    ");
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+${GOOGLE_FONTS_LINK}
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  width:1080px; height:1920px;
+  font-family: ${FONT_BODY};
+  ${bgCss}
+  color:#fff; overflow:hidden; position:relative;
+}
+/* Editorial gradient — keeps the photo readable up top, pools darkness
+   around the lede and notes below. No glass, no panel. */
+.img-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,
+    rgba(18,11,6,0.62) 0%,
+    rgba(18,11,6,0.38) 22%,
+    rgba(18,11,6,0.52) 48%,
+    rgba(18,11,6,0.86) 76%,
+    rgba(18,11,6,0.96) 100%);
+}
+.c {
+  position:relative; z-index:1; height:100%;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:${SAFE_TOP + 24}px 88px ${SAFE_BOTTOM + 28}px;
+}
+.kicker {
+  position:absolute; top:${SAFE_TOP + 8}px; left:88px;
+  display:flex; align-items:center; gap:14px;
+  font-family:${FONT_HEADLINE};
+  color:${accent}; font-size:18px; font-weight:800;
+  text-transform:uppercase; letter-spacing:5px;
+  text-shadow:0 2px 14px rgba(0,0,0,0.55);
+}
+.kicker .bar { width:36px; height:3px; background:${accent}; border-radius:2px; }
+.accent-rule {
+  width:64px; height:4px; background:${accent};
+  border-radius:2px; margin-bottom:22px;
+}
+.h {
+  font-family:${FONT_HEADLINE};
+  font-size:${headingSize}px; font-weight:900;
+  line-height:1.04; letter-spacing:-1.4px;
+  margin-bottom:26px;
+  text-shadow:0 4px 32px rgba(0,0,0,0.92), 0 2px 10px rgba(0,0,0,0.7);
+}
+.history-lede {
+  font-family:${FONT_EDITORIAL};
+  font-size:${ledeSize}px;
+  line-height:1.42;
+  font-weight:500;
+  font-style:italic;
+  opacity:0.97;
+  margin-bottom:${content.notes.length > 0 ? 26 : 0}px;
+  text-shadow:0 2px 28px rgba(0,0,0,0.92), 0 1px 8px rgba(0,0,0,0.75);
+  max-width:920px;
+}
+.history-support {
+  display:flex; flex-direction:column; gap:14px;
+  margin-top:4px;
+}
+.history-note {
+  display:flex; gap:14px; align-items:flex-start;
+  padding-left:18px;
+  border-left:4px solid ${accent}cc;
+}
+.history-note-mark { display:none; }
+.history-note-copy {
+  font-size:21px; line-height:1.55;
+  font-weight:600; opacity:0.94;
+  text-shadow:0 2px 22px rgba(0,0,0,0.92), 0 1px 6px rgba(0,0,0,0.75);
+}
+.src {
+  margin-top:22px; font-size:15px; font-weight:600;
+  opacity:0.55; letter-spacing:1.5px; text-transform:uppercase;
+  text-shadow:0 1px 8px rgba(0,0,0,0.7);
+}
+.bm {
+  position:absolute; bottom:${SAFE_BOTTOM - 8}px; left:0; right:0;
+  text-align:center;
+  font-family:${FONT_HEADLINE}; font-size:18px; font-weight:800; letter-spacing:5px;
+}
+.bm .el { color:rgba(255,255,255,0.78); }
+.bm .nw { color:${accent}; margin-left:6px; }
+</style></head>
+<body>
+${hasImage ? '<div class="img-overlay"></div>' : ""}
+${buildProgressDots(slideIndex, totalSlides, accent)}
+<div class="kicker"><span class="bar"></span>${escapeHtml(content.eyebrow)}</div>
+<div class="c">
+  <div class="accent-rule"></div>
+  <div class="h">${escapeHtml(content.heading)}</div>
+  ${content.lede ? `<div class="history-lede">${escapeHtml(content.lede)}</div>` : ""}
+  ${content.notes.length > 0 ? `<div class="history-support">${notesHtml}</div>` : ""}
+  ${content.footer ? `<div class="src">${escapeHtml(content.footer)}</div>` : ""}
+</div>
+<div class="bm"><span class="el">EDLIGHT</span><span class="nw">NEWS</span></div>
+</body></html>`;
+}
+
 // ── Headline frame ────────────────────────────────────────────────────────
 
 function buildHeadlineFrameHTML(
@@ -742,6 +932,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
  * Dispatch by `slide.frameType` (v2) with backward-compatible fallback:
  *   "taux"     → financial rate card
  *   "facts"    → daily facts card
+ *   "history"  → editorial almanach (HaitiHistory / HaitiFactOfTheDay)
  *   "headline" → article summary card (dark bg + accent bar)
  *   "cover"    → full-bleed image cover (legacy default for frame 0)
  *   "cta"      → follow/close frame
@@ -771,6 +962,9 @@ export function buildStorySlideHTML(
   }
   if (slide.frameType === "facts") {
     return buildFactsFrameHTML(slide, slideIndex, totalSlides);
+  }
+  if (slide.frameType === "history") {
+    return buildHistoryFrameHTML(slide, slideIndex, totalSlides);
   }
   if (slide.frameType === "headline") {
     return buildHeadlineFrameHTML(slide, slideIndex, totalSlides);

@@ -1036,7 +1036,9 @@ export const igStorySlideSchema = z.object({
   footer: z.string().optional(),
   backgroundImage: z.string().optional(),
   accent: z.string().optional(),
-  frameType: z.enum(["cover", "taux", "facts", "headline", "cta"]).optional(),
+  frameType: z
+    .enum(["cover", "taux", "facts", "headline", "history", "cta"])
+    .optional(),
 });
 
 export const igStoryPayloadSchema = z.object({

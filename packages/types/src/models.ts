@@ -725,7 +725,7 @@ export interface IGStorySlide {
   /** Accent colour override for this frame */
   accent?: string;
   /** Frame type for rendering dispatch (new story design) */
-  frameType?: "cover" | "taux" | "facts" | "headline" | "cta";
+  frameType?: "cover" | "taux" | "facts" | "headline" | "history" | "cta";
 }
 
 /** Formatted Story payload ready for rendering. */

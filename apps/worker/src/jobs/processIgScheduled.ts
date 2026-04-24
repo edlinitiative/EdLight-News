@@ -20,7 +20,7 @@ import {
   buildStorySlideForPost,
   type StoryItemInput,
   type StoryTauxInput,
-  type StoryFactsInput,
+  type StoryHistoryInput,
 } from "@edlight-news/generator/ig/index.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 
@@ -153,17 +153,45 @@ async function publishStoryForPost(
       };
       storyPayload = buildStorySlideForPost(undefined, tauxInput);
     } else if (item.igType === "utility" || item.igType === "histoire") {
-      // Build a facts-style frame for utility/histoire
-      const factsInput: StoryFactsInput = {
-        facts: sourceItem?.summary
-          ? [sourceItem.summary.slice(0, 360)]
-          : item.payload?.slides?.[0]?.bullets ?? [],
+      // Editorial almanach treatment: mirrors the polished carousel
+      // history layout (orange/emerald accent, dark warm surface, serif
+      // lede). HaitiHistory → "histoire", HaitiFactOfTheDay → "utility".
+      const coverSlide = item.payload?.slides?.[0];
+      const carouselBullets = coverSlide?.bullets ?? [];
+      const heading =
+        coverSlide?.heading?.trim() ||
+        sourceItem?.title?.trim() ||
+        "Repère du jour";
+      // Prefer the carousel's first bullet (already curated/lede-shaped) and
+      // fall back to the source summary so we never ship an empty lede.
+      const lede =
+        carouselBullets[0]?.trim() ||
+        sourceItem?.summary?.slice(0, 360).trim() ||
+        "";
+      const notes = carouselBullets.slice(1, 3);
+      const variant: StoryHistoryInput["variant"] =
+        item.igType === "histoire" ? "histoire" : "utility";
+      const sourceLine =
+        coverSlide?.footer ??
+        (sourceItem?.source?.name
+          ? `Source: ${sourceItem.source.name}`
+          : undefined);
+
+      const historyInput: StoryHistoryInput = {
+        heading,
+        lede,
+        notes,
+        footer: sourceLine,
         backgroundImage:
-          item.payload?.slides?.[0]?.backgroundImage ??
-          sourceItem?.imageUrl ??
-          undefined,
+          coverSlide?.backgroundImage ?? sourceItem?.imageUrl ?? undefined,
+        variant,
       };
-      storyPayload = buildStorySlideForPost(undefined, undefined, factsInput);
+      storyPayload = buildStorySlideForPost(
+        undefined,
+        undefined,
+        undefined,
+        historyInput,
+      );
     } else {
       // Headline-style story for news, scholarship, opportunity, etc.
       let bi: StoryItemInput["bi"];
