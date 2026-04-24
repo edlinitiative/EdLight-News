@@ -16,13 +16,12 @@
 
 import { useMemo, useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
 import type {
   ContentLanguage,
   DatasetCountry,
   AcademicLevel,
 } from "@edlight-news/types";
-import { ChevronDown, Archive, Heart } from "lucide-react";
+import { ChevronDown, Archive } from "lucide-react";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 import { getSavedIds, toggleSaved, matchesSearch } from "@/lib/bourses-ui";
 import type { SerializedScholarship } from "@/components/BoursesFilters";

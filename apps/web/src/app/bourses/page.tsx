@@ -1,27 +1,26 @@
 /**
- * /bourses — Scholarship database page (v3 — editorial redesign).
+ * /bourses — Scholarship database page.
  *
  * Server component: fetches all scholarships eligible for Haitian students,
  * serialises them, and delegates rendering to the BoursesEditorial client
- * component which orchestrates the full editorial layout:
+ * component.
  *
- *   1) BoursesHero — large editorial headline + live stats
- *   2) BoursesSearchBar — unified search & quick-filter bar
- *   3) FeaturedBourses — 2-column featured scholarship cards
- *   4) BoursesFeed + BoursesSidebar — 8/4 editorial grid
- *   5) Full catalogue toggle with ScholarshipCard grid
+ * Layout (mirrors /universites and /opportunites for visual consistency):
+ *   1) PageHeroCompact — shared editorial hero with stats
+ *   2) DeadlineBoard — upcoming scholarship deadlines (when present)
+ *   3) BoursesEditorial — search, filters, featured, feed, sidebar, catalogue
  */
 
 import type { Metadata } from "next";
 import type { ContentLanguage, Scholarship } from "@edlight-news/types";
 import { Suspense } from "react";
+import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchScholarshipsForHaiti,
   fetchScholarshipsClosingSoon,
 } from "@/lib/datasets";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
-import { BoursesHero } from "@/components/bourses/BoursesHero";
 import { BoursesEditorial } from "@/components/bourses/BoursesEditorial";
 import { DeadlineBoard } from "@/components/bourses/DeadlineBoard";
 import { tsToISO as sharedTsToISO } from "@/lib/dates";
@@ -38,8 +37,8 @@ export async function generateMetadata({
   const fr = lang === "fr";
   const title = fr ? "Bourses & Opportunités · EdLight News" : "Bous & Opòtinite · EdLight News";
   const description = fr
-    ? "Intelligence curatée sur les financements académiques et professionnels à enjeux élevés."
-    : "Entèlijans kirye sou finansman akademik ak pwofesyonèl ki gen gwo enjè.";
+    ? "Bourses vérifiées pour étudiants haïtiens : financement, niveaux, dates limites."
+    : "Bous verifye pou etidyan ayisyen: finansman, nivo, dat limit.";
   return {
     title,
     description,
@@ -86,6 +85,7 @@ export default async function BoursesPage({
   searchParams: { lang?: string; [key: string]: string | string[] | undefined };
 }) {
   const lang = getLangFromSearchParams(searchParams) as ContentLanguage;
+  const fr = lang === "fr";
 
   let allScholarships: Scholarship[];
   let closingSoon: Scholarship[];
@@ -103,25 +103,47 @@ export default async function BoursesPage({
   const serialized = allScholarships.map(serializeScholarship);
   const closingSerialized = closingSoon.map(serializeScholarship);
   const countryCount = new Set(allScholarships.map((s) => s.country)).size;
+  const haitianEligibleCount = allScholarships.filter(
+    (s) =>
+      s.haitianEligibility === "yes" ||
+      s.eligibleCountries?.includes("HT") ||
+      s.country === "HT" ||
+      s.country === "Global",
+  ).length;
 
   return (
-    <div className="space-y-12">
-      {/* ─── Section 1: Editorial Hero ─── */}
-      <BoursesHero
-        lang={lang}
-        totalCount={allScholarships.length}
-        closingSoonCount={closingSoon.length}
-        countryCount={countryCount}
+    <div className="space-y-8">
+      {/* ─── Section 1: Editorial Hero (shared component for cross-page consistency) ─── */}
+      <PageHeroCompact
+        tint="indigo"
+        eyebrow={fr ? "Bourses" : "Bous"}
+        title={
+          fr
+            ? "Trouver la bonne bourse, sans perdre une saison."
+            : "Jwenn bon bous la, san w pa pèdi yon sezon."
+        }
+        titleAccent={
+          fr ? "Vérifiées pour Haïti." : "Verifye pou Ayiti."
+        }
+        description={
+          fr
+            ? "Une base curatée de bourses académiques et professionnelles, filtrables par pays, niveau, financement et éligibilité haïtienne."
+            : "Yon baz kirye bous akademik ak pwofesyonèl, filtre selon peyi, nivo, finansman ak elijibilite ayisyen."
+        }
+        stats={[
+          { value: String(allScholarships.length), label: fr ? "bourses" : "bous" },
+          { value: String(closingSoon.length), label: fr ? "deadlines" : "dat limit" },
+          { value: String(countryCount), label: fr ? "pays" : "peyi" },
+          { value: String(haitianEligibleCount), label: fr ? "éligibles HT" : "elijib HT" },
+        ]}
       />
 
-      {/* ─── Section 2: Deadline Board ─── */}
+      {/* ─── Section 2: Deadline Board (only when there are upcoming deadlines) ─── */}
       {closingSerialized.length > 0 && (
-        <section>
-          <DeadlineBoard scholarships={closingSerialized} lang={lang} max={8} />
-        </section>
+        <DeadlineBoard scholarships={closingSerialized} lang={lang} max={8} />
       )}
 
-      {/* ─── Sections 3-6: Search, Featured, Feed+Sidebar, Catalogue ─── */}
+      {/* ─── Section 3: Search, Featured, Feed+Sidebar, Catalogue ─── */}
       <Suspense fallback={null}>
         <BoursesEditorial scholarships={serialized} lang={lang} />
       </Suspense>
