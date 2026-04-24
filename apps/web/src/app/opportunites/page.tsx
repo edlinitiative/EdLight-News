@@ -48,7 +48,11 @@ export default async function OpportunitesPage({
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
-    allArticles = await fetchEnrichedFeed(lang, 200);
+    // Pull a large slice of recent published content so vertical=opportunites
+    // items (~600+ in production) aren't starved by the default 200-item
+    // window which is dominated by daily news. The downstream rank+dedup
+    // pipeline still caps the final list at topN=40.
+    allArticles = await fetchEnrichedFeed(lang, 1500);
   } catch (err) {
     console.error("[EdLight] /opportunites fetch failed:", err);
     allArticles = [];
