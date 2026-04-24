@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Scholarship } from "@edlight-news/types";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -11,7 +12,12 @@ import {
   Sparkles,
   Rocket,
 } from "lucide-react";
-import { getScholarshipGuide, SCHOLARSHIP_GUIDES } from "@/lib/scholarship-guides";
+import {
+  getScholarshipGuide,
+  SCHOLARSHIP_GUIDES,
+  type ScholarshipGuide,
+} from "@/lib/scholarship-guides";
+import { fetchScholarshipsForHaiti } from "@/lib/datasets";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
@@ -20,12 +26,146 @@ export async function generateStaticParams() {
   return SCHOLARSHIP_GUIDES.map((g) => ({ slug: g.slug }));
 }
 
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function fundingLabel(fundingType?: string): string {
+  switch (fundingType) {
+    case "full":
+      return "Complet";
+    case "partial":
+      return "Partiel";
+    case "stipend":
+      return "Allocation";
+    case "tuition-only":
+      return "Frais / exemption";
+    default:
+      return "À vérifier";
+  }
+}
+
+function levelLabel(levels: Scholarship["level"]): string {
+  const map: Record<string, string> = {
+    bachelor: "Bachelor",
+    master: "Master",
+    phd: "PhD",
+    short_programs: "Programmes courts",
+  };
+  const labels = levels.map((l) => map[l] ?? l);
+  return labels.join(" · ");
+}
+
+function buildDynamicGuide(s: Scholarship, slug: string): ScholarshipGuide {
+  const timeline =
+    s.keyDates && s.keyDates.length > 0
+      ? s.keyDates.map((k) => ({
+          phase: k.label,
+          window: k.dateISO ?? k.monthRange ?? "À confirmer",
+          details: k.notes ?? "Vérifier l'annonce officielle.",
+        }))
+      : [
+          {
+            phase: "Cycle candidature",
+            window: s.deadline?.dateISO ?? s.deadline?.notes ?? "Variable",
+            details: "Les dates évoluent chaque année. Vérifiez la source officielle.",
+          },
+        ];
+
+  const steps =
+    s.applicationSteps && s.applicationSteps.length > 0
+      ? s.applicationSteps.map((st) => ({
+          title: st.title,
+          details: st.description,
+          actionUrl: st.url,
+        }))
+      : [
+          {
+            title: "Vérifier l'éligibilité",
+            details: s.eligibilitySummary ?? "Confirmer les critères pays/niveau avant toute candidature.",
+          },
+          {
+            title: "Préparer le dossier",
+            details: "Assembler relevés, diplômes, recommandations et preuve de langue.",
+          },
+          {
+            title: "Soumettre via le portail officiel",
+            details: "Toujours candidater depuis la source officielle du programme.",
+            actionUrl: s.howToApplyUrl ?? s.officialUrl,
+          },
+        ];
+
+  const documents =
+    s.requirements && s.requirements.length > 0
+      ? s.requirements
+      : [
+          "Relevés et diplômes",
+          "Pièce d'identité / passeport",
+          "Lettre(s) de recommandation",
+          "Preuve de langue (si exigée)",
+        ];
+
+  return {
+    slug,
+    title: s.name,
+    subtitle: "Guide dynamique généré depuis la base de bourses EdLight",
+    region: s.country === "Global" ? "International" : s.country,
+    level: levelLabel(s.level),
+    funding: fundingLabel(s.fundingType),
+    competitiveness: "Élevée",
+    overview:
+      s.programDescription ??
+      s.eligibilitySummary ??
+      "Programme en suivi continu par EdLight News pour les étudiants haïtiens.",
+    whyForHaiti: [
+      s.haitianEligibility === "yes"
+        ? "Haïti est explicitement indiqué comme éligible."
+        : "Éligibilité haïtienne à confirmer sur la source officielle.",
+      "Guide mis à jour à mesure que de nouveaux contenus sont ingérés.",
+      "Comparer ce guide avec d'autres options depuis /bourses/guides.",
+    ],
+    timeline,
+    steps,
+    documents,
+    mistakes: [
+      "Soumettre tardivement sans marge pour corrections.",
+      "Utiliser des informations non-officielles au lieu du site source.",
+      "Négliger la cohérence entre projet d'études et impact en Haïti.",
+    ],
+    officialLinks: [
+      { label: "Site officiel", url: s.officialUrl },
+      ...(s.howToApplyUrl ? [{ label: "Postuler", url: s.howToApplyUrl }] : []),
+    ],
+  };
+}
+
+async function resolveGuide(slug: string): Promise<ScholarshipGuide | undefined> {
+  const staticGuide = getScholarshipGuide(slug);
+  if (staticGuide) return staticGuide;
+
+  // Dynamic fallback: auto-create guide pages from newly ingested scholarships.
+  // We first match relatedPagePath, then name slug.
+  const scholarships = await fetchScholarshipsForHaiti();
+  const fromPath = scholarships.find((s) => s.relatedPagePath?.endsWith(`/${slug}`));
+  const fromName = scholarships.find((s) => slugify(s.name) === slug);
+  const match = fromPath ?? fromName;
+  if (!match) return undefined;
+
+  return buildDynamicGuide(match, slug);
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const guide = getScholarshipGuide(params.slug);
+  const guide = await resolveGuide(params.slug);
   if (!guide) {
     return { title: "Guide introuvable · EdLight News" };
   }
@@ -44,12 +184,12 @@ export async function generateMetadata({
   };
 }
 
-export default function ScholarshipGuideDetailPage({
+export default async function ScholarshipGuideDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const guide = getScholarshipGuide(params.slug);
+  const guide = await resolveGuide(params.slug);
   if (!guide) notFound();
 
   return (
