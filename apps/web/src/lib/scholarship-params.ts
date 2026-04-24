@@ -9,6 +9,7 @@ export const FILTER_PARAM_KEYS = [
   "funding",
   "level",
   "country",
+  "region",
   "eligibility",
   "type",
   "sort",

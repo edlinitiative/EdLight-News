@@ -666,5 +666,331 @@
     "programDescription": "YYGS rassemble plus de 1 800 lyc\u00e9en\u00b7nes de plus de 130 pays chaque \u00e9t\u00e9 \u00e0 Yale. Sept sessions th\u00e9matiques : Politics/Law/Economics, International Affairs, STEM, Literature/Philosophy, Innovations in Science & Tech, Solving Global Challenges. Bourses bas\u00e9es sur le besoin financier des familles \u2014 Haïti et la r\u00e9gion caribbeenne sont \u00e9ligibles \u00e0 100 % de couverture pour les familles \u00e0 faible revenu.",
     "tags": ["highschool", "yale", "us", "summer-program"],
     "sources": [{ "url": "https://globalscholars.yale.edu/", "label": "Yale Young Global Scholars" }]
+  },
+  {
+    "name": "Bourses Haïti–Taïwan (ICDF / MOFA)",
+    "country": "Global",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor", "master", "phd"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-03-15", "notes": "Deux cycles : MOFA Taiwan Scholarship (étudiants haïtiens) et ICDF (programmes en anglais). Candidature via l'Ambassade de Taïwan en Haïti.", "sourceUrl": "https://www.icdf.org.tw/wSite/lp?ctNode=30316" },
+    "howToApplyUrl": "https://www.icdf.org.tw/wSite/lp?ctNode=30316",
+    "officialUrl": "https://www.icdf.org.tw/",
+    "relatedPagePath": "/bourses/guides/haiti-taiwan",
+    "eligibilitySummary": "Haïti est l'un des alliés diplomatiques de Taïwan : bourses bilatérales gérées par l'Ambassade de la République de Chine (Taïwan) à Port-au-Prince. Couvre frais de scolarité, allocation mensuelle (~25 000 NTD), assurance santé, vol aller-retour.",
+    "programDescription": "Deux dispositifs distincts : (1) MOFA Taiwan Scholarship — bourses linguistiques et académiques pour étudiant·es des pays alliés, programmes enseignés en mandarin (1 an de Mandarin gratuit en bonus). (2) Taiwan ICDF Higher Education Scholarship — bourses pour bachelor/master/PhD en anglais dans des universités taïwanaises partenaires (NTU, NCKU, NCTU, etc.) en agriculture, ingénierie, santé publique, business, ICT. Quota annuel pour Haïti : ~10–15 places combinées.",
+    "applicationSteps": [
+      { "title": "Contacter l'Ambassade de Taïwan en Haïti", "description": "L'Ambassade publie l'appel à candidatures chaque année (janvier-mars). Demander le formulaire et la liste des documents requis." },
+      { "title": "Préparer le dossier", "description": "Diplôme + relevés de notes traduits, lettre de motivation, plan d'études, deux lettres de recommandation, certificat médical, passeport valide." },
+      { "title": "Soumettre via l'Ambassade", "description": "Le dossier passe par l'Ambassade qui le transmet à Taipei. Présélection locale, puis sélection finale par MOFA/ICDF." },
+      { "title": "Visa et départ", "description": "Bourse confirmée généralement en juin-juillet ; départ en septembre pour la rentrée universitaire taïwanaise." }
+    ],
+    "tags": ["taiwan", "government", "bilateral", "haiti-allies", "asia"],
+    "sources": [
+      { "url": "https://www.icdf.org.tw/wSite/lp?ctNode=30316", "label": "Taiwan ICDF Scholarships" },
+      { "url": "https://en.mofa.gov.tw/cp.aspx?n=99", "label": "MOFA Taiwan Scholarship" }
+    ]
+  },
+  {
+    "name": "Bourses Haïti–Maroc (AMCI)",
+    "country": "Global",
+    "fundingType": "tuition-only",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor", "master", "phd"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-04-30", "notes": "Cycle annuel — campagne ouverte février/mars via l'Ambassade du Royaume du Maroc en Haïti.", "sourceUrl": "https://www.amci.ma/" },
+    "howToApplyUrl": "https://www.amci.ma/",
+    "officialUrl": "https://www.amci.ma/",
+    "relatedPagePath": "/bourses/guides/haiti-maroc",
+    "eligibilitySummary": "Bourses de l'Agence Marocaine de Coopération Internationale (AMCI) ouvertes aux étudiant·es haïtien·nes. Couvre frais de scolarité dans les universités publiques marocaines + allocation mensuelle (~750 MAD) + logement universitaire.",
+    "programDescription": "Programme de coopération Sud-Sud : Haïti dispose d'un quota annuel d'une vingtaine de bourses (chiffre variable selon convention bilatérale en vigueur). Filières offertes : sciences (médecine, ingénierie, agronomie, sciences humaines) dans les universités publiques au Maroc (Mohammed V Rabat, Hassan II Casablanca, Cadi Ayyad Marrakech, etc.). Enseignement en français pour la plupart des filières.",
+    "applicationSteps": [
+      { "title": "Retrait du dossier à l'Ambassade", "description": "L'Ambassade du Maroc à Port-au-Prince publie l'avis (généralement février-mars). Retirer ou télécharger le formulaire AMCI." },
+      { "title": "Constitution du dossier", "description": "Bac ou diplôme antérieur certifié, relevés de notes, acte de naissance, certificat médical, photos, formulaire AMCI rempli." },
+      { "title": "Sélection en deux temps", "description": "Présélection par l'Ambassade puis confirmation finale par l'AMCI à Rabat. Affectation universitaire communiquée en juillet-août." },
+      { "title": "Pré-rentrée", "description": "Stage linguistique éventuel + inscription administrative en septembre. Première année souvent en cycle préparatoire." }
+    ],
+    "tags": ["morocco", "amci", "government", "francophone", "africa", "south-south"],
+    "sources": [
+      { "url": "https://www.amci.ma/", "label": "Agence Marocaine de Coopération Internationale" }
+    ]
+  },
+  {
+    "name": "Bourses Haïti–Cuba (ELAM, Médecine)",
+    "country": "Global",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-05-31", "notes": "Programme bilatéral historique — candidatures via le Ministère de la Santé Publique (MSPP) et l'Ambassade de Cuba en Haïti.", "sourceUrl": "https://instituciones.sld.cu/elam/" },
+    "howToApplyUrl": "https://instituciones.sld.cu/elam/",
+    "officialUrl": "https://instituciones.sld.cu/elam/",
+    "relatedPagePath": "/bourses/guides/haiti-cuba",
+    "eligibilitySummary": "Études complètes de médecine (6 ans) à l'École Latino-Américaine de Médecine (ELAM) à La Havane. Bourse intégrale : scolarité, hébergement universitaire, repas, allocation mensuelle modeste, soins. Engagement moral de retour au pays après diplôme.",
+    "programDescription": "Coopération médicale Cuba–Haïti depuis 1998 : Cuba a déjà formé plus de 1 000 médecins haïtien·nes via l'ELAM. Le cursus se déroule en espagnol (1ère année préparatoire en langue + sciences fondamentales). Très sélectif côté haïtien : sélection coordonnée par le MSPP et la Brigade médicale cubaine. Au-delà de la médecine, l'Ambassade de Cuba propose aussi des bourses dans d'autres filières (ingénierie, sciences vétérinaires, sport).",
+    "applicationSteps": [
+      { "title": "Annonce officielle MSPP", "description": "Le Ministère de la Santé Publique et de la Population publie l'appel chaque année (mars-mai). L'avis est aussi diffusé via les facultés de médecine et certaines universités d'État." },
+      { "title": "Dossier de candidature", "description": "Diplôme du Bac (ou attestation provisoire), relevés des deux dernières années du secondaire, acte de naissance, certificat médical détaillé, certificat de bonne vie et mœurs, lettre de motivation." },
+      { "title": "Tests et entretiens", "description": "Tests écrits (sciences, culture générale) + entretien devant un panel mixte MSPP / Ambassade de Cuba. Pré-sélection des meilleur·es candidat·es selon le quota annuel (~30–50 places)." },
+      { "title": "Préparatoire à La Havane", "description": "Année 0 : cours intensifs d'espagnol et de sciences fondamentales à l'ELAM avant l'entrée en cursus médical." }
+    ],
+    "tags": ["cuba", "elam", "medicine", "bilateral", "south-south", "francophone"],
+    "sources": [
+      { "url": "https://instituciones.sld.cu/elam/", "label": "ELAM Cuba" }
+    ]
+  },
+  {
+    "name": "Bourses Haïti–Mexique (AMEXCID)",
+    "country": "MX",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["master", "phd", "short_programs"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-09-15", "notes": "Convocation annuelle ouverte généralement entre juin et septembre — candidature via l'Ambassade du Mexique en Haïti.", "sourceUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros" },
+    "howToApplyUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros",
+    "officialUrl": "https://www.gob.mx/amexcid",
+    "relatedPagePath": "/bourses/guides/haiti-mexique",
+    "eligibilitySummary": "Programme de bourses du gouvernement mexicain via l'AMEXCID. Couvre scolarité, allocation mensuelle, assurance santé et vol aller-retour. Études en espagnol. Haïti figure parmi les pays prioritaires (Caraïbes / Amérique latine).",
+    "programDescription": "L'Agencia Mexicana de Cooperación Internacional para el Desarrollo (AMEXCID) coordonne plus de 700 bourses chaque année pour des étudiant·es internationaux. Filières prioritaires : énergies renouvelables, ingénierie, agronomie, gestion publique, santé, sciences sociales. Universités partenaires : UNAM, IPN, COLMEX, CINVESTAV, ITESM, UAM, etc.",
+    "applicationSteps": [
+      { "title": "Vérifier la convocation annuelle", "description": "L'AMEXCID publie l'appel global chaque année. L'Ambassade du Mexique en Haïti relaie l'information et précise les filières ouvertes pour les Haïtien·nes." },
+      { "title": "Préparer le dossier", "description": "Lettre d'admission (ou pré-admission) à un programme mexicain, CV, lettre de motivation en espagnol, plan de recherche (master/PhD), 2 lettres de recommandation, justificatifs de niveau d'espagnol (B2 minimum)." },
+      { "title": "Dépôt à l'Ambassade", "description": "Soumission du dossier complet à l'Ambassade du Mexique à Port-au-Prince qui le transmet à l'AMEXCID. Réponse en 2–4 mois." }
+    ],
+    "tags": ["mexico", "amexcid", "government", "spanish", "latam"],
+    "sources": [
+      { "url": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros", "label": "AMEXCID Becas" }
+    ]
+  },
+  {
+    "name": "Bourses Haïti–Brésil (PEC-G & PEC-PG)",
+    "country": "Global",
+    "fundingType": "tuition-only",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor", "master", "phd"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-05-31", "notes": "Deux programmes : PEC-G (undergrad — clôture mai) et PEC-PG (postgrad — clôture variable). Candidature via l'Ambassade du Brésil en Haïti.", "sourceUrl": "http://portal.mec.gov.br/pec-g" },
+    "howToApplyUrl": "http://portal.mec.gov.br/pec-g",
+    "officialUrl": "http://portal.mec.gov.br/pec-g",
+    "relatedPagePath": "/bourses/guides/haiti-bresil",
+    "eligibilitySummary": "Programme Étudiant·es-Convention de Graduation (PEC-G) et Post-Graduation (PEC-PG) du gouvernement brésilien. Études gratuites dans les universités fédérales brésiliennes ; allocation possible (mérite). Haïti participe activement depuis les années 2000.",
+    "programDescription": "PEC-G (undergraduate) : sélection sur concours pour entrer dans une université fédérale brésilienne. L'étudiant·e suit d'abord un cours intensif de portugais (Celpe-Bras) puis intègre la licence. PEC-PG (master/PhD) : pour étudiant·es déjà diplômé·es. Bourses CAPES/CNPq pouvant couvrir l'allocation. Universités d'accueil : USP, Unicamp, UFRJ, UFMG, UnB, UFSC, etc.",
+    "applicationSteps": [
+      { "title": "Examen Celpe-Bras (PEC-G)", "description": "Maîtrise du portugais : examen Celpe-Bras requis pour valider l'entrée. Préparation possible via l'Ambassade ou en ligne." },
+      { "title": "Dossier via l'Ambassade", "description": "Diplôme du Bac authentifié, relevés, lettre de motivation en portugais, choix de 3 cours et 3 universités, justificatif de revenu (PEC-G demande une preuve de capacité financière minimale ~400 USD/mois)." },
+      { "title": "Sélection MEC + universités", "description": "Sélection finale par le MEC brésilien + acceptation par les universités. Réponse en juillet-août pour rentrée en mars suivant (calendrier sud-américain)." }
+    ],
+    "tags": ["brazil", "pec-g", "pec-pg", "government", "portuguese", "latam", "south-south"],
+    "sources": [
+      { "url": "http://portal.mec.gov.br/pec-g", "label": "MEC Brésil — PEC-G" }
+    ]
+  },
+  {
+    "name": "Bourses Russie (Open Doors / Government Scholarship)",
+    "country": "RU",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor", "master", "phd"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": { "dateISO": "2026-12-10", "notes": "Quota Russian Government : campagne novembre-décembre via Rossotrudnichestvo. Open Doors : olympiade pour master/PhD en parallèle.", "sourceUrl": "https://education-in-russia.com/" },
+    "howToApplyUrl": "https://education-in-russia.com/",
+    "officialUrl": "https://education-in-russia.com/",
+    "eligibilitySummary": "Bourses du gouvernement russe pour étudier dans les universités d'État russes. Couvre scolarité, allocation mensuelle modeste, hébergement universitaire. Haïti dispose d'un quota annuel (~10–15 places). Cours en russe (1 an préparatoire de langue) ou en anglais selon le programme.",
+    "tags": ["russia", "government", "bilateral", "rossotrudnichestvo"],
+    "sources": [
+      { "url": "https://education-in-russia.com/", "label": "Education in Russia" }
+    ]
+  },
+  {
+    "name": "Bourses Argentine (PROFEACU / Becas Bilaterales)",
+    "country": "Global",
+    "fundingType": "tuition-only",
+    "eligibleCountries": ["HT"],
+    "level": ["master", "phd", "short_programs"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-08-31", "notes": "Convocation annuelle via la Cancillería argentine — relayée par l'Ambassade en République Dominicaine (qui couvre Haïti).", "sourceUrl": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas" },
+    "howToApplyUrl": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas",
+    "officialUrl": "https://www.cancilleria.gob.ar/",
+    "eligibilitySummary": "Bourses bilatérales du Ministère des Affaires étrangères argentin pour études de master, PhD et stages de recherche. Couvre frais d'inscription et allocation. Haïti est éligible via la coopération Sud-Sud / SEGIB (espace ibéro-américain).",
+    "tags": ["argentina", "government", "spanish", "latam", "south-south"],
+    "sources": [
+      { "url": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas", "label": "Cancillería Argentina — Becas" }
+    ]
+  },
+  {
+    "name": "Programme d'Aide à l'Éducation (FAES / MENFP, Haïti)",
+    "country": "HT",
+    "fundingType": "partial",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor", "master"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-09-30", "notes": "Cycles annuels variables — surveiller les avis du FAES et du MENFP en début d'année académique.", "sourceUrl": "https://faes.gouv.ht/" },
+    "howToApplyUrl": "https://faes.gouv.ht/",
+    "officialUrl": "https://faes.gouv.ht/",
+    "eligibilitySummary": "Programmes d'aide financière pilotés par le Fonds d'Assistance Économique et Sociale (FAES) et le Ministère de l'Éducation Nationale (MENFP) pour soutenir des étudiant·es haïtien·nes (universités locales et certains programmes à l'étranger). Modalités variables selon les enveloppes annuelles.",
+    "programDescription": "Le FAES gère plusieurs enveloppes d'aide à l'éducation (bourses scolaires, kits, soutien aux étudiant·es vulnérables) financées par l'État haïtien et certains bailleurs (BID, Banque mondiale). Le MENFP gère des bourses ponctuelles vers Cuba, Russie, Maroc, Taïwan en partenariat avec les ambassades. Vérifier régulièrement le portail des deux institutions et la presse nationale (Le Nouvelliste, Le National) pour les annonces.",
+    "tags": ["haiti", "government", "menfp", "faes", "local"],
+    "sources": [
+      { "url": "https://faes.gouv.ht/", "label": "FAES Haïti" },
+      { "url": "https://menfp.gouv.ht/", "label": "MENFP Haïti" }
+    ]
+  },
+  {
+    "name": "Hennessy Fellowship (Vanderbilt, Owen Graduate School)",
+    "country": "US",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["master"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": { "dateISO": "2027-01-08", "notes": "Bourse complète MBA — candidature couplée à l'admission Owen (Round 1 ou 2).", "sourceUrl": "https://business.vanderbilt.edu/mba/admissions/scholarships/" },
+    "howToApplyUrl": "https://business.vanderbilt.edu/mba/admissions/scholarships/",
+    "officialUrl": "https://business.vanderbilt.edu/mba/",
+    "eligibilitySummary": "Bourse MBA complète à la Owen Graduate School of Management de Vanderbilt. Une des bourses de leadership les plus généreuses des États-Unis pour le MBA. Ouverte aux candidat·es internationaux·les, dont Haïti.",
+    "tags": ["us", "vanderbilt", "mba", "leadership", "private"],
+    "sources": [
+      { "url": "https://business.vanderbilt.edu/mba/admissions/scholarships/", "label": "Vanderbilt Owen Hennessy Fellowship" }
+    ]
+  },
+  {
+    "name": "Stamps Scholars Program",
+    "country": "US",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["bachelor"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-01-15", "notes": "Calendrier propre à chaque université partenaire — candidature en parallèle de l'admission undergraduate.", "sourceUrl": "https://www.stampsscholars.org/" },
+    "howToApplyUrl": "https://www.stampsscholars.org/",
+    "officialUrl": "https://www.stampsscholars.org/",
+    "eligibilitySummary": "Bourses d'undergraduate ultra-sélectives dans une cinquantaine d'universités américaines partenaires (Georgia Tech, Notre Dame, USC, Tulane, Miami, Tech, Wake Forest, etc.). Couvre scolarité + frais + un budget enrichissement (recherche, voyage d'étude, conférences). International éligible selon l'université.",
+    "tags": ["us", "bachelor", "leadership", "foundation", "stamps"],
+    "sources": [
+      { "url": "https://www.stampsscholars.org/", "label": "Stamps Scholars" }
+    ]
+  },
+  {
+    "name": "Paul & Daisy Soros Fellowship for New Americans",
+    "country": "US",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["master", "phd"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": { "dateISO": "2026-10-23", "notes": "Bourse pour la diaspora — Haïtien·nes immigrant·es ou enfants d'immigrant·es aux États-Unis.", "sourceUrl": "https://www.pdsoros.org/" },
+    "howToApplyUrl": "https://www.pdsoros.org/apply",
+    "officialUrl": "https://www.pdsoros.org/",
+    "eligibilitySummary": "Pour la diaspora haïtienne : 30 fellowships annuels ($90 000 sur 2 ans) destinés aux New Americans (immigrant·es de 1ère/2ème génération aux US) pour études graduées dans n'importe quelle discipline.",
+    "tags": ["us", "diaspora", "graduate", "foundation", "new-americans"],
+    "sources": [
+      { "url": "https://www.pdsoros.org/", "label": "Paul & Daisy Soros Fellowship" }
+    ]
+  },
+  {
+    "name": "Pickering Foreign Affairs Fellowship",
+    "country": "US",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["master"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": { "dateISO": "2026-09-15", "notes": "Pour la diaspora — citoyen·nes ou résident·es US. Préparation à la carrière diplomatique au Département d'État.", "sourceUrl": "https://pickeringfellowship.org/" },
+    "howToApplyUrl": "https://pickeringfellowship.org/apply",
+    "officialUrl": "https://pickeringfellowship.org/",
+    "eligibilitySummary": "Bourse complète de master en relations internationales / politiques publiques + emploi garanti au Département d'État américain comme Foreign Service Officer. Réservée aux US citizens (diaspora haïtienne éligible si naturalisée).",
+    "tags": ["us", "diaspora", "master", "diplomacy", "government"],
+    "sources": [
+      { "url": "https://pickeringfellowship.org/", "label": "Pickering Fellowship" }
+    ]
+  },
+  {
+    "name": "Atlantic Fellows for Social and Economic Equity (LSE)",
+    "country": "UK",
+    "fundingType": "full",
+    "eligibleCountries": ["HT"],
+    "level": ["master", "short_programs"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": { "dateISO": "2027-01-31", "notes": "Programme d'un an à la London School of Economics — candidatures ouvertes en automne.", "sourceUrl": "https://afsee.atlanticfellows.lse.ac.uk/" },
+    "howToApplyUrl": "https://afsee.atlanticfellows.lse.ac.uk/apply/",
+    "officialUrl": "https://afsee.atlanticfellows.lse.ac.uk/",
+    "eligibilitySummary": "Programme d'un an à LSE pour leaders engagé·es sur les inégalités économiques et sociales. Couvre scolarité, allocation, voyage. Ouvert aux candidat·es du monde entier, Haïti incluse.",
+    "tags": ["uk", "lse", "leadership", "social-justice", "atlantic-fellows"],
+    "sources": [
+      { "url": "https://afsee.atlanticfellows.lse.ac.uk/", "label": "Atlantic Fellows AFSEE" }
+    ]
+  },
+  {
+    "name": "Echoing Green Fellowship",
+    "country": "Global",
+    "fundingType": "stipend",
+    "eligibleCountries": ["HT"],
+    "level": ["short_programs"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": { "dateISO": "2027-01-21", "notes": "Pour entrepreneur·es sociaux·ales en early stage — candidature mondiale.", "sourceUrl": "https://echoinggreen.org/fellowship/" },
+    "howToApplyUrl": "https://echoinggreen.org/fellowship/apply/",
+    "officialUrl": "https://echoinggreen.org/",
+    "eligibilitySummary": "Fellowship de 18 mois pour entrepreneur·es sociaux·ales à l'origine d'organisations à fort impact. Offre $80–90 000 de stipend + accompagnement, formation et accès à un réseau mondial. Ouvert aux fondateur·rices haïtien·nes.",
+    "tags": ["global", "fellowship", "social-entrepreneurship", "foundation"],
+    "sources": [
+      { "url": "https://echoinggreen.org/fellowship/", "label": "Echoing Green Fellowship" }
+    ]
+  },
+  {
+    "name": "Open Society University Network — Civic Engagement Awards",
+    "country": "Global",
+    "fundingType": "partial",
+    "eligibleCountries": ["HT"],
+    "level": ["master", "phd", "short_programs"],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": { "dateISO": "2027-03-31", "notes": "Plusieurs cycles annuels selon les sous-programmes (Civil Society Scholar Awards, OSF Fellowships).", "sourceUrl": "https://www.opensocietyfoundations.org/grants" },
+    "howToApplyUrl": "https://www.opensocietyfoundations.org/grants",
+    "officialUrl": "https://www.opensocietyfoundations.org/",
+    "eligibilitySummary": "Plusieurs programmes Open Society Foundations (OSF) pour chercheur·euses, journalistes, activistes : Civil Society Scholar Awards, OSF Fellowships, Soros Justice Fellowships. Haïti éligible. Montants variables selon le programme.",
+    "tags": ["global", "foundation", "research", "civil-society", "osf"],
+    "sources": [
+      { "url": "https://www.opensocietyfoundations.org/grants", "label": "Open Society Foundations Grants" }
+    ]
   }
 ]

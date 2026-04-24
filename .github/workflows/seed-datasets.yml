@@ -1,0 +1,151 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Seed curated datasets → Firestore
+#
+# Why this lives in its own workflow:
+#   • deploy-worker.yml only runs when worker code paths change. Editing
+#     curated JSON alone never triggered a deploy → curated additions were
+#     stuck in the repo and never landed in production.
+#   • This workflow runs on JSON-only changes (and supports manual dispatch)
+#     so editors can ship a new bourse without touching any TS.
+#   • Daily cron (06:00 PAP) acts as a safety net in case a previous push
+#     race-condition'd with the worker deploy.
+#
+# Optionally also pings Cloud Run /tick after seeding so any newly-seeded
+# scholarships flow into the discovery / radar pipeline immediately.
+# ──────────────────────────────────────────────────────────────────────────────
+name: Seed datasets to Firestore
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/worker/src/data/scholarships_curated.json"
+      - "apps/worker/src/scripts/seedScholarships.ts"
+      - "apps/worker/src/data/universities_curated.json"
+      - "apps/worker/src/scripts/seedUniversities.ts"
+      - ".github/workflows/seed-datasets.yml"
+
+  schedule:
+    # Daily at 06:00 America/Port-au-Prince (10:00 UTC, no DST in HT).
+    # Idempotent — upserts by name, no harm in re-running.
+    - cron: "0 10 * * *"
+
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: "Which dataset to seed"
+        required: true
+        type: choice
+        default: "scholarships"
+        options:
+          - scholarships
+          - universities
+          - all
+      tick_after:
+        description: "Trigger Cloud Run /tick after seeding"
+        required: false
+        type: boolean
+        default: false
+
+env:
+  PROJECT_ID: edlight-news
+  REGION: us-central1
+  SERVICE: edlight-news-worker
+
+jobs:
+  seed:
+    name: Seed Firestore
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build dependent packages
+        # tsx runs scripts directly, but @edlight-news/types ships .js stubs
+        # alongside .ts so workspace packages need to be built first to
+        # avoid module-resolution surprises in the seed script.
+        run: pnpm turbo build --filter=@edlight-news/firebase --filter=@edlight-news/types
+
+      - name: Determine datasets
+        id: pick
+        run: |
+          # On push or scheduled run, default to scholarships (the most
+          # frequently edited curated dataset). On manual dispatch, honour
+          # the input.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "dataset=${{ github.event.inputs.dataset }}" >> $GITHUB_OUTPUT
+            echo "tick_after=${{ github.event.inputs.tick_after }}" >> $GITHUB_OUTPUT
+          else
+            echo "dataset=scholarships" >> $GITHUB_OUTPUT
+            echo "tick_after=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Seed scholarships
+        if: steps.pick.outputs.dataset == 'scholarships' || steps.pick.outputs.dataset == 'all'
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: pnpm --filter @edlight-news/worker seed:scholarships
+
+      - name: Seed universities
+        if: steps.pick.outputs.dataset == 'universities' || steps.pick.outputs.dataset == 'all'
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: pnpm --filter @edlight-news/worker seed:universities
+
+      # ── Optional: trigger a Cloud Run tick to flow new data downstream ────
+      - name: Authenticate to Google Cloud
+        if: steps.pick.outputs.tick_after == 'true'
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        if: steps.pick.outputs.tick_after == 'true'
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Trigger Cloud Run /tick
+        if: steps.pick.outputs.tick_after == 'true'
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "Pinging $URL/tick …"
+          curl -sS -X POST \
+            -H "x-api-key: ${{ secrets.WORKER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --max-time 60 \
+            "$URL/tick" \
+            -o /tmp/tick-response.json -w "HTTP %{http_code}\n" || true
+          echo "── /tick response ──"
+          cat /tmp/tick-response.json || true
+          echo
+
+      - name: Summary
+        run: |
+          echo "### ✅ Seed complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dataset:** ${{ steps.pick.outputs.dataset }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tick after:** ${{ steps.pick.outputs.tick_after }}" >> $GITHUB_STEP_SUMMARY
