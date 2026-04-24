@@ -16,6 +16,7 @@ import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { runUtilityEngine } from "../services/utility.js";
 import { runDatasetRefresh } from "../services/datasets.js";
+import { discoverScholarships } from "../services/discoverScholarships.js";
 import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { buildIgTaux } from "../jobs/buildIgTaux.js";
@@ -75,6 +76,14 @@ async function main() {
     console.log(JSON.stringify(datasetResult, null, 2));
   } catch (err) {
     console.warn("[datasets] error:", err instanceof Error ? err.message : err);
+  }
+
+  console.log("\n=== Step 8b: Scholarship Discovery ===");
+  try {
+    const discoverResult = await discoverScholarships();
+    console.log(JSON.stringify(discoverResult, null, 2));
+  } catch (err) {
+    console.warn("[discoverScholarships] error:", err instanceof Error ? err.message : err);
   }
 
   console.log("\n=== Step 9: Haiti History Daily Publisher ===");

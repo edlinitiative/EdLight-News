@@ -330,6 +330,18 @@ export interface Item {
   /** Number of failed Gemini generation attempts (for retry-limiting) */
   generationAttempts?: number;
 
+  /**
+   * Outcome of the auto-promotion of this opportunites item into the
+   * structured `scholarships` collection.
+   *  - "promoted" = a scholarship doc was created/updated from this item
+   *  - "rejected" = LLM determined this is not a single applicable scholarship
+   *  - "failed"   = transient error; will be retried up to scholarshipPromotionAttempts
+   *  - undefined  = never evaluated yet
+   */
+  scholarshipPromotion?: "promoted" | "rejected" | "failed";
+  /** Number of times we attempted to promote this item to scholarships (for retry-limiting). */
+  scholarshipPromotionAttempts?: number;
+
   /** Slug of the contributor who authored this item (links to /auteur/[slug]) */
   authorSlug?: string;
 
