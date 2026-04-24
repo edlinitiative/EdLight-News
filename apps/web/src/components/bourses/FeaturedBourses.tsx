@@ -8,9 +8,9 @@
  */
 
 import type { ContentLanguage, DatasetCountry, AcademicLevel } from "@edlight-news/types";
-import { ArrowUpRight, ChevronLeft, ChevronRight, CalendarDays, Bookmark } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
-import { getDeadlineStatus, formatDeadlineDateShort, badgeStyle } from "@/lib/ui/deadlines";
+import { getDeadlineStatus, formatDeadlineDateShort } from "@/lib/ui/deadlines";
 
 const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string }> = {
   US: { fr: "États-Unis", ht: "Etazini" },
@@ -99,22 +99,6 @@ export function FeaturedBourses({
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tighter text-[#1d1b1a] dark:text-white mt-2 font-display">
             {fr ? "Bourses en vedette" : "Bous an vedèt"}
           </h2>
-        </div>
-        <div className="hidden sm:flex gap-2">
-          <button
-            type="button"
-            className="w-9 h-9 rounded-full border border-[#c7c4d8]/20 dark:border-stone-700 flex items-center justify-center hover:bg-[#f9f2f0] dark:hover:bg-stone-800 transition-colors text-[#464555] dark:text-stone-400"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            className="w-9 h-9 rounded-full border border-[#c7c4d8]/20 dark:border-stone-700 flex items-center justify-center hover:bg-[#f9f2f0] dark:hover:bg-stone-800 transition-colors text-[#464555] dark:text-stone-400"
-            aria-label="Next"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
         </div>
       </header>
 

@@ -12,4 +12,5 @@ export const FILTER_PARAM_KEYS = [
   "eligibility",
   "type",
   "sort",
+  "saved",
 ] as const;

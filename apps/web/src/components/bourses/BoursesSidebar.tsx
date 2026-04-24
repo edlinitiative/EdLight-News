@@ -34,17 +34,32 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
   const trendingTags = getTrendingTags(scholarships);
 
   return (
-    <div className="space-y-8">
-      {/* ─── Curator's Insight — editorial quote ─── */}
-      <div className="py-6 border-l-4 border-[#316bf3] dark:border-[#c3c0ff] pl-6">
-        <blockquote className="text-xl font-bold italic leading-relaxed text-[#1d1b1a] dark:text-white font-display">
-          {fr
-            ? "« Le virage vers les financements STEM spécifiques dans le G7 atteint une masse critique. Les candidats ayant des intersections climat-politique voient un taux de succès 40% plus élevé. »"
-            : "« Vire vè finansman STEM espesifik nan G7 la ap rive nan yon mas kritik. Kandida ki gen entèseksyon klima-politik wè yon to siksè 40% pi wo. »"}
-        </blockquote>
-        <cite className="block mt-4 text-xs font-bold uppercase tracking-widest text-[#0051d5] dark:text-[#b4c5ff]">
-          — {fr ? "Analyse Éditoriale" : "Analiz Editoryal"}
-        </cite>
+    <div className="space-y-6">
+      {/* ─── How to use this page (replaces a hardcoded editorial quote) ─── */}
+      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5">
+        <h6 className="text-xs font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-white mb-3">
+          {fr ? "Comment naviguer" : "Kijan pou navige"}
+        </h6>
+        <ul className="space-y-2 text-xs leading-relaxed text-[#464555] dark:text-stone-400">
+          <li>
+            <span className="font-bold text-[#3525cd] dark:text-[#c3c0ff]">·</span>{" "}
+            {fr
+              ? "Filtrez par Type / Financement directement au-dessus de la liste."
+              : "Filtre pa Tip / Finansman dirèkteman sou tèt lis la."}
+          </li>
+          <li>
+            <span className="font-bold text-[#3525cd] dark:text-[#c3c0ff]">·</span>{" "}
+            {fr
+              ? "Cliquez sur le 🔖 d'une bourse pour la sauvegarder localement."
+              : "Klike sou 🔖 yon bous pou anrejistre l."}
+          </li>
+          <li>
+            <span className="font-bold text-[#3525cd] dark:text-[#c3c0ff]">·</span>{" "}
+            {fr
+              ? "« Affiner la sélection » ouvre les filtres avancés."
+              : "« Rafine seleksyon » ouvri filtr avanse yo."}
+          </li>
+        </ul>
       </div>
 
       {/* ─── Trending Sectors ─── */}

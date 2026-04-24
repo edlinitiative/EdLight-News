@@ -1,15 +1,17 @@
 "use client";
 
 /**
- * BoursesEditorial — Client orchestrator for the redesigned /bourses page.
+ * BoursesEditorial — Client orchestrator for the /bourses page.
  *
- * Manages shared state (search, filters, saved scholarships) and composes:
- *   1) BoursesSearchBar — unified search & quick-filter bar
- *   2) ActiveFilterChips — removable filter pills
- *   3) FeaturedBourses — 2-col featured scholarship cards
- *   4) BoursesFeed + BoursesSidebar — 8/4 grid feed layout
- *   5) Full catalogue toggle with ScholarshipCard grid
- *   6) FiltersDrawer — advanced filter slide-out
+ * Single unified browse layout (no more Feed↔Catalogue toggle):
+ *   1) BoursesSearchBar — search + Region + Level + Refine drawer
+ *   2) Quick chip row — Type / Funding / Eligibility / Saved
+ *   3) ActiveFilterChips — removable summary
+ *   4) FeaturedBourses — 2 promo cards (only when no filters & ≥2 items)
+ *   5) Toolbar — result count + sort menu (always visible)
+ *   6) ScholarshipCard grid (left 8 cols) + Sidebar (right 4 cols)
+ *      with Load-More pagination instead of an Archive toggle
+ *   7) FiltersDrawer — advanced filter slide-out
  *
  * All filter state is URL-driven for shareable links and presets.
  */
@@ -21,7 +23,7 @@ import type {
   DatasetCountry,
   AcademicLevel,
 } from "@edlight-news/types";
-import { ChevronDown, Archive } from "lucide-react";
+import { Plus, Bookmark } from "lucide-react";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 import { getSavedIds, toggleSaved, matchesSearch } from "@/lib/bourses-ui";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
@@ -29,7 +31,6 @@ import { parseISODateSafe, daysUntil as daysUntilFromDate } from "@/lib/deadline
 
 import { BoursesSearchBar } from "@/components/bourses/BoursesSearchBar";
 import { FeaturedBourses } from "@/components/bourses/FeaturedBourses";
-import { BoursesFeed } from "@/components/bourses/BoursesFeed";
 import { BoursesSidebar } from "@/components/bourses/BoursesSidebar";
 import { ScholarshipCard } from "@/components/bourses/ScholarshipCard";
 import { ActiveFilterChips } from "@/app/bourses/_components/ActiveFilterChips";
@@ -37,6 +38,8 @@ import { FiltersDrawer } from "@/app/bourses/_components/FiltersDrawer";
 import { SortMenuPill } from "@/app/bourses/_components/SortMenuPill";
 import type { FilterGroup } from "@/app/bourses/_components/FiltersDrawer";
 import type { ActiveFilter } from "@/app/bourses/_components/ActiveFilterChips";
+
+const PAGE_SIZE = 12;
 
 // ── Labels ──────────────────────────────────────────────────────────────────
 
@@ -111,7 +114,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
   // ── Local UI state ────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [showFullCatalogue, setShowFullCatalogue] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -129,6 +132,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
   const countryFilter = searchParams.get("country") ?? "all";
   const eligibilityFilter = searchParams.get("eligibility") ?? "all";
   const typeFilter = searchParams.get("type") ?? "all";
+  const savedOnly = searchParams.get("saved") === "1";
   const sortMode: SortMode = (
     ["deadline", "latest", "relevance"].includes(searchParams.get("sort") ?? "")
       ? (searchParams.get("sort") as SortMode)
@@ -183,6 +187,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
         const kind = s.kind ?? "program";
         if (typeFilter !== kind) return false;
       }
+      if (savedOnly && !savedIds.has(s.id)) return false;
       return true;
     });
 
@@ -216,7 +221,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
     });
 
     return items;
-  }, [scholarships, fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, sortMode, searchQuery]);
+  }, [scholarships, fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, sortMode, searchQuery, savedOnly, savedIds]);
 
   const hasFilters = useMemo(() => {
     return (
@@ -225,9 +230,15 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
       countryFilter !== "all" ||
       eligibilityFilter !== "all" ||
       typeFilter !== "all" ||
+      savedOnly ||
       searchQuery.trim().length > 0
     );
-  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, searchQuery]);
+  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, savedOnly, searchQuery]);
+
+  // Reset pagination whenever filter signature or sort changes
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, savedOnly, searchQuery, sortMode]);
 
   // ── Derived props for sub-components ──────────────────────────────────────
 
@@ -303,32 +314,44 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
     [fr, typeFilter, fundingFilter, eligibilityFilter],
   );
 
-  // ── Featured scholarship IDs (for excluding from feed) ────────────────────
-  const featuredIds = useMemo(() => {
-    const featured = filtered
-      .filter((s) => s.kind !== "directory")
-      .sort((a, b) => {
-        const fundingOrder: Record<string, number> = { full: 0, partial: 1, stipend: 2, "tuition-only": 3, unknown: 4 };
-        const fa = fundingOrder[a.fundingType] ?? 4;
-        const fb = fundingOrder[b.fundingType] ?? 4;
-        if (fa !== fb) return fa - fb;
-        const aISO = a.deadline?.dateISO ?? "9999";
-        const bISO = b.deadline?.dateISO ?? "9999";
-        return aISO.localeCompare(bISO);
-      })
-      .slice(0, 2);
-    return new Set(featured.map((s) => s.id));
-  }, [filtered]);
-
   // Handle tag clicks from sidebar
   const handleTagClick = useCallback((tag: string) => {
     setSearchQuery(tag);
   }, []);
 
+  // ── Pagination ────────────────────────────────────────────────────────────
+  const visible = filtered.slice(0, visibleCount);
+  const remaining = Math.max(0, filtered.length - visible.length);
+
+  // ── Quick filter chip row helpers ─────────────────────────────────────────
+  const QuickChip = ({
+    active,
+    onClick,
+    children,
+  }: {
+    active: boolean;
+    onClick: () => void;
+    children: React.ReactNode;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+        active
+          ? "bg-[#3525cd] text-white dark:bg-[#4f46e5]"
+          : "bg-[#f9f2f0] text-[#464555] hover:bg-[#e8e1df] dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+      }`}
+    >
+      {children}
+    </button>
+  );
+
+  const savedCount = savedIds.size;
+
   return (
-    <div className="space-y-12">
+    <div className="space-y-10">
       {/* ── Search & Filter Bar ── */}
-      <section>
+      <section className="space-y-3">
         <BoursesSearchBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -341,17 +364,74 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
           drawerFilterCount={drawerFilterCount}
           fr={fr}
         />
-        <div className="mt-3">
-          <ActiveFilterChips
-            filters={activeFilters}
-            onRemove={(key) => setFilter(key, "all")}
-            onClearAll={clearAll}
-            fr={fr}
-          />
+
+        {/* Quick chip row — surfaces the most-used filters one click away */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Type */}
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1">
+            {fr ? "Type" : "Tip"}
+          </span>
+          {TYPE_FILTER_CHIPS.map((c) => (
+            <QuickChip
+              key={`t-${c.key}`}
+              active={typeFilter === c.key}
+              onClick={() => setFilter("type", c.key)}
+            >
+              {fr ? c.fr : c.ht}
+            </QuickChip>
+          ))}
+
+          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700" />
+
+          {/* Funding (compact: skip "all" — first chip is implicit) */}
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1">
+            {fr ? "Financement" : "Finansman"}
+          </span>
+          {FUNDING_FILTER_CHIPS.filter((c) => c.key !== "unknown").map((c) => (
+            <QuickChip
+              key={`f-${c.key}`}
+              active={fundingFilter === c.key}
+              onClick={() => setFilter("funding", c.key)}
+            >
+              {fr ? c.fr : c.ht}
+            </QuickChip>
+          ))}
+
+          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700" />
+
+          {/* Eligibility (single toggle: "Éligible HT") */}
+          <QuickChip
+            active={eligibilityFilter === "yes"}
+            onClick={() =>
+              setFilter("eligibility", eligibilityFilter === "yes" ? "all" : "yes")
+            }
+          >
+            ✓ {fr ? "Éligible Haïti" : "Elijib Ayiti"}
+          </QuickChip>
+
+          {/* Saved toggle */}
+          {savedCount > 0 && (
+            <QuickChip
+              active={savedOnly}
+              onClick={() => setFilter("saved", savedOnly ? "all" : "1")}
+            >
+              <span className="inline-flex items-center gap-1">
+                <Bookmark className={`h-3 w-3 ${savedOnly ? "fill-current" : ""}`} />
+                {fr ? "Sauvegardés" : "Anrejistre"} ({savedCount})
+              </span>
+            </QuickChip>
+          )}
         </div>
+
+        <ActiveFilterChips
+          filters={activeFilters}
+          onRemove={(key) => setFilter(key, "all")}
+          onClearAll={clearAll}
+          fr={fr}
+        />
       </section>
 
-      {/* ── Featured Bourses (hidden when filters are active — show catalogue instead) ── */}
+      {/* ── Featured Bourses (only on the unfiltered home view) ── */}
       {!hasFilters && filtered.length >= 2 && (
         <FeaturedBourses
           scholarships={filtered}
@@ -361,111 +441,99 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
         />
       )}
 
-      {/* ── Feed + Sidebar (editorial layout) ── */}
-      {!hasFilters && (
-        <section>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
-            <div className="lg:col-span-8">
-              <BoursesFeed
-                scholarships={filtered}
-                lang={lang}
-                excludeIds={featuredIds}
-                savedIds={savedIds}
-                onToggleSave={handleToggleSave}
-                maxItems={6}
-              />
+      {/* ── Always-visible toolbar: result count + sort ── */}
+      <section id="catalogue">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-baseline gap-2">
+            <h3 className="font-display text-xl font-bold tracking-tight text-[#1d1b1a] dark:text-white">
+              {hasFilters
+                ? (fr ? "Résultats" : "Rezilta")
+                : (fr ? "Toutes les bourses" : "Tout bous yo")}
+            </h3>
+            <span className="text-xs tabular-nums text-[#474948] dark:text-stone-400">
+              <span className="font-bold text-[#1d1b1a] dark:text-white">{filtered.length}</span>
+              <span className="text-[#c7c4d8] dark:text-stone-600 mx-0.5">/</span>
+              {scholarships.length}
+            </span>
+          </div>
+          <SortMenuPill
+            sortMode={sortMode}
+            onSort={(m) => setFilter("sort", m)}
+            fr={fr}
+          />
+        </div>
 
-              {/* ── View Full Archive CTA ── */}
-              {filtered.length > 8 && (
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <div className="rounded-xl border-2 border-dashed border-[#c7c4d8]/20 dark:border-stone-700 bg-white dark:bg-stone-900 py-14 text-center text-[#474948] dark:text-stone-500">
+            <p className="text-base font-medium">
+              {fr
+                ? scholarships.length === 0
+                  ? "Base de données en construction…"
+                  : savedOnly
+                    ? "Aucune bourse sauvegardée pour le moment."
+                    : "Aucun résultat pour ces filtres."
+                : scholarships.length === 0
+                  ? "Baz done an konstriksyon…"
+                  : savedOnly
+                    ? "Pa gen okenn bous anrejistre."
+                    : "Pa gen rezilta pou filtr sa yo."}
+            </p>
+            {hasFilters && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="mt-4 text-xs font-bold text-[#3525cd] hover:underline dark:text-[#c3c0ff]"
+              >
+                {fr ? "Réinitialiser les filtres" : "Reyinisyalize filtr yo"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Grid + Sidebar */}
+        {filtered.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+            <div className="lg:col-span-8 space-y-6">
+              <div className="grid gap-5 sm:grid-cols-2">
+                {visible.map((s) => (
+                  <ScholarshipCard
+                    key={s.id}
+                    scholarship={s}
+                    lang={lang}
+                    saved={savedIds.has(s.id)}
+                    onToggleSave={handleToggleSave}
+                  />
+                ))}
+              </div>
+
+              {/* Load more */}
+              {remaining > 0 && (
                 <button
                   type="button"
-                  onClick={() => setShowFullCatalogue(true)}
-                  className="w-full mt-8 py-4 border-2 border-[#3525cd]/10 dark:border-[#c3c0ff]/10 rounded-xl text-[#3525cd] dark:text-[#c3c0ff] font-bold text-sm hover:bg-[#3525cd] hover:text-white dark:hover:bg-[#4f46e5] dark:hover:text-white transition-all duration-300 inline-flex items-center justify-center gap-2"
+                  onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                  className="w-full py-4 border-2 border-[#3525cd]/15 dark:border-[#c3c0ff]/15 rounded-xl text-[#3525cd] dark:text-[#c3c0ff] font-bold text-sm hover:bg-[#3525cd] hover:text-white dark:hover:bg-[#4f46e5] dark:hover:text-white transition-all duration-200 inline-flex items-center justify-center gap-2"
                 >
-                  <Archive className="h-4 w-4" />
+                  <Plus className="h-4 w-4" />
                   {fr
-                    ? `Voir l'archive complète (${filtered.length}+ bourses)`
-                    : `Wè achiv konplè a (${filtered.length}+ bous)`}
+                    ? `Voir plus (${Math.min(PAGE_SIZE, remaining)} sur ${remaining})`
+                    : `Wè plis (${Math.min(PAGE_SIZE, remaining)} sou ${remaining})`}
                 </button>
               )}
             </div>
 
-            <div className="lg:col-span-4">
-              <BoursesSidebar
-                scholarships={scholarships}
-                lang={lang}
-                onTagClick={handleTagClick}
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── Full Catalogue (shown when filters active or user clicked "View Archive") ── */}
-      {(hasFilters || showFullCatalogue) && (
-        <section id="catalogue" className="space-y-4">
-          {/* Catalogue header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h3 className="font-display text-xl font-bold tracking-tight text-[#1d1b1a] dark:text-white">
-                {fr ? "Catalogue complet" : "Katalòg konplè"}
-              </h3>
-              <span className="text-xs tabular-nums text-[#474948] dark:text-stone-400">
-                <span className="font-bold text-[#1d1b1a] dark:text-white">{filtered.length}</span>
-                <span className="text-[#c7c4d8] dark:text-stone-600">/</span>
-                {scholarships.length}
-              </span>
-            </div>
-            <SortMenuPill
-              sortMode={sortMode}
-              onSort={(m) => setFilter("sort", m)}
-              fr={fr}
-            />
-          </div>
-
-          {/* Empty states */}
-          {filtered.length === 0 && (
-            <div className="rounded-xl border-2 border-dashed border-[#c7c4d8]/20 dark:border-stone-700 bg-white dark:bg-stone-900 py-14 text-center text-[#474948] dark:text-stone-500">
-              <p className="text-base font-medium">
-                {fr
-                  ? scholarships.length === 0
-                    ? "Base de données en construction…"
-                    : "Aucun résultat pour ces filtres."
-                  : scholarships.length === 0
-                    ? "Baz done an konstriksyon…"
-                    : "Pa gen rezilta pou filtr sa yo."}
-              </p>
-            </div>
-          )}
-
-          {/* Card grid */}
-          {filtered.length > 0 && (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((s) => (
-                <ScholarshipCard
-                  key={s.id}
-                  scholarship={s}
+            <aside className="lg:col-span-4">
+              <div className="lg:sticky lg:top-24">
+                <BoursesSidebar
+                  scholarships={scholarships}
                   lang={lang}
-                  saved={savedIds.has(s.id)}
-                  onToggleSave={handleToggleSave}
+                  onTagClick={handleTagClick}
                 />
-              ))}
-            </div>
-          )}
-
-          {/* Collapse button */}
-          {showFullCatalogue && !hasFilters && (
-            <button
-              type="button"
-              onClick={() => setShowFullCatalogue(false)}
-              className="mx-auto mt-4 flex items-center gap-1 text-xs font-medium text-[#474948] hover:text-[#1d1b1a] dark:text-stone-400 dark:hover:text-stone-300 transition-colors"
-            >
-              <ChevronDown className="h-3.5 w-3.5 rotate-180" />
-              {fr ? "Réduire" : "Redwi"}
-            </button>
-          )}
-        </section>
-      )}
+              </div>
+            </aside>
+          </div>
+        )}
+      </section>
 
       {/* ── Filters drawer ── */}
       <FiltersDrawer
