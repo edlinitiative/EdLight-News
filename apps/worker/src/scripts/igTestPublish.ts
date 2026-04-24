@@ -141,7 +141,7 @@ async function main() {
   if (result.posted) {
     console.log(`\n  🎉 SUCCESS! Post published to Instagram!`);
     console.log(`  📱 Post ID: ${result.igPostId}`);
-    console.log(`  🔗 https://www.instagram.com/edlight.news/\n`);
+    console.log(`  🔗 https://www.instagram.com/edlightnews/\n`);
   } else if (result.dryRun) {
     console.log(`\n  ⚠️  Dry-run mode (credentials missing). Manifest: ${result.dryRunPath}\n`);
   } else {

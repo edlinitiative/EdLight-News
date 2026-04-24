@@ -90,7 +90,7 @@ async function fetchAsBuffer(url: string): Promise<Buffer> {
   console.log(`  ↓ Fetching ${url}`);
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "EdLight-News-Bot/1.0 (image-upload; https://edlight.news)",
+      "User-Agent": "EdLight-News-Bot/1.0 (image-upload; https://news.edlight.org)",
     },
     signal: AbortSignal.timeout(30_000),
   });

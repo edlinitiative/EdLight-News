@@ -31,7 +31,7 @@ export interface ScoredImage {
 
 const UNSPLASH_API = "https://api.unsplash.com";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-const UA = "EdLight-News-Worker/1.0 (editorial image search; contact@edlight.news)";
+const UA = "EdLight-News-Worker/1.0 (editorial image search; news@edlight.org)";
 
 /** Minimum width to be considered usable for 1080px IG slides */
 const MIN_WIDTH = 1200;

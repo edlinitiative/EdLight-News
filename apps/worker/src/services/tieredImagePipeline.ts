@@ -32,7 +32,7 @@ export type { ImageCandidate };
 
 const UNSPLASH_API = "https://api.unsplash.com";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-const UA = "EdLight-News-Worker/1.0 (tiered image pipeline; contact@edlight.news)";
+const UA = "EdLight-News-Worker/1.0 (tiered image pipeline; news@edlight.org)";
 const MIN_WIDTH = 1200;
 
 // ── Brave Image Search adapter ─────────────────────────────────────────────

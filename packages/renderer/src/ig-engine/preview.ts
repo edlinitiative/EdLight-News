@@ -94,7 +94,7 @@ const caption: PostCaption = {
     "#Haïti", "#Éducation", "#EdLightNews", "#HaïtiForward",
     "#ÉducationPourTous", "#DéveloppementHaïti",
   ],
-  cta: "Suivez @edlight.news pour l'actualité éducative en Haïti 🔔",
+  cta: "Suivez @edlightnews pour l'actualité éducative en Haïti 🔔",
 };
 
 // ── Run the pipeline ─────────────────────────────────────────────────────────

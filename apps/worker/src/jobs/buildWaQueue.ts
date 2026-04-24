@@ -26,7 +26,7 @@ const MAX_NEW_ITEMS_PER_RUN = 10;
 const MIN_SCORE_THRESHOLD = 40;
 
 /** Base URL for article links on the website. */
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://edlight.news";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://news.edlight.org";
 
 function getHaitiDateKey(date: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
