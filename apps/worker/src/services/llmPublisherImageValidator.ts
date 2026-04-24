@@ -65,10 +65,25 @@ export async function validatePublisherImage(
   item: Item,
 ): Promise<PublisherImageValidation | null> {
   if (!item.imageUrl) return null;
+  return validateImageForItem(item, item.imageUrl);
+}
+
+/**
+ * Same vision check as `validatePublisherImage`, but accepts an arbitrary
+ * URL — used by the unified IG image pipeline to validate substitute
+ * images returned by the keyword/tiered/Commons fallbacks before they
+ * ship. A `null` return means "could not form an opinion" (no key, fetch
+ * failed, etc.) and callers should treat it as a soft pass.
+ */
+export async function validateImageForItem(
+  item: Item,
+  imageUrl: string,
+): Promise<PublisherImageValidation | null> {
+  if (!imageUrl) return null;
   const client = getClient();
   if (!client) return null;
 
-  const inline = await fetchAsInlineData(item.imageUrl);
+  const inline = await fetchAsInlineData(imageUrl);
   if (!inline) return null;
 
   const personHint = item.entity?.personName

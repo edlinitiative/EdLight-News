@@ -102,6 +102,8 @@ async function run(): Promise<void> {
         ...(item.imageMeta ?? {}),
         originalImageUrl,
         fetchedAt: new Date().toISOString(),
+        ...(result.width ? { width: result.width } : {}),
+        ...(result.height ? { height: result.height } : {}),
       },
     });
 
