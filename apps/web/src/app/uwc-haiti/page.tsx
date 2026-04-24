@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Globe, School, CalendarDays } from "lucide-react";
-import { fetchAllScholarships } from "@/lib/datasets";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
@@ -19,10 +18,7 @@ export const metadata: Metadata = {
   }),
 };
 
-export default async function UwcHaitiPage() {
-  const all = await fetchAllScholarships();
-  const uwc = all.find((s) => /united world colleges|\buwc\b/i.test(s.name));
-
+export default function UwcHaitiPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <Link
@@ -88,7 +84,7 @@ export default async function UwcHaitiPage() {
           <Globe className="h-4 w-4 text-blue-600" /> Liens officiels
         </h2>
         <a
-          href={uwc?.officialUrl ?? "https://www.uwc.org/"}
+          href="https://www.uwc.org/"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-blue-700 hover:underline"
@@ -97,7 +93,7 @@ export default async function UwcHaitiPage() {
         </a>
         <br />
         <a
-          href={uwc?.howToApplyUrl ?? "https://www.uwc.org/apply"}
+          href="https://www.uwc.org/apply"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-blue-700 hover:underline"
