@@ -7,6 +7,7 @@
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
+import Link from "next/link";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 
 interface BoursesSidebarProps {
@@ -82,6 +83,33 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
           </div>
         </div>
       )}
+
+      {/* ─── Premium guides ─── */}
+      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5 bg-white dark:bg-stone-900">
+        <h6 className="text-xs font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-white mb-3">
+          {fr ? "Guides premium" : "Gid premium"}
+        </h6>
+        <p className="text-xs text-[#474948] dark:text-stone-400 leading-relaxed mb-3">
+          {fr
+            ? "Playbooks détaillés pour les bourses les plus compétitives (Rhodes, Fulbright, DAAD, Erasmus, Chevening, UWC)."
+            : "Gid detaye pou bous ki pi konpetitif yo (Rhodes, Fulbright, DAAD, Erasmus, Chevening, UWC)."}
+        </p>
+
+        <div className="space-y-1.5 text-sm">
+          <Link href="/bourses/guides" className="block font-semibold text-[#3525cd] dark:text-[#c3c0ff] hover:underline">
+            {fr ? "Voir tous les guides" : "Wè tout gid yo"}
+          </Link>
+          <Link href="/bourses/guides/rhodes-haiti" className="block text-[#474948] dark:text-stone-300 hover:text-[#3525cd] dark:hover:text-[#c3c0ff] transition-colors">
+            Rhodes · Oxford
+          </Link>
+          <Link href="/bourses/guides/fulbright-haiti" className="block text-[#474948] dark:text-stone-300 hover:text-[#3525cd] dark:hover:text-[#c3c0ff] transition-colors">
+            Fulbright · USA
+          </Link>
+          <Link href="/bourses/guides/uwc-haiti" className="block text-[#474948] dark:text-stone-300 hover:text-[#3525cd] dark:hover:text-[#c3c0ff] transition-colors">
+            UWC · High School
+          </Link>
+        </div>
+      </div>
 
       {/* ─── Distribution Stats ─── */}
       <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5">

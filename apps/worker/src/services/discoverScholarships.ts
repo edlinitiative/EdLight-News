@@ -55,6 +55,16 @@ const VALID_LEVELS: ReadonlySet<AcademicLevel> = new Set([
   "bachelor", "master", "phd", "short_programs",
 ]);
 
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
 export interface DiscoverScholarshipsResult {
   evaluated: number;
   promoted: number;
@@ -133,6 +143,7 @@ function buildCreatePayload(
     country,
     level,
     fundingType,
+    relatedPagePath: `/bourses/guides/${slugify(name)}`,
     officialUrl,
     sources,
     ...(eligibleCountries ? { eligibleCountries } : {}),
@@ -140,6 +151,44 @@ function buildCreatePayload(
     ...(deadline ? { deadline } : {}),
     ...(data.eligibilitySummary ? { eligibilitySummary: data.eligibilitySummary } : {}),
     ...(data.requirements && data.requirements.length > 0 ? { requirements: data.requirements } : {}),
+    ...(data.eligibilitySummary
+      ? { programDescription: `${data.eligibilitySummary}\n\nCe guide est généré automatiquement depuis les derniers contenus ingérés par EdLight.` }
+      : {}),
+    ...(data.howToApplyUrl || officialUrl
+      ? {
+          applicationSteps: [
+            {
+              title: "Vérifier l'éligibilité",
+              description:
+                data.eligibilitySummary ??
+                "Vérifier les critères de pays, niveau et domaine sur la source officielle.",
+            },
+            {
+              title: "Préparer les documents",
+              description:
+                data.requirements?.length
+                  ? `Documents clés: ${data.requirements.slice(0, 4).join(" · ")}`
+                  : "Préparer relevés, recommandations et preuve de langue si exigée.",
+            },
+            {
+              title: "Soumettre la candidature",
+              description: "Finaliser la soumission sur le portail officiel du programme.",
+              url: howToApplyUrl ?? officialUrl,
+            },
+          ],
+        }
+      : {}),
+    ...(data.deadlineDateISO || data.deadlineNotes
+      ? {
+          keyDates: [
+            {
+              label: "Deadline",
+              ...(data.deadlineDateISO ? { dateISO: data.deadlineDateISO } : {}),
+              ...(data.deadlineNotes ? { notes: data.deadlineNotes } : {}),
+            },
+          ],
+        }
+      : {}),
     ...(data.recurring !== undefined ? { recurring: data.recurring } : {}),
     ...(data.tags && data.tags.length > 0 ? { tags: data.tags } : {}),
   };

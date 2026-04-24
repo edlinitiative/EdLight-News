@@ -21,6 +21,10 @@ import {
   Search,
   ClipboardCheck,
   Globe,
+  ListChecks,
+  Layers,
+  ArrowUpRight,
+  Repeat,
 } from "lucide-react";
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -166,7 +170,49 @@ export default async function ScholarshipDetailPage({
             <FolderOpen className="h-4 w-4" /> {fr ? "Répertoire" : "Repètwa"}
           </span>
         )}
+        {s.recurring && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            <Repeat className="h-4 w-4" /> {fr ? "Bourse récurrente" : "Bous repetitif"}
+          </span>
+        )}
       </div>
+
+      {/* Hero image (optional) */}
+      {s.heroImageUrl && (
+        <figure className="overflow-hidden rounded-lg border dark:border-stone-700">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={s.heroImageUrl}
+            alt={s.name}
+            className="h-56 w-full object-cover sm:h-72"
+            loading="lazy"
+          />
+          {s.gallery?.[0]?.credit && (
+            <figcaption className="bg-stone-50 dark:bg-stone-800 px-3 py-1 text-xs text-stone-500 dark:text-stone-400">
+              {s.gallery[0].credit}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      {/* Internal related page CTA (e.g. UWC Haiti) */}
+      {s.relatedPagePath && (
+        <Link
+          href={`${s.relatedPagePath}${lang !== "fr" ? `?lang=${lang}` : ""}`}
+          className="inline-flex items-center gap-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 px-4 py-2 text-sm font-semibold text-indigo-800 dark:text-indigo-200 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+        >
+          <ArrowUpRight className="h-4 w-4" />
+          {fr ? "Voir notre page dédiée sur EdLight News" : "Wè paj dedye nou an sou EdLight News"}
+        </Link>
+      )}
+
+      <Link
+        href={`/bourses/guides${lang !== "fr" ? `?lang=${lang}` : ""}`}
+        className="inline-flex items-center gap-2 rounded-lg border border-[#c7c4d8]/25 dark:border-stone-700 px-4 py-2 text-sm font-medium text-[#474948] dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
+      >
+        <BookOpen className="h-4 w-4" />
+        {fr ? "Explorer tous les guides premium" : "Eksplore tout gid premium yo"}
+      </Link>
 
       {/* ── Directory-specific content ─────────────────────────────── */}
       {isDirectory && (
@@ -246,6 +292,16 @@ export default async function ScholarshipDetailPage({
             </div>
           )}
 
+          {/* Long-form program description */}
+          {s.programDescription && (
+            <div className="rounded-lg border dark:border-stone-700 bg-stone-50/50 dark:bg-stone-800/50 p-4">
+              <h2 className="text-lg font-bold">{fr ? "À propos du programme" : "Konsènan pwogram nan"}</h2>
+              <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-stone-700 dark:text-stone-300">
+                {s.programDescription}
+              </p>
+            </div>
+          )}
+
           {/* Levels */}
           {s.level.length > 0 && (
             <div>
@@ -264,6 +320,128 @@ export default async function ScholarshipDetailPage({
             </div>
           )}
 
+          {/* Sub-programmes */}
+          {s.subPrograms && s.subPrograms.length > 0 && (
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <Layers className="h-5 w-5 text-indigo-600" />
+                {fr ? "Sous-programmes et options" : "Sou-pwogram ak opsyon"}
+              </h2>
+              <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                {s.subPrograms.map((sp, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border dark:border-stone-700 bg-white dark:bg-stone-800 p-3"
+                  >
+                    <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">{sp.name}</h3>
+                    <p className="mt-1 text-xs text-stone-600 dark:text-stone-400">{sp.description}</p>
+                    {sp.eligibility && (
+                      <p className="mt-1 text-xs italic text-stone-500 dark:text-stone-400">
+                        {fr ? "Éligibilité : " : "Kondisyon : "}
+                        {sp.eligibility}
+                      </p>
+                    )}
+                    {sp.level && sp.level.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {sp.level.map((l) => {
+                          const lbl = LEVEL_LABELS[l];
+                          return (
+                            <span key={l} className="rounded bg-stone-100 dark:bg-stone-700 px-1.5 py-0.5 text-[10px] text-stone-700 dark:text-stone-300">
+                              {lbl ? (fr ? lbl.fr : lbl.ht) : l}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {sp.relatedPagePath && (
+                        <Link
+                          href={`${sp.relatedPagePath}${lang !== "fr" ? `?lang=${lang}` : ""}`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 hover:underline dark:text-indigo-300"
+                        >
+                          <ArrowUpRight className="h-3 w-3" />
+                          {fr ? "Page EdLight" : "Paj EdLight"}
+                        </Link>
+                      )}
+                      {sp.url && (
+                        <a
+                          href={sp.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {fr ? "Site officiel" : "Sit ofisyèl"}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Application steps */}
+          {s.applicationSteps && s.applicationSteps.length > 0 && (
+            <div>
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <ListChecks className="h-5 w-5 text-emerald-600" />
+                {fr ? "Comment postuler" : "Kijan pou aplike"}
+              </h2>
+              <ol className="mt-2 space-y-3">
+                {s.applicationSteps.map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">{step.title}</p>
+                      <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">{step.description}</p>
+                      {step.url && (
+                        <a
+                          href={step.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:underline dark:text-blue-300"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          {fr ? "Lien" : "Lyen"}
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+
+          {/* Key dates timeline */}
+          {s.keyDates && s.keyDates.length > 0 && (
+            <div className="rounded-lg border dark:border-stone-700 bg-amber-50/40 dark:bg-amber-900/10 p-4">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
+                <CalendarDays className="h-5 w-5 text-amber-700" />
+                {fr ? "Calendrier type" : "Kalandriye tip"}
+              </h2>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {s.keyDates.map((kd, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
+                    <div>
+                      <span className="font-semibold text-stone-800 dark:text-stone-200">{kd.label}</span>
+                      <span className="text-stone-600 dark:text-stone-400">
+                        {" — "}
+                        {kd.dateISO ? formatDate(kd.dateISO, lang) : kd.monthRange ?? ""}
+                      </span>
+                      {kd.notes && (
+                        <p className="text-xs italic text-stone-500 dark:text-stone-400">{kd.notes}</p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Requirements */}
           {s.requirements && s.requirements.length > 0 && (
             <div>
@@ -273,6 +451,33 @@ export default async function ScholarshipDetailPage({
                   <li key={i}>{r}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Gallery (skip first image if it was used as hero) */}
+          {s.gallery && s.gallery.length > (s.heroImageUrl ? 1 : 0) && (
+            <div>
+              <h2 className="text-lg font-bold">{fr ? "Galerie" : "Galri"}</h2>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {s.gallery.slice(s.heroImageUrl ? 1 : 0).map((img, i) => (
+                  <figure key={i} className="overflow-hidden rounded-lg border dark:border-stone-700">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt={img.caption ?? `${s.name} — ${i + 1}`}
+                      className="h-32 w-full object-cover"
+                      loading="lazy"
+                    />
+                    {(img.caption || img.credit) && (
+                      <figcaption className="bg-stone-50 dark:bg-stone-800 px-2 py-1 text-[10px] text-stone-500 dark:text-stone-400">
+                        {img.caption}
+                        {img.caption && img.credit ? " — " : ""}
+                        {img.credit}
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
+              </div>
             </div>
           )}
 
