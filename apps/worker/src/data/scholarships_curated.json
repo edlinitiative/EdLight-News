@@ -12,6 +12,7 @@
     "deadline": { "dateISO": "2026-11-05", "notes": "Cycle annuel \u2014 ouvre en aoÃ»t", "sourceUrl": "https://www.chevening.org/scholarships/" },
     "howToApplyUrl": "https://www.chevening.org/scholarships/",
     "officialUrl": "https://www.chevening.org/",
+    "relatedPagePath": "/bourses/guides/chevening-haiti",
     "eligibilitySummary": "Bourses du gouvernement britannique pour leaders \u00e9mergents. Couvre frais de scolarit\u00e9, allocation mensuelle, vol aller-retour et visa.",
     "programDescription": "Chevening est le programme de bourses internationales du gouvernement britannique financ\u00e9 par le Foreign, Commonwealth & Development Office. Il finance une ann\u00e9e de master dans n'importe quelle universit\u00e9 du Royaume-Uni pour des candidat\u00b7es \u00e0 fort potentiel de leadership. La candidature haïtienne est trait\u00e9e via l'ambassade britannique en R\u00e9publique dominicaine.",
     "applicationSteps": [
@@ -60,6 +61,7 @@
     "deadline": { "dateISO": "2026-10-15", "notes": "Varie par programme \u2014 g\u00e9n\u00e9ralement entre aoÃ»t et octobre", "sourceUrl": "https://www.daad.de/en/studying-in-germany/scholarships/" },
     "howToApplyUrl": "https://www.daad.de/en/studying-in-germany/scholarships/",
     "officialUrl": "https://www.daad.de/",
+    "relatedPagePath": "/bourses/guides/daad-haiti",
     "eligibilitySummary": "Le DAAD est le service d'\u00e9changes acad\u00e9miques allemand. Bourses compl\u00e8tes pour master, doctorat, et programmes de recherche en Allemagne.",
     "programDescription": "Le DAAD finance plus de 100 000 \u00e9tudiant\u00b7es et chercheur\u00b7ses chaque ann\u00e9e. Les programmes phares pour les pays en d\u00e9veloppement incluent EPOS (Development-Related Postgraduate Courses), Helmut-Schmidt-Programm (Master en politiques publiques), et Leadership for Africa. La majorit\u00e9 des cours sont enseign\u00e9s en anglais.",
     "applicationSteps": [
@@ -84,6 +86,7 @@
     "deadline": { "dateISO": "2026-02-15", "notes": "Varie par consortium \u2014 g\u00e9n\u00e9ralement janvier-f\u00e9vrier", "sourceUrl": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en" },
     "howToApplyUrl": "https://erasmus-plus.ec.europa.eu/opportunities/individuals/students/erasmus-mundus-joint-masters-scholarships",
     "officialUrl": "https://erasmus-plus.ec.europa.eu/",
+    "relatedPagePath": "/bourses/guides/erasmus-haiti",
     "eligibilitySummary": "Master conjoint (2 ans) dans 2 \u00e0 4 universit\u00e9s europ\u00e9ennes diff\u00e9rentes. Bourse compl\u00e8te (~1 400 \u20ac/mois + frais + voyage) pour les candidat\u00b7es des pays partenaires (Haïti incluse).",
     "programDescription": "Les Erasmus Mundus Joint Masters sont des programmes int\u00e9gr\u00e9s couvrant un large \u00e9ventail de disciplines. L'\u00e9tudiant\u00b7e \u00e9tudie dans au moins deux pays europ\u00e9ens et obtient un diplôme conjoint, double ou multiple. Les candidat\u00b7es haïtien\u00b7nes b\u00e9n\u00e9ficient du tarif Region 1/Partner Country (bourse plus g\u00e9n\u00e9reuse).",
     "applicationSteps": [
@@ -164,6 +167,7 @@
     "deadline": { "notes": "Varie par universit\u00e9 partenaire \u2014 g\u00e9n\u00e9ralement entre novembre et mars", "sourceUrl": "https://mastercardfdn.org/all/scholars/" },
     "howToApplyUrl": "https://mastercardfdn.org/all/scholars/",
     "officialUrl": "https://mastercardfdn.org/all/scholars/",
+    "relatedPagePath": "/bourses/guides/mastercard-haiti",
     "eligibilitySummary": "Programme pour jeunes talentueux\u00b7ses d'Afrique et de la Caraïbe (Haïti incluse). Couvre frais de scolarit\u00e9, h\u00e9bergement, livres, et soutien acad\u00e9mique.",
     "programDescription": "Le programme finance plus de 35 000 jeunes leaders depuis 2012. Haïti est explicitement \u00e9ligible via plusieurs universit\u00e9s partenaires : American University of Beirut, EARTH University (Costa Rica), McGill University, University of British Columbia, et plusieurs partenaires africains. Au-del\u00e0 du financement, le programme offre du mentorat, des stages d'\u00e9t\u00e9, et un r\u00e9seau d'alumni de plus de 30 000 personnes.",
     "applicationSteps": [
@@ -187,6 +191,7 @@
     "deadline": { "dateISO": "2026-05-31", "notes": "Date Haïti g\u00e9r\u00e9e par l'ambassade US \u00e0 Port-au-Prince \u2014 g\u00e9n\u00e9ralement mai-juin", "sourceUrl": "https://ht.usembassy.gov/education-culture/" },
     "howToApplyUrl": "https://foreign.fulbrightonline.org/",
     "officialUrl": "https://www.fulbright.org/",
+    "relatedPagePath": "/bourses/guides/fulbright-haiti",
     "eligibilitySummary": "Programme phare du gouvernement am\u00e9ricain pour \u00e9tudes sup\u00e9rieures aux \u00c9tats-Unis. Couvre frais de scolarit\u00e9, allocation mensuelle, assurance sant\u00e9 et vol aller-retour.",
     "programDescription": "Fulbright est le programme d'\u00e9changes \u00e9ducatifs phare du gouvernement am\u00e9ricain, op\u00e9rant dans plus de 160 pays depuis 1946. La candidature haïtienne est g\u00e9r\u00e9e directement par l'ambassade des \u00c9tats-Unis \u00e0 Port-au-Prince. Le programme couvre tous les domaines acad\u00e9miques sauf m\u00e9decine clinique. Engagement de retour de 2 ans en Haïti requis (visa J-1).",
     "applicationSteps": [
@@ -214,6 +219,7 @@
     "deadline": { "monthRange": "Juillet \u2013 octobre selon la circonscription", "notes": "Pas de circonscription Haïti d\u00e9di\u00e9e ; les candidat\u00b7es haïtien\u00b7nes peuvent postuler via 'Global' (anciennement 'Syria, Jordan, Lebanon and Palestine + Global') ou par r\u00e9sidence/double-citoyennet\u00e9.", "sourceUrl": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/" },
     "howToApplyUrl": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/which-scholarship-to-apply-for/",
     "officialUrl": "https://www.rhodeshouse.ox.ac.uk/",
+    "relatedPagePath": "/bourses/guides/rhodes-haiti",
     "eligibilitySummary": "La plus ancienne et l'une des plus prestigieuses bourses au monde. Finance int\u00e9gralement 2 \u00e0 3 ans d'\u00e9tudes \u00e0 l'Universit\u00e9 d'Oxford. Haïti n'a pas de circonscription d\u00e9di\u00e9e ; passage par la circonscription Global.",
     "programDescription": "Cr\u00e9\u00e9e en 1903 par le testament de Cecil Rhodes, la bourse couvre tous les frais d'Oxford (scolarit\u00e9, college fees) plus une allocation annuelle d'environ £18 970, le voyage aller-retour, et le visa. Environ 100 boursi\u00e8r\u00b7es s\u00e9lectionn\u00e9\u00b7es par an dans 22+ circonscriptions. La 'Rhodes Scholarship for Global' (\u00e9largie en 2018) est la voie d'entr\u00e9e pour les candidat\u00b7es de pays sans circonscription propre, dont Haïti. Crit\u00e8res : excellence acad\u00e9mique, caract\u00e8re, leadership, engagement envers le service.",
     "applicationSteps": [
@@ -248,7 +254,7 @@
     "deadline": { "dateISO": "2026-01-15", "notes": "Comit\u00e9 national haïtien : la s\u00e9lection se fait via le UWC National Committee Haïti. Inscriptions g\u00e9n\u00e9ralement entre septembre et d\u00e9cembre.", "sourceUrl": "https://www.uwc.org/apply" },
     "howToApplyUrl": "https://www.uwc.org/apply",
     "officialUrl": "https://www.uwc.org/",
-    "relatedPagePath": "/uwc-haiti",
+    "relatedPagePath": "/bourses/guides/uwc-haiti",
     "heroImageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1600&q=80",
     "eligibilitySummary": "Programme international de fin de secondaire (16-19 ans) dans 18 colleges r\u00e9partis dans le monde. Bourses compl\u00e8tes ou partielles bas\u00e9es sur le besoin financier. Haïti dispose d'un comit\u00e9 national actif.",
     "programDescription": "United World Colleges (UWC) est un mouvement \u00e9ducatif international fond\u00e9 en 1962 qui rassemble des \u00e9l\u00e8ves de 16 \u00e0 19 ans de plus de 150 pays sur 18 campus (UWC Atlantic au Pays de Galles, UWC Adriatic, UWC Costa Rica, UWC Dilijan en Arm\u00e9nie, etc.). Les \u00e9l\u00e8ves suivent le Baccalaur\u00e9at International (IB) pendant deux ans, dans un environnement r\u00e9sidentiel et multiculturel ax\u00e9 sur la paix, le d\u00e9veloppement durable et l'engagement civique. La s\u00e9lection est nationale : pour Haïti, c'est le Comit\u00e9 National Haïtien UWC qui recrute, \u00e9value et nomine les candidat\u00b7es chaque ann\u00e9e.",
@@ -259,7 +265,7 @@
         "level": ["short_programs"],
         "eligibility": "\u00c9l\u00e8ves haïtien\u00b7nes de 15 \u00e0 17 ans en fin de seconde ou premi\u00e8re. R\u00e9sultats acad\u00e9miques solides, engagement extra-scolaire, motivation interculturelle.",
         "url": "https://www.uwc.org/national-committees",
-        "relatedPagePath": "/uwc-haiti"
+        "relatedPagePath": "/bourses/guides/uwc-haiti"
       },
       {
         "name": "UWC Costa Rica",

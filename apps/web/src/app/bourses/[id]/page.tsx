@@ -206,6 +206,14 @@ export default async function ScholarshipDetailPage({
         </Link>
       )}
 
+      <Link
+        href={`/bourses/guides${lang !== "fr" ? `?lang=${lang}` : ""}`}
+        className="inline-flex items-center gap-2 rounded-lg border border-[#c7c4d8]/25 dark:border-stone-700 px-4 py-2 text-sm font-medium text-[#474948] dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
+      >
+        <BookOpen className="h-4 w-4" />
+        {fr ? "Explorer tous les guides premium" : "Eksplore tout gid premium yo"}
+      </Link>
+
       {/* ── Directory-specific content ─────────────────────────────── */}
       {isDirectory && (
         <div className="space-y-6 rounded-lg border dark:border-stone-700 bg-indigo-50/30 dark:bg-indigo-900/10 p-6">
