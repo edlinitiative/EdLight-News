@@ -52,14 +52,31 @@ export async function listClosingSoon(days: number): Promise<Scholarship[]> {
   });
 }
 
-/** List scholarships where HT is in eligibleCountries. */
+/**
+ * List scholarships open to Haitian applicants.
+ *
+ * A scholarship is considered eligible if ANY of:
+ *   - country is "HT" or "Global" (host-country signal),
+ *   - eligibleCountries contains "HT" (explicit allow-list),
+ *   - eligibleCountries contains "Global" (open to any nationality —
+ *     this is the convention used by Chevening, MasterCard, DAAD, AUF,
+ *     Erasmus+, the Quebec tuition exemption, etc.),
+ *   - eligibleCountries is missing or empty (no restriction recorded —
+ *     err on the side of inclusion; users can still see in the card
+ *     summary whether HT is explicitly listed).
+ *
+ * Items with an explicit allow-list that EXCLUDES Haiti
+ * (e.g. Commonwealth Scholarships, which list ~50 specific countries
+ * but not Haiti) remain correctly filtered out.
+ */
 export async function listEligibleForHaiti(): Promise<Scholarship[]> {
   const all = await listAll();
-  return all.filter((s) =>
-    s.eligibleCountries?.includes("HT") ||
-    s.country === "Global" ||
-    s.country === "HT",
-  );
+  return all.filter((s) => {
+    if (s.country === "HT" || s.country === "Global") return true;
+    const list = s.eligibleCountries;
+    if (!list || list.length === 0) return true;
+    return list.includes("HT") || list.includes("Global");
+  });
 }
 
 export async function update(id: string, data: Partial<CreateScholarship>): Promise<void> {
