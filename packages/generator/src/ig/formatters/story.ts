@@ -32,6 +32,8 @@ const CATEGORY_ACCENTS: Record<string, string> = {
   event: "#f97316",
   resource: "#10b981",
   bourses: "#3b82f6",
+  histoire: "#f59e0b",
+  utility: "#34d399",
 };
 
 /** Short French category labels for inline context on the heading. */
@@ -43,6 +45,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   event: "ÉVÉNEMENT",
   resource: "RESSOURCE",
   bourses: "BOURSE",
+  histoire: "HISTOIRE",
+  utility: "LE SAVIEZ-VOUS ?",
 };
 
 export interface StoryItemInput {
@@ -72,6 +76,32 @@ export interface StoryFactsInput {
   facts: string[];
   /** Optional background image to make the facts frame more lively */
   backgroundImage?: string;
+}
+
+/**
+ * History/Almanach data for the editorial single-fact story frame.
+ *
+ * Used by HaitiHistory (igType="histoire") and HaitiFactOfTheDay
+ * (igType="utility") per-post stories so the story matches the polished
+ * carousel treatment instead of falling through to the generic facts card.
+ */
+export interface StoryHistoryInput {
+  /** Display headline (e.g. the historical event title or fact subject) */
+  heading: string;
+  /** The narrative lede — set in editorial serif on the story */
+  lede: string;
+  /** Optional supporting notes (dates, context, sources) */
+  notes?: string[];
+  /** Eyebrow label override; defaults to "HISTOIRE" or "LE SAVIEZ-VOUS ?" */
+  eyebrow?: string;
+  /** Accent override; defaults to orange for histoire, emerald for utility */
+  accent?: string;
+  /** Source attribution line (e.g. "Source: AyiboPost") */
+  footer?: string;
+  /** Optional background image (will be darkened by the renderer) */
+  backgroundImage?: string;
+  /** Variant — controls default eyebrow + accent when not overridden */
+  variant?: "histoire" | "utility";
 }
 
 const STORY_MAX_FACTS = 5;
@@ -270,12 +300,15 @@ export function buildDailySummaryStory(
  * @param input  - The item data + optional bilingual text + igType
  * @param taux   - If the post is a taux item, provide the rate data instead
  * @param facts  - If the post is a facts/utility item, provide the facts
+ * @param history - If the post is a HaitiHistory or HaitiFactOfTheDay item,
+ *                  provide editorial almanach data for the polished story frame
  * @returns      - A single-slide IGStoryPayload ready for rendering
  */
 export function buildStorySlideForPost(
   input?: StoryItemInput,
   taux?: StoryTauxInput,
   facts?: StoryFactsInput,
+  history?: StoryHistoryInput,
 ): IGStoryPayload {
   const d = new Date();
   const dateLabel = d.toLocaleDateString("fr-FR", {
@@ -294,6 +327,29 @@ export function buildStorySlideForPost(
       accent: "#eab308",
       backgroundImage: taux.backgroundImage,
       frameType: "taux",
+    });
+  } else if (history) {
+    const variant = history.variant ?? "histoire";
+    const defaultAccent = variant === "histoire" ? "#f59e0b" : "#34d399";
+    const defaultEyebrow =
+      variant === "histoire" ? "HISTOIRE" : "LE SAVIEZ-VOUS ?";
+    const accent = history.accent ?? defaultAccent;
+    const eyebrow = (history.eyebrow ?? defaultEyebrow).trim() || defaultEyebrow;
+    const lede = history.lede.trim();
+    const notes = (history.notes ?? [])
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+
+    slides.push({
+      heading: history.heading,
+      bullets: [lede, ...notes].filter((entry) => entry.length > 0),
+      eyebrow,
+      subheading: lede,
+      meta: notes,
+      footer: history.footer,
+      accent,
+      backgroundImage: history.backgroundImage,
+      frameType: "history",
     });
   } else if (facts && facts.facts.length > 0) {
     // For facts/utility, use a single frame (no chunking for per-post stories)
