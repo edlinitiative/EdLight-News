@@ -23,6 +23,7 @@ import {
 } from "@edlight-news/scraper";
 import type { Item, ImageSource, ImageAttribution, EntityRef } from "@edlight-news/types";
 import { detectPersonName, fetchWikidataImage } from "../services/wikidata.js";
+import { detectImageDimensions } from "../services/imageDimensions.js";
 import { findTieredImage } from "../services/tieredImagePipeline.js";
 
 const IMAGE_BATCH_LIMIT = parseInt(
@@ -379,97 +380,9 @@ async function downloadImage(
   }
 }
 
-function detectImageDimensions(
-  buffer: Buffer,
-  contentType: string,
-  url?: string,
-): { width?: number; height?: number } {
-  return readPngSize(buffer)
-    ?? readJpegSize(buffer)
-    ?? readWebpSize(buffer)
-    ?? readGifSize(buffer)
-    ?? inferSizeFromUrl(url)
-    ?? {};
-}
-
-function readPngSize(buffer: Buffer): { width: number; height: number } | null {
-  if (buffer.length < 24) return null;
-  if (buffer.readUInt32BE(0) !== 0x89504e47) return null;
-  return {
-    width: buffer.readUInt32BE(16),
-    height: buffer.readUInt32BE(20),
-  };
-}
-
-function readGifSize(buffer: Buffer): { width: number; height: number } | null {
-  if (buffer.length < 10) return null;
-  const signature = buffer.toString("ascii", 0, 6);
-  if (signature !== "GIF87a" && signature !== "GIF89a") return null;
-  return {
-    width: buffer.readUInt16LE(6),
-    height: buffer.readUInt16LE(8),
-  };
-}
-
-function readWebpSize(buffer: Buffer): { width: number; height: number } | null {
-  if (buffer.length < 30) return null;
-  if (buffer.toString("ascii", 0, 4) !== "RIFF" || buffer.toString("ascii", 8, 12) !== "WEBP") {
-    return null;
-  }
-
-  const chunk = buffer.toString("ascii", 12, 16);
-  if (chunk === "VP8X") {
-    return {
-      width: 1 + buffer.readUIntLE(24, 3),
-      height: 1 + buffer.readUIntLE(27, 3),
-    };
-  }
-
-  return null;
-}
-
-function readJpegSize(buffer: Buffer): { width: number; height: number } | null {
-  if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return null;
-
-  let offset = 2;
-  while (offset + 9 < buffer.length) {
-    if (buffer[offset] !== 0xff) {
-      offset++;
-      continue;
-    }
-
-    const marker = buffer[offset + 1];
-    if (!marker) return null;
-
-    if (marker === 0xd9 || marker === 0xda) break;
-    const blockLength = buffer.readUInt16BE(offset + 2);
-    if (blockLength < 2) return null;
-
-    const isSof =
-      (marker >= 0xc0 && marker <= 0xc3) ||
-      (marker >= 0xc5 && marker <= 0xc7) ||
-      (marker >= 0xc9 && marker <= 0xcb) ||
-      (marker >= 0xcd && marker <= 0xcf);
-
-    if (isSof && offset + 8 < buffer.length) {
-      return {
-        height: buffer.readUInt16BE(offset + 5),
-        width: buffer.readUInt16BE(offset + 7),
-      };
-    }
-
-    offset += 2 + blockLength;
-  }
-
-  return null;
-}
-
-function inferSizeFromUrl(url?: string): { width?: number; height?: number } | null {
-  if (!url) return null;
-  const match = url.match(/(?:^|[^\d])(\d{3,4})[xX](\d{3,4})(?:[^\d]|$)/);
-  if (!match) return null;
-  return { width: Number(match[1]), height: Number(match[2]) };
-}
+// Image dimension probing now lives in services/imageDimensions.ts and is
+// shared with the publisher-image mirror so freshly mirrored images carry
+// width/height into Firestore from the start.
 
 /** Mark an item as having failed image processing so we don't retry forever. */
 async function markFailed(itemId: string): Promise<void> {

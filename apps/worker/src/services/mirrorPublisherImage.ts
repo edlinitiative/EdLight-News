@@ -12,6 +12,7 @@
 
 import { createHash } from "node:crypto";
 import { getOrUploadImageBuffer } from "@edlight-news/firebase";
+import { detectImageDimensions } from "./imageDimensions.js";
 
 /** Hosts whose images we already serve directly — no need to mirror. */
 const ALREADY_HOSTED_HOSTS = new Set([
@@ -45,6 +46,10 @@ export interface MirrorResult {
   url: string;
   contentType: string;
   bytes: number;
+  /** Pixel width parsed from the image header, when detectable. */
+  width?: number;
+  /** Pixel height parsed from the image header, when detectable. */
+  height?: number;
 }
 
 /**
@@ -147,7 +152,12 @@ export async function mirrorPublisherImage(
       contentType,
     );
 
-    result = { url, contentType, bytes: buffer.length };
+    // Probe dimensions from the file header. Required by downstream IG
+    // quality gates (`isItemImageUsableForIG`) — without width/height the
+    // gate misfires and the carousel falls through to keyword search.
+    const { width, height } = detectImageDimensions(buffer, contentType, srcUrl);
+
+    result = { url, contentType, bytes: buffer.length, width, height };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.warn(`[mirrorImage] failed for ${srcUrl}: ${msg}`);

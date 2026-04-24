@@ -15,6 +15,7 @@ import { uploadImageBuffer } from "@edlight-news/firebase";
 import type { Item } from "@edlight-news/types";
 import { findEditorialImage } from "./editorialImageSearch.js";
 import { findTieredImage } from "./tieredImagePipeline.js";
+import { validateImageForItem } from "./llmPublisherImageValidator.js";
 
 // Read lazily — dotenv may not have run yet when this module is imported
 function getApiKey(): string | undefined {
@@ -306,11 +307,23 @@ export async function generateContextualImage(
     try {
       const tiered = await findTieredImage(item);
       if (tiered) {
+        // Vision-validate before accepting — same gate the IG queue uses.
+        // A null verdict means "validator unavailable" (no GEMINI_API_KEY,
+        // image fetch failed) and is treated as a soft pass to preserve
+        // backwards-compatible behavior.
+        const v = await validateImageForItem(item, tiered.url);
+        if (!v || (v.match && v.confidence >= 0.5)) {
+          console.log(
+            `[imagen3] Using tiered image: ${tiered.source}/${tiered.tier} ` +
+              `score=${tiered.score.toFixed(1)} license=${tiered.licenseStatus} ` +
+              `validation=${v ? `${v.match}/${v.confidence.toFixed(2)}` : "n/a"}`,
+          );
+          return { url: tiered.url, prompt: `tiered:${tiered.source}:${tiered.tier}` };
+        }
         console.log(
-          `[imagen3] Using tiered image: ${tiered.source}/${tiered.tier} ` +
-          `score=${tiered.score.toFixed(1)} license=${tiered.licenseStatus}`,
+          `[imagen3] Tiered candidate REJECTED by vision: ` +
+            `match=${v.match} confidence=${v.confidence.toFixed(2)} — ${v.reason}`,
         );
-        return { url: tiered.url, prompt: `tiered:${tiered.source}:${tiered.tier}` };
       }
     } catch (err) {
       console.warn("[imagen3] Tiered pipeline failed, trying legacy search:", err instanceof Error ? err.message : err);
@@ -320,8 +333,18 @@ export async function generateContextualImage(
     try {
       const editorial = await findEditorialImage(item, getEditorialMinScore(item));
       if (editorial) {
-        console.log(`[imagen3] Using editorial image from ${editorial.source} (score=${editorial.score})`);
-        return { url: editorial.url, prompt: `editorial:${editorial.source}` };
+        const v = await validateImageForItem(item, editorial.url);
+        if (!v || (v.match && v.confidence >= 0.5)) {
+          console.log(
+            `[imagen3] Using editorial image from ${editorial.source} (score=${editorial.score}) ` +
+              `validation=${v ? `${v.match}/${v.confidence.toFixed(2)}` : "n/a"}`,
+          );
+          return { url: editorial.url, prompt: `editorial:${editorial.source}` };
+        }
+        console.log(
+          `[imagen3] Editorial candidate REJECTED by vision: ` +
+            `match=${v.match} confidence=${v.confidence.toFixed(2)} — ${v.reason}`,
+        );
       }
     } catch (err) {
       console.warn("[imagen3] Editorial search failed, falling back to AI:", err instanceof Error ? err.message : err);

@@ -145,9 +145,13 @@ export async function processRawItems(): Promise<{
       // depend on publisher uptime / hot-link blocking. Falls back to the
       // original URL if the mirror fetch fails.
       let storedImageUrl: string | null = null;
+      let mirroredWidth: number | undefined;
+      let mirroredHeight: number | undefined;
       if (publisherImageUrl && publisherImageConfidence >= 0.6) {
         const mirror = await mirrorPublisherImage(publisherImageUrl);
         storedImageUrl = mirror?.url ?? publisherImageUrl;
+        mirroredWidth = mirror?.width;
+        mirroredHeight = mirror?.height;
       }
 
       const { item, created } = await itemsRepo.upsertItemByCanonicalUrl({
@@ -185,6 +189,8 @@ export async function processRawItems(): Promise<{
               imageMeta: {
                 fetchedAt: new Date().toISOString(),
                 originalImageUrl: publisherImageUrl,
+                ...(mirroredWidth ? { width: mirroredWidth } : {}),
+                ...(mirroredHeight ? { height: mirroredHeight } : {}),
               },
             }
           : {}),
