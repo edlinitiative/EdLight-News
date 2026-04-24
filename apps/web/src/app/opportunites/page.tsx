@@ -87,7 +87,12 @@ export default async function OpportunitesPage({
   );
 
   const articles = rankAndDeduplicate(opportunityPool, {
-    audienceFitThreshold: 0.40,
+    // 0.50 (was 0.40) — drops borderline items where the deterministic scorer
+    // gave only a small category bonus but no real Haiti/student signal.
+    // Combined with the HT/Diaspora geo boost in ranking.ts, this surfaces
+    // actually-Haitian-relevant opportunities first while still admitting
+    // global scholarships (Fulbright, Erasmus+, DAAD, …) that are open to HT.
+    audienceFitThreshold: 0.50,
     publisherCap: 3,
     topN: 40,
   });

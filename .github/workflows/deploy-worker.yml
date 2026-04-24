@@ -142,6 +142,14 @@ jobs:
               --field-config field-path=updatedAt,order=ascending \
               --quiet 2>/dev/null || true
           done
+          # items: vertical + createdAt — required by listOpportunitiesNeedingScholarshipPromotion
+          # (powers the scholarship auto-discovery pipeline added in PR #21).
+          gcloud firestore indexes composite create \
+            --project=${{ env.PROJECT_ID }} \
+            --collection-group=items \
+            --field-config field-path=vertical,order=ascending \
+            --field-config field-path=createdAt,order=descending \
+            --quiet 2>/dev/null || true
           echo "Firestore indexes ensured"
 
       # ── Build & push Docker image ──────────────────────────────────────────
