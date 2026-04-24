@@ -83,6 +83,55 @@ const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string; code: str
   Global: { fr: "International", ht: "Entènasyonal",  code: "GL" },
 };
 
+// ── Regional groupings ───────────────────────────────────────────────────────
+// Matches a scholarship to a region using its `country` field plus tag hints
+// (so Global-hosted programmes like the HT-Maroc / HT-Taïwan bilateral
+// bourses still surface under the right region).
+
+type Region = "all" | "americas" | "europe" | "asia-pacific" | "africa-me" | "haiti";
+
+const REGION_FILTER_CHIPS: { key: Region; fr: string; ht: string }[] = [
+  { key: "all",          fr: "Toutes régions",   ht: "Tout rejyon" },
+  { key: "haiti",        fr: "Haïti & Caraïbes", ht: "Ayiti & Karayib" },
+  { key: "americas",     fr: "Amériques",        ht: "Amerik" },
+  { key: "europe",       fr: "Europe",           ht: "Ewòp" },
+  { key: "asia-pacific", fr: "Asie-Pacifique",   ht: "Azi-Pasifik" },
+  { key: "africa-me",    fr: "Afrique & MO",     ht: "Afrik & MO" },
+];
+
+const REGION_BY_COUNTRY: Partial<Record<DatasetCountry, Region>> = {
+  US: "americas",
+  CA: "americas",
+  MX: "americas",
+  HT: "haiti",
+  DO: "haiti",
+  FR: "europe",
+  UK: "europe",
+  RU: "europe",
+  CN: "asia-pacific",
+};
+
+const REGION_TAG_HINTS: Record<Exclude<Region, "all">, string[]> = {
+  haiti:          ["haiti", "caribbean", "caraibe", "karayib"],
+  americas:       ["latam", "south-south", "brazil", "argentina", "chile", "mexico", "us", "canada", "peru", "colombia"],
+  europe:         ["uk", "france", "germany", "switzerland", "netherlands", "spain", "italy", "belgium", "francophone"],
+  "asia-pacific": ["china", "japan", "taiwan", "korea", "asia", "rossotrudnichestvo"],
+  "africa-me":    ["morocco", "africa", "amci", "tunisia", "egypt", "senegal", "middle-east"],
+};
+
+function regionForScholarship(s: SerializedScholarship): Region {
+  // Prefer explicit country mapping when not "Global".
+  const fromCountry = REGION_BY_COUNTRY[s.country];
+  if (fromCountry) return fromCountry;
+  // For Global-hosted programmes, fall back to tag hints.
+  const tagSet = new Set((s.tags ?? []).map((t) => t.toLowerCase()));
+  for (const [region, hints] of Object.entries(REGION_TAG_HINTS)) {
+    if (hints.some((h) => tagSet.has(h))) return region as Region;
+  }
+  // Default: treat plain "Global" with no hint as Americas-friendly catch-all.
+  return "all";
+}
+
 type SortMode = "deadline" | "latest" | "relevance";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -130,6 +179,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
   const fundingFilter = searchParams.get("funding") ?? "all";
   const levelFilter = searchParams.get("level") ?? "all";
   const countryFilter = searchParams.get("country") ?? "all";
+  const regionFilter = (searchParams.get("region") ?? "all") as Region;
   const eligibilityFilter = searchParams.get("eligibility") ?? "all";
   const typeFilter = searchParams.get("type") ?? "all";
   const savedOnly = searchParams.get("saved") === "1";
@@ -178,6 +228,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
       if (!fundingFilterMatch(s, fundingFilter)) return false;
       if (levelFilter !== "all" && !s.level.includes(levelFilter as AcademicLevel)) return false;
       if (countryFilter !== "all" && s.country !== countryFilter) return false;
+      if (regionFilter !== "all" && regionForScholarship(s) !== regionFilter) return false;
       if (eligibilityFilter !== "all") {
         const elig = s.haitianEligibility ?? "unknown";
         if (eligibilityFilter === "yes" && elig !== "yes") return false;
@@ -221,24 +272,25 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
     });
 
     return items;
-  }, [scholarships, fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, sortMode, searchQuery, savedOnly, savedIds]);
+  }, [scholarships, fundingFilter, levelFilter, countryFilter, regionFilter, eligibilityFilter, typeFilter, sortMode, searchQuery, savedOnly, savedIds]);
 
   const hasFilters = useMemo(() => {
     return (
       fundingFilter !== "all" ||
       levelFilter !== "all" ||
       countryFilter !== "all" ||
+      regionFilter !== "all" ||
       eligibilityFilter !== "all" ||
       typeFilter !== "all" ||
       savedOnly ||
       searchQuery.trim().length > 0
     );
-  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, savedOnly, searchQuery]);
+  }, [fundingFilter, levelFilter, countryFilter, regionFilter, eligibilityFilter, typeFilter, savedOnly, searchQuery]);
 
   // Reset pagination whenever filter signature or sort changes
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [fundingFilter, levelFilter, countryFilter, eligibilityFilter, typeFilter, savedOnly, searchQuery, sortMode]);
+  }, [fundingFilter, levelFilter, countryFilter, regionFilter, eligibilityFilter, typeFilter, savedOnly, searchQuery, sortMode]);
 
   // ── Derived props for sub-components ──────────────────────────────────────
 
@@ -267,6 +319,10 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
 
   const activeFilters = useMemo<ActiveFilter[]>(() => {
     const out: ActiveFilter[] = [];
+    if (regionFilter !== "all") {
+      const rl = REGION_FILTER_CHIPS.find((c) => c.key === regionFilter);
+      out.push({ key: "region", label: `${fr ? "Région" : "Rejyon"}: ${rl ? (fr ? rl.fr : rl.ht) : regionFilter}` });
+    }
     if (countryFilter !== "all") {
       const cl = COUNTRY_LABELS[countryFilter as DatasetCountry];
       out.push({ key: "country", label: `${fr ? "Pays" : "Peyi"}: ${cl ? (fr ? cl.fr : cl.ht) : countryFilter}` });
@@ -288,7 +344,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
       out.push({ key: "eligibility", label: `${fr ? "Haïti" : "Ayiti"}: ${el ? (fr ? el.fr : el.ht) : eligibilityFilter}` });
     }
     return out;
-  }, [countryFilter, levelFilter, fundingFilter, typeFilter, eligibilityFilter, fr]);
+  }, [regionFilter, countryFilter, levelFilter, fundingFilter, typeFilter, eligibilityFilter, fr]);
 
   const drawerGroups = useMemo<FilterGroup[]>(
     () => [
@@ -364,6 +420,24 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
           drawerFilterCount={drawerFilterCount}
           fr={fr}
         />
+
+        {/* Region chip row — coarse-grained geographic navigation. Surfaces
+            *before* Type/Funding so users can narrow a 50+ entry catalogue
+            with one click before drilling into finer filters. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1">
+            {fr ? "Région" : "Rejyon"}
+          </span>
+          {REGION_FILTER_CHIPS.map((c) => (
+            <QuickChip
+              key={`r-${c.key}`}
+              active={regionFilter === c.key}
+              onClick={() => setFilter("region", c.key)}
+            >
+              {fr ? c.fr : c.ht}
+            </QuickChip>
+          ))}
+        </div>
 
         {/* Quick chip row — surfaces the most-used filters one click away */}
         <div className="flex flex-wrap items-center gap-2">

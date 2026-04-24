@@ -19,7 +19,7 @@ import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
 import { buildOgMetadata } from "@/lib/og";
 
-export const revalidate = 300;
+export const revalidate = 600;
 
 export async function generateMetadata({
   searchParams,
@@ -48,11 +48,11 @@ export default async function OpportunitesPage({
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
-    // Pull a large slice of recent published content so vertical=opportunites
-    // items (~600+ in production) aren't starved by the default 200-item
-    // window which is dominated by daily news. The downstream rank+dedup
-    // pipeline still caps the final list at topN=40.
-    allArticles = await fetchEnrichedFeed(lang, 1500);
+    // Pull a focused slice of recent published content. 800 is enough to
+    // surface ~600 opportunities tagged in production while keeping the
+    // server-side filter pipeline (~200 ms warm) responsive. The downstream
+    // rank+dedup pipeline still caps the final list at topN=40.
+    allArticles = await fetchEnrichedFeed(lang, 800);
   } catch (err) {
     console.error("[EdLight] /opportunites fetch failed:", err);
     allArticles = [];
@@ -81,14 +81,32 @@ export default async function OpportunitesPage({
     return contentLooksLikeOpportunity(a.title ?? "", a.summary);
   }
 
-  const opportunityPool = allArticles.filter(
-    (a) =>
-      (a.vertical === "opportunites" ||
+  // Items with no parsed deadline that were published a long time ago are
+  // almost always expired in practice (annual cycles closed, programmes
+  // archived). 60 days is generous enough to keep evergreen guides without
+  // surfacing stale "Apply now!" articles from last spring.
+  const NO_DEADLINE_FRESHNESS_DAYS = 60;
+  const noDeadlineCutoffMs = Date.now() - NO_DEADLINE_FRESHNESS_DAYS * 24 * 60 * 60 * 1000;
+
+  const opportunityPool = allArticles.filter((a) => {
+    if (
+      !(
+        a.vertical === "opportunites" ||
         OPPORTUNITY_CATEGORIES.has(a.category ?? "") ||
-        (a.itemType === "utility" && a.series === "ScholarshipRadar")) &&
-      looksLikeOpportunity(a) &&
-      isOpportunityStillOpen(a.deadline),
-  );
+        (a.itemType === "utility" && a.series === "ScholarshipRadar")
+      )
+    ) {
+      return false;
+    }
+    if (!looksLikeOpportunity(a)) return false;
+    if (!isOpportunityStillOpen(a.deadline)) return false;
+    // Drop "no deadline" items that haven't been seen in 60+ days.
+    if (!a.deadline) {
+      const publishedAtMs = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      if (publishedAtMs && publishedAtMs < noDeadlineCutoffMs) return false;
+    }
+    return true;
+  });
 
   const articles = rankAndDeduplicate(opportunityPool, {
     // 0.50 (was 0.40) — drops borderline items where the deterministic scorer

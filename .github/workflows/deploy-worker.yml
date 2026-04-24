@@ -78,6 +78,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -151,6 +163,20 @@ jobs:
             --field-config field-path=createdAt,order=descending \
             --quiet 2>/dev/null || true
           echo "Firestore indexes ensured"
+
+      # ── Sync curated scholarships → Firestore (idempotent upsert) ──────────
+      # Runs the seed script with Firebase admin creds so any additions to
+      # apps/worker/src/data/scholarships_curated.json land in production on
+      # every deploy. Fails-soft so a bad entry doesn't block the worker
+      # rollout — the seed script logs the offending name + zod issues.
+      - name: Sync curated scholarships
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: |
+          pnpm --filter @edlight-news/worker seed:scholarships || \
+            echo "::warning::seed:scholarships failed — check JSON validity"
 
       # ── Build & push Docker image ──────────────────────────────────────────
       - name: Build Docker image
