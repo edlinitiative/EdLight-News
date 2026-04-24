@@ -253,3 +253,108 @@ export async function verifyCalendarEvent(
   const prompt = buildVerifyCalendarEventPrompt(currentRecord, html);
   return runVerify(prompt, verifyCalendarEventSchema, `calendar:${currentRecord.title}`);
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Discover (extract a NEW structured scholarship from an article) ────────
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// Given an article's title + extracted text + canonical URL, ask Gemini whether
+// the article describes a real, applicable scholarship/bourse, and if so to
+// extract a structured record matching `createScholarshipSchema`.
+//
+// Used by the worker to auto-grow the `scholarships` collection from items
+// the news pipeline has already classified as `vertical=opportunites`.
+//
+// Returns isScholarship=false for round-up/listicle pages, news commentary,
+// or anything that doesn't represent a single applicable program.
+
+export const extractScholarshipSchema = z.object({
+  isScholarship: z.boolean(),
+  confidence: z.number().min(0).max(1),
+  /** Official program name (NOT the article headline). */
+  name: z.string().optional(),
+  /** Hosting / sponsoring country (US, CA, FR, UK, DO, MX, CN, RU, HT, Global). */
+  country: z.enum(["US", "CA", "FR", "UK", "DO", "MX", "CN", "RU", "HT", "Global"]).optional(),
+  /** Countries whose nationals can apply (ISO codes). Empty/omit = unspecified. */
+  eligibleCountries: z.array(z.string()).optional(),
+  /** Whether Haitian students are eligible. */
+  haitianEligible: z.boolean().optional(),
+  /** Academic levels supported. */
+  level: z.array(z.enum(["bachelor", "master", "phd", "short_programs"])).optional(),
+  fundingType: z.enum(["full", "partial", "stipend", "tuition-only", "unknown"]).optional(),
+  /** Application deadline if specified. */
+  deadlineDateISO: z.string().optional(),
+  deadlineMonth: z.number().int().min(1).max(12).optional(),
+  deadlineNotes: z.string().optional(),
+  /** Official program homepage (must be the program's site, NOT the article URL). */
+  officialUrl: z.string().optional(),
+  howToApplyUrl: z.string().optional(),
+  eligibilitySummary: z.string().optional(),
+  requirements: z.array(z.string()).optional(),
+  recurring: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
+});
+export type ExtractScholarshipResult = z.infer<typeof extractScholarshipSchema>;
+
+export function buildExtractScholarshipPrompt(article: {
+  title: string;
+  text: string;
+  url: string;
+}): string {
+  const text = article.text.length > MAX_HTML_CHARS
+    ? article.text.slice(0, MAX_HTML_CHARS) + "\n[…tronqué…]"
+    : article.text;
+
+  return `Tu es un extracteur de données pour EdLight News, un média d'éducation pour Haïti.
+On te donne un article qui pourrait décrire une bourse d'études applicable.
+
+TÂCHE: Détermine si l'article décrit UNE bourse spécifique à laquelle des étudiants peuvent postuler (pas un round-up de plusieurs bourses, pas un commentaire d'actualité, pas une annonce institutionnelle générale). Si oui, extrais les données structurées.
+
+RÈGLES STRICTES:
+1. "isScholarship": true UNIQUEMENT si l'article décrit UN programme de bourse spécifique avec un processus de candidature identifiable. Pour les listicles ("Top 10 bourses..."), articles de presse, ou pages d'institutions, mets false.
+2. "name" doit être le NOM OFFICIEL du programme (ex: "Bourse Eiffel", "Chevening Scholarship"), PAS le titre de l'article.
+3. "officialUrl" doit être l'URL OFFICIELLE du programme (souvent mentionnée dans le texte), PAS l'URL de l'article. Si tu ne trouves pas d'URL officielle dans le texte, omets le champ.
+4. "country" = pays qui finance/héberge le programme.
+5. "haitianEligible": true seulement si l'article confirme explicitement que les Haïtiens (ou les pays en développement / Global / "tous pays") peuvent postuler. false si l'éligibilité exclut clairement Haïti. Sinon omets.
+6. Dates au format YYYY-MM-DD. Si seulement le mois est connu, utilise "deadlineMonth" (1-12) au lieu de "deadlineDateISO".
+7. OMETS un champ si l'information n'est pas dans le texte. N'invente RIEN.
+8. "confidence": 0-1, ta certitude sur l'extraction globale.
+9. Réponds UNIQUEMENT en JSON valide, sans markdown ni backticks.
+
+ARTICLE:
+Titre: ${article.title}
+URL article: ${article.url}
+
+Texte:
+${text}
+
+Réponds avec:
+{
+  "isScholarship": true/false,
+  "confidence": 0.0-1.0,
+  "name": "nom officiel du programme",
+  "country": "US|CA|FR|UK|DO|MX|CN|RU|HT|Global",
+  "eligibleCountries": ["HT", "Global", ...],
+  "haitianEligible": true/false,
+  "level": ["bachelor", "master", "phd", "short_programs"],
+  "fundingType": "full|partial|stipend|tuition-only|unknown",
+  "deadlineDateISO": "YYYY-MM-DD",
+  "deadlineMonth": 1-12,
+  "deadlineNotes": "ex: chaque année en mars",
+  "officialUrl": "https://...",
+  "howToApplyUrl": "https://...",
+  "eligibilitySummary": "résumé court (1-2 phrases)",
+  "requirements": ["exigence 1", "exigence 2"],
+  "recurring": true/false,
+  "tags": ["master", "europe", ...]
+}`;
+}
+
+export async function extractScholarshipFromArticle(article: {
+  title: string;
+  text: string;
+  url: string;
+}): Promise<VerifyResult<ExtractScholarshipResult>> {
+  const prompt = buildExtractScholarshipPrompt(article);
+  return runVerify(prompt, extractScholarshipSchema, `extract:${article.title.slice(0, 60)}`);
+}

@@ -124,12 +124,16 @@ export {
   verifyUniversitySchema,
   verifyScholarshipSchema,
   verifyCalendarEventSchema,
+  extractScholarshipFromArticle,
+  extractScholarshipSchema,
+  buildExtractScholarshipPrompt,
   VERIFY_CONFIDENCE_THRESHOLD,
 } from "./verify.js";
 export type {
   VerifyUniversityResult,
   VerifyScholarshipResult,
   VerifyCalendarEventResult,
+  ExtractScholarshipResult,
   VerifyResult,
   VerifySuccess,
   VerifyError,

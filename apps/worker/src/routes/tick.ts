@@ -6,6 +6,7 @@ import { runSynthesis } from "../services/synthesis.js";
 import { generateImages } from "../jobs/generateImages.js";
 import { runUtilityEngine } from "../services/utility.js";
 import { runDatasetRefresh } from "../services/datasets.js";
+import { discoverScholarships } from "../services/discoverScholarships.js";
 import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { buildIgTaux } from "../jobs/buildIgTaux.js";
@@ -80,6 +81,15 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     } catch (err) {
       // Dataset refresh is non-critical — log and continue
       console.warn("[tick] dataset refresh error:", err instanceof Error ? err.message : err);
+    }
+
+    // Step 8b: Scholarship discovery — promote opportunites items into the
+    // structured `scholarships` collection (auto-grows /bourses).
+    let discoverResult = { evaluated: 0, promoted: 0, rejected: 0, failed: 0 };
+    try {
+      discoverResult = await discoverScholarships();
+    } catch (err) {
+      console.warn("[tick] scholarship discovery error:", err instanceof Error ? err.message : err);
     }
 
     // Step 9: Haiti History Daily Publisher — template-based history post
@@ -256,7 +266,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
 
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, historyResult, igResult, waResult, fbResult, thResult, xResult });
+    console.log(`[tick] done in ${durationMs}ms`, { ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, discoverResult, historyResult, igResult, waResult, fbResult, thResult, xResult });
 
     res.json({
       ok: true,
@@ -270,6 +280,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         images: imageResult,
         utility: utilityResult,
         datasets: datasetResult,
+        scholarshipDiscovery: discoverResult,
         history: historyResult,
         instagram: igResult,
         whatsapp: waResult,

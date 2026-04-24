@@ -9,6 +9,8 @@ export type ItemUpdate = Partial<CreateItem> & {
   imageAttribution?: ImageAttribution;
   entity?: EntityRef;
   generationAttempts?: number;
+  scholarshipPromotion?: "promoted" | "rejected" | "failed";
+  scholarshipPromotionAttempts?: number;
 };
 
 const COLLECTION = "items";
@@ -110,6 +112,39 @@ export async function listOpportunitiesNeedingGeneration(
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
     .filter((it) => (it.generationAttempts ?? 0) < maxAttempts)
+    .slice(0, limit);
+}
+
+/**
+ * List `vertical=opportunites` items that have not yet been evaluated for
+ * promotion to the structured `scholarships` collection (or whose promotion
+ * failed transiently and should be retried).
+ *
+ * Filters in-memory because Firestore can't compose these inequality / missing
+ * field predicates with `where("vertical", "==", ...)` without composite
+ * indexes, and the field is undefined on most pre-existing items.
+ */
+export async function listOpportunitiesNeedingScholarshipPromotion(
+  limit = 5,
+  maxAttempts = 2,
+): Promise<Item[]> {
+  const snap = await collection()
+    .where("vertical", "==", "opportunites")
+    .orderBy("createdAt", "desc")
+    .limit(limit * 8)
+    .get();
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Item)
+    .filter((it) => {
+      // Already promoted or definitively rejected → skip
+      if (it.scholarshipPromotion === "promoted" || it.scholarshipPromotion === "rejected") return false;
+      // Failed attempts past the cap → skip
+      if ((it.scholarshipPromotionAttempts ?? 0) >= maxAttempts) return false;
+      // Need a URL and some text to extract from
+      if (!it.canonicalUrl) return false;
+      if (!it.extractedText && !it.summary) return false;
+      return true;
+    })
     .slice(0, limit);
 }
 
