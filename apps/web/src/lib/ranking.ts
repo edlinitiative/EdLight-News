@@ -257,13 +257,18 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     return a.audienceFitScore >= audienceFitThreshold;
   });
 
-  // ── 2b. Boost: utility +0.25, synthesis +0.15 to audienceFitScore ──────
+  // ── 2b. Boost: utility +0.25, synthesis +0.15, geoTag HT/Diaspora +0.10/+0.05 ──
+  // Geo boost surfaces actually-Haitian items above generic Global ones at
+  // similar fit scores (e.g. a Haiti-specific Fulbright story should outrank
+  // a generic "global scholarships round-up" at the same audienceFitScore).
   const boosted = thresholded.map((a) => {
-    if (a.itemType === "utility" && a.audienceFitScore != null) {
-      return { ...a, audienceFitScore: Math.min(1, a.audienceFitScore + 0.25) };
-    }
-    if (a.itemType === "synthesis" && a.audienceFitScore != null) {
-      return { ...a, audienceFitScore: Math.min(1, a.audienceFitScore + 0.15) };
+    let bonus = 0;
+    if (a.itemType === "utility") bonus += 0.25;
+    else if (a.itemType === "synthesis") bonus += 0.15;
+    if (a.geoTag === "HT") bonus += 0.10;
+    else if (a.geoTag === "Diaspora") bonus += 0.05;
+    if (bonus > 0 && a.audienceFitScore != null) {
+      return { ...a, audienceFitScore: Math.min(1, a.audienceFitScore + bonus) };
     }
     return a;
   });
