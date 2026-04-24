@@ -87,6 +87,32 @@ export async function listRecentItems(limit = 50): Promise<Item[]> {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Item);
 }
 
+/**
+ * List items in the opportunites vertical that have not yet had a Gemini
+ * generation attempt. Used by the generate step as a second pass so that
+ * scholarships ingested days ago (already out of the recent-items window)
+ * still get a chance to produce content_versions.
+ *
+ * Filtering for `generationAttempts < MAX` is done in-memory because
+ * Firestore can't combine `where("generationAttempts", "<", N)` with
+ * `where("vertical", "==", ...)` without a composite index, and most
+ * pre-existing items predate the field entirely (undefined).
+ */
+export async function listOpportunitiesNeedingGeneration(
+  limit = 50,
+  maxAttempts = 3,
+): Promise<Item[]> {
+  const snap = await collection()
+    .where("vertical", "==", "opportunites")
+    .orderBy("createdAt", "desc")
+    .limit(limit * 4)
+    .get();
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Item)
+    .filter((it) => (it.generationAttempts ?? 0) < maxAttempts)
+    .slice(0, limit);
+}
+
 export async function listRecentByItemType(
   itemType: string,
   limit = 50,

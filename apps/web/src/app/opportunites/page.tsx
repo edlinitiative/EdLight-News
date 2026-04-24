@@ -68,6 +68,12 @@ export default async function OpportunitesPage({
   function looksLikeOpportunity(a: typeof allArticles[number]): boolean {
     // Utility items with the ScholarshipRadar series always pass
     if (a.itemType === "utility" && a.series === "ScholarshipRadar") return true;
+    // Trust the worker: items the ingest pipeline already tagged as
+    // vertical="opportunites" pass the deterministic gate in classify.ts.
+    // Re-running contentLooksLikeOpportunity here was rejecting ~85 % of them
+    // because Gemini rewrites titles/summaries into news-style French that no
+    // longer contains "bourse", "concours", "fellowship", etc.
+    if (a.vertical === "opportunites") return true;
     return contentLooksLikeOpportunity(a.title ?? "", a.summary);
   }
 

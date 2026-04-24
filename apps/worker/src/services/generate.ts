@@ -44,7 +44,23 @@ export async function generateForItems(): Promise<{
   skipped: number;
   errors: number;
 }> {
-  const items = await itemsRepo.listRecentItems(BATCH_LIMIT * 3);
+  // Two-pass candidate list:
+  //   1. Most-recent items overall (catches anything just ingested)
+  //   2. Opportunity items that have NEVER been tried yet (drains backlog
+  //      where /opportunites items aged out of the recent window before
+  //      ever reaching Gemini).
+  // Dedupe by id, preserve order (recent first).
+  const recent = await itemsRepo.listRecentItems(BATCH_LIMIT * 3);
+  const oppBacklog = await itemsRepo.listOpportunitiesNeedingGeneration(
+    BATCH_LIMIT * 4,
+    MAX_GENERATION_ATTEMPTS,
+  );
+  const seen = new Set<string>();
+  const items = [...recent, ...oppBacklog].filter((it) => {
+    if (seen.has(it.id)) return false;
+    seen.add(it.id);
+    return true;
+  });
 
   let generated = 0;
   let skipped = 0;
@@ -283,7 +299,12 @@ export async function generateForItems(): Promise<{
 
       const updatedQualityFlags: QualityFlags = {
         hasSourceUrl: item.qualityFlags?.hasSourceUrl ?? true,
-        needsReview: isOpportunityType && isMissingDeadline,
+        // Missing deadline alone is NOT enough to hold an opportunity for
+        // review — many real fellowships/scholarships don't expose a parseable
+        // date in their RSS title/summary, and routing them all to status=
+        // "review" was starving /opportunites of content. The page renders
+        // missingDeadline=true items as "Sans date limite / evergreen".
+        needsReview: false,
         lowConfidence: isLowConfidence,
         weakSource: item.qualityFlags?.weakSource ?? false,
         missingDeadline: isMissingDeadline,
