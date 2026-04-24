@@ -19,6 +19,7 @@
     "seed:universities": "tsx src/scripts/seedUniversities.ts",
     "seed:scholarships": "tsx src/scripts/seedScholarships.ts",
     "seed:scholarships-ca-fr-uk": "tsx src/scripts/seedScholarshipsCaFrUk.ts",
+    "refresh:recurring-scholarships": "tsx src/scripts/refreshRecurringScholarships.ts",
     "generate:scholarship-radar-weekly": "tsx src/scripts/generateScholarshipRadarWeekly.ts",
     "seed:haiti-calendar": "tsx src/scripts/seedHaitiCalendar.ts",
     "seed:pathways": "tsx src/scripts/seedPathways.ts",

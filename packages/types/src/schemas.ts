@@ -551,6 +551,34 @@ const scholarshipDeadlineSchema = z.object({
   sourceUrl: z.string().url(),
 });
 
+const scholarshipImageSchema = z.object({
+  url: z.string().url(),
+  caption: z.string().optional(),
+  credit: z.string().optional(),
+});
+
+const scholarshipApplicationStepSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  url: z.string().url().optional(),
+});
+
+const scholarshipSubProgramSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  level: z.array(academicLevelSchema).optional(),
+  eligibility: z.string().optional(),
+  url: z.string().url().optional(),
+  relatedPagePath: z.string().startsWith("/").optional(),
+});
+
+const scholarshipKeyDateSchema = z.object({
+  label: z.string().min(1),
+  dateISO: isoDateString.optional(),
+  monthRange: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 export const scholarshipSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -569,6 +597,14 @@ export const scholarshipSchema = z.object({
   recurring: z.boolean().optional(),
   tags: z.array(z.string()).optional(),
   sources: z.array(datasetCitationSchema).min(1),
+  // Rich detail-page fields (all optional)
+  heroImageUrl: z.string().url().optional(),
+  gallery: z.array(scholarshipImageSchema).optional(),
+  programDescription: z.string().optional(),
+  applicationSteps: z.array(scholarshipApplicationStepSchema).optional(),
+  subPrograms: z.array(scholarshipSubProgramSchema).optional(),
+  relatedPagePath: z.string().startsWith("/").optional(),
+  keyDates: z.array(scholarshipKeyDateSchema).optional(),
   verifiedAt: timestampSchema,
   updatedAt: timestampSchema,
 });

@@ -1014,6 +1014,44 @@ export interface ScholarshipDeadline {
   sourceUrl: string;
 }
 
+/** A single image displayed on the scholarship detail page (hero or gallery). */
+export interface ScholarshipImage {
+  url: string;
+  caption?: string;
+  /** Attribution / credit line (e.g. "Wikimedia Commons, CC BY-SA 4.0"). */
+  credit?: string;
+}
+
+/** A single step in the application walkthrough. */
+export interface ScholarshipApplicationStep {
+  title: string;
+  description: string;
+  /** Optional URL the user should visit for this step (form, portal, doc). */
+  url?: string;
+}
+
+/** A sub-programme of a larger scholarship family (e.g. UWC HS vs UWC Latin America). */
+export interface ScholarshipSubProgram {
+  name: string;
+  description: string;
+  level?: AcademicLevel[];
+  /** One-sentence eligibility note specific to this sub-programme. */
+  eligibility?: string;
+  /** External application or info URL. */
+  url?: string;
+  /** Internal site path if a curated page exists (e.g. "/uwc-haiti"). */
+  relatedPagePath?: string;
+}
+
+/** A recurring milestone date for the scholarship cycle (open, deadline, results, etc.). */
+export interface ScholarshipKeyDate {
+  label: string;
+  dateISO?: string;
+  /** Free-form e.g. "Septembre – Octobre" when only a window is known. */
+  monthRange?: string;
+  notes?: string;
+}
+
 export interface Scholarship {
   id: string;
   name: string;
@@ -1035,6 +1073,23 @@ export interface Scholarship {
   recurring?: boolean;
   tags?: string[];
   sources: DatasetCitation[];
+
+  // ── Rich detail-page fields (all optional; backwards compatible) ──────
+  /** Big illustrative image at the top of the detail page. */
+  heroImageUrl?: string;
+  /** Additional photos (campus, alumni, ceremony, …). */
+  gallery?: ScholarshipImage[];
+  /** Long-form description of the programme (markdown-light, plain text). */
+  programDescription?: string;
+  /** Ordered "How to apply" walkthrough. */
+  applicationSteps?: ScholarshipApplicationStep[];
+  /** Sub-programmes / tracks (e.g. UWC's high-school + Latin America branches). */
+  subPrograms?: ScholarshipSubProgram[];
+  /** Internal site path to a curated page (e.g. "/uwc-haiti"). */
+  relatedPagePath?: string;
+  /** Recurring milestones in the application cycle. */
+  keyDates?: ScholarshipKeyDate[];
+
   verifiedAt: Timestamp;
   updatedAt: Timestamp;
 }
