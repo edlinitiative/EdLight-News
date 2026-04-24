@@ -245,7 +245,7 @@ async function callOpenRouterInternal(prompt: string, opts?: LLMOptions): Promis
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
-      "HTTP-Referer": "https://edlight.news",
+      "HTTP-Referer": "https://news.edlight.org",
       "X-Title": "EdLight News",
     },
     body: JSON.stringify(body),

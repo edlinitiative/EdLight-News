@@ -18,7 +18,7 @@ import { computeImageScore } from "./imageScoring.js";
 import type { OfficialSourceEntry } from "./imageTypes.js";
 
 const FLICKR_API = "https://www.flickr.com/services/rest/";
-const UA = "EdLight-News-Worker/1.0 (flickr search; contact@edlight.news)";
+const UA = "EdLight-News-Worker/1.0 (flickr search; news@edlight.org)";
 
 // ── Flickr license mapping ─────────────────────────────────────────────────
 // https://www.flickr.com/services/api/flickr.photos.licenses.getInfo.html

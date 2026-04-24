@@ -13,7 +13,7 @@ import { computeImageScore } from "./imageScoring.js";
 import type { StoryType } from "./imageTypes.js";
 
 const LOC_API = "https://www.loc.gov";
-const UA = "EdLight-News-Worker/1.0 (loc image search; contact@edlight.news)";
+const UA = "EdLight-News-Worker/1.0 (loc image search; news@edlight.org)";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

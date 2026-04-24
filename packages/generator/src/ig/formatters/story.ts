@@ -5,7 +5,7 @@
  *   Frame 1 — Taux du jour (BRH exchange rate snapshot)
  *   Frame 2 — Faits du jour (all facts of the day on one polished frame)
  *   Frames 3-6 — Up to 4 bonus headline items (highest score, deadline-biased)
- *   Frame 7 — CTA ("Suivez @edlight.news")  ← auto-appended by renderer
+ *   Frame 7 — CTA ("Suivez @edlightnews")  ← auto-appended by renderer
  *
  * Design principles for Stories:
  *  - Each frame must be scannable in ≤ 5 seconds

@@ -8,7 +8,7 @@
  *  - taux:     Premium navy/gold financial rate card
  *  - facts:    Green-accented "Le saviez-vous ?" card with all daily facts
  *  - headline: Dark bg + accent bar + number badge (article summaries)
- *  - cta:      Branded close with follow prompt (@edlight.news)
+ *  - cta:      Branded close with follow prompt (@edlightnews)
  *
  * Design system:
  *  - IG safe zones respected: 270 px top, 230 px bottom
@@ -726,7 +726,7 @@ ${buildProgressDots(slideIndex, totalSlides, accent)}
     <span>Repères</span>
   </div>
   <div class="handle-block">
-    <div class="handle">@edlight.news</div>
+    <div class="handle">@edlightnews</div>
     <div class="note">En story chaque matin</div>
   </div>
   <div class="kreyol">Nouvèl, opòtinite ak repè pou elèv ak etidyan ayisyen, chak jou.</div>

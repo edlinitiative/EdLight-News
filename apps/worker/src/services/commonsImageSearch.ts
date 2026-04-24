@@ -54,7 +54,7 @@ interface GeminiImageKeywords {
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-const UA = "EdLight-News-Worker/1.0 (commons image search; contact@edlight.news)";
+const UA = "EdLight-News-Worker/1.0 (commons image search; news@edlight.org)";
 
 /** Licenses considered safe for IG embedding without in-image attribution */
 const SAFE_LICENSES = new Set([

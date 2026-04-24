@@ -2,7 +2,7 @@
  * Tests for the IG story renderer frame dispatch.
  *
  * Validates:
- *  - @edlight.news handle in CTA frame (not @edlightnews)
+ *  - @edlightnews handle in CTA frame (not @edlight.news)
  *  - Taux frame renders with financial card layout
  *  - Facts frame renders with numbered facts
  *  - Headline frame renders article summary
@@ -16,13 +16,13 @@ import { buildStorySlideHTML } from "./ig-story.js";
 import type { IGStorySlide } from "@edlight-news/types";
 
 describe("buildStorySlideHTML", () => {
-  it("CTA frame uses @edlight.news handle", () => {
+  it("CTA frame uses @edlightnews handle", () => {
     const slide: IGStorySlide = { heading: "", bullets: [], accent: "#14b8a6" };
     const html = buildStorySlideHTML(slide, "13 mars 2026", 5, 6, true);
-    assert.ok(html.includes("@edlight.news"), "Should contain @edlight.news");
+    assert.ok(html.includes("@edlightnews"), "Should contain @edlightnews");
     assert.ok(
-      !html.includes("@edlightnews"),
-      "Should NOT contain @edlightnews (without dot)",
+      !html.includes("@edlight.news"),
+      "Should NOT contain @edlight.news (with dot)",
     );
   });
 
@@ -30,7 +30,7 @@ describe("buildStorySlideHTML", () => {
     const slide: IGStorySlide = { heading: "", bullets: [], accent: "#14b8a6" };
     const html = buildStorySlideHTML(slide, "13 mars 2026", 5, 6, true);
     assert.ok(
-      html.includes("@edlight.news"),
+      html.includes("@edlightnews"),
       "CTA frame should contain the handle",
     );
   });

@@ -72,7 +72,7 @@ const opportuniteSlides: SlideContent[] = [
 const opportuniteCaption: PostCaption = {
   text: "L'ONU ouvre 40 stages rémunérés pour les jeunes haïtiens ! 🇭🇹🌍\n\nDéadline : 30 mai 2026. Glissez pour tous les détails.",
   hashtags: ["#Haïti", "#Stage", "#ONU", "#EdLightNews", "#Opportunité"],
-  cta: "Suivez @edlight.news pour ne rater aucune opportunité 🔔",
+  cta: "Suivez @edlightnews pour ne rater aucune opportunité 🔔",
 };
 
 // ── Type 2: Histoire ──────────────────────────────────────────────────────────
@@ -138,7 +138,7 @@ const histoireSlides: SlideContent[] = [
 const histoireCaption: PostCaption = {
   text: "En 1804, Haïti a changé l'histoire du monde 🇭🇹✊\n\nPremière République noire libre — une victoire qui appartient à toute l'humanité.",
   hashtags: ["#Haïti", "#Histoire", "#1804", "#EdLightNews", "#HaïtiForever"],
-  cta: "Suivez @edlight.news pour l'histoire et la culture haïtienne 📚",
+  cta: "Suivez @edlightnews pour l'histoire et la culture haïtienne 📚",
 };
 
 // ── Type 3: Bourse ────────────────────────────────────────────────────────────
@@ -197,7 +197,7 @@ const bourseSlides: SlideContent[] = [
 const bourseCaption: PostCaption = {
   text: "15 bourses complètes pour étudier au Québec 🎓🇨🇦\n\nScolarité + logement + billet d'avion. Deadline : 15 juin 2026.",
   hashtags: ["#Haïti", "#Bourse", "#UQAM", "#EdLightNews", "#ÉtudierÀLétranger"],
-  cta: "Suivez @edlight.news pour toutes les bourses 🔔",
+  cta: "Suivez @edlightnews pour toutes les bourses 🔔",
 };
 
 // ── Type 4: Chiffre du jour (Stat card) ───────────────────────────────────────
@@ -230,7 +230,7 @@ const chiffreSlides: SlideContent[] = [
 const chiffreCaption: PostCaption = {
   text: "61 % des adultes haïtiens sont alphabétisés 📊\n\nLa moyenne caribéenne est de 89 %. L'éducation reste le défi numéro 1.",
   hashtags: ["#Haïti", "#Éducation", "#Données", "#EdLightNews", "#UNESCO"],
-  cta: "Suivez @edlight.news pour les données qui comptent 📊",
+  cta: "Suivez @edlightnews pour les données qui comptent 📊",
 };
 
 // ── Render all types and build gallery ────────────────────────────────────────

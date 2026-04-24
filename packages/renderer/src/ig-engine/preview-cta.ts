@@ -71,7 +71,7 @@ const SAMPLES: Sample[] = [
     caption: {
       text: "Un plan éducatif historique pour Haïti.",
       hashtags: ["#Haïti", "#Éducation", "#EdLightNews"],
-      cta: "Suivez @edlight.news 🔔",
+      cta: "Suivez @edlightnews 🔔",
     },
   },
 
@@ -111,7 +111,7 @@ const SAMPLES: Sample[] = [
     caption: {
       text: "L'ONU ouvre 40 stages rémunérés pour les jeunes haïtiens !",
       hashtags: ["#Haïti", "#Stage", "#ONU", "#EdLightNews"],
-      cta: "Suivez @edlight.news 🔔",
+      cta: "Suivez @edlightnews 🔔",
     },
   },
 
@@ -150,7 +150,7 @@ const SAMPLES: Sample[] = [
     caption: {
       text: "Le système éducatif haïtien expliqué simplement.",
       hashtags: ["#Haïti", "#Éducation", "#EdLightNews"],
-      cta: "Suivez @edlight.news 🔔",
+      cta: "Suivez @edlightnews 🔔",
     },
   },
 
@@ -189,7 +189,7 @@ const SAMPLES: Sample[] = [
     caption: {
       text: "Votre récap de la semaine est arrivé 📋",
       hashtags: ["#Haïti", "#Récap", "#EdLightNews"],
-      cta: "Suivez @edlight.news 🔔",
+      cta: "Suivez @edlightnews 🔔",
     },
   },
 ];
