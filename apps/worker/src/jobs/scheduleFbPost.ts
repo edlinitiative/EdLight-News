@@ -1,43 +1,112 @@
 /**
  * Worker job: scheduleFbPost
  *
- * Runs on every tick. Takes queued FB items and schedules them for
- * IMMEDIATE publishing (no slot delay) — but with topic-dedup so we
- * don't spam the Page with near-duplicate stories.
+ * Runs on every tick. Takes queued FB items and distributes them across
+ * posting slots throughout the day, with highest-scored items getting
+ * peak-engagement slots.
  *
  * Dedup rules (applied against FB items sent or already scheduled in
- * the last 24h):
+ * the last 24h, PLUS items being scheduled in this batch):
  *   1. Same `dedupeGroupId` on the source item → skip (same story).
- *   2. Title token-overlap (Jaccard) ≥ 0.6 → skip (same story, different
- *      headline wording).
- *   3. Same primary `category` posted within the last 90 minutes → skip
- *      (cool-off so we don't dump 4 scholarship posts back-to-back).
+ *   2. Title token-overlap (Jaccard) ≥ 0.55 → skip (same story, different
+ *      headline wording). Lowered from 0.6 to catch more dupes.
+ *   3. Same primary `category` posted within the last 120 minutes → skip
+ *      (cooloff increased to spread similar content better).
  *
- * Skipped items are marked `skipped` with a clear reason so they don't
- * keep clogging the queue.
- *
- * `processFbScheduled` runs immediately after this in the same tick and
- * publishes whatever survives.
+ * Skipped items are marked `skipped` with a clear reason.
+ * High-score items are assigned to early slots for best engagement.
  */
 
 import { fbQueueRepo, getDb } from "@edlight-news/firebase";
 import type { FbQueueItem, Item } from "@edlight-news/types";
 
-/** Maximum FB posts per day. */
-const DAILY_CAP = 8;
+/** Maximum FB posts per day (increased from 8). */
+const DAILY_CAP = 12;
 
-/** Stagger between consecutive immediate sends (ms). */
-const STAGGER_MS = 2_000;
+/** Facebook posting slots (Haiti local time America/Port-au-Prince).
+ *  12 slots spread 7am–11pm for even distribution. */
+const SLOTS = [
+  { hour: 7, minute: 0 },
+  { hour: 8, minute: 30 },
+  { hour: 10, minute: 0 },
+  { hour: 11, minute: 30 },
+  { hour: 13, minute: 0 },
+  { hour: 14, minute: 30 },
+  { hour: 16, minute: 0 },
+  { hour: 17, minute: 30 },
+  { hour: 19, minute: 0 },
+  { hour: 20, minute: 30 },
+  { hour: 21, minute: 30 },
+  { hour: 22, minute: 30 },
+];
 
 /** Minimum minutes between two posts with the same primary category. */
-const CATEGORY_COOLOFF_MINUTES = 90;
+const CATEGORY_COOLOFF_MINUTES = 120;
 
-/** Jaccard token-overlap threshold above which two titles are considered
- *  near-duplicates. 0.6 = 60% of significant tokens shared. */
-const TITLE_SIMILARITY_THRESHOLD = 0.6;
+/** Jaccard token-overlap threshold — lowered from 0.6 to 0.55 to catch
+ *  more duplicates (e.g., "Ouragan Melissa" vs "Hurricane Melissa"). */
+const TITLE_SIMILARITY_THRESHOLD = 0.55;
 
 /** Look-back window for "recently posted" comparisons. */
 const RECENT_LOOKBACK_HOURS = 24;
+
+// ── Haiti timezone helpers ──────────────────────────────────────────────
+
+const HAITI_TZ = "America/Port-au-Prince";
+
+function toHaitiDate(date: Date): Date {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: HAITI_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(date);
+  const obj: Record<string, number> = {};
+  for (const p of parts) {
+    if (p.type !== "literal") obj[p.type] = parseInt(p.value, 10);
+  }
+  return new Date(obj.year, obj.month - 1, obj.day, obj.hour, obj.minute, obj.second);
+}
+
+function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
+  const now = new Date();
+  const haitiNow = toHaitiDate(now);
+  const haitiToday = new Date(haitiNow.getFullYear(), haitiNow.getMonth(), haitiNow.getDate());
+
+  for (const slot of SLOTS) {
+    const candidate = new Date(haitiToday.getFullYear(), haitiToday.getMonth(), haitiToday.getDate(), slot.hour, slot.minute, 0);
+    const candidateISO = candidate.toISOString();
+
+    // Skip past slots
+    if (candidate <= now) continue;
+
+    // Skip already-taken slots
+    if (takenSlotISOs.has(candidateISO)) continue;
+
+    return candidate;
+  }
+
+  // No slot found today; try tomorrow
+  const tomorrow = new Date(haitiToday);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  for (const slot of SLOTS) {
+    const candidate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), slot.hour, slot.minute, 0);
+    const candidateISO = candidate.toISOString();
+
+    if (takenSlotISOs.has(candidateISO)) continue;
+    return candidate;
+  }
+
+  return null;
+}
+
+// ── Dedup & scoring ──────────────────────────────────────────────────────
 
 const STOPWORDS = new Set([
   // FR
@@ -226,7 +295,11 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
       ...alreadyScheduled.map((q) => buildSignature(q, sourceItems.get(q.sourceContentId))),
     ];
 
-    const now = Date.now();
+    // Collect already-taken slots from today's scheduled items
+    const takenSlots = new Set<string>();
+    for (const item of alreadyScheduled) {
+      if (item.scheduledFor) takenSlots.add(item.scheduledFor);
+    }
 
     for (const item of queued) {
       if (result.scheduled >= remaining) {
@@ -234,11 +307,8 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
         continue;
       }
 
-      const candidateSig = buildSignature(
-        item,
-        sourceItems.get(item.sourceContentId),
-        new Date(now + result.scheduled * STAGGER_MS),
-      );
+      // Check dedup BEFORE assigning a slot
+      const candidateSig = buildSignature(item, sourceItems.get(item.sourceContentId));
       const dupCheck = isDuplicate(candidateSig, recentSignatures);
 
       if (dupCheck.dup) {
@@ -259,11 +329,20 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
         continue;
       }
 
-      const iso = new Date(now + result.scheduled * STAGGER_MS).toISOString();
+      // Passed dedup — assign next available slot
+      const slot = getNextAvailableSlot(takenSlots);
+      if (!slot) {
+        console.log(`[scheduleFbPost] No available slots for ${item.id}`);
+        result.skippedCap++;
+        continue;
+      }
+
+      const iso = slot.toISOString();
       await fbQueueRepo.setScheduled(item.id, iso);
+      takenSlots.add(iso);
       recentSignatures.push(candidateSig);
       result.scheduled++;
-      console.log(`[scheduleFbPost] Scheduled ${item.id} → ${iso} (immediate)`);
+      console.log(`[scheduleFbPost] Scheduled ${item.id} → ${iso}`);
     }
 
     console.log("[scheduleFbPost] Done:", result);
