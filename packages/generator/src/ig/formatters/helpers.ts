@@ -318,6 +318,16 @@ export function finalizeCaption(caption: string): string {
     keptBlocks.push(repaired);
   }
 
+  const proseAlreadyHasSource = proseBlocks.some(containsInlineSourceAttribution);
+  if (proseAlreadyHasSource) {
+    const filtered = keptBlocks.filter(
+      (block) => !isStandaloneSourceBlock(block),
+    );
+    if (filtered.length > 0) {
+      return truncateCaption(filtered.join("\n\n"));
+    }
+  }
+
   return truncateCaption(keptBlocks.join("\n\n"));
 }
 
@@ -669,9 +679,20 @@ function normalizeCaptionWhitespace(text: string): string {
 function isCaptionMetaBlock(block: string): boolean {
   const trimmed = block.trim();
   return /^#/.test(trimmed)
-    || /^source:/i.test(trimmed)
+    || /^sources?\s*:/i.test(trimmed)
     || /lien dans la bio|lyen nan biyo/i.test(trimmed)
     || /https?:\/\//i.test(trimmed);
+}
+
+function isStandaloneSourceBlock(block: string): boolean {
+  return /^sources?\s*:/i.test(block.trim());
+}
+
+function containsInlineSourceAttribution(block: string): boolean {
+  const trimmed = block.trim();
+  if (!trimmed) return false;
+  if (isStandaloneSourceBlock(trimmed)) return false;
+  return /(^|\n|[.!?]\s+)sources?\s*:/i.test(trimmed);
 }
 
 function looksLikeBrokenCaptionBlock(block: string): boolean {
