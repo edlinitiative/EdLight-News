@@ -21,23 +21,34 @@ import { fbQueueRepo, getDb } from "@edlight-news/firebase";
 import type { FbQueueItem, Item } from "@edlight-news/types";
 
 /** Maximum FB posts per day (increased from 8). */
-const DAILY_CAP = 12;
+const DAILY_CAP = 13;
 
 /** Facebook posting slots (Haiti local time America/Port-au-Prince).
- *  12 slots spread 7am–11pm for even distribution. */
+ *  13 slots spread 7am–7pm (1-hour spacing for Haiti sleep patterns).
+ *  Urgent news (hurricane, earthquake, etc.) can use extended slots up to 11pm. */
 const SLOTS = [
   { hour: 7, minute: 0 },
-  { hour: 8, minute: 30 },
+  { hour: 8, minute: 0 },
+  { hour: 9, minute: 0 },
   { hour: 10, minute: 0 },
-  { hour: 11, minute: 30 },
+  { hour: 11, minute: 0 },
+  { hour: 12, minute: 0 },
   { hour: 13, minute: 0 },
-  { hour: 14, minute: 30 },
+  { hour: 14, minute: 0 },
+  { hour: 15, minute: 0 },
   { hour: 16, minute: 0 },
-  { hour: 17, minute: 30 },
+  { hour: 17, minute: 0 },
+  { hour: 18, minute: 0 },
   { hour: 19, minute: 0 },
-  { hour: 20, minute: 30 },
-  { hour: 21, minute: 30 },
-  { hour: 22, minute: 30 },
+];
+
+/** Extended slots for urgent news (hurricane, earthquake, etc.).
+ *  Allows posting up to 11pm if critical breaking news. */
+const EXTENDED_SLOTS = [
+  { hour: 20, minute: 0 },
+  { hour: 21, minute: 0 },
+  { hour: 22, minute: 0 },
+  { hour: 23, minute: 0 },
 ];
 
 /** Minimum minutes between two posts with the same primary category. */
@@ -49,6 +60,32 @@ const TITLE_SIMILARITY_THRESHOLD = 0.55;
 
 /** Look-back window for "recently posted" comparisons. */
 const RECENT_LOOKBACK_HOURS = 24;
+
+// ── Urgent news detection ───────────────────────────────────────────────
+
+const URGENT_KEYWORDS = new Set([
+  // Hurricanes / storms (FR/HT/EN)
+  "ouragan", "hurricane", "cyclone", "tempête", "orage",
+  "melissa", "beryl", "ian", "matthew", "sandy", // named storms
+  // Earthquakes
+  "tremblement", "séisme", "earthquake", "sismo", "sékinm",
+  "terblèm", "tranblement",
+  // Other critical events
+  "tsunami", "inondation", "glissement", "coulée", "dégâts",
+  "catastrophe", "urgence", "emergency", "crisis", "krisis",
+  "décès", "mort", "blessés", "morts", "deaths", "killed",
+  // Security
+  "gangs", "kidnapping", "enlèvement", "violence extrême",
+]);
+
+function isUrgentNews(item: Item | undefined): boolean {
+  if (!item) return false;
+  const text = `${item.title ?? ""} ${item.summary ?? ""}`.toLowerCase();
+  for (const keyword of URGENT_KEYWORDS) {
+    if (text.includes(keyword)) return true;
+  }
+  return false;
+}
 
 // ── Haiti timezone helpers ──────────────────────────────────────────────
 
@@ -73,13 +110,26 @@ function toHaitiDate(date: Date): Date {
   return new Date(obj.year, obj.month - 1, obj.day, obj.hour, obj.minute, obj.second);
 }
 
-function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
+function getNextAvailableSlot(
+  takenSlotISOs: Set<string>,
+  isUrgent: boolean = false,
+): Date | null {
   const now = new Date();
   const haitiNow = toHaitiDate(now);
   const haitiToday = new Date(haitiNow.getFullYear(), haitiNow.getMonth(), haitiNow.getDate());
 
-  for (const slot of SLOTS) {
-    const candidate = new Date(haitiToday.getFullYear(), haitiToday.getMonth(), haitiToday.getDate(), slot.hour, slot.minute, 0);
+  // Use extended slots for urgent news, otherwise stick to normal slots
+  const slotsToUse = isUrgent ? [...SLOTS, ...EXTENDED_SLOTS] : SLOTS;
+
+  for (const slot of slotsToUse) {
+    const candidate = new Date(
+      haitiToday.getFullYear(),
+      haitiToday.getMonth(),
+      haitiToday.getDate(),
+      slot.hour,
+      slot.minute,
+      0,
+    );
     const candidateISO = candidate.toISOString();
 
     // Skip past slots
@@ -95,8 +145,15 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   const tomorrow = new Date(haitiToday);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  for (const slot of SLOTS) {
-    const candidate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), slot.hour, slot.minute, 0);
+  for (const slot of slotsToUse) {
+    const candidate = new Date(
+      tomorrow.getFullYear(),
+      tomorrow.getMonth(),
+      tomorrow.getDate(),
+      slot.hour,
+      slot.minute,
+      0,
+    );
     const candidateISO = candidate.toISOString();
 
     if (takenSlotISOs.has(candidateISO)) continue;
@@ -330,7 +387,9 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
       }
 
       // Passed dedup — assign next available slot
-      const slot = getNextAvailableSlot(takenSlots);
+      const sourceItem = sourceItems.get(item.sourceContentId);
+      const isUrgent = isUrgentNews(sourceItem);
+      const slot = getNextAvailableSlot(takenSlots, isUrgent);
       if (!slot) {
         console.log(`[scheduleFbPost] No available slots for ${item.id}`);
         result.skippedCap++;
@@ -342,7 +401,12 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
       takenSlots.add(iso);
       recentSignatures.push(candidateSig);
       result.scheduled++;
-      console.log(`[scheduleFbPost] Scheduled ${item.id} → ${iso}`);
+
+      if (isUrgent) {
+        console.log(`[scheduleFbPost] ⚠️  URGENT: ${item.id} → ${iso} (outside normal hours)`);
+      } else {
+        console.log(`[scheduleFbPost] Scheduled ${item.id} → ${iso}`);
+      }
     }
 
     console.log("[scheduleFbPost] Done:", result);
