@@ -13,10 +13,8 @@
  */
 
 import type { ContentLanguage, AcademicLevel, DatasetCountry } from "@edlight-news/types";
-import {
-  Bookmark,
-  ExternalLink,
-} from "lucide-react";
+import Link from "next/link";
+import { Bookmark } from "lucide-react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 import {
   getDeadlineStatus,
@@ -168,11 +166,13 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       : null;
 
   const bg = COUNTRY_BG[s.country] ?? COUNTRY_BG.Global;
+  const detailHref = `/bourses/${s.id}${lang !== "fr" ? `?lang=${lang}` : ""}`;
 
   return (
-    <article
+    <Link
+      href={detailHref}
       id={`scholarship-${s.id}`}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm hover:shadow-md hover:border-[#c7c4d8]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-stone-700 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm hover:shadow-md hover:border-[#3525cd]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-[#c3c0ff]/40 ${
         isDirectory
           ? "border-l-4 border-l-[#316bf3] border-[#c7c4d8]/15 dark:border-l-indigo-500 dark:border-stone-700"
           : "border-[#c7c4d8]/15"
@@ -205,7 +205,11 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
           )}
           <button
             type="button"
-            onClick={() => onToggleSave(s.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleSave(s.id);
+            }}
             className={`p-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
               saved
                 ? "text-[#3525cd] dark:text-[#c3c0ff]"
@@ -265,25 +269,16 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* ── Footer: Deadline + CTA ── */}
+      {/* ── Footer: Deadline + visual CTA (whole card is clickable) ── */}
       <div className="mt-3 pt-3 border-t border-[#f3ecea]/60 dark:border-stone-800 flex items-center justify-between gap-2">
         <div className="text-[10px] text-[#474948] dark:text-stone-500 font-medium">
           {dlText && dlText}
         </div>
-        <a
-          href={s.officialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-0.5 group/cta hover:underline whitespace-nowrap"
-        >
-          {isDirectory
-            ? (fr ? "Voir" : "Wè")
-            : s.howToApplyUrl
-              ? (fr ? "Postuler" : "Aplike")
-              : (fr ? "Détails" : "Detay")}
-          <span className="material-symbols-outlined text-xs group-hover/cta:translate-x-0.5 transition-transform">arrow_forward</span>
-        </a>
+        <span className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-0.5 group-hover:underline whitespace-nowrap">
+          {fr ? "Voir détails" : "Wè detay"}
+          <span className="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }
