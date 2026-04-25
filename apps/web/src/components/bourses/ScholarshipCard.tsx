@@ -1,27 +1,21 @@
 "use client";
 
 /**
- * ScholarshipCard — Redesigned scholarship card with clear visual hierarchy.
+ * ScholarshipCard — Compact, polished scholarship card.
  *
  * Layout:
- *   Top: Title + funding chip
- *   Second row: Deadline + countdown + eligibility
- *   Body: Clamped summary + expandable tags
- *   Footer: CTAs + collapsible sources
+ *   Icon + Funding chip + Save button (top row)
+ *   Title (h3)
+ *   Deadline metadata (compact row)
+ *   Summary (clamped)
+ *   Tags (if present)
+ *   CTA footer
  */
 
-import { useState } from "react";
 import type { ContentLanguage, AcademicLevel, DatasetCountry } from "@edlight-news/types";
 import {
-  CalendarDays,
-  BookOpen,
-  CheckCircle,
-  HelpCircle,
-  FolderOpen,
-  ExternalLink,
-  Paperclip,
   Bookmark,
-  ChevronDown,
+  ExternalLink,
 } from "lucide-react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 import {
@@ -162,11 +156,7 @@ interface ScholarshipCardProps {
 
 export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: ScholarshipCardProps) {
   const fr = lang === "fr";
-  const [expanded, setExpanded] = useState(false);
-  const [tagsExpanded, setTagsExpanded] = useState(false);
-
   const funding = FUNDING_LABELS[s.fundingType];
-  const cl = COUNTRY_LABELS[s.country];
   const isDirectory = s.kind === "directory";
   const elig = s.haitianEligibility ?? "unknown";
   const dlText = deadlineText(s, lang);
@@ -177,188 +167,123 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       ? getDeadlineStatus(s.deadline.dateISO, lang)
       : null;
 
-  const visibleTags = tagsExpanded ? (s.tags ?? []) : (s.tags ?? []).slice(0, 3);
-  const hiddenTagCount = (s.tags?.length ?? 0) - 3;
-
   const bg = COUNTRY_BG[s.country] ?? COUNTRY_BG.Global;
 
   return (
     <article
       id={`scholarship-${s.id}`}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-xl bg-white p-6 shadow-[0_20px_40px_rgba(29,27,26,0.05)] transition-transform hover:-translate-y-1 dark:bg-stone-900 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm hover:shadow-md hover:border-[#c7c4d8]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-stone-700 ${
         isDirectory
-          ? "border-l-4 border-l-[#316bf3] border border-[#c7c4d8]/15 dark:border-l-indigo-500 dark:border-stone-700"
-          : "border border-[#c7c4d8]/15 dark:border-stone-700"
+          ? "border-l-4 border-l-[#316bf3] border-[#c7c4d8]/15 dark:border-l-indigo-500 dark:border-stone-700"
+          : "border-[#c7c4d8]/15"
       }`}
     >
-      {/* ── Top row: Country icon + Urgency badge ── */}
-      <div className="flex justify-between items-start mb-6">
-        <div className="h-14 w-14 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center p-2">
-          <span className="text-3xl select-none" aria-hidden="true">
+      {/* ── Top row: Country icon + Status badge + Save button ── */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="h-10 w-10 bg-[#f9f2f0] dark:bg-stone-800 rounded-md flex items-center justify-center flex-shrink-0 text-2xl">
+          <span className="select-none" aria-hidden="true">
             {bg.emoji}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
-            <span className="bg-[#ffdad6] text-[#93000a] text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+            <span className="bg-[#ffdad6] text-[#93000a] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase whitespace-nowrap">
               {dlStatus.badgeLabel}
             </span>
           ) : dlStatus && dlStatus.badgeVariant === "soon" ? (
-            <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase dark:bg-amber-900/30 dark:text-amber-300">
+            <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase whitespace-nowrap dark:bg-amber-900/30 dark:text-amber-300">
               {dlStatus.badgeLabel}
             </span>
           ) : (
-            <span className="bg-[#e8e1df] text-[#464555] text-[10px] font-bold px-3 py-1 rounded-full uppercase italic dark:bg-stone-700 dark:text-stone-300">
+            <span className="bg-[#e8e1df] text-[#464555] text-[9px] font-bold px-2 py-0.5 rounded-full italic whitespace-nowrap dark:bg-stone-700 dark:text-stone-300">
               {elig === "yes"
-                ? (fr ? "Éligible Haïti" : "Elijib Ayiti")
+                ? (fr ? "Haïti" : "HT")
                 : isDirectory
                   ? (fr ? "Répertoire" : "Repètwa")
-                  : (fr ? "Candidature ouverte" : "Kandidati ouvèt")}
+                  : (fr ? "Ouvert" : "Ouvè")}
             </span>
           )}
           <button
             type="button"
             onClick={() => onToggleSave(s.id)}
-            className={`rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
+            className={`p-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
               saved
                 ? "text-[#3525cd] dark:text-[#c3c0ff]"
                 : "text-[#c7c4d8] hover:text-[#464555] dark:text-stone-600 dark:hover:text-stone-400"
             }`}
-            title={saved ? (fr ? "Retirer des suivis" : "Retire nan swivi yo") : (fr ? "Sauvegarder" : "Anrejistre")}
+            title={saved ? (fr ? "Retirer" : "Retire") : (fr ? "Sauvegarder" : "Anrejistre")}
             aria-label={saved ? "Remove from saved" : "Save scholarship"}
           >
-            <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
+            <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
           </button>
         </div>
       </div>
 
       {/* ── Title ── */}
-      <h3 className="text-xl font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display">
+      <h3 className="text-base font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2 mb-1.5">
         {s.name}
       </h3>
 
+      {/* ── Metadata row: Funding + Level ── */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-2.5 text-[11px]">
+        <span className={`rounded-md px-2 py-0.5 font-semibold ${funding?.color ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300"}`}>
+          {funding ? (fr ? funding.fr : funding.ht) : s.fundingType}
+        </span>
+        {s.level.length > 0 && (
+          <span className="text-[#474948] dark:text-stone-400 font-medium">
+            {s.level.map((l) => {
+              const lbl = LEVEL_LABELS[l];
+              return lbl ? (fr ? lbl.fr : lbl.ht) : l;
+            }).join(" · ")}
+          </span>
+        )}
+      </div>
+
       {/* ── Summary ── */}
       {s.eligibilitySummary && (
-        <div className="mt-3">
-          <p className={`text-sm leading-relaxed text-[#464555] dark:text-stone-300 ${!expanded ? "line-clamp-2" : ""}`}>
-            {s.eligibilitySummary}
-          </p>
-          {s.eligibilitySummary.length > 120 && (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="mt-1 text-xs font-medium text-[#3525cd] hover:text-[#4f46e5] dark:text-[#c3c0ff] dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
-            >
-              {expanded ? (fr ? "Réduire" : "Redwi") : (fr ? "Lire plus" : "Li plis")}
-            </button>
-          )}
-        </div>
+        <p className="line-clamp-2 text-xs text-[#474948] dark:text-stone-400 mb-2.5 leading-relaxed">
+          {s.eligibilitySummary}
+        </p>
       )}
 
-      {/* ── Tags (compact) ── */}
+      {/* ── Tags (compact, max 3) ── */}
       {s.tags && s.tags.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          {visibleTags.map((tag) => (
-            <span key={tag} className="rounded-full bg-[#e8e1df] px-2 py-0.5 text-[11px] font-semibold text-[#464555] dark:bg-stone-800 dark:text-stone-400">
+        <div className="mb-3 flex flex-wrap gap-1">
+          {s.tags.slice(0, 3).map((tag) => (
+            <span key={tag} className="rounded-md bg-[#e8e1df] px-1.5 py-0.5 text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
               {tag}
             </span>
           ))}
-          {!tagsExpanded && hiddenTagCount > 0 && (
-            <button
-              type="button"
-              onClick={() => setTagsExpanded(true)}
-              className="rounded-full bg-[#e8e1df] px-2 py-0.5 text-[11px] font-medium text-[#464555] hover:bg-[#c7c4d8] dark:bg-stone-700 dark:text-stone-400 dark:hover:bg-stone-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]"
-            >
-              +{hiddenTagCount}
-            </button>
+          {s.tags.length > 3 && (
+            <span className="rounded-md bg-[#e8e1df] px-1.5 py-0.5 text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
+              +{s.tags.length - 3}
+            </span>
           )}
         </div>
       )}
 
-      {/* Spacer to push footer down */}
+      {/* Spacer */}
       <div className="flex-1" />
 
-      {/* ── Footer: dashed border + value + CTA ── */}
-      <div className="mt-8 pt-6 border-t border-[#f3ecea] border-dashed dark:border-stone-800 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-col">
-          <span className="text-xs font-bold text-[#474948] dark:text-stone-400 uppercase tracking-wide">
-            {funding ? (fr ? funding.fr : funding.ht) : s.fundingType}
-            {dlText && ` · ${dlText}`}
-          </span>
-          {s.level.length > 0 && (
-            <span className="text-[10px] text-[#464555] dark:text-stone-500 mt-0.5">
-              {s.level.map((l) => {
-                const lbl = LEVEL_LABELS[l];
-                return lbl ? (fr ? lbl.fr : lbl.ht) : l;
-              }).join(" · ")}
-            </span>
-          )}
+      {/* ── Footer: Deadline + CTA ── */}
+      <div className="mt-3 pt-3 border-t border-[#f3ecea]/60 dark:border-stone-800 flex items-center justify-between gap-2">
+        <div className="text-[10px] text-[#474948] dark:text-stone-500 font-medium">
+          {dlText && dlText}
         </div>
         <a
           href={s.officialUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-1 group/cta hover:underline"
+          className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-0.5 group/cta hover:underline whitespace-nowrap"
         >
           {isDirectory
-            ? (fr ? "EXPLORER" : "EKSPLORE")
+            ? (fr ? "Voir" : "Wè")
             : s.howToApplyUrl
-              ? (fr ? "POSTULER" : "APLIKE")
-              : (fr ? "VOIR DÉTAILS" : "WÈ DETAY")}
-          <span className="material-symbols-outlined text-sm group-hover/cta:translate-x-1 transition-transform">arrow_forward</span>
+              ? (fr ? "Postuler" : "Aplike")
+              : (fr ? "Détails" : "Detay")}
+          <span className="material-symbols-outlined text-xs group-hover/cta:translate-x-0.5 transition-transform">arrow_forward</span>
         </a>
       </div>
-
-      {/* ── Collapsible: Source & verification ── */}
-      <details className="mt-3">
-        <summary className="cursor-pointer list-none text-[11px] font-medium text-[#c7c4d8] transition-colors hover:text-[#464555] dark:text-stone-500 dark:hover:text-stone-300">
-          <span className="inline-flex items-center gap-1">
-            <Paperclip className="h-3 w-3" />
-            {fr ? "Source & vérification" : "Sous & verifikasyon"}
-            <ChevronDown className="h-3 w-3" />
-          </span>
-        </summary>
-        <div className="mt-2 space-y-2 rounded-lg border border-[#c7c4d8]/15 bg-[#f9f2f0]/70 p-2.5 text-xs dark:border-stone-800 dark:bg-stone-800/40">
-          {s.sources.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {s.sources.map((src, i) => (
-                <a
-                  key={i}
-                  href={src.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded bg-white px-1.5 py-0.5 text-[10px] text-[#464555] hover:text-[#3525cd] hover:underline dark:bg-stone-900 dark:text-stone-400 dark:hover:text-[#c3c0ff]"
-                >
-                  {src.label}
-                </a>
-              ))}
-            </div>
-          )}
-          {s.deadline?.sourceUrl && (
-            <a
-              href={s.deadline.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] text-[#3525cd] hover:underline dark:text-[#c3c0ff]"
-            >
-              {fr ? "Source deadline" : "Sous dat limit"}
-            </a>
-          )}
-          <div className="flex flex-wrap items-center gap-2 text-[10px] text-[#c7c4d8] dark:text-stone-500">
-            {s.verifiedAtISO && (
-              <span className="inline-flex items-center gap-0.5">
-                <CheckCircle className="h-2.5 w-2.5 text-emerald-500" />
-                {fr ? "Vérifié" : "Verifye"} {formatDate(s.verifiedAtISO, lang)}
-              </span>
-            )}
-            {s.updatedAtISO && (
-              <span>
-                {fr ? "Mis à jour" : "Mizajou"} {formatDate(s.updatedAtISO, lang)}
-              </span>
-            )}
-          </div>
-        </div>
-      </details>
     </article>
   );
 }

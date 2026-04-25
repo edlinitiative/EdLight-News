@@ -193,11 +193,7 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
 
     // Expired filter
     if (expiredFilter !== "show") {
-      items = items.filter(
-        (e) =>
-          !e.deadlineStatus.isExpired ||
-          (e.deadlineStatus.daysPast ?? 0) <= EXPIRED_HIDE_THRESHOLD_DAYS,
-      );
+      items = items.filter((e) => !e.deadlineStatus.isExpired);
     }
 
     // Saved-only filter
