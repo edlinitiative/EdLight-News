@@ -785,7 +785,7 @@ export function buildHistoireCarousel(
       bullets.push(`• ${bullet}`);
     }
     if (bullets.length > 0) {
-      captionParts.push(bullets.join("\n"), "");
+      captionParts.push(bullets.join("\n\n"), "");
     }
   }
 
