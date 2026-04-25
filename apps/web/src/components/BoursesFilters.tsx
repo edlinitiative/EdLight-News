@@ -24,9 +24,10 @@ import type {
   ScholarshipHaitianEligibility,
   ScholarshipDeadlineAccuracy,
 } from "@edlight-news/types";
-import { Heart } from "lucide-react";
+import { Heart, Download } from "lucide-react";
 import { FILTER_PARAM_KEYS } from "@/lib/scholarship-params";
 import { getSavedIds, toggleSaved, matchesSearch } from "@/lib/bourses-ui";
+import { downloadScholarshipsCSV } from "@/lib/scholarship-export";
 import { ScholarshipCard } from "@/components/bourses/ScholarshipCard";
 import { CompactFiltersRow } from "@/app/bourses/_components/CompactFiltersRow";
 import { FiltersDrawer } from "@/app/bourses/_components/FiltersDrawer";
@@ -394,6 +395,26 @@ export function BoursesFilters({ scholarships, lang }: BoursesFiltersProps) {
         onReset={clearAll}
         fr={fr}
       />
+
+      {/* ── Download button (Excel-compatible CSV) ── */}
+      {filtered.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-stone-200 bg-stone-50/60 px-3 py-2 dark:border-stone-700 dark:bg-stone-800/40">
+          <p className="text-xs text-stone-600 dark:text-stone-400">
+            {fr
+              ? `Téléchargez la liste complète (${filtered.length} bourse${filtered.length > 1 ? "s" : ""}) avec les dates limites et toutes les informations.`
+              : `Telechaje lis konplè a (${filtered.length} bous) ak dat limit yo ak tout enfòmasyon yo.`}
+          </p>
+          <button
+            type="button"
+            onClick={() => downloadScholarshipsCSV(filtered, lang)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-[#3525cd] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#2a1ea7] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] focus-visible:ring-offset-1 dark:bg-[#c3c0ff] dark:text-[#1d1b1a] dark:hover:bg-[#a8a3ff]"
+            title={fr ? "Télécharger en Excel (.csv)" : "Telechaje nan Excel (.csv)"}
+          >
+            <Download className="h-3.5 w-3.5" />
+            {fr ? "Télécharger Excel" : "Telechaje Excel"}
+          </button>
+        </div>
+      )}
 
       {/* ── Card grid (full-width, no sidebar) ── */}
       <div>
