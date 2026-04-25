@@ -361,8 +361,39 @@ export function buildCTA(): string {
  * Build source attribution line from an Item.
  * Capped to fit the renderer's sourceLine template zone (≤55 chars, ≤8 words).
  */
+/**
+ * Domains that are aggregators/redirectors — the URL itself is not meaningful
+ * to display, but the citation *label* (book title, author) is still valuable.
+ * For these, we show "Source: <label>" without appending the domain.
+ */
+const HIDE_DOMAIN_HOSTS = new Set(["google.com", "news.google.com", "books.google.com"]);
+
+function shouldHideDomain(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return HIDE_DOMAIN_HOSTS.has(host) || host.endsWith(".google.com");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Pick the first available citation from the item (item.source, then citations[]).
+ * Returns the name and url together so callers can decide whether to show the domain.
+ */
+function pickBestCitation(item: Item): { sourceName: string; sourceUrl?: string } | undefined {
+  if (item.source?.name) {
+    return { sourceName: item.source.name, sourceUrl: item.source.originalUrl };
+  }
+  const first = item.citations?.[0];
+  if (first) return { sourceName: first.sourceName, sourceUrl: first.sourceUrl };
+  return undefined;
+}
+
 export function buildSourceFooter(item: Item): string {
-  const sourceName = item.source?.name ?? item.citations?.[0]?.sourceName ?? "Source";
+  const best = pickBestCitation(item);
+  const sourceName = best?.sourceName ?? "Source";
   const raw = `Source: ${sourceName}`;
   // Template limit: 55 chars / 8 words. Cap source name so total fits.
   if (raw.length <= 55) return raw;
@@ -373,8 +404,17 @@ export function buildSourceFooter(item: Item): string {
 }
 
 export function buildSourceLine(item: Item): string {
-  const sourceName = item.source?.name ?? item.citations?.[0]?.sourceName ?? "Source";
-  const sourceUrl = item.source?.originalUrl ?? item.citations?.[0]?.sourceUrl ?? item.canonicalUrl;
+  const best = pickBestCitation(item);
+  const sourceName = best?.sourceName ?? "Source";
+  const sourceUrl = best?.sourceUrl ?? item.canonicalUrl;
+  // For aggregator/redirect domains (Google Books, Google News) the URL itself
+  // is meaningless to display — show the label (book title, author) only.
+  if (shouldHideDomain(sourceUrl)) {
+    const raw = `Source: ${sourceName}`;
+    if (raw.length <= 55) return raw;
+    const maxNameLen = 55 - "Source: ".length - 1;
+    return `Source: ${sourceName.slice(0, maxNameLen).replace(/[\s\-–—,;:]+$/, "")}…`;
+  }
   try {
     const domain = new URL(sourceUrl).hostname.replace(/^www\./, "");
     const raw = `Source: ${sourceName} — ${domain}`;

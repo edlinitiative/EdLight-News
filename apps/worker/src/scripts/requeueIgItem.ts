@@ -22,10 +22,11 @@ import type { IGPostType, Item } from "@edlight-news/types";
 
 // ── CLI args ───────────────────────────────────────────────────────────────
 
-function parseArgs(): { type: IGPostType; id?: string } {
+function parseArgs(): { type: IGPostType; id?: string; coverImage?: string } {
   const args = process.argv.slice(2);
   let type: IGPostType | undefined;
   let id: string | undefined;
+  let coverImage: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
@@ -33,11 +34,13 @@ function parseArgs(): { type: IGPostType; id?: string } {
     else if (a === "--type" && args[i + 1]) type = args[++i] as IGPostType;
     else if (a.startsWith("--id=")) id = a.split("=")[1];
     else if (a === "--id" && args[i + 1]) id = args[++i];
+    else if (a.startsWith("--coverImage=")) coverImage = a.split("=").slice(1).join("=");
+    else if (a === "--coverImage" && args[i + 1]) coverImage = args[++i];
   }
 
   if (!type) {
     console.error(
-      "Usage: requeueIgItem --type=<histoire|news|opportunity|scholarship> [--id=<itemId>]",
+      "Usage: requeueIgItem --type=<histoire|news|opportunity|scholarship> [--id=<itemId>] [--coverImage=<url>]",
     );
     process.exit(1);
   }
@@ -48,7 +51,7 @@ function parseArgs(): { type: IGPostType; id?: string } {
     process.exit(1);
   }
 
-  return { type, id };
+  return { type, id, coverImage };
 }
 
 // ── Reverse-map igType → eligible items ────────────────────────────────────
@@ -139,9 +142,9 @@ function synthNarrative(body: string): string | undefined {
 // ── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
-  const { type, id } = parseArgs();
+  const { type, id, coverImage } = parseArgs();
   console.log(
-    `\n🔄 Re-queue IG item: type=${type}${id ? `, id=${id}` : " (latest)"}`,
+    `\n🔄 Re-queue IG item: type=${type}${id ? `, id=${id}` : " (latest)"}${coverImage ? ` (coverImage override)` : ""}`,
   );
 
   // 1. Resolve the item
@@ -194,6 +197,15 @@ async function main() {
 
   // 3. Format through current formatter
   const payload = await formatForIG(type, item, bi ? { bi } : undefined);
+
+  // Apply cover image override to ALL slides if provided
+  if (coverImage) {
+    for (const slide of payload.slides) {
+      slide.backgroundImage = coverImage;
+    }
+    console.log(`  ℹ️  Applied coverImage override to all ${payload.slides.length} slides`);
+  }
+
   console.log(`  Slides: ${payload.slides.length}`);
   for (let i = 0; i < payload.slides.length; i++) {
     console.log(`    ${i + 1}: ${payload.slides[i]!.heading.substring(0, 75)}`);
