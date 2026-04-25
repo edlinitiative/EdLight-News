@@ -410,24 +410,13 @@ export function buildSourceLine(item: Item): string {
   // For aggregator/redirect domains (Google Books, Google News) the URL itself
   // is meaningless to display — show the label (book title, author) only.
   if (shouldHideDomain(sourceUrl)) {
-    const raw = `Source: ${sourceName}`;
-    if (raw.length <= 55) return raw;
-    const maxNameLen = 55 - "Source: ".length - 1;
-    return `Source: ${sourceName.slice(0, maxNameLen).replace(/[\s\-–—,;:]+$/, "")}…`;
+    return `Source: ${sourceName}`;
   }
   try {
     const domain = new URL(sourceUrl).hostname.replace(/^www\./, "");
-    const raw = `Source: ${sourceName} — ${domain}`;
-    // Cap to 55 chars (sourceLine template limit)
-    if (raw.length <= 55) return raw;
-    // Try domain-only version first
-    const domainOnly = `Source: ${domain}`;
-    if (domainOnly.length <= 55) return domainOnly;
-    return domainOnly.slice(0, 54) + "…";
+    return `Source: ${sourceName} — ${domain}`;
   } catch {
-    const raw = `Source: ${sourceName}`;
-    if (raw.length <= 55) return raw;
-    return raw.slice(0, 54) + "…";
+    return `Source: ${sourceName}`;
   }
 }
 
