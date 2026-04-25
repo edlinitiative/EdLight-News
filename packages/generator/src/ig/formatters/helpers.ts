@@ -318,6 +318,16 @@ export function finalizeCaption(caption: string): string {
     keptBlocks.push(repaired);
   }
 
+  const proseAlreadyHasSource = proseBlocks.some(containsInlineSourceAttribution);
+  if (proseAlreadyHasSource) {
+    const filtered = keptBlocks.filter(
+      (block) => !isStandaloneSourceBlock(block),
+    );
+    if (filtered.length > 0) {
+      return truncateCaption(filtered.join("\n\n"));
+    }
+  }
+
   return truncateCaption(keptBlocks.join("\n\n"));
 }
 
@@ -410,24 +420,13 @@ export function buildSourceLine(item: Item): string {
   // For aggregator/redirect domains (Google Books, Google News) the URL itself
   // is meaningless to display — show the label (book title, author) only.
   if (shouldHideDomain(sourceUrl)) {
-    const raw = `Source: ${sourceName}`;
-    if (raw.length <= 55) return raw;
-    const maxNameLen = 55 - "Source: ".length - 1;
-    return `Source: ${sourceName.slice(0, maxNameLen).replace(/[\s\-–—,;:]+$/, "")}…`;
+    return `Source: ${sourceName}`;
   }
   try {
     const domain = new URL(sourceUrl).hostname.replace(/^www\./, "");
-    const raw = `Source: ${sourceName} — ${domain}`;
-    // Cap to 55 chars (sourceLine template limit)
-    if (raw.length <= 55) return raw;
-    // Try domain-only version first
-    const domainOnly = `Source: ${domain}`;
-    if (domainOnly.length <= 55) return domainOnly;
-    return domainOnly.slice(0, 54) + "…";
+    return `Source: ${sourceName} — ${domain}`;
   } catch {
-    const raw = `Source: ${sourceName}`;
-    if (raw.length <= 55) return raw;
-    return raw.slice(0, 54) + "…";
+    return `Source: ${sourceName}`;
   }
 }
 
@@ -669,9 +668,20 @@ function normalizeCaptionWhitespace(text: string): string {
 function isCaptionMetaBlock(block: string): boolean {
   const trimmed = block.trim();
   return /^#/.test(trimmed)
-    || /^source:/i.test(trimmed)
+    || /^sources?\s*:/i.test(trimmed)
     || /lien dans la bio|lyen nan biyo/i.test(trimmed)
     || /https?:\/\//i.test(trimmed);
+}
+
+function isStandaloneSourceBlock(block: string): boolean {
+  return /^sources?\s*:/i.test(block.trim());
+}
+
+function containsInlineSourceAttribution(block: string): boolean {
+  const trimmed = block.trim();
+  if (!trimmed) return false;
+  if (isStandaloneSourceBlock(trimmed)) return false;
+  return /(^|\n|[.!?]\s+)sources?\s*:/i.test(trimmed);
 }
 
 function looksLikeBrokenCaptionBlock(block: string): boolean {
