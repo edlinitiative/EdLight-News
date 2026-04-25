@@ -46,6 +46,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate pipeline guardrails
+        run: node scripts/ci/validate-pipeline-guards.mjs
+
       # turbo respects the ^build dep graph declared in turbo.json so
       # workspace packages (@edlight-news/firebase, /types, …) are built
       # before downstream packages typecheck or test against them.
