@@ -51,10 +51,21 @@ export async function generateForItems(): Promise<{
   //      ever reaching Gemini).
   // Dedupe by id, preserve order (recent first).
   const recent = await itemsRepo.listRecentItems(BATCH_LIMIT * 3);
-  const oppBacklog = await itemsRepo.listOpportunitiesNeedingGeneration(
-    BATCH_LIMIT * 4,
-    MAX_GENERATION_ATTEMPTS,
-  );
+  let oppBacklog: Awaited<ReturnType<typeof itemsRepo.listOpportunitiesNeedingGeneration>> = [];
+  try {
+    oppBacklog = await itemsRepo.listOpportunitiesNeedingGeneration(
+      BATCH_LIMIT * 4,
+      MAX_GENERATION_ATTEMPTS,
+    );
+  } catch (err) {
+    // Fail-soft: if backlog query is unavailable (e.g. transient Firestore
+    // index/precondition issue), continue with recent items instead of aborting
+    // the entire generate phase (which would halt downstream scheduling).
+    console.warn(
+      "[generate] opportunity backlog query failed; continuing with recent-only:",
+      err instanceof Error ? err.message : err,
+    );
+  }
   const seen = new Set<string>();
   const items = [...recent, ...oppBacklog].filter((it) => {
     if (seen.has(it.id)) return false;

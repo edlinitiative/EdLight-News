@@ -31,19 +31,39 @@ async function main() {
   const startMs = Date.now();
 
   console.log("=== Step 1: Ingest ===");
-  const ingestResult = await ingest();
-  console.log(JSON.stringify(ingestResult, null, 2));
+  let ingestResult: any = { error: "not-run" };
+  try {
+    ingestResult = await ingest();
+    console.log(JSON.stringify(ingestResult, null, 2));
+  } catch (err) {
+    console.warn("[ingest] error:", err instanceof Error ? err.message : err);
+  }
 
   console.log("\n=== Step 2: Process ===");
-  const processResult = await processRawItems();
-  console.log(JSON.stringify(processResult, null, 2));
+  let processResult: any = { error: "not-run" };
+  try {
+    processResult = await processRawItems();
+    console.log(JSON.stringify(processResult, null, 2));
+  } catch (err) {
+    console.warn("[process] error:", err instanceof Error ? err.message : err);
+  }
 
   console.log("\n=== Step 3: Generate ===");
-  const generateResult = await generateForItems();
-  console.log(JSON.stringify(generateResult, null, 2));
+  let generateResult: any = { error: "not-run" };
+  try {
+    generateResult = await generateForItems();
+    console.log(JSON.stringify(generateResult, null, 2));
+  } catch (err) {
+    console.warn("[generate] error:", err instanceof Error ? err.message : err);
+  }
 
   console.log("\n=== Step 4: Publish eligible drafts ===");
-  const published = await contentVersionsRepo.publishEligibleDrafts();
+  let published = 0;
+  try {
+    published = await contentVersionsRepo.publishEligibleDrafts();
+  } catch (err) {
+    console.warn("[publishEligibleDrafts] error:", err instanceof Error ? err.message : err);
+  }
   console.log(`Published ${published} eligible drafts`);
 
   console.log("\n=== Step 5: Synthesis ===");
@@ -120,7 +140,11 @@ async function main() {
   // Ping Google if any content was published
   if (published > 0) {
     console.log("\n=== Ping Google Sitemap ===");
-    await pingSearchEngines();
+    try {
+      await pingSearchEngines();
+    } catch (err) {
+      console.warn("[pingSearchEngines] error:", err instanceof Error ? err.message : err);
+    }
   }
 
   const durationMs = Date.now() - startMs;
