@@ -95,10 +95,12 @@ export async function listRecentItems(limit = 50): Promise<Item[]> {
  * scholarships ingested days ago (already out of the recent-items window)
  * still get a chance to produce content_versions.
  *
- * Filtering for `generationAttempts < MAX` is done in-memory because
- * Firestore can't combine `where("generationAttempts", "<", N)` with
- * `where("vertical", "==", ...)` without a composite index, and most
- * pre-existing items predate the field entirely (undefined).
+ * Uses a single-field where("vertical") (auto-indexed) and sorts in-memory
+ * so the query works without the (vertical, createdAt) composite index.
+ * That index ships in firestore.indexes.json + deploy-worker.yml but
+ * relying on it caused the entire generate phase to throw whenever the
+ * index hadn't propagated, halting all content_versions creation and
+ * starving every downstream queue (IG, FB) of non-staple posts.
  */
 export async function listOpportunitiesNeedingGeneration(
   limit = 50,
@@ -106,12 +108,15 @@ export async function listOpportunitiesNeedingGeneration(
 ): Promise<Item[]> {
   const snap = await collection()
     .where("vertical", "==", "opportunites")
-    .orderBy("createdAt", "desc")
-    .limit(limit * 4)
     .get();
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
     .filter((it) => (it.generationAttempts ?? 0) < maxAttempts)
+    .sort((a, b) => {
+      const aMs = (a.createdAt as { seconds?: number } | undefined)?.seconds ?? 0;
+      const bMs = (b.createdAt as { seconds?: number } | undefined)?.seconds ?? 0;
+      return bMs - aMs;
+    })
     .slice(0, limit);
 }
 
@@ -120,9 +125,8 @@ export async function listOpportunitiesNeedingGeneration(
  * promotion to the structured `scholarships` collection (or whose promotion
  * failed transiently and should be retried).
  *
- * Filters in-memory because Firestore can't compose these inequality / missing
- * field predicates with `where("vertical", "==", ...)` without composite
- * indexes, and the field is undefined on most pre-existing items.
+ * Uses single-field where + in-memory sort (see listOpportunitiesNeedingGeneration
+ * for why we avoid the (vertical, createdAt) composite index here).
  */
 export async function listOpportunitiesNeedingScholarshipPromotion(
   limit = 5,
@@ -130,8 +134,6 @@ export async function listOpportunitiesNeedingScholarshipPromotion(
 ): Promise<Item[]> {
   const snap = await collection()
     .where("vertical", "==", "opportunites")
-    .orderBy("createdAt", "desc")
-    .limit(limit * 8)
     .get();
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
@@ -144,6 +146,11 @@ export async function listOpportunitiesNeedingScholarshipPromotion(
       if (!it.canonicalUrl) return false;
       if (!it.extractedText && !it.summary) return false;
       return true;
+    })
+    .sort((a, b) => {
+      const aMs = (a.createdAt as { seconds?: number } | undefined)?.seconds ?? 0;
+      const bMs = (b.createdAt as { seconds?: number } | undefined)?.seconds ?? 0;
+      return bMs - aMs;
     })
     .slice(0, limit);
 }
