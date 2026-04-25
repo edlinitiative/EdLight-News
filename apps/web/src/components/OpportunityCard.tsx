@@ -1,26 +1,26 @@
 /**
- * OpportunityCard — extends ArticleCard with opportunity-specific chips.
+ * OpportunityCard — Compact, polished opportunity article card.
  *
- * Renders Level, Region, Deadline, and derived subcategory chips.
- * Shows expired badge with reduced opacity when deadline has passed.
+ * Features:
+ * - Minimal image-first design with gradient fallbacks
+ * - Compact metadata row (type · deadline)
+ * - Clean typography hierarchy
+ * - Minimal footer (source + date)
  */
 
 "use client";
 
 import type { ContentLanguage } from "@edlight-news/types";
-import { GraduationCap, Globe, MapPin, CalendarClock, AlertCircle } from "lucide-react";
+import { Globe, MapPin, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import type { FeedItem } from "@/components/news-feed";
-import { DeadlineBadge } from "@/components/DeadlineBadge";
 import { getDeadlineStatus, badgeStyle } from "@/lib/ui/deadlines";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import {
   formatDate,
 } from "@/lib/utils";
 import {
-  inferLevel,
   inferRegion,
-  levelLabel,
   regionLabel,
   parseDeadline,
   SUBCAT_LABELS,
@@ -63,10 +63,7 @@ export function OpportunityCard({
   const fallbackGradient =
     FALLBACK_GRADIENTS[article.category ?? ""] ?? DEFAULT_FALLBACK_GRADIENT;
 
-  const isExpired = deadlineStatus?.isExpired ?? false;
-
   // ── Derived chips ────────────────────────────────────────────────────────
-  const level = inferLevel(article);
   const region = inferRegion(article);
   const deadline = parseDeadline(article, lang);
 
@@ -78,13 +75,10 @@ export function OpportunityCard({
   return (
     <Link
       href={`/news/${article.id}?lang=${lang}`}
-      className={[
-        "group flex flex-col overflow-hidden transition-all duration-300",
-        isExpired ? "opacity-75" : "",
-      ].join(" ")}
+      className="group flex flex-col overflow-hidden rounded-lg border border-[#c7c4d8]/15 bg-white shadow-sm hover:shadow-md hover:border-[#c7c4d8]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-stone-700"
     >
-      {/* Image / gradient thumbnail */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-[#f9f2f0] sm:aspect-[5/2]">
+      {/* Image / gradient thumbnail — 3:2 aspect ratio */}
+      <div className="relative aspect-video w-full overflow-hidden bg-[#f9f2f0]">
         {hasImage ? (
           <ImageWithFallback
             src={article.imageUrl!}
@@ -93,57 +87,27 @@ export function OpportunityCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             fallback={
               <div
-                className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
-              >
-                <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-                  {subCatLabel}
-                </span>
-              </div>
+                className={`h-full w-full bg-gradient-to-br ${fallbackGradient}`}
+              />
             }
           />
         ) : (
           <div
-            className={`h-full w-full bg-gradient-to-br ${fallbackGradient} flex items-end p-4`}
-          >
-            <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-              {subCatLabel}
-            </span>
-          </div>
-        )}
-
-        {/* Expired overlay badge */}
-        {isExpired && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded bg-red-600/90 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm">
-            <AlertCircle className="h-3 w-3" />
-            {lang === "fr" ? "Expiré" : "Ekspire"}
-          </div>
+            className={`h-full w-full bg-gradient-to-br ${fallbackGradient}`}
+          />
         )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-0">
-        {/* Category badge — uses derived subcategory */}
-        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-          <span
-            className="rounded-full bg-[#e8e1df] px-2.5 py-0.5 text-xs font-semibold text-[#464555] dark:bg-stone-800 dark:text-stone-300"
-          >
-            {subCatLabel}
-          </span>
-          {classification && classification.confidence !== "high" && (
-            <span className="rounded-full bg-[#f9f2f0] px-1.5 py-0.5 text-[10px] text-[#474948] dark:bg-stone-800 dark:text-stone-300">
-              {classification.confidence === "medium" ? "~" : "?"}
-            </span>
-          )}
-        </div>
+      {/* Content area — compact padding */}
+      <div className="flex flex-1 flex-col p-4">
+        {/* Type badge */}
+        <span className="mb-2 inline-flex w-fit rounded-md bg-[#e8e1df] px-2.5 py-1 text-xs font-semibold text-[#464555] dark:bg-stone-800 dark:text-stone-300">
+          {subCatLabel}
+        </span>
 
-        {/* Chips row: Level · Region · Deadline */}
-        <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-          {level && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[#f9f2f0] px-2 py-0.5 text-[11px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-300">
-              <GraduationCap className="h-3 w-3" />
-              {levelLabel(level, lang)}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#f9f2f0] px-2 py-0.5 text-[11px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-300">
+        {/* Metadata row: Region · Deadline */}
+        <div className="mb-2.5 flex flex-wrap items-center gap-2 text-xs">
+          <span className="inline-flex items-center gap-1 text-[#474948] dark:text-stone-400">
             {region === "haiti" ? (
               <MapPin className="h-3 w-3" />
             ) : (
@@ -158,33 +122,30 @@ export function OpportunityCard({
             );
             return (
               <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${badgeStyle(dlSt.badgeVariant)}`}
+                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-bold ${badgeStyle(dlSt.badgeVariant)}`}
               >
                 <CalendarClock className="h-3 w-3" />
                 {dlSt.badgeLabel}
               </span>
             );
           })()}
-          {!isExpired && !deadline.missing && deadline.iso && (
-            <span className="text-[10px] text-[#474948] dark:text-stone-300">
-              {getDeadlineStatus(article.deadline ?? deadline.iso, lang).humanLine}
-            </span>
-          )}
         </div>
 
-        {/* Title */}
-        <h2 className="mb-1 text-[15px] font-bold font-display leading-snug text-[#1d1b1a] group-hover:text-[#3525cd] dark:text-stone-100 dark:group-hover:text-[#c3c0ff] sm:text-base">
+        {/* Title — limited to 2 lines */}
+        <h2 className="mb-1.5 line-clamp-2 text-sm font-bold font-display leading-snug text-[#1d1b1a] group-hover:text-[#3525cd] dark:text-stone-100 dark:group-hover:text-[#c3c0ff] transition-colors">
           {article.title}
         </h2>
 
-        {/* Summary */}
-        <p className="mb-2 line-clamp-2 text-sm text-[#474948] dark:text-stone-300">
-          {article.summary || article.body?.slice(0, 150) || ""}
+        {/* Summary — limited to 2 lines */}
+        <p className="mb-3 line-clamp-2 text-xs text-[#474948] dark:text-stone-400">
+          {article.summary || article.body?.slice(0, 120) || ""}
         </p>
 
-        {/* Footer */}
-        <div className="mt-auto border-t border-[#f3ecea] border-dashed pt-3 flex flex-wrap items-center gap-1.5 text-xs text-[#474948] dark:text-stone-300">
-          {article.sourceName && <span>{article.sourceName}</span>}
+        {/* Footer — minimal */}
+        <div className="mt-auto border-t border-[#f3ecea]/60 pt-2.5 flex flex-wrap items-center gap-1.5 text-[10px] text-[#474948] dark:border-stone-800 dark:text-stone-500">
+          {article.sourceName && (
+            <span className="font-medium">{article.sourceName}</span>
+          )}
           {article.sourceName && article.publishedAt && <span>·</span>}
           {article.publishedAt && (
             <span>{formatDate(article.publishedAt, lang)}</span>
