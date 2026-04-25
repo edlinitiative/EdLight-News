@@ -249,6 +249,19 @@ jobs:
             --format='value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
 
+      # ── Ensure Cloud Scheduler can invoke Cloud Run ───────────────────────
+      # Organization policy may block allUsers/public invoker bindings.
+      # Scheduler uses OIDC with this dedicated SA, so grant it explicit
+      # run.invoker access to avoid 403/permission-denied scheduler attempts.
+      - name: Grant invoker to Scheduler SA
+        run: |
+          SCHEDULER_SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE }} \
+            --region=${{ env.REGION }} \
+            --member="serviceAccount:$SCHEDULER_SA" \
+            --role="roles/run.invoker" \
+            --quiet
+
       # ── Ensure allUsers can invoke the service ─────────────────────────────
       # The --allow-unauthenticated flag in the deploy step may silently fail
       # if the deploying SA lacks IAM permissions. This explicit step ensures
