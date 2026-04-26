@@ -35,6 +35,7 @@ import {
 } from "../validation/historyValidation.js";
 import { isHighConfidenceSourceType } from "../historySources/historySourceRegistry.js";
 import { generateCustomImage } from "./geminiImageGen.js";
+import { resolveHistoryIllustration } from "./historyIllustrationResolver.js";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -789,23 +790,16 @@ async function publishContent(
     reasons: source === "raw-verified-llm" ? ["llm-rewrite-from-raw"] : [],
   };
 
-  // ── Resolve hero image: prefer AI illustration → existing wiki → branded fallback ──
+  // ── Resolve hero image: prefer real archival photo → live Wikimedia lookup → AI cartoon → branded ──
+  // Why this order: Gemini text-to-image cartoons are vibes-correct but factually
+  // unreliable for specific Haitian historical events. A curated Wikimedia
+  // Commons / Wikipedia portrait or engraving of the actual subject is far more
+  // accurate and educational. Gemini is reserved as a last resort when no real
+  // image can be found.
   let heroImage: { imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "branded"; imageConfidence?: number; imageAttribution?: { name?: string; url?: string; license?: string } };
 
-  // Try AI editorial illustration first (if entries are available)
-  const aiResult = inputEntries && inputEntries.length > 0
-    ? await ensureHistoryIllustration(monthDay, inputEntries, heroIllustration)
-    : null;
-
-  if (aiResult) {
-    heroImage = {
-      imageUrl: aiResult.imageUrl,
-      imageSource: "gemini_ai",
-      imageConfidence: aiResult.confidence,
-      imageAttribution: aiResult.attribution,
-    };
-  } else if (heroIllustration?.imageUrl) {
-    // Fallback to existing Wikimedia illustration
+  // 1) Pre-seeded Wikimedia illustration on the almanac entry (curated/backfilled).
+  if (heroIllustration?.imageUrl) {
     heroImage = {
       imageUrl: heroIllustration.imageUrl,
       imageSource: "wikidata",
@@ -817,7 +811,45 @@ async function publishContent(
       },
     };
   } else {
-    heroImage = { imageUrl: "", imageSource: "branded" };
+    // 2) Live Wikimedia / Wikipedia / curated-override lookup on the hero title.
+    const hero = inputEntries?.[0];
+    let liveResolved: Awaited<ReturnType<typeof resolveHistoryIllustration>> = null;
+    if (hero?.title_fr) {
+      try {
+        liveResolved = await resolveHistoryIllustration(hero.title_fr, hero.year ?? undefined);
+      } catch (err) {
+        console.warn(`[history-publisher] live illustration lookup failed for ${hero.title_fr}:`, err);
+      }
+    }
+
+    if (liveResolved && liveResolved.confidence >= MIN_ILLUSTRATION_CONFIDENCE) {
+      heroImage = {
+        imageUrl: liveResolved.imageUrl,
+        imageSource: "wikidata",
+        imageConfidence: liveResolved.confidence,
+        imageAttribution: {
+          name: liveResolved.author,
+          url: liveResolved.pageUrl,
+          license: liveResolved.license,
+        },
+      };
+    } else {
+      // 3) Last resort: Gemini editorial cartoon. Reuses any cached gemini_ai
+      //    illustration via ensureHistoryIllustration's existing-reuse path.
+      const aiResult = inputEntries && inputEntries.length > 0
+        ? await ensureHistoryIllustration(monthDay, inputEntries, heroIllustration)
+        : null;
+      if (aiResult) {
+        heroImage = {
+          imageUrl: aiResult.imageUrl,
+          imageSource: "gemini_ai",
+          imageConfidence: aiResult.confidence,
+          imageAttribution: aiResult.attribution,
+        };
+      } else {
+        heroImage = { imageUrl: "", imageSource: "branded" };
+      }
+    }
   }
 
   const canonicalUrl = `edlight://histoire/${dateISO}`;

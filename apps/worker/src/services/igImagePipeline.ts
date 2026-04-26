@@ -57,6 +57,14 @@ const IG_LLM_VALIDATE_PUBLISHER =
 
 /** Confidence threshold below which a vision validation is treated as a reject. */
 const MIN_VALIDATION_CONFIDENCE = 0.5;
+/**
+ * Stricter floor for the publisher's og:image. The publisher path is
+ * "use it or render gradient" — there is no substitute fallback — so we
+ * want a clearer signal than the 0.5 used for substitute candidates.
+ * Raises the bar for "generic-but-on-topic" stock photos (e.g. a stadium
+ * photo for a story about a specific stampede at a named venue).
+ */
+const MIN_PUBLISHER_VALIDATION_CONFIDENCE = 0.65;
 
 export interface ImageSelection {
   /**
@@ -99,7 +107,7 @@ export async function selectImageForIG(
     if (publisherImageUsable && igImageSafe && IG_LLM_VALIDATE_PUBLISHER) {
       try {
         const v = await validatePublisherImage(item);
-        if (v && (!v.match || v.confidence < MIN_VALIDATION_CONFIDENCE)) {
+        if (v && (!v.match || v.confidence < MIN_PUBLISHER_VALIDATION_CONFIDENCE)) {
           console.log(
             `[igImagePipeline] LLM rejected publisher image for ${item.id}: ` +
               `match=${v.match} confidence=${v.confidence.toFixed(2)} — ${v.reason}`,

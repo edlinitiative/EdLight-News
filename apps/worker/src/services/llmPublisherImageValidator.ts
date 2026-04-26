@@ -65,7 +65,7 @@ export async function validatePublisherImage(
   item: Item,
 ): Promise<PublisherImageValidation | null> {
   if (!item.imageUrl) return null;
-  return validateImageForItem(item, item.imageUrl);
+  return validateImageForItem(item, item.imageUrl, { strict: true });
 }
 
 /**
@@ -74,10 +74,17 @@ export async function validatePublisherImage(
  * images returned by the keyword/tiered/Commons fallbacks before they
  * ship. A `null` return means "could not form an opinion" (no key, fetch
  * failed, etc.) and callers should treat it as a soft pass.
+ *
+ * `strict: true` forces the image to depict the SPECIFIC event/person/place
+ * described, not just be topically related. Used for the publisher's
+ * og:image where a generic-but-on-topic stock photo (e.g. a stadium photo
+ * for a stampede story that happened elsewhere) is worse than dropping to
+ * the branded gradient.
  */
 export async function validateImageForItem(
   item: Item,
   imageUrl: string,
+  opts: { strict?: boolean } = {},
 ): Promise<PublisherImageValidation | null> {
   if (!imageUrl) return null;
   const client = getClient();
@@ -89,19 +96,32 @@ export async function validateImageForItem(
   const personHint = item.entity?.personName
     ? `Subject person: ${item.entity.personName}.`
     : "";
-  const prompt =
-    "You verify whether a candidate news image plausibly depicts the subject of an article.\n" +
-    "Reply ONLY with JSON: {\"match\": boolean, \"confidence\": number 0-1, \"reason\": short string}.\n" +
-    "Be strict. Return match=false when ANY of the following is true:\n" +
-    "  - The image is a generic stock photo, illustration, or icon.\n" +
-    "  - The image is a website screenshot, logo, or banner.\n" +
-    "  - The image clearly depicts a different person than the named subject.\n" +
-    "  - The image depicts a clearly different event, place, or topic.\n" +
-    "  - The image is a recurring column header that doesn't depict the article subject.\n" +
-    "Return match=true when the depicted subject reasonably matches the article topic and the named person (if any).\n\n" +
-    `Article title: ${item.title ?? ""}\n` +
-    `Summary: ${(item.summary ?? "").slice(0, 300)}\n` +
-    `${personHint}`;
+  const prompt = opts.strict
+    ? "You verify whether a news image SPECIFICALLY depicts the event, person, or place described in the article — not just the general topic.\n" +
+      "Reply ONLY with JSON: {\"match\": boolean, \"confidence\": number 0-1, \"reason\": short string}.\n" +
+      "Be very strict. Return match=false when ANY of the following is true:\n" +
+      "  - The image is a generic stock photo, illustration, file photo, or icon.\n" +
+      "  - The image is a website screenshot, logo, banner, social-media card, or column header.\n" +
+      "  - The image depicts a different person than the named subject.\n" +
+      "  - The image depicts a different specific event, location, or moment than the one in the article (e.g. a generic crowd / stadium / concert photo for a story about a specific stampede that happened at a named venue).\n" +
+      "  - The image is topically related but clearly not from THIS event (e.g. an old archive photo of the same league / type of incident, but not this incident).\n" +
+      "  - The image is a recurring column header reused across many articles.\n" +
+      "Return match=true ONLY when the image plausibly depicts the SPECIFIC event/person/place named in the article — for example: a photo at the named venue showing the actual scene, a portrait of the named person, or footage from this specific incident. When in doubt, return match=false.\n\n" +
+      `Article title: ${item.title ?? ""}\n` +
+      `Summary: ${(item.summary ?? "").slice(0, 300)}\n` +
+      `${personHint}`
+    : "You verify whether a candidate news image plausibly depicts the subject of an article.\n" +
+      "Reply ONLY with JSON: {\"match\": boolean, \"confidence\": number 0-1, \"reason\": short string}.\n" +
+      "Be strict. Return match=false when ANY of the following is true:\n" +
+      "  - The image is a generic stock photo, illustration, or icon.\n" +
+      "  - The image is a website screenshot, logo, or banner.\n" +
+      "  - The image clearly depicts a different person than the named subject.\n" +
+      "  - The image depicts a clearly different event, place, or topic.\n" +
+      "  - The image is a recurring column header that doesn't depict the article subject.\n" +
+      "Return match=true when the depicted subject reasonably matches the article topic and the named person (if any).\n\n" +
+      `Article title: ${item.title ?? ""}\n` +
+      `Summary: ${(item.summary ?? "").slice(0, 300)}\n` +
+      `${personHint}`;
 
   try {
     const model = client.getGenerativeModel({
