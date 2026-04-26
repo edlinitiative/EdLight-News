@@ -264,9 +264,37 @@ export async function discoverScholarships(): Promise<DiscoverScholarshipsResult
       console.log(
         `[discoverScholarships] ${created ? "created" : "updated"} scholarship "${scholarship.name}" (id=${scholarship.id}) from item ${item.id}`,
       );
+
+      // ── Write back structured opportunity data to the original item ────────
+      // Without this, mapCategoryToIGType → hasRealOpportunityFields() will
+      // silently downgrade the item from "scholarship"/"opportunity" to "news",
+      // which then fails news-specific gates (thin content, audience fit).
+      // This write-back is the bridge between the discoverScholarships pipeline
+      // (which writes to the `scholarships` collection for /bourses) and the IG
+      // pipeline (which reads item.opportunity to detect real opportunity types).
+      const opportunityFields: Record<string, unknown> = {};
+
+      // Map LLM extraction fields to item.opportunity schema
+      if (d.deadlineDateISO) opportunityFields.deadline = d.deadlineDateISO;
+      if (d.eligibleCountries && d.eligibleCountries.length > 0) {
+        opportunityFields.eligibility = d.eligibleCountries;
+      }
+      if (d.eligibilitySummary) opportunityFields.coverage = d.eligibilitySummary;
+      if (d.howToApplyUrl) opportunityFields.howToApply = d.howToApplyUrl;
+      if (d.officialUrl) opportunityFields.officialLink = d.officialUrl;
+
       await itemsRepo.updateItem(item.id, {
         scholarshipPromotion: "promoted",
         scholarshipPromotionAttempts: attempts,
+        opportunity: Object.keys(opportunityFields).length > 0
+          ? (opportunityFields as {
+              deadline?: string;
+              eligibility?: string[];
+              coverage?: string;
+              howToApply?: string;
+              officialLink?: string;
+            })
+          : undefined,
       });
       result.promoted++;
     } catch (err) {

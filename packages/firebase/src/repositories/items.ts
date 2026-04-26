@@ -11,6 +11,13 @@ export type ItemUpdate = Partial<CreateItem> & {
   generationAttempts?: number;
   scholarshipPromotion?: "promoted" | "rejected" | "failed";
   scholarshipPromotionAttempts?: number;
+  opportunity?: {
+    deadline?: string;
+    eligibility?: string[];
+    coverage?: string;
+    howToApply?: string;
+    officialLink?: string;
+  };
 };
 
 const COLLECTION = "items";
@@ -138,8 +145,16 @@ export async function listOpportunitiesNeedingScholarshipPromotion(
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
     .filter((it) => {
-      // Already promoted or definitively rejected → skip
-      if (it.scholarshipPromotion === "promoted" || it.scholarshipPromotion === "rejected") return false;
+      // Definitively rejected → skip
+      if (it.scholarshipPromotion === "rejected") return false;
+      // Already promoted AND has opportunity data → skip (no work to do)
+      if (it.scholarshipPromotion === "promoted" && it.opportunity) return false;
+      // Already promoted but MISSING opportunity data → re-process
+      // (This handles items promoted before discoverScholarships started
+      //  writing back item.opportunity, which is the bridge to the IG queue)
+      if (it.scholarshipPromotion === "promoted" && !it.opportunity) {
+        console.warn(`[items] re-processing ${it.id}: promoted but missing opportunity data`);
+      }
       // Failed attempts past the cap → skip
       if ((it.scholarshipPromotionAttempts ?? 0) >= maxAttempts) return false;
       // Need a URL and some text to extract from
