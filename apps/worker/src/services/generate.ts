@@ -181,7 +181,17 @@ export async function generateForItems(): Promise<{
         continue;
       }
 
-      const isLowConfidence = draft.confidence < 0.6 || isShortContent;
+      // `lowConfidence` reflects Gemini's own confidence in its extraction.
+      // Conflating it with `isShortContent` (RSS-only ingest, no full-article
+      // scrape) flagged virtually every scholarship + most news items as
+      // low-confidence regardless of Gemini's signal, which then short-circuited
+      // both the IG decideIG gate (rejects lowConfidence outright) and the
+      // FB composeFbMessage gate (needs status=published). Short-content is
+      // independently caught by the news <80-word gate in decideIG and by the
+      // audience-fit threshold in buildContentVersionPayloads, so we don't need
+      // the double-counting here. `isShortContent` is still surfaced in
+      // qualityFlags.reasons below for visibility.
+      const isLowConfidence = draft.confidence < 0.6;
 
       // Re-score with Gemini's category for better accuracy
       const textForScoring = `${item.title} ${item.extractedText || item.summary}`;
