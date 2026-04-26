@@ -172,15 +172,15 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
     <Link
       href={detailHref}
       id={`scholarship-${s.id}`}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm hover:shadow-md hover:border-[#3525cd]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-[#c3c0ff]/40 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-xl border bg-white p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-[#3525cd]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-[#c3c0ff]/40 ${
         isDirectory
           ? "border-l-4 border-l-[#316bf3] border-[#c7c4d8]/15 dark:border-l-indigo-500 dark:border-stone-700"
           : "border-[#c7c4d8]/15"
       }`}
     >
       {/* ── Top row: Country icon + Status badge + Save button ── */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="h-10 w-10 bg-[#f9f2f0] dark:bg-stone-800 rounded-md flex items-center justify-center flex-shrink-0 text-2xl">
+      <div className="flex items-start justify-between gap-2 mb-2.5 sm:mb-3">
+        <div className="h-9 w-9 sm:h-10 sm:w-10 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center flex-shrink-0 text-xl sm:text-2xl">
           <span className="select-none" aria-hidden="true">
             {bg.emoji}
           </span>
@@ -224,13 +224,13 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       </div>
 
       {/* ── Title ── */}
-      <h3 className="text-base font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2 mb-1.5">
+      <h3 className="text-sm sm:text-base font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2 mb-1.5">
         {s.name}
       </h3>
 
       {/* ── Metadata row: Funding + Level ── */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-2.5 text-[11px]">
-        <span className={`rounded-md px-2 py-0.5 font-semibold ${funding?.color ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300"}`}>
+      <div className="flex flex-wrap items-center gap-1.5 mb-2 sm:mb-2.5 text-[10px] sm:text-[11px]">
+        <span className={`rounded-md px-1.5 sm:px-2 py-0.5 font-semibold ${funding?.color ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300"}`}>
           {funding ? (fr ? funding.fr : funding.ht) : s.fundingType}
         </span>
         {s.level.length > 0 && (
@@ -245,14 +245,14 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
 
       {/* ── Summary ── */}
       {s.eligibilitySummary && (
-        <p className="line-clamp-2 text-xs text-[#474948] dark:text-stone-400 mb-2.5 leading-relaxed">
+        <p className="line-clamp-2 text-xs text-[#474948] dark:text-stone-400 mb-2 sm:mb-2.5 leading-relaxed">
           {s.eligibilitySummary}
         </p>
       )}
 
       {/* ── Tags (compact, max 3) ── */}
       {s.tags && s.tags.length > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1">
+        <div className="mb-2.5 sm:mb-3 flex flex-wrap gap-1">
           {s.tags.slice(0, 3).map((tag) => (
             <span key={tag} className="rounded-md bg-[#e8e1df] px-1.5 py-0.5 text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
               {tag}
@@ -270,11 +270,11 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       <div className="flex-1" />
 
       {/* ── Footer: Deadline + visual CTA (whole card is clickable) ── */}
-      <div className="mt-3 pt-3 border-t border-[#f3ecea]/60 dark:border-stone-800 flex items-center justify-between gap-2">
+      <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-[#f3ecea]/60 dark:border-stone-800 flex items-center justify-between gap-2">
         <div className="text-[10px] text-[#474948] dark:text-stone-500 font-medium">
           {dlText && dlText}
         </div>
-        <span className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-xs flex items-center gap-0.5 group-hover:underline whitespace-nowrap">
+        <span className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-[11px] sm:text-xs flex items-center gap-0.5 group-hover:underline whitespace-nowrap">
           {fr ? "Voir détails" : "Wè detay"}
           <span className="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
         </span>

@@ -80,6 +80,24 @@ describe("decideIG", () => {
     assert.ok(decision.igPriorityScore >= 70, `Expected >= 70, got ${decision.igPriorityScore}`);
   });
 
+  it("assigns base score of 72 for opportunities (higher priority than scholarships)", () => {
+    // Use minimal audienceFitScore (0.35) to pass Haiti-relevance gate.
+    // Use a deadline far in the future (30 days) to avoid urgency bonuses.
+    // Set canonicalUrl to a non-official domain to avoid official source bonus.
+    // Clear source to avoid official source check.
+    // Base(72) + audience(5) = 77.
+    const item = makeItem({
+      category: "opportunity",
+      deadline: futureDate(30),
+      audienceFitScore: 0.35,
+      source: undefined,
+      canonicalUrl: "https://example.com/test",
+      opportunity: { ...makeItem().opportunity!, deadline: futureDate(30) },
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igPriorityScore, 77, `Expected 77 for opportunity (72 base + 5 audience), got ${decision.igPriorityScore}`);
+  });
+
   it("adds urgency bonus for deadline < 3 days", () => {
     const item = makeItem({ deadline: futureDate(2), opportunity: { ...makeItem().opportunity!, deadline: futureDate(2) } });
     const decision = decideIG(item);
@@ -143,7 +161,7 @@ describe("decideIG", () => {
     const decision = decideIG(item);
     assert.equal(decision.igEligible, true);
     assert.equal(decision.igType, "news");
-    assert.ok(decision.igPriorityScore >= 45);
+    assert.ok(decision.igPriorityScore >= 40);
   });
 
   it("maps opportunity categories correctly", () => {

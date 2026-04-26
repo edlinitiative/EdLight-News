@@ -595,12 +595,12 @@ export function decideIG(item: Item): IGDecision {
   // Base score by type
   const BASE_SCORES: Record<IGPostType, number> = {
     scholarship: 70,
-    opportunity: 65,
+    opportunity: 72,
     taux: 60,
     histoire: 60,
     utility: 55,
     breaking: 50, // timely but thin — just above news
-    news: 45,
+    news: 40,
     stat: 55,     // manually curated — treat like utility
   };
   let score = BASE_SCORES[igType];

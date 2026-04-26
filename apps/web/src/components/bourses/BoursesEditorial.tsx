@@ -405,9 +405,9 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
   const savedCount = savedIds.size;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       {/* ── Search & Filter Bar ── */}
-      <section className="space-y-3">
+      <section className="space-y-2.5 sm:space-y-3">
         <BoursesSearchBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -421,11 +421,9 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
           fr={fr}
         />
 
-        {/* Region chip row — coarse-grained geographic navigation. Surfaces
-            *before* Type/Funding so users can narrow a 50+ entry catalogue
-            with one click before drilling into finer filters. */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1">
+        {/* Region chip row — horizontal scroll on mobile, wrap on desktop */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
+          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-0.5 sm:mr-1 shrink-0">
             {fr ? "Région" : "Rejyon"}
           </span>
           {REGION_FILTER_CHIPS.map((c) => (
@@ -440,9 +438,9 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
         </div>
 
         {/* Quick chip row — surfaces the most-used filters one click away */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
           {/* Type */}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1 shrink-0">
             {fr ? "Type" : "Tip"}
           </span>
           {TYPE_FILTER_CHIPS.map((c) => (
@@ -455,10 +453,10 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
             </QuickChip>
           ))}
 
-          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700" />
+          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700 shrink-0" />
 
           {/* Funding (compact: skip "all" — first chip is implicit) */}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1 shrink-0">
             {fr ? "Financement" : "Finansman"}
           </span>
           {FUNDING_FILTER_CHIPS.filter((c) => c.key !== "unknown").map((c) => (
@@ -471,7 +469,7 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
             </QuickChip>
           ))}
 
-          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700" />
+          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700 shrink-0" />
 
           {/* Eligibility (single toggle: "Éligible HT") */}
           <QuickChip
@@ -567,9 +565,9 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
 
         {/* Grid + Sidebar */}
         {filtered.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-            <div className="lg:col-span-8 space-y-6">
-              <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+            <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+              <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-2">
                 {visible.map((s) => (
                   <ScholarshipCard
                     key={s.id}

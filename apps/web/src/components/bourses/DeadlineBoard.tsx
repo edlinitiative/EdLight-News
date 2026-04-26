@@ -68,12 +68,12 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
           <Clock className="h-4 w-4 text-[#93000a]" />
           {fr ? "Deadline bientôt" : "Dat limit byento"}
         </h2>
-        <span className="text-xs text-[#474948] dark:text-stone-500">
+        <span className="text-xs text-[#474948] dark:text-stone-500 tabular-nums">
           {upcoming.length} {fr ? "à venir" : "k ap vini"}
         </span>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#c7c4d8]/30 dark:scrollbar-thumb-stone-700 snap-x snap-mandatory">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#c7c4d8]/30 dark:scrollbar-thumb-stone-700 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0">
         {upcoming.map((s) => {
           const st = getDeadlineStatus(s.deadline!.dateISO!, lang);
           const shortDate = formatDeadlineDateShort(s.deadline!.dateISO!, lang);
@@ -84,7 +84,7 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
           return (
             <div
               key={s.id}
-              className={`group flex min-w-[220px] max-w-[260px] snap-start flex-col justify-between rounded-xl border p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(29,27,26,0.08)] ${
+              className={`group flex min-w-[180px] sm:min-w-[220px] max-w-[200px] sm:max-w-[260px] snap-start flex-col justify-between rounded-xl border p-3 sm:p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(29,27,26,0.08)] ${
                 isCritical
                   ? "border-[#ffdad6] bg-[#ffdad6]/30 dark:border-red-800/40 dark:bg-red-950/20"
                   : isUrgent
@@ -93,32 +93,32 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
               }`}
             >
               <div>
-                <p className="line-clamp-2 text-sm font-bold font-display leading-snug text-[#1d1b1a] dark:text-white">
+                <p className="line-clamp-2 text-xs sm:text-sm font-bold font-display leading-snug text-[#1d1b1a] dark:text-white">
                   {s.name}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {flag && (
-                    <span className="text-xs" title={s.country}>
+                    <span className="text-xs sm:text-sm" title={s.country}>
                       {flag}
                     </span>
                   )}
                   {shortDate && (
-                    <span className="text-xs text-[#474948] dark:text-stone-400">
+                    <span className="text-[11px] sm:text-xs text-[#474948] dark:text-stone-400">
                       {shortDate}
                     </span>
                   )}
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${badgeStyle(st.badgeVariant)}`}>
+                  <span className={`rounded-full px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-bold ${badgeStyle(st.badgeVariant)}`}>
                     {st.badgeLabel}
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] text-[#474948] dark:text-stone-500">
+                <p className="mt-1 text-[10px] sm:text-[11px] text-[#474948] dark:text-stone-500">
                   {st.humanLine}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => scrollToCard(s.id)}
-                className="mt-3 inline-flex items-center gap-1 self-start text-xs font-bold text-[#3525cd] transition-colors hover:text-[#4f46e5] dark:text-[#c3c0ff] dark:hover:text-white"
+                className="mt-2 sm:mt-3 inline-flex items-center gap-1 self-start text-[11px] sm:text-xs font-bold text-[#3525cd] transition-colors hover:text-[#4f46e5] dark:text-[#c3c0ff] dark:hover:text-white"
               >
                 {fr ? "Voir" : "Wè"}
                 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

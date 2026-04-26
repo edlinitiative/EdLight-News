@@ -732,4 +732,13 @@
   .font-serif {
     font-family: var(--font-serif, 'Playfair Display', Georgia, 'Times New Roman', serif);
   }
+
+  /* ── Hide scrollbar (for horizontal chip rows on mobile) ── */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

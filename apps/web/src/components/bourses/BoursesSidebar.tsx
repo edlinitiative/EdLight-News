@@ -1,9 +1,14 @@
 /**
  * BoursesSidebar — Right sidebar for the /bourses feed section.
  *
+ * On mobile (<lg) this appears as a full-width section below the grid.
+ * On desktop (lg+) it sits in the right 4 columns as a sticky panel.
+ *
  * Contains:
- *   1) Curator's Insight — editorial quote/advice card
+ *   1) How-to-guide card
  *   2) Trending Sectors — tag cloud of popular fields
+ *   3) Premium guides
+ *   4) Distribution Stats
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
@@ -35,9 +40,9 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
   const trendingTags = getTrendingTags(scholarships);
 
   return (
-    <div className="space-y-6">
-      {/* ─── How to use this page (replaces a hardcoded editorial quote) ─── */}
-      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5">
+    <div className="space-y-4 sm:space-y-6">
+      {/* ─── How to use this page ─── */}
+      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-4 sm:p-5">
         <h6 className="text-xs font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-white mb-3">
           {fr ? "Comment naviguer" : "Kijan pou navige"}
         </h6>
@@ -65,17 +70,17 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
 
       {/* ─── Trending Sectors ─── */}
       {trendingTags.length > 0 && (
-        <div className="bg-[#f9f2f0] dark:bg-stone-900/80 p-6 rounded-xl">
-          <h4 className="text-sm font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-white mb-4">
+        <div className="bg-[#f9f2f0] dark:bg-stone-900/80 p-4 sm:p-6 rounded-xl">
+          <h4 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-white mb-3 sm:mb-4">
             {fr ? "Secteurs tendance" : "Sektè tandans"}
           </h4>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {trendingTags.map((tag) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => onTagClick?.(tag)}
-                className="bg-[#e8e1df] text-[#464555] text-[11px] font-semibold px-4 py-2 rounded-full hover:bg-[#3525cd] hover:text-white dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-[#4f46e5] dark:hover:text-white transition-colors cursor-pointer"
+                className="bg-[#e8e1df] text-[#464555] text-[10px] sm:text-[11px] font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-[#3525cd] hover:text-white dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-[#4f46e5] dark:hover:text-white transition-colors cursor-pointer"
               >
                 {tag}
               </button>
@@ -85,7 +90,7 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
       )}
 
       {/* ─── Premium guides ─── */}
-      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5 bg-white dark:bg-stone-900">
+      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-4 sm:p-5 bg-white dark:bg-stone-900">
         <h6 className="text-xs font-bold uppercase tracking-widest text-[#1d1b1a] dark:text-white mb-3">
           {fr ? "Guides premium" : "Gid premium"}
         </h6>
@@ -112,7 +117,7 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
       </div>
 
       {/* ─── Distribution Stats ─── */}
-      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-5">
+      <div className="rounded-xl border border-[#c7c4d8]/15 dark:border-stone-700/40 p-4 sm:p-5">
         <h6 className="text-xs font-bold uppercase tracking-widest text-[#474948] dark:text-stone-300 mb-3">
           {fr ? "Répartition" : "Distribisyon"}
         </h6>
@@ -128,8 +133,8 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
             const total = scholarships.length || 1;
 
             return sorted.map(([country, count]) => (
-              <div key={country} className="flex items-center gap-3">
-                <span className="text-xs font-medium text-[#464555] dark:text-stone-300 w-12 shrink-0">
+              <div key={country} className="flex items-center gap-2 sm:gap-3">
+                <span className="text-[10px] sm:text-xs font-medium text-[#464555] dark:text-stone-300 w-10 sm:w-12 shrink-0">
                   {country === "Global" ? "🌍" : country}
                 </span>
                 <div className="flex-1 h-1.5 bg-[#e8e1df] dark:bg-stone-700 rounded-full overflow-hidden">
@@ -138,7 +143,7 @@ export function BoursesSidebar({ scholarships, lang, onTagClick }: BoursesSideba
                     style={{ width: `${Math.round((count / total) * 100)}%` }}
                   />
                 </div>
-                <span className="text-[11px] tabular-nums font-medium text-[#474948] dark:text-stone-300 w-6 text-right">
+                <span className="text-[10px] sm:text-[11px] tabular-nums font-medium text-[#474948] dark:text-stone-300 w-5 sm:w-6 text-right">
                   {count}
                 </span>
               </div>

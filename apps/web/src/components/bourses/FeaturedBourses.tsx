@@ -112,11 +112,11 @@ export function FeaturedBourses({
           const saved = savedIds.has(s.id);
 
           return (
-            <article key={s.id} className="bg-white dark:bg-stone-900 rounded-xl p-6 shadow-[0_20px_40px_rgba(29,27,26,0.05)] flex flex-col group border border-[#c7c4d8]/15 dark:border-stone-700 transition-transform hover:-translate-y-1">
+            <article key={s.id} className="bg-white dark:bg-stone-900 rounded-xl p-4 sm:p-6 shadow-[0_20px_40px_rgba(29,27,26,0.05)] flex flex-col group border border-[#c7c4d8]/15 dark:border-stone-700 transition-transform hover:-translate-y-1">
               {/* ── Top row: logo area + urgency badge ── */}
-              <div className="flex justify-between items-start mb-6">
-                <div className="h-14 w-14 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center p-2">
-                  <span className="text-3xl select-none" aria-hidden="true">{flag}</span>
+              <div className="flex justify-between items-start mb-4 sm:mb-6">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center p-2">
+                  <span className="text-2xl sm:text-3xl select-none" aria-hidden="true">{flag}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
@@ -146,7 +146,7 @@ export function FeaturedBourses({
               </div>
 
               {/* ── Title ── */}
-              <h3 className="text-xl font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display">
+              <h3 className="text-lg sm:text-xl font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display">
                 {s.name}
               </h3>
 
@@ -161,7 +161,7 @@ export function FeaturedBourses({
               <div className="flex-1" />
 
               {/* ── Footer: dashed border + value + CTA ── */}
-              <div className="mt-8 pt-6 border-t border-[#f3ecea] border-dashed dark:border-stone-800 flex justify-between items-center">
+              <div className="mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-[#f3ecea] border-dashed dark:border-stone-800 flex justify-between items-center">
                 <span className="text-xs font-bold text-[#474948] dark:text-stone-400 uppercase">
                   {fundingLabel ? (fr ? fundingLabel.fr : fundingLabel.ht) : s.fundingType}
                   {shortDate && ` · ${shortDate}`}

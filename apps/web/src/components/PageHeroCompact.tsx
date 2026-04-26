@@ -87,17 +87,17 @@ export function PageHeroCompact({
     <section
       className={`-mx-4 sm:-mx-6 lg:-mx-8 border-b border-[#c7c4d8]/15 bg-gradient-to-br ${styles.bg}`}
     >
-      <div className="px-4 sm:px-6 lg:px-8 pb-10 pt-8 sm:pb-12 sm:pt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+      <div className="px-4 sm:px-6 lg:px-8 pb-8 pt-7 sm:pb-12 sm:pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start lg:items-end">
           {/* ── Left: Headline + Description ── */}
-          <div className="lg:col-span-8 space-y-4">
+          <div className="lg:col-span-8 space-y-3 sm:space-y-4">
             <span
               className={`inline-block px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full ${styles.pill}`}
             >
               {eyebrow}
             </span>
 
-            <h1 className="text-3xl sm:text-4xl leading-[1.1] font-extrabold tracking-tighter font-display text-[#1d1b1a] dark:text-white">
+            <h1 className="text-2xl sm:text-4xl leading-[1.1] font-extrabold tracking-tighter font-display text-[#1d1b1a] dark:text-white">
               {title}
               {titleAccent && (
                 <>
@@ -107,7 +107,7 @@ export function PageHeroCompact({
               )}
             </h1>
 
-            <p className="text-base text-[#464555] dark:text-stone-400 leading-relaxed max-w-2xl font-light">
+            <p className="text-sm sm:text-base text-[#464555] dark:text-stone-400 leading-relaxed max-w-2xl font-light">
               {description}
             </p>
           </div>
@@ -115,16 +115,16 @@ export function PageHeroCompact({
           {/* ── Right: Stats ── */}
           {stats && stats.length > 0 && (
             <div className="lg:col-span-4 lg:text-right">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 lg:max-w-[280px] lg:ml-auto">
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-3 lg:grid-cols-2 lg:max-w-[280px] lg:ml-auto">
                 {stats.map((stat) => (
                   <div
                     key={stat.label}
-                    className={`rounded-xl border ${styles.statBorder} bg-white/80 dark:bg-stone-900/60 p-3 shadow-[0_20px_40px_rgba(29,27,26,0.03)]`}
+                    className={`rounded-xl border ${styles.statBorder} bg-white/80 dark:bg-stone-900/60 p-2 sm:p-3 shadow-[0_20px_40px_rgba(29,27,26,0.03)]`}
                   >
-                    <p className={`text-xl font-extrabold tabular-nums ${styles.accent}`}>
+                    <p className={`text-sm sm:text-xl font-extrabold tabular-nums ${styles.accent}`}>
                       {stat.value}
                     </p>
-                    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500">
+                    <p className="mt-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500">
                       {stat.label}
                     </p>
                   </div>
@@ -135,7 +135,7 @@ export function PageHeroCompact({
         </div>
 
         {/* Optional children (e.g. filter chips, search bar) */}
-        {children && <div className="mt-6">{children}</div>}
+        {children && <div className="mt-5 sm:mt-6">{children}</div>}
       </div>
     </section>
   );
