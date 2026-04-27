@@ -168,34 +168,36 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
   const bg = COUNTRY_BG[s.country] ?? COUNTRY_BG.Global;
   const detailHref = `/bourses/${s.id}${lang !== "fr" ? `?lang=${lang}` : ""}`;
 
+  const deadlineStatus = dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent");
+
   return (
     <Link
       href={detailHref}
       id={`scholarship-${s.id}`}
-      className={`group relative flex h-full flex-col overflow-hidden rounded-xl border bg-white p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-[#3525cd]/30 transition-all dark:bg-stone-900 dark:border-stone-700/60 dark:hover:border-[#c3c0ff]/40 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-white px-5 py-4 sm:p-4 shadow-[0_2px_8px_-2px_rgba(29,27,26,0.03)] hover:shadow-[0_16px_40px_-8px_rgba(29,27,26,0.08)] hover:border-[#3525cd]/20 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.985] active:opacity-90 dark:bg-stone-900 dark:border-stone-700/40 dark:hover:border-[#c3c0ff]/20 dark:shadow-none dark:hover:shadow-[0_16px_40px_-8px_rgba(0,0,0,0.3)] ${
         isDirectory
-          ? "border-l-4 border-l-[#316bf3] border-[#c7c4d8]/15 dark:border-l-indigo-500 dark:border-stone-700"
-          : "border-[#c7c4d8]/15"
+          ? "border-l-[5px] sm:border-l-4 border-l-[#316bf3] border-[#c7c4d8]/10 dark:border-l-indigo-500 dark:border-stone-700"
+          : "border-[#c7c4d8]/10"
       }`}
     >
       {/* ── Top row: Country icon + Status badge + Save button ── */}
-      <div className="flex items-start justify-between gap-2 mb-2.5 sm:mb-3">
-        <div className="h-9 w-9 sm:h-10 sm:w-10 bg-[#f9f2f0] dark:bg-stone-800 rounded-lg flex items-center justify-center flex-shrink-0 text-xl sm:text-2xl">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="h-10 w-10 bg-[#f5f0ee] dark:bg-stone-800 rounded-xl flex items-center justify-center flex-shrink-0 text-lg shadow-inner shadow-[#c7c4d8]/10 dark:shadow-none">
           <span className="select-none" aria-hidden="true">
             {bg.emoji}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
-            <span className="bg-[#ffdad6] text-[#93000a] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase whitespace-nowrap">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {deadlineStatus ? (
+            <span className="bg-[#ffdad6] text-[#93000a] text-[10px] sm:text-[9px] font-bold px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full uppercase whitespace-nowrap deadline-urgent">
               {dlStatus.badgeLabel}
             </span>
           ) : dlStatus && dlStatus.badgeVariant === "soon" ? (
-            <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase whitespace-nowrap dark:bg-amber-900/30 dark:text-amber-300">
+            <span className="bg-amber-100 text-amber-800 text-[10px] sm:text-[9px] font-bold px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full uppercase whitespace-nowrap dark:bg-amber-900/30 dark:text-amber-300">
               {dlStatus.badgeLabel}
             </span>
           ) : (
-            <span className="bg-[#e8e1df] text-[#464555] text-[9px] font-bold px-2 py-0.5 rounded-full italic whitespace-nowrap dark:bg-stone-700 dark:text-stone-300">
+            <span className="bg-[#e8e1df] text-[#464555] text-[10px] sm:text-[9px] font-bold px-2.5 sm:px-2 py-1 sm:py-0.5 rounded-full italic whitespace-nowrap dark:bg-stone-700 dark:text-stone-300">
               {elig === "yes"
                 ? (fr ? "Haïti" : "HT")
                 : isDirectory
@@ -210,27 +212,27 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
               e.stopPropagation();
               onToggleSave(s.id);
             }}
-            className={`p-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
+            className={`p-2 sm:p-1 rounded-xl sm:rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] -mr-1 sm:-mr-0 ${
               saved
-                ? "text-[#3525cd] dark:text-[#c3c0ff]"
-                : "text-[#c7c4d8] hover:text-[#464555] dark:text-stone-600 dark:hover:text-stone-400"
+                ? "text-[#3525cd] dark:text-[#c3c0ff] bg-[#3525cd]/8 dark:bg-[#c3c0ff]/10"
+                : "text-[#c7c4d8] hover:text-[#464555] hover:bg-[#f9f2f0] dark:text-stone-600 dark:hover:text-stone-400 dark:hover:bg-stone-800"
             }`}
             title={saved ? (fr ? "Retirer" : "Retire") : (fr ? "Sauvegarder" : "Anrejistre")}
             aria-label={saved ? "Remove from saved" : "Save scholarship"}
           >
-            <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
+            <Bookmark className={`h-4 w-4 sm:h-3.5 sm:w-3.5 ${saved ? "fill-current" : ""}`} />
           </button>
         </div>
       </div>
 
       {/* ── Title ── */}
-      <h3 className="text-sm sm:text-base font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2 mb-1.5">
+      <h3 className="text-[15px] sm:text-base font-bold leading-snug sm:leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2 mb-2 sm:mb-1.5 tracking-tight">
         {s.name}
       </h3>
 
       {/* ── Metadata row: Funding + Level ── */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-2 sm:mb-2.5 text-[10px] sm:text-[11px]">
-        <span className={`rounded-md px-1.5 sm:px-2 py-0.5 font-semibold ${funding?.color ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300"}`}>
+      <div className="flex flex-wrap items-center gap-2 mb-2.5 sm:mb-2.5 text-[11px] sm:text-[11px]">
+        <span className={`rounded-lg sm:rounded-md px-2 sm:px-2 py-0.5 font-semibold ${funding?.color ?? "bg-stone-100 text-stone-600 dark:bg-stone-700 dark:text-stone-300"}`}>
           {funding ? (fr ? funding.fr : funding.ht) : s.fundingType}
         </span>
         {s.level.length > 0 && (
@@ -245,21 +247,21 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
 
       {/* ── Summary ── */}
       {s.eligibilitySummary && (
-        <p className="line-clamp-2 text-xs text-[#474948] dark:text-stone-400 mb-2 sm:mb-2.5 leading-relaxed">
+        <p className="line-clamp-2 text-xs sm:text-xs text-[#6b6563] dark:text-stone-400 mb-2.5 sm:mb-2.5 leading-relaxed">
           {s.eligibilitySummary}
         </p>
       )}
 
       {/* ── Tags (compact, max 3) ── */}
       {s.tags && s.tags.length > 0 && (
-        <div className="mb-2.5 sm:mb-3 flex flex-wrap gap-1">
+        <div className="mb-3 sm:mb-3 flex flex-wrap gap-1.5 sm:gap-1">
           {s.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="rounded-md bg-[#e8e1df] px-1.5 py-0.5 text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
+            <span key={tag} className="rounded-lg sm:rounded-md bg-[#e8e1df] px-2 sm:px-1.5 py-0.5 text-[11px] sm:text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
               {tag}
             </span>
           ))}
           {s.tags.length > 3 && (
-            <span className="rounded-md bg-[#e8e1df] px-1.5 py-0.5 text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
+            <span className="rounded-lg sm:rounded-md bg-[#e8e1df] px-2 sm:px-1.5 py-0.5 text-[11px] sm:text-[10px] font-medium text-[#464555] dark:bg-stone-800 dark:text-stone-400">
               +{s.tags.length - 3}
             </span>
           )}
@@ -270,13 +272,13 @@ export function ScholarshipCard({ scholarship: s, lang, saved, onToggleSave }: S
       <div className="flex-1" />
 
       {/* ── Footer: Deadline + visual CTA (whole card is clickable) ── */}
-      <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-[#f3ecea]/60 dark:border-stone-800 flex items-center justify-between gap-2">
-        <div className="text-[10px] text-[#474948] dark:text-stone-500 font-medium">
+      <div className="mt-3 sm:mt-3 pt-3 sm:pt-3 border-t border-[#f3ecea]/60 dark:border-stone-800 flex items-center justify-between gap-2">
+        <div className={`text-[11px] sm:text-[10px] font-semibold ${deadlineStatus ? 'text-[#93000a] dark:text-red-400 deadline-urgent' : 'text-[#474948] dark:text-stone-500'}`}>
           {dlText && dlText}
         </div>
-        <span className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-[11px] sm:text-xs flex items-center gap-0.5 group-hover:underline whitespace-nowrap">
+        <span className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-[12px] sm:text-xs flex items-center gap-1 group-hover:underline whitespace-nowrap">
           {fr ? "Voir détails" : "Wè detay"}
-          <span className="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+          <span className="material-symbols-outlined text-sm sm:text-xs group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
         </span>
       </div>
     </Link>

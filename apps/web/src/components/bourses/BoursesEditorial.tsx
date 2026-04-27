@@ -392,10 +392,10 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+      className={`rounded-full px-3.5 py-2 sm:px-3 sm:py-1.5 text-[13px] sm:text-xs font-semibold transition-all duration-200 active:scale-95 ${
         active
-          ? "bg-[#3525cd] text-white dark:bg-[#4f46e5]"
-          : "bg-[#f9f2f0] text-[#464555] hover:bg-[#e8e1df] dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
+          ? "bg-[#3525cd] text-white shadow-[0_2px_8px_rgba(53,37,205,0.25)] dark:bg-[#4f46e5] dark:shadow-[0_2px_8px_rgba(79,70,229,0.25)]"
+          : "bg-[#f5f0ee] text-[#464555] hover:bg-[#e8e1df] dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700"
       }`}
     >
       {children}
@@ -405,9 +405,9 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
   const savedCount = savedIds.size;
 
   return (
-    <div className="space-y-6 sm:space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       {/* ── Search & Filter Bar ── */}
-      <section className="space-y-2.5 sm:space-y-3">
+      <section className="space-y-3 sm:space-y-4">
         <BoursesSearchBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -421,78 +421,86 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
           fr={fr}
         />
 
-        {/* Region chip row — horizontal scroll on mobile, wrap on desktop */}
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
-          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-0.5 sm:mr-1 shrink-0">
-            {fr ? "Région" : "Rejyon"}
-          </span>
-          {REGION_FILTER_CHIPS.map((c) => (
-            <QuickChip
-              key={`r-${c.key}`}
-              active={regionFilter === c.key}
-              onClick={() => setFilter("region", c.key)}
-            >
-              {fr ? c.fr : c.ht}
-            </QuickChip>
-          ))}
+        {/* ── Region chip row — horizontal scroll on mobile with gradient fade ── */}
+        <div className="relative">
+          <div className="flex items-center gap-2 sm:gap-2 overflow-x-auto hide-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible pb-1">
+            <span className="text-[10px] sm:text-[10px] font-bold uppercase tracking-wider text-[#6b6563] dark:text-stone-400 mr-1 sm:mr-1 shrink-0">
+              {fr ? "Région" : "Rejyon"}
+            </span>
+            {REGION_FILTER_CHIPS.map((c) => (
+              <QuickChip
+                key={`r-${c.key}`}
+                active={regionFilter === c.key}
+                onClick={() => setFilter("region", c.key)}
+              >
+                {fr ? c.fr : c.ht}
+              </QuickChip>
+            ))}
+          </div>
+          {/* Fade indicators for mobile scroll */}
+          <div className="sm:hidden pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-white dark:from-stone-950 to-transparent" aria-hidden="true" />
         </div>
 
-        {/* Quick chip row — surfaces the most-used filters one click away */}
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
-          {/* Type */}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1 shrink-0">
-            {fr ? "Type" : "Tip"}
-          </span>
-          {TYPE_FILTER_CHIPS.map((c) => (
+        {/* ── Quick chip row — surfaces the most-used filters ── */}
+        <div className="relative">
+          <div className="flex items-center gap-2 sm:gap-2 overflow-x-auto hide-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible pb-1">
+            {/* Type */}
+            <span className="text-[10px] sm:text-[10px] font-bold uppercase tracking-wider text-[#6b6563] dark:text-stone-400 mr-1 sm:mr-1 shrink-0">
+              {fr ? "Type" : "Tip"}
+            </span>
+            {TYPE_FILTER_CHIPS.map((c) => (
+              <QuickChip
+                key={`t-${c.key}`}
+                active={typeFilter === c.key}
+                onClick={() => setFilter("type", c.key)}
+              >
+                {fr ? c.fr : c.ht}
+              </QuickChip>
+            ))}
+
+            <span className="mx-1 sm:mx-1.5 h-5 w-px bg-[#c7c4d8]/30 dark:bg-stone-700 shrink-0" />
+
+            {/* Funding */}
+            <span className="text-[10px] sm:text-[10px] font-bold uppercase tracking-wider text-[#6b6563] dark:text-stone-400 mr-1 sm:mr-1 shrink-0">
+              {fr ? "Financement" : "Finansman"}
+            </span>
+            {FUNDING_FILTER_CHIPS.filter((c) => c.key !== "unknown").map((c) => (
+              <QuickChip
+                key={`f-${c.key}`}
+                active={fundingFilter === c.key}
+                onClick={() => setFilter("funding", c.key)}
+              >
+                {fr ? c.fr : c.ht}
+              </QuickChip>
+            ))}
+
+            <span className="mx-1 sm:mx-1.5 h-5 w-px bg-[#c7c4d8]/30 dark:bg-stone-700 shrink-0" />
+
+            {/* Eligibility toggle */}
             <QuickChip
-              key={`t-${c.key}`}
-              active={typeFilter === c.key}
-              onClick={() => setFilter("type", c.key)}
+              active={eligibilityFilter === "yes"}
+              onClick={() =>
+                setFilter("eligibility", eligibilityFilter === "yes" ? "all" : "yes")
+              }
             >
-              {fr ? c.fr : c.ht}
+              ✓ {fr ? "Éligible Haïti" : "Elijib Ayiti"}
             </QuickChip>
-          ))}
 
-          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700 shrink-0" />
-
-          {/* Funding (compact: skip "all" — first chip is implicit) */}
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 mr-1 shrink-0">
-            {fr ? "Financement" : "Finansman"}
-          </span>
-          {FUNDING_FILTER_CHIPS.filter((c) => c.key !== "unknown").map((c) => (
-            <QuickChip
-              key={`f-${c.key}`}
-              active={fundingFilter === c.key}
-              onClick={() => setFilter("funding", c.key)}
-            >
-              {fr ? c.fr : c.ht}
-            </QuickChip>
-          ))}
-
-          <span className="mx-1 h-4 w-px bg-[#c7c4d8]/40 dark:bg-stone-700 shrink-0" />
-
-          {/* Eligibility (single toggle: "Éligible HT") */}
-          <QuickChip
-            active={eligibilityFilter === "yes"}
-            onClick={() =>
-              setFilter("eligibility", eligibilityFilter === "yes" ? "all" : "yes")
-            }
-          >
-            ✓ {fr ? "Éligible Haïti" : "Elijib Ayiti"}
-          </QuickChip>
-
-          {/* Saved toggle */}
-          {savedCount > 0 && (
-            <QuickChip
-              active={savedOnly}
-              onClick={() => setFilter("saved", savedOnly ? "all" : "1")}
-            >
-              <span className="inline-flex items-center gap-1">
-                <Bookmark className={`h-3 w-3 ${savedOnly ? "fill-current" : ""}`} />
-                {fr ? "Sauvegardés" : "Anrejistre"} ({savedCount})
-              </span>
-            </QuickChip>
-          )}
+            {/* Saved toggle */}
+            {savedCount > 0 && (
+              <QuickChip
+                active={savedOnly}
+                onClick={() => setFilter("saved", savedOnly ? "all" : "1")}
+              >
+                <span className="inline-flex items-center gap-1">
+                  <Bookmark className={`h-3 w-3 ${savedOnly ? "fill-current" : ""}`} />
+                  {fr ? "Sauvegardés" : "Anrejistre"} ({savedCount})
+                </span>
+              </QuickChip>
+            )}
+          </div>
+          {/* Fade indicator for mobile scroll */}
+          <div className="sm:hidden pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-white dark:from-stone-950 to-transparent" aria-hidden="true" />
         </div>
 
         <ActiveFilterChips
@@ -515,14 +523,14 @@ export function BoursesEditorial({ scholarships, lang }: BoursesEditorialProps) 
 
       {/* ── Always-visible toolbar: result count + sort ── */}
       <section id="catalogue">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4 sm:mb-5">
           <div className="flex items-baseline gap-2">
-            <h3 className="font-display text-xl font-bold tracking-tight text-[#1d1b1a] dark:text-white">
+            <h3 className="font-display text-lg sm:text-xl font-bold tracking-tight text-[#1d1b1a] dark:text-white">
               {hasFilters
                 ? (fr ? "Résultats" : "Rezilta")
                 : (fr ? "Toutes les bourses" : "Tout bous yo")}
             </h3>
-            <span className="text-xs tabular-nums text-[#474948] dark:text-stone-400">
+            <span className="text-[11px] sm:text-xs tabular-nums text-[#474948] dark:text-stone-400">
               <span className="font-bold text-[#1d1b1a] dark:text-white">{filtered.length}</span>
               <span className="text-[#c7c4d8] dark:text-stone-600 mx-0.5">/</span>
               {scholarships.length}

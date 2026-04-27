@@ -13,7 +13,7 @@
  */
 
 import type { ContentLanguage, DatasetCountry, AcademicLevel } from "@edlight-news/types";
-import { Bookmark } from "lucide-react";
+import { Bookmark, ArrowRight } from "lucide-react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 import { getDeadlineStatus, formatDeadlineDateShort } from "@/lib/ui/deadlines";
 
@@ -97,19 +97,19 @@ export function FeaturedBourses({
   if (featured.length === 0) return null;
 
   return (
-    <section className="space-y-3 sm:space-y-5">
+    <section className="space-y-4 sm:space-y-6">
       <header className="flex justify-between items-end">
         <div>
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#3525cd] dark:text-[#c3c0ff]">
+          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#3525cd] dark:text-[#c3c0ff] bg-[#3525cd]/5 dark:bg-[#c3c0ff]/5 px-2.5 py-1 rounded-full inline-block">
             {fr ? "Bourses vérifiées" : "Bous verifye"}
           </span>
-          <h2 className="text-lg sm:text-2xl md:text-3xl font-extrabold tracking-tighter text-[#1d1b1a] dark:text-white mt-1 font-display">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-[#1d1b1a] dark:text-white mt-2 sm:mt-1 font-display">
             {fr ? "Bourses en vedette" : "Bous an vedèt"}
           </h2>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {featured.map((s) => {
           const cl = COUNTRY_LABELS[s.country];
           const flag = COUNTRY_ICONS[s.country] ?? "🌍";
@@ -121,16 +121,16 @@ export function FeaturedBourses({
           return (
             <article
               key={s.id}
-              className="group relative overflow-hidden rounded-2xl border border-[#c7c4d8]/10 dark:border-stone-700/50 bg-white dark:bg-stone-900 shadow-[0_4px_16px_rgba(29,27,26,0.04)] hover:shadow-[0_12px_32px_rgba(29,27,26,0.08)] dark:shadow-none dark:hover:shadow-[0_12px_32px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-0.5 flex flex-col"
+              className="group relative overflow-hidden rounded-2xl border border-[#c7c4d8]/8 dark:border-stone-700/40 bg-white dark:bg-stone-900 shadow-[0_2px_12px_-4px_rgba(29,27,26,0.04)] hover:shadow-[0_20px_48px_-12px_rgba(29,27,26,0.1)] dark:shadow-none dark:hover:shadow-[0_20px_48px_-12px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] active:opacity-90 flex flex-col"
             >
               {/* Country accent gradient strip at top */}
-              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${COUNTRY_GRADIENTS[s.country] ?? COUNTRY_GRADIENTS.Global}`} />
+              <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${COUNTRY_GRADIENTS[s.country] ?? COUNTRY_GRADIENTS.Global} opacity-80`} />
 
-              <div className="p-3.5 sm:p-5 flex flex-col flex-1">
+              <div className="p-5 sm:p-5 flex flex-col flex-1">
                 {/* ── Top row: logo area + urgency badge ── */}
-                <div className="flex justify-between items-start mb-2.5 sm:mb-4">
-                  <div className="h-8 w-8 sm:h-12 sm:w-12 bg-gradient-to-br from-[#f3eeeb] to-[#e8e1df] dark:from-stone-800 dark:to-stone-700 rounded-xl flex items-center justify-center p-1 sm:p-2 shadow-inner">
-                    <span className="text-lg sm:text-2xl select-none" aria-hidden="true">{flag}</span>
+                <div className="flex justify-between items-start mb-3 sm:mb-4">
+                  <div className="h-11 w-11 sm:h-12 sm:w-12 bg-[#f5f0ee] dark:bg-stone-800 rounded-xl flex items-center justify-center shadow-inner shadow-[#c7c4d8]/5 dark:shadow-none border border-[#c7c4d8]/5 dark:border-stone-700/50">
+                    <span className="text-lg sm:text-xl select-none" aria-hidden="true">{flag}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
@@ -160,13 +160,13 @@ export function FeaturedBourses({
                 </div>
 
                 {/* ── Title ── */}
-                <h3 className="text-sm sm:text-lg md:text-xl font-bold leading-tight text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold leading-snug text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2">
                   {s.name}
                 </h3>
 
                 {/* ── Country + Level info row ── */}
                 {(cl || s.level.length > 0) && (
-                  <div className="flex items-center gap-1.5 mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] text-[#474948] dark:text-stone-500">
+                  <div className="flex items-center gap-1.5 mt-2 sm:mt-2 text-[11px] sm:text-[11px] text-[#474948] dark:text-stone-500">
                     {cl && <span className="font-semibold">{fr ? cl.fr : cl.ht}</span>}
                     {cl && s.level.length > 0 && <span className="text-[#c7c4d8]">·</span>}
                     {s.level.length > 0 && (
@@ -182,7 +182,7 @@ export function FeaturedBourses({
 
                 {/* ── Summary ── */}
                 {s.eligibilitySummary && (
-                  <p className="text-[#464555] dark:text-stone-400 text-[11px] sm:text-sm mt-2 sm:mt-3 leading-relaxed line-clamp-2">
+                  <p className="text-[#6b6563] dark:text-stone-400 text-xs sm:text-sm mt-2 sm:mt-3 leading-relaxed line-clamp-2">
                     {s.eligibilitySummary}
                   </p>
                 )}
@@ -191,8 +191,8 @@ export function FeaturedBourses({
                 <div className="flex-1" />
 
                 {/* ── Footer: dashed border + value + CTA ── */}
-                <div className="mt-3 sm:mt-5 pt-2.5 sm:pt-4 border-t border-[#f3ecea]/60 dark:border-stone-800 border-dashed flex justify-between items-center gap-2">
-                  <span className="text-[10px] sm:text-xs font-bold text-[#474948] dark:text-stone-400 uppercase truncate">
+                <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-[#e8e1df]/40 dark:border-stone-800/60 flex justify-between items-center gap-2">
+                  <span className="text-[11px] sm:text-xs font-bold text-[#474948] dark:text-stone-400 uppercase truncate tracking-wide">
                     {fundingLabel ? (fr ? fundingLabel.fr : fundingLabel.ht) : s.fundingType}
                     {shortDate && ` · ${shortDate}`}
                   </span>
@@ -203,7 +203,7 @@ export function FeaturedBourses({
                     className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-[10px] sm:text-xs flex items-center gap-1 shrink-0 group/cta hover:gap-2 transition-all"
                   >
                     {fr ? "VOIR DÉTAILS" : "WÈ DETAY"}
-                    <span className="material-symbols-outlined text-sm group-hover/cta:translate-x-1 transition-transform duration-200">arrow_forward</span>
+                    <ArrowRight className="h-3.5 w-3.5 group-hover/cta:translate-x-1 transition-transform duration-200" />
                   </a>
                 </div>
               </div>
