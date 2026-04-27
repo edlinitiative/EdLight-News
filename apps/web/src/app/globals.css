@@ -741,4 +741,13 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* ── Tailwind-compatible scrollbar-none ──────────────────── */
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
