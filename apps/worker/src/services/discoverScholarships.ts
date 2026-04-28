@@ -110,10 +110,14 @@ function buildCreatePayload(
   const fundingType = data.fundingType ?? "unknown";
 
   // Eligibility: explicit list takes priority; otherwise infer from haitianEligible flag.
+  // If neither the LLM nor the flag supplies countries, default to ["HT"] so the
+  // IG pipeline's hasRealOpportunityFields() gate sees a non-empty eligibility array
+  // and routes the item to the opportunity/scholarship formatter instead of silently
+  // downgrading it to "news" (where thin-content gates reject it).
   let eligibleCountries: string[] | undefined = data.eligibleCountries?.filter(Boolean);
   if (!eligibleCountries || eligibleCountries.length === 0) {
     if (data.haitianEligible === true) eligibleCountries = ["HT"];
-    else eligibleCountries = undefined;
+    else eligibleCountries = ["HT"]; // default: Haiti-focused audience
   } else if (data.haitianEligible === true && !eligibleCountries.includes("HT")) {
     eligibleCountries = [...eligibleCountries, "HT"];
   }
