@@ -272,29 +272,23 @@ export async function discoverScholarships(): Promise<DiscoverScholarshipsResult
       // This write-back is the bridge between the discoverScholarships pipeline
       // (which writes to the `scholarships` collection for /bourses) and the IG
       // pipeline (which reads item.opportunity to detect real opportunity types).
-      const opportunityFields: Record<string, unknown> = {};
-
-      // Map LLM extraction fields to item.opportunity schema
-      if (d.deadlineDateISO) opportunityFields.deadline = d.deadlineDateISO;
-      if (d.eligibleCountries && d.eligibleCountries.length > 0) {
-        opportunityFields.eligibility = d.eligibleCountries;
-      }
-      if (d.eligibilitySummary) opportunityFields.coverage = d.eligibilitySummary;
-      if (d.howToApplyUrl) opportunityFields.howToApply = d.howToApplyUrl;
-      if (d.officialUrl) opportunityFields.officialLink = d.officialUrl;
-
+      //
+      // We map from the processed `payload` (not raw `d`) because buildCreatePayload
+      // applies fallbacks (e.g. haitianEligible→eligibleCountries=["HT"],
+      // officialUrl→canonicalUrl). Using raw `d` would miss those and leave
+      // hasRealOpportunityFields() unsatisfied.
       await itemsRepo.updateItem(item.id, {
         scholarshipPromotion: "promoted",
         scholarshipPromotionAttempts: attempts,
-        opportunity: Object.keys(opportunityFields).length > 0
-          ? (opportunityFields as {
-              deadline?: string;
-              eligibility?: string[];
-              coverage?: string;
-              howToApply?: string;
-              officialLink?: string;
-            })
-          : undefined,
+        opportunity: {
+          eligibility: payload.eligibleCountries ?? [],
+          howToApply: payload.howToApplyUrl ?? undefined,
+          officialLink: payload.officialUrl,
+          coverage: payload.fundingType,
+          ...(payload.deadline?.dateISO
+            ? { deadline: payload.deadline.dateISO }
+            : {}),
+        },
       });
       result.promoted++;
     } catch (err) {
