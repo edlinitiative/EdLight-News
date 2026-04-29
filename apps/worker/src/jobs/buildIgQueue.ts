@@ -20,6 +20,35 @@ import { selectImageForIG } from "../services/igImagePipeline.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
+
+// French/English stopwords to ignore in heading similarity
+const HEADING_STOPWORDS = new Set([
+  "le","la","les","un","une","des","du","de","en","et","ou","au","aux",
+  "sur","par","pour","dans","avec","sans","est","sont","être","avoir",
+  "the","a","an","of","in","to","for","on","at","by","from","its",
+  "as","is","was","are","be","has","have","had","not","with","and",
+  "that","this","it","or","but","if","haiti","haïti","haïtien","haïtienne",
+]);
+
+/**
+ * Returns true when two headings share ≥ THRESHOLD significant words.
+ * Used to detect same-story items queued under different titles
+ * (e.g., 3× articles about the same TPS Supreme Court hearing).
+ */
+function headingSimilar(a: string, b: string, threshold = 4): boolean {
+  const words = (s: string) =>
+    new Set(
+      s.toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .split(/\s+/)
+        .filter((w) => w.length > 3 && !HEADING_STOPWORDS.has(w)),
+    );
+  const wa = words(a);
+  const wb = words(b);
+  let shared = 0;
+  for (const w of wa) if (wb.has(w)) shared++;
+  return shared >= threshold;
+}
 // Image-selection policy now lives entirely in services/igImagePipeline.ts.
 // All env flags (IG_STRICT_IMAGE_ACCURACY, IG_ALLOW_EDITORIAL_IMAGE_SUBSTITUTION,
 // IG_LLM_IMAGE_FINDER, IG_LLM_VALIDATE_PUBLISHER) are read there so every
@@ -192,13 +221,26 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     }
 
     // ── Batch pre-load existing ig_queue entries (saves ~500 reads/tick) ──
-    // One query for all queue entries — extended to 30 days so that opportunity
-    // items (which are evergreen and may be re-evaluated from the backlog weeks
-    // after posting) are not re-queued. Firestore cost is minimal (single query,
-    // ~200 documents total in the ig_queue).
-    const queueWindowCutoff = new Date();
-    queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 30);
-    const existingSourceIds = await igQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
+    //
+    // Two complementary sets:
+    //  A) pendingSourceIds / pendingGroupIds — ALL items currently queued or
+    //     scheduled, regardless of age. Prevents re-queuing stale items that
+    //     never got scheduled (no 30-day blind spot). Also carries dedupeGroupId
+    //     so we can skip items whose group is already pending (e.g. 3× TPS).
+    //  B) historicalSourceIds — items posted/expired/skipped in the last 30 days.
+    //     Prevents re-queuing something that was already posted recently.
+    const { sourceIds: pendingSourceIds, groupIds: pendingGroupIds, headings: pendingHeadings } =
+      await igQueueRepo.listPendingSourceIds();
+    const histWindowCutoff = new Date();
+    histWindowCutoff.setDate(histWindowCutoff.getDate() - 30);
+    const historicalSourceIds = await igQueueRepo.listSourceContentIdsSince(histWindowCutoff);
+    // Merge into one set for the alreadyExists check
+    const existingSourceIds = new Set([...pendingSourceIds, ...historicalSourceIds]);
+    // Track dedupeGroupIds that already have a pending post — updated in-memory
+    // as we queue new items so same-tick dupes are also caught.
+    const queuedGroupIds = new Set(pendingGroupIds);
+    // Pending cover headings for topic-similarity dedup (catches TPS ×3 etc.)
+    const queuedHeadings: string[] = [...pendingHeadings];
 
     // Pre-load source cache for igImageSafe lookup
     const sourceCache = new Map<string, Source | null>();
@@ -229,6 +271,14 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // Check if already in queue (uses batch pre-loaded set — no extra Firestore read)
         if (existingSourceIds.has(item.id)) {
           result.alreadyExists++;
+          continue;
+        }
+
+        // Dedup by topic group: if another item with the same dedupeGroupId is
+        // already pending (queued/scheduled), skip this one. This prevents
+        // "TPS ×3" — multiple items about the same story all entering the queue.
+        if (item.dedupeGroupId && queuedGroupIds.has(item.dedupeGroupId)) {
+          result.skipped++;
           continue;
         }
 
@@ -314,10 +364,29 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           result.skipped++;
           continue;
         }
-        if ((payload.slides[0]?.heading ?? "").trim().length < 5) {
+        const coverHeading = (payload.slides[0]?.heading ?? "").trim();
+        if (coverHeading.length < 5) {
           console.warn(`[buildIgQueue] QA gate: cover heading too short for ${item.id}`);
           result.skipped++;
           continue;
+        }
+
+        // ── Heading-similarity dedup ─────────────────────────────────────────
+        // Catches same-story items that escaped dedupeGroupId matching because
+        // they were published under slightly different headlines (TPS ×3, etc.).
+        // Threshold of 4 significant shared words is conservative enough to
+        // avoid blocking genuinely different stories.
+        if (decision.igType === "news" || decision.igType === "breaking") {
+          const similar = queuedHeadings.find((h) => headingSimilar(h, coverHeading));
+          if (similar) {
+            console.log(
+              `[buildIgQueue] Heading-similarity dedup skipped ${item.id}:\n` +
+              `  pending: "${similar.slice(0, 70)}"\n` +
+              `  new:     "${coverHeading.slice(0, 70)}"`,
+            );
+            result.skipped++;
+            continue;
+          }
         }
 
         // ── Histoire: per-event image resolution ──────────────────────────
@@ -390,6 +459,8 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           status: "queued" as IGQueueStatus,
           reasons: decision.reasons,
           payload,
+          // Stamp dedupeGroupId so the pending-queue dedup works on future ticks.
+          ...(item.dedupeGroupId ? { dedupeGroupId: item.dedupeGroupId } : {}),
           // Stamp a targetPostDate on date-bound daily items so the scheduler
           // only uses them on the Haiti day they were generated for.
           ...(targetPostDate
@@ -399,6 +470,11 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           // can prefer same-day items over stale carry-overs from previous days.
           queuedDate: haitiToday,
         });
+        // Update in-memory sets so same-tick dupes are caught without a
+        // round-trip to Firestore.
+        existingSourceIds.add(item.id);
+        if (item.dedupeGroupId) queuedGroupIds.add(item.dedupeGroupId);
+        queuedHeadings.push(coverHeading);
         result.queued++;
         newItemsQueuedThisRun++;
       } catch (err) {
