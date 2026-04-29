@@ -432,8 +432,14 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Quality flags: needs review → not ready for IG
-  if (item.qualityFlags?.needsReview) {
+  // Quality flags: needs review → not ready for IG.
+  // Exception: scholarship/opportunity items are exempt. The needsReview flag
+  // fires for items flagged by old pipeline logic or missing structured fields,
+  // but the actual IG content comes from generated CVs that already passed their
+  // own quality gates. Blocking all scholarship content on needsReview starves
+  // the IG queue of opportunity posts.
+  const isOppIgType = igType === "scholarship" || igType === "opportunity";
+  if (item.qualityFlags?.needsReview && !isOppIgType) {
     return {
       igEligible: false,
       igType,
@@ -453,7 +459,7 @@ export function decideIG(item: Item): IGDecision {
   //    (Gemini extraction confidence < 0.6) but the separate word-count gate
   //    below is the real quality bar for news content. Blocking ALL 0.4-score
   //    news on lowConfidence drains the queue completely.
-  const isOppType = igType === "scholarship" || igType === "opportunity";
+  const isOppType = isOppIgType;
   const isNewsType = igType === "news" || igType === "breaking";
   const hasAdequateScore = (item.audienceFitScore ?? 0) >= 0.40;
   if (item.qualityFlags?.lowConfidence && !isOppType && !(isNewsType && hasAdequateScore)) {

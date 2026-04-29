@@ -804,11 +804,13 @@ async function publishContent(
       imageUrl: heroIllustration.imageUrl,
       imageSource: "wikidata",
       imageConfidence: heroIllustration.confidence ?? 0.7,
-      imageAttribution: {
-        name: heroIllustration.author,
-        url: heroIllustration.pageUrl,
-        license: heroIllustration.license,
-      },
+      imageAttribution: Object.fromEntries(
+        Object.entries({
+          name: heroIllustration.author,
+          url: heroIllustration.pageUrl,
+          license: heroIllustration.license,
+        }).filter(([, v]) => v !== undefined)
+      ) as { name?: string; url?: string; license?: string },
     };
   } else {
     // 2) Live Wikimedia / Wikipedia / curated-override lookup on the hero title.
@@ -827,11 +829,13 @@ async function publishContent(
         imageUrl: liveResolved.imageUrl,
         imageSource: "wikidata",
         imageConfidence: liveResolved.confidence,
-        imageAttribution: {
-          name: liveResolved.author,
-          url: liveResolved.pageUrl,
-          license: liveResolved.license,
-        },
+        imageAttribution: Object.fromEntries(
+          Object.entries({
+            name: liveResolved.author,
+            url: liveResolved.pageUrl,
+            license: liveResolved.license,
+          }).filter(([, v]) => v !== undefined)
+        ) as { name?: string; url?: string; license?: string },
       };
     } else {
       // 3) Last resort: Gemini editorial cartoon. Reuses any cached gemini_ai
@@ -844,7 +848,11 @@ async function publishContent(
           imageUrl: aiResult.imageUrl,
           imageSource: "gemini_ai",
           imageConfidence: aiResult.confidence,
-          imageAttribution: aiResult.attribution,
+          imageAttribution: aiResult.attribution
+            ? (Object.fromEntries(
+                Object.entries(aiResult.attribution).filter(([, v]) => v !== undefined)
+              ) as { name?: string; url?: string; license?: string })
+            : undefined,
         };
       } else {
         heroImage = { imageUrl: "", imageSource: "branded" };

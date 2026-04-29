@@ -29,7 +29,7 @@ const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
  * Maximum number of NEW eligible items to queue per tick.
  * Prevents quota exhaustion on the Gemini / Firestore free tiers.
  */
-const MAX_NEW_ITEMS_PER_RUN = 20;
+const MAX_NEW_ITEMS_PER_RUN = 40;
 
 function getHaitiDateKey(date: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -117,13 +117,32 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     const cutoff = new Date();
     cutoff.setHours(cutoff.getHours() - 72);
 
-    const items: Item[] = recentItems.filter((item) => {
+    const recentFiltered: Item[] = recentItems.filter((item) => {
       if (!item.createdAt) return false;
       const createdAt = typeof item.createdAt === "object" && "seconds" in item.createdAt
         ? new Date((item.createdAt as any).seconds * 1000)
         : new Date();
       return createdAt >= cutoff;
     });
+
+    // ── Opportunity/scholarship backlog ───────────────────────────────
+    // Scholarship and opportunity items are evergreen — they remain relevant
+    // for weeks after ingest. They are often promoted by discoverScholarships
+    // days after the original ingest, which puts them outside the 72h window.
+    // Fetch them separately so they're always evaluated regardless of age.
+    let oppBacklog: Item[] = [];
+    try {
+      oppBacklog = await itemsRepo.listOpportunitiesForIgBackfill(150);
+    } catch (err) {
+      console.warn("[buildIgQueue] opportunity backlog query failed:", err instanceof Error ? err.message : err);
+    }
+
+    // Merge: recent items first, then opp backlog (deduped by id)
+    const seen = new Set<string>(recentFiltered.map((i) => i.id));
+    const items: Item[] = [
+      ...recentFiltered,
+      ...oppBacklog.filter((i) => !seen.has(i.id)),
+    ];
 
     // ── Histoire date-freshness gate ───────────────────────────────────
     // Only allow histoire items whose target date matches today.
@@ -173,10 +192,12 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     }
 
     // ── Batch pre-load existing ig_queue entries (saves ~500 reads/tick) ──
-    // One query for all queue entries created in the last 4 days instead of
-    // one findBySourceContentId call per item. Prevents Firestore quota exhaustion.
+    // One query for all queue entries — extended to 30 days so that opportunity
+    // items (which are evergreen and may be re-evaluated from the backlog weeks
+    // after posting) are not re-queued. Firestore cost is minimal (single query,
+    // ~200 documents total in the ig_queue).
     const queueWindowCutoff = new Date();
-    queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 4);
+    queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 30);
     const existingSourceIds = await igQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
     // Pre-load source cache for igImageSafe lookup
