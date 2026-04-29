@@ -140,8 +140,16 @@ gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.serv
 - `FIREBASE_PROJECT_ID` — GCP project ID
 - `GEMINI_API_KEY` — Google Gemini API key
 - `FIREBASE_STORAGE_BUCKET` — Storage bucket name
+- `SEARXNG_URL` — Cloud Run URL of `edlight-news-searxng` (Brave fallback)
 - `PROCESS_BATCH_LIMIT` — Max items to process per tick (default: 15)
 - `IMAGE_BATCH_LIMIT` — Max images to generate per tick (default: 5)
+
+### SearXNG (production)
+- Deployed by `.github/workflows/deploy-worker.yml` as Cloud Run service:
+  `edlight-news-searxng`
+- Worker is wired automatically with:
+  `SEARXNG_URL=${{ steps.searxng_url.outputs.url }}` during deploy
+- This means SearXNG fallback works on the live website (not local-only)
 
 ### GitHub Actions pipeline.yml
 - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` — Firebase Admin SA credentials
