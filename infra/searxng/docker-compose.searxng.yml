@@ -1,0 +1,31 @@
+# SearXNG — self-hosted metasearch engine for image/web search fallback.
+#
+# Run alongside the worker:
+#   docker compose -f infra/searxng/docker-compose.searxng.yml up -d
+#
+# Then set SEARXNG_URL=http://searxng:8080 (or http://localhost:8080 for local dev)
+# in the worker's environment.
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: edlight-searxng
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./settings.yml:/etc/searxng/settings.yml:ro
+      - searxng-data:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    mem_limit: 256m
+    cpus: 0.5
+
+volumes:
+  searxng-data:

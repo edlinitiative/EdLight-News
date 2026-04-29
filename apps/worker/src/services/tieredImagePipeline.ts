@@ -23,6 +23,7 @@ import { classifyStory, extractPersonName } from "./storyClassifier.js";
 import { searchLibraryOfCongress } from "./locSearch.js";
 import { computeImageScore } from "./imageScoring.js";
 import { detectPersonName } from "./wikidata.js";
+import { searchSearxngImages, searxngDelay, INTER_QUERY_DELAY_MS } from "./searxngImageSearch.js";
 
 // ── Re-export for backward compat ──────────────────────────────────────────
 
@@ -464,15 +465,31 @@ export async function findTieredImage(
   // Collect candidates from ALL tiers — best score wins regardless of tier
   const candidates: ImageCandidate[] = [];
 
-  // ── Tier 1: Brave Image Search (contextual editorial images) ───────────
+  // ── Tier 1a: Brave Image Search (contextual editorial images) ──────────
   // Finds the *actual* image for the story — the real politician, the real
   // event, the real location — not a generic stock photo.
+  let braveFound = false;
   for (const query of queries.slice(0, 2)) {
     const braveResult = await searchBraveImages(query, storyType, personName ?? undefined);
     if (braveResult) {
       candidates.push(braveResult);
+      braveFound = true;
       // High-score contextual hit? No need to try more queries
       if (braveResult.score >= 55) break;
+    }
+  }
+
+  // ── Tier 1b: SearXNG Image Search (fallback when Brave is unavailable) ─
+  // Self-hosted metasearch — free, no API key, unlimited queries.
+  // Only runs when Brave returned nothing (no key, quota exhausted, errors).
+  if (!braveFound) {
+    for (const query of queries.slice(0, 2)) {
+      const searxngResult = await searchSearxngImages(query, storyType, personName ?? undefined);
+      if (searxngResult) {
+        candidates.push(searxngResult);
+        if (searxngResult.score >= 55) break;
+      }
+      await searxngDelay(INTER_QUERY_DELAY_MS);
     }
   }
 

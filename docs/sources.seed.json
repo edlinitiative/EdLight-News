@@ -950,57 +950,7 @@
     "pollCadenceSec": 86400,
     "priority": "normal"
   },
-  {
-    "_group": "opportunities",
-    "_comment": "COLFUTURO — Colombia's main fellowship programme for postgrad abroad; many Haitian diaspora in Colombia are eligible",
-    "name": "COLFUTURO — Becas Colombia (via Google News)",
-    "type": "rss",
-    "url": "https://news.google.com/rss/search?q=COLFUTURO+beca+OR+bourse+%22Am%C3%A9rica+Latina%22+OR+Haiti+2026+OR+2027&hl=es&gl=CO&ceid=CO:es",
-    "language": "fr",
-    "pollCadenceSec": 86400,
-    "priority": "normal"
-  },
-  {
-    "_group": "opportunities",
-    "_comment": "ANID Chile (ex-CONICYT) — postgrad scholarships open to Latin America & Caribbean nationals",
-    "name": "ANID Chile — Becas Latinoamérica (via Google News)",
-    "type": "rss",
-    "url": "https://news.google.com/rss/search?q=ANID+OR+CONICYT+beca+OR+scholarship+%22Am%C3%A9rica+Latina%22+OR+Caribbean+Haiti+2026+OR+2027&hl=es&gl=CL&ceid=CL:es",
-    "language": "fr",
-    "pollCadenceSec": 86400,
-    "priority": "normal"
-  },
-  {
-    "_group": "opportunities",
-    "_comment": "SENESCYT Ecuador — national scholarship programme; some tracks open to Haitian diaspora and Latin America",
-    "name": "SENESCYT Ecuador — Becas (via Google News)",
-    "type": "rss",
-    "url": "https://news.google.com/rss/search?q=SENESCYT+beca+OR+scholarship+Haiti+OR+%22Am%C3%A9rica+Latina%22+2026+OR+2027&hl=es&gl=EC&ceid=EC:es",
-    "language": "fr",
-    "pollCadenceSec": 86400,
-    "priority": "normal"
-  },
-  {
-    "_group": "opportunities",
-    "_comment": "CAPES Brazil — postgraduate fellowships for international students; Brazil-Haiti student agreements exist",
-    "name": "CAPES Brazil — Bourses internationales (via Google News)",
-    "type": "rss",
-    "url": "https://news.google.com/rss/search?q=CAPES+bourse+OR+bolsa+OR+fellowship+Haiti+OR+Cara%C3%AFbes+OR+francophone+2026+OR+2027&hl=fr&gl=BR&ceid=BR:fr",
-    "language": "fr",
-    "pollCadenceSec": 86400,
-    "priority": "normal"
-  },
-  {
-    "_group": "opportunities",
-    "_comment": "Broader Latin America + Caribbean scholarship sweep — Spanish-language signals for Haitian diaspora in LATAM",
-    "name": "Google News — Becas Latinoamérica & Caraïbes",
-    "type": "rss",
-    "url": "https://news.google.com/rss/search?q=beca+OR+scholarship+%22Am%C3%A9rica+Latina%22+OR+Caribe+Haiti+2026+OR+2027&hl=es&gl=US&ceid=US:es",
-    "language": "fr",
-    "pollCadenceSec": 14400,
-    "priority": "normal",
-    "igImageSafe": false
-  },
+
   {
     "_group": "opportunities",
     "_comment": "General fully-funded international scholarships — English-language signal sweep for programmes open to Haiti nationals",

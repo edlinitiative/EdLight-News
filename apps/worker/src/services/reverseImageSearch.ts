@@ -23,6 +23,7 @@ import type { Item } from "@edlight-news/types";
 import type { ImageCandidate } from "./imageTypes.js";
 import { computeImageScore } from "./imageScoring.js";
 import { findVisionMatch } from "./googleVisionSearch.js";
+import { searchSearxngForHQImage } from "./searxngImageSearch.js";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -313,17 +314,32 @@ export async function findHighResVersion(
   console.log(`[reverseImageSearch] Brave fallback query: "${query}"`);
 
   // Search Brave Images
-  const result = await searchBraveForHQImage(query, item);
+  const braveResult = await searchBraveForHQImage(query, item);
 
-  if (result) {
+  if (braveResult) {
     console.log(
       `[reverseImageSearch] ✅ Found HQ match for ${item.id}: ` +
-      `${result.width}×${result.height} from ${result.sourceDomain} ` +
-      `(score=${result.score.toFixed(1)})`,
+      `${braveResult.width}×${braveResult.height} from ${braveResult.sourceDomain} ` +
+      `(score=${braveResult.score.toFixed(1)})`,
+    );
+    return braveResult;
+  }
+
+  // ── Step 3: SearXNG fallback (self-hosted metasearch) ──────────────────
+  // When Brave has no API key or returned nothing, try SearXNG which
+  // aggregates Google/Bing/DDG image results — free and unlimited.
+  console.log(`[reverseImageSearch] Brave found nothing — trying SearXNG for ${item.id}…`);
+  const searxngResult = await searchSearxngForHQImage(query);
+
+  if (searxngResult) {
+    console.log(
+      `[reverseImageSearch] ✅ SearXNG HQ match for ${item.id}: ` +
+      `${searxngResult.width}×${searxngResult.height} from ${searxngResult.sourceDomain} ` +
+      `(score=${searxngResult.score.toFixed(1)})`,
     );
   } else {
     console.log(`[reverseImageSearch] ⚠️  No HQ match found for ${item.id}`);
   }
 
-  return result;
+  return searxngResult;
 }

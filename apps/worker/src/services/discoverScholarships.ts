@@ -117,7 +117,7 @@ function buildCreatePayload(
   let eligibleCountries: string[] | undefined = data.eligibleCountries?.filter(Boolean);
   if (!eligibleCountries || eligibleCountries.length === 0) {
     if (data.haitianEligible === true) eligibleCountries = ["HT"];
-    else eligibleCountries = ["HT"]; // default: Haiti-focused audience
+    else eligibleCountries = undefined; // not Haiti-eligible — let downstream gates decide
   } else if (data.haitianEligible === true && !eligibleCountries.includes("HT")) {
     eligibleCountries = [...eligibleCountries, "HT"];
   }

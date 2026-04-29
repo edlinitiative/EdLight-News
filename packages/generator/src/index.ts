@@ -263,11 +263,23 @@ export function buildContentVersionPayloads(
     status = "review";
     draftReason = "Needs review (opportunity missing deadline/eligibility)";
   } else if (qualityFlags.lowConfidence) {
-    status = "draft";
-    draftReason = `Low confidence (${draft.confidence})`;
+    // Opportunity/scholarship items are exempt from the lowConfidence draft
+    // gate — their value comes from structured fields, not body text.
+    const isOppCategory = ["scholarship", "opportunity", "bourses", "concours", "stages", "programmes"]
+      .includes(category ?? "");
+    if (!isOppCategory) {
+      status = "draft";
+      draftReason = `Low confidence (${draft.confidence})`;
+    }
   } else if (audienceFitScore !== undefined && audienceFitScore < PUBLISH_SCORE_THRESHOLD) {
-    status = "draft";
-    draftReason = `Low audience-fit score (${audienceFitScore.toFixed(2)})`;
+    // Opportunity/scholarship items are exempt — a Global scholarship for
+    // "developing countries" scores low on Haiti keywords but is still valuable.
+    const isOppCategory = ["scholarship", "opportunity", "bourses", "concours", "stages", "programmes"]
+      .includes(category ?? "");
+    if (!isOppCategory) {
+      status = "draft";
+      draftReason = `Low audience-fit score (${audienceFitScore.toFixed(2)})`;
+    }
   }
 
   const base = {

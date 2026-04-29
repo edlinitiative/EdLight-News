@@ -38,7 +38,7 @@ export interface ImageCandidate {
   url: string;
 
   /** Which search backend found this image */
-  source: "unsplash" | "wikimedia" | "flickr" | "loc" | "wikidata" | "official" | "brave";
+  source: "unsplash" | "wikimedia" | "flickr" | "loc" | "wikidata" | "official" | "brave" | "searxng";
 
   /** Which tier this source belongs to */
   tier: ImageSourceTier;

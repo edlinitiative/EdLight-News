@@ -161,11 +161,12 @@ export function computeScoring(title: string, body: string, category?: string): 
   if (haitiHits >= 2) geoTag = "HT";
   else if (haitiHits >= 1 || normalizeForSearch(text).includes("diaspora")) geoTag = "Diaspora";
 
-  // For opportunity/resource items, allow Global only if student-relevant
+  // For resource items with Global geoTag, penalize if no student markers
+  // (prevents generic global content from ranking high).
+  // Opportunity/scholarship categories are exempt — their category
+  // classification itself is already strong evidence of relevance.
   if (
-    (category === "scholarship" || category === "resource" ||
-     category === "bourses" || category === "concours" ||
-     category === "stages" || category === "programmes")
+    category === "resource"
     && geoTag === "Global"
   ) {
     if (studentHits === 0) {

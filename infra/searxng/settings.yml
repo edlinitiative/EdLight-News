@@ -1,0 +1,82 @@
+# SearXNG settings for EdLight-News image search fallback.
+#
+# Optimised for:
+#  - JSON API access (no browser UI needed)
+#  - Image search from multiple engines
+#  - Strict safe search
+#  - Minimal resource usage
+
+use_default_settings: true
+
+general:
+  instance_name: "EdLight SearXNG"
+  debug: false
+
+search:
+  safe_search: 2          # 0=off, 1=moderate, 2=strict
+  default_lang: "fr"
+  autocomplete: ""
+  formats:
+    - json
+    - html
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "edlight-searxng-secret-change-in-prod"
+  limiter: false           # No rate limiting — internal use only
+  image_proxy: false       # Don't proxy images, we fetch them directly
+  method: "GET"
+
+ui:
+  static_use_hash: true
+
+# Enable engines we need for image search
+engines:
+  # ── Image search engines ──────────────────────────────────────────────
+  - name: google images
+    engine: google_images
+    shortcut: gimg
+    disabled: false
+
+  - name: bing images
+    engine: bing_images
+    shortcut: bimg
+    disabled: false
+
+  - name: duckduckgo images
+    engine: duckduckgo_images
+    shortcut: ddgimg
+    disabled: false
+
+  # ── Web search engines (for webImageSearch fallback) ──────────────────
+  - name: google
+    engine: google
+    shortcut: g
+    disabled: false
+
+  - name: bing
+    engine: bing
+    shortcut: b
+    disabled: false
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    disabled: false
+
+  # ── Disable engines we don't need to save resources ───────────────────
+  - name: wikipedia
+    engine: wikipedia
+    disabled: true
+
+  - name: wikidata
+    engine: wikidata
+    disabled: true
+
+outgoing:
+  request_timeout: 8.0     # seconds per upstream engine
+  max_request_timeout: 12.0
+  useragent_suffix: "EdLight-News"
+  pool_connections: 50
+  pool_maxsize: 20
