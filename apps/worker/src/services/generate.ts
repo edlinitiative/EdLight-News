@@ -25,7 +25,7 @@ function slugToDedupeGroupId(slug: string): string {
 }
 
 /** Max items to generate per tick (Gemini calls are ~2-5s each) */
-const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "5", 10);
+const BATCH_LIMIT = parseInt(process.env.GENERATE_BATCH_LIMIT ?? "15", 10);
 
 /**
  * Items scoring below this at ingest are skipped entirely — no Gemini call.
@@ -174,8 +174,13 @@ export async function generateForItems(): Promise<{
         continue;
       }
 
-      // Relevance gate: skip content not relevant to Haiti
-      if (!draft.haiti_relevant) {
+      // Relevance gate: skip content not relevant to Haiti.
+      // Exception: opportunity/scholarship items are valuable even when the
+      // source text doesn't explicitly mention Haiti (e.g. "Fully funded
+      // scholarship for developing countries" is relevant to Haitian students).
+      const isOpportunityCat = ["scholarship", "opportunity", "bourses", "concours", "stages", "programmes"]
+        .includes(draft.extracted.category);
+      if (!draft.haiti_relevant && !isOpportunityCat) {
         console.log(`[generate] SKIPPED item ${item.id} — not Haiti-relevant ("${draft.title_fr.slice(0, 60)}…")`);
         skipped++;
         continue;
@@ -339,6 +344,10 @@ export async function generateForItems(): Promise<{
       const isSuccessStory =
         classification.isSuccessStory || draft.is_success_story === true;
 
+      // Mark deadline-less opportunities as evergreen so the IG selection
+      // gate doesn't reject them for "missing deadline (non-evergreen)".
+      const isEvergreen = isOpportunityType && !finalDeadline;
+
       await itemsRepo.updateItem(item.id, {
         category: finalCategory,
         vertical: finalVertical,
@@ -350,6 +359,7 @@ export async function generateForItems(): Promise<{
         ...(finalOpportunity ? { opportunity: finalOpportunity } : {}),
         ...(semanticGroupId ? { dedupeGroupId: semanticGroupId } : {}),
         ...(isSuccessStory ? { successTag: true } : {}),
+        ...(isEvergreen ? { evergreen: true } : {}),
       });
 
       // Build FR + HT content_version payloads with quality gates

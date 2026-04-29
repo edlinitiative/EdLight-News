@@ -15,6 +15,8 @@
  * Le Nouvelliste, DLOC, etc. often have the actual historical photographs.
  */
 
+import { searchSearxngWeb } from "./searxngImageSearch.js";
+
 /* ── Types ──────────────────────────────────────────────────────────── */
 
 export interface WebImageResult {
@@ -306,23 +308,39 @@ async function searchGoogle(query: string): Promise<string[]> {
 }
 
 /**
+ * Search SearXNG (self-hosted metasearch) for web page URLs.
+ * Wraps the shared searxngImageSearch module's web search function.
+ */
+async function searchSearxngWebFallback(query: string): Promise<string[]> {
+  try {
+    return await searchSearxngWeb(query);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Multi-engine search: prefers Brave API (reliable, rate-limited by quota),
- * then falls back to HTML scraping: Brave → DDG → Google.
+ * then SearXNG (self-hosted metasearch), then HTML scraping: Brave → DDG → Google.
  */
 export async function searchWeb(query: string): Promise<string[]> {
   // 1. Brave Search API (best: structured JSON, no scraping)
   let results = await searchBraveAPI(query);
   if (results.length >= 2) return results;
 
-  // 2. Brave HTML scraping fallback
+  // 2. SearXNG (self-hosted, free, unlimited — fallback when Brave unavailable)
+  results = await searchSearxngWebFallback(query);
+  if (results.length >= 2) return results;
+
+  // 3. Brave HTML scraping fallback
   results = await searchBraveHTML(query);
   if (results.length >= 2) return results;
 
-  // 3. DDG fallback
+  // 4. DDG fallback
   results = await searchDDG(query);
   if (results.length >= 2) return results;
 
-  // 4. Google as last resort
+  // 5. Google as last resort
   results = await searchGoogle(query);
   return results;
 }

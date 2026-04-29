@@ -361,7 +361,17 @@ function hasRealOpportunityFields(item: Item): boolean {
   );
   const canonicalUrl = item.canonicalUrl ?? item.source?.originalUrl ?? "";
   const hasCanonicalLink = canonicalUrl.length > 5 && !isNewsUrl(canonicalUrl);
-  const hasActionableLink = hasHowToApply || hasOfficialLink || hasCanonicalLink;
+  // Many real scholarship announcements appear on news sites (Juno7, Le
+  // Nouvelliste, etc.) — if we have howToApply or officialLink that's ideal,
+  // but a news-domain canonicalUrl is still acceptable when strong structured
+  // opportunity signals exist (eligibility array has multiple entries, or
+  // coverage/deadline is present).
+  const hasNewsCanonical = canonicalUrl.length > 5 && isNewsUrl(canonicalUrl);
+  const hasStrongOppSignals =
+    (opp.eligibility?.length ?? 0) >= 2 ||
+    (opp.coverage?.trim().length ?? 0) > 10 ||
+    (opp.deadline?.trim().length ?? 0) > 0;
+  const hasActionableLink = hasHowToApply || hasOfficialLink || hasCanonicalLink || (hasNewsCanonical && hasStrongOppSignals);
   if (!hasActionableLink) return false;
 
   // Thin-content guard: Google News RSS items may carry minimal extracted text.
@@ -422,17 +432,28 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Quality flags: needs review or low confidence → not ready for IG
-  if (item.qualityFlags?.needsReview || item.qualityFlags?.lowConfidence) {
+  // Quality flags: needs review → not ready for IG
+  if (item.qualityFlags?.needsReview) {
     return {
       igEligible: false,
       igType,
       igPriorityScore: 0,
-      reasons: [
-        item.qualityFlags?.needsReview
-          ? "Flagged as needs review"
-          : "Flagged as low confidence",
-      ],
+      reasons: ["Flagged as needs review"],
+    };
+  }
+
+  // Quality flags: low confidence → not ready for IG.
+  // Exception: scholarship/opportunity items derive their value from structured
+  // fields (deadline, eligibility, link), not body-text richness. Blocking them
+  // on lowConfidence — which fires whenever extractedText is empty (most RSS
+  // items) — prevents ANY opportunity from ever reaching IG.
+  const isOppType = igType === "scholarship" || igType === "opportunity";
+  if (item.qualityFlags?.lowConfidence && !isOppType) {
+    return {
+      igEligible: false,
+      igType,
+      igPriorityScore: 0,
+      reasons: ["Flagged as low confidence"],
     };
   }
 

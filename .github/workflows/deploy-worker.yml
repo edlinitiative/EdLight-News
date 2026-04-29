@@ -19,6 +19,7 @@ on:
       - "packages/types/**"
       - "tsconfig.base.json"
       - "infra/firebase/firestore.indexes.json"
+      - "infra/searxng/**"
       - ".github/workflows/deploy-worker.yml"
   workflow_dispatch:
 
@@ -27,6 +28,8 @@ env:
   REGION: us-central1
   SERVICE: edlight-news-worker
   IMAGE: us-central1-docker.pkg.dev/edlight-news/edlight-news/worker
+  SERVICE_SEARXNG: edlight-news-searxng
+  IMAGE_SEARXNG: us-central1-docker.pkg.dev/edlight-news/edlight-news/searxng
 
 jobs:
   # ── Gate: regression tests must pass before any image is built/deployed ──
@@ -195,6 +198,50 @@ jobs:
           docker push ${{ env.IMAGE }}:${{ github.sha }}
           docker push ${{ env.IMAGE }}:latest
 
+      # ── Build & deploy SearXNG fallback service (Cloud Run) ──────────────
+      - name: Build SearXNG Docker image
+        run: |
+          docker build \
+            --file infra/searxng/Dockerfile \
+            --tag ${{ env.IMAGE_SEARXNG }}:${{ github.sha }} \
+            --tag ${{ env.IMAGE_SEARXNG }}:latest \
+            infra/searxng
+
+      - name: Push SearXNG Docker image
+        run: |
+          docker push ${{ env.IMAGE_SEARXNG }}:${{ github.sha }}
+          docker push ${{ env.IMAGE_SEARXNG }}:latest
+
+      - name: Deploy SearXNG to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: ${{ env.SERVICE_SEARXNG }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_SEARXNG }}:${{ github.sha }}
+          flags: >-
+            --min-instances=0
+            --max-instances=1
+            --memory=512Mi
+            --cpu=1
+            --timeout=120
+            --allow-unauthenticated
+
+      - name: Get SearXNG service URL
+        id: searxng_url
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_SEARXNG }} \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Set IAM policy for unauthenticated SearXNG access
+        run: |
+          gcloud run services add-iam-policy-binding ${{ env.SERVICE_SEARXNG }} \
+            --region=${{ env.REGION }} \
+            --member="allUsers" \
+            --role="roles/run.invoker" \
+            --quiet || echo "WARNING: Could not set IAM policy for SearXNG"
+
       # ── Deploy to Cloud Run (scale-to-zero, auth-required) ─────────────────
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v3
@@ -238,8 +285,9 @@ jobs:
             Unsplash_ACCESS_KEY=${{ secrets.UNSPLASH_ACCESS_KEY }}
             WORKER_API_KEY=${{ secrets.WORKER_API_KEY }}
             GOOGLE_VISION_API_KEY=${{ secrets.GOOGLE_VISION_API_KEY }}
-            PROCESS_BATCH_LIMIT=10
-            GENERATE_BATCH_LIMIT=3
+            SEARXNG_URL=${{ steps.searxng_url.outputs.url }}
+            PROCESS_BATCH_LIMIT=25
+            GENERATE_BATCH_LIMIT=15
             IMAGE_BATCH_LIMIT=5
             IG_LLM_VALIDATE_PUBLISHER=true
             IG_LLM_IMAGE_FINDER=true
@@ -349,7 +397,9 @@ jobs:
           echo "### ✅ Worker deployed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Service:** ${{ steps.service_url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **SearXNG:** ${{ steps.searxng_url.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** \`${{ env.IMAGE }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **SearXNG Image:** \`${{ env.IMAGE_SEARXNG }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Scheduler (full pipeline):** \`*/15 * * * *\` (every 15 min)" >> $GITHUB_STEP_SUMMARY
           echo "- **Scheduler (IG fast-path):** \`*/3 * * * *\` (every 3 min)" >> $GITHUB_STEP_SUMMARY
           echo "- **Memory:** 2Gi, scale-to-zero" >> $GITHUB_STEP_SUMMARY

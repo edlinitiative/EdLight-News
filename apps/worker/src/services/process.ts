@@ -12,7 +12,7 @@ import { classifyItem } from "./classify.js";
 import { mirrorPublisherImage } from "./mirrorPublisherImage.js";
 
 /** Max raw_items to process per tick (article extraction can be slow) */
-const BATCH_LIMIT = parseInt(process.env.PROCESS_BATCH_LIMIT ?? "10", 10);
+const BATCH_LIMIT = parseInt(process.env.PROCESS_BATCH_LIMIT ?? "25", 10);
 
 export async function processRawItems(): Promise<{
   processed: number;
