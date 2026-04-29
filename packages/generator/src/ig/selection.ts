@@ -482,7 +482,10 @@ export function decideIG(item: Item): IGDecision {
 
   // Thin-content gate: news articles with very short body text either get
   // demoted to a breaking-news single-slide (80-199 words) or rejected (<80).
-  if (igType === "news") {
+  // Exception: weakSource items (RSS-only, no extracted article text) pass through
+  // because their IG content is built from generated content_versions in
+  // buildIgQueue — the raw item text is irrelevant for those.
+  if (igType === "news" && !item.qualityFlags?.weakSource) {
     const bodyText = item.extractedText ?? item.summary ?? "";
     const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
     if (wordCount < 80) {
