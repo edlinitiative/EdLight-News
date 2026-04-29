@@ -211,7 +211,7 @@ html {
     @apply bg-[#f5f0ee] text-[#464555] border-[#c7c4d8]/10 hover:border-[#3525cd]/20;
   }
   .dark .filter-chip-active {
-    @apply bg-[#c3c0ff]/12 text-[#c3c0ff] border-[#c3c0ff]/30;
+    @apply bg-[#c3c0ff]/[12%] text-[#c3c0ff] border-[#c3c0ff]/30;
   }
   .dark .filter-chip-inactive {
     @apply bg-stone-800 text-stone-300 border-stone-700/30;
