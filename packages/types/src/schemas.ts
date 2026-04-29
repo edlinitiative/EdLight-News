@@ -24,7 +24,7 @@ const qualityFlagsSchema = z.object({
   weakSource: z.boolean().optional(),
   missingDeadline: z.boolean().optional(),
   offMission: z.boolean().optional(),
-  reasons: z.array(z.string()),
+  reasons: z.array(z.string()).default([]),
 });
 
 const sourceSelectorsSchema = z.object({
@@ -237,6 +237,8 @@ export const rawItemSchema = z.object({
   url: z.string().url(),
   description: z.string(),
   publishedAt: timestampSchema.nullable(),
+  /** Real publisher URL extracted from Google News <source url="..."> tag */
+  publisherUrl: z.string().url().nullable().optional(),
   status: z.enum(["new", "processed", "skipped"]),
   skipReason: z.string().optional(),
   createdAt: timestampSchema,

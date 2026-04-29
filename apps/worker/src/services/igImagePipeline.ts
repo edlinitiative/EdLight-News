@@ -100,6 +100,34 @@ export async function selectImageForIG(
   const hasPublisherImage = !!item.imageUrl;
   let publisherImageUsable = isItemImageUsableForIG(item);
 
+  // ── CAPTCHA / JS-challenge / error-page image URL pre-filter ──────────
+  // Zero-cost regex gate. Rejects image URLs whose path/filename strongly
+  // indicates a bot-detection page, a Cloudflare screen, or an error page.
+  // This catches the "MS-13" case (lenouvelliste.com served a JS-challenge
+  // interstitial whose og:image was lenouvelliste.com/article/...) and the
+  // "CAPTCHA og:image" case before wasting a Gemini API call.
+  if (publisherImageUsable && hasPublisherImage) {
+    const url = item.imageUrl!.toLowerCase();
+    const reason =
+      /\/cdn-cgi\//.test(url) ? "Cloudflare challenge image" :
+      /captcha/.test(url) ? "CAPTCHA image" :
+      /challenge/.test(url) ? "JS-challenge image" :
+      /__captcha\//.test(url) ? "CAPTCHA image" :
+      /_cf_chl_/.test(url) ? "Cloudflare challenge image" :
+      /recaptcha/.test(url) ? "reCAPTCHA image" :
+      /stc=/.test(url) ? "Cloudfront bot-detection image" :
+      /turnstile/.test(url) ? "Turnstile challenge image" :
+      /error/.test(url) && url.includes("/wp-content/uploads/") ? "Error image upload" :
+      null;
+    if (reason) {
+      console.log(
+        `[igImagePipeline] CAPTCHA/error-page image URL pre-filter rejected ${item.id}: ${reason}`,
+      );
+      publisherImageUsable = false;
+      igImageSafe = false;
+    }
+  }
+
   // ── Path A: item has a publisher image ────────────────────────────────
   if (hasPublisherImage) {
     // A.1 Vision-validate the publisher image when the dimensions/CDN gates
