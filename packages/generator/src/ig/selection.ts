@@ -443,12 +443,20 @@ export function decideIG(item: Item): IGDecision {
   }
 
   // Quality flags: low confidence → not ready for IG.
-  // Exception: scholarship/opportunity items derive their value from structured
-  // fields (deadline, eligibility, link), not body-text richness. Blocking them
-  // on lowConfidence — which fires whenever extractedText is empty (most RSS
-  // items) — prevents ANY opportunity from ever reaching IG.
+  // Exceptions:
+  // 1. Scholarship/opportunity items derive their value from structured fields
+  //    (deadline, eligibility, link), not body-text richness. Blocking them on
+  //    lowConfidence — which fires whenever extractedText is empty (most RSS
+  //    items) — prevents ANY opportunity from ever reaching IG.
+  // 2. News/breaking items with audienceFitScore ≥ 0.40 are already passing
+  //    the relevance bar. lowConfidence fires routinely for short-body news
+  //    (Gemini extraction confidence < 0.6) but the separate word-count gate
+  //    below is the real quality bar for news content. Blocking ALL 0.4-score
+  //    news on lowConfidence drains the queue completely.
   const isOppType = igType === "scholarship" || igType === "opportunity";
-  if (item.qualityFlags?.lowConfidence && !isOppType) {
+  const isNewsType = igType === "news" || igType === "breaking";
+  const hasAdequateScore = (item.audienceFitScore ?? 0) >= 0.40;
+  if (item.qualityFlags?.lowConfidence && !isOppType && !(isNewsType && hasAdequateScore)) {
     return {
       igEligible: false,
       igType,
