@@ -68,6 +68,12 @@ export function buildSynthesisPrompt(packet: SynthesisPacket): string {
 
   const editorial = editorialBlockForKey("news");
 
+  // Build a list of acceptable source names to prevent hallucination.
+  const sourceNames = packet.sources
+    .map((s) => s.sourceName)
+    .filter((n, i, a) => a.indexOf(n) === i)
+    .join(", ");
+
   return `Tu es rédacteur en chef pour EdLight News, une plateforme d'actualités éducatives pour les étudiants haïtiens.
 
 ${editorial}
@@ -76,21 +82,22 @@ Synthétise les ${packet.sources.length} articles sources ci-dessous sur le MÊM
 ${updateContext}
 RÈGLES STRICTES:
 1. Combine les informations de TOUTES les sources en un récit cohérent et structuré en sections.
-2. CITE LES SOURCES par nom dans le texte (ex: "Selon Le Nouvelliste…").
-3. Identifie les faits CONFIRMÉS par 2+ sources vs les faits rapportés par une seule source.
-4. N'INVENTE JAMAIS d'information absente des sources.
-5. Sois concis, précis et utile pour un étudiant haïtien.
-6. Chaque section doit avoir un titre clair et un contenu informatif (2-3 phrases complètes).
-7. Le "what_changed" doit être null pour une nouvelle synthèse, ou une phrase décrivant les changements pour une mise à jour.
-8. Les tags doivent refléter le statut global:
+2. CITE LES SOURCES par nom dans le texte (ex: "Selon Le Nouvelliste…"). Les noms de sources AUTORISÉS sont UNIQUEMENT: ${sourceNames}. N'invente JAMAIS un nom de source qui n'est pas dans cette liste. Si tu ne retrouves pas un nom exact, utilise "une source".
+3. NOMS PROPRES: Toute personne, organisation, institution, ville, ou lieu que tu mentionnes DOIT apparaître textuellement dans au moins une des sources. Tu n'as pas le droit d'ajouter un nom qui n'apparaît pas dans les textes fournis. Si un nom est absent des sources, ne l'écris pas.
+4. Identifie les faits CONFIRMÉS par 2+ sources vs les faits rapportés par une seule source.
+5. N'INVENTE JAMAIS d'information absente des sources: pas de statistiques inventées, pas de citations fictives, pas de chronologies imaginaires.
+6. Sois concis, précis et utile pour un étudiant haïtien.
+7. Chaque section doit avoir un titre clair et un contenu informatif (2-3 phrases complètes).
+8. Le "what_changed" doit être null pour une nouvelle synthèse, ou une phrase décrivant les changements pour une mise à jour.
+9. Les tags doivent refléter le statut global:
    - "confirmed" = faits corroborés par 2+ sources
    - "unconfirmed" = rapporté par 1 seule source
    - "evolving" = situation en cours d'évolution
-9. LIMITES INSTAGRAM (IMPÉRATIF): Les sections sont affichées sur des slides Instagram.
+10. LIMITES INSTAGRAM (IMPÉRATIF): Les sections sont affichées sur des slides Instagram.
    - "heading" de chaque section : MAX 70 CARACTÈRES. Titre court, percutant, sans ponctuation finale.
    - "content" de chaque section : MAX 500 CARACTÈRES. Exactement 2-3 phrases complètes. Chaque phrase doit avoir un sens complet — ne jamais couper une phrase à mi-chemin.
    - "summary_fr" / "summary_ht" : MAX 300 CARACTÈRES. 2 phrases maximum. Elles sont affichées en gros sur stories Instagram.
-10. IG_NARRATIVE (CARROUSEL INSTAGRAM): Écris ig_narrative comme 4–6 phrases en français qui forment un récit continu: phrase 1 = le fait central, phrase 2 = conséquence immédiate, phrase 3 = contexte, phrase 4+ = ce que ça signifie pour le lecteur. Chaque phrase doit s'enchaîner naturellement avec la suivante. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". Le texte doit pouvoir être coupé en 2–3 slides sans perte de sens.
+11. IG_NARRATIVE (CARROUSEL INSTAGRAM): Écris ig_narrative comme 4–6 phrases en français qui forment un récit continu: phrase 1 = le fait central, phrase 2 = conséquence immédiate, phrase 3 = contexte, phrase 4+ = ce que ça signifie pour le lecteur. Chaque phrase doit s'enchaîner naturellement avec la suivante. PAS de parenthèses, PAS de crochets — récris les détails comme "X (Y)" → "X — Y". Le texte doit pouvoir être coupé en 2–3 slides sans perte de sens.
 
 SOURCES:
 ${sourcesBlock}

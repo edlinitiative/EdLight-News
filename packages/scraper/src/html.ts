@@ -5,6 +5,7 @@ export interface HTMLItem {
   title: string;
   url: string;
   description: string;
+  publisherUrl?: string;
 }
 
 export interface ExtractedArticle {
@@ -648,12 +649,66 @@ export async function extractArticleContent(
   const candidates = extractCandidateImages(html, url);
   const picked = pickBestImage(candidates);
 
+  // ── Body-verification: og/twitter images that don't match any article-body
+  // image source are penalized — they often represent a generic site logo or
+  // default fallback, not the actual article illustration.
+  let publisherImageUrl = picked.url;
+  let publisherImageConfidence = picked.confidence;
+
+  if (publisherImageUrl && publisherImageConfidence >= 0.70) {
+    // Build a set of all <img> src values found inside article containers
+    const bodyImgSrcs = new Set<string>();
+    const articleSelectors = [
+      "article",
+      '[role="main"]',
+      ".post-content",
+      ".entry-content",
+      ".article-body",
+      ".story-body",
+      "main",
+    ];
+    for (const sel of articleSelectors) {
+      const container = $(sel).first();
+      if (!container.length) continue;
+      for (const img of container.find("img").toArray()) {
+        const src = $(img).attr("src") || $(img).attr("data-src") || $(img).attr("data-lazy-src");
+        if (src) {
+          const resolved = resolveImageUrl(src.trim(), url);
+          if (resolved) bodyImgSrcs.add(resolved);
+        }
+      }
+      break; // first matching container only
+    }
+
+    // Check if the picked og/twitter image appears verbatim in the article body
+    const appearsInBody = bodyImgSrcs.has(publisherImageUrl);
+
+    if (!appearsInBody && bodyImgSrcs.size > 0) {
+      // The og:image isn't physically present in the article body.
+      // This is a red flag: it may be a site-wide default logo.
+      // Find the highest-scoring body image instead.
+      const bodyCandidates = candidates.filter((c) => c.kind === "body");
+      if (bodyCandidates.length > 0) {
+        // Re-rank body candidates: prefer those whose URL appears inside the body
+        const bodyMatch = bodyCandidates.find((c) => bodyImgSrcs.has(c.url));
+        if (bodyMatch) {
+          publisherImageUrl = bodyMatch.url;
+          publisherImageConfidence = Math.min(0.82, bodyMatch.scoreHint + 0.12);
+        }
+      } else {
+        // No body candidates from our candidate system.
+        // Penalize the og:image confidence to 0.55 max so mirrors are less aggressive.
+        publisherImageConfidence = Math.min(0.55, publisherImageConfidence);
+      }
+    }
+  }
+
   return {
     title,
     text,
     publishedAt,
     canonicalUrl,
-    publisherImageUrl: picked.url,
-    publisherImageConfidence: picked.confidence,
+    publisherImageUrl,
+    publisherImageConfidence,
   };
 }

@@ -432,8 +432,14 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Quality flags: needs review → not ready for IG
-  if (item.qualityFlags?.needsReview) {
+  // Quality flags: needs review → not ready for IG.
+  // Exception: scholarship/opportunity items are exempt. The needsReview flag
+  // fires for items flagged by old pipeline logic or missing structured fields,
+  // but the actual IG content comes from generated CVs that already passed their
+  // own quality gates. Blocking all scholarship content on needsReview starves
+  // the IG queue of opportunity posts.
+  const isOppIgType = igType === "scholarship" || igType === "opportunity";
+  if (item.qualityFlags?.needsReview && !isOppIgType) {
     return {
       igEligible: false,
       igType,
@@ -443,12 +449,20 @@ export function decideIG(item: Item): IGDecision {
   }
 
   // Quality flags: low confidence → not ready for IG.
-  // Exception: scholarship/opportunity items derive their value from structured
-  // fields (deadline, eligibility, link), not body-text richness. Blocking them
-  // on lowConfidence — which fires whenever extractedText is empty (most RSS
-  // items) — prevents ANY opportunity from ever reaching IG.
-  const isOppType = igType === "scholarship" || igType === "opportunity";
-  if (item.qualityFlags?.lowConfidence && !isOppType) {
+  // Exceptions:
+  // 1. Scholarship/opportunity items derive their value from structured fields
+  //    (deadline, eligibility, link), not body-text richness. Blocking them on
+  //    lowConfidence — which fires whenever extractedText is empty (most RSS
+  //    items) — prevents ANY opportunity from ever reaching IG.
+  // 2. News/breaking items with audienceFitScore ≥ 0.40 are already passing
+  //    the relevance bar. lowConfidence fires routinely for short-body news
+  //    (Gemini extraction confidence < 0.6) but the separate word-count gate
+  //    below is the real quality bar for news content. Blocking ALL 0.4-score
+  //    news on lowConfidence drains the queue completely.
+  const isOppType = isOppIgType;
+  const isNewsType = igType === "news" || igType === "breaking";
+  const hasAdequateScore = (item.audienceFitScore ?? 0) >= 0.40;
+  if (item.qualityFlags?.lowConfidence && !isOppType && !(isNewsType && hasAdequateScore)) {
     return {
       igEligible: false,
       igType,
@@ -474,7 +488,10 @@ export function decideIG(item: Item): IGDecision {
 
   // Thin-content gate: news articles with very short body text either get
   // demoted to a breaking-news single-slide (80-199 words) or rejected (<80).
-  if (igType === "news") {
+  // Exception: weakSource items (RSS-only, no extracted article text) pass through
+  // because their IG content is built from generated content_versions in
+  // buildIgQueue — the raw item text is irrelevant for those.
+  if (igType === "news" && !item.qualityFlags?.weakSource) {
     const bodyText = item.extractedText ?? item.summary ?? "";
     const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
     if (wordCount < 80) {

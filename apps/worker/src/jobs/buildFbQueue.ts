@@ -10,11 +10,11 @@
  */
 
 import {
-  itemsRepo,
+  getDb,
   fbQueueRepo,
   contentVersionsRepo,
 } from "@edlight-news/firebase";
-import type { Item, FbMessagePayload } from "@edlight-news/types";
+import type { Item, ContentVersion, FbMessagePayload } from "@edlight-news/types";
 import {
   isStockMarketFalsePositive,
   lacksScholarshipEvidence,
@@ -187,28 +187,14 @@ function scoreForFb(item: Item): { score: number; reasons: string[] } {
  * Uses the French content version. FB link posts auto-generate
  * a preview card with the article's OpenGraph image and title.
  */
-async function composeFbMessage(item: Item): Promise<FbMessagePayload | null> {
-  let title = item.title;
-  let summary = (item as any).summary ?? "";
-  let articleVersionId: string | null = null;
-  let articleLanguage: "fr" | "ht" = "fr";
-
-  try {
-    const versions = await contentVersionsRepo.listByItemId(item.id);
-    const webVersions = versions.filter((v) => v.channel === "web" && v.status === "published");
-    const selected =
-      webVersions.find((v) => v.language === "fr") ??
-      webVersions[0];
-
-    if (selected) {
-      articleVersionId = selected.id;
-      articleLanguage = selected.language === "ht" ? "ht" : "fr";
-      title = selected.title || title;
-      summary = selected.summary || summary;
-    }
-  } catch {
-    // Versions unavailable — skip because Facebook should link to a live web article.
-  }
+async function composeFbMessage(
+  item: Item,
+  cv: ContentVersion,
+): Promise<FbMessagePayload | null> {
+  const title = cv.title || item.title;
+  const summary = cv.summary || (item as any).summary || "";
+  const articleVersionId = cv.id;
+  const articleLanguage: "fr" | "ht" = cv.language === "ht" ? "ht" : "fr";
 
   if (!title || title.length < 10) return null;
   if (!articleVersionId) return null;
@@ -293,18 +279,35 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
   try {
     const haitiToday = getHaitiDateKey();
 
-    const recentItems = await itemsRepo.listRecentItems(100);
-    const cutoff = new Date();
-    cutoff.setHours(cutoff.getHours() - 48);
+    // Use published web content_versions as the source of truth.
+    // listRecentItems() returns raw scraped items (status=undefined) that have
+    // no content_versions yet — composeFbMessage would return null for all of them.
+    const recentCvs = await contentVersionsRepo.listPublishedForWeb("fr", 200);
 
-    const items: Item[] = recentItems.filter((item) => {
-      if (!item.createdAt) return false;
-      const createdAt =
-        typeof item.createdAt === "object" && "seconds" in item.createdAt
-          ? new Date((item.createdAt as any).seconds * 1000)
-          : new Date();
-      return createdAt >= cutoff;
-    });
+    // Batch-fetch parent items (in chunks of 20 to respect Firestore limits)
+    const itemIds = [...new Set(recentCvs.map((cv) => cv.itemId).filter(Boolean))];
+    const db = getDb();
+    const itemMap = new Map<string, Item>();
+    for (let i = 0; i < itemIds.length; i += 20) {
+      const batch = itemIds.slice(i, i + 20);
+      const refs = batch.map((id) => db.collection("items").doc(id));
+      const snaps = await db.getAll(...refs);
+      for (const snap of snaps) {
+        if (snap.exists) itemMap.set(snap.id, { id: snap.id, ...snap.data() } as Item);
+      }
+    }
+
+    // Build item+cv pairs — one per item (first/French CV wins)
+    const cvByItemId = new Map<string, ContentVersion>();
+    for (const cv of recentCvs) {
+      if (cv.itemId && !cvByItemId.has(cv.itemId)) cvByItemId.set(cv.itemId, cv);
+    }
+    const itemPairs: { item: Item; cv: ContentVersion }[] = [];
+    for (const [itemId, cv] of cvByItemId) {
+      const item = itemMap.get(itemId);
+      if (!item) continue;
+      itemPairs.push({ item, cv });
+    }
 
     const queueWindowCutoff = new Date();
     queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 3);
@@ -313,15 +316,15 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
 
     let newItemsQueued = 0;
 
-    const scoredItems = items
-      .map((item) => {
+    const scoredItems = itemPairs
+      .map(({ item, cv }) => {
         const scored = scoreForFb(item);
-        return { item, score: scored.score, reasons: scored.reasons };
+        return { item, cv, score: scored.score, reasons: scored.reasons };
       })
       .filter((si) => si.score >= MIN_SCORE_THRESHOLD)
       .sort((a, b) => b.score - a.score);
 
-    for (const { item, score, reasons } of scoredItems) {
+    for (const { item, cv, score, reasons } of scoredItems) {
       if (newItemsQueued >= MAX_NEW_ITEMS_PER_RUN) break;
 
       result.evaluated++;
@@ -341,7 +344,7 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           continue;
         }
 
-        const payload = await composeFbMessage(item);
+        const payload = await composeFbMessage(item, cv);
         if (!payload) {
           result.skipped++;
           continue;

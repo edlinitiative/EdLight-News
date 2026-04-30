@@ -1,19 +1,20 @@
 "use client";
 
 /**
- * DeadlineBoard — Compact horizontal strip of upcoming scholarship deadlines.
- * Shows top items sorted by soonest deadline with countdown chips.
- * Clicking "Voir" scrolls to the matching card in the catalogue.
+ * DeadlineBoard — Mobile-first premium upcoming deadlines section.
+ *
+ * Key improvements:
+ *   - Horizontal scroll with snap on mobile, vertical stack on desktop
+ *   - Countdown-style urgency with premium amber/gold palette
+ *   - Touch-friendly compact cards
+ *   - Slide indicators on mobile
+ *   - Accessible countdown labels
  */
 
 import type { ContentLanguage } from "@edlight-news/types";
-import { Clock, ArrowRight } from "lucide-react";
-import {
-  getDeadlineStatus,
-  formatDeadlineDateShort,
-  badgeStyle,
-} from "@/lib/ui/deadlines";
+import { useRef, useState, useEffect, useCallback } from "react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
+import { Clock, CalendarDays, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 interface DeadlineBoardProps {
   scholarships: SerializedScholarship[];
@@ -21,111 +22,280 @@ interface DeadlineBoardProps {
   max?: number;
 }
 
-const COUNTRY_CODES: Record<string, string> = {
-  US: "🇺🇸",
-  CA: "🇨🇦",
-  FR: "🇫🇷",
-  UK: "🇬🇧",
-  DO: "🇩🇴",
-  MX: "🇲🇽",
-  CN: "🇨🇳",
-  RU: "🇷🇺",
-  HT: "🇭🇹",
-  Global: "🌍",
-};
+function daysUntil(dateStr: string | undefined): number | null {
+  if (!dateStr) return null;
+  try {
+    const target = new Date(dateStr);
+    const now = new Date();
+    // Reset time to compare dates only
+    target.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  } catch {
+    return null;
+  }
+}
+
+function formatDeadline(dateStr: string | undefined, lang: ContentLanguage): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    const locale = lang === "fr" ? "fr-FR" : "ht-HT";
+    return d.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProps) {
   const fr = lang === "fr";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const upcoming = scholarships
-    .filter((s) => {
-      if (!s.deadline?.dateISO) return false;
-      const st = getDeadlineStatus(s.deadline.dateISO, lang);
-      return st.daysLeft !== null && st.daysLeft >= 0;
-    })
-    .sort((a, b) => {
-      const aS = getDeadlineStatus(a.deadline!.dateISO!, lang);
-      const bS = getDeadlineStatus(b.deadline!.dateISO!, lang);
-      return (aS.daysLeft ?? 9999) - (bS.daysLeft ?? 9999);
-    })
+  const sorted = scholarships
+    .map((s) => ({ ...s, daysLeft: daysUntil(s.deadline?.dateISO) }))
+    .filter((s) => s.daysLeft !== null && s.daysLeft >= 0)
+    .sort((a, b) => (a.daysLeft ?? Infinity) - (b.daysLeft ?? Infinity))
     .slice(0, max);
 
-  if (upcoming.length === 0) return null;
+  if (sorted.length === 0) return null;
 
-  function scrollToCard(id: string) {
-    const el = document.getElementById(`scholarship-${id}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el.classList.add("ring-2", "ring-[#3525cd]", "ring-offset-2");
-      setTimeout(() => el.classList.remove("ring-2", "ring-[#3525cd]", "ring-offset-2"), 2000);
-    }
-  }
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardW = 300;
+    const gap = 16;
+    el.scrollBy({ left: (cardW + gap) * (dir === "left" ? -1 : 1), behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(updateScrollButtons);
+    ro.observe(el);
+    el.addEventListener("scroll", updateScrollButtons, { passive: true });
+    updateScrollButtons();
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("scroll", updateScrollButtons);
+    };
+  }, [updateScrollButtons]);
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cards = el.querySelectorAll("article");
+    if (!cards.length) return;
+    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
+    let closest = 0;
+    let minDist = Infinity;
+    cards.forEach((card, i) => {
+      const left = (card as HTMLElement).offsetLeft;
+      const w = card.getBoundingClientRect().width;
+      const dist = Math.abs(left + w / 2 - scrollCenter);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    });
+    setActiveIndex(closest);
+    updateScrollButtons();
+  };
+
+  const urgencyColor = (days: number | null): string => {
+    if (days === null) return "";
+    if (days <= 7) return "text-[#93000a] dark:text-red-400 bg-[#93000a]/8 dark:bg-red-400/10 border-[#93000a]/20 dark:border-red-400/20";
+    if (days <= 30) return "text-[#bd6b00] dark:text-amber-400 bg-[#bd6b00]/8 dark:bg-amber-400/10 border-[#bd6b00]/20 dark:border-amber-400/20";
+    return "text-[#2b6e13] dark:text-emerald-400 bg-[#2b6e13]/8 dark:bg-emerald-400/10 border-[#2b6e13]/20 dark:border-emerald-400/20";
+  };
 
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2.5 text-[13px] sm:text-sm font-bold uppercase tracking-[0.15em] text-[#1d1b1a] dark:text-stone-200">
-          <span className="flex items-center justify-center h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-[#ffdad6]/70 dark:bg-red-950/40">
-            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#93000a]" />
+    <section aria-label={fr ? "Dates limites imminentes" : "Dat limit iminan"}>
+      {/* ── Section header ── */}
+      <div className="flex items-center justify-between mb-4 sm:mb-4">
+        <div className="flex items-center gap-2.5 sm:gap-2">
+          <span className="
+            inline-flex items-center gap-1.5
+            rounded-xl sm:rounded-lg
+            bg-[#bd6b00]/8 dark:bg-amber-400/10
+            px-3 sm:px-2.5 py-1.5 sm:py-1
+          ">
+            <Clock className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-[#bd6b00] dark:text-amber-400" />
+            <span className="text-[12px] sm:text-[11px] font-extrabold uppercase tracking-wider text-[#bd6b00] dark:text-amber-400">
+              {fr ? "Dates limites" : "Dat limit"}
+            </span>
           </span>
-          {fr ? "Deadline bientôt" : "Dat limit byento"}
-        </h2>
-        <span className="text-[10px] sm:text-xs font-semibold text-[#474948] dark:text-stone-500 tabular-nums bg-[#f5f0ee] dark:bg-stone-800 rounded-full px-2.5 py-1">
-          {upcoming.length} {fr ? "à venir" : "k ap vini"}
-        </span>
+          <h2 className="text-[17px] sm:text-lg font-extrabold text-[#1d1b1a] dark:text-white font-display tracking-[-0.02em] leading-tight">
+            {fr ? "À ne pas manquer" : "Pa rate yo"}
+          </h2>
+        </div>
+
+        {/* Desktop scroll controls */}
+        <div className="hidden sm:flex items-center gap-1">
+          <button
+            onClick={() => scroll("left")}
+            disabled={!canScrollLeft}
+            className="rounded-xl p-2 text-[#464555] dark:text-stone-400 hover:bg-[#f5f0ee] dark:hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#bd6b00]"
+            aria-label={fr ? "Défiler vers la gauche" : "Defile agoch"}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            disabled={!canScrollRight}
+            className="rounded-xl p-2 text-[#464555] dark:text-stone-400 hover:bg-[#f5f0ee] dark:hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#bd6b00]"
+            aria-label={fr ? "Défiler vers la droite" : "Defile adwat"}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-3 scrollbar-none snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
-        {upcoming.map((s) => {
-          const st = getDeadlineStatus(s.deadline!.dateISO!, lang);
-          const shortDate = formatDeadlineDateShort(s.deadline!.dateISO!, lang);
-          const flag = COUNTRY_CODES[s.country] ?? "";
-          const isCritical = st.badgeVariant === "today" || (st.daysLeft !== null && st.daysLeft <= 2);
-          const isUrgent = st.badgeVariant === "urgent";
+      {/* ── Horizontal scrollable cards (mobile), vertical wrap (desktop) ── */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="
+          flex sm:grid sm:grid-cols-2 lg:grid-cols-4
+          gap-4 sm:gap-4
+          overflow-x-auto sm:overflow-visible
+          scroll-snap-x-mandatory sm:scroll-snap-none
+          scrollbar-hide
+          -mx-4 sm:mx-0
+          px-4 sm:px-0
+          pb-4 sm:pb-0
+          [-webkit-overflow-scrolling:touch]
+        "
+      >
+        {sorted.map((s, i) => (
+          <article
+            key={s.id}
+            className="
+              scroll-snap-start
+              min-w-[280px] sm:min-w-0
+              max-w-[82vw] sm:max-w-none
+              flex-shrink-0
+            "
+          >
+            <div className="
+              group
+              bg-white dark:bg-stone-900/95
+              rounded-2xl sm:rounded-2xl
+              border border-[#f3ecea]/30 dark:border-stone-700/40
+              shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:shadow-none
+              hover:shadow-md hover:shadow-[#bd6b00]/5 dark:hover:shadow-amber-400/5
+              transition-all duration-300
+              overflow-hidden
+              h-full flex flex-col
+            ">
+              {/* ── Top bar with days indicator ── */}
+              <div className="p-4 sm:p-4 pb-3 sm:pb-3 flex-1">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h3 className="
+                    text-[14px] sm:text-[13px] font-extrabold
+                    text-[#1d1b1a] dark:text-white
+                    leading-snug
+                    line-clamp-2
+                    group-hover:text-[#bd6b00] dark:group-hover:text-amber-400
+                    transition-colors duration-200
+                  ">
+                    {s.name}
+                  </h3>
+                </div>
 
-          return (
-            <button
-              type="button"
-              key={s.id}
-              onClick={() => scrollToCard(s.id)}
-              className={`group flex min-w-[165px] sm:min-w-[220px] max-w-[165px] sm:max-w-[260px] snap-start flex-col justify-between rounded-2xl border p-3 sm:p-3.5 text-left transition-all duration-300 active:scale-[0.97] active:opacity-85 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(29,27,26,0.06)] sm:hover:shadow-[0_20px_48px_rgba(29,27,26,0.1)] ${
-                isCritical
-                  ? "border-[#ffdad6] bg-[#ffdad6]/40 dark:border-red-800/40 dark:bg-red-950/25"
-                  : isUrgent
-                    ? "border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-950/20"
-                    : "border-[#c7c4d8]/8 bg-white dark:border-stone-700/60 dark:bg-stone-900/80"
-              }`}
-            >
-              <div>
-                <p className="line-clamp-2 text-[12px] sm:text-sm font-bold font-display leading-snug text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors">
-                  {s.name}
+                {/* Country + Level */}
+                <p className="text-[11px] sm:text-[10px] font-semibold text-[#6b6563] dark:text-stone-400 mb-2">
+                  {s.country} · {s.level?.join(", ") ?? ""}
                 </p>
-                <div className="mt-2 sm:mt-2.5 flex flex-wrap items-center gap-1 sm:gap-1.5">
-                  {flag && (
-                    <span className="text-sm sm:text-sm leading-none" title={s.country}>
-                      {flag}
-                    </span>
-                  )}
-                  {shortDate && (
-                    <span className="text-[10px] sm:text-xs text-[#474948] dark:text-stone-400 font-medium">
-                      {shortDate}
-                    </span>
-                  )}
-                  <span className={`rounded-full px-2 sm:px-2 py-0.5 text-[10px] sm:text-[11px] font-bold ${badgeStyle(st.badgeVariant)}`}>
-                    {st.badgeLabel}
+
+                {/* Funding type */}
+                <p className="text-[11px] sm:text-[10px] font-semibold text-[#3525cd] dark:text-[#c3c0ff] mb-3">
+                  {s.fundingType === "full" ? (fr ? "Bourse Complète" : "Bous Konplè")
+                    : s.fundingType === "partial" ? (fr ? "Bourse Partielle" : "Bous Pasyèl")
+                    : s.fundingType === "stipend" ? (fr ? "Allocation" : "Alokasyon")
+                    : (fr ? "Scolarité" : "Frè Etid")}
+                </p>
+
+                {/* Link */}
+                {s.officialUrl && (
+                  <a
+                    href={s.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      inline-flex items-center gap-1
+                      text-[11px] sm:text-[10px] font-bold
+                      text-[#464555] dark:text-stone-400
+                      hover:text-[#3525cd] dark:hover:text-[#c3c0ff]
+                      transition-colors duration-200
+                      group/link
+                    "
+                  >
+                    {fr ? "Site officiel" : "Sit ofisyèl"}
+                    <ExternalLink className="h-3 w-3 sm:h-2.5 sm:w-2.5 group-hover/link:translate-x-0.5 transition-transform duration-200" />
+                  </a>
+                )}
+              </div>
+
+              {/* ── Bottom: Deadline urgency strip ── */}
+              <div className={`
+                flex items-center justify-between gap-2
+                px-4 sm:px-4 py-3 sm:py-2.5
+                border-t
+                ${urgencyColor(s.daysLeft)}
+              `}>
+                <div className="flex items-center gap-1.5">
+                  <CalendarDays className="h-3.5 w-3.5 sm:h-3 sm:w-3 flex-shrink-0" />
+                  <span className="text-[11px] sm:text-[10px] font-bold">
+                    {formatDeadline(s.deadline?.dateISO, lang)}
                   </span>
                 </div>
-                <p className="mt-1.5 text-[10px] sm:text-[11px] text-[#474948] dark:text-stone-500 leading-tight">
-                  {st.humanLine}
-                </p>
+                <span className="text-[11px] sm:text-[10px] font-extrabold whitespace-nowrap">
+                  {s.daysLeft === 0
+                    ? (fr ? "Aujourd'hui !" : "Jodi a !")
+                    : s.daysLeft === 1
+                      ? (fr ? "Demain !" : "Demen !")
+                      : fr
+                        ? `J-${s.daysLeft}`
+                        : `J-${s.daysLeft}`}
+                </span>
               </div>
-              <span className="mt-2.5 sm:mt-3 inline-flex items-center gap-1.5 self-start text-[11px] sm:text-xs font-bold text-[#3525cd] dark:text-[#c3c0ff] group-hover:gap-2 transition-all">
-                {fr ? "Voir" : "Wè"}
-                <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </button>
-          );
-        })}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* ── Mobile slide indicators ── */}
+      <div className="flex sm:hidden justify-center gap-1.5 mt-3">
+        {sorted.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              const el = scrollRef.current;
+              if (!el) return;
+              const card = el.querySelectorAll("article")[i];
+              if (card) card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            }}
+            className={`
+              h-1.5 rounded-full transition-all duration-300
+              ${i === activeIndex
+                ? "w-5 bg-[#bd6b00] dark:bg-amber-400"
+                : "w-1.5 bg-[#c7c4d8]/40 dark:bg-stone-700"
+              }
+            `}
+            aria-label={`${fr ? "Élément" : "Eleman"} ${i + 1}`}
+          />
+        ))}
       </div>
     </section>
   );
