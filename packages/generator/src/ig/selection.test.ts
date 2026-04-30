@@ -383,6 +383,63 @@ describe("decideIG — roundup gate", () => {
   });
 });
 
+describe("decideIG — scholarship eligibility gate", () => {
+  it("rejects scholarship when opportunity.eligibility is empty array", () => {
+    // Before the fix, discoverScholarships could write eligibility=[] which caused
+    // hasRealOpportunityFields() to silently downgrade to "news" (then fail thin-content).
+    const item = makeItem({
+      opportunity: {
+        ...makeItem().opportunity!,
+        eligibility: [],
+      },
+    });
+    const decision = decideIG(item);
+    // Must NOT route as scholarship — downgraded to news (which then fails other gates)
+    assert.notEqual(decision.igType, "scholarship", "Empty eligibility should not produce scholarship type");
+  });
+
+  it("accepts scholarship when eligibility defaults to [\"HT\"]", () => {
+    // discoverScholarships now writes eligibility=["HT"] as a fallback when
+    // the LLM doesn't return explicit countries. This must pass hasRealOpportunityFields().
+    const item = makeItem({
+      opportunity: {
+        ...makeItem().opportunity!,
+        eligibility: ["HT"],
+      },
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igType, "scholarship");
+    assert.equal(decision.igEligible, true);
+  });
+
+  it("accepts scholarship when eligibility contains country codes alongside HT", () => {
+    const item = makeItem({
+      opportunity: {
+        ...makeItem().opportunity!,
+        eligibility: ["HT", "Global", "Toutes nationalités"],
+      },
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igType, "scholarship");
+    assert.equal(decision.igEligible, true);
+  });
+
+  it("rejects scholarship with eligibility that explicitly excludes Haiti (Africa-only)", () => {
+    const item = makeItem({
+      title: "Africa Scholarship for Sub-Saharan Students",
+      summary: "A scholarship exclusively for sub-Saharan African students.",
+      extractedText: Array(100).fill("sub-saharan african students only").join(" "),
+      opportunity: {
+        ...makeItem().opportunity!,
+        eligibility: ["sub-saharan africa", "kenya", "nigeria", "ghana"],
+      },
+      audienceFitScore: 0.3,
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igEligible, false, "Africa-only scholarship should be rejected");
+  });
+});
+
 describe("decideIG — imageConfidence boundary", () => {
   it("rejects items with imageConfidence exactly 0.4 (screenshots)", () => {
     const item = makeItem({

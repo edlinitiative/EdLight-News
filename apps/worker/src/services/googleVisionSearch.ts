@@ -367,6 +367,186 @@ export async function findVisionMatch(
   return best;
 }
 
+// ── Illustration content verification ──────────────────────────────────────
+
+interface AnnotateResponse {
+  responses?: Array<{
+    webDetection?: WebDetectionResult["webDetection"];
+    labelAnnotations?: Array<{ description?: string; score?: number }>;
+  }>;
+  error?: { message: string; code: number };
+}
+
+/**
+ * Verify that a Wikimedia/Wikipedia image actually depicts the expected
+ * Haitian historical event, using Vision WEB_DETECTION (webEntities) and
+ * LABEL_DETECTION together.
+ *
+ * Strategy:
+ *  1. Extract all entity descriptions and label annotations from Vision.
+ *  2. Require that at least one entity/label references "Haiti" / "Haïti"
+ *     OR overlaps with a meaningful keyword from the event title.
+ *  3. Apply a confidence boost or penalty to the caller's confidence score
+ *     based on the match quality.
+ *
+ * Returns:
+ *   matches  — true if the image appears relevant to the event
+ *   score    — 0.0–1.0 relevance score from Vision signals
+ *   entities — raw entity/label strings (for debugging)
+ *
+ * Fails OPEN (returns { matches: true, score: 0.5 }) if the API key is
+ * missing, quota is exhausted, or the Vision call fails — so a transient
+ * error never silently drops every Wikimedia image.
+ */
+export async function verifyIllustrationMatch(
+  imageUrl: string,
+  titleFr: string,
+  year?: number,
+): Promise<{ matches: boolean; score: number; entities: string[] }> {
+  const FAIL_OPEN: { matches: boolean; score: number; entities: string[] } = {
+    matches: true,
+    score: 0.5,
+    entities: [],
+  };
+
+  const apiKey = process.env.GOOGLE_VISION_API_KEY;
+  if (!apiKey) return FAIL_OPEN;
+
+  const allowed = await tryConsumeQuota();
+  if (!allowed) return FAIL_OPEN;
+
+  // Single API call: both WEB_DETECTION (entities) and LABEL_DETECTION
+  const body = {
+    requests: [
+      {
+        image: { source: { imageUri: imageUrl } },
+        features: [
+          { type: "WEB_DETECTION", maxResults: 20 },
+          { type: "LABEL_DETECTION", maxResults: 15 },
+        ],
+      },
+    ],
+  };
+
+  let detection: NonNullable<WebDetectionResult["webDetection"]> | null = null;
+  let labels: string[] = [];
+
+  try {
+    const res = await fetch(`${VISION_API_BASE}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(VISION_TIMEOUT_MS),
+    });
+
+    if (!res.ok) {
+      console.warn(`[googleVision] verifyIllustration: API returned ${res.status}`);
+      return FAIL_OPEN;
+    }
+
+    const data = (await res.json()) as AnnotateResponse;
+    if (data.error) {
+      console.warn(`[googleVision] verifyIllustration: ${data.error.message}`);
+      return FAIL_OPEN;
+    }
+
+    const r = data.responses?.[0];
+    detection = r?.webDetection ?? null;
+    labels = (r?.labelAnnotations ?? [])
+      .filter((l) => (l.score ?? 0) >= 0.6)
+      .map((l) => l.description ?? "")
+      .filter(Boolean);
+  } catch (err) {
+    console.warn(
+      "[googleVision] verifyIllustration: request failed:",
+      err instanceof Error ? err.message : err,
+    );
+    return FAIL_OPEN;
+  }
+
+  // ── Collect all text signals ───────────────────────────────────────────
+  const entities: string[] = [
+    ...(detection?.webEntities ?? [])
+      .filter((e) => (e.score ?? 0) >= 0.3)
+      .map((e) => e.description ?? "")
+      .filter(Boolean),
+    ...labels,
+  ];
+
+  if (entities.length === 0) {
+    console.log(`[googleVision] verifyIllustration: no entities/labels — fail-open`);
+    return FAIL_OPEN;
+  }
+
+  const allText = entities.join(" ").toLowerCase();
+
+  // ── Signal 1: Haiti presence ───────────────────────────────────────────
+  const haitiPresent = /ha[iï]ti/i.test(allText) || /saint-domingue/i.test(allText);
+
+  // ── Signal 2: keyword overlap with event title ─────────────────────────
+  // Tokenise the French title: keep tokens ≥ 4 chars, drop French stop words
+  const FR_STOP = new Set([
+    "avec", "dans", "pour", "sur", "par", "les", "des", "une", "aux",
+    "contre", "entre", "sous", "vers", "sans", "plus", "très", "tout",
+    "cette", "leur", "leurs", "dont", "nous", "vous", "ils", "elles",
+    "aussi", "comme", "mais", "donc", "alors", "ainsi", "quand", "bien",
+    "même", "déjà", "après", "avant", "depuis", "encore", "enfin",
+    "lors", "part", "plus", "grand", "grande", "premier", "première",
+    "adoption", "proclamation", "déclaration", "entrée", "vigueur",
+    "création", "fondation", "signature", "ratification", "élection",
+    "inauguration", "naissance", "mort", "assassinat",
+  ]);
+
+  const titleTokens = titleFr
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")   // strip accents for matching
+    .split(/\W+/)
+    .filter((t) => t.length >= 4 && !FR_STOP.has(t));
+
+  let keywordHits = 0;
+  for (const token of titleTokens) {
+    if (allText.normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(token)) {
+      keywordHits++;
+    }
+  }
+
+  // ── Signal 3: era/country sanity — reject obvious non-Haiti results ────
+  // If Vision identifies the image as clearly belonging to another country's
+  // history without any Haiti signal, treat as a mismatch.
+  const FOREIGN_NATIONS = [
+    /\bfrance\b/, /\bfrench revolution\b/, /revolution fran/i,
+    /estates.general/i, /\bnapoleon\b/, /\bamerican revolution\b/,
+    /\bunited states\b/, /\bbritish\b/, /\bengland\b/, /\bspain\b/,
+    /\bmexico\b/, /\bcuba\b/, /\bjamaica\b/,
+  ];
+  const foreignHit = !haitiPresent &&
+    FOREIGN_NATIONS.some((re) => re.test(allText));
+
+  // ── Score ──────────────────────────────────────────────────────────────
+  let score = 0.0;
+  if (haitiPresent) score += 0.5;
+  if (keywordHits >= 2) score += 0.3;
+  else if (keywordHits === 1) score += 0.15;
+  if (foreignHit) score -= 0.5;
+
+  // Clamp 0–1
+  score = Math.max(0, Math.min(1, score));
+
+  const matches = score >= 0.3 && !foreignHit;
+
+  console.log(
+    `[googleVision] verifyIllustration: "${titleFr.slice(0, 60)}" → ` +
+    `haiti=${haitiPresent}, keywordHits=${keywordHits}, foreign=${foreignHit}, ` +
+    `score=${score.toFixed(2)}, matches=${matches}`,
+  );
+  if (!matches) {
+    console.log(`  entities: ${entities.slice(0, 8).join(" | ")}`);
+  }
+
+  return { matches, score, entities };
+}
+
 /**
  * Read the current Vision quota usage for this month (for monitoring/admin).
  * Returns { month, used, cap, remaining } or null if the doc doesn't exist.

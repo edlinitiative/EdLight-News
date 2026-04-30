@@ -51,10 +51,12 @@ const MAX_BULLETS_PER_SLIDE = 2;
 const DETAIL_BULLET_CHARS = 160;
 /** Cover body facts: 28 px Inter, 900 px, 2-line clamp → ~110 safe chars. */
 const COVER_BULLET_CHARS = 110;
-/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~150 safe chars.
- *  Actual pixel capacity: 900/(34×0.52) × 3 ≈ 153 chars. With word-wrap loss
- *  the safe working limit is ~150. */
-const DECK_LINE_CHARS = 150;
+/** Cover deck / supportLine: 34 px Inter, 900 px, 3-line clamp → ~120 safe chars.
+ *  Raw pixel capacity: 900/(34×0.52) × 3 ≈ 153 chars, but French compound words
+ *  and word-wrap overhead mean lines near 150 chars frequently overflow into a
+ *  4th line that gets clipped by -webkit-line-clamp:3. Keeping the budget at
+ *  120 (~2 lines) leaves an ample safety margin and prevents visual truncation. */
+const DECK_LINE_CHARS = 120;
 
 // ── Markdown cleanup (IG renders plain text, not markdown) ──────────────────
 
