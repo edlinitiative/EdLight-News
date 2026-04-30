@@ -807,7 +807,7 @@ async function publishContent(
   // Commons / Wikipedia portrait or engraving of the actual subject is far more
   // accurate and educational. Gemini is reserved as a last resort when no real
   // image can be found.
-  let heroImage: { imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "branded"; imageConfidence?: number; imageAttribution?: { name?: string; url?: string; license?: string } };
+  let heroImage: { imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "branded"; imageConfidence?: number; imageAttribution?: { name?: string; url?: string; license?: string } } | undefined;
 
   // 1) Pre-seeded Wikimedia illustration on the almanac entry (curated/backfilled).
   if (heroIllustration?.imageUrl) {
@@ -922,7 +922,7 @@ async function publishContent(
     },
     audienceFitScore: 0.95,
     geoTag: "HT" as const,
-    ...(heroImage.imageUrl ? {
+    ...(heroImage?.imageUrl ? {
       imageUrl: heroImage.imageUrl,
       imageSource: heroImage.imageSource,
       imageConfidence: heroImage.imageConfidence ?? 0.7,
