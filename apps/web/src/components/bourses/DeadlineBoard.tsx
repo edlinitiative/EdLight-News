@@ -64,8 +64,6 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
     .sort((a, b) => (a.daysLeft ?? Infinity) - (b.daysLeft ?? Infinity))
     .slice(0, max);
 
-  if (sorted.length === 0) return null;
-
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -93,6 +91,8 @@ export function DeadlineBoard({ scholarships, lang, max = 8 }: DeadlineBoardProp
       el.removeEventListener("scroll", updateScrollButtons);
     };
   }, [updateScrollButtons]);
+
+  if (sorted.length === 0) return null;
 
   const handleScroll = () => {
     const el = scrollRef.current;

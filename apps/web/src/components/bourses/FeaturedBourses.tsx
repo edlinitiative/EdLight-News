@@ -31,8 +31,6 @@ export function FeaturedBourses({
   onToggleSave,
 }: FeaturedBoursesProps) {
   const fr = lang === "fr";
-  if (scholarships.length === 0) return null;
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -66,6 +64,8 @@ export function FeaturedBourses({
       el.removeEventListener("scroll", updateScrollButtons);
     };
   }, [updateScrollButtons]);
+
+  if (scholarships.length === 0) return null;
 
   // Track active slide on mobile scroll
   const handleScroll = () => {
