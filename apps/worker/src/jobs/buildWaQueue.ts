@@ -218,6 +218,7 @@ export async function buildWaQueue(): Promise<BuildWaQueueResult> {
         // Create queue entry
         await waQueueRepo.createWaQueueItem({
           sourceContentId: item.id,
+          igType: (item.category === "scholarship" || item.category === "opportunity" || item.category === "news") ? item.category : undefined,
           score,
           status: "queued",
           queuedDate: haitiToday,

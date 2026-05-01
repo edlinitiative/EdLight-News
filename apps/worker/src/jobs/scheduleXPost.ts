@@ -108,6 +108,9 @@ export interface ScheduleXPostResult {
   skippedCap: number;
 }
 
+/** Maximum scholarship posts per day across all types. */
+const SCHOLARSHIP_DAILY_CAP = 3;
+
 export async function scheduleXPost(): Promise<ScheduleXPostResult> {
   const result: ScheduleXPostResult = { scheduled: 0, skippedCap: 0 };
 
@@ -135,9 +138,20 @@ export async function scheduleXPost(): Promise<ScheduleXPostResult> {
       if (item.scheduledFor) takenSlotISOs.add(item.scheduledFor);
     }
 
+    const sentTodayItems = await xQueueRepo.listSentToday(20);
+    let scholarshipsToday =
+      sentTodayItems.filter((i) => i.igType === "scholarship").length +
+      scheduled.filter((i) => i.igType === "scholarship").length;
+
     for (const item of queued) {
       if (result.scheduled >= remaining) {
         result.skippedCap++;
+        continue;
+      }
+
+      if (item.igType === "scholarship" && scholarshipsToday >= SCHOLARSHIP_DAILY_CAP) {
+        result.skippedCap++;
+        console.log(`[scheduleXPost] Scholarship daily cap reached (${scholarshipsToday}/${SCHOLARSHIP_DAILY_CAP}), skipping ${item.id}`);
         continue;
       }
 
@@ -150,6 +164,7 @@ export async function scheduleXPost(): Promise<ScheduleXPostResult> {
       const iso = slot.toISOString();
       await xQueueRepo.setScheduled(item.id, iso);
       takenSlotISOs.add(iso);
+      if (item.igType === "scholarship") scholarshipsToday++;
       result.scheduled++;
       console.log(`[scheduleXPost] Scheduled ${item.id} → ${iso}`);
     }

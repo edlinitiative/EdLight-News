@@ -1126,6 +1126,7 @@ export const waMessagePayloadSchema = z.object({
 export const waQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: waQueueStatusSchema,
   scheduledFor: z.string().optional(),
@@ -1167,6 +1168,7 @@ export const fbMessagePayloadSchema = z.object({
 export const fbQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: fbQueueStatusSchema,
   scheduledFor: z.string().optional(),
@@ -1207,6 +1209,7 @@ export const thMessagePayloadSchema = z.object({
 export const thQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: thQueueStatusSchema,
   scheduledFor: z.string().optional(),
@@ -1246,6 +1249,7 @@ export const xMessagePayloadSchema = z.object({
 export const xQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: xQueueStatusSchema,
   scheduledFor: z.string().optional(),
