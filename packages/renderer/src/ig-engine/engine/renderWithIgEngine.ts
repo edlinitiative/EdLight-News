@@ -64,7 +64,7 @@ export async function renderWithIgEngine(
     );
   }
 
-  const rendered = await renderPost(post, contentType);
+  const rendered = await renderPost(post, contentType, { failOnDomOverflow: true });
 
   const slidePaths: string[] = [];
   for (const slide of rendered) {

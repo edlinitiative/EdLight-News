@@ -14,6 +14,7 @@
  */
 
 import type { IGEnginePost, SlideValidationMeta } from "../types/post.js";
+import { resolveZone } from "../types/post.js";
 import { getTemplateConfig } from "../config/templateLimits.js";
 
 // ── Public types ──────────────────────────────────────────────────────────────
@@ -73,7 +74,7 @@ export function buildFitReport(post: IGEnginePost): FitReportSummary {
     fitPassed: slide.validation.fitPassed,
     overflowRisk: slide.validation.overflowRisk,
     rewriteCount: slide.validation.rewriteCount,
-    fieldReports: buildFieldReports(slide.validation, post.templateId),
+    fieldReports: buildFieldReports(slide.validation, post.templateId, slide.layoutVariant),
   }));
 
   const slidesPassed = slideReports.filter(s => s.fitPassed).length;
@@ -164,19 +165,19 @@ export function formatFitReport(report: FitReportSummary): string {
  * Zone limits (maxLines) are looked up from the template config so
  * fillPercent and status reflect real capacity.
  */
-function buildFieldReports(meta: SlideValidationMeta, templateId: string): FieldReport[] {
+function buildFieldReports(meta: SlideValidationMeta, templateId: string, variant?: string): FieldReport[] {
   const config = getTemplateConfig(templateId);
 
   return Object.entries(meta.measuredLineCount).map(([field, linesUsed]) => {
     // Look up actual maxLines from template zone config
-    const zone = config.zones[field as keyof typeof config.zones];
+    const zone = resolveZone(config, field, variant);
     const maxLines = zone?.limits.maxLines ?? linesUsed;
     const fillPercent = maxLines > 0 ? Math.round((linesUsed / maxLines) * 100) : 100;
 
     let status: FieldReport["status"];
     if (!meta.fitPassed) {
       status = "fail";
-    } else if (meta.overflowRisk || fillPercent >= 85) {
+    } else if (meta.overflowRisk || (maxLines > 1 && fillPercent >= 85)) {
       status = "risk";
     } else {
       status = "pass";
