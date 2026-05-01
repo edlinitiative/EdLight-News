@@ -51,6 +51,8 @@ export interface RawItem {
   url: string;
   description: string;
   publishedAt: Timestamp | null;
+  /** Real publisher URL extracted from Google News <source url="..."> tag. */
+  publisherUrl?: string | null;
   status: RawItemStatus;
   /** Reason for skipping, if status=skipped */
   skipReason?: string;
