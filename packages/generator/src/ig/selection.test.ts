@@ -258,20 +258,95 @@ describe("decideIG", () => {
   });
 });
 
+describe("source locality tier bonus", () => {
+  function makeNewsItem(overrides: Partial<Item> = {}): Item {
+    return makeItem({
+      category: "news",
+      title: "Université d'État annonce examen baccalauréat",
+      summary: "Les étudiants doivent s'inscrire pour les examens.",
+      extractedText: Array(250).fill("éducation université examen étudiant").join(" "),
+      audienceFitScore: 0.7,
+      deadline: null,
+      opportunity: undefined,
+      qualityFlags: { hasSourceUrl: true, needsReview: false, lowConfidence: false, reasons: [] },
+      ...overrides,
+    });
+  }
+
+  it("gives local Haitian news a +15 bonus", () => {
+    const item = makeNewsItem({
+      canonicalUrl: "https://lenouvelliste.com/article/123",
+      source: { name: "Le Nouvelliste", originalUrl: "https://lenouvelliste.com/article/123" },
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igEligible, true);
+    assert.ok(
+      decision.reasons.some((r) => r.includes("Local Haitian source: +15")),
+      `Expected local-source bonus, got reasons: ${decision.reasons.join(" | ")}`,
+    );
+  });
+
+  it("penalizes international news with -5", () => {
+    const item = makeNewsItem({
+      canonicalUrl: "https://www.rfi.fr/fr/ameriques/haiti-article",
+      source: { name: "RFI", originalUrl: "https://www.rfi.fr/fr/ameriques/haiti-article" },
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igEligible, true);
+    assert.ok(
+      decision.reasons.some((r) => r.includes("International source: -5")),
+      `Expected international penalty, got reasons: ${decision.reasons.join(" | ")}`,
+    );
+  });
+
+  it("scores local news higher than international news for the same content", () => {
+    const local = decideIG(makeNewsItem({
+      canonicalUrl: "https://juno7.ht/article/123",
+      source: { name: "Juno7", originalUrl: "https://juno7.ht/article/123" },
+    }));
+    const intl = decideIG(makeNewsItem({
+      canonicalUrl: "https://www.france24.com/fr/ameriques/haiti-article",
+      source: { name: "France 24", originalUrl: "https://www.france24.com/fr/ameriques/haiti-article" },
+    }));
+    assert.equal(local.igEligible, true);
+    assert.equal(intl.igEligible, true);
+    // Local should beat international by ~20 (15 + 5 swing) for identical content
+    assert.ok(
+      local.igPriorityScore - intl.igPriorityScore >= 15,
+      `Expected local to outrank international by ≥15, got local=${local.igPriorityScore} intl=${intl.igPriorityScore}`,
+    );
+  });
+
+  it("does NOT apply tier bonus to scholarships (international scholarships are valid)", () => {
+    const item = makeItem({
+      canonicalUrl: "https://www.campusfrance.org/fr/bourses-haiti",
+      source: { name: "Campus France", originalUrl: "https://www.campusfrance.org/fr/bourses-haiti" },
+    });
+    const decision = decideIG(item);
+    assert.equal(decision.igEligible, true);
+    assert.equal(decision.igType, "scholarship");
+    assert.ok(
+      !decision.reasons.some((r) => r.includes("source: -5") || r.includes("source: +15")),
+      `Scholarships should be exempt from tier bonus, got: ${decision.reasons.join(" | ")}`,
+    );
+  });
+});
+
 describe("applyDedupePenalty", () => {
-  it("reduces score by 20 when dedupe group was recently posted", () => {
+  it("hard-blocks (sets ineligible) when dedupe group was recently posted", () => {
     const item = makeItem();
     const decision = decideIG(item);
-    const originalScore = decision.igPriorityScore;
+    assert.equal(decision.igEligible, true);
 
     const recentGroupIds = new Set(["group-1"]);
     const penalized = applyDedupePenalty(decision, recentGroupIds, "group-1");
 
-    assert.equal(penalized.igPriorityScore, Math.max(0, originalScore - 20));
-    assert.ok(penalized.reasons.some((r) => r.includes("Dedupe group")));
+    assert.equal(penalized.igEligible, false);
+    assert.equal(penalized.igPriorityScore, 0);
+    assert.ok(penalized.reasons.some((r) => r.includes("hard block")));
   });
 
-  it("does not penalize when group was not recently posted", () => {
+  it("does not block when group was not recently posted", () => {
     const item = makeItem();
     const decision = decideIG(item);
     const originalScore = decision.igPriorityScore;
@@ -279,10 +354,11 @@ describe("applyDedupePenalty", () => {
     const recentGroupIds = new Set(["group-other"]);
     const result = applyDedupePenalty(decision, recentGroupIds, "group-1");
 
+    assert.equal(result.igEligible, true);
     assert.equal(result.igPriorityScore, originalScore);
   });
 
-  it("does not penalize ineligible items", () => {
+  it("is a no-op for already-ineligible items", () => {
     const decision = {
       igEligible: false,
       igType: null as any,
@@ -290,6 +366,7 @@ describe("applyDedupePenalty", () => {
       reasons: ["Not eligible"],
     };
     const result = applyDedupePenalty(decision, new Set(["group-1"]), "group-1");
+    assert.equal(result.igEligible, false);
     assert.equal(result.igPriorityScore, 0);
   });
 });

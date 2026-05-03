@@ -21,21 +21,30 @@ import { selectImageForIG } from "../services/igImagePipeline.js";
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
 
-// French/English stopwords to ignore in heading similarity
+// French/English stopwords to ignore in heading similarity.
+//
+// NOTE: We intentionally KEEP "haiti / haïti / haïtien" out of this list.
+// They were previously stopwords, which weakened similarity matching for the
+// most common case (Haitian-news headlines that share "Haïti" plus a topic
+// keyword). With them included, "TPS Haïti" headlines from three sources
+// can match each other on just one or two non-Haiti words.
 const HEADING_STOPWORDS = new Set([
   "le","la","les","un","une","des","du","de","en","et","ou","au","aux",
   "sur","par","pour","dans","avec","sans","est","sont","être","avoir",
   "the","a","an","of","in","to","for","on","at","by","from","its",
   "as","is","was","are","be","has","have","had","not","with","and",
-  "that","this","it","or","but","if","haiti","haïti","haïtien","haïtienne",
+  "that","this","it","or","but","if",
 ]);
 
 /**
  * Returns true when two headings share ≥ THRESHOLD significant words.
  * Used to detect same-story items queued under different titles
  * (e.g., 3× articles about the same TPS Supreme Court hearing).
+ *
+ * Threshold defaults to 3 (was 4) to better catch Haitian-news duplicates that
+ * share a small set of distinctive nouns (e.g. "TPS supreme court ruling").
  */
-function headingSimilar(a: string, b: string, threshold = 4): boolean {
+function headingSimilar(a: string, b: string, threshold = 3): boolean {
   const words = (s: string) =>
     new Set(
       s.toLowerCase()
@@ -210,14 +219,21 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
       }
     }
 
-    // Build set of recently posted dedupe group IDs
-    const recentPosted = await igQueueRepo.listRecentPosted(3, 50);
+    // Build set of recently posted dedupe group IDs.
+    //
+    // BUG FIX: previously this set was populated with `sourceContentId` and
+    // then compared against `item.dedupeGroupId` in applyDedupePenalty — a
+    // type mismatch that meant the penalty literally never fired. Now we read
+    // the queue item's own `dedupeGroupId` (stamped by buildIgQueue when the
+    // item was originally queued) so the hard-block actually works.
+    const recentPosted = await igQueueRepo.listRecentPosted(1, 50);
     const recentGroupIds = new Set<string>();
-    // We'll track by sourceContentId → look up item to get dedupeGroupId
+    const recentPostedHeadings: string[] = [];
     for (const posted of recentPosted) {
-      // We store sourceContentId = item.id, so we need to check the item
-      // For simplicity, just track the sourceContentIds
-      recentGroupIds.add(posted.sourceContentId);
+      const gid = (posted as any).dedupeGroupId as string | undefined;
+      if (gid) recentGroupIds.add(gid);
+      const heading = (posted.payload as any)?.slides?.[0]?.heading as string | undefined;
+      if (heading) recentPostedHeadings.push(heading);
     }
 
     // ── Batch pre-load existing ig_queue entries (saves ~500 reads/tick) ──
@@ -239,8 +255,11 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
     // Track dedupeGroupIds that already have a pending post — updated in-memory
     // as we queue new items so same-tick dupes are also caught.
     const queuedGroupIds = new Set(pendingGroupIds);
-    // Pending cover headings for topic-similarity dedup (catches TPS ×3 etc.)
-    const queuedHeadings: string[] = [...pendingHeadings];
+    // Heading pool used for topic-similarity dedup. Includes BOTH currently
+    // pending cover headings AND last-24h posted headings — without the
+    // posted side, two near-duplicates that arrive a few hours apart could
+    // both queue, the first posts, then the second still passes pending dedup.
+    const queuedHeadings: string[] = [...pendingHeadings, ...recentPostedHeadings];
 
     // Pre-load source cache for igImageSafe lookup
     const sourceCache = new Map<string, Source | null>();
@@ -374,15 +393,21 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // ── Heading-similarity dedup ─────────────────────────────────────────
         // Catches same-story items that escaped dedupeGroupId matching because
         // they were published under slightly different headlines (TPS ×3, etc.).
-        // Threshold of 4 significant shared words is conservative enough to
+        // Threshold of 3 significant shared words is conservative enough to
         // avoid blocking genuinely different stories.
-        if (decision.igType === "news" || decision.igType === "breaking") {
+        //
+        // Runs for ALL post types except daily staples (taux/utility/histoire),
+        // which are intentionally produced once per day from controlled
+        // generators and never collide. Previously only news/breaking ran this
+        // check, which let scholarship/opportunity duplicates through.
+        const STAPLE_TYPES = new Set(["taux", "utility", "histoire"]);
+        if (!STAPLE_TYPES.has(decision.igType)) {
           const similar = queuedHeadings.find((h) => headingSimilar(h, coverHeading));
           if (similar) {
             console.log(
-              `[buildIgQueue] Heading-similarity dedup skipped ${item.id}:\n` +
-              `  pending: "${similar.slice(0, 70)}"\n` +
-              `  new:     "${coverHeading.slice(0, 70)}"`,
+              `[buildIgQueue] Heading-similarity dedup skipped ${item.id} (type=${decision.igType}):\n` +
+              `  pending/recent: "${similar.slice(0, 70)}"\n` +
+              `  new:            "${coverHeading.slice(0, 70)}"`,
             );
             result.skipped++;
             continue;
