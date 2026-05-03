@@ -17,6 +17,7 @@ import { fetchEnrichedFeed, fetchEnrichedFeedByVertical, getLangFromSearchParams
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
+import { scoreOpportunity, OPPORTUNITY_SCORE_THRESHOLD } from "@edlight-news/generator";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 600;
@@ -115,6 +116,29 @@ export default async function OpportunitesPage({
       const publishedAtMs = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
       if (publishedAtMs && publishedAtMs < noDeadlineCutoffMs) return false;
     }
+
+    // ── Confidence gate (last line of defence for legacy items) ──
+    // The worker now stamps every opportunity item with `opportunityScore`
+    // (0-100) computed by scoreOpportunity(). Items below the threshold
+    // are demoted at ingest, but legacy items written before this gate
+    // still carry vertical=opportunites without a score. Recompute here
+    // so they get the same protection without a backfill.
+    //
+    // Utility/ScholarshipRadar items always pass — they're editorially
+    // curated and the score model is tuned for source articles.
+    if (a.itemType === "utility" && a.series === "ScholarshipRadar") return true;
+    const score =
+      typeof a.opportunityScore === "number"
+        ? a.opportunityScore
+        : scoreOpportunity({
+            title: a.title ?? "",
+            summary: a.summary,
+            body: a.body,
+            deadline: a.deadline,
+            publisherName: a.sourceName,
+          }).score;
+    if (score < OPPORTUNITY_SCORE_THRESHOLD) return false;
+
     return true;
   });
 

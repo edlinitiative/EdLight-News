@@ -89,6 +89,8 @@ export interface FeedItem {
   geoTag?: string;
   /** High-level content vertical (e.g. "opportunites") */
   vertical?: string;
+  /** Confidence (0-100) that this item is a real opportunity. Set by worker. */
+  opportunityScore?: number;
   /** How many items share the same dedupeGroupId */
   dupeCount?: number;
   /** True when item has no audienceFitScore (pre-v2 legacy) */
