@@ -112,6 +112,53 @@ const OFFICIAL_DOMAINS = [
   "chevening.org", "edu", "ac.uk", "gc.ca", "gouv.fr",
 ];
 
+// ── Source-locality tiers ──────────────────────────────────────────────────
+// Used to prefer Haitian local outlets over international wires (RFI, France24,
+// Google News, BBC, etc.) for general news. Scholarships and opportunities are
+// exempt from the international penalty — many legitimate calls (BGF, Campus
+// France, AUF) come from non-Haitian sources.
+
+/** Domains operated by Haitian outlets reporting on Haiti. */
+const LOCAL_HAITI_DOMAINS = [
+  "lenouvelliste.com", "juno7.ht", "ayibopost.com", "alterpresse.org",
+  "loophaiti.com", "metropolehaiti.com", "haitilibre.com", "maghaiti.net",
+  "radiotelevisioncaraibes.com", "rtvc.ht", "vfrancaise.com", "haitistandard.com",
+  "tripfoumi.com", "rezonodwes.com", "haitilibre.fr",
+  // Government / official Haitian
+  "gouv.ht", "menfp.gouv.ht", "primature.gouv.ht", "presidence.ht", "brh.ht",
+];
+
+/** Diaspora outlets — Haiti-focused but published outside Haiti. */
+const DIASPORA_DOMAINS = [
+  // Miami Herald has a dedicated Haiti desk
+  "miamiherald.com", "voanews.com", "voacreole.com",
+  "haitiantimes.com", "thehaitiantimes.com",
+];
+
+/** International / wire-service outlets that often surface Haiti coverage. */
+const INTERNATIONAL_NEWS_DOMAINS = [
+  "rfi.fr", "france24.com", "lemonde.fr", "lefigaro.fr", "liberation.fr",
+  "bbc.com", "bbc.co.uk", "reuters.com", "apnews.com", "aljazeera.com",
+  "cnn.com", "nytimes.com", "theguardian.com", "washingtonpost.com",
+  "news.google.com", "google.com",
+];
+
+export type SourceTier = "local" | "diaspora" | "international" | "unknown";
+
+/** Classify an article URL into a locality tier. Defaults to "unknown". */
+export function classifySourceTier(url: string | undefined | null): SourceTier {
+  const domain = extractDomain(url ?? "");
+  if (!domain) return "unknown";
+  const matches = (list: string[]) =>
+    list.some((d) => domain === d || domain.endsWith("." + d));
+  if (matches(LOCAL_HAITI_DOMAINS)) return "local";
+  if (matches(DIASPORA_DOMAINS)) return "diaspora";
+  if (matches(INTERNATIONAL_NEWS_DOMAINS)) return "international";
+  // .ht ccTLD as a last-resort signal for local
+  if (domain.endsWith(".ht")) return "local";
+  return "unknown";
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function normalizeText(text: string): string {
@@ -432,8 +479,14 @@ export function decideIG(item: Item): IGDecision {
     };
   }
 
-  // Quality flags: needs review → not ready for IG
-  if (item.qualityFlags?.needsReview) {
+  // Quality flags: needs review → not ready for IG.
+  // Exception: scholarship/opportunity items are exempt. The needsReview flag
+  // fires for items flagged by old pipeline logic or missing structured fields,
+  // but the actual IG content comes from generated CVs that already passed their
+  // own quality gates. Blocking all scholarship content on needsReview starves
+  // the IG queue of opportunity posts.
+  const isOppIgType = igType === "scholarship" || igType === "opportunity";
+  if (item.qualityFlags?.needsReview && !isOppIgType) {
     return {
       igEligible: false,
       igType,
@@ -443,12 +496,20 @@ export function decideIG(item: Item): IGDecision {
   }
 
   // Quality flags: low confidence → not ready for IG.
-  // Exception: scholarship/opportunity items derive their value from structured
-  // fields (deadline, eligibility, link), not body-text richness. Blocking them
-  // on lowConfidence — which fires whenever extractedText is empty (most RSS
-  // items) — prevents ANY opportunity from ever reaching IG.
-  const isOppType = igType === "scholarship" || igType === "opportunity";
-  if (item.qualityFlags?.lowConfidence && !isOppType) {
+  // Exceptions:
+  // 1. Scholarship/opportunity items derive their value from structured fields
+  //    (deadline, eligibility, link), not body-text richness. Blocking them on
+  //    lowConfidence — which fires whenever extractedText is empty (most RSS
+  //    items) — prevents ANY opportunity from ever reaching IG.
+  // 2. News/breaking items with audienceFitScore ≥ 0.40 are already passing
+  //    the relevance bar. lowConfidence fires routinely for short-body news
+  //    (Gemini extraction confidence < 0.6) but the separate word-count gate
+  //    below is the real quality bar for news content. Blocking ALL 0.4-score
+  //    news on lowConfidence drains the queue completely.
+  const isOppType = isOppIgType;
+  const isNewsType = igType === "news" || igType === "breaking";
+  const hasAdequateScore = (item.audienceFitScore ?? 0) >= 0.40;
+  if (item.qualityFlags?.lowConfidence && !isOppType && !(isNewsType && hasAdequateScore)) {
     return {
       igEligible: false,
       igType,
@@ -474,7 +535,10 @@ export function decideIG(item: Item): IGDecision {
 
   // Thin-content gate: news articles with very short body text either get
   // demoted to a breaking-news single-slide (80-199 words) or rejected (<80).
-  if (igType === "news") {
+  // Exception: weakSource items (RSS-only, no extracted article text) pass through
+  // because their IG content is built from generated content_versions in
+  // buildIgQueue — the raw item text is irrelevant for those.
+  if (igType === "news" && !item.qualityFlags?.weakSource) {
     const bodyText = item.extractedText ?? item.summary ?? "";
     const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
     if (wordCount < 80) {
@@ -672,6 +736,27 @@ export function decideIG(item: Item): IGDecision {
     reasons.push(`Official source: +5`);
   }
 
+  // ── Source-locality bonus / penalty ───────────────────────────────────
+  // News and breaking items are tilted toward Haitian local outlets and away
+  // from international wire coverage (RFI, France24, Google News, BBC). The
+  // user-facing feed is Haiti-first; international coverage of Haiti tends to
+  // dominate raw extraction quality scores otherwise.
+  // Scholarship / opportunity items are EXEMPT — many legitimate calls (BGF,
+  // Campus France, AUF, Chevening) are intrinsically international.
+  if (igType === "news" || igType === "breaking") {
+    const tier = classifySourceTier(sourceUrl);
+    if (tier === "local") {
+      score += 15;
+      reasons.push(`Local Haitian source: +15`);
+    } else if (tier === "diaspora") {
+      score += 5;
+      reasons.push(`Diaspora source: +5`);
+    } else if (tier === "international") {
+      score -= 5;
+      reasons.push(`International source: -5`);
+    }
+  }
+
   // Weak source penalty
   if (item.qualityFlags?.weakSource) {
     score -= 10;
@@ -749,8 +834,17 @@ function isTauxDuJourArticle(item: Item): boolean {
 }
 
 /**
- * Apply a dedupe penalty if a content item's group was recently posted.
- * Call this after decideIG with context about recent IG posts.
+ * Hard-block an item when its dedupe group was posted recently.
+ *
+ * Previously this just applied a -20 score penalty, but a -20 hit on a base-70
+ * scholarship still beat a base-45 news item, so the same story could be
+ * republished only minutes after going live (the "3 similar posts in a row"
+ * bug). For groups posted within the last 24h we now mark the item ineligible
+ * outright. For older groups (24h < age ≤ window) we keep the soft penalty so
+ * we don't permanently ban a recurring topic.
+ *
+ * `recentlyPostedGroupIds` MUST contain real `dedupeGroupId` values from
+ * recently-posted IG queue items (not `sourceContentId`s).
  */
 export function applyDedupePenalty(
   decision: IGDecision,
@@ -760,10 +854,13 @@ export function applyDedupePenalty(
   if (!decision.igEligible || !itemDedupeGroupId) return decision;
   if (!recentlyPostedGroupIds.has(itemDedupeGroupId)) return decision;
 
-  const newScore = Math.max(0, decision.igPriorityScore - 20);
   return {
-    ...decision,
-    igPriorityScore: newScore,
-    reasons: [...decision.reasons, `Dedupe group recently posted: -20`],
+    igEligible: false,
+    igType: decision.igType,
+    igPriorityScore: 0,
+    reasons: [
+      ...decision.reasons,
+      `Dedupe group recently posted — hard block to avoid duplicate IG post`,
+    ],
   };
 }

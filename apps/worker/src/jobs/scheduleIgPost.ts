@@ -32,7 +32,7 @@ const HAITI_TZ = "America/Port-au-Prince";
 // Prevent any single type from dominating the feed. undefined = no cap.
 /** @internal exported for tests */
 export const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
-  scholarship: 2,
+  scholarship: 3,
   opportunity: 2,
   taux: 1,
 };

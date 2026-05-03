@@ -69,6 +69,7 @@ export async function ingest(): Promise<{ ingested: number; skipped: number; err
               ? Timestamp.fromDate(entry.publishedAt)
               : null,
             status: "new" as RawItemStatus,
+            ...(entry.publisherUrl ? { publisherUrl: entry.publisherUrl } : {}),
           });
 
           if (result.created) {
@@ -93,7 +94,7 @@ export async function ingest(): Promise<{ ingested: number; skipped: number; err
 
 async function fetchSource(
   source: Source,
-): Promise<{ title: string; url: string; description: string; publishedAt: Date | null }[]> {
+): Promise<{ title: string; url: string; description: string; publisherUrl?: string; publishedAt: Date | null }[]> {
   if (source.type === "rss") {
     const items = await fetchRSS(source.url);
     // For Google News items that have a resolved publisher URL,

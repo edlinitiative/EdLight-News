@@ -65,6 +65,12 @@ export async function processRawItems(): Promise<{
           // Override source name with the actual publisher
           effectiveSourceName = publisherName;
         }
+        // Google News RSS exposes the real publisher URL in <source url="...">.
+        // Use it for canonical/source links when present; otherwise keep the
+        // aggregator URL and mark the source weak below.
+        if (raw.publisherUrl) {
+          canonicalUrl = raw.publisherUrl;
+        }
       } else {
         try {
           const article = await extractArticleContent(raw.url, source.selectors);
@@ -102,7 +108,8 @@ export async function processRawItems(): Promise<{
       const textForScoring = `${title} ${extractedText || raw.description || ""}`;
       const scoring = computeScoring(title, textForScoring);
       const dedupeGroupId = computeDedupeGroupId(title, canonicalUrl);
-      const { source: itemSource, weakSource } = buildItemSource(effectiveSourceName, raw.url);
+      const sourceUrlForItem = raw.publisherUrl ?? raw.url;
+      const { source: itemSource, weakSource } = buildItemSource(effectiveSourceName, sourceUrlForItem);
 
       if (weakSource) reasons.push("Could not trace original publisher");
       if (scoring.offMission) reasons.push("Possibly off-mission content");
@@ -167,7 +174,7 @@ export async function processRawItems(): Promise<{
         evergreen: false,
         confidence: 0, // set by generate step
         qualityFlags,
-        citations: [{ sourceName: source.name, sourceUrl: raw.url }],
+        citations: [{ sourceName: effectiveSourceName, sourceUrl: sourceUrlForItem }],
         // v2 fields
         ...(classification.isOpportunity ? { vertical: "opportunites" } : {}),
         geoTag: effectiveGeoTag,

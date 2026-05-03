@@ -23,6 +23,9 @@ import type { FbQueueItem, Item } from "@edlight-news/types";
 /** Maximum FB posts per day (increased from 8). */
 const DAILY_CAP = 13;
 
+/** Maximum scholarship posts per day. */
+const SCHOLARSHIP_DAILY_CAP = 3;
+
 /** Facebook posting slots (Haiti local time America/Port-au-Prince).
  *  13 slots spread 7am–7pm (1-hour spacing for Haiti sleep patterns).
  *  Urgent news (hurricane, earthquake, etc.) can use extended slots up to 11pm. */
@@ -358,9 +361,20 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
       if (item.scheduledFor) takenSlots.add(item.scheduledFor);
     }
 
+    // Count scholarships already sent or scheduled today for per-type cap
+    let scholarshipsToday =
+      recentSent.filter((i) => i.igType === "scholarship").length +
+      alreadyScheduled.filter((i) => i.igType === "scholarship").length;
+
     for (const item of queued) {
       if (result.scheduled >= remaining) {
         result.skippedCap++;
+        continue;
+      }
+
+      if (item.igType === "scholarship" && scholarshipsToday >= SCHOLARSHIP_DAILY_CAP) {
+        result.skippedCap++;
+        console.log(`[scheduleFbPost] Scholarship daily cap reached (${scholarshipsToday}/${SCHOLARSHIP_DAILY_CAP}), skipping ${item.id}`);
         continue;
       }
 
@@ -400,6 +414,7 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
       await fbQueueRepo.setScheduled(item.id, iso);
       takenSlots.add(iso);
       recentSignatures.push(candidateSig);
+      if (item.igType === "scholarship") scholarshipsToday++;
       result.scheduled++;
 
       if (isUrgent) {

@@ -99,6 +99,9 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   return null;
 }
 
+/** Maximum scholarship posts per day across all types. */
+const SCHOLARSHIP_DAILY_CAP = 3;
+
 export interface ScheduleThPostResult {
   scheduled: number;
   skippedCap: number;
@@ -131,9 +134,20 @@ export async function scheduleThPost(): Promise<ScheduleThPostResult> {
       if (item.scheduledFor) takenSlotISOs.add(item.scheduledFor);
     }
 
+    const sentTodayItems = await thQueueRepo.listSentToday(20);
+    let scholarshipsToday =
+      sentTodayItems.filter((i) => i.igType === "scholarship").length +
+      scheduled.filter((i) => i.igType === "scholarship").length;
+
     for (const item of queued) {
       if (result.scheduled >= remaining) {
         result.skippedCap++;
+        continue;
+      }
+
+      if (item.igType === "scholarship" && scholarshipsToday >= SCHOLARSHIP_DAILY_CAP) {
+        result.skippedCap++;
+        console.log(`[scheduleThPost] Scholarship daily cap reached (${scholarshipsToday}/${SCHOLARSHIP_DAILY_CAP}), skipping ${item.id}`);
         continue;
       }
 
@@ -146,6 +160,7 @@ export async function scheduleThPost(): Promise<ScheduleThPostResult> {
       const iso = slot.toISOString();
       await thQueueRepo.setScheduled(item.id, iso);
       takenSlotISOs.add(iso);
+      if (item.igType === "scholarship") scholarshipsToday++;
       result.scheduled++;
       console.log(`[scheduleThPost] Scheduled ${item.id} → ${iso}`);
     }

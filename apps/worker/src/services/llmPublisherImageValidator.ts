@@ -96,6 +96,13 @@ export async function validateImageForItem(
   const personHint = item.entity?.personName
     ? `Subject person: ${item.entity.personName}.`
     : "";
+  // Include body text so the LLM can cross-reference image against full
+  // article content. Catches CAPTCHA/JS-challenge pages where the body
+  // describes a real news event but the og:image is a Cloudflare screen.
+  const bodySnippet = (item.extractedText ?? (item as any).body ?? "").slice(0, 500);
+  const bodyHint = bodySnippet
+    ? `Article body (first 500 chars): ${bodySnippet}\n`
+    : "";
   const prompt = opts.strict
     ? "You verify whether a news image SPECIFICALLY depicts the event, person, or place described in the article — not just the general topic.\n" +
       "Reply ONLY with JSON: {\"match\": boolean, \"confidence\": number 0-1, \"reason\": short string}.\n" +
@@ -106,9 +113,11 @@ export async function validateImageForItem(
       "  - The image depicts a different specific event, location, or moment than the one in the article (e.g. a generic crowd / stadium / concert photo for a story about a specific stampede that happened at a named venue).\n" +
       "  - The image is topically related but clearly not from THIS event (e.g. an old archive photo of the same league / type of incident, but not this incident).\n" +
       "  - The image is a recurring column header reused across many articles.\n" +
+      "  - The image is a CAPTCHA, Cloudflare challenge, JS-challenge, bot-detection screen, security check, DDoS-protection page, or a generic error/warning page (e.g. 'please wait', 'verify you are human', 'enable JavaScript').\n" +
       "Return match=true ONLY when the image plausibly depicts the SPECIFIC event/person/place named in the article — for example: a photo at the named venue showing the actual scene, a portrait of the named person, or footage from this specific incident. When in doubt, return match=false.\n\n" +
       `Article title: ${item.title ?? ""}\n` +
       `Summary: ${(item.summary ?? "").slice(0, 300)}\n` +
+      `${bodyHint}` +
       `${personHint}`
     : "You verify whether a candidate news image plausibly depicts the subject of an article.\n" +
       "Reply ONLY with JSON: {\"match\": boolean, \"confidence\": number 0-1, \"reason\": short string}.\n" +
@@ -118,9 +127,11 @@ export async function validateImageForItem(
       "  - The image clearly depicts a different person than the named subject.\n" +
       "  - The image depicts a clearly different event, place, or topic.\n" +
       "  - The image is a recurring column header that doesn't depict the article subject.\n" +
+      "  - The image is a CAPTCHA, Cloudflare challenge, JS-challenge, bot-detection screen, security check, DDoS-protection page, or a generic error/warning page (e.g. 'please wait', 'verify you are human', 'enable JavaScript').\n" +
       "Return match=true when the depicted subject reasonably matches the article topic and the named person (if any).\n\n" +
       `Article title: ${item.title ?? ""}\n` +
       `Summary: ${(item.summary ?? "").slice(0, 300)}\n` +
+      `${bodyHint}` +
       `${personHint}`;
 
   try {

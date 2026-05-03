@@ -109,6 +109,34 @@ export async function listRecentItems(limit = 50): Promise<Item[]> {
  * index hadn't propagated, halting all content_versions creation and
  * starving every downstream queue (IG, FB) of non-staple posts.
  */
+/**
+ * List `vertical=opportunites` items that have a published content_version
+ * but have not yet been added to the IG/FB queues.
+ * Used by buildIgQueue to backfill scholarship/opportunity posts that were
+ * ingested before the 72-hour recent-items window.
+ */
+export async function listOpportunitiesForIgBackfill(limit = 150): Promise<Item[]> {
+  const snap = await collection()
+    .where("vertical", "==", "opportunites")
+    .get();
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as Item)
+    .sort((a, b) => {
+      // Priority 1: items with a future deadline come first (active opportunities)
+      const aDl = (a as any).deadline ?? (a as any).opportunity?.deadline ?? "";
+      const bDl = (b as any).deadline ?? (b as any).opportunity?.deadline ?? "";
+      const aActive = aDl && aDl >= today ? 1 : 0;
+      const bActive = bDl && bDl >= today ? 1 : 0;
+      if (bActive !== aActive) return bActive - aActive;
+      // Priority 2: most recently ingested
+      const aMs = (a.createdAt as { seconds?: number } | undefined)?.seconds ?? 0;
+      const bMs = (b.createdAt as { seconds?: number } | undefined)?.seconds ?? 0;
+      return bMs - aMs;
+    })
+    .slice(0, limit);
+}
+
 export async function listOpportunitiesNeedingGeneration(
   limit = 50,
   maxAttempts = 3,

@@ -131,7 +131,7 @@ function PostModal({ entry, onClose }: { entry: IGQueueEntry; onClose: () => voi
         </div>
 
         {/* Slide preview — pixel-perfect using the actual renderer */}
-        <IGSlideFrame igType={entry.igType} slides={entry.slides} />
+        <IGSlideFrame igType={entry.igType} slides={entry.slides} caption={entry.caption} />
 
         {/* Caption */}
         {entry.caption && (
@@ -165,9 +165,10 @@ function PostCard({ entry, onAction, onOpen }: { entry: IGQueueEntry; onAction: 
     <div className={`overflow-hidden rounded-xl border-t-4 ${accentBorder} bg-white shadow-sm transition hover:shadow-md dark:bg-stone-900`}>
       {/* Visual preview — click to open IG modal */}
       <div className="cursor-pointer p-3" onClick={() => onOpen(entry)}>
-        <IGPostPreview
+        <IGSlideFrame
           igType={entry.igType}
           slides={entry.slides}
+          caption={entry.caption}
         />
       </div>
 

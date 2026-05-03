@@ -51,6 +51,8 @@ export interface RawItem {
   url: string;
   description: string;
   publishedAt: Timestamp | null;
+  /** Real publisher URL extracted from Google News <source url="..."> tag. */
+  publisherUrl?: string | null;
   status: RawItemStatus;
   /** Reason for skipping, if status=skipped */
   skipReason?: string;
@@ -790,6 +792,8 @@ export interface WaQueueItem {
   id: string;
   /** The content_versions doc ID that sourced this message. */
   sourceContentId: string;
+  /** The IG post type inherited from the source item (used for per-type daily caps). */
+  igType?: IGPostType;
   /** Priority score (0-100) — higher = send first. */
   score: number;
   status: WaQueueStatus;
@@ -837,6 +841,8 @@ export interface FbMessagePayload {
 export interface FbQueueItem {
   id: string;
   sourceContentId: string;
+  /** The IG post type inherited from the source item (used for per-type daily caps). */
+  igType?: IGPostType;
   score: number;
   status: FbQueueStatus;
   scheduledFor?: string;
@@ -875,6 +881,8 @@ export interface ThMessagePayload {
 export interface ThQueueItem {
   id: string;
   sourceContentId: string;
+  /** The IG post type inherited from the source item (used for per-type daily caps). */
+  igType?: IGPostType;
   score: number;
   status: ThQueueStatus;
   scheduledFor?: string;
@@ -911,6 +919,8 @@ export interface XMessagePayload {
 export interface XQueueItem {
   id: string;
   sourceContentId: string;
+  /** The IG post type inherited from the source item (used for per-type daily caps). */
+  igType?: IGPostType;
   score: number;
   status: XQueueStatus;
   scheduledFor?: string;

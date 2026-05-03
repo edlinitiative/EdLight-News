@@ -15,6 +15,7 @@ import { buildPost } from "./engine/buildSlides.js";
 import { renderPost } from "./engine/renderSlides.js";
 import { exportPost } from "./engine/exportSlides.js";
 import { buildFitReport, formatFitReport } from "./qa/fitReport.js";
+import { closeBrowser } from "../index.js";
 import type { ContentIntakeInput, SlideContent, PostCaption } from "./types/post.js";
 
 // ── Sample content (Haiti education news, French) ─────────────────────────────
@@ -116,7 +117,7 @@ const report = buildFitReport(post);
 console.log(formatFitReport(report));
 
 console.log("▶  Rendering slides …");
-const rendered = await renderPost(post, "news");
+const rendered = await renderPost(post, "news", { failOnDomOverflow: true });
 
 // Write individual PNGs + gather base64 data-URIs for the preview page
 const slideDataUris: string[] = [];
@@ -195,4 +196,6 @@ console.log(`   Status : ${post.status}`);
 console.log(`   Slides : ${post.slides.length}`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main()
+  .catch(err => { console.error(err); process.exitCode = 1; })
+  .finally(() => void closeBrowser());

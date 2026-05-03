@@ -24,7 +24,7 @@ const qualityFlagsSchema = z.object({
   weakSource: z.boolean().optional(),
   missingDeadline: z.boolean().optional(),
   offMission: z.boolean().optional(),
-  reasons: z.array(z.string()),
+  reasons: z.array(z.string()).default([]),
 });
 
 const sourceSelectorsSchema = z.object({
@@ -237,6 +237,8 @@ export const rawItemSchema = z.object({
   url: z.string().url(),
   description: z.string(),
   publishedAt: timestampSchema.nullable(),
+  /** Real publisher URL extracted from Google News <source url="..."> tag */
+  publisherUrl: z.string().url().nullable().optional(),
   status: z.enum(["new", "processed", "skipped"]),
   skipReason: z.string().optional(),
   createdAt: timestampSchema,
@@ -1124,6 +1126,7 @@ export const waMessagePayloadSchema = z.object({
 export const waQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: waQueueStatusSchema,
   scheduledFor: z.string().optional(),
@@ -1165,6 +1168,7 @@ export const fbMessagePayloadSchema = z.object({
 export const fbQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: fbQueueStatusSchema,
   scheduledFor: z.string().optional(),
@@ -1205,6 +1209,7 @@ export const thMessagePayloadSchema = z.object({
 export const thQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: thQueueStatusSchema,
   scheduledFor: z.string().optional(),
@@ -1244,6 +1249,7 @@ export const xMessagePayloadSchema = z.object({
 export const xQueueItemSchema = z.object({
   id: z.string().min(1),
   sourceContentId: z.string().min(1),
+  igType: igPostTypeSchema.optional(),
   score: z.number().min(0).max(100),
   status: xQueueStatusSchema,
   scheduledFor: z.string().optional(),

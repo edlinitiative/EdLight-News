@@ -103,6 +103,9 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   return null;
 }
 
+/** Maximum scholarship posts per day. */
+const SCHOLARSHIP_DAILY_CAP = 3;
+
 export interface ScheduleWaPostResult {
   scheduled: number;
   skippedCap: number;
@@ -138,9 +141,20 @@ export async function scheduleWaPost(): Promise<ScheduleWaPostResult> {
       if (item.scheduledFor) takenSlotISOs.add(item.scheduledFor);
     }
 
+    const sentTodayItems = await waQueueRepo.listRecentSent(1, 20);
+    let scholarshipsToday =
+      sentTodayItems.filter((i) => i.igType === "scholarship").length +
+      scheduled.filter((i) => i.igType === "scholarship").length;
+
     for (const item of queued) {
       if (result.scheduled >= remaining) {
         result.skippedCap++;
+        continue;
+      }
+
+      if (item.igType === "scholarship" && scholarshipsToday >= SCHOLARSHIP_DAILY_CAP) {
+        result.skippedCap++;
+        console.log(`[scheduleWaPost] Scholarship daily cap reached (${scholarshipsToday}/${SCHOLARSHIP_DAILY_CAP}), skipping ${item.id}`);
         continue;
       }
 
@@ -153,6 +167,7 @@ export async function scheduleWaPost(): Promise<ScheduleWaPostResult> {
       const iso = slot.toISOString();
       await waQueueRepo.setScheduled(item.id, iso);
       takenSlotISOs.add(iso);
+      if (item.igType === "scholarship") scholarshipsToday++;
       result.scheduled++;
       console.log(`[scheduleWaPost] Scheduled ${item.id} → ${iso}`);
     }

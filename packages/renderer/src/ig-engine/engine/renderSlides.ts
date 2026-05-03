@@ -15,6 +15,7 @@
  * Same input → same output → deterministic rendering.
  */
 
+import type { Page } from "playwright-core";
 import type { ValidatedSlide, IGEnginePost, TemplateId } from "../types/post.js";
 import { buildSlideHtml } from "../templates/index.js";
 import { getBrowserInstance } from "../../index.js";
@@ -47,6 +48,8 @@ export interface RenderedSlide {
 export interface RenderOptions {
   /** Device scale factor for retina rendering. Default: 1 (1080×1350). Set to 2 for 2160×2700. */
   deviceScaleFactor?: 1 | 2;
+  /** Throw when browser-side DOM measurement finds clipped text. Default: false. */
+  failOnDomOverflow?: boolean;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -133,27 +136,12 @@ export async function renderPost(
           }
         }
 
-        // Post-render DOM overflow detection — ground truth check.
-        // Finds any element whose content overflows its visible bounds.
-        const overflowFields = await page.evaluate(() => {
-          const overflowing: string[] = [];
-          // Check all elements with overflow:hidden or -webkit-line-clamp
-          document.querySelectorAll<HTMLElement>("*").forEach(el => {
-            const style = window.getComputedStyle(el);
-            if (style.overflow === "hidden" || style.webkitLineClamp !== "none") {
-              if (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2) {
-                const id = el.className || el.tagName.toLowerCase();
-                overflowing.push(id.toString().trim().slice(0, 40));
-              }
-            }
-          });
-          return [...new Set(overflowing)];
-        });
+        const overflowFields = await collectDomOverflowFields(page);
 
         if (overflowFields.length > 0) {
-          console.warn(
-            `[renderSlides] ⚠ DOM overflow detected on slide ${i + 1}: ${overflowFields.join(", ")}`,
-          );
+          const message = `[renderSlides] DOM overflow detected on slide ${i + 1}: ${overflowFields.join(", ")}`;
+          if (options?.failOnDomOverflow) throw new Error(message);
+          console.warn(`⚠ ${message}`);
         }
 
         const png = await page.screenshot({
@@ -229,23 +217,12 @@ export async function renderSingleSlide(
       }
     }
 
-    // Post-render DOM overflow detection
-    const overflowFields = await page.evaluate(() => {
-      const overflowing: string[] = [];
-      document.querySelectorAll<HTMLElement>("*").forEach(el => {
-        const style = window.getComputedStyle(el);
-        if (style.overflow === "hidden" || style.webkitLineClamp !== "none") {
-          if (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2) {
-            const id = el.className || el.tagName.toLowerCase();
-            overflowing.push(id.toString().trim().slice(0, 40));
-          }
-        }
-      });
-      return [...new Set(overflowing)];
-    });
+    const overflowFields = await collectDomOverflowFields(page);
 
     if (overflowFields.length > 0) {
-      console.warn(`[renderSlides] ⚠ DOM overflow detected: ${overflowFields.join(", ")}`);
+      const message = `[renderSlides] DOM overflow detected: ${overflowFields.join(", ")}`;
+      if (options?.failOnDomOverflow) throw new Error(message);
+      console.warn(`⚠ ${message}`);
     }
 
     const png = await page.screenshot({
@@ -258,4 +235,61 @@ export async function renderSingleSlide(
     await page.close();
     await context.close();
   }
+}
+
+/**
+ * Browser-side overflow check used as the final quality gate.
+ *
+ * Line-clamped elements report `scrollHeight > clientHeight` even when text is
+ * correctly within its clamp in Chromium, so compare against the clamp-derived
+ * visible height instead of the client box alone. This keeps the check strict
+ * for true clipping while avoiding false positives on normal 1–3 line headings.
+ */
+async function collectDomOverflowFields(page: Page): Promise<string[]> {
+  return page.evaluate<string[]>(`(() => {
+    const overflowing = [];
+    const TOLERANCE_PX = 8;
+
+    const numericLineHeight = (style, element) => {
+      const parsed = Number.parseFloat(style.lineHeight);
+      if (Number.isFinite(parsed)) return parsed;
+      const fontSize = Number.parseFloat(style.fontSize);
+      return Number.isFinite(fontSize) ? fontSize * 1.2 : element.clientHeight;
+    };
+
+    const labelFor = (element) => {
+      const className = typeof element.className === "string" ? element.className : "";
+      return (className || element.getAttribute("data-field") || element.tagName.toLowerCase())
+        .toString()
+        .trim()
+        .replace(/\s+/g, ".")
+        .slice(0, 48);
+    };
+
+    document.querySelectorAll("*").forEach((element) => {
+      const style = window.getComputedStyle(element);
+      const clamp = Number.parseInt(style.webkitLineClamp, 10);
+      const hasClamp = Number.isFinite(clamp) && clamp > 0;
+      const clipsOverflow = style.overflow === "hidden" || style.overflowX === "hidden" || style.overflowY === "hidden";
+
+      if (!hasClamp && !clipsOverflow) return;
+
+      if (hasClamp) {
+        const maxVisibleHeight = numericLineHeight(style, element) * clamp;
+        if (element.scrollHeight > maxVisibleHeight + TOLERANCE_PX) {
+          overflowing.push(labelFor(element));
+        }
+        return;
+      }
+
+      if (
+        element.scrollHeight > element.clientHeight + TOLERANCE_PX ||
+        element.scrollWidth > element.clientWidth + TOLERANCE_PX
+      ) {
+        overflowing.push(labelFor(element));
+      }
+    });
+
+    return [...new Set(overflowing)];
+  })()`);
 }
