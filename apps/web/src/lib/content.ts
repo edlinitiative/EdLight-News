@@ -218,12 +218,32 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
     // 1. Query items by vertical, newest first. Over-fetch slightly so we
     //    still have `limit` results after dropping items missing a published
     //    content_version in the requested language.
-    const snap = await db
-      .collection("items")
-      .where("vertical", "==", vertical)
-      .orderBy("publishedAt", "desc")
-      .limit(Math.ceil(limit * 1.5))
-      .get();
+    //
+    // Falls back to an unsorted query when the composite index isn't ready
+    // yet (returns FAILED_PRECONDITION). This happens right after a fresh
+    // index deploy — Firestore can take 5-30 min to build a new composite,
+    // and we'd rather show stale-but-correct results than an empty page.
+    let snap;
+    try {
+      snap = await db
+        .collection("items")
+        .where("vertical", "==", vertical)
+        .orderBy("publishedAt", "desc")
+        .limit(Math.ceil(limit * 1.5))
+        .get();
+    } catch (err: unknown) {
+      const code = (err as { code?: number })?.code;
+      // 9 = FAILED_PRECONDITION (missing index). Re-throw anything else.
+      if (code !== 9) throw err;
+      console.warn(
+        `[content] composite index for ${vertical}+publishedAt not ready, falling back to unsorted scan`,
+      );
+      snap = await db
+        .collection("items")
+        .where("vertical", "==", vertical)
+        .limit(Math.ceil(limit * 1.5))
+        .get();
+    }
 
     if (snap.empty) return [];
 
