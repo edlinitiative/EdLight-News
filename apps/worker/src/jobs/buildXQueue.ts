@@ -227,6 +227,7 @@ export async function buildXQueue(): Promise<BuildXQueueResult> {
 
         await xQueueRepo.createXQueueItem({
           sourceContentId: item.id,
+          igType: (item.category === "scholarship" || item.category === "opportunity" || item.category === "news") ? item.category : undefined,
           score,
           status: "queued",
           queuedDate: haitiToday,

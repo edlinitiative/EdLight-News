@@ -15,6 +15,16 @@ const HAITI_MARKERS = [
   "phtk", "fanmi lavalas", "diaspora haïtien",
 ];
 
+const DIASPORA_MARKERS = [
+  "diaspora", "haitian diaspora", "diaspora haitienne", "diaspora haïtienne",
+  "haitian-american", "haitian american", "haitiano-americain", "haitiano-américain",
+  "haitian-canadian", "haitian canadian", "haitiano-canadien",
+  "haitian immigrants", "immigrants haitiens", "immigrants haïtiens",
+  "haitians in the united states", "haitians in america", "haitians in canada",
+  "haitiens aux etats-unis", "haïtiens aux états-unis", "haitiens au canada",
+  "little haiti",
+];
+
 const STUDENT_MARKERS = [
   "bourse", "scholarship", "programme", "candidature", "deadline", "inscription",
   "université", "university", "étudiant", "student", "elèv", "formation",
@@ -127,6 +137,7 @@ export function computeScoring(title: string, body: string, category?: string): 
   const haitiHits = countMatches(text, HAITI_MARKERS);
   const studentHits = countMatches(text, STUDENT_MARKERS);
   const offMissionHits = countMatches(text, OFF_MISSION_MARKERS);
+  const diasporaHits = countMatches(text, DIASPORA_MARKERS);
 
   // Base score from relevance signals
   let score = 0;
@@ -158,8 +169,8 @@ export function computeScoring(title: string, body: string, category?: string): 
 
   // Geo tag
   let geoTag: GeoTag = "Global";
-  if (haitiHits >= 2) geoTag = "HT";
-  else if (haitiHits >= 1 || normalizeForSearch(text).includes("diaspora")) geoTag = "Diaspora";
+  if (diasporaHits >= 1 && haitiHits >= 1) geoTag = "Diaspora";
+  else if (haitiHits >= 1) geoTag = "HT";
 
   // For resource items with Global geoTag, penalize if no student markers
   // (prevents generic global content from ranking high).

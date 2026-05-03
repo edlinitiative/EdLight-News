@@ -1,215 +1,217 @@
 "use client";
 
 /**
- * FeaturedBourses — Two-column featured scholarship cards for /bourses.
+ * FeaturedBourses — Mobile-first premium featured scholarships section.
  *
- * Highlights the top scholarships (closest deadlines with full funding)
- * in a premium editorial card layout with country-themed gradient accents.
- *
- * Mobile-first refinements:
- * - Cards stack full-width on mobile, side-by-side on sm+
- * - Softer shadows, smoother transitions, richer hover states
- * - Typography scales naturally: ~sm~ → sm and up
+ * Key improvements:
+ *   - Horizontal scroll with snap points on mobile, grid on desktop
+ *   - Touch-optimized carousel with slide indicators on mobile
+ *   - Premium glass-morphism section header
+ *   - Smooth scroll behavior with momentum
+ *   - Accessible scroll controls on desktop
  */
 
-import type { ContentLanguage, DatasetCountry, AcademicLevel } from "@edlight-news/types";
-import { Bookmark, ArrowRight } from "lucide-react";
+import type { ContentLanguage } from "@edlight-news/types";
+import { useCallback, useRef, useState, useEffect } from "react";
+import { ScholarshipCard } from "./ScholarshipCard";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
-import { getDeadlineStatus, formatDeadlineDateShort } from "@/lib/ui/deadlines";
-
-const COUNTRY_LABELS: Record<DatasetCountry, { fr: string; ht: string }> = {
-  US: { fr: "États-Unis", ht: "Etazini" },
-  CA: { fr: "Canada", ht: "Kanada" },
-  FR: { fr: "France", ht: "Frans" },
-  UK: { fr: "Royaume-Uni", ht: "Wayòm Ini" },
-  DO: { fr: "Rép. Dominicaine", ht: "Rep. Dominikèn" },
-  MX: { fr: "Mexique", ht: "Meksik" },
-  CN: { fr: "Chine", ht: "Lachin" },
-  RU: { fr: "Russie", ht: "Larisi" },
-  HT: { fr: "Haïti", ht: "Ayiti" },
-  Global: { fr: "International", ht: "Entènasyonal" },
-};
-
-const LEVEL_LABELS: Record<AcademicLevel, { fr: string; ht: string }> = {
-  bachelor: { fr: "Bachelor", ht: "Lisans" },
-  master: { fr: "Master", ht: "Metriz" },
-  phd: { fr: "PhD", ht: "Doktora" },
-  short_programs: { fr: "Courts programmes", ht: "Pwogram kout" },
-};
-
-const FUNDING_LABELS: Record<string, { fr: string; ht: string }> = {
-  full: { fr: "Bourse complète", ht: "Bous konplè" },
-  partial: { fr: "Bourse partielle", ht: "Bous pasyèl" },
-  stipend: { fr: "Allocation", ht: "Alokasyon" },
-  "tuition-only": { fr: "Frais de scolarité", ht: "Frè etid sèlman" },
-  unknown: { fr: "À vérifier", ht: "Pou verifye" },
-};
-
-const COUNTRY_ICONS: Record<string, string> = {
-  US: "🇺🇸", CA: "🇨🇦", FR: "🇫🇷", UK: "🇬🇧", DO: "🇩🇴",
-  MX: "🇲🇽", CN: "🇨🇳", RU: "🇷🇺", HT: "🇭🇹", Global: "🌍",
-};
-
-const COUNTRY_GRADIENTS: Record<string, string> = {
-  US: "from-blue-600/10 to-red-600/5",
-  CA: "from-red-600/10 to-white/5",
-  FR: "from-blue-600/10 to-red-600/5",
-  UK: "from-indigo-600/10 to-red-600/5",
-  DO: "from-red-600/10 to-blue-600/5",
-  MX: "from-green-600/10 to-red-600/5",
-  CN: "from-red-600/10 to-yellow-600/5",
-  RU: "from-sky-600/10 to-red-600/5",
-  HT: "from-blue-600/10 to-red-600/5",
-  Global: "from-amber-600/10 to-emerald-600/5",
-};
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 interface FeaturedBoursesProps {
   scholarships: SerializedScholarship[];
   lang: ContentLanguage;
-  savedIds: Set<string>;
+  saved: string[];
   onToggleSave: (id: string) => void;
 }
 
 export function FeaturedBourses({
   scholarships,
   lang,
-  savedIds,
+  saved,
   onToggleSave,
 }: FeaturedBoursesProps) {
   const fr = lang === "fr";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  // Select top featured: prefer full-funding scholarships with upcoming deadlines
-  const featured = scholarships
-    .filter((s) => s.kind !== "directory")
-    .sort((a, b) => {
-      // Prioritize full funding
-      const fundingOrder: Record<string, number> = { full: 0, partial: 1, stipend: 2, "tuition-only": 3, unknown: 4 };
-      const fa = fundingOrder[a.fundingType] ?? 4;
-      const fb = fundingOrder[b.fundingType] ?? 4;
-      if (fa !== fb) return fa - fb;
-      // Then by deadline proximity
-      const aISO = a.deadline?.dateISO ?? "9999";
-      const bISO = b.deadline?.dateISO ?? "9999";
-      return aISO.localeCompare(bISO);
-    })
-    .slice(0, 2);
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
 
-  if (featured.length === 0) return null;
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = el.querySelector("article")?.offsetWidth ?? 280;
+    const gap = 16;
+    const scrollAmount = (cardWidth + gap) * (direction === "left" ? -1 : 1);
+    el.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(updateScrollButtons);
+    observer.observe(el);
+    el.addEventListener("scroll", updateScrollButtons, { passive: true });
+    updateScrollButtons();
+    return () => {
+      observer.disconnect();
+      el.removeEventListener("scroll", updateScrollButtons);
+    };
+  }, [updateScrollButtons]);
+
+  if (scholarships.length === 0) return null;
+
+  // Track active slide on mobile scroll
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cards = el.querySelectorAll("article");
+    if (cards.length === 0) return;
+    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
+    let closest = 0;
+    let minDist = Infinity;
+    cards.forEach((card, i) => {
+      const rect = card.getBoundingClientRect();
+      const parentRect = el.getBoundingClientRect();
+      const cardCenter = rect.left - parentRect.left + rect.width / 2;
+      const dist = Math.abs(cardCenter - scrollCenter + el.offsetWidth / 2 - el.clientWidth / 2);
+      // Simplified: use the card's offset from the scroll container
+      const cardLeft = (card as HTMLElement).offsetLeft;
+      const dist2 = Math.abs(cardLeft + rect.width / 2 - scrollCenter);
+      if (dist2 < minDist) {
+        minDist = dist2;
+        closest = i;
+      }
+    });
+    setActiveIndex(closest);
+    updateScrollButtons();
+  };
 
   return (
-    <section className="space-y-4 sm:space-y-6">
-      <header className="flex justify-between items-end">
-        <div>
-          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] text-[#3525cd] dark:text-[#c3c0ff] bg-[#3525cd]/5 dark:bg-[#c3c0ff]/5 px-2.5 py-1 rounded-full inline-block">
-            {fr ? "Bourses vérifiées" : "Bous verifye"}
+    <section className="relative" aria-label={fr ? "Bourses en vedette" : "Bous an vedèt"}>
+      {/* ── Premium section header ── */}
+      <div className="flex items-center justify-between mb-5 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-2">
+          <span className="
+            inline-flex items-center gap-1.5
+            rounded-xl sm:rounded-lg
+            bg-[#3525cd]/8 dark:bg-[#c3c0ff]/10
+            px-3 sm:px-2.5 py-1.5 sm:py-1
+          ">
+            <Sparkles className="h-3.5 w-3.5 sm:h-3 sm:w-3 text-[#3525cd] dark:text-[#c3c0ff]" />
+            <span className="text-[12px] sm:text-[11px] font-extrabold uppercase tracking-wider text-[#3525cd] dark:text-[#c3c0ff]">
+              {fr ? "En vedette" : "An vedèt"}
+            </span>
           </span>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-[#1d1b1a] dark:text-white mt-2 sm:mt-1 font-display">
-            {fr ? "Bourses en vedette" : "Bous an vedèt"}
+          <h2 className="text-[18px] sm:text-lg font-extrabold text-[#1d1b1a] dark:text-white font-display tracking-[-0.02em]">
+            {fr ? "Bourses populaires" : "Bous popilè yo"}
           </h2>
         </div>
-      </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        {featured.map((s) => {
-          const cl = COUNTRY_LABELS[s.country];
-          const flag = COUNTRY_ICONS[s.country] ?? "🌍";
-          const fundingLabel = FUNDING_LABELS[s.fundingType];
-          const dlStatus = s.deadline?.dateISO ? getDeadlineStatus(s.deadline.dateISO, lang) : null;
-          const shortDate = s.deadline?.dateISO ? formatDeadlineDateShort(s.deadline.dateISO, lang) : null;
-          const saved = savedIds.has(s.id);
+        {/* Scroll buttons — hidden on mobile, visible on desktop */}
+        <div className="hidden sm:flex items-center gap-1">
+          <button
+            onClick={() => scroll("left")}
+            disabled={!canScrollLeft}
+            className="
+              rounded-xl p-2
+              text-[#464555] dark:text-stone-400
+              hover:bg-[#f5f0ee] dark:hover:bg-stone-800
+              disabled:opacity-30 disabled:cursor-not-allowed
+              transition-all duration-200
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]
+            "
+            aria-label={fr ? "Défiler vers la gauche" : "Defile agoch"}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => scroll("right")}
+            disabled={!canScrollRight}
+            className="
+              rounded-xl p-2
+              text-[#464555] dark:text-stone-400
+              hover:bg-[#f5f0ee] dark:hover:bg-stone-800
+              disabled:opacity-30 disabled:cursor-not-allowed
+              transition-all duration-200
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]
+            "
+            aria-label={fr ? "Défiler vers la droite" : "Defile adwat"}
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
 
-          return (
-            <article
-              key={s.id}
-              className="group relative overflow-hidden rounded-2xl border border-[#c7c4d8]/8 dark:border-stone-700/40 bg-white dark:bg-stone-900 shadow-[0_2px_12px_-4px_rgba(29,27,26,0.04)] hover:shadow-[0_20px_48px_-12px_rgba(29,27,26,0.1)] dark:shadow-none dark:hover:shadow-[0_20px_48px_-12px_rgba(0,0,0,0.3)] transition-all duration-300 hover:-translate-y-1 active:scale-[0.985] active:opacity-90 flex flex-col"
-            >
-              {/* Country accent gradient strip at top */}
-              <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${COUNTRY_GRADIENTS[s.country] ?? COUNTRY_GRADIENTS.Global} opacity-80`} />
+      {/* ── Cards container ── */}
+      {/* Mobile: horizontal scroll with snap. Desktop: CSS grid (2 cols). */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="
+          /* Mobile: snap-scroll carousel */
+          flex sm:grid
+          sm:grid-cols-2
+          gap-4 sm:gap-5
+          overflow-x-auto sm:overflow-visible
+          scroll-snap-x-mandatory sm:scroll-snap-none
+          scrollbar-hide
+          -mx-4 sm:mx-0
+          px-4 sm:px-0
+          pb-2 sm:pb-0
+          /* Touch-friendly momentum */
+          [-webkit-overflow-scrolling:touch]
+        "
+      >
+        {scholarships.slice(0, 6).map((scholarship, index) => (
+          <article
+            key={scholarship.id}
+            className="
+              scroll-snap-start
+              min-w-[280px] sm:min-w-0
+              max-w-[85vw] sm:max-w-none
+              flex-shrink-0
+            "
+          >
+            <ScholarshipCard
+              scholarship={scholarship}
+              lang={lang}
+              saved={saved.includes(scholarship.id)}
+              onToggleSave={onToggleSave}
+            />
+          </article>
+        ))}
+      </div>
 
-              <div className="p-5 sm:p-5 flex flex-col flex-1">
-                {/* ── Top row: logo area + urgency badge ── */}
-                <div className="flex justify-between items-start mb-3 sm:mb-4">
-                  <div className="h-11 w-11 sm:h-12 sm:w-12 bg-[#f5f0ee] dark:bg-stone-800 rounded-xl flex items-center justify-center shadow-inner shadow-[#c7c4d8]/5 dark:shadow-none border border-[#c7c4d8]/5 dark:border-stone-700/50">
-                    <span className="text-lg sm:text-xl select-none" aria-hidden="true">{flag}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {dlStatus && (dlStatus.badgeVariant === "today" || dlStatus.badgeVariant === "urgent") ? (
-                      <span className="bg-[#ffdad6] text-[#93000a] text-[10px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wide">
-                        {dlStatus.badgeLabel}
-                      </span>
-                    ) : (
-                      <span className="bg-[#e8e1df] text-[#464555] text-[10px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase italic tracking-wide dark:bg-stone-700 dark:text-stone-300">
-                        {s.fundingType === "full"
-                          ? (fr ? "Sélection premier" : "Premye seleksyon")
-                          : (fr ? "Candidature ouverte" : "Kandidati ouvèt")}
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onToggleSave(s.id)}
-                      className={`rounded-lg p-1 sm:p-1.5 transition-colors ${
-                        saved
-                          ? "text-[#3525cd] dark:text-[#c3c0ff]"
-                          : "text-[#c7c4d8] hover:text-[#464555] dark:text-stone-600 dark:hover:text-stone-400"
-                      }`}
-                      aria-label={saved ? "Remove from saved" : "Save scholarship"}
-                    >
-                      <Bookmark className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${saved ? "fill-current" : ""}`} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* ── Title ── */}
-                <h3 className="text-base sm:text-lg md:text-xl font-bold leading-snug text-[#1d1b1a] dark:text-white group-hover:text-[#3525cd] dark:group-hover:text-[#c3c0ff] transition-colors font-display line-clamp-2">
-                  {s.name}
-                </h3>
-
-                {/* ── Country + Level info row ── */}
-                {(cl || s.level.length > 0) && (
-                  <div className="flex items-center gap-1.5 mt-2 sm:mt-2 text-[11px] sm:text-[11px] text-[#474948] dark:text-stone-500">
-                    {cl && <span className="font-semibold">{fr ? cl.fr : cl.ht}</span>}
-                    {cl && s.level.length > 0 && <span className="text-[#c7c4d8]">·</span>}
-                    {s.level.length > 0 && (
-                      <span>
-                        {s.level.map((l) => {
-                          const lbl = LEVEL_LABELS[l];
-                          return lbl ? (fr ? lbl.fr : lbl.ht) : l;
-                        }).join(" · ")}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* ── Summary ── */}
-                {s.eligibilitySummary && (
-                  <p className="text-[#6b6563] dark:text-stone-400 text-xs sm:text-sm mt-2 sm:mt-3 leading-relaxed line-clamp-2">
-                    {s.eligibilitySummary}
-                  </p>
-                )}
-
-                {/* Spacer */}
-                <div className="flex-1" />
-
-                {/* ── Footer: dashed border + value + CTA ── */}
-                <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-[#e8e1df]/40 dark:border-stone-800/60 flex justify-between items-center gap-2">
-                  <span className="text-[11px] sm:text-xs font-bold text-[#474948] dark:text-stone-400 uppercase truncate tracking-wide">
-                    {fundingLabel ? (fr ? fundingLabel.fr : fundingLabel.ht) : s.fundingType}
-                    {shortDate && ` · ${shortDate}`}
-                  </span>
-                  <a
-                    href={s.officialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#3525cd] dark:text-[#c3c0ff] font-bold text-[10px] sm:text-xs flex items-center gap-1 shrink-0 group/cta hover:gap-2 transition-all"
-                  >
-                    {fr ? "VOIR DÉTAILS" : "WÈ DETAY"}
-                    <ArrowRight className="h-3.5 w-3.5 group-hover/cta:translate-x-1 transition-transform duration-200" />
-                  </a>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+      {/* ── Mobile slide indicators ── */}
+      <div className="flex sm:hidden justify-center gap-1.5 mt-3">
+        {scholarships.slice(0, 6).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => {
+              const el = scrollRef.current;
+              if (!el) return;
+              const card = el.querySelectorAll("article")[i];
+              if (card) {
+                card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+              }
+            }}
+            className={`
+              h-1.5 rounded-full transition-all duration-300
+              ${i === activeIndex
+                ? "w-5 bg-[#3525cd] dark:bg-[#c3c0ff]"
+                : "w-1.5 bg-[#c7c4d8]/40 dark:bg-stone-700"
+              }
+            `}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
       </div>
     </section>
   );

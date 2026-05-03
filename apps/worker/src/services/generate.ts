@@ -127,13 +127,14 @@ export async function generateForItems(): Promise<{
 
       // Get source name for the prompt
       const source = await sourcesRepo.getSource(item.sourceId);
-      const sourceName = source?.name ?? "Unknown";
+      const sourceName = item.source?.name ?? source?.name ?? "Unknown";
+      const sourceUrl = item.source?.originalUrl ?? item.canonicalUrl;
 
       // Call Gemini
       const result = await generateWebDraftFRHT({
         title: item.title,
         text: textForGeneration,
-        sourceUrl: item.canonicalUrl,
+        sourceUrl,
         sourceName,
       });
 

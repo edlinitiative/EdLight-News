@@ -174,6 +174,11 @@ export function ArticleCard({
               {article.sourceCount ? ` · ${article.sourceCount}` : ""}
             </span>
           )}
+          {article.itemType !== "synthesis" && (article.dupeCount ?? 1) >= 2 && (
+            <span className="inline-flex items-center gap-1 rounded-lg bg-sky-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-sky-700 ring-1 ring-inset ring-sky-200/50 dark:bg-sky-950/40 dark:text-sky-400 dark:ring-sky-800/30">
+              {article.dupeCount} {fr ? "sources" : "sous"}
+            </span>
+          )}
           {article.geoTag === "HT" && derived.label !== (fr ? "Haïti" : "Ayiti") && (
             <span className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700 ring-1 ring-inset ring-red-200/50 dark:bg-red-950/30 dark:text-red-400 dark:ring-red-800/30">
               {fr ? "Haïti" : "Ayiti"}

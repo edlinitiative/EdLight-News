@@ -16,7 +16,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "node --import tsx --test src/ig-carousel.test.ts src/ig-story.test.ts"
+    "test": "node --import tsx --test src/ig-carousel.test.ts src/ig-story.test.ts src/ig-engine/renderSlides.test.ts"
   },
   "dependencies": {
     "@edlight-news/types": "workspace:*",

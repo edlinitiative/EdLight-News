@@ -140,7 +140,7 @@ export function buildPost(input: BuildSlidesInput): BuildSlidesResult {
       fitPassed: finalFailed.length === 0,
       rewriteCount,
       measuredLineCount,
-      overflowRisk: finalMeasure.some(r => r.linesUsed >= r.maxLines - 1),
+      overflowRisk: finalMeasure.some(r => r.maxLines > 1 && (r.linesUsed / r.maxLines) >= 0.85),
       fontSizeUsed,
     };
 

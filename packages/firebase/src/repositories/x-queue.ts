@@ -126,6 +126,17 @@ export async function countSentToday(): Promise<number> {
   return snap.data().count;
 }
 
+export async function listSentToday(limit = 20): Promise<XQueueItem[]> {
+  const { startTs } = haitiDayBounds();
+  const snap = await collection()
+    .where("status", "==", "sent" satisfies XQueueStatus)
+    .where("updatedAt", ">=", startTs)
+    .orderBy("updatedAt", "desc")
+    .limit(limit)
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as XQueueItem);
+}
+
 export async function countScheduledToday(): Promise<number> {
   const { startISO, endISO } = haitiDayBounds();
   const snap = await collection()

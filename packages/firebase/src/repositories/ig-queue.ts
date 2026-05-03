@@ -39,7 +39,7 @@ export async function findBySourceContentId(sourceContentId: string): Promise<IG
 
 /**
  * Fetch the set of sourceContentIds already present in the queue for entries
- * created within the last `windowDays` days.
+ * created within the last `since` date.
  *
  * Used by buildIgQueue to perform a SINGLE batch read instead of one
  * findBySourceContentId call per item (saves ~500 reads per tick).
@@ -56,6 +56,39 @@ export async function listSourceContentIdsSince(since: Date): Promise<Set<string
     if (scid) ids.add(scid);
   }
   return ids;
+}
+
+/**
+ * Load ALL currently pending (queued or scheduled) entries regardless of age.
+ * Returns sourceIds, groupIds, and cover headings for multi-layer dedup.
+ *
+ * Used by buildIgQueue to:
+ *  1. Prevent re-queuing items that are still pending (no date-window blind spot)
+ *  2. Skip items whose dedupeGroupId is already represented in the pending queue
+ *  3. Skip items whose slide heading is too similar to a pending post (topic dedup)
+ */
+export async function listPendingSourceIds(): Promise<{
+  sourceIds: Set<string>;
+  groupIds: Set<string>;
+  headings: string[];
+}> {
+  const snap = await collection()
+    .where("status", "in", ["queued", "scheduled"] satisfies IGQueueStatus[])
+    .select("sourceContentId", "dedupeGroupId", "payload")
+    .get();
+  const sourceIds = new Set<string>();
+  const groupIds = new Set<string>();
+  const headings: string[] = [];
+  for (const doc of snap.docs) {
+    const data = doc.data();
+    const scid = data.sourceContentId as string | undefined;
+    const gid = data.dedupeGroupId as string | undefined;
+    const heading = (data.payload as any)?.slides?.[0]?.heading as string | undefined;
+    if (scid) sourceIds.add(scid);
+    if (gid) groupIds.add(gid);
+    if (heading) headings.push(heading);
+  }
+  return { sourceIds, groupIds, headings };
 }
 
 export async function listByStatus(

@@ -373,9 +373,31 @@ function simplifyTitle(title: string): string {
   return noAccent.replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Common French historical/political nouns that happen to be capitalised in
+ * event titles. They are NOT proper names and produce useless image searches.
+ */
+const COMMON_FR_EVENT_NOUNS = new Set([
+  "Constitution", "Dissolution", "Parlement", "Assemblée", "Commission",
+  "Gouvernement", "Déclaration", "Entrée", "Sortie", "Départ", "Arrivée",
+  "Retour", "Signature", "Adoption", "Proclamation", "Publication",
+  "Création", "Formation", "Fondation", "Élection", "Investiture",
+  "Coup", "Accord", "Traité", "Massacre", "Bataille", "Soulèvement",
+  "Mort", "Naissance", "Assassinat", "Début", "Fin", "Prise",
+]);
+
 function extractProperNames(title: string): string[] {
   const matches = title.match(/[A-ZÀ-ÿ][\wÀ-ÿ'\-]+(?:\s+[A-ZÀ-ÿ][\wÀ-ÿ'\-]+){0,3}/g) ?? [];
-  return [...new Set(matches.map((m) => m.trim()).filter((m) => m.length >= 4))].slice(0, 4);
+  return [
+    ...new Set(
+      matches
+        .map((m) => m.trim())
+        .filter((m) => m.length >= 4)
+        // Exclude single-token common event nouns — they are not person names
+        // and generate wrong Commons queries like "Constitution portrait"
+        .filter((m) => !COMMON_FR_EVENT_NOUNS.has(m.split(" ")[0]!) || m.includes(" ")),
+    ),
+  ].slice(0, 4);
 }
 
 function maybePersonCandidate(title: string): string | null {
@@ -722,11 +744,16 @@ export async function resolveHistoryIllustration(
   const names = extractProperNames(base);
 
   // Pass 1: entity-first resolution (works well for people and major events).
+  // Haiti-contextualised queries come first so Wikidata resolves the Haitian
+  // entity before accidentally matching a same-name French history entity
+  // (e.g. bare "Révolution" → Q191831 "Révolution française").
   const entityCandidates = [
+    `${base} Haïti`,
+    `${simplified} Haïti`,
+    maybePersonCandidate(base),
+    ...names.filter((n) => n.includes(" ")), // multi-word proper names only
     base,
     simplified,
-    maybePersonCandidate(base),
-    ...names,
     year ? `${base} ${year}` : null,
   ].filter((q): q is string => Boolean(q));
 
@@ -749,7 +776,11 @@ export async function resolveHistoryIllustration(
     `${base} gravure Haïti`,
     `${base} battle map Haiti`,
     ...names.map((n) => `${n} Haiti`),
-    ...names.map((n) => `${n} portrait`),
+    // Only generate portrait queries for likely person names (multi-word tokens).
+    // Single-word common nouns that slipped through extractProperNames would
+    // create nonsensical queries like "Constitution portrait" that return
+    // French-Revolution constitutional documents.
+    ...names.filter((n) => n.includes(" ")).map((n) => `${n} portrait`),
   ].filter((q): q is string => Boolean(q));
 
   for (const q of queryCandidates) {
@@ -758,13 +789,14 @@ export async function resolveHistoryIllustration(
   }
 
   // Pass 3: Wikipedia pages -> Commons file (strong boost for historical events).
+  // NOTE: bare `base` and `simplified` (without "Haiti") are intentionally
+  // excluded. They can match French Wikipedia pages for event-title words like
+  // "Révolution" → "Révolution française" → French Revolution image.
   const wikiQueries = [
     `${base} Haiti`,
     `${simplified} Haiti`,
-    base,
-    simplified,
-    ...names,
-    year ? `${year} ${simplified}` : null,
+    ...names.map((n) => `${n} Haiti`),
+    year ? `${year} ${simplified} Haiti` : null,
   ].filter((q): q is string => Boolean(q));
 
   for (const q of wikiQueries) {

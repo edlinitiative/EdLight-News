@@ -36,6 +36,7 @@ import {
 import { isHighConfidenceSourceType } from "../historySources/historySourceRegistry.js";
 import { generateCustomImage } from "./geminiImageGen.js";
 import { resolveHistoryIllustration } from "./historyIllustrationResolver.js";
+import { verifyIllustrationMatch } from "./googleVisionSearch.js";
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
@@ -86,7 +87,15 @@ interface RichSection {
   imageCredit?: string;
 }
 
-/** Pick the best illustration from a set of almanac entries. */
+/** Pick the best illustration from a set of almanac entries.
+ *
+ * Pre-stored illustrations (gemini_ai, manual, wikimedia_commons) are always
+ * trusted regardless of their confidence score — the confidence gate only
+ * applies to live Wikimedia lookups performed at publish time.  We pick the
+ * entry with the highest confidence, treating a missing value as 0.5 so that
+ * any stored image beats "no image" while still allowing a higher-confidence
+ * sibling to win.
+ */
 function pickBestIllustration(
   entries: HaitiHistoryAlmanacEntry[],
 ): HaitiHistoryAlmanacEntry["illustration"] | null {
@@ -95,8 +104,10 @@ function pickBestIllustration(
   for (const e of entries) {
     const ill = e.illustration;
     if (!ill?.imageUrl) continue;
-    const conf = ill.confidence ?? 0;
-    if (conf >= MIN_ILLUSTRATION_CONFIDENCE && conf > bestConf) {
+    // Treat missing confidence as 0.5 — good enough to use, but still lets
+    // a sibling entry with an explicit confidence score win.
+    const conf = ill.confidence ?? 0.5;
+    if (conf > bestConf) {
       best = ill;
       bestConf = conf;
     }
@@ -796,7 +807,7 @@ async function publishContent(
   // Commons / Wikipedia portrait or engraving of the actual subject is far more
   // accurate and educational. Gemini is reserved as a last resort when no real
   // image can be found.
-  let heroImage: { imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "branded"; imageConfidence?: number; imageAttribution?: { name?: string; url?: string; license?: string } };
+  let heroImage: { imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "branded"; imageConfidence?: number; imageAttribution?: { name?: string; url?: string; license?: string } } | undefined;
 
   // 1) Pre-seeded Wikimedia illustration on the almanac entry (curated/backfilled).
   if (heroIllustration?.imageUrl) {
@@ -804,11 +815,13 @@ async function publishContent(
       imageUrl: heroIllustration.imageUrl,
       imageSource: "wikidata",
       imageConfidence: heroIllustration.confidence ?? 0.7,
-      imageAttribution: {
-        name: heroIllustration.author,
-        url: heroIllustration.pageUrl,
-        license: heroIllustration.license,
-      },
+      imageAttribution: Object.fromEntries(
+        Object.entries({
+          name: heroIllustration.author,
+          url: heroIllustration.pageUrl,
+          license: heroIllustration.license,
+        }).filter(([, v]) => v !== undefined)
+      ) as { name?: string; url?: string; license?: string },
     };
   } else {
     // 2) Live Wikimedia / Wikipedia / curated-override lookup on the hero title.
@@ -823,19 +836,50 @@ async function publishContent(
     }
 
     if (liveResolved && liveResolved.confidence >= MIN_ILLUSTRATION_CONFIDENCE) {
-      heroImage = {
-        imageUrl: liveResolved.imageUrl,
-        imageSource: "wikidata",
-        imageConfidence: liveResolved.confidence,
-        imageAttribution: {
-          name: liveResolved.author,
-          url: liveResolved.pageUrl,
-          license: liveResolved.license,
-        },
-      };
-    } else {
+      // Vision content-verification: confirm the image actually depicts
+      // a Haiti-related scene before accepting it. Fails open so a missing
+      // API key or quota exhaustion never silently drops a valid image.
+      let visionOk = true;
+      if (hero?.title_fr) {
+        try {
+          const verify = await verifyIllustrationMatch(
+            liveResolved.imageUrl,
+            hero.title_fr,
+            hero.year ?? undefined,
+          );
+          visionOk = verify.matches;
+          if (!visionOk) {
+            console.warn(
+              `[history-publisher] Vision rejected Wikimedia image for "${hero.title_fr}" ` +
+              `(score=${verify.score.toFixed(2)}) — falling back to Gemini`,
+            );
+          }
+        } catch (err) {
+          console.warn(`[history-publisher] Vision verification failed (fail-open):`, err);
+        }
+      }
+
+      if (visionOk) {
+        heroImage = {
+          imageUrl: liveResolved.imageUrl,
+          imageSource: "wikidata",
+          imageConfidence: liveResolved.confidence,
+          imageAttribution: Object.fromEntries(
+            Object.entries({
+              name: liveResolved.author,
+              url: liveResolved.pageUrl,
+              license: liveResolved.license,
+            }).filter(([, v]) => v !== undefined)
+          ) as { name?: string; url?: string; license?: string },
+        };
+      }
+    }
+
+    if (!heroImage) {
       // 3) Last resort: Gemini editorial cartoon. Reuses any cached gemini_ai
       //    illustration via ensureHistoryIllustration's existing-reuse path.
+      // Reached when: no stored illustration AND (no live Wikimedia result OR
+      // Vision rejected the Wikimedia image as unrelated to Haiti).
       const aiResult = inputEntries && inputEntries.length > 0
         ? await ensureHistoryIllustration(monthDay, inputEntries, heroIllustration)
         : null;
@@ -844,7 +888,11 @@ async function publishContent(
           imageUrl: aiResult.imageUrl,
           imageSource: "gemini_ai",
           imageConfidence: aiResult.confidence,
-          imageAttribution: aiResult.attribution,
+          imageAttribution: aiResult.attribution
+            ? (Object.fromEntries(
+                Object.entries(aiResult.attribution).filter(([, v]) => v !== undefined)
+              ) as { name?: string; url?: string; license?: string })
+            : undefined,
         };
       } else {
         heroImage = { imageUrl: "", imageSource: "branded" };
@@ -874,7 +922,7 @@ async function publishContent(
     },
     audienceFitScore: 0.95,
     geoTag: "HT" as const,
-    ...(heroImage.imageUrl ? {
+    ...(heroImage?.imageUrl ? {
       imageUrl: heroImage.imageUrl,
       imageSource: heroImage.imageSource,
       imageConfidence: heroImage.imageConfidence ?? 0.7,

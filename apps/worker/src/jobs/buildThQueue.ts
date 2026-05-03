@@ -250,6 +250,7 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
 
         await thQueueRepo.createThQueueItem({
           sourceContentId: item.id,
+          igType: (item.category === "scholarship" || item.category === "opportunity" || item.category === "news") ? item.category : undefined,
           score,
           status: "queued",
           queuedDate: haitiToday,

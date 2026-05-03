@@ -283,12 +283,14 @@ export default IGPostPreview;
 export interface IGSlideFrameProps {
   igType: string;
   slides: SlideData[];
+  caption?: string | null;
 }
 
-export function IGSlideFrame({ igType, slides }: IGSlideFrameProps) {
+export function IGSlideFrame({ igType, slides, caption }: IGSlideFrameProps) {
   const [htmls, setHtmls] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [qualityWarnings, setQualityWarnings] = useState<string[]>([]);
   const [current, setCurrent] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -298,19 +300,26 @@ export function IGSlideFrame({ igType, slides }: IGSlideFrameProps) {
     if (!slides.length) { setLoading(false); return; }
     setLoading(true);
     setError(null);
+    setQualityWarnings([]);
     fetch("/api/admin/ig-slide-html", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ igType, slides, totalSlides: slides.length }),
+      body: JSON.stringify({ igType, slides, caption, totalSlides: slides.length }),
     })
       .then((r) => r.json())
-      .then((data: { htmls?: string[]; error?: string }) => {
+      .then((data: { htmls?: string[]; error?: string; overflowWarnings?: string[]; fit?: Array<{ slideNumber: number; fitPassed: boolean; overflowRisk: boolean }> }) => {
         if (data.error) throw new Error(data.error);
         setHtmls(data.htmls ?? []);
+        const warnings = [...(data.overflowWarnings ?? [])];
+        for (const slide of data.fit ?? []) {
+          if (!slide.fitPassed) warnings.push(`Slide ${slide.slideNumber}: failed renderer fit check`);
+          else if (slide.overflowRisk) warnings.push(`Slide ${slide.slideNumber}: near text overflow limit`);
+        }
+        setQualityWarnings(warnings);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Render failed"))
       .finally(() => setLoading(false));
-  }, [igType, slides]);
+  }, [igType, slides, caption]);
 
   // Compute scale: iframe is 1080px wide, container is dynamic
   useEffect(() => {
@@ -416,6 +425,16 @@ export function IGSlideFrame({ igType, slides }: IGSlideFrameProps) {
               }`}
             />
           ))}
+        </div>
+      )}
+      {qualityWarnings.length > 0 && (
+        <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-[10px] leading-snug text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-200">
+          <p className="font-semibold">Renderer quality warnings</p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-4">
+            {qualityWarnings.slice(0, 3).map((warning, i) => (
+              <li key={i}>{warning}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
