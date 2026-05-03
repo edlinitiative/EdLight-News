@@ -149,6 +149,7 @@ export function enrichArticles(
       geoTag: item?.geoTag,
       vertical: item?.vertical,
       deadline: item?.deadline,
+      opportunityScore: item?.opportunityScore,
       publishedAt,
       // image fields
       imageUrl: item?.imageUrl ?? null,

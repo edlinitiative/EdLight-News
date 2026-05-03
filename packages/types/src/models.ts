@@ -290,6 +290,14 @@ export interface Item {
   source?: ItemSource;
   /** Structured opportunity data (Bourses / Ressources) */
   opportunity?: Opportunity;
+  /**
+   * Confidence score (0-100) that this item is a real, actionable
+   * opportunity. Computed by `scoreOpportunity()` in @edlight-news/generator
+   * during ingest. Items with score < OPPORTUNITY_SCORE_THRESHOLD (50) are
+   * NOT given vertical=opportunites, and the /opportunites page also gates
+   * on this field for legacy items.
+   */
+  opportunityScore?: number;
   /** When the original article was published */
   publishedAt?: Timestamp | null;
 
