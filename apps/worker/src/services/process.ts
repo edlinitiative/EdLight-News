@@ -182,6 +182,9 @@ export async function processRawItems(): Promise<{
         dedupeGroupId,
         source: itemSource,
         ...(classification.opportunity ? { opportunity: classification.opportunity } : {}),
+        ...(typeof classification.opportunityScore === "number"
+          ? { opportunityScore: classification.opportunityScore }
+          : {}),
         publishedAt: raw.publishedAt,
         // success story tagging (deterministic keyword match)
         ...(classification.isSuccessStory ? { successTag: true } : {}),

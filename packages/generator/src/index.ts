@@ -102,6 +102,21 @@ export {
   normalizeForDisambiguation,
 } from "./disambiguation.js";
 
+// ── Re-export opportunity-scoring module ───────────────────────────────────
+export {
+  scoreOpportunity,
+  passesOpportunityGate,
+  matchSubcategory,
+  normalizeForOpportunity,
+  OPPORTUNITY_SCORE_THRESHOLD,
+} from "./opportunityScoring.js";
+export type {
+  OpportunityScoreInput,
+  OpportunityScoreResult,
+  OpportunitySubcategory as OpportunityScoringSubcategory,
+  SubcategoryMatch,
+} from "./opportunityScoring.js";
+
 // ── Re-export dataset content module ────────────────────────────────────────
 export {
   generateDatasetArticle,

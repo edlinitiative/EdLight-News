@@ -185,6 +185,8 @@ import {
   isStockMarketFalsePositive as sharedIsStockMarketFalsePositive,
   lacksScholarshipEvidence as sharedLacksScholarshipEvidence,
   STRICT_SCHOLARSHIP_KEYWORDS,
+  scoreOpportunity,
+  OPPORTUNITY_SCORE_THRESHOLD,
 } from "@edlight-news/generator";
 
 // Re-export so existing call sites (jobs/buildFbQueue.ts, scripts/*) keep
@@ -312,6 +314,8 @@ export interface ClassificationResult {
   geoTag?: GeoTag;
   /** Structured opportunity payload for Firestore. */
   opportunity?: Opportunity;
+  /** Confidence score (0-100) computed by scoreOpportunity(). */
+  opportunityScore?: number;
   /** Whether the item is a success / achievement / inspiration story. */
   isSuccessStory: boolean;
 }
