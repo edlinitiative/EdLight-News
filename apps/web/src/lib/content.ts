@@ -193,6 +193,73 @@ export const fetchEnrichedFeed = unstable_cache(
   { revalidate: 300, tags: ["feed"] },
 );
 
+// ── Vertical-scoped feed (fast path for /opportunites etc.) ──────────────────
+
+/**
+ * Fetch a feed scoped to a single vertical (e.g. "opportunites").
+ *
+ * Uses the composite index `(vertical ASC, publishedAt DESC)` on `items` to
+ * pull only the docs we actually need, then resolves each one's matching
+ * `content_version` via the composite `(itemId, channel, status, language)`
+ * index. This avoids over-fetching ~800 mixed-vertical content_versions just
+ * to throw 90 % away in memory.
+ *
+ * Cached for 5 minutes per (vertical, lang, limit) tuple.
+ */
+export const fetchEnrichedFeedByVertical = unstable_cache(
+  async (
+    vertical: string,
+    lang: ContentLanguage,
+    limit: number = 200,
+  ): Promise<EnrichedArticle[]> => {
+    const db = getDb();
+
+    // 1. Query items by vertical, newest first. Over-fetch slightly so we
+    //    still have `limit` results after dropping items missing a published
+    //    content_version in the requested language.
+    const snap = await db
+      .collection("items")
+      .where("vertical", "==", vertical)
+      .orderBy("publishedAt", "desc")
+      .limit(Math.ceil(limit * 1.5))
+      .get();
+
+    if (snap.empty) return [];
+
+    const items = snap.docs.map(
+      (d) => ({ id: d.id, ...d.data() }) as Item,
+    );
+    const itemMap = new Map(items.map((i) => [i.id, i]));
+
+    // 2. Resolve one content_version per item in parallel chunks. The
+    //    `(itemId, channel, status, language)` composite index makes each
+    //    call a single-doc lookup.
+    const cvs: ContentVersion[] = [];
+    const chunkSize = 16;
+    for (let i = 0; i < items.length && cvs.length < limit; i += chunkSize) {
+      const chunk = items.slice(i, i + chunkSize);
+      const settled = await Promise.allSettled(
+        chunk.map((it) => contentVersionsRepo.listByItemId(it.id)),
+      );
+      for (const r of settled) {
+        if (r.status !== "fulfilled") continue;
+        const match = r.value.find(
+          (v) =>
+            v.language === lang &&
+            v.channel === "web" &&
+            v.status === "published",
+        );
+        if (match) cvs.push(match);
+        if (cvs.length >= limit) break;
+      }
+    }
+
+    return enrichArticles(cvs, itemMap);
+  },
+  ["enriched-feed-by-vertical"],
+  { revalidate: 300, tags: ["feed"] },
+);
+
 // ── Trending articles (by viewCount) ─────────────────────────────────────────
 
 /**

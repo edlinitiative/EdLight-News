@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import type { ContentLanguage } from "@edlight-news/types";
 import { Suspense } from "react";
 import { PageHeroCompact } from "@/components/PageHeroCompact";
-import { fetchEnrichedFeed, getLangFromSearchParams } from "@/lib/content";
+import { fetchEnrichedFeed, fetchEnrichedFeedByVertical, getLangFromSearchParams } from "@/lib/content";
 import { rankAndDeduplicate } from "@/lib/ranking";
 import { OpportunitiesFeed } from "@/components/OpportunitiesFeed";
 import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
@@ -48,11 +48,21 @@ export default async function OpportunitesPage({
 
   let allArticles: Awaited<ReturnType<typeof fetchEnrichedFeed>>;
   try {
-    // Pull a focused slice of recent published content. 800 is enough to
-    // surface ~600 opportunities tagged in production while keeping the
-    // server-side filter pipeline (~200 ms warm) responsive. The downstream
-    // rank+dedup pipeline still caps the final list at topN=40.
-    allArticles = await fetchEnrichedFeed(lang, 800);
+    // Fast path: query items directly by vertical="opportunites" (uses the
+    // composite index on items.vertical+publishedAt) instead of pulling 800
+    // mixed-vertical content_versions just to throw 90 % away in memory.
+    // We also pull a small slice of utility/ScholarshipRadar items via the
+    // generic feed so editorial radars still appear in the catalogue.
+    const [vertical, generic] = await Promise.all([
+      fetchEnrichedFeedByVertical("opportunites", lang, 300),
+      fetchEnrichedFeed(lang, 150),
+    ]);
+    const seen = new Set<string>();
+    allArticles = [...vertical, ...generic].filter((a) => {
+      if (seen.has(a.id)) return false;
+      seen.add(a.id);
+      return true;
+    });
   } catch (err) {
     console.error("[EdLight] /opportunites fetch failed:", err);
     allArticles = [];
