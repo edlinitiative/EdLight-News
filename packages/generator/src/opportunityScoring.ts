@@ -308,7 +308,7 @@ const OPPORTUNITY_SOURCE_PUBLISHERS = [
  * Score an article on the 0-100 opportunity-confidence scale.
  *
  * Components:
- *   +35  strict subcategory match      (offre de stage, appel pour bourse, …)
+ *   +50  strict subcategory match      (offre de stage, appel pour bourse, …)
  *   +20  weak subcategory match        (single keyword + confirming token)
  *   +20  parsed deadline available
  *   +15  apply verb in text            (postuler / apply for / candidater)
@@ -332,8 +332,8 @@ export function scoreOpportunity(
 
   const sub = matchSubcategory(blob);
   if (sub.strength === "strict") {
-    score += 35;
-    reasons.push(`+35 strict subcategory match (${sub.subcategory})`);
+    score += 50;
+    reasons.push(`+50 strict subcategory match (${sub.subcategory})`);
   } else if (sub.strength === "weak") {
     score += 20;
     reasons.push(`+20 weak subcategory match (${sub.subcategory})`);
