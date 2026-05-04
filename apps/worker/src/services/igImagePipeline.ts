@@ -42,7 +42,6 @@ import { findTieredImage } from "./tieredImagePipeline.js";
 import { findHighResVersion } from "./reverseImageSearch.js";
 import { findImageWithLlm } from "./llmImageFinder.js";
 import {
-  validatePublisherImage,
   validateImageForItem,
 } from "./llmPublisherImageValidator.js";
 
@@ -58,13 +57,15 @@ const IG_LLM_VALIDATE_PUBLISHER =
 /** Confidence threshold below which a vision validation is treated as a reject. */
 const MIN_VALIDATION_CONFIDENCE = 0.5;
 /**
- * Stricter floor for the publisher's og:image. The publisher path is
- * "use it or render gradient" — there is no substitute fallback — so we
- * want a clearer signal than the 0.5 used for substitute candidates.
- * Raises the bar for "generic-but-on-topic" stock photos (e.g. a stadium
- * photo for a story about a specific stampede at a named venue).
+ * Floor for the publisher's og:image. Lowered from 0.65 → 0.50 (and the
+ * validator below now runs in non-strict mode) because the prior settings
+ * rejected too many real publisher images — file photos of named figures,
+ * archive shots from the venue, mood photos that match the topic — sending
+ * an unnecessary fraction of news posts to the Gemini AI background
+ * fallback in `processIgScheduled`. The non-strict prompt still rejects
+ * logos, CAPTCHAs, and clearly-wrong-person photos.
  */
-const MIN_PUBLISHER_VALIDATION_CONFIDENCE = 0.65;
+const MIN_PUBLISHER_VALIDATION_CONFIDENCE = 0.5;
 
 export interface ImageSelection {
   /**
@@ -132,9 +133,17 @@ export async function selectImageForIG(
   if (hasPublisherImage) {
     // A.1 Vision-validate the publisher image when the dimensions/CDN gates
     // already approved it. This catches "right size, wrong photo".
+    //
+    // We use the NON-STRICT validator (`validateImageForItem` w/o strict)
+    // rather than `validatePublisherImage` (which is strict-mode). Strict
+    // mode demanded the image depict THIS SPECIFIC moment — which rejected
+    // legitimate file photos, archive shots, and on-topic mood images,
+    // shunting too many news posts to the AI Gemini background fallback.
+    // The non-strict prompt still rejects logos, CAPTCHAs, JS-challenge
+    // pages, and clearly wrong-person photos.
     if (publisherImageUsable && igImageSafe && IG_LLM_VALIDATE_PUBLISHER) {
       try {
-        const v = await validatePublisherImage(item);
+        const v = await validateImageForItem(item, item.imageUrl!);
         if (v && (!v.match || v.confidence < MIN_PUBLISHER_VALIDATION_CONFIDENCE)) {
           console.log(
             `[igImagePipeline] LLM rejected publisher image for ${item.id}: ` +
