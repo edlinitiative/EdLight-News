@@ -189,6 +189,47 @@ export function getNextAvailableSlot(takenSlotISOs: Set<string>, todayOnly = fal
   return null; // all slots taken
 }
 
+/**
+ * Return the soonest publishable instant for a daily staple whose pinned
+ * morning slot has already passed. We deliberately bypass the general
+ * engagement slots (08:30, 10:00, …, 14:00, …) because waiting hours to
+ * post a "taux du jour" or "histoire" defeats their purpose — these are
+ * time-sensitive staples that should land within minutes of being
+ * generated.
+ *
+ * Behaviour:
+ *  - Outside quiet hours: now + 60s (small offset per already-taken slot
+ *    in this tick to keep collision-free ISO keys). The next tick of
+ *    `processIgScheduled` (≤ a few minutes later) will publish it.
+ *  - Inside quiet hours (23:00–05:30 Haiti): schedule for 05:30 Haiti so
+ *    we don't push at 2am.
+ *
+ * @internal exported for tests
+ */
+export function getAsapStapleSlot(takenSlotISOs: Set<string>): Date {
+  const now = new Date();
+  // Stagger by 60s per already-claimed slot in this tick so multiple
+  // staples promoted to ASAP on the same tick get distinct ISO keys.
+  const stagger = takenSlotISOs.size * 60 * 1000;
+
+  if (isQuietHour(now)) {
+    // Schedule for end of quiet hours (05:30 Haiti) — that's the next
+    // moment the system is allowed to publish anyway.
+    const offsetHours = getHaitiOffsetHours(now);
+    const haitiNow = toHaitiDate(now);
+    let year = haitiNow.getUTCFullYear();
+    let month = haitiNow.getUTCMonth();
+    let day = haitiNow.getUTCDate();
+    // If we're in the >=23h portion of quiet hours, end-of-quiet is tomorrow.
+    if (haitiNow.getUTCHours() >= 23) day += 1;
+    return new Date(
+      Date.UTC(year, month, day, 5 + offsetHours, 30, 0, 0) + stagger,
+    );
+  }
+
+  return new Date(now.getTime() + 60 * 1000 + stagger);
+}
+
 /** Return today's date in Haiti timezone as YYYY-MM-DD. */
 function getHaitiTodayISO(): string {
   const haiti = toHaitiDate(new Date());
@@ -343,6 +384,7 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     // Try the pinned slot first for this staple type
     const pinnedIdx = STAPLE_SLOT_INDEX[stapleType];
     let slot: Date | null = null;
+    let pinnedAlreadyPassed = false;
 
     if (pinnedIdx != null) {
       // Build the pinned slot time for today
@@ -364,10 +406,24 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
       // Use the pinned slot if it's not taken and not in the past
       if (!takenSlots.has(pinnedISO) && pinnedDate > new Date()) {
         slot = pinnedDate;
+      } else if (pinnedDate <= new Date()) {
+        pinnedAlreadyPassed = true;
       }
     }
 
-    // Fall back to generic slot finding if pinned slot unavailable
+    // ASAP path: a daily staple whose pinned morning slot has passed should
+    // post within the next tick (a few minutes), NOT slide into a 14:00 /
+    // 16:00 general engagement slot. This is the difference between a
+    // "taux du jour" landing at 06:31 vs. 15:00.
+    if (!slot && pinnedAlreadyPassed) {
+      slot = getAsapStapleSlot(takenSlots);
+      console.log(
+        `[scheduleIgPost] staple ${stapleType}: pinned slot already passed — promoting to ASAP slot ${slot.toISOString()}`,
+      );
+    }
+
+    // Final fallback: a non-pinned staple, or pinned slot taken (not past).
+    // Use the next available today-slot — never spill into tomorrow's morning.
     if (!slot) {
       slot = getNextAvailableSlot(takenSlots, /* todayOnly */ true);
     }

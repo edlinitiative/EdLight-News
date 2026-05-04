@@ -75,8 +75,15 @@ const PRIMARY_WORD_TARGET = 500; // 400-600 words
 /** LLM-rewrite: secondary event word target. */
 const SECONDARY_WORD_TARGET = 135; // 120-150 words
 
-/** Minimum illustration confidence to propagate to published content. */
-const MIN_ILLUSTRATION_CONFIDENCE = 0.55;
+/**
+ * Minimum illustration confidence to propagate a freshly-resolved Wikimedia
+ * image to published content. Lowered from 0.55 → 0.45 because the resolver's
+ * thematic fallback queries (e.g. "Histoire d'Haïti", "History of Haiti")
+ * intentionally return 0.45–0.50 — and a curated broad Haiti history
+ * illustration is still a better visual than an AI editorial cartoon for
+ * histoire posts. The downstream Vision check still gates topical accuracy.
+ */
+const MIN_ILLUSTRATION_CONFIDENCE = 0.45;
 
 /** Section with optional image data. */
 interface RichSection {
@@ -193,25 +200,89 @@ function buildHistoryImagePrompt(entries: HaitiHistoryAlmanacEntry[]): string {
 }
 
 /**
- * Ensure an AI editorial illustration exists for the given almanac entries.
- * Returns the illustration metadata (existing or freshly generated).
+ * Ensure an editorial illustration exists for the given almanac entries.
+ * Returns the illustration metadata (existing or freshly resolved/generated).
  * Falls back gracefully — never blocks publishing.
+ *
+ * Resolution order (best-quality first):
+ *  1. Cached illustration on the first almanac entry (any provider).
+ *  2. Real historical illustration via Wikimedia Commons / Wikipedia /
+ *     Wikidata (`resolveHistoryIllustration`). These are actual period
+ *     paintings, engravings, photographs, or portraits — almost always
+ *     a much better visual than an AI re-imagining of the event.
+ *  3. AI-generated editorial cartoon via Gemini (last resort).
  */
 async function ensureHistoryIllustration(
   monthDay: string,
   entries: HaitiHistoryAlmanacEntry[],
   existingIllustration?: HaitiHistoryAlmanacEntry["illustration"] | null,
-): Promise<{ imageUrl: string; imageSource: "gemini_ai" | "wikidata"; confidence: number; attribution?: { name?: string; url?: string; license?: string } } | null> {
-  // If the first entry already has a gemini_ai illustration, reuse it
-  if (existingIllustration?.provider === "gemini_ai" && existingIllustration.imageUrl) {
+): Promise<{ imageUrl: string; imageSource: "gemini_ai" | "wikidata" | "wikimedia_commons" | "manual"; confidence: number; attribution?: { name?: string; url?: string; license?: string } } | null> {
+  // 1. Reuse any existing illustration regardless of provider — this lets
+  //    a previously-resolved Wikimedia Commons illustration stick instead
+  //    of being silently superseded by AI on the next run.
+  if (existingIllustration?.imageUrl) {
+    const provider = existingIllustration.provider;
+    const reusableProvider: "gemini_ai" | "wikimedia_commons" | "manual" =
+      provider === "gemini_ai" || provider === "manual"
+        ? provider
+        : "wikimedia_commons";
     return {
       imageUrl: existingIllustration.imageUrl,
-      imageSource: "gemini_ai",
+      imageSource: reusableProvider,
       confidence: existingIllustration.confidence ?? 0.85,
     };
   }
 
-  // Generate new AI illustration
+  const hero = entries[0];
+
+  // 2. Try a real historical illustration first — Wikidata → Commons →
+  //    Wikipedia → curated overrides. The user's complaint was that AI
+  //    cartoons were taking over even when an authentic period image was
+  //    available; this restores that preference.
+  if (hero?.title_fr) {
+    try {
+      const resolved = await resolveHistoryIllustration(hero.title_fr, hero.year ?? null);
+      if (resolved?.imageUrl) {
+        // Persist for reuse on subsequent ticks.
+        try {
+          await haitiHistoryAlmanacRepo.update(hero.id, {
+            illustration: {
+              imageUrl: resolved.imageUrl,
+              pageUrl: resolved.pageUrl ?? resolved.imageUrl,
+              provider: resolved.provider,
+              confidence: resolved.confidence ?? 0.7,
+            },
+          } as Partial<typeof hero>);
+        } catch (updateErr) {
+          console.warn(
+            `[history-publisher] could not persist resolved illustration metadata: ${updateErr}`,
+          );
+        }
+        console.log(
+          `[history-publisher] ✓ resolved real illustration for ${monthDay} via ${resolved.provider}`,
+        );
+        return {
+          imageUrl: resolved.imageUrl,
+          imageSource: resolved.provider,
+          confidence: resolved.confidence ?? 0.7,
+          attribution: resolved.author || resolved.license
+            ? {
+                name: resolved.author,
+                url: resolved.pageUrl,
+                license: resolved.license,
+              }
+            : undefined,
+        };
+      }
+    } catch (resolveErr) {
+      console.warn(
+        `[history-publisher] real-illustration resolver failed for ${monthDay}:`,
+        resolveErr instanceof Error ? resolveErr.message : resolveErr,
+      );
+    }
+  }
+
+  // 3. Last resort — AI editorial cartoon.
   try {
     const prompt = buildHistoryImagePrompt(entries);
     const storagePath = `histoire/illustrations/${monthDay}.png`;
@@ -239,7 +310,7 @@ async function ensureHistoryIllustration(
       }
     }
 
-    console.log(`[history-publisher] ✓ AI illustration generated for ${monthDay}`);
+    console.log(`[history-publisher] ✓ AI illustration generated for ${monthDay} (no real illustration available)`);
     return {
       imageUrl: url,
       imageSource: "gemini_ai",
