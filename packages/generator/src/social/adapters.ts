@@ -16,6 +16,7 @@
 
 import type {
   FbMessagePayload,
+  IGFormattedPayload,
   ThMessagePayload,
 } from "@edlight-news/types";
 import type { SocialPostsOutput } from "./schema.js";
@@ -116,5 +117,89 @@ export function socialToThPayload(
   return {
     text: withTags.slice(0, MAX),
     imageUrl: opts.imageUrl,
+  };
+}
+
+// ── Instagram caption wedge ──────────────────────────────────────────────────
+//
+// The IG carousel renderer still owns slide layout, fonts, and backgrounds —
+// the social v2 generator does NOT replace it. What v2 *does* improve, even
+// without renderer changes, is the off-image content: caption (the part that
+// drives saves/shares/comments), hashtag mix, and accessibility alt text.
+//
+// `socialToIgCaptionPatch` returns just those fields, and `applyIgCaptionPatch`
+// merges them into an existing `IGFormattedPayload` produced by `formatForIG`.
+// This is the safest possible IG integration — slides untouched, captions
+// upgraded — and lets us ship the v2 voice on IG without touching the
+// renderer.
+
+export interface IgCaptionPatch {
+  /** Cleaned caption (Lucide `[Icon: X]` tokens stripped). */
+  caption: string;
+  /** Hashtag list, capped at 10 (IG soft limit). */
+  hashtags: string[];
+  /** Accessibility description; empty string when LLM didn't supply one. */
+  altText: string;
+  /** Original IG post type from the LLM — useful for downstream routing. */
+  postType: SocialPostsOutput["instagram"]["post_type"];
+}
+
+/**
+ * Strip Lucide icon tokens from text. The PRD has the LLM emit
+ * `[Icon: GraduationCap]` tokens that the renderer is supposed to swap for
+ * SVGs. Until that lands (and arguably even after — see project notes), the
+ * tokens read as broken markup on IG/FB/Threads. Replace with a centered
+ * dot so the visual cadence the LLM intended is preserved.
+ */
+export function stripIconTokens(text: string): string {
+  return text
+    .replace(/\[Icon:\s*[A-Za-z0-9_]+\]\s?/g, "• ")
+    // Normalize accidental "•  •" or trailing bullets caused by stripping
+    .replace(/(•\s*){2,}/g, "• ")
+    .replace(/\s+•\s*$/g, "")
+    .trim();
+}
+
+/**
+ * Map the IG section of the social output to a caption patch. Returns null
+ * for `story_only` items — those go to the IG story rail, which has its own
+ * pipeline; the carousel queue should skip them.
+ */
+export function socialToIgCaptionPatch(
+  output: SocialPostsOutput,
+): IgCaptionPatch | null {
+  if (output.instagram.post_type === "story_only") return null;
+  const ig = output.instagram;
+  return {
+    caption: stripIconTokens(ig.caption),
+    hashtags: ig.hashtags.slice(0, 10),
+    altText: (ig.alt_text ?? "").trim(),
+    postType: ig.post_type,
+  };
+}
+
+/**
+ * Merge a caption patch into an existing `IGFormattedPayload`. Slides are
+ * preserved verbatim — the renderer keeps doing what it does. Only the
+ * caption (with hashtags appended) and the slide-level alt text are touched.
+ *
+ * Keeps the legacy formatter's caption as a fallback when the patch caption
+ * is suspiciously short (LLM occasionally returns a one-liner on weak input).
+ */
+export function applyIgCaptionPatch(
+  payload: IGFormattedPayload,
+  patch: IgCaptionPatch,
+): IGFormattedPayload {
+  const MIN_CAPTION_CHARS = 80;
+  const newCaption =
+    patch.caption.length >= MIN_CAPTION_CHARS ? patch.caption : payload.caption;
+  const hashtagLine = patch.hashtags.length ? patch.hashtags.join(" ") : "";
+  const captionWithTags = hashtagLine
+    ? `${newCaption}\n\n${hashtagLine}`
+    : newCaption;
+
+  return {
+    ...payload,
+    caption: captionWithTags,
   };
 }

@@ -18,7 +18,14 @@ import {
   socialPostsOutputSchema,
   type SocialPostsOutput,
 } from "./schema.js";
-import { socialToFbPayload, socialToThPayload } from "./adapters.js";
+import {
+  socialToFbPayload,
+  socialToThPayload,
+  socialToIgCaptionPatch,
+  applyIgCaptionPatch,
+  stripIconTokens,
+} from "./adapters.js";
+import type { IGFormattedPayload } from "@edlight-news/types";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -285,4 +292,80 @@ test("socialToThPayload returns null when post_type is story_only (Taux/Histoire
     articleUrl: "https://news.edlight.org/n/taux-2026-05-05",
   });
   assert.equal(th, null);
+});
+
+// ── IG caption wedge ────────────────────────────────────────────────────────
+// The IG carousel renderer keeps owning slides. The v2 generator only
+// upgrades the caption / hashtags / alt text. These tests pin that
+// contract so a future renderer refactor can't accidentally start mutating
+// slides through the wedge.
+
+test("stripIconTokens replaces [Icon: X] with bullet separator", () => {
+  const cleaned = stripIconTokens(
+    "[Icon: GraduationCap] Bourse Erasmus\n[Icon: Wallet] Frais couverts\n[Icon: Plane] Mobilité",
+  );
+  assert.ok(!cleaned.includes("[Icon:"), "icon tokens should be stripped");
+  assert.ok(cleaned.includes("Bourse Erasmus"));
+  assert.ok(cleaned.includes("Frais couverts"));
+  // Should not leave broken markers or trailing bullets.
+  assert.ok(!/\[/.test(cleaned));
+  assert.ok(!/•\s*$/.test(cleaned));
+});
+
+test("stripIconTokens collapses adjacent bullets and trims trailing", () => {
+  const cleaned = stripIconTokens("[Icon: A][Icon: B] hello [Icon: C]");
+  // "•  • hello •" → collapsed and trimmed
+  assert.ok(!cleaned.endsWith("•"));
+  assert.ok(!/(•\s*){2,}/.test(cleaned));
+});
+
+test("socialToIgCaptionPatch returns null for story_only", () => {
+  const patch = socialToIgCaptionPatch(STORY_ONLY_OUTPUT);
+  assert.equal(patch, null);
+});
+
+test("socialToIgCaptionPatch caps hashtags at 10", () => {
+  const out: SocialPostsOutput = {
+    ...ERASMUS_OUTPUT,
+    instagram: {
+      ...ERASMUS_OUTPUT.instagram,
+      hashtags: Array.from({ length: 15 }, (_, i) => `#tag${i}`),
+    },
+  };
+  const patch = socialToIgCaptionPatch(out);
+  assert.ok(patch);
+  assert.equal(patch.hashtags.length, 10);
+});
+
+const LEGACY_PAYLOAD: IGFormattedPayload = {
+  slides: [
+    { layout: "headline", heading: "Bourse Erasmus", bullets: ["MISEI 2026"] },
+    { layout: "explanation", heading: "Détails", bullets: ["Tout couvert."] },
+    { layout: "cta", heading: "Postule", bullets: ["Avant 31 mai"] },
+  ],
+  caption: "Caption legacy assez longue pour servir de fallback de sécurité.",
+};
+
+test("applyIgCaptionPatch preserves slides and swaps caption with hashtags", () => {
+  const patch = socialToIgCaptionPatch(ERASMUS_OUTPUT)!;
+  const result = applyIgCaptionPatch(LEGACY_PAYLOAD, patch);
+  // Slides untouched (same reference contents)
+  assert.equal(result.slides.length, LEGACY_PAYLOAD.slides.length);
+  assert.equal(result.slides[0]?.heading, "Bourse Erasmus");
+  // Caption upgraded — no [Icon: ...] residue, hashtags appended
+  assert.ok(!result.caption.includes("[Icon:"));
+  assert.ok(result.caption.includes("#BoursesHaiti"));
+  assert.ok(result.caption.includes("\n\n#"), "hashtags joined on new line");
+});
+
+test("applyIgCaptionPatch falls back to legacy caption when patch caption is too short", () => {
+  const patch = {
+    caption: "Trop court.",
+    hashtags: ["#x"],
+    altText: "alt",
+    postType: "carousel" as const,
+  };
+  const result = applyIgCaptionPatch(LEGACY_PAYLOAD, patch);
+  assert.ok(result.caption.startsWith(LEGACY_PAYLOAD.caption));
+  assert.ok(result.caption.endsWith("#x"));
 });

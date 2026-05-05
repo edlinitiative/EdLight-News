@@ -35,6 +35,10 @@ export {
 export {
   socialToFbPayload,
   socialToThPayload,
+  socialToIgCaptionPatch,
+  applyIgCaptionPatch,
+  stripIconTokens,
   type ToFbAdapterOpts,
   type ToThAdapterOpts,
+  type IgCaptionPatch,
 } from "./adapters.js";
