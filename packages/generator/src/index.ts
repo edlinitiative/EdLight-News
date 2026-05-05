@@ -167,6 +167,27 @@ export {
 } from "./ig/index.js";
 export type { BilingualText, FormatIGOptions } from "./ig/index.js";
 
+// ── Re-export multi-platform social generator (v2 — IG/Threads/FB) ─────────
+export {
+  SOCIAL_SYSTEM_PROMPT,
+  SOCIAL_PROMPT_VERSION,
+  socialArticleInputSchema,
+  socialPostsOutputSchema,
+  generateSocialPosts,
+  socialToFbPayload,
+  socialToThPayload,
+} from "./social/index.js";
+export type {
+  SocialArticleInput,
+  SocialPostsOutput,
+  SocialInstagramPayload,
+  SocialThreadsPayload,
+  SocialFacebookPayload,
+  GenerateSocialPostsResult,
+  ToFbAdapterOpts,
+  ToThAdapterOpts,
+} from "./social/index.js";
+
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.40;
 
