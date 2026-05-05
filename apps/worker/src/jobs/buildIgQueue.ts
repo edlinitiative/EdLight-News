@@ -14,9 +14,60 @@
 import { itemsRepo, igQueueRepo, contentVersionsRepo, sourcesRepo } from "@edlight-news/firebase";
 import { decideIG, applyDedupePenalty, formatForIG, isItemImageUsableForIG } from "@edlight-news/generator/ig/index.js";
 import type { BilingualText, FormatIGOptions } from "@edlight-news/generator/ig/index.js";
-import type { Item, IGQueueStatus, Source } from "@edlight-news/types";
+import {
+  generateSocialPosts,
+  socialToIgCaptionPatch,
+  applyIgCaptionPatch,
+} from "@edlight-news/generator";
+import type { Item, IGQueueStatus, Source, ContentVersion, IGFormattedPayload } from "@edlight-news/types";
 import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 import { selectImageForIG } from "../services/igImagePipeline.js";
+import { toSocialInput } from "../services/socialInput.js";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://news.edlight.org";
+const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
+
+/**
+ * Apply the social v2 IG caption wedge to a payload. Slides are not touched —
+ * only `caption` is upgraded (with hashtags appended) and only when the v2
+ * generator returns a usable patch. On any error we return the original
+ * payload so the legacy formatter remains the floor.
+ *
+ * Gated on `SOCIAL_GENERATOR_V2` — same flag as the FB / Threads wedges.
+ */
+async function applyIgV2CaptionWedge(
+  item: Item,
+  frCv: ContentVersion,
+  payload: IGFormattedPayload,
+): Promise<IGFormattedPayload> {
+  if (!SOCIAL_V2_ENABLED) return payload;
+  try {
+    const articleUrl = `${SITE_URL}/news/${frCv.id}?lang=${frCv.language}`;
+    const input = toSocialInput(item, frCv, articleUrl);
+    if (!input) return payload;
+    const result = await generateSocialPosts(input);
+    if (!result.ok) {
+      console.warn(
+        `[buildIgQueue] social v2 generator failed for ${item.id}: ${result.error}`,
+      );
+      return payload;
+    }
+    const patch = socialToIgCaptionPatch(result.output);
+    if (!patch) return payload; // story_only — keep legacy caption
+    const wedged = applyIgCaptionPatch(payload, patch);
+    console.log(
+      `[buildIgQueue] applied v2 caption wedge for ${item.id} ` +
+        `(caption=${wedged.caption.length}c, hashtags=${patch.hashtags.length})`,
+    );
+    return wedged;
+  } catch (err) {
+    console.warn(
+      `[buildIgQueue] social v2 wedge threw for ${item.id}:`,
+      err instanceof Error ? err.message : err,
+    );
+    return payload;
+  }
+}
 
 const HAITI_TZ = "America/Port-au-Prince";
 const DAILY_UTILITY_SERIES = new Set(["HaitiHistory", "HaitiFactOfTheDay"]);
@@ -318,11 +369,13 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
 
         // Fetch bilingual content_versions (fr + ht) for proper captions
         let bi: BilingualText | undefined;
+        let frCv: ContentVersion | undefined;
         try {
           const versions = await contentVersionsRepo.listByItemId(item.id);
           const fr = versions.find((v) => v.language === "fr");
           const ht = versions.find((v) => v.language === "ht");
           if (fr) {
+            frCv = fr;
             bi = {
               frTitle: fr.title,
               frSummary: fr.summary,
@@ -474,6 +527,14 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // image propagation + Gemini fallback pass at render time.
         // buildIgQueue only applies intentional per-type backgrounds above.
 
+        // ── Social v2 caption wedge ──────────────────────────────────────
+        // Slides are now final. Upgrade caption / hashtags from the social
+        // v2 generator without touching slides. No-op when the flag is off,
+        // when the LLM call fails, or for story_only items.
+        const finalPayload = frCv
+          ? await applyIgV2CaptionWedge(item, frCv, payload)
+          : payload;
+
         // Insert as queued
         const targetPostDate = extractTargetPostDate(item);
 
@@ -483,7 +544,7 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
           score: decision.igPriorityScore,
           status: "queued" as IGQueueStatus,
           reasons: decision.reasons,
-          payload,
+          payload: finalPayload,
           // Stamp dedupeGroupId so the pending-queue dedup works on future ticks.
           ...(item.dedupeGroupId ? { dedupeGroupId: item.dedupeGroupId } : {}),
           // Stamp a targetPostDate on date-bound daily items so the scheduler

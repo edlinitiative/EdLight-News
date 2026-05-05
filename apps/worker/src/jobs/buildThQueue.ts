@@ -18,8 +18,8 @@ import type { Item, ContentVersion, ThMessagePayload } from "@edlight-news/types
 import {
   generateSocialPosts,
   socialToThPayload,
-  type SocialArticleInput,
 } from "@edlight-news/generator";
+import { toSocialInput } from "../services/socialInput.js";
 
 /** Feature flag — when "true", try the social v2 generator before legacy composer. */
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
@@ -132,69 +132,6 @@ function scoreForTh(item: Item): number {
   if (item.viewCount && item.viewCount > 10) score += 10;
 
   return Math.min(score, 100);
-}
-
-/**
- * Map a worker Item+CV pair to the social generator's input shape.
- */
-function toSocialInput(
-  item: Item,
-  cv: ContentVersion | undefined,
-  articleUrl: string,
-): SocialArticleInput | null {
-  const topic = topicForSocial(item);
-  const rawCategory = item.category?.toLowerCase() ?? "";
-  const rawVertical = item.vertical?.toLowerCase() ?? "";
-  let category: SocialArticleInput["category"] = "Autre";
-  if (topic === "scholarship") category = "Bourses";
-  else if (topic === "opportunity") category = "Opportunités";
-  else if (topic === "education") category = "Éducation";
-  else if (topic === "news") category = "Actualités";
-  else if (
-    rawCategory === "taux" ||
-    rawVertical === "taux" ||
-    item.canonicalUrl?.startsWith("edlight://taux/") ||
-    item.canonicalUrl?.startsWith("edlight://utility/")
-  ) {
-    category = "Taux";
-  } else if (
-    rawCategory === "histoire" ||
-    rawVertical === "histoire" ||
-    item.canonicalUrl?.startsWith("edlight://histoire/")
-  ) {
-    category = "Histoire";
-  }
-  const language: "fr" | "ht" = cv?.language === "ht" ? "ht" : "fr";
-  const title = cv?.title || item.title;
-  if (!title || title.length < 10) return null;
-  const summary = cv?.summary || (item as any).summary || "";
-  const body = cv?.body || item.extractedText || "";
-  const publishedAt =
-    (cv as any)?.publishedAt instanceof Date
-      ? (cv as any).publishedAt.toISOString()
-      : typeof (cv as any)?.publishedAt === "string"
-        ? (cv as any).publishedAt
-        : new Date().toISOString();
-  const opportunity = (item as any).opportunity ?? {};
-  return {
-    articleId: item.id,
-    url: articleUrl,
-    category,
-    language,
-    title,
-    summary,
-    body,
-    publishedAt,
-    deadline: opportunity.deadline ?? null,
-    country: opportunity.country ?? null,
-    institution: opportunity.institution ?? null,
-    level: null,
-    coverage: opportunity.coverage ?? [],
-    eligibility: opportunity.eligibility ?? [],
-    documents: opportunity.documents ?? [],
-    applicationUrl: opportunity.applicationUrl ?? null,
-    imageUrl: item.imageUrl ?? null,
-  };
 }
 
 /**

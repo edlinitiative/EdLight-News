@@ -176,6 +176,9 @@ export {
   generateSocialPosts,
   socialToFbPayload,
   socialToThPayload,
+  socialToIgCaptionPatch,
+  applyIgCaptionPatch,
+  stripIconTokens,
 } from "./social/index.js";
 export type {
   SocialArticleInput,
@@ -186,6 +189,7 @@ export type {
   GenerateSocialPostsResult,
   ToFbAdapterOpts,
   ToThAdapterOpts,
+  IgCaptionPatch,
 } from "./social/index.js";
 
 /** Items scoring below this are kept as draft — never auto-published. */
