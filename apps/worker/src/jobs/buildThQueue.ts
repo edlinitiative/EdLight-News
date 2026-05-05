@@ -14,7 +14,15 @@ import {
   thQueueRepo,
   contentVersionsRepo,
 } from "@edlight-news/firebase";
-import type { Item, ThMessagePayload } from "@edlight-news/types";
+import type { Item, ContentVersion, ThMessagePayload } from "@edlight-news/types";
+import {
+  generateSocialPosts,
+  socialToThPayload,
+  type SocialArticleInput,
+} from "@edlight-news/generator";
+
+/** Feature flag — when "true", try the social v2 generator before legacy composer. */
+const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
@@ -105,17 +113,103 @@ function scoreForTh(item: Item): number {
 }
 
 /**
+ * Map a worker Item+CV pair to the social generator's input shape.
+ */
+function toSocialInput(
+  item: Item,
+  cv: ContentVersion | undefined,
+  articleUrl: string,
+): SocialArticleInput | null {
+  const topic = topicForSocial(item);
+  const category =
+    topic === "scholarship"
+      ? "Bourses"
+      : topic === "opportunity"
+        ? "Opportunités"
+        : topic === "education"
+          ? "Éducation"
+          : topic === "news"
+            ? "Actualités"
+            : "Autre";
+  const language: "fr" | "ht" = cv?.language === "ht" ? "ht" : "fr";
+  const title = cv?.title || item.title;
+  if (!title || title.length < 10) return null;
+  const summary = cv?.summary || (item as any).summary || "";
+  const body = cv?.body || item.extractedText || "";
+  const publishedAt =
+    (cv as any)?.publishedAt instanceof Date
+      ? (cv as any).publishedAt.toISOString()
+      : typeof (cv as any)?.publishedAt === "string"
+        ? (cv as any).publishedAt
+        : new Date().toISOString();
+  const opportunity = (item as any).opportunity ?? {};
+  return {
+    articleId: item.id,
+    url: articleUrl,
+    category,
+    language,
+    title,
+    summary,
+    body,
+    publishedAt,
+    deadline: opportunity.deadline ?? null,
+    country: opportunity.country ?? null,
+    institution: opportunity.institution ?? null,
+    level: null,
+    coverage: opportunity.coverage ?? [],
+    eligibility: opportunity.eligibility ?? [],
+    documents: opportunity.documents ?? [],
+    applicationUrl: opportunity.applicationUrl ?? null,
+    imageUrl: item.imageUrl ?? null,
+  };
+}
+
+/**
+ * Compose a Threads post payload using the social v2 generator.
+ * Returns null on any error so the caller can fall back to the legacy composer.
+ */
+async function composeThMessageV2(
+  item: Item,
+  cv: ContentVersion | undefined,
+  articleUrl: string,
+): Promise<ThMessagePayload | null> {
+  try {
+    const input = toSocialInput(item, cv, articleUrl);
+    if (!input) return null;
+    const result = await generateSocialPosts(input);
+    if (!result.ok) {
+      console.warn(
+        `[buildThQueue] social v2 generator failed for ${item.id}: ${result.error}`,
+      );
+      return null;
+    }
+    return socialToThPayload(result.output, {
+      articleUrl,
+      imageUrl: item.imageUrl ?? undefined,
+    });
+  } catch (err) {
+    console.warn(
+      `[buildThQueue] social v2 generator threw for ${item.id}:`,
+      err instanceof Error ? err.message : err,
+    );
+    return null;
+  }
+}
+
+/**
  * Compose a Threads post payload for a content item.
  * Conversational tone, max 500 chars, inline link.
  */
 async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
   let frTitle: string | undefined;
   let frSummary: string | undefined;
+  let frCv: ContentVersion | undefined;
 
   try {
     const versions = await contentVersionsRepo.listByItemId(item.id);
     const fr = versions.find((v) => v.language === "fr");
     if (fr) {
+      frCv = fr;
       frTitle = fr.title;
       frSummary = fr.summary;
     }
@@ -129,6 +223,13 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
   if (!title || title.length < 10) return null;
 
   const articleUrl = `${SITE_URL}/news/${item.id}`;
+
+  // ── Social v2 (feature-flagged) ───────────────────────────────────────
+  if (SOCIAL_V2_ENABLED) {
+    const v2 = await composeThMessageV2(item, frCv, articleUrl);
+    if (v2) return v2;
+    // fall through to legacy composer
+  }
 
   const topic = topicForSocial(item);
   const hashtags =
