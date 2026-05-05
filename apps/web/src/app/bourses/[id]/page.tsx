@@ -121,8 +121,30 @@ export default async function ScholarshipDetailPage({
       dlLabel = fr ? "À confirmer" : "Pou konfime";
   }
 
+  // Schema.org Course JSON-LD for SEO/AI surfaces.
+  const courseLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: s.name,
+    description: s.eligibilitySummary ?? "",
+    url: `https://news.edlight.org/bourses/${s.id}`,
+    provider: {
+      "@type": "Organization",
+      name: cl ? (fr ? cl.fr : cl.ht) : s.country,
+    },
+    inLanguage: lang,
+  };
+  if (s.deadline?.dateISO) courseLd.applicationDeadline = s.deadline.dateISO;
+  if (s.level) courseLd.educationalCredentialAwarded = s.level;
+  if (s.eligibilitySummary) courseLd.eligibilityToAccess = s.eligibilitySummary;
+  if (s.officialUrl) courseLd.sameAs = s.officialUrl;
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseLd) }}
+      />
       {/* Back link */}
       <Link
         href={`/bourses${lang !== "fr" ? `?lang=${lang}` : ""}`}

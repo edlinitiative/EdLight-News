@@ -1,37 +1,56 @@
 /**
- * Accueil — EdLight News editorial homepage.
+ * Homepage dispatcher.
  *
- * Design philosophy: text-first, newspaper density.
- *  Sections (top → bottom):
- *  1. Dateline bar
- *  2. Front page — lead (headline + compact image) + 3-col secondary text grid
- *  3. News grid — 6 articles, no images, 3 columns
- *  4. Latest + Trending — text feed (left) + ranked sidebar (right)
- *  5. Histoire du jour — compact dark band
- *  6. Opportunités — 2-col text list
- *  7. Newsletter
+ * Routes to one of two homepage variants:
+ *   - "bourses-led" (default) — leads with scholarships, news second.
+ *   - "legacy"               — original text-first newspaper layout, kept
+ *                              for safety so we can revert via env var or
+ *                              port the design to other surfaces.
+ *
+ * Selection: `NEXT_PUBLIC_HOMEPAGE_VARIANT=legacy` switches back. Anything
+ * else (including unset) renders the bourses-led variant.
+ *
+ * Data fetching is duplicated only for the news pool (the bourses-led
+ * variant needs both scholarships *and* news). The legacy variant fetches
+ * its own data inside the component, untouched, so behavior is identical
+ * to the pre-redesign homepage.
  */
 
-import Link from "next/link";
 import type { Metadata } from "next";
-import type { ContentLanguage } from "@edlight-news/types";
+import type { ContentLanguage, Scholarship } from "@edlight-news/types";
 import {
   fetchEnrichedFeed,
   fetchTrending,
   getLangFromSearchParams,
 } from "@/lib/content";
-import { ImageWithFallback } from "@/components/ImageWithFallback";
-import { NewsletterForm } from "@/components/NewsletterForm";
-import { CategoryBadge } from "@/components/CategoryBadge";
-import { isTauxDuJourArticle } from "@/lib/tauxFilter";
-import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
-import { buildOgMetadata } from "@/lib/og";
-import { withLangParam, formatRelativeDate, categoryLabel } from "@/lib/utils";
+import {
+  fetchScholarshipsForHaiti,
+  fetchScholarshipsClosingSoon,
+} from "@/lib/datasets";
 import { rankFeed } from "@/lib/ranking";
+import { isTauxDuJourArticle } from "@/lib/tauxFilter";
+import {
+  contentLooksLikeOpportunity,
+  isOpportunityStillOpen,
+} from "@/lib/opportunityClassifier";
+import { tsToISO as sharedTsToISO } from "@/lib/dates";
+import { buildOgMetadata } from "@/lib/og";
 import type { FeedItem } from "@/components/news-feed";
+import type { SerializedScholarship } from "@/components/BoursesFilters";
+
+import { HomepageBoursesLed } from "@/components/homepage/HomepageBoursesLed";
+import { HomepageLegacy } from "@/components/homepage/HomepageLegacy";
 
 export const revalidate = 60;
 
+// ── Variant flag ─────────────────────────────────────────────────────────────
+function getVariant(): "bourses-led" | "legacy" {
+  return process.env.NEXT_PUBLIC_HOMEPAGE_VARIANT === "legacy"
+    ? "legacy"
+    : "bourses-led";
+}
+
+// ── Metadata ─────────────────────────────────────────────────────────────────
 export async function generateMetadata({
   searchParams,
 }: {
@@ -39,12 +58,26 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr
-    ? "EdLight News — Actualités éducatives pour étudiants haïtiens"
-    : "EdLight News — Nouvèl edikasyon pou elèv ayisyen yo";
-  const description = fr
-    ? "Bourses, calendrier, ressources et actualités pour les étudiants haïtiens."
-    : "Bous, kalandriye, resous ak nouvèl pou elèv ayisyen yo.";
+  const variant = getVariant();
+
+  const title =
+    variant === "bourses-led"
+      ? fr
+        ? "EdLight News — Bourses + actualités pour étudiants haïtiens"
+        : "EdLight News — Bous + nouvèl pou etidyan ayisyen"
+      : fr
+        ? "EdLight News — Actualités éducatives pour étudiants haïtiens"
+        : "EdLight News — Nouvèl edikasyon pou elèv ayisyen yo";
+
+  const description =
+    variant === "bourses-led"
+      ? fr
+        ? "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora. Mises à jour chaque jour."
+        : "Bous, opòtinite ak nouvèl verifye pou etidyan ayisyen ak dyaspora a. Mizajou chak jou."
+      : fr
+        ? "Bourses, calendrier, ressources et actualités pour les étudiants haïtiens."
+        : "Bous, kalandriye, resous ak nouvèl pou elèv ayisyen yo.";
+
   return {
     title,
     description,
@@ -52,8 +85,7 @@ export async function generateMetadata({
   };
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
+// ── Helpers (mirror of legacy classifiers) ───────────────────────────────────
 const OPPORTUNITY_CATS = new Set([
   "scholarship",
   "opportunity",
@@ -71,612 +103,148 @@ function isOpportunity(a: FeedItem): boolean {
   return contentLooksLikeOpportunity(a.title ?? "", a.summary);
 }
 
-function normalizedCategory(a: FeedItem): string | null {
-  const cat = a.category ?? "";
-  if (!cat) return null;
+const tsToISO = sharedTsToISO;
 
-  const haitiLike = a.geoTag === "HT" || a.vertical === "haiti";
-
-  // Prevent misclassified opportunity tags on regular news.
-  if ((a.vertical === "opportunites" || OPPORTUNITY_CATS.has(cat)) && !isOpportunity(a)) {
-    return haitiLike ? "local_news" : "news";
-  }
-
-  // Utility facts often come through as "resource" but read like news.
-  if (cat === "resource" && a.itemType === "utility" && a.utilityType === "daily_fact") {
-    return haitiLike ? "local_news" : "news";
-  }
-
-  return cat;
+function serializeScholarship(s: Scholarship): SerializedScholarship {
+  return {
+    id: s.id,
+    name: s.name,
+    country: s.country,
+    eligibleCountries: s.eligibleCountries,
+    level: s.level,
+    fundingType: s.fundingType,
+    kind: s.kind,
+    haitianEligibility: s.haitianEligibility,
+    deadlineAccuracy: s.deadlineAccuracy,
+    deadline: s.deadline
+      ? {
+          dateISO: s.deadline.dateISO,
+          month: s.deadline.month,
+          notes: s.deadline.notes,
+          sourceUrl: s.deadline.sourceUrl,
+        }
+      : undefined,
+    officialUrl: s.officialUrl,
+    howToApplyUrl: s.howToApplyUrl,
+    requirements: s.requirements,
+    eligibilitySummary: s.eligibilitySummary,
+    recurring: s.recurring,
+    tags: s.tags,
+    sources: s.sources.map((src) => ({ label: src.label, url: src.url })),
+    verifiedAtISO: tsToISO(s.verifiedAt),
+    updatedAtISO: tsToISO(s.updatedAt),
+  };
 }
 
-function categoryTagText(a: FeedItem, lang: ContentLanguage): string | null {
-  const key = normalizedCategory(a);
-  if (!key) return null;
-  return categoryLabel(key, lang);
+// Days remaining until a deadline ISO; null if no parseable date.
+function daysUntil(iso?: string): number | null {
+  if (!iso) return null;
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return null;
+  return Math.ceil((t - Date.now()) / 86_400_000);
 }
 
-/** Thin rule with centred label + optional "voir tout" link */
-function SectionRule({
-  label,
-  href,
-  linkLabel,
-}: {
-  label: string;
-  href?: string;
-  linkLabel?: string;
-}) {
-  return (
-    <div className="mb-5 flex items-center gap-3">
-      <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
-      <span className="shrink-0 text-[10px] font-black uppercase tracking-[0.22em] text-stone-900 dark:text-white">
-        {label}
-      </span>
-      <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
-      {href && linkLabel && (
-        <Link
-          href={href}
-          className="shrink-0 text-[10px] font-semibold text-primary hover:underline"
-        >
-          {linkLabel} →
-        </Link>
-      )}
-    </div>
-  );
-}
-
-/** Left-ruled section header (used inside multi-column areas) */
-function ColumnHeader({ label }: { label: string }) {
-  return (
-    <p className="mb-3 border-t-2 border-stone-900 dark:border-white pt-2 text-[10px] font-black uppercase tracking-[0.22em] text-stone-900 dark:text-white">
-      {label}
-    </p>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-export default async function AccueilPage({
+// ── Page ─────────────────────────────────────────────────────────────────────
+export default async function HomePage({
   searchParams,
 }: {
   searchParams: { lang?: string };
 }) {
-  const lang: ContentLanguage = searchParams.lang === "ht" ? "ht" : "fr";
-  const lq = (path: string) => withLangParam(path, lang);
-  const fr = lang === "fr";
+  const lang = (
+    searchParams.lang === "ht" ? "ht" : "fr"
+  ) as ContentLanguage;
 
-  const safeFetch = async <T,>(
-    fn: () => Promise<T>,
-    fallback: T,
-    label: string,
-  ): Promise<T> => {
+  if (getVariant() === "legacy") {
+    return <HomepageLegacy lang={lang} />;
+  }
+
+  // ── bourses-led variant ──────────────────────────────────────────────────
+  const safe = async <T,>(fn: () => Promise<T>, fallback: T, label: string) => {
     try {
       return await fn();
     } catch (err) {
-      console.error(`[EdLight] ${label} fetch failed:`, err);
+      console.error(`[EdLight] homepage ${label} fetch failed:`, err);
       return fallback;
     }
   };
 
-  const [rawFeed, trendingArticles] = await Promise.all([
-    safeFetch(() => fetchEnrichedFeed(lang, 100), [], "enrichedFeed"),
-    safeFetch(() => fetchTrending(lang, 8), [], "trending"),
+  const [closingSoon, allScholarships, rawFeed, trending] = await Promise.all([
+    safe(() => fetchScholarshipsClosingSoon(60), [] as Scholarship[], "closingSoon"),
+    safe(() => fetchScholarshipsForHaiti(), [] as Scholarship[], "scholarships"),
+    safe(() => fetchEnrichedFeed(lang, 100), [] as FeedItem[], "enrichedFeed"),
+    safe(() => fetchTrending(lang, 8), [] as FeedItem[], "trending"),
   ]);
 
-  const filteredFeed = rawFeed.filter((a) => !isTauxDuJourArticle(a));
+  // Bourses segments ────────────────────────────────────────────────────────
+  // Hero: 3 nearest deadlines (with a parseable dateISO) — fallback to first 3.
+  const datedClosing = [...closingSoon].sort((a, b) => {
+    const da = daysUntil(a.deadline?.dateISO) ?? 9999;
+    const db = daysUntil(b.deadline?.dateISO) ?? 9999;
+    return da - db;
+  });
+  const heroBourses = (datedClosing.slice(0, 3).length
+    ? datedClosing.slice(0, 3)
+    : closingSoon.slice(0, 3)
+  ).map(serializeScholarship);
 
-  const rankedFeed = rankFeed(filteredFeed, {
+  const heroIds = new Set(heroBourses.map((s) => s.id));
+  const urgentBourses = datedClosing
+    .filter((s) => !heroIds.has(s.id))
+    .slice(0, 6)
+    .map(serializeScholarship);
+
+  // Recent: most recently verified scholarships not already shown.
+  const usedBourseIds = new Set([
+    ...heroIds,
+    ...urgentBourses.map((s) => s.id),
+  ]);
+  const recentBourses = [...allScholarships]
+    .filter((s) => !usedBourseIds.has(s.id))
+    .sort((a, b) => {
+      const ta = a.verifiedAt ? Date.parse(tsToISO(a.verifiedAt) ?? "") : 0;
+      const tb = b.verifiedAt ? Date.parse(tsToISO(b.verifiedAt) ?? "") : 0;
+      return tb - ta;
+    })
+    .slice(0, 6)
+    .map(serializeScholarship);
+
+  // News segments ───────────────────────────────────────────────────────────
+  const filteredFeed = rawFeed.filter((a) => !isTauxDuJourArticle(a));
+  const ranked = rankFeed(filteredFeed, {
     audienceFitThreshold: 0.3,
     publisherCap: 3,
     topN: 30,
   });
-
-  // ── Segments ──────────────────────────────────────────────────────────────
-  const opportunities = rankedFeed.filter(isOpportunity);
-  // Utility items (histoire du jour, daily facts, etc.) have their own
-  // dedicated bands further down the page and carry summaries that read
-  // poorly out of context (e.g. histoire summaries are a chronology of
-  // multiple events, not a deck for a single story). Keep them out of the
-  // lead / secondary / news-grid pool so real news takes those slots.
-  const newsPool = rankedFeed.filter(
+  const newsPool = ranked.filter(
     (a) => !isOpportunity(a) && a.itemType !== "utility",
   );
-
-  // Lead: prefer articles with images
-  const leadArticle = newsPool.find((a) => !!a.imageUrl) ?? newsPool[0] ?? null;
-  const usedIds = new Set(leadArticle ? [leadArticle.id] : []);
-
-  // Secondary (right of lead) — 3 text-only articles
-  const secondaryHero = newsPool
-    .filter((a) => !usedIds.has(a.id))
-    .slice(0, 3);
-  secondaryHero.forEach((a) => usedIds.add(a.id));
-
-  // News grid — 6 articles, text-only 3-col, after the front page
+  const featuredNews =
+    newsPool.find((a) => !!a.imageUrl) ?? newsPool[0] ?? null;
+  const usedNewsIds = new Set(featuredNews ? [featuredNews.id] : []);
   const newsGrid = newsPool
-    .filter((a) => !usedIds.has(a.id))
+    .filter((a) => !usedNewsIds.has(a.id))
     .slice(0, 6);
-  newsGrid.forEach((a) => usedIds.add(a.id));
+  newsGrid.forEach((a) => usedNewsIds.add(a.id));
 
-  // Latest — chronological, not utility, skip already shown
-  const latestNews = filteredFeed
-    .filter(
-      (a) => !usedIds.has(a.id) && !isOpportunity(a) && a.itemType !== "utility",
-    )
-    .slice(0, 8);
-  const latestNewsIds = new Set(latestNews.map((a) => a.id));
+  const trendingStories = trending
+    .filter((a) => !usedNewsIds.has(a.id))
+    .slice(0, 6);
 
-  const histoireArticle =
+  const histoire =
     filteredFeed.find(
       (a) => a.itemType === "utility" && a.utilityType === "history",
     ) ?? null;
 
-  const featuredOpp = opportunities[0] ?? null;
-  const moreOpps = opportunities.slice(1, 6);
-
-  const trendingStories = (() => {
-    const deduped = trendingArticles.filter(
-      (a) => !usedIds.has(a.id) && !latestNewsIds.has(a.id),
-    );
-    return (
-      deduped.length >= 3
-        ? deduped
-        : trendingArticles.filter((a) => !usedIds.has(a.id))
-    ).slice(0, 6);
-  })();
-
-  // ── Dateline ──────────────────────────────────────────────────────────────
-  const todayLabel = new Date()
-    .toLocaleDateString(fr ? "fr-FR" : "ht-HT", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "America/Port-au-Prince",
-    })
-    .replace(/^./, (c) => c.toUpperCase());
-
   return (
-    <div className="pb-24">
-
-      {/* ── Dateline bar ─────────────────────────────────────────────────── */}
-      <div className="border-b border-stone-200 dark:border-stone-800 py-2">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex items-center gap-4">
-          <p className="shrink-0 text-[10px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-600 capitalize">
-            {todayLabel}
-          </p>
-          <div className="h-px flex-1 bg-stone-200 dark:bg-stone-800" />
-          <p className="shrink-0 text-[10px] font-black uppercase tracking-[0.22em] text-stone-900 dark:text-white">
-            EdLight News
-          </p>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          1. FRONT PAGE — Lead + secondary columns
-             Lead: compact image + big headline (left 8 cols)
-             Secondary: 3 text-only stories stacked (right 4 cols)
-         ══════════════════════════════════════════════════════════════════════ */}
-      {leadArticle && (
-        <section className="border-b border-stone-200 dark:border-stone-800 py-8 sm:py-10">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
-
-              {/* ── Lead article (8 cols) ── */}
-              <div className="lg:col-span-8 lg:border-r lg:border-stone-200 lg:dark:border-stone-800 lg:pr-10">
-                {/* À la une label */}
-                <ColumnHeader label={fr ? "À la une" : "Alaune"} />
-
-                {/* Compact image — only if available, sized to the photo's true
-                    aspect ratio so portrait illustrations (e.g. histoire) render
-                    in a portrait box and panoramas stay wide. We clamp to
-                    [3/4, 2.4/1] to avoid pathological extremes, and use
-                    object-contain so nothing is ever cropped — the box
-                    matches the image, not the other way around. */}
-                {leadArticle.imageUrl && (() => {
-                  const w = leadArticle.imageMeta?.width;
-                  const h = leadArticle.imageMeta?.height;
-                  const natural = w && h ? w / h : null;
-                  // Clamp: portraits as tall as 3:4, panoramas as wide as 2.4:1.
-                  const ratio =
-                    natural !== null
-                      ? Math.min(2.4, Math.max(3 / 4, natural))
-                      : 16 / 9;
-                  const isPortrait = natural !== null && natural < 1;
-                  return (
-                    <Link href={lq(`/news/${leadArticle.id}`)} className="group mb-4 block">
-                      <div
-                        className={[
-                          "relative overflow-hidden rounded-md bg-stone-100 dark:bg-stone-900",
-                          // Portrait illustrations would otherwise dominate the
-                          // 8-col lead — keep them centred and capped at a
-                          // sensible width so the headline still leads visually.
-                          isPortrait ? "mx-auto max-w-sm" : "",
-                        ].join(" ")}
-                        style={{ aspectRatio: `${ratio}` }}
-                      >
-                        <ImageWithFallback
-                          src={leadArticle.imageUrl}
-                          alt={leadArticle.title}
-                          fill
-                          sizes={
-                            isPortrait
-                              ? "(max-width: 640px) 90vw, 384px"
-                              : "(max-width: 1024px) 100vw, 768px"
-                          }
-                          className="object-contain transition-transform duration-700 group-hover:scale-[1.02]"
-                        />
-                      </div>
-                    </Link>
-                  );
-                })()}
-
-                {/* Headline */}
-                <Link href={lq(`/news/${leadArticle.id}`)} className="group block">
-                  <h1 className="font-serif text-3xl font-black leading-[1.1] tracking-tight text-stone-950 dark:text-white group-hover:text-primary transition-colors sm:text-4xl lg:text-[2.6rem]">
-                    {leadArticle.title}
-                  </h1>
-                </Link>
-
-                {/* Summary — deck paragraph */}
-                {leadArticle.summary && (
-                  <p className="mt-3 text-base leading-relaxed text-stone-600 dark:text-stone-400 line-clamp-3 border-l-2 border-stone-300 dark:border-stone-700 pl-4">
-                    {leadArticle.summary}
-                  </p>
-                )}
-
-                {/* Byline */}
-                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]">
-                  {leadArticle.sourceName && (
-                    <span className="font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
-                      {leadArticle.sourceName}
-                    </span>
-                  )}
-                  {leadArticle.publishedAt && (
-                    <>
-                      <span className="text-stone-300 dark:text-stone-700">·</span>
-                      <span className="text-stone-500">{formatRelativeDate(leadArticle.publishedAt, lang)}</span>
-                    </>
-                  )}
-                  {categoryTagText(leadArticle, lang) && (
-                    <>
-                      <span className="text-stone-300 dark:text-stone-700">·</span>
-                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
-                        {categoryTagText(leadArticle, lang)}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Secondary stack (4 cols) ── */}
-              {secondaryHero.length > 0 && (
-                <div className="lg:col-span-4">
-                  <ColumnHeader label={fr ? "À suivre" : "Plis nouvèl"} />
-                  <ol className="divide-y divide-stone-100 dark:divide-stone-800">
-                    {secondaryHero.map((article) => (
-                      <li key={article.id} className="py-4 first:pt-0 last:pb-0">
-                        <Link href={lq(`/news/${article.id}`)} className="group block">
-                          {categoryTagText(article, lang) && (
-                            <div className="mb-1.5">
-                              <span className="inline-block text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
-                                {categoryTagText(article, lang)}
-                              </span>
-                            </div>
-                          )}
-                          <h3 className="font-serif text-[15px] font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
-                            {article.title}
-                          </h3>
-                          {article.summary && (
-                            <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400 line-clamp-2">
-                              {article.summary}
-                            </p>
-                          )}
-                          <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600">
-                            {article.sourceName}
-                            {article.publishedAt && (
-                              <span className="font-normal"> · {formatRelativeDate(article.publishedAt, lang)}</span>
-                            )}
-                          </p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          2. NEWS GRID — 6 articles, 3 columns, pure text
-         ══════════════════════════════════════════════════════════════════════ */}
-      {newsGrid.length > 0 && (
-        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <SectionRule
-              label={fr ? "Actualités" : "Nouvèl"}
-              href={lq("/news")}
-              linkLabel={fr ? "Voir tout" : "Wè tout"}
-            />
-            <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-              {newsGrid.map((article, idx) => (
-                <div
-                  key={article.id}
-                  className={[
-                    "relative",
-                    // vertical rule between columns (lg only)
-                    idx % 3 !== 0 ? "lg:border-l lg:border-stone-200 lg:dark:border-stone-800 lg:pl-8" : "",
-                    idx % 2 !== 0 ? "sm:border-l sm:border-stone-200 sm:dark:border-stone-800 sm:pl-8 lg:border-none lg:pl-0" : "",
-                    // re-apply lg rule for correct columns
-                    idx % 3 !== 0 ? "lg:border-l lg:border-stone-200 lg:dark:border-stone-800 lg:pl-8" : "",
-                  ].join(" ")}
-                >
-                  <Link href={lq(`/news/${article.id}`)} className="group block">
-                    {categoryTagText(article, lang) && (
-                      <div className="mb-1.5">
-                        <span className="inline-block text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
-                          {categoryTagText(article, lang)}
-                        </span>
-                      </div>
-                    )}
-                    <h3 className="font-serif text-base font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
-                      {article.title}
-                    </h3>
-                    {article.summary && (
-                      <p className="mt-1.5 text-xs leading-relaxed text-stone-500 dark:text-stone-400 line-clamp-2">
-                        {article.summary}
-                      </p>
-                    )}
-                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600">
-                      {article.sourceName}
-                      {article.publishedAt && (
-                        <span className="font-normal"> · {formatRelativeDate(article.publishedAt, lang)}</span>
-                      )}
-                    </p>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          3. LATEST FEED + TRENDING SIDEBAR
-         ══════════════════════════════════════════════════════════════════════ */}
-      {(latestNews.length > 0 || trendingStories.length > 0) && (
-        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-12">
-
-              {/* Latest — dense text list */}
-              {latestNews.length > 0 && (
-                <div className="lg:col-span-8">
-                  <SectionRule
-                    label={fr ? "Dernières actualités" : "Dènye nouvèl"}
-                    href={lq("/news")}
-                    linkLabel={fr ? "Voir tout" : "Wè tout"}
-                  />
-                  <ul className="divide-y divide-stone-100 dark:divide-stone-800/60">
-                    {latestNews.map((article, idx) => (
-                      <li key={article.id} className="py-3 first:pt-0 last:pb-0">
-                        <Link href={lq(`/news/${article.id}`)} className="group block">
-                          <div className="min-w-0">
-                            {categoryTagText(article, lang) && (
-                              <p className="mb-1 text-[10px] font-black uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400">
-                                {categoryTagText(article, lang)}
-                              </p>
-                            )}
-                            <h3
-                              className={[
-                                "font-serif font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors",
-                                idx < 2 ? "text-[15px] sm:text-base" : "text-sm",
-                              ].join(" ")}
-                            >
-                              {article.title}
-                            </h3>
-                            {idx === 0 && article.summary && (
-                              <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400 line-clamp-2">
-                                {article.summary}
-                              </p>
-                            )}
-                          </div>
-                          <p className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600 pl-0">
-                            {article.sourceName}
-                            {article.publishedAt && (
-                              <span className="font-normal"> · {formatRelativeDate(article.publishedAt, lang)}</span>
-                            )}
-                          </p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Trending — numbered sidebar */}
-              {trendingStories.length > 0 && (
-                <aside className="lg:col-span-4 lg:border-l lg:border-stone-200 lg:dark:border-stone-800 lg:pl-8">
-                  <SectionRule label={fr ? "Les plus lus" : "Plis li yo"} />
-                  <ol className="space-y-4">
-                    {trendingStories.map((article, idx) => (
-                      <li key={article.id}>
-                        <Link href={lq(`/news/${article.id}`)} className="group flex items-start gap-3">
-                          <span className="shrink-0 min-w-[24px] text-center text-2xl font-black leading-none select-none text-stone-200 dark:text-stone-800">
-                            {idx + 1}
-                          </span>
-                          <div>
-                            <h3 className="text-[13px] font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors line-clamp-3">
-                              {article.title}
-                            </h3>
-                            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600">
-                              {article.sourceName}
-                              {article.sourceName && article.publishedAt && <span className="font-normal"> · </span>}
-                              {article.publishedAt && (
-                                <span className="font-normal">{formatRelativeDate(article.publishedAt, lang)}</span>
-                              )}
-                            </p>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ol>
-                </aside>
-              )}
-
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          4. HISTOIRE DU JOUR — compact dark band
-         ══════════════════════════════════════════════════════════════════════ */}
-      {histoireArticle && (
-        <section className="border-b border-stone-200 dark:border-stone-800">
-          <Link
-            href={lq(`/news/${histoireArticle.id}`)}
-            className="group block bg-stone-950 px-4 py-8 sm:px-6 lg:px-8"
-          >
-            <div className="mx-auto max-w-6xl flex items-center gap-6 sm:gap-10">
-              <div className="shrink-0">
-                <span className="block text-[10px] font-black uppercase tracking-[0.22em] text-amber-400 mb-1">
-                  {fr ? "Histoire du jour" : "Istwa jodi a"}
-                </span>
-                <span className="block text-[10px] font-semibold text-stone-600 uppercase tracking-wider">
-                  {histoireArticle.publishedAt
-                    ? formatRelativeDate(histoireArticle.publishedAt, lang)
-                    : ""}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0 border-l border-stone-800 pl-6 sm:pl-10">
-                <h2 className="font-serif text-base font-bold leading-snug text-white group-hover:text-amber-100 transition-colors sm:text-lg line-clamp-1">
-                  {histoireArticle.title}
-                </h2>
-                {histoireArticle.summary && (
-                  <p className="mt-1.5 text-xs leading-relaxed text-stone-500 line-clamp-2 sm:text-sm sm:text-stone-400">
-                    {histoireArticle.summary}
-                  </p>
-                )}
-              </div>
-              <span className="shrink-0 text-xs font-bold text-amber-400 group-hover:text-amber-300 transition-colors hidden sm:block">
-                {fr ? "Lire" : "Li"} →
-              </span>
-            </div>
-          </Link>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          5. OPPORTUNITÉS — 2-col text list
-         ══════════════════════════════════════════════════════════════════════ */}
-      {(featuredOpp !== null || moreOpps.length > 0) && (
-        <section className="border-b border-stone-200 dark:border-stone-800 py-8">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <SectionRule
-              label={fr ? "Opportunités" : "Okazyon"}
-              href={lq("/opportunites")}
-              linkLabel={fr ? "Voir tout" : "Wè tout"}
-            />
-
-            <div className="grid gap-x-10 gap-y-0 sm:grid-cols-2">
-              {/* Left col */}
-              <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-                {[featuredOpp, ...moreOpps]
-                  .filter(Boolean)
-                  .slice(0, 3)
-                  .map((opp, idx) => (
-                    <li key={opp!.id} className="py-3 first:pt-0 last:pb-0">
-                      <Link href={lq(`/news/${opp!.id}`)} className="group block">
-                        {idx === 0 && (
-                          <span className="mb-1 inline-block text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
-                            {fr ? "À ne pas manquer" : "Pa rate sa"}
-                          </span>
-                        )}
-                        {opp!.category && idx > 0 && (
-                          <div className="mb-1">
-                            <CategoryBadge category={opp!.category} lang={lang} />
-                          </div>
-                        )}
-                        <h3
-                          className={[
-                            "font-serif font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors",
-                            idx === 0 ? "text-base" : "text-sm",
-                          ].join(" ")}
-                        >
-                          {opp!.title}
-                        </h3>
-                        {idx === 0 && opp!.summary && (
-                          <p className="mt-1 text-xs leading-relaxed text-stone-500 dark:text-stone-400 line-clamp-2">
-                            {opp!.summary}
-                          </p>
-                        )}
-                        {opp!.deadline && (
-                          <p className="mt-1 text-[10px] font-bold text-orange-600 dark:text-orange-400">
-                            {fr ? "Date limite :" : "Dat limit :"} {formatRelativeDate(opp!.deadline, lang)}
-                          </p>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-              </ul>
-
-              {/* Right col */}
-              <ul className="divide-y divide-stone-100 dark:divide-stone-800 mt-0 sm:border-l sm:border-stone-200 sm:dark:border-stone-800 sm:pl-10">
-                {moreOpps.slice(2, 5).map((opp) => (
-                  <li key={opp.id} className="py-3 first:pt-0 last:pb-0">
-                    <Link href={lq(`/news/${opp.id}`)} className="group block">
-                      {opp.category && (
-                        <div className="mb-1">
-                          <CategoryBadge category={opp.category} lang={lang} />
-                        </div>
-                      )}
-                      <h3 className="font-serif text-sm font-bold leading-snug text-stone-900 dark:text-white group-hover:text-primary transition-colors">
-                        {opp.title}
-                      </h3>
-                      {opp.deadline && (
-                        <p className="mt-1 text-[10px] font-bold text-orange-600 dark:text-orange-400">
-                          {fr ? "Date limite :" : "Dat limit :"} {formatRelativeDate(opp.deadline, lang)}
-                        </p>
-                      )}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          6. NEWSLETTER
-         ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-14 bg-stone-950">
-        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-stone-500">
-            {fr ? "Newsletter" : "Nyouzletè"}
-          </p>
-          <h2 className="font-serif text-2xl font-black tracking-tight text-white mb-2">
-            {fr ? "Restez informé" : "Rete enfòme"}
-          </h2>
-          <p className="text-sm text-stone-400 mb-2">
-            {fr
-              ? "Les meilleures actualités et opportunités — une fois par semaine."
-              : "Pi bon nouvèl ak okazyon yo — yon fwa pa semèn."}
-          </p>
-          <p className="mb-7 text-[10px] text-stone-600 uppercase tracking-widest">
-            {fr
-              ? "Édition quotidienne · Gratuit · Désabonnement à tout moment"
-              : "Chak jou · Gratis · Dezabòne nenpòt ki lè"}
-          </p>
-          <div className="max-w-sm mx-auto [&_input]:border-stone-700 [&_input]:bg-stone-900 [&_input]:text-white [&_input]:placeholder-stone-500 [&_button]:bg-white [&_button]:text-stone-950 [&_button]:hover:bg-stone-100">
-            <NewsletterForm lang={lang} variant="homepage" />
-          </div>
-        </div>
-      </section>
-
-    </div>
+    <HomepageBoursesLed
+      lang={lang}
+      heroBourses={heroBourses}
+      urgentBourses={urgentBourses}
+      recentBourses={recentBourses}
+      featuredNews={featuredNews}
+      newsGrid={newsGrid}
+      trending={trendingStories}
+      histoire={histoire}
+    />
   );
 }

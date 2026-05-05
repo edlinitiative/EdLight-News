@@ -111,8 +111,37 @@ export default async function BoursesPage({
       s.country === "Global",
   ).length;
 
+  // Schema.org ItemList of Course for SEO discoverability.
+  const itemListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: fr ? "Bourses pour étudiants haïtiens" : "Bous pou etidyan ayisyen",
+    numberOfItems: serialized.length,
+    itemListElement: serialized.slice(0, 50).map((s, idx) => ({
+      "@type": "ListItem",
+      position: idx + 1,
+      url: `https://news.edlight.org/bourses/${s.id}`,
+      item: {
+        "@type": "Course",
+        name: s.name,
+        ...(s.eligibilitySummary
+          ? { description: s.eligibilitySummary }
+          : {}),
+        ...(s.deadline?.dateISO
+          ? { applicationDeadline: s.deadline.dateISO }
+          : {}),
+        ...(s.level ? { educationalCredentialAwarded: s.level } : {}),
+        provider: { "@type": "Organization", name: s.country },
+      },
+    })),
+  };
+
   return (
     <div className="space-y-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }}
+      />
       {/* ─── Section 1: Editorial Hero (shared component for cross-page consistency) ─── */}
       <PageHeroCompact
         tint="indigo"
