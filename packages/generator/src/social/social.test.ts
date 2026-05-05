@@ -196,6 +196,7 @@ test("socialToFbPayload appends hashtags and sets linkUrl", () => {
   const fb = socialToFbPayload(ERASMUS_OUTPUT, {
     articleUrl: "https://news.edlight.org/news/x",
   });
+  assert.ok(fb, "expected non-null FB payload for carousel post_type");
   assert.ok(fb.text.includes("Bourse Erasmus Mundus MISEI 2026"));
   assert.ok(fb.text.endsWith("#BoursesHaiti #Erasmus #MasterIA #Diaspora"));
   assert.equal(fb.linkUrl, "https://news.edlight.org/news/x");
@@ -206,6 +207,7 @@ test("socialToThPayload stays under 500 chars", () => {
   const th = socialToThPayload(ERASMUS_OUTPUT, {
     articleUrl: "https://news.edlight.org/news/x",
   });
+  assert.ok(th, "expected non-null Threads payload for carousel post_type");
   assert.ok(th.text.length <= 500, `expected ≤500, got ${th.text.length}`);
   assert.ok(th.text.includes("Erasmus"));
   assert.ok(th.text.includes("https://news.edlight.org/news/x"));
@@ -226,6 +228,7 @@ test("socialToThPayload drops hashtags before truncating lead", () => {
   const th = socialToThPayload(out, {
     articleUrl: "https://news.edlight.org/n/x",
   });
+  assert.ok(th, "expected non-null Threads payload");
   assert.ok(th.text.length <= 500, `expected ≤500, got ${th.text.length}`);
   // Hashtags should have been dropped to make room
   assert.equal(th.text.includes("#one"), false);
@@ -247,7 +250,39 @@ test("socialToThPayload truncates lead when URL alone overflows budget", () => {
   const th = socialToThPayload(out, {
     articleUrl: "https://news.edlight.org/n/x",
   });
+  assert.ok(th, "expected non-null Threads payload");
   assert.ok(th.text.length <= 500);
   assert.ok(th.text.includes("https://news.edlight.org/n/x"));
   assert.ok(th.text.includes("…"));
+});
+
+// ── Story-only gating ───────────────────────────────────────────────────────
+// Taux du jour and Histoire d'Haïti are IG story rail content. The LLM
+// signals this with `instagram.post_type === "story_only"`. Both feed
+// adapters MUST return null in that case so the queue builders skip the
+// item entirely instead of shipping a feed post.
+
+const STORY_ONLY_OUTPUT: SocialPostsOutput = {
+  ...ERASMUS_OUTPUT,
+  instagram: {
+    post_type: "story_only",
+    carousel_slides: [],
+    caption: "[Icon: Banknote] Taux du jour : 1 USD = 132 HTG.",
+    hashtags: ["#TauxHaiti"],
+    alt_text: "Story du taux de change du jour.",
+  },
+};
+
+test("socialToFbPayload returns null when post_type is story_only (Taux/Histoire)", () => {
+  const fb = socialToFbPayload(STORY_ONLY_OUTPUT, {
+    articleUrl: "https://news.edlight.org/n/taux-2026-05-05",
+  });
+  assert.equal(fb, null);
+});
+
+test("socialToThPayload returns null when post_type is story_only (Taux/Histoire)", () => {
+  const th = socialToThPayload(STORY_ONLY_OUTPUT, {
+    articleUrl: "https://news.edlight.org/n/taux-2026-05-05",
+  });
+  assert.equal(th, null);
 });

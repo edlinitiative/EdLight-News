@@ -44,6 +44,10 @@ function hashtagsLine(tags: string[]): string {
 /**
  * Map the FB section of the social output to the existing FbMessagePayload.
  *
+ * Returns `null` when the LLM marked the article as `story_only` (Taux,
+ * Histoire, ambient cultural posts) — these belong on the IG story rail,
+ * not the Facebook feed. Callers should skip-queue when null is returned.
+ *
  * - The link goes in `linkUrl` (existing publisher posts it as a first
  *   comment when supported, or appends to the body otherwise).
  * - Hashtags are appended to `post_text`. We do NOT add the link to
@@ -52,7 +56,8 @@ function hashtagsLine(tags: string[]): string {
 export function socialToFbPayload(
   output: SocialPostsOutput,
   opts: ToFbAdapterOpts,
-): FbMessagePayload {
+): FbMessagePayload | null {
+  if (output.instagram.post_type === "story_only") return null;
   const fb = output.facebook;
   const tagLine = hashtagsLine(fb.hashtags);
   const text = tagLine ? `${fb.post_text}\n\n${tagLine}` : fb.post_text;
@@ -66,6 +71,9 @@ export function socialToFbPayload(
 /**
  * Map the Threads section to a single ThMessagePayload.
  *
+ * Returns `null` when the LLM marked the article as `story_only` — same
+ * rationale as `socialToFbPayload`.
+ *
  * Threads supports replies, but our existing queue/processor model is
  * one-message-per-queue-item. We collapse the thread into a single post
  * for now: take the first post verbatim, and if there's a reply, append
@@ -77,7 +85,8 @@ export function socialToFbPayload(
 export function socialToThPayload(
   output: SocialPostsOutput,
   opts: ToThAdapterOpts,
-): ThMessagePayload {
+): ThMessagePayload | null {
+  if (output.instagram.post_type === "story_only") return null;
   const th = output.threads;
   const lead = th.posts[0]?.text ?? "";
   const tagLine = hashtagsLine(th.hashtags);
