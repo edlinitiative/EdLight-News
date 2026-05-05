@@ -54,11 +54,28 @@ type SocialTopic =
   | "opportunity"
   | "education"
   | "news"
+  | "story_only"
   | "other";
 
 function topicForSocial(item: Item): SocialTopic {
   const category = item.category?.toLowerCase() ?? "";
   const vertical = item.vertical?.toLowerCase() ?? "";
+
+  // Story-only categories never belong on the Threads feed — they are
+  // for the IG story rail. Detected here so the loop filters them out.
+  if (
+    category === "taux" ||
+    category === "histoire" ||
+    category === "utility" ||
+    vertical === "histoire" ||
+    vertical === "taux" ||
+    vertical === "utility" ||
+    item.canonicalUrl?.startsWith("edlight://histoire/") ||
+    item.canonicalUrl?.startsWith("edlight://utility/") ||
+    item.canonicalUrl?.startsWith("edlight://taux/")
+  ) {
+    return "story_only";
+  }
 
   if (
     category === "scholarship" ||
@@ -101,9 +118,14 @@ function scoreForTh(item: Item): number {
   let score = 0;
 
   const topic = topicForSocial(item);
-  if (topic === "scholarship" || topic === "opportunity") score += 60;
-  else if (topic === "education" || topic === "news") score += 50;
-  else score += 30;
+  // Lead the feed with opportunities. Threads has higher organic reach
+  // for short link posts, so a strong opportunity bias here pays off.
+  if (topic === "scholarship") score += 70;
+  else if (topic === "opportunity") score += 65;
+  else if (topic === "education") score += 42;
+  else if (topic === "news") score += 35;
+  else if (topic === "story_only") score += 0;
+  else score += 25;
 
   if (item.imageUrl) score += 10;
   if (item.citations && item.citations.length > 0) score += 10;
@@ -121,16 +143,27 @@ function toSocialInput(
   articleUrl: string,
 ): SocialArticleInput | null {
   const topic = topicForSocial(item);
-  const category =
-    topic === "scholarship"
-      ? "Bourses"
-      : topic === "opportunity"
-        ? "Opportunités"
-        : topic === "education"
-          ? "Éducation"
-          : topic === "news"
-            ? "Actualités"
-            : "Autre";
+  const rawCategory = item.category?.toLowerCase() ?? "";
+  const rawVertical = item.vertical?.toLowerCase() ?? "";
+  let category: SocialArticleInput["category"] = "Autre";
+  if (topic === "scholarship") category = "Bourses";
+  else if (topic === "opportunity") category = "Opportunités";
+  else if (topic === "education") category = "Éducation";
+  else if (topic === "news") category = "Actualités";
+  else if (
+    rawCategory === "taux" ||
+    rawVertical === "taux" ||
+    item.canonicalUrl?.startsWith("edlight://taux/") ||
+    item.canonicalUrl?.startsWith("edlight://utility/")
+  ) {
+    category = "Taux";
+  } else if (
+    rawCategory === "histoire" ||
+    rawVertical === "histoire" ||
+    item.canonicalUrl?.startsWith("edlight://histoire/")
+  ) {
+    category = "Histoire";
+  }
   const language: "fr" | "ht" = cv?.language === "ht" ? "ht" : "fr";
   const title = cv?.title || item.title;
   if (!title || title.length < 10) return null;
@@ -334,10 +367,13 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
           continue;
         }
 
-        // Skip internal / utility items (histoire, taux) — those are IG-only
+        // Skip story-only categories (histoire, taux, utility) — those
+        // are IG story rail content and never belong on the Threads feed.
         if (
+          topicForSocial(item) === "story_only" ||
           item.canonicalUrl?.startsWith("edlight://histoire/") ||
-          item.canonicalUrl?.startsWith("edlight://utility/")
+          item.canonicalUrl?.startsWith("edlight://utility/") ||
+          item.canonicalUrl?.startsWith("edlight://taux/")
         ) {
           result.skipped++;
           continue;

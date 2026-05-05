@@ -55,6 +55,7 @@ type SocialTopic =
   | "opportunity"
   | "education"
   | "news"
+  | "story_only"
   | "other";
 
 function toDateMaybe(value: unknown): Date | null {
@@ -82,6 +83,23 @@ function smallHash(input: string): number {
 function topicForSocial(item: Item): SocialTopic {
   const category = item.category?.toLowerCase() ?? "";
   const vertical = item.vertical?.toLowerCase() ?? "";
+
+  // Story-only categories: never go to the FB feed (or Threads). They
+  // exist to fuel the IG story rail. Mark explicitly so scoring filters
+  // them out before the queue insert.
+  if (
+    category === "taux" ||
+    category === "histoire" ||
+    category === "utility" ||
+    vertical === "histoire" ||
+    vertical === "taux" ||
+    vertical === "utility" ||
+    item.canonicalUrl?.startsWith("edlight://histoire/") ||
+    item.canonicalUrl?.startsWith("edlight://utility/") ||
+    item.canonicalUrl?.startsWith("edlight://taux/")
+  ) {
+    return "story_only";
+  }
 
   if (
     category === "scholarship" ||
@@ -122,12 +140,16 @@ function scoreForFb(item: Item): { score: number; reasons: string[] } {
   let score = 0;
 
   const topic = topicForSocial(item);
+  // Lead the feed with opportunities. Bourses/Opportunités sit ~25 pts
+  // above generic news so weak news rarely crowds out an opportunity.
+  // story_only is hard-zeroed; the loop also filters it out below.
   const topicBase: Record<SocialTopic, number> = {
-    scholarship: 55,
-    opportunity: 52,
-    education: 48,
-    news: 45,
-    other: 34,
+    scholarship: 70,
+    opportunity: 65,
+    education: 45,
+    news: 38,
+    other: 25,
+    story_only: 0,
   };
   score += topicBase[topic];
   reasons.push(`topic=${topic} (+${topicBase[topic]})`);
@@ -200,16 +222,29 @@ function toSocialInput(
   articleUrl: string,
 ): SocialArticleInput | null {
   const topic = topicForSocial(item);
-  const category =
-    topic === "scholarship"
-      ? "Bourses"
-      : topic === "opportunity"
-        ? "Opportunités"
-        : topic === "education"
-          ? "Éducation"
-          : topic === "news"
-            ? "Actualités"
-            : "Autre";
+  const rawCategory = item.category?.toLowerCase() ?? "";
+  const rawVertical = item.vertical?.toLowerCase() ?? "";
+  // Pass the right category through so the LLM picks `story_only` for
+  // Taux / Histoire and the adapter then refuses to emit a feed payload.
+  let category: SocialArticleInput["category"] = "Autre";
+  if (topic === "scholarship") category = "Bourses";
+  else if (topic === "opportunity") category = "Opportunités";
+  else if (topic === "education") category = "Éducation";
+  else if (topic === "news") category = "Actualités";
+  else if (
+    rawCategory === "taux" ||
+    rawVertical === "taux" ||
+    item.canonicalUrl?.startsWith("edlight://taux/") ||
+    item.canonicalUrl?.startsWith("edlight://utility/")
+  ) {
+    category = "Taux";
+  } else if (
+    rawCategory === "histoire" ||
+    rawVertical === "histoire" ||
+    item.canonicalUrl?.startsWith("edlight://histoire/")
+  ) {
+    category = "Histoire";
+  }
   const language: "fr" | "ht" = cv.language === "ht" ? "ht" : "fr";
   const title = cv.title || item.title;
   if (!title || title.length < 10) return null;
@@ -435,10 +470,15 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           continue;
         }
 
-        // Skip internal / utility items (histoire, taux) — those are IG-only
+        // Skip story-only categories (histoire, taux, utility) — those
+        // are IG story rail content and never belong on the FB feed.
+        // Catches both synthetic edlight:// URLs and real items tagged
+        // Histoire/Taux/Utility upstream.
         if (
+          topicForSocial(item) === "story_only" ||
           item.canonicalUrl?.startsWith("edlight://histoire/") ||
-          item.canonicalUrl?.startsWith("edlight://utility/")
+          item.canonicalUrl?.startsWith("edlight://utility/") ||
+          item.canonicalUrl?.startsWith("edlight://taux/")
         ) {
           result.skipped++;
           continue;
