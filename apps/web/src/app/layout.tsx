@@ -8,6 +8,7 @@ import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { BackToTop } from "@/components/BackToTop";
+import { StickyNewsletterCTA } from "@/components/StickyNewsletterCTA";
 import { HtmlLangSync } from "@/components/HtmlLangSync";
 import { RouteLanguageSync } from "@/components/RouteLanguageSync";
 
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   },
   applicationName: "EdLight News",
   description:
-    "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
+    "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora — Bous, opòtinite ak nouvèl pou etidyan ayisyen yo.",
   icons: { icon: "/icon.svg" },
   metadataBase: new URL("https://news.edlight.org"),
   alternates: {
@@ -60,17 +61,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "EdLight News",
-    title: "EdLight News",
+    title: "EdLight News — Bourses + actualités pour étudiants haïtiens",
     description:
-      "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
+      "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora.",
     url: "https://news.edlight.org",
     locale: "fr_HT",
   },
   twitter: {
     card: "summary_large_image",
-    title: "EdLight News",
+    title: "EdLight News — Bourses + actualités pour étudiants haïtiens",
     description:
-      "Actualités éducatives pour les étudiants haïtiens — Nouvèl edikasyon pou elèv ayisyen yo",
+      "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora.",
   },
 };
 
@@ -151,6 +152,7 @@ export default function RootLayout({
 
             <MobileBottomNav />
             <BackToTop />
+            <StickyNewsletterCTA />
           </LanguageProvider>
         </ThemeProvider>
       </body>

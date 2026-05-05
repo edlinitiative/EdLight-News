@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, ChevronDown } from "lucide-react";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLanguage } from "@/lib/language-context";
 import { withLangParam } from "@/lib/utils";
+import { track } from "@/lib/analytics";
 
 interface NavLink {
   href: string;
@@ -15,19 +17,22 @@ interface NavLink {
   section?: "primary" | "secondary";
 }
 
-// Primary nav mirrors PRD §8 Top-Level Navigation
+// Bourses-led nav (PRD §5):
+//   Accueil | Bourses | Opportunités | Actualités | Haïti | Éducation | [Plus ▾]
+// `Bourses` is always visible without a dropdown on viewports >= 768px.
+// Everything in the "Plus" dropdown lives under `secondary`.
 const NAV_LINKS: NavLink[] = [
-  { href: "/news",        label: { fr: "Actualités",        ht: "Nouvèl"      }, section: "primary" },
-  { href: "/opportunites",label: { fr: "Opportunités",      ht: "Okazyon"     }, section: "primary" },
-  { href: "/haiti",       label: { fr: "Haïti",             ht: "Ayiti"       }, section: "primary" },
-  { href: "/world",       label: { fr: "Monde",             ht: "Mond"        }, section: "primary" },
-  { href: "/education",   label: { fr: "Éducation",         ht: "Edikasyon"   }, section: "primary" },
-  { href: "/business",    label: { fr: "Business",          ht: "Biznis"      }, section: "primary" },
-  { href: "/technology",  label: { fr: "Techno",            ht: "Teknoloji"   }, section: "primary" },
-  { href: "/opinion",    label: { fr: "Opinion",           ht: "Opinyon"     }, section: "secondary" },
-  { href: "/explainers",  label: { fr: "Explainers",        ht: "Eksplike"    }, section: "secondary" },
-  { href: "/bourses",     label: { fr: "Bourses",           ht: "Bous"        }, section: "secondary" },
-  { href: "/about",       label: { fr: "À propos",          ht: "Sou nou"     }, section: "secondary" },
+  { href: "/bourses",      label: { fr: "Bourses",      ht: "Bous"      }, section: "primary" },
+  { href: "/opportunites", label: { fr: "Opportunités", ht: "Okazyon"   }, section: "primary" },
+  { href: "/news",         label: { fr: "Actualités",   ht: "Nouvèl"    }, section: "primary" },
+  { href: "/haiti",        label: { fr: "Haïti",        ht: "Ayiti"     }, section: "primary" },
+  { href: "/education",    label: { fr: "Éducation",    ht: "Edikasyon" }, section: "primary" },
+  { href: "/world",        label: { fr: "Monde",        ht: "Mond"      }, section: "secondary" },
+  { href: "/business",     label: { fr: "Business",     ht: "Biznis"    }, section: "secondary" },
+  { href: "/technology",   label: { fr: "Techno",       ht: "Teknoloji" }, section: "secondary" },
+  { href: "/opinion",      label: { fr: "Opinion",      ht: "Opinyon"   }, section: "secondary" },
+  { href: "/explainers",   label: { fr: "Explainers",   ht: "Eksplike"  }, section: "secondary" },
+  { href: "/about",        label: { fr: "À propos",     ht: "Sou nou"   }, section: "secondary" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -118,10 +123,12 @@ export function NavBar() {
     return () => clearTimeout(id);
   }, [searchOpen]);
 
-  const allLinks = NAV_LINKS;
   const primaryLinks = NAV_LINKS.filter((l) => l.section === "primary");
   const secondaryLinks = NAV_LINKS.filter((l) => l.section === "secondary");
   const l = (href: string) => withLangParam(href, language);
+
+  const handleNavClick = (destination: string) =>
+    track("nav_click", { destination });
 
   return (
     <>
@@ -176,9 +183,10 @@ export function NavBar() {
             </span>
           </Link>
 
-          {/* Desktop nav — primary links prominent, secondary links muted */}
-          <nav className="hidden flex-1 items-center overflow-x-auto tab-scroll lg:flex">
-            {/* Primary */}
+          {/* Desktop nav — primary links prominent + Plus dropdown for the rest.
+              Switches on at md (>= 768px) so "Bourses" is always visible
+              without a dropdown on tablet+ viewports (PRD §5). */}
+          <nav className="hidden flex-1 items-center overflow-x-auto tab-scroll md:flex">
             <div className="flex items-center gap-0.5">
               {primaryLinks.map((link) => {
                 const active = isActive(pathname, link.href);
@@ -186,6 +194,7 @@ export function NavBar() {
                   <Link
                     key={link.href}
                     href={l(link.href)}
+                    onClick={() => handleNavClick(link.href)}
                     className={[
                       "relative whitespace-nowrap px-3 py-2 text-[13px] font-semibold transition-all duration-200",
                       active
@@ -201,31 +210,51 @@ export function NavBar() {
                 );
               })}
             </div>
-            {/* Divider */}
-            <div className="mx-2 h-4 w-px" style={{ background: 'rgba(202,196,208,0.2)' }} />
-            {/* Secondary */}
-            <div className="flex items-center gap-0.5">
-              {secondaryLinks.map((link) => {
-                const active = isActive(pathname, link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={l(link.href)}
-                    className={[
-                      "relative whitespace-nowrap px-2.5 py-1.5 text-[12px] font-medium transition-colors",
-                      active
-                        ? "text-on-surface"
-                        : "text-on-surface-variant/70 hover:text-on-surface dark:text-on-surface-variant",
-                    ].join(" ")}
-                  >
-                    {link.label[language]}
-                    {active && (
-                      <span className="absolute bottom-0 left-2.5 right-2.5 h-0.5 rounded-full bg-on-surface-variant/40" />
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
+
+            {/* Plus dropdown — secondary links collapsed behind a menu */}
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button
+                  type="button"
+                  className="ml-1 inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-[13px] font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label={fr ? "Plus de catégories" : "Plis kategori"}
+                >
+                  {fr ? "Plus" : "Plis"}
+                  <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  align="start"
+                  sideOffset={8}
+                  className="z-[60] min-w-[12rem] rounded-lg border border-stone-200 bg-surface-container-lowest p-1 shadow-lg dark:border-stone-700 dark:bg-surface-container-low"
+                >
+                  {secondaryLinks.map((link) => {
+                    const active = isActive(pathname, link.href);
+                    return (
+                      <DropdownMenu.Item
+                        key={link.href}
+                        asChild
+                        className="outline-none"
+                      >
+                        <Link
+                          href={l(link.href)}
+                          onClick={() => handleNavClick(link.href)}
+                          className={[
+                            "block cursor-pointer rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                            active
+                              ? "bg-surface-container-high text-on-surface"
+                              : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface",
+                          ].join(" ")}
+                        >
+                          {link.label[language]}
+                        </Link>
+                      </DropdownMenu.Item>
+                    );
+                  })}
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           </nav>
 
           {/* Right controls */}
@@ -243,7 +272,7 @@ export function NavBar() {
             <DarkModeToggle />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-on-surface-variant transition-colors hover:bg-surface-container-high lg:hidden"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-on-surface-variant transition-colors hover:bg-surface-container-high md:hidden"
               aria-label="Menu"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -254,7 +283,7 @@ export function NavBar() {
 
       {/* Mobile menu overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
+        <div className="fixed inset-0 z-40 md:hidden">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileOpen(false)}

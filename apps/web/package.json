@@ -15,6 +15,7 @@
     "@edlight-news/generator": "workspace:*",
     "@edlight-news/renderer": "workspace:^",
     "@edlight-news/types": "workspace:*",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "firebase-admin": "^12.1.0",
     "flag-icons": "^7.5.0",
     "framer-motion": "^12.34.3",
