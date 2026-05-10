@@ -198,12 +198,25 @@ export function enrichArticles(
  */
 export const fetchEnrichedFeed = unstable_cache(
   async (lang: ContentLanguage, limit: number = 200): Promise<EnrichedArticle[]> => {
-    const cvs = await fetchContentVersions({ lang, limit });
-    const itemMap = await fetchItemsByIds(cvs.map((cv) => cv.itemId));
-    return enrichArticles(cvs, itemMap);
+    // IMPORTANT: catch inside the cached body so failures (e.g. Firestore
+    // "Quota exceeded") get stored as an empty result for the full revalidate
+    // window. Otherwise unstable_cache discards the rejection and every
+    // subsequent request retries, burning even more Firestore reads.
+    try {
+      const cvs = await fetchContentVersions({ lang, limit });
+      const itemMap = await fetchItemsByIds(cvs.map((cv) => cv.itemId));
+      return enrichArticles(cvs, itemMap);
+    } catch (err) {
+      console.error(
+        `[EdLight] fetchEnrichedFeed failed (lang=${lang}, limit=${limit}):`,
+        err instanceof Error ? err.stack ?? err.message : err,
+      );
+      return [];
+    }
   },
   ["enriched-feed"],
-  { revalidate: 300, tags: ["feed"] },
+  // 30 min — content updates rarely; this is the primary read driver.
+  { revalidate: 1800, tags: ["feed"] },
 );
 
 // ── Vertical-scoped feed (fast path for /opportunites etc.) ──────────────────
@@ -225,6 +238,7 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
     lang: ContentLanguage,
     limit: number = 200,
   ): Promise<EnrichedArticle[]> => {
+   try {
     const db = getDb();
 
     // 1. Query items by vertical, newest first. Over-fetch slightly so we
@@ -264,33 +278,38 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
     );
     const itemMap = new Map(items.map((i) => [i.id, i]));
 
-    // 2. Resolve one content_version per item in parallel chunks. The
-    //    `(itemId, channel, status, language)` composite index makes each
-    //    call a single-doc lookup.
+    // 2. Resolve one content_version per item using batched `itemId in […]`
+    //    queries (Firestore caps `in` at 30 values). This collapses what was
+    //    an N+1 (one round-trip per item) into ⌈N/30⌉ round-trips, which is
+    //    the single biggest contributor to read-quota burn here.
     const cvs: ContentVersion[] = [];
-    const chunkSize = 16;
-    for (let i = 0; i < items.length && cvs.length < limit; i += chunkSize) {
-      const chunk = items.slice(i, i + chunkSize);
-      const settled = await Promise.allSettled(
-        chunk.map((it) => contentVersionsRepo.listByItemId(it.id)),
-      );
-      for (const r of settled) {
-        if (r.status !== "fulfilled") continue;
-        const match = r.value.find(
-          (v) =>
-            v.language === lang &&
-            v.channel === "web" &&
-            v.status === "published",
-        );
-        if (match) cvs.push(match);
+    const cvCol = db.collection("content_versions");
+    const inChunkSize = 30;
+    for (let i = 0; i < items.length && cvs.length < limit; i += inChunkSize) {
+      const ids = items.slice(i, i + inChunkSize).map((it) => it.id);
+      const snap = await cvCol
+        .where("itemId", "in", ids)
+        .where("channel", "==", "web")
+        .where("status", "==", "published")
+        .where("language", "==", lang)
+        .get();
+      for (const d of snap.docs) {
+        cvs.push({ id: d.id, ...d.data() } as ContentVersion);
         if (cvs.length >= limit) break;
       }
     }
 
     return enrichArticles(cvs, itemMap);
+   } catch (err) {
+     console.error(
+       `[EdLight] fetchEnrichedFeedByVertical failed (vertical=${vertical}, lang=${lang}):`,
+       err instanceof Error ? err.stack ?? err.message : err,
+     );
+     return [];
+   }
   },
   ["enriched-feed-by-vertical"],
-  { revalidate: 300, tags: ["feed"] },
+  { revalidate: 1800, tags: ["feed"] },
 );
 
 // ── Trending articles (by viewCount) ─────────────────────────────────────────
@@ -303,6 +322,7 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
  */
 export const fetchTrending = unstable_cache(
   async (lang: ContentLanguage, limit: number = 8): Promise<EnrichedArticle[]> => {
+   try {
     const db = getDb();
 
     // Query items with highest viewCount
@@ -319,30 +339,37 @@ export const fetchTrending = unstable_cache(
     const itemMap = new Map(items.map((i) => [i.id, i]));
     const itemIds = items.map((i) => i.id);
 
-    // Find matching content_versions for these items.
-    // Use chunked parallel requests (instead of sequential) to reduce tail latency.
+    // Batched `itemId in […]` (Firestore caps `in` at 30) instead of one
+    // listByItemId per item. Cuts trending fetch from O(N) round-trips to
+    // O(⌈N/30⌉) — usually 1 query for the homepage trending block.
     const cvs: import("@edlight-news/types").ContentVersion[] = [];
-    const chunkSize = 8;
-    for (let i = 0; i < itemIds.length && cvs.length < limit; i += chunkSize) {
-      const chunk = itemIds.slice(i, i + chunkSize);
-      const settled = await Promise.allSettled(
-        chunk.map((itemId) => contentVersionsRepo.listByItemId(itemId)),
-      );
-
-      for (const r of settled) {
-        if (r.status !== "fulfilled") continue;
-        const match = r.value.find(
-          (v) => v.language === lang && v.channel === "web" && v.status === "published",
-        );
-        if (match) cvs.push(match);
+    const cvCol = db.collection("content_versions");
+    const inChunkSize = 30;
+    for (let i = 0; i < itemIds.length && cvs.length < limit; i += inChunkSize) {
+      const ids = itemIds.slice(i, i + inChunkSize);
+      const snap = await cvCol
+        .where("itemId", "in", ids)
+        .where("channel", "==", "web")
+        .where("status", "==", "published")
+        .where("language", "==", lang)
+        .get();
+      for (const d of snap.docs) {
+        cvs.push({ id: d.id, ...d.data() } as import("@edlight-news/types").ContentVersion);
         if (cvs.length >= limit) break;
       }
     }
 
     return enrichArticles(cvs, itemMap).slice(0, limit);
+   } catch (err) {
+     console.error(
+       `[EdLight] fetchTrending failed (lang=${lang}, limit=${limit}):`,
+       err instanceof Error ? err.stack ?? err.message : err,
+     );
+     return [];
+   }
   },
   ["trending-feed"],
-  { revalidate: 300, tags: ["trending"] },
+  { revalidate: 1800, tags: ["trending"] },
 );
 
 // ── Strict success gating (shared by homepage + /succes page) ────────────────

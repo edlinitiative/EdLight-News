@@ -28,92 +28,170 @@ import type {
   HistoryPublishLog,
 } from "@edlight-news/types";
 
+/**
+ * Wrap a cached callback so Firestore failures (e.g. "Quota exceeded")
+ * resolve to a safe fallback value INSIDE the cached body. Without this,
+ * `unstable_cache` discards rejections — every subsequent request retries,
+ * which compounds quota pressure during an outage. Returning a value lets
+ * the result be cached for the full revalidate window, acting as a circuit
+ * breaker.
+ */
+function safeCb<Args extends unknown[], T>(
+  label: string,
+  fn: (...args: Args) => Promise<T>,
+  fallback: T,
+): (...args: Args) => Promise<T> {
+  return async (...args: Args) => {
+    try {
+      return await fn(...args);
+    } catch (err) {
+      console.error(
+        `[EdLight] dataset fetch "${label}" failed:`,
+        err instanceof Error ? err.stack ?? err.message : err,
+      );
+      return fallback;
+    }
+  };
+}
+
 // ── Universities ─────────────────────────────────────────────────────────────
 
 export const fetchAllUniversities = unstable_cache(
-  async (): Promise<University[]> => universitiesRepo.listAll(),
+  safeCb("universities-all", async (): Promise<University[]> => universitiesRepo.listAll(), []),
   ["universities-all"],
-  { revalidate: 900, tags: ["universities"] },
+  { revalidate: 1800, tags: ["universities"] },
 );
 
 export const fetchUniversitiesByCountry = unstable_cache(
-  async (country: DatasetCountry): Promise<University[]> =>
-    universitiesRepo.listByCountry(country),
+  safeCb(
+    "universities-country",
+    async (country: DatasetCountry): Promise<University[]> =>
+      universitiesRepo.listByCountry(country),
+    [],
+  ),
   ["universities-country"],
-  { revalidate: 900, tags: ["universities"] },
+  { revalidate: 1800, tags: ["universities"] },
 );
 
 export async function fetchUniversity(id: string): Promise<University | null> {
-  return universitiesRepo.get(id);
+  try {
+    return await universitiesRepo.get(id);
+  } catch (err) {
+    console.error(
+      `[EdLight] fetchUniversity(${id}) failed:`,
+      err instanceof Error ? err.stack ?? err.message : err,
+    );
+    return null;
+  }
 }
 
 export const fetchHaitianFriendlyUniversities = unstable_cache(
-  async (): Promise<University[]> => {
-    const all = await universitiesRepo.listAll();
-    return all.filter((u) => u.haitianFriendly);
-  },
+  safeCb(
+    "universities-haitian-friendly",
+    async (): Promise<University[]> => {
+      const all = await universitiesRepo.listAll();
+      return all.filter((u) => u.haitianFriendly);
+    },
+    [],
+  ),
   ["universities-haitian-friendly"],
-  { revalidate: 900, tags: ["universities"] },
+  { revalidate: 1800, tags: ["universities"] },
 );
 
 /** Group universities by country for the overview page. */
 export const fetchUniversitiesGrouped = unstable_cache(
-  async (): Promise<Record<string, University[]>> => {
-    const all = await universitiesRepo.listAll();
-    const grouped: Record<string, University[]> = {};
-    for (const uni of all) {
-      if (!grouped[uni.country]) grouped[uni.country] = [];
-      grouped[uni.country]!.push(uni);
-    }
-    return grouped;
-  },
+  safeCb(
+    "universities-grouped",
+    async (): Promise<Record<string, University[]>> => {
+      const all = await universitiesRepo.listAll();
+      const grouped: Record<string, University[]> = {};
+      for (const uni of all) {
+        if (!grouped[uni.country]) grouped[uni.country] = [];
+        grouped[uni.country]!.push(uni);
+      }
+      return grouped;
+    },
+    {} as Record<string, University[]>,
+  ),
   ["universities-grouped"],
-  { revalidate: 900, tags: ["universities"] },
+  { revalidate: 1800, tags: ["universities"] },
 );
 
 // ── Scholarships ─────────────────────────────────────────────────────────────
 
 export const fetchAllScholarships = unstable_cache(
-  async (): Promise<Scholarship[]> => scholarshipsRepo.listAll(),
+  safeCb("scholarships-all", async (): Promise<Scholarship[]> => scholarshipsRepo.listAll(), []),
   ["scholarships-all"],
-  { revalidate: 300, tags: ["scholarships"] },
+  { revalidate: 1800, tags: ["scholarships"] },
 );
 
 export async function fetchScholarship(id: string): Promise<Scholarship | null> {
-  return scholarshipsRepo.get(id);
+  try {
+    return await scholarshipsRepo.get(id);
+  } catch (err) {
+    console.error(
+      `[EdLight] fetchScholarship(${id}) failed:`,
+      err instanceof Error ? err.stack ?? err.message : err,
+    );
+    return null;
+  }
 }
 
 export const fetchScholarshipsForHaiti = unstable_cache(
-  async (): Promise<Scholarship[]> => scholarshipsRepo.listEligibleForHaiti(),
+  safeCb(
+    "scholarships-haiti",
+    async (): Promise<Scholarship[]> => scholarshipsRepo.listEligibleForHaiti(),
+    [],
+  ),
   ["scholarships-haiti"],
-  { revalidate: 300, tags: ["scholarships"] },
+  { revalidate: 1800, tags: ["scholarships"] },
 );
 
 export const fetchScholarshipsClosingSoon = unstable_cache(
-  async (days: number = 30): Promise<Scholarship[]> =>
-    scholarshipsRepo.listClosingSoon(days),
+  safeCb(
+    "scholarships-closing",
+    async (days: number = 30): Promise<Scholarship[]> =>
+      scholarshipsRepo.listClosingSoon(days),
+    [],
+  ),
   ["scholarships-closing"],
-  { revalidate: 300, tags: ["scholarships"] },
+  { revalidate: 1800, tags: ["scholarships"] },
 );
 
 // ── Haiti Education Calendar ─────────────────────────────────────────────────
 
 export const fetchAllCalendarEvents = unstable_cache(
-  async (): Promise<HaitiCalendarEvent[]> => haitiCalendarRepo.listAll(),
+  safeCb(
+    "calendar-all",
+    async (): Promise<HaitiCalendarEvent[]> => haitiCalendarRepo.listAll(),
+    [],
+  ),
   ["calendar-all"],
-  { revalidate: 300, tags: ["calendar"] },
+  { revalidate: 1800, tags: ["calendar"] },
 );
 
 export const fetchUpcomingCalendarEvents = unstable_cache(
-  async (): Promise<HaitiCalendarEvent[]> => haitiCalendarRepo.listUpcoming(),
+  safeCb(
+    "calendar-upcoming",
+    async (): Promise<HaitiCalendarEvent[]> => haitiCalendarRepo.listUpcoming(),
+    [],
+  ),
   ["calendar-upcoming"],
-  { revalidate: 300, tags: ["calendar"] },
+  { revalidate: 1800, tags: ["calendar"] },
 );
 
 export async function fetchCalendarEvent(
   id: string,
 ): Promise<HaitiCalendarEvent | null> {
-  return haitiCalendarRepo.get(id);
+  try {
+    return await haitiCalendarRepo.get(id);
+  } catch (err) {
+    console.error(
+      `[EdLight] fetchCalendarEvent(${id}) failed:`,
+      err instanceof Error ? err.stack ?? err.message : err,
+    );
+    return null;
+  }
 }
 
 // ── Pathways ─────────────────────────────────────────────────────────────────
