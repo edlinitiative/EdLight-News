@@ -107,74 +107,86 @@ export function enrichArticles(
   cvs: ContentVersion[],
   itemMap: Map<string, Item>,
 ): EnrichedArticle[] {
-  return cvs.map((cv): EnrichedArticle => {
-    const item = itemMap.get(cv.itemId);
+  const out: EnrichedArticle[] = [];
+  for (const cv of cvs) {
+    try {
+      const item = itemMap.get(cv.itemId);
 
-    /* ── render-time formatting pass (idempotent safety net) ── */
-    const formatted = formatContentVersion({
-      lang: cv.language as "fr" | "ht",
-      title: cv.title ?? "",
-      summary: cv.summary ?? undefined,
-      body: cv.body ?? undefined,
-      series: (item?.utilityMeta?.series as string) ?? "News",
-    });
+      /* ── render-time formatting pass (idempotent safety net) ── */
+      const formatted = formatContentVersion({
+        lang: cv.language as "fr" | "ht",
+        title: cv.title ?? "",
+        summary: cv.summary ?? undefined,
+        body: cv.body ?? undefined,
+        series: (item?.utilityMeta?.series as string) ?? "News",
+      });
 
-    const cvSecs = toEpochSecs(cv.createdAt);
-    const itemPubSecs = toEpochSecs(item?.publishedAt);
-    const publishedAt = itemPubSecs
-      ? new Date(itemPubSecs * 1000).toISOString()
-      : cvSecs
-        ? new Date(cvSecs * 1000).toISOString()
-        : null;
+      const cvSecs = toEpochSecs(cv.createdAt);
+      const itemPubSecs = toEpochSecs(item?.publishedAt);
+      const publishedAt = itemPubSecs
+        ? new Date(itemPubSecs * 1000).toISOString()
+        : cvSecs
+          ? new Date(cvSecs * 1000).toISOString()
+          : null;
 
-    return {
-      id: cv.id,
-      itemId: cv.itemId,
-      title: formatted.title,
-      summary: formatted.summary ?? cv.summary,
-      body: formatted.body ?? cv.body,
-      status: cv.status,
-      category: cv.category ?? item?.category,
-      draftReason: cv.draftReason,
-      citations: cv.citations ?? [],
-      // v2 enrichment from parent item
-      sourceName: item?.source?.name ?? cv.citations?.[0]?.sourceName,
-      sourceUrl:
-        item?.source?.originalUrl ?? cv.citations?.[0]?.sourceUrl,
-      weakSource: item?.qualityFlags?.weakSource,
-      missingDeadline: item?.qualityFlags?.missingDeadline,
-      offMission: item?.qualityFlags?.offMission,
-      audienceFitScore: item?.audienceFitScore,
-      dedupeGroupId: item?.dedupeGroupId,
-      geoTag: item?.geoTag,
-      vertical: item?.vertical,
-      deadline: item?.deadline,
-      opportunityScore: item?.opportunityScore,
-      publishedAt,
-      // image fields
-      imageUrl: item?.imageUrl ?? null,
-      imageSource: item?.imageSource,
-      imageAttribution: item?.imageAttribution,
-      imageMeta: item?.imageMeta
-        ? { width: item.imageMeta.width, height: item.imageMeta.height }
-        : undefined,
-      // synthesis fields
-      itemType: item?.itemType,
-      utilityType: item?.utilityMeta?.utilityType,
-      series: item?.utilityMeta?.series,
-      sourceCount: item?.synthesisMeta?.sourceCount,
-      publisherDomains: item?.synthesisMeta?.publisherDomains,
-      lastMajorUpdateAt: (() => {
-        const s = toEpochSecs(item?.lastMajorUpdateAt);
-        return s ? new Date(s * 1000).toISOString() : null;
-      })(),
-      whatChanged: cv.whatChanged,
-      synthesisTags: cv.synthesisTags,
-      sourceList: item?.sourceList,
-      successTag: item?.successTag,
-      authorSlug: item?.authorSlug,
-    };
-  });
+      out.push({
+        id: cv.id,
+        itemId: cv.itemId,
+        title: formatted.title,
+        summary: formatted.summary ?? cv.summary,
+        body: formatted.body ?? cv.body,
+        status: cv.status,
+        category: cv.category ?? item?.category,
+        draftReason: cv.draftReason,
+        citations: cv.citations ?? [],
+        // v2 enrichment from parent item
+        sourceName: item?.source?.name ?? cv.citations?.[0]?.sourceName,
+        sourceUrl:
+          item?.source?.originalUrl ?? cv.citations?.[0]?.sourceUrl,
+        weakSource: item?.qualityFlags?.weakSource,
+        missingDeadline: item?.qualityFlags?.missingDeadline,
+        offMission: item?.qualityFlags?.offMission,
+        audienceFitScore: item?.audienceFitScore,
+        dedupeGroupId: item?.dedupeGroupId,
+        geoTag: item?.geoTag,
+        vertical: item?.vertical,
+        deadline: item?.deadline,
+        opportunityScore: item?.opportunityScore,
+        publishedAt,
+        // image fields
+        imageUrl: item?.imageUrl ?? null,
+        imageSource: item?.imageSource,
+        imageAttribution: item?.imageAttribution,
+        imageMeta: item?.imageMeta
+          ? { width: item.imageMeta.width, height: item.imageMeta.height }
+          : undefined,
+        // synthesis fields
+        itemType: item?.itemType,
+        utilityType: item?.utilityMeta?.utilityType,
+        series: item?.utilityMeta?.series,
+        sourceCount: item?.synthesisMeta?.sourceCount,
+        publisherDomains: item?.synthesisMeta?.publisherDomains,
+        lastMajorUpdateAt: (() => {
+          const s = toEpochSecs(item?.lastMajorUpdateAt);
+          return s ? new Date(s * 1000).toISOString() : null;
+        })(),
+        whatChanged: cv.whatChanged,
+        synthesisTags: cv.synthesisTags,
+        sourceList: item?.sourceList,
+        successTag: item?.successTag,
+        authorSlug: item?.authorSlug,
+      });
+    } catch (err) {
+      // One bad doc must not poison the entire feed. Skip it and log
+      // server-side so we can chase the root cause without taking down
+      // the page.
+      console.error(
+        `[EdLight] enrichArticles: skipped cv=${cv?.id ?? "?"} item=${cv?.itemId ?? "?"}:`,
+        err instanceof Error ? err.stack ?? err.message : err,
+      );
+    }
+  }
+  return out;
 }
 
 // ── Convenience wrapper ──────────────────────────────────────────────────────
