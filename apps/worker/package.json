@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test src/services/classify.test.ts src/services/scoring.test.ts",
     "seed:sources": "tsx src/scripts/seedSources.ts",
+    "cleanup:run": "tsx src/scripts/runCleanup.ts",
     "backfill:items": "tsx src/scripts/backfillLegacyItems.ts",
     "backfill:dedupe": "tsx src/scripts/backfillDedupeGroups.ts",
     "backfill:clusters": "tsx src/scripts/backfillSemanticClusters.ts",

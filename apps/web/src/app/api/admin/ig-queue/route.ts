@@ -6,6 +6,67 @@ export const dynamic = "force-dynamic";
 
 const NO_STORE = { headers: { "Cache-Control": "no-store" } };
 
+// Strategy for the total-doc count badge:
+//
+//   1. Prefer the persisted value in Firestore at `metrics/ig_queue_count`,
+//      which the weekly cleanup job writes after each run. This is a
+//      single 1-doc read — basically free — and survives Cloud Run cold
+//      starts (vs. a per-instance in-memory cache).
+//   2. If that doc is missing or older than 24h, fall back to a fresh
+//      count() scan and refresh both the persisted doc and the in-memory
+//      cache.
+//   3. If even that fails (quota), return whatever stale value we last saw.
+//
+// count() over the full collection is the single biggest Firestore read
+// amplifier on this endpoint — running it on every admin pageload exhausts
+// the daily Firestore read quota (→ 500 errors).
+let _countCache: { value: number; expiresAt: number } | null = null;
+const COUNT_TTL_MS = 5 * 60 * 1000;
+const PERSISTED_FRESH_MS = 24 * 60 * 60 * 1000;
+
+async function getCachedTotalCount(
+  db: FirebaseFirestore.Firestore,
+): Promise<number | null> {
+  const now = Date.now();
+  if (_countCache && _countCache.expiresAt > now) {
+    return _countCache.value;
+  }
+
+  // 1. Try persisted doc first (cheapest path).
+  try {
+    const metricSnap = await db.collection("metrics").doc("ig_queue_count").get();
+    if (metricSnap.exists) {
+      const data = metricSnap.data() ?? {};
+      const updatedAtMs = data.updatedAt?._seconds
+        ? data.updatedAt._seconds * 1000
+        : 0;
+      if (typeof data.count === "number" && now - updatedAtMs < PERSISTED_FRESH_MS) {
+        _countCache = { value: data.count, expiresAt: now + COUNT_TTL_MS };
+        return data.count;
+      }
+    }
+  } catch (e) {
+    console.warn("[api/admin/ig-queue] metrics doc read failed:", e);
+  }
+
+  // 2. Fresh count() — refresh both caches.
+  try {
+    const snap = await db.collection("ig_queue").count().get();
+    const value = snap.data().count;
+    _countCache = { value, expiresAt: now + COUNT_TTL_MS };
+    // Persist asynchronously; don't block the response.
+    db.collection("metrics").doc("ig_queue_count").set({
+      count: value,
+      updatedAt: new Date(),
+    }).catch((err) => console.warn("[api/admin/ig-queue] metrics persist failed:", err));
+    return value;
+  } catch (e) {
+    console.warn("[api/admin/ig-queue] count() failed (likely quota):", e);
+    // 3. Stale-cache fallback.
+    return _countCache?.value ?? null;
+  }
+}
+
 /** Map a Firestore doc to our admin API shape. */
 function docToItem(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   const data = doc.data();
@@ -48,11 +109,19 @@ export async function GET() {
   try {
     const db = getDb();
 
+    // Each query is wrapped in .catch() so a single quota-exhaustion or
+    // missing-index failure does not blow up the whole admin page. The page
+    // will render with whatever subset of data we managed to fetch, and a
+    // `degraded` flag in the response lets the client surface a warning.
     const recentPromise = db
       .collection("ig_queue")
       .orderBy("createdAt", "desc")
       .limit(250)
-      .get();
+      .get()
+      .catch((e) => {
+        console.warn("[api/admin/ig-queue] recent query failed:", e);
+        return null;
+      });
 
     const activePromise = db
       .collection("ig_queue")
@@ -61,12 +130,12 @@ export async function GET() {
       .limit(50)
       .get()
       .catch((e) => {
-        // Index may not be deployed yet — fall back gracefully
-        console.warn("[api/admin/ig-queue] activeSnap query failed (missing index?):", e);
+        // Index may not be deployed yet, or quota exhausted — fall back gracefully
+        console.warn("[api/admin/ig-queue] activeSnap query failed:", e);
         return null;
       });
 
-    const countPromise = db.collection("ig_queue").count().get().catch(() => null);
+    const countPromise = getCachedTotalCount(db);
 
     const [recentSnap, activeSnap, countSnap] = await Promise.all([
       recentPromise,
@@ -74,7 +143,9 @@ export async function GET() {
       countPromise,
     ]);
 
+    const recentDocs = recentSnap?.docs ?? [];
     const activeDocs = activeSnap?.docs ?? [];
+    const degraded = !recentSnap || !activeSnap;
 
     // Merge and deduplicate by doc ID
     const seen = new Set<string>();
@@ -87,7 +158,7 @@ export async function GET() {
         items.push(docToItem(doc));
       }
     }
-    for (const doc of recentSnap.docs) {
+    for (const doc of recentDocs) {
       if (!seen.has(doc.id)) {
         seen.add(doc.id);
         items.push(docToItem(doc));
@@ -104,9 +175,12 @@ export async function GET() {
       expired: items.filter((i) => i.status === "expired").length,
     };
 
-    const totalDocs = countSnap?.data().count ?? items.length;
+    const totalDocs = countSnap ?? items.length;
 
-    return NextResponse.json({ items, counts: { ...counts, totalDocs } }, NO_STORE);
+    return NextResponse.json(
+      { items, counts: { ...counts, totalDocs }, degraded },
+      NO_STORE,
+    );
   } catch (err) {
     console.error("[api/admin/ig-queue] GET error:", err);
     return NextResponse.json(

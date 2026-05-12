@@ -392,6 +392,40 @@ jobs:
               --quiet
           fi
 
+      # ── Weekly Cleanup: Sunday 03:00 Haiti time ───────────────────────────
+      # Prunes the ig_queue collection so it doesn't grow unbounded and
+      # exhaust the Firestore daily-read quota. See routes/cleanup.ts for
+      # the exact retention policy.
+      - name: Upsert weekly cleanup Scheduler job
+        run: |
+          CLEANUP_URL="${{ steps.service_url.outputs.url }}/cleanup"
+          SA="cloud-scheduler-invoker@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
+
+          if gcloud scheduler jobs describe edlight-news-cleanup \
+               --location=${{ env.REGION }} --quiet 2>/dev/null; then
+            gcloud scheduler jobs update http edlight-news-cleanup \
+              --location=${{ env.REGION }} \
+              --schedule="0 3 * * 0" \
+              --time-zone="America/Port-au-Prince" \
+              --uri="$CLEANUP_URL" \
+              --http-method=POST \
+              --oidc-service-account-email="$SA" \
+              --oidc-token-audience="$CLEANUP_URL" \
+              --attempt-deadline=900s \
+              --quiet
+          else
+            gcloud scheduler jobs create http edlight-news-cleanup \
+              --location=${{ env.REGION }} \
+              --schedule="0 3 * * 0" \
+              --time-zone="America/Port-au-Prince" \
+              --uri="$CLEANUP_URL" \
+              --http-method=POST \
+              --oidc-service-account-email="$SA" \
+              --oidc-token-audience="$CLEANUP_URL" \
+              --attempt-deadline=900s \
+              --quiet
+          fi
+
       - name: Summary
         run: |
           echo "### ✅ Worker deployed" >> $GITHUB_STEP_SUMMARY
@@ -402,4 +436,5 @@ jobs:
           echo "- **SearXNG Image:** \`${{ env.IMAGE_SEARXNG }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Scheduler (full pipeline):** \`*/15 * * * *\` (every 15 min)" >> $GITHUB_STEP_SUMMARY
           echo "- **Scheduler (IG fast-path):** \`*/3 * * * *\` (every 3 min)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scheduler (weekly cleanup):** \`0 3 * * 0\` (Sun 03:00 Haiti)" >> $GITHUB_STEP_SUMMARY
           echo "- **Memory:** 2Gi, scale-to-zero" >> $GITHUB_STEP_SUMMARY

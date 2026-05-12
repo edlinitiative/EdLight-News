@@ -10,6 +10,7 @@ dotenv.config({ path: envPath });
 import express from "express";
 import { tickRouter } from "./routes/tick.js";
 import { processIgNowRouter } from "./routes/processIgNow.js";
+import { cleanupRouter } from "./routes/cleanup.js";
 import { getVisionQuotaStatus } from "./services/googleVisionSearch.js";
 import { warmUpClassifier } from "./services/zeroShotClassifier.js";
 
@@ -67,6 +68,9 @@ app.use(tickRouter);
 
 // Fast IG-only endpoint — triggered by admin "Publish Now" action (API key)
 app.use(processIgNowRouter);
+
+// Weekly maintenance — triggered by Cloud Scheduler (OIDC)
+app.use(cleanupRouter);
 
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 app.listen(PORT, () => {
