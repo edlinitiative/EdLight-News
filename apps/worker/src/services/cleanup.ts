@@ -173,9 +173,12 @@ export async function runCleanup(): Promise<Record<string, unknown>> {
   console.log("[cleanup] ig_queue pass 2b: expired older than 30d");
   summary.staleExpired = await purgeByQuery(db, "ig_queue", ageQuery("ig_queue", "expired", cutoff30), { wipeStorage: true });
 
-  const cutoff14 = Timestamp.fromDate(new Date(Date.now() - 14 * 24 * 3600 * 1000));
-  console.log("[cleanup] ig_queue pass 3: queued older than 14d");
-  summary.staleQueued = await purgeByQuery(db, "ig_queue", ageQuery("ig_queue", "queued", cutoff14), { wipeStorage: true });
+  // Score-ordered schedulers will never pick a `queued` item once newer
+  // higher-scored items arrive. 3 days is plenty of grace; anything older is
+  // dead weight. (Was 14d, but produced 600+ stale docs across sibling queues.)
+  const cutoffStaleQueued = Timestamp.fromDate(new Date(Date.now() - 3 * 24 * 3600 * 1000));
+  console.log("[cleanup] ig_queue pass 3: queued older than 3d");
+  summary.staleQueued = await purgeByQuery(db, "ig_queue", ageQuery("ig_queue", "queued", cutoffStaleQueued), { wipeStorage: true });
 
   const cutoff90 = Timestamp.fromDate(new Date(Date.now() - 90 * 24 * 3600 * 1000));
   console.log("[cleanup] ig_queue pass 4: posted older than 90d");
@@ -189,7 +192,7 @@ export async function runCleanup(): Promise<Record<string, unknown>> {
     for (const [label, status, cutoff] of [
       ["skipped", "skipped", cutoff30],
       ["expired", "expired", cutoff30],
-      ["queued", "queued", cutoff14],
+      ["queued", "queued", cutoffStaleQueued],
       ["posted", "posted", cutoff90],
       // fb_queue uses status="sent" instead of "posted"
       ["sent", "sent", cutoff90],

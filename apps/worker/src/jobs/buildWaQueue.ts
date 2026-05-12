@@ -181,6 +181,16 @@ export async function buildWaQueue(): Promise<BuildWaQueueResult> {
     queueWindowCutoff.setDate(queueWindowCutoff.getDate() - 3);
     const existingSourceIds = await waQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
+    // Backpressure: scheduler only sends DAILY_CAP=5/day. If we already have
+    // more than ~3 days of capacity sitting in `queued`, stop adding — the
+    // overflow would just be passed over forever (scheduler picks by score).
+    const BACKPRESSURE_LIMIT = 15;
+    const existingQueued = await waQueueRepo.listQueuedByScore(BACKPRESSURE_LIMIT + 1);
+    if (existingQueued.length >= BACKPRESSURE_LIMIT) {
+      console.log(`[buildWaQueue] backpressure: ${existingQueued.length} already queued — skipping run`);
+      return result;
+    }
+
     let newItemsQueued = 0;
 
     // Score and sort items
