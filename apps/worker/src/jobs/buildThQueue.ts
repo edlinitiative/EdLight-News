@@ -286,6 +286,15 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
     const existingSourceIds =
       await thQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
+    // Backpressure: scheduler only sends DAILY_CAP=6/day. Cap the queued
+    // backlog at ~3 days of capacity to avoid a permanent stale pile.
+    const BACKPRESSURE_LIMIT = 18;
+    const existingQueued = await thQueueRepo.listQueuedByScore(BACKPRESSURE_LIMIT + 1);
+    if (existingQueued.length >= BACKPRESSURE_LIMIT) {
+      console.log(`[buildThQueue] backpressure: ${existingQueued.length} already queued — skipping run`);
+      return result;
+    }
+
     let newItemsQueued = 0;
 
     const scoredItems = items

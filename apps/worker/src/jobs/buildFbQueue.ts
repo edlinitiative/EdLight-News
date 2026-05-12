@@ -383,6 +383,15 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
     const existingSourceIds =
       await fbQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
+    // Backpressure: scheduler only sends DAILY_CAP=13/day. Cap the queued
+    // backlog at ~3 days of capacity to avoid a permanent stale pile.
+    const BACKPRESSURE_LIMIT = 40;
+    const existingQueued = await fbQueueRepo.listQueuedByScore(BACKPRESSURE_LIMIT + 1);
+    if (existingQueued.length >= BACKPRESSURE_LIMIT) {
+      console.log(`[buildFbQueue] backpressure: ${existingQueued.length} already queued — skipping run`);
+      return result;
+    }
+
     let newItemsQueued = 0;
 
     const scoredItems = itemPairs

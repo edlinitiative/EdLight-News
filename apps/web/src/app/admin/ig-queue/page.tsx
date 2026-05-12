@@ -313,6 +313,7 @@ export default function IGQueuePage() {
   const [selectedEntry, setSelectedEntry] = useState<IGQueueEntry | null>(null);
   const [purging, setPurging] = useState(false);
   const [purgeConfirm, setPurgeConfirm] = useState(false);
+  const [degraded, setDegraded] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -323,6 +324,7 @@ export default function IGQueuePage() {
       if (!res.ok) throw new Error((data as { error?: string }).error ?? "Failed to load");
       setEntries(data.items as IGQueueEntry[]);
       setCounts(data.counts as IGQueueCounts);
+      setDegraded(Boolean((data as { degraded?: boolean }).degraded));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load IG queue");
     } finally {
@@ -505,6 +507,19 @@ export default function IGQueuePage() {
 
       {/* Error */}
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {/* Degraded mode banner — Firestore reads partially failed (usually quota) */}
+      {degraded && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+          <span className="mt-0.5">⚠️</span>
+          <div>
+            <strong>Showing partial data.</strong>{" "}
+            One or more Firestore reads failed (likely daily read-quota exhausted).
+            The weekly cleanup job runs Sunday 03:00 Haiti time and will shrink the
+            queue. Quota resets at midnight Pacific.
+          </div>
+        </div>
+      )}
 
       {/* Success */}
       {successMsg && (
