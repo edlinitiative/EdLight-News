@@ -14,16 +14,20 @@ import { waQueueRepo } from "@edlight-news/firebase";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
-/** Maximum WA messages per day. */
-const DAILY_CAP = 5;
+/** Maximum WA messages per day. Raised from 5 → 8 (P2). */
+const DAILY_CAP = 8;
 
 /** WA sending slots (Haiti local time).
- *  Spread across the day for best engagement without being spammy. */
+ *  Raised from 5 → 8 slots (P2) to match the cadence raise.
+ *  Quiet hours 23:00–06:00 are enforced in getNextAvailableSlot. */
 const SLOTS = [
   { hour: 7, minute: 0 },     // Morning
-  { hour: 10, minute: 0 },    // Mid-morning
-  { hour: 13, minute: 0 },    // Afternoon
-  { hour: 16, minute: 30 },   // After school
+  { hour: 8, minute: 30 },    // Mid-morning (new P2)
+  { hour: 10, minute: 0 },    // Late-morning
+  { hour: 12, minute: 0 },    // Midday (new P2)
+  { hour: 13, minute: 0 },    // Early afternoon
+  { hour: 15, minute: 30 },   // Afternoon
+  { hour: 17, minute: 30 },   // Late afternoon (new P2)
   { hour: 19, minute: 0 },    // Evening
 ];
 
@@ -62,6 +66,9 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
 
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
     for (const slot of SLOTS) {
+      // Enforce quiet hours: no WA messages 23:00–06:00 Haiti time (P2).
+      if (slot.hour >= 23 || slot.hour < 6) continue;
+
       if (dayOffset === 0) {
         if (
           haitiHour > slot.hour ||

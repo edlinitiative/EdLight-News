@@ -20,6 +20,11 @@ import {
   socialToThPayload,
 } from "@edlight-news/generator";
 import { toSocialInput } from "../services/socialInput.js";
+import {
+  isStockMarketFalsePositive,
+  lacksScholarshipEvidence,
+} from "../services/classify.js";
+import { pickHashtags } from "../services/hashtags.js";
 
 /** Feature flag — when "true", try the social v2 generator before legacy composer. */
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
@@ -201,15 +206,20 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
     // fall through to legacy composer
   }
 
-  const topic = topicForSocial(item);
-  const hashtags =
-    topic === "scholarship"
-      ? "#Haïti #Bourses"
-      : topic === "opportunity"
-        ? "#Haïti #Opportunités"
-        : topic === "education"
-          ? "#Haïti #Éducation"
-          : "#Haïti #Actualités";
+  let topic = topicForSocial(item);
+  // ── Topic guard — mirror the FB scholarship false-positive check ────────
+  if (topic === "scholarship") {
+    const corpus = `${title} ${summary} ${item.extractedText ?? ""}`;
+    if (isStockMarketFalsePositive(corpus) || lacksScholarshipEvidence(corpus)) {
+      console.warn(
+        `[buildThQueue] Downgrading scholarship → news for item ${item.id} ` +
+          `(no scholarship evidence). Title: "${title.slice(0, 80)}"`,
+      );
+      topic = "news";
+    }
+  }
+  const hashtagTopic = topic === "story_only" ? "other" : topic;
+  const hashtags = pickHashtags(hashtagTopic, item.id);
 
   // Feature flag — when ON (default), the article URL is stripped from the
   // parent post body and posted as a self-reply by the publisher (P1.2).
