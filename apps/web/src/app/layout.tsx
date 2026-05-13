@@ -83,6 +83,17 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning className={`${display.variable} ${sans.variable}`}>
       <head>
+        {/*
+          Blocking theme script — must be the first thing in <head> so the
+          `dark` class is applied before the browser paints a single pixel.
+          Without this the page always flashes light-mode on load, even when
+          the user has dark mode stored in localStorage.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('edlight_theme');if(t==='dark'||(t==null&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+          }}
+        />
         <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
         <link rel="preconnect" href="https://generativelanguage.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossOrigin="anonymous" />

@@ -24,26 +24,17 @@ const ThemeContext = createContext<ThemeContextValue>({
 const STORAGE_KEY = "edlight_theme";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  // Hydrate from localStorage or system preference
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "dark" || stored === "light") {
-        setTheme(stored);
-        return;
-      }
-      // Fall back to system preference
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        setTheme("dark");
-      }
-    } catch {
-      // SSR or localStorage unavailable
+  // Initialise from the DOM class that the blocking inline script already set.
+  // This keeps React's initial render in sync with what is actually painted,
+  // eliminating the light-flash and any hydration mismatch on the <html> class.
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark") ? "dark" : "light";
     }
-  }, []);
+    return "light";
+  });
 
-  // Apply class to <html>
+  // Apply class to <html> whenever the theme changes via toggle()
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") {
