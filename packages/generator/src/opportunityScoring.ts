@@ -420,3 +420,62 @@ export const OPPORTUNITY_SCORE_THRESHOLD = 50;
 export function passesOpportunityGate(input: OpportunityScoreInput): boolean {
   return scoreOpportunity(input).score >= OPPORTUNITY_SCORE_THRESHOLD;
 }
+
+// ── Social Engagement Boost (P2) ─────────────────────────────────────────────
+//
+// When `SOCIAL_METRICS_FEEDBACK=true`, the worker's `pullSocialMetrics` job
+// writes back engagement data from FB/Threads/X onto queue items. This function
+// converts those raw platform metrics into a normalised engagement signal
+// (+0 … +15 points) that can be added to any scoring call.
+//
+// Usage in buildFbQueue / classify.ts:
+//   const boost = socialEngagementBoost(fbItem.socialMetrics, 'fb');
+//   finalScore = Math.min(100, baseScore + boost);
+
+export type SocialPlatform = "fb" | "th" | "x";
+
+/**
+ * Convert raw platform metrics into a score boost (0–15).
+ *
+ * Heuristics (tuned for EdLight's typical post volumes):
+ *   - High engagement (reach ≥ 1000 or reactions+comments ≥ 50) → +15
+ *   - Medium engagement (reach ≥ 300 or reactions+comments ≥ 15)  → +8
+ *   - Low positive signal (reach ≥ 50 or reactions ≥ 3)           → +3
+ *   - No data / below threshold                                    → +0
+ */
+export function socialEngagementBoost(
+  metrics: Record<string, number> | undefined | null,
+  platform: SocialPlatform,
+): number {
+  if (!metrics || Object.keys(metrics).length === 0) return 0;
+
+  let reach = 0;
+  let engagement = 0; // reactions + likes + comments
+
+  if (platform === "fb") {
+    reach = metrics.post_impressions_unique ?? metrics.post_impressions ?? 0;
+    const reactions =
+      (metrics.post_reactions_like_total ?? 0) +
+      (metrics.post_reactions_love_total ?? 0) +
+      (metrics.post_reactions_wow_total ?? 0) +
+      (metrics.post_reactions_haha_total ?? 0) +
+      (metrics.post_reactions_sorry_total ?? 0) +
+      (metrics.post_reactions_anger_total ?? 0);
+    engagement = reactions + (metrics.comments ?? 0) + (metrics.shares ?? 0);
+  } else if (platform === "th") {
+    reach = metrics.views ?? 0;
+    engagement = (metrics.likes ?? 0) + (metrics.replies ?? 0) + (metrics.reposts ?? 0);
+  } else if (platform === "x") {
+    reach = metrics.impression_count ?? metrics.impressions ?? 0;
+    engagement =
+      (metrics.like_count ?? 0) +
+      (metrics.reply_count ?? 0) +
+      (metrics.retweet_count ?? 0) +
+      (metrics.bookmark_count ?? 0);
+  }
+
+  if (reach >= 1000 || engagement >= 50) return 15;
+  if (reach >= 300 || engagement >= 15) return 8;
+  if (reach >= 50 || engagement >= 3) return 3;
+  return 0;
+}
