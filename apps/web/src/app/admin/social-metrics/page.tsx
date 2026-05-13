@@ -1,7 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { BarChart2, RefreshCw, TrendingUp, MessageSquare, Repeat2, Heart, Eye } from "lucide-react";
+import Link from "next/link";
+import {
+  BarChart2,
+  RefreshCw,
+  TrendingUp,
+  MessageSquare,
+  Repeat2,
+  Heart,
+  Eye,
+  Zap,
+  Sticker,
+  Phone,
+  AlertTriangle,
+} from "lucide-react";
 
 interface PostMetric {
   id: string;
@@ -28,6 +41,40 @@ interface HookStat {
   avgEngagement: number;
 }
 
+interface BoostMetrics {
+  windowHours: number;
+  itemsBoosted: number;
+  uniqueItems: number;
+  avgBoost: number;
+  boostedAtCap: number;
+  repeatBoostedItems: number;
+  topBoostedItems: Array<{
+    itemId: string;
+    boost: number;
+    boostedScore: number;
+    topic: string;
+    platformsContributed: string[];
+    capped: boolean;
+    appliedAt: string | null;
+  }>;
+}
+
+interface StoryStickers {
+  windowDays: number;
+  storiesConsidered: number;
+  storiesWithAttempts: number;
+  linkSticker: { attached: number; skipped: number; successRate: number | null };
+  poll: { attached: number; skipped: number; successRate: number | null };
+  recentSkips: Array<{ storyId: string; feature: string; reason: string }>;
+}
+
+interface WaChannelSummary {
+  latest: { followerCount: number; dateISO: string; source: string };
+  delta7d: number | null;
+  delta7dPct: number | null;
+  count: number;
+}
+
 interface MetricsData {
   fb: PlatformData;
   threads: PlatformData;
@@ -38,6 +85,9 @@ interface MetricsData {
     th: { variants: HookStat[]; totalPosts: number };
     x: { variants: HookStat[]; totalPosts: number };
   };
+  boostMetrics?: BoostMetrics | null;
+  storyStickers?: StoryStickers | null;
+  waChannel?: WaChannelSummary | null;
   metricsEnabled: boolean;
 }
 
@@ -169,6 +219,237 @@ function HookABTable({ stats }: { stats: HookStat[] }) {
   );
 }
 
+function BoostHealthPanel({ m }: { m: BoostMetrics | null }) {
+  return (
+    <div className="rounded-xl border border-stone-200 dark:border-stone-700">
+      <div className="flex items-center gap-2 rounded-t-xl bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+        <Zap className="h-4 w-4 text-amber-600" />
+        <h2 className="font-semibold">Boost health</h2>
+        <span className="ml-auto text-xs opacity-70">last 7 days</span>
+      </div>
+      {!m ? (
+        <p className="px-4 py-6 text-center text-sm text-stone-400">
+          No boosts logged yet — need <code>SOCIAL_METRICS_FEEDBACK=true</code> + ≥1 day of metrics.
+        </p>
+      ) : (
+        <div className="space-y-3 px-4 py-4 text-sm">
+          <div className="grid grid-cols-2 gap-2 tabular-nums">
+            <Stat label="Items boosted" value={m.itemsBoosted} />
+            <Stat label="Unique items" value={m.uniqueItems} />
+            <Stat label="Avg boost" value={`+${m.avgBoost}`} />
+            <Stat
+              label="At cap (+20)"
+              value={m.boostedAtCap}
+              warn={m.boostedAtCap > 10}
+            />
+            <Stat label="Repeat boosted" value={m.repeatBoostedItems} />
+          </div>
+          {m.boostedAtCap > 10 && (
+            <p className="flex items-center gap-1 rounded bg-amber-100 px-2 py-1 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+              <AlertTriangle className="h-3 w-3" /> Cap saturation — consider
+              raising the +20 ceiling.
+            </p>
+          )}
+          {m.topBoostedItems.length > 0 && (
+            <div>
+              <div className="mb-1 text-[10px] uppercase tracking-wider text-stone-400">
+                Top boosted
+              </div>
+              <ul className="space-y-1 text-xs">
+                {m.topBoostedItems.slice(0, 5).map((t) => (
+                  <li key={`${t.itemId}-${t.appliedAt}`} className="flex items-center gap-2">
+                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-mono text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+                      +{t.boost}
+                    </span>
+                    <span className="text-stone-400">{t.topic}</span>
+                    <span className="truncate text-[10px] text-stone-400">{t.itemId.slice(0, 14)}…</span>
+                    <span className="ml-auto text-[10px] text-stone-400">
+                      {t.platformsContributed.join("/")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StoryStickersPanel({ s }: { s: StoryStickers | null }) {
+  const collapsed =
+    s !== null &&
+    s.linkSticker.successRate !== null &&
+    s.linkSticker.successRate < 50 &&
+    s.linkSticker.attached + s.linkSticker.skipped >= 5;
+  return (
+    <div className="rounded-xl border border-stone-200 dark:border-stone-700">
+      <div className="flex items-center gap-2 rounded-t-xl bg-pink-50 px-4 py-3 dark:bg-pink-900/20">
+        <Sticker className="h-4 w-4 text-pink-600" />
+        <h2 className="font-semibold">Story stickers</h2>
+        {collapsed && (
+          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-900/30 dark:text-red-300">
+            <AlertTriangle className="h-3 w-3" /> Sticker collapse
+          </span>
+        )}
+        <span className="ml-auto text-xs opacity-70">last 7 days</span>
+      </div>
+      {!s ? (
+        <p className="px-4 py-6 text-center text-sm text-stone-400">No sticker data yet.</p>
+      ) : (
+        <div className="space-y-3 px-4 py-4 text-sm">
+          <div className="grid grid-cols-2 gap-2 tabular-nums">
+            <Stat label="Stories" value={s.storiesConsidered} />
+            <Stat label="With attempts" value={s.storiesWithAttempts} />
+          </div>
+          <StickerRow
+            label="Link sticker"
+            attached={s.linkSticker.attached}
+            skipped={s.linkSticker.skipped}
+            rate={s.linkSticker.successRate}
+            warn={
+              s.linkSticker.successRate !== null &&
+              s.linkSticker.successRate < 50 &&
+              s.linkSticker.attached + s.linkSticker.skipped >= 5
+            }
+          />
+          <StickerRow
+            label="Poll"
+            attached={s.poll.attached}
+            skipped={s.poll.skipped}
+            rate={s.poll.successRate}
+          />
+          {s.recentSkips.length > 0 && (
+            <div>
+              <div className="mb-1 text-[10px] uppercase tracking-wider text-stone-400">
+                Recent skips
+              </div>
+              <ul className="space-y-1 text-xs">
+                {s.recentSkips.slice(0, 5).map((r, i) => (
+                  <li key={`${r.storyId}-${i}`} className="text-[11px]">
+                    <span className="font-mono text-stone-500">{r.feature}</span>{" "}
+                    <span className="text-stone-400">·</span>{" "}
+                    <span className="text-stone-500">{r.reason.slice(0, 60)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StickerRow({
+  label,
+  attached,
+  skipped,
+  rate,
+  warn,
+}: {
+  label: string;
+  attached: number;
+  skipped: number;
+  rate: number | null;
+  warn?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="w-24 text-stone-500">{label}</span>
+      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+        ✓ {attached}
+      </span>
+      <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-500 dark:bg-stone-800">
+        ✗ {skipped}
+      </span>
+      <span
+        className={`ml-auto rounded px-1.5 py-0.5 text-[10px] font-bold ${
+          warn
+            ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+            : "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-300"
+        }`}
+      >
+        {rate === null ? "—" : `${rate.toFixed(1)}%`}
+      </span>
+    </div>
+  );
+}
+
+function WaChannelPanel({ w }: { w: WaChannelSummary | null }) {
+  return (
+    <div className="rounded-xl border border-stone-200 dark:border-stone-700">
+      <div className="flex items-center gap-2 rounded-t-xl bg-emerald-50 px-4 py-3 dark:bg-emerald-900/20">
+        <Phone className="h-4 w-4 text-emerald-600" />
+        <h2 className="font-semibold">WhatsApp Channel</h2>
+        <Link
+          href="/admin/wa-channel"
+          className="ml-auto text-[10px] uppercase tracking-wider text-emerald-700 hover:underline dark:text-emerald-300"
+        >
+          Manage →
+        </Link>
+      </div>
+      {!w ? (
+        <p className="px-4 py-6 text-center text-sm text-stone-400">
+          No snapshots yet — record one in <Link className="underline" href="/admin/wa-channel">/admin/wa-channel</Link>.
+        </p>
+      ) : (
+        <div className="space-y-3 px-4 py-4 text-sm">
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-stone-400">
+              Latest count
+            </div>
+            <div className="text-3xl font-bold tabular-nums">
+              {w.latest.followerCount.toLocaleString()}
+            </div>
+            <div className="text-[10px] text-stone-400">{w.latest.dateISO} · {w.latest.source}</div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-stone-400">7-day delta</div>
+            <div
+              className={`text-xl font-semibold tabular-nums ${
+                w.delta7d === null
+                  ? "text-stone-400"
+                  : w.delta7d >= 0
+                    ? "text-emerald-600"
+                    : "text-red-600"
+              }`}
+            >
+              {w.delta7d === null
+                ? "—"
+                : `${w.delta7d >= 0 ? "+" : ""}${w.delta7d.toLocaleString()}${
+                    w.delta7dPct !== null ? `  (${w.delta7dPct >= 0 ? "+" : ""}${w.delta7dPct.toFixed(1)}%)` : ""
+                  }`}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  warn,
+}: {
+  label: string;
+  value: string | number;
+  warn?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded p-2 ${warn ? "bg-amber-50 dark:bg-amber-900/30" : "bg-stone-50 dark:bg-stone-800/40"}`}
+    >
+      <div className="text-[10px] uppercase tracking-wider text-stone-400">{label}</div>
+      <div className={`text-lg font-bold tabular-nums ${warn ? "text-amber-700 dark:text-amber-300" : ""}`}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default function SocialMetricsPage() {
   const [data, setData] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -223,6 +504,13 @@ export default function SocialMetricsPage() {
 
       {data && !loading && (
         <>
+          {/* Rollout PR — Boost / Stickers / WA panels */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <BoostHealthPanel m={data.boostMetrics ?? null} />
+            <StoryStickersPanel s={data.storyStickers ?? null} />
+            <WaChannelPanel w={data.waChannel ?? null} />
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-3">
             <PlatformCard
               title="Facebook"

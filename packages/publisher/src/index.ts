@@ -289,6 +289,17 @@ export interface IGStoryPublishResult {
   dryRun: boolean;
   dryRunPath?: string;
   error?: string;
+  /**
+   * Per-feature outcome of attempted sticker overlays (rollout PR Task 3).
+   * Empty when no `features` argument was passed. The publisher records
+   * one entry per attempted sticker (link / poll) so the worker can
+   * persist them to the queue item for the Story Stickers dashboard panel.
+   */
+  stickerAttempts?: Array<{
+    feature: "linkSticker" | "poll";
+    status: "attached" | "skipped";
+    reason?: string;
+  }>;
 }
 
 /**
@@ -321,8 +332,15 @@ export async function publishIgStory(
       `[publisher] IG Story dry-run: ${storyId} → ${imageUrl}` +
         (features ? ` (features=${Object.keys(features).join(",")})` : ""),
     );
-    return { posted: false, dryRun: true, dryRunPath: exportDir };
+    // In dry-run we report stickers as "attached" so the dashboard can
+    // distinguish "never tried" from "tried + would have worked".
+    const stickerAttempts = buildDryRunStickerAttempts(features);
+    return { posted: false, dryRun: true, dryRunPath: exportDir, stickerAttempts };
   }
+
+  // Hoisted so the catch block can return a partial attempts list when
+  // an error occurs after we already tried (or skipped) the sticker step.
+  const stickerAttempts: NonNullable<IGStoryPublishResult["stickerAttempts"]> = [];
 
   try {
     const { accessToken, igUserId } = creds;
@@ -371,34 +389,43 @@ export async function publishIgStory(
     // Sticker overlays are best-effort: we attempt with stickers first; if
     // the API rejects (e.g. parameter not supported on this account), we
     // log `igStoryFeatureSkipped` and retry without stickers so the story
-    // still goes out.
+    // still goes out. We also record one entry per attempted sticker so
+    // the rollout dashboard can flag silent collapses (Task 3).
     async function createContainerWithFeatures(): Promise<string> {
       const baseParams: Record<string, string> = {
         media_type: "STORIES",
         image_url: imageUrl,
       };
       if (features) {
+        const wantsLink = !!features.linkUrl;
+        const wantsPoll =
+          !!features.pollQuestion &&
+          !!features.pollOptions &&
+          features.pollOptions.length >= 2;
         const stickerParams: Record<string, string> = { ...baseParams };
-        if (features.linkUrl) {
+        if (wantsLink) {
           stickerParams.link_sticker = JSON.stringify({
             link: { url: features.linkUrl },
           });
         }
-        if (
-          features.pollQuestion &&
-          features.pollOptions &&
-          features.pollOptions.length >= 2
-        ) {
+        if (wantsPoll) {
           stickerParams.poll_sticker = JSON.stringify({
             question: features.pollQuestion,
-            options: features.pollOptions.slice(0, 4),
+            options: features.pollOptions!.slice(0, 4),
           });
         }
-        const withFeatures = await igPost(`${baseUrl}/media`, stickerParams);
-        if (!withFeatures.error && withFeatures.id) return withFeatures.id;
-        console.warn(
-          `[publisher] igStoryFeatureSkipped: ${withFeatures.error?.message ?? "unknown"}`,
-        );
+        if (wantsLink || wantsPoll) {
+          const withFeatures = await igPost(`${baseUrl}/media`, stickerParams);
+          if (!withFeatures.error && withFeatures.id) {
+            if (wantsLink) stickerAttempts.push({ feature: "linkSticker", status: "attached" });
+            if (wantsPoll) stickerAttempts.push({ feature: "poll", status: "attached" });
+            return withFeatures.id;
+          }
+          const reason = withFeatures.error?.message ?? "unknown";
+          console.warn(`[publisher] igStoryFeatureSkipped: ${reason}`);
+          if (wantsLink) stickerAttempts.push({ feature: "linkSticker", status: "skipped", reason });
+          if (wantsPoll) stickerAttempts.push({ feature: "poll", status: "skipped", reason });
+        }
       }
       const plain = await igPost(`${baseUrl}/media`, baseParams);
       if (plain.error) throw new Error(`IG Story API error: ${plain.error.message}`);
@@ -418,12 +445,25 @@ export async function publishIgStory(
     if (publishData.error) throw new Error(`IG Story publish error: ${publishData.error.message}`);
 
     console.log(`[publisher] IG Story published: ${publishData.id}`);
-    return { posted: true, igMediaId: publishData.id, dryRun: false };
+    return { posted: true, igMediaId: publishData.id, dryRun: false, stickerAttempts };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[publisher] IG Story publish failed: ${msg}`);
-    return { posted: false, dryRun: false, error: msg };
+    return { posted: false, dryRun: false, error: msg, stickerAttempts };
   }
+}
+
+/** Build the synthetic stickerAttempts array used in dry-run mode. */
+function buildDryRunStickerAttempts(
+  features?: { linkUrl?: string; pollQuestion?: string; pollOptions?: string[] },
+): IGStoryPublishResult["stickerAttempts"] {
+  if (!features) return undefined;
+  const out: NonNullable<IGStoryPublishResult["stickerAttempts"]> = [];
+  if (features.linkUrl) out.push({ feature: "linkSticker", status: "attached" });
+  if (features.pollQuestion && features.pollOptions && features.pollOptions.length >= 2) {
+    out.push({ feature: "poll", status: "attached" });
+  }
+  return out.length ? out : undefined;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

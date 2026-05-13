@@ -160,3 +160,9 @@ gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.serv
 ### GitHub Actions pipeline.yml
 - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` — Firebase Admin SA credentials
 - `GEMINI_API_KEY`, `FIREBASE_STORAGE_BUCKET`
+
+## Runbooks
+
+- [Social Growth Rollout (PR #65 + observability PR)](docs/rollout-followup.md)
+  — staged 3-day flag flip + observability dashboards.
+

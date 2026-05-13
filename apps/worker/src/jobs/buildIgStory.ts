@@ -22,6 +22,7 @@ import {
 import type { BilingualText } from "@edlight-news/generator/ig/index.js";
 import { itemsRepo } from "@edlight-news/firebase";
 import type { IGStoryQueueStatus, Item } from "@edlight-news/types";
+import { pickStoryFeatures, type StoryFeatureTopic } from "../services/storyFeatures.js";
 
 // ── Haiti timezone ─────────────────────────────────────────────────────────
 const HAITI_TZ = "America/Port-au-Prince";
@@ -300,19 +301,20 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
       | undefined;
     if (process.env.IG_STORY_FEATURES === "true") {
       const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://news.edlight.org";
-      const hasScholarship = storyItems.some((si) => si.igType === "scholarship");
-      const hasOpportunity = storyItems.some((si) => si.igType === "opportunity");
-      storyFeatures = {
-        linkUrl: SITE_URL,
-        ctaText: "Lire toutes les nouvelles",
-      };
-      if (hasScholarship) {
-        storyFeatures.pollQuestion = "Tu postules à une bourse cette année ?";
-        storyFeatures.pollOptions = ["Oui 🎓", "Pas encore"];
-      } else if (hasOpportunity) {
-        storyFeatures.pollQuestion = "Quelle opportunité t'intéresse le plus ?";
-        storyFeatures.pollOptions = ["Emploi", "Formation"];
+      const present: StoryFeatureTopic[] = [];
+      if (tauxInput) present.push("taux");
+      if (factsInput) present.push("utility");
+      for (const si of storyItems) {
+        // Items carry an igType ("scholarship" | "opportunity" | "news")
+        // plus a histoire signal via the canonical-url scheme.
+        if (si.igType === "scholarship") present.push("scholarship");
+        else if (si.igType === "opportunity") present.push("opportunity");
+        else if (si.igType === "news") present.push("news");
+        if (si.item.canonicalUrl?.startsWith("edlight://histoire/")) {
+          present.push("histoire");
+        }
       }
+      storyFeatures = pickStoryFeatures(present, SITE_URL);
     }
 
     // Insert into ig_story_queue

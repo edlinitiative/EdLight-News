@@ -194,7 +194,8 @@ export type {
 
 /** Items scoring below this are kept as draft — never auto-published. */
 export const PUBLISH_SCORE_THRESHOLD = 0.40;
-export { socialEngagementBoost } from "./opportunityScoring.js";
+export { socialEngagementBoost, socialEngagementBoostMulti } from "./opportunityScoring.js";
+export type { SocialPlatform } from "./opportunityScoring.js";
 
 export interface GenerateWebDraftInput {
   title: string;

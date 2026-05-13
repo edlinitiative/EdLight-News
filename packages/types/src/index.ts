@@ -106,6 +106,9 @@ export type {
   IGStorySlide,
   IGStoryPayload,
   IGStoryQueueItem,
+  // Rollout PR observability types
+  SocialBoostLogEntry,
+  WaChannelSnapshot,
   // WhatsApp pipeline types
   WaQueueStatus,
   WaMessagePayload,

@@ -100,6 +100,11 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
           // Upload & publish each frame as a separate Story
           let allPosted = true;
           let lastMediaId: string | undefined;
+          // Aggregate sticker attempts across frames (only first frame
+          // carries stickers, but a sentinel keeps the type consistent).
+          const aggregatedStickerAttempts: NonNullable<
+            IGStoryQueueItem["stickerAttempt"]
+          > = [];
 
           for (let i = 0; i < assets.slidePaths.length; i++) {
             try {
@@ -117,6 +122,10 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
                 storyItem.id,
                 i === 0 ? storyItem.storyFeatures : undefined,
               );
+
+              if (i === 0 && publishResult.stickerAttempts) {
+                aggregatedStickerAttempts.push(...publishResult.stickerAttempts);
+              }
 
               if (publishResult.posted) {
                 lastMediaId = publishResult.igMediaId;
@@ -142,14 +151,24 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
           if (allPosted && lastMediaId) {
             await processIgStoryDeps.updateStoryStatus(storyItem.id, "posted", {
               igMediaId: lastMediaId,
+              ...(aggregatedStickerAttempts.length > 0
+                ? { stickerAttempt: aggregatedStickerAttempts }
+                : {}),
             });
             result.posted++;
           } else if (result.dryRun > 0) {
             // Dry-run mode — mark as queued so it retries when creds are set
-            await processIgStoryDeps.updateStoryStatus(storyItem.id, "queued");
+            await processIgStoryDeps.updateStoryStatus(storyItem.id, "queued", {
+              ...(aggregatedStickerAttempts.length > 0
+                ? { stickerAttempt: aggregatedStickerAttempts }
+                : {}),
+            });
           } else {
             await processIgStoryDeps.updateStoryStatus(storyItem.id, "failed", {
               error: "Not all frames published successfully",
+              ...(aggregatedStickerAttempts.length > 0
+                ? { stickerAttempt: aggregatedStickerAttempts }
+                : {}),
             });
             result.errors++;
           }
