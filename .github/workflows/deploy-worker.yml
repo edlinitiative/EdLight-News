@@ -272,6 +272,10 @@ jobs:
             IG_API_HOST=${{ secrets.IG_API_HOST }}
             FB_PAGE_ACCESS_TOKEN=${{ secrets.FB_PAGE_ACCESS_TOKEN }}
             FB_PAGE_ID=${{ secrets.FB_PAGE_ID }}
+            THREADS_ACCESS_TOKEN=${{ secrets.THREADS_ACCESS_TOKEN }}
+            THREADS_USER_ID=${{ secrets.THREADS_USER_ID }}
+            THREADS_APP_ID=${{ secrets.THREADS_APP_ID }}
+            THREADS_APP_SECRET=${{ secrets.THREADS_APP_SECRET }}
             LLM_PROVIDER=mistral
             MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
             OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
