@@ -11,6 +11,7 @@ import express from "express";
 import { tickRouter } from "./routes/tick.js";
 import { processIgNowRouter } from "./routes/processIgNow.js";
 import { cleanupRouter } from "./routes/cleanup.js";
+import { reviewRouter } from "./routes/review.js";
 import { getVisionQuotaStatus } from "./services/googleVisionSearch.js";
 import { warmUpClassifier } from "./services/zeroShotClassifier.js";
 
