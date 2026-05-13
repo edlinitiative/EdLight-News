@@ -174,8 +174,11 @@ async function composeThMessageV2(
 /**
  * Compose a Threads post payload for a content item.
  * Conversational tone, max 500 chars, inline link.
+ * Returns the payload plus the A/B hookVariant identifier (P4 followup).
  */
-async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
+async function composeThMessage(
+  item: Item,
+): Promise<{ payload: ThMessagePayload; hookVariant: string } | null> {
   let frTitle: string | undefined;
   let frSummary: string | undefined;
   let frCv: ContentVersion | undefined;
@@ -199,10 +202,16 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
 
   const articleUrl = `${SITE_URL}/news/${item.id}`;
 
+  const hashtagRotationActive = process.env.HASHTAG_ROTATION === "true";
+
   // ── Social v2 (feature-flagged) ───────────────────────────────────────
   if (SOCIAL_V2_ENABLED) {
     const v2 = await composeThMessageV2(item, frCv, articleUrl);
-    if (v2) return v2;
+    if (v2) {
+      const v2Topic = topicForSocial(item);
+      const v2Variant = `th-${v2Topic === "story_only" ? "news" : v2Topic}-v2${hashtagRotationActive ? "-rot" : ""}`;
+      return { payload: v2, hookVariant: v2Variant };
+    }
     // fall through to legacy composer
   }
 
@@ -263,10 +272,16 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
 
   const text = lines.join("\n");
 
+  const variantTopic = topic === "story_only" ? "news" : topic;
+  const hookVariant = `th-${variantTopic}-v1${hashtagRotationActive ? "-rot" : ""}`;
+
   return {
-    text: text.slice(0, MAX_TEXT_LENGTH),
-    imageUrl: item.imageUrl || undefined,
-    replyLinkUrl: linkAsReply ? articleUrl : undefined,
+    payload: {
+      text: text.slice(0, MAX_TEXT_LENGTH),
+      imageUrl: item.imageUrl || undefined,
+      replyLinkUrl: linkAsReply ? articleUrl : undefined,
+    },
+    hookVariant,
   };
 }
 
@@ -347,11 +362,12 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
           continue;
         }
 
-        const payload = await composeThMessage(item);
-        if (!payload) {
+        const composed = await composeThMessage(item);
+        if (!composed) {
           result.skipped++;
           continue;
         }
+        const { payload, hookVariant } = composed;
 
         await thQueueRepo.createThQueueItem({
           sourceContentId: item.id,
@@ -363,6 +379,7 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
             `Auto-queued: score=${score}, category=${item.category ?? "unknown"}`,
           ],
           payload,
+          hookVariant,
         });
 
         newItemsQueued++;

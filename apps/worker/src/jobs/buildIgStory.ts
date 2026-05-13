@@ -287,12 +287,41 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
     const payload = buildDailySummaryStory(storyItems, undefined, tauxInput, factsInput);
     const sourceItemIds = storyItems.map((si) => si.item.id);
 
+    // P4 followup: optional sticker overlays for the morning briefing.
+    // Off by default; enable with IG_STORY_FEATURES=true. The publisher
+    // attempts each sticker independently and silently skips on rejection.
+    let storyFeatures:
+      | {
+          linkUrl?: string;
+          pollQuestion?: string;
+          pollOptions?: string[];
+          ctaText?: string;
+        }
+      | undefined;
+    if (process.env.IG_STORY_FEATURES === "true") {
+      const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://news.edlight.org";
+      const hasScholarship = storyItems.some((si) => si.igType === "scholarship");
+      const hasOpportunity = storyItems.some((si) => si.igType === "opportunity");
+      storyFeatures = {
+        linkUrl: SITE_URL,
+        ctaText: "Lire toutes les nouvelles",
+      };
+      if (hasScholarship) {
+        storyFeatures.pollQuestion = "Tu postules à une bourse cette année ?";
+        storyFeatures.pollOptions = ["Oui 🎓", "Pas encore"];
+      } else if (hasOpportunity) {
+        storyFeatures.pollQuestion = "Quelle opportunité t'intéresse le plus ?";
+        storyFeatures.pollOptions = ["Emploi", "Formation"];
+      }
+    }
+
     // Insert into ig_story_queue
     await igStoryQueueRepo.createStoryQueueItem({
       dateKey,
       status: "queued" as IGStoryQueueStatus,
       sourceItemIds,
       payload,
+      ...(storyFeatures ? { storyFeatures } : {}),
     });
 
     const frameCount = payload.slides.length;

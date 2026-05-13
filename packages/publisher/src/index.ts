@@ -306,12 +306,21 @@ export interface IGStoryPublishResult {
 export async function publishIgStory(
   imageUrl: string,
   storyId: string,
+  features?: {
+    linkUrl?: string;
+    pollQuestion?: string;
+    pollOptions?: string[];
+    ctaText?: string;
+  },
 ): Promise<IGStoryPublishResult> {
   const creds = getIGCredentials();
 
   if (!creds) {
     const exportDir = `/tmp/ig_stories/${storyId}`;
-    console.log(`[publisher] IG Story dry-run: ${storyId} → ${imageUrl}`);
+    console.log(
+      `[publisher] IG Story dry-run: ${storyId} → ${imageUrl}` +
+        (features ? ` (features=${Object.keys(features).join(",")})` : ""),
+    );
     return { posted: false, dryRun: true, dryRunPath: exportDir };
   }
 
@@ -358,13 +367,45 @@ export async function publishIgStory(
       throw new Error(`Story container ${containerId} did not become FINISHED in time`);
     }
 
-    // Step 1: Create Story media container
-    const data = await igPost(`${baseUrl}/media`, {
-      media_type: "STORIES",
-      image_url: imageUrl,
-    });
-    if (data.error) throw new Error(`IG Story API error: ${data.error.message}`);
-    const containerId = data.id!;
+    // Step 1: Create Story media container.
+    // Sticker overlays are best-effort: we attempt with stickers first; if
+    // the API rejects (e.g. parameter not supported on this account), we
+    // log `igStoryFeatureSkipped` and retry without stickers so the story
+    // still goes out.
+    async function createContainerWithFeatures(): Promise<string> {
+      const baseParams: Record<string, string> = {
+        media_type: "STORIES",
+        image_url: imageUrl,
+      };
+      if (features) {
+        const stickerParams: Record<string, string> = { ...baseParams };
+        if (features.linkUrl) {
+          stickerParams.link_sticker = JSON.stringify({
+            link: { url: features.linkUrl },
+          });
+        }
+        if (
+          features.pollQuestion &&
+          features.pollOptions &&
+          features.pollOptions.length >= 2
+        ) {
+          stickerParams.poll_sticker = JSON.stringify({
+            question: features.pollQuestion,
+            options: features.pollOptions.slice(0, 4),
+          });
+        }
+        const withFeatures = await igPost(`${baseUrl}/media`, stickerParams);
+        if (!withFeatures.error && withFeatures.id) return withFeatures.id;
+        console.warn(
+          `[publisher] igStoryFeatureSkipped: ${withFeatures.error?.message ?? "unknown"}`,
+        );
+      }
+      const plain = await igPost(`${baseUrl}/media`, baseParams);
+      if (plain.error) throw new Error(`IG Story API error: ${plain.error.message}`);
+      return plain.id!;
+    }
+
+    const containerId = await createContainerWithFeatures();
     console.log(`[publisher] Story container created: ${containerId}`);
 
     // Wait for container to finish processing

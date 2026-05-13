@@ -768,6 +768,21 @@ export interface IGStoryQueueItem {
   sourceItemIds: string[];
   igMediaId?: string;
   payload?: IGStoryPayload;
+  /**
+   * Optional sticker overlays attached at publish time (P4 followup).
+   * All fields are best-effort: the publisher silently skips any sticker
+   * the IG Graph API rejects so the underlying story still goes out.
+   */
+  storyFeatures?: {
+    /** Link sticker target URL (typically the article landing page). */
+    linkUrl?: string;
+    /** Poll sticker question — kept short so it fits the IG sticker UI. */
+    pollQuestion?: string;
+    /** 2 to 4 poll answer choices. */
+    pollOptions?: string[];
+    /** Default fallback CTA text used when no poll is shown. */
+    ctaText?: string;
+  };
   error?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -914,6 +929,8 @@ export interface ThQueueItem {
   thPostId?: string;
   /** Threads media ID of the self-reply containing the article link (P1.2). */
   thReplyMediaId?: string;
+  /** A/B test: which hook variant was used in the post text (P4 followup). */
+  hookVariant?: string;
   /** Engagement metrics fetched from Threads Insights (P2). */
   socialMetrics?: Record<string, number>;
   socialMetricsFetchedAt?: Timestamp;
@@ -959,6 +976,8 @@ export interface XQueueItem {
   xTweetId?: string;
   /** Media ID attached to the tweet, when image upload succeeded (P1.3). */
   xMediaId?: string;
+  /** A/B test: which hook variant was used in the post text (P4 followup). */
+  hookVariant?: string;
   /** Engagement metrics fetched from X public_metrics (P2). */
   socialMetrics?: Record<string, number>;
   socialMetricsFetchedAt?: Timestamp;

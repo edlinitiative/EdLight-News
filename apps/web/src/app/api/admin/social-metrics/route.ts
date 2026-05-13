@@ -74,8 +74,7 @@ export async function GET() {
       .filter((i) => i.socialMetrics && Object.keys(i.socialMetrics).length > 0)
       .map((i) => ({
         id: i.id,
-        sourceContentId: i.sourceContentId,
-        score: i.score,
+        sourceContentId: i.sourceContentId,        hookVariant: i.hookVariant ?? null,        score: i.score,
         fetchedAt: timestampToIso(i.socialMetricsFetchedAt),
         metrics: i.socialMetrics!,
         reach: i.socialMetrics!.views ?? 0,
@@ -94,6 +93,7 @@ export async function GET() {
       .map((i) => ({
         id: i.id,
         sourceContentId: i.sourceContentId,
+        hookVariant: i.hookVariant ?? null,
         score: i.score,
         fetchedAt: timestampToIso(i.socialMetricsFetchedAt),
         metrics: i.socialMetrics!,
@@ -107,7 +107,44 @@ export async function GET() {
 
     const xTotals = safeMerge(...xWithMetrics.map((i) => i.metrics));
 
-    // ── A/B hook breakdown ────────────────────────────────────────────────
+    // ── A/B hook breakdown (per-platform, min 5 posts per variant) ────────
+    type HookRow = { variant: string; count: number; avgReach: number; avgEngagement: number };
+    function rollup(
+      posts: Array<{ hookVariant: string | null; reach: number; engagement: number }>,
+    ): { variants: HookRow[]; totalPosts: number } {
+      const breakdown: Record<
+        string,
+        { count: number; totalReach: number; totalEngagement: number }
+      > = {};
+      for (const item of posts) {
+        const v = item.hookVariant ?? "unknown";
+        const existing = breakdown[v] ?? { count: 0, totalReach: 0, totalEngagement: 0 };
+        breakdown[v] = {
+          count: existing.count + 1,
+          totalReach: existing.totalReach + item.reach,
+          totalEngagement: existing.totalEngagement + item.engagement,
+        };
+      }
+      const variants = Object.entries(breakdown)
+        .filter(([, s]) => s.count >= 5)
+        .map(([variant, s]) => ({
+          variant,
+          count: s.count,
+          avgReach: s.count > 0 ? Math.round(s.totalReach / s.count) : 0,
+          avgEngagement:
+            s.count > 0 ? Math.round((s.totalEngagement / s.count) * 10) / 10 : 0,
+        }))
+        .sort((a, b) => b.avgEngagement - a.avgEngagement);
+      return { variants, totalPosts: posts.length };
+    }
+
+    const hookStatsByPlatform = {
+      fb: rollup(fbWithMetrics),
+      th: rollup(thWithMetrics),
+      x: rollup(xWithMetrics),
+    };
+
+    // Backwards-compat: keep `hookStats` as the legacy FB-only roll-up.
     const hookBreakdown: Record<
       string,
       { count: number; totalReach: number; totalEngagement: number }
@@ -151,6 +188,7 @@ export async function GET() {
           topPosts: xWithMetrics.slice(0, 20),
         },
         hookStats,
+        hookStatsByPlatform,
         metricsEnabled: process.env.SOCIAL_METRICS_FEEDBACK === "true",
       },
       NO_STORE,

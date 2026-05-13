@@ -163,8 +163,25 @@ async function composeWaMessage(
     lines.push(pickHashtags(waHashtagTopic, item.id));
   }
 
+  // P4 followup: Cross-platform CTA pointing readers from WhatsApp to
+  // Instagram (long-form swipeable carousels). Off by default; enable with
+  // WA_IG_CTA=true and IG_HANDLE=@... to add the line.
+  if (process.env.WA_IG_CTA === "true") {
+    const igHandle = process.env.IG_HANDLE ?? "@edlightnews";
+    lines.push("");
+    lines.push(`📸 Plis sou Instagram : ${igHandle}`);
+  }
+
+  // WhatsApp body limit is 4096 chars but link previews look best ≤ 1024.
+  // Hard-cap to 1024 to keep messages compact and previewable on every device.
+  let text = lines.join("\n");
+  const WA_MAX = 1024;
+  if (text.length > WA_MAX) {
+    text = text.slice(0, WA_MAX - 1) + "…";
+  }
+
   return {
-    text: lines.join("\n"),
+    text,
     imageUrl: item.imageUrl || undefined,
     linkUrl: articleUrl,
   };

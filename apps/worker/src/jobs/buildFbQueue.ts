@@ -367,13 +367,29 @@ async function composeFbMessage(
   lines.push("");
   lines.push("Lire l'article complet sur EdLight News.");
 
+  // P4 followup: Cross-platform CTA pointing readers from Facebook to the
+  // WhatsApp channel for daily push. Off by default; enable with
+  // FB_WA_CTA=true and provide WA_CHANNEL_URL=https://chat.whatsapp.com/...
+  // Rotated 50/50 deterministically using the dedupeGroupId (or item.id as
+  // fallback) so we never double-stack the CTA on every post but still get
+  // representative A/B coverage in metrics.
+  let waCtaSuffix = "";
+  if (process.env.FB_WA_CTA === "true" && process.env.WA_CHANNEL_URL) {
+    const seed = item.dedupeGroupId ?? item.id;
+    if (smallHash(seed) % 2 === 0) {
+      lines.push("");
+      lines.push(`📲 Rejoignez le canal WhatsApp : ${process.env.WA_CHANNEL_URL}`);
+      waCtaSuffix = "-wa";
+    }
+  }
+
   return {
     payload: {
       text: lines.join("\n"),
       linkUrl: articleUrl,
       imageUrl: item.imageUrl || undefined,
     },
-    hookVariant,
+    hookVariant: `${hookVariant}${waCtaSuffix}`,
   };
 }
 

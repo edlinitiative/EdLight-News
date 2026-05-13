@@ -110,10 +110,12 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
                 i,
               );
 
-              // Publish to IG
+              // Publish to IG. Sticker overlays (link/poll) are attached
+              // to the FIRST frame only — IG only renders one set per story.
               const publishResult = await processIgStoryDeps.publishIgStory(
                 publicUrl,
                 storyItem.id,
+                i === 0 ? storyItem.storyFeatures : undefined,
               );
 
               if (publishResult.posted) {

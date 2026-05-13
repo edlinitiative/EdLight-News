@@ -1,0 +1,37 @@
+name: smoke-social
+
+on:
+  pull_request:
+    paths:
+      - "apps/worker/src/jobs/build*Queue.ts"
+      - "apps/worker/src/jobs/buildIgStory.ts"
+      - "apps/worker/src/jobs/process*.ts"
+      - "apps/worker/src/services/hashtags.ts"
+      - "packages/publisher/**"
+      - "packages/types/src/**"
+      - "scripts/smoke-social.ts"
+      - ".github/workflows/smoke-social.yml"
+  push:
+    branches:
+      - main
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build types + publisher
+        run: |
+          pnpm --filter @edlight-news/types build
+          pnpm --filter @edlight-news/publisher build
+      - name: Run social smoke (dry-run, no outbound network)
+        run: pnpm tsx scripts/smoke-social.ts
