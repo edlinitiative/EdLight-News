@@ -80,6 +80,44 @@ function smallHash(input: string): number {
   return h;
 }
 
+/**
+ * Hook variants for FB scholarship posts.
+ * ~30% of posts get a question-form hook (more engagement on FB), the rest
+ * use the punchy declarative hook. Selection is deterministic per item.
+ */
+const SCHOLARSHIP_HOOKS_DECLARATIVE = [
+  "Bourse à surveiller",
+  "Bourse à ne pas manquer",
+];
+const SCHOLARSHIP_HOOKS_QUESTION = [
+  "Connaissez-vous quelqu'un qui pourrait postuler? 👇",
+  "Qui dans votre entourage devrait voir ça? 👇",
+];
+
+const OPPORTUNITY_HOOKS_DECLARATIVE = [
+  "Opportunité à saisir",
+  "À tenter dès maintenant",
+];
+const OPPORTUNITY_HOOKS_QUESTION = [
+  "Connaissez-vous quelqu'un qui pourrait postuler? 👇",
+  "Qui devrait postuler à ça? 👇",
+];
+
+function pickScholarshipHook(seed: string): string {
+  const h = smallHash(seed);
+  // ~30% question-form (3 of 10)
+  const useQuestion = h % 10 < 3;
+  const pool = useQuestion ? SCHOLARSHIP_HOOKS_QUESTION : SCHOLARSHIP_HOOKS_DECLARATIVE;
+  return pool[h % pool.length]!;
+}
+
+function pickOpportunityHook(seed: string): string {
+  const h = smallHash(seed);
+  const useQuestion = h % 10 < 3;
+  const pool = useQuestion ? OPPORTUNITY_HOOKS_QUESTION : OPPORTUNITY_HOOKS_DECLARATIVE;
+  return pool[h % pool.length]!;
+}
+
 function topicForSocial(item: Item): SocialTopic {
   const category = item.category?.toLowerCase() ?? "";
   const vertical = item.vertical?.toLowerCase() ?? "";
@@ -293,9 +331,9 @@ async function composeFbMessage(
 
   const hook =
     topic === "scholarship"
-      ? "Bourse à surveiller"
+      ? pickScholarshipHook(item.id)
       : topic === "opportunity"
-        ? "Opportunité à saisir"
+        ? pickOpportunityHook(item.id)
         : topic === "education"
           ? "À retenir pour les étudiants"
           : topic === "news"

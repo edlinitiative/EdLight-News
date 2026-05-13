@@ -211,11 +211,20 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
           ? "#Haïti #Éducation"
           : "#Haïti #Actualités";
 
-  // Build the post: punchy title, context, link, hashtags
+  // Feature flag — when ON (default), the article URL is stripped from the
+  // parent post body and posted as a self-reply by the publisher (P1.2).
+  // Threads suppresses outbound links in the parent body. To revert to the
+  // legacy inline-link behavior set TH_LINK_REPLY=false.
+  const linkAsReply = process.env.TH_LINK_REPLY !== "false";
+
+  // Build the post: punchy title, context, link?, hashtags
   // Budget: 500 chars total
   const linkLine = articleUrl;
   const hashtagLine = hashtags;
-  const fixedOverhead = 2 + linkLine.length + 2 + hashtagLine.length; // newlines + link + newlines + hashtags
+  // When link goes in the reply we save those bytes for the body.
+  const fixedOverhead = linkAsReply
+    ? 2 + hashtagLine.length // \n\n + hashtags
+    : 2 + linkLine.length + 2 + hashtagLine.length;
 
   // Title gets priority, then summary fills remaining space
   const truncatedTitle = title.length > 150 ? title.slice(0, 147) + "…" : title;
@@ -235,8 +244,10 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
     lines.push(shortSummary);
   }
 
-  lines.push("");
-  lines.push(linkLine);
+  if (!linkAsReply) {
+    lines.push("");
+    lines.push(linkLine);
+  }
   lines.push("");
   lines.push(hashtagLine);
 
@@ -245,6 +256,7 @@ async function composeThMessage(item: Item): Promise<ThMessagePayload | null> {
   return {
     text: text.slice(0, MAX_TEXT_LENGTH),
     imageUrl: item.imageUrl || undefined,
+    replyLinkUrl: linkAsReply ? articleUrl : undefined,
   };
 }
 

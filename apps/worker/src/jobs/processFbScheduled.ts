@@ -90,9 +90,18 @@ export async function processFbScheduled(): Promise<ProcessFbScheduledResult> {
         }
 
         if (publishResult.posted && publishResult.fbPostId) {
-          await fbQueueRepo.markSent(item.id, publishResult.fbPostId);
+          const extra: Record<string, unknown> = {};
+          if (publishResult.fbCommentId) extra.fbCommentId = publishResult.fbCommentId;
+          await fbQueueRepo.markSent(
+            item.id,
+            publishResult.fbPostId,
+            Object.keys(extra).length ? extra : undefined,
+          );
           result.sent++;
-          console.log(`[processFbScheduled] ${item.id} sent: ${publishResult.fbPostId}`);
+          console.log(
+            `[processFbScheduled] ${item.id} sent: ${publishResult.fbPostId}` +
+              (publishResult.fbCommentId ? ` (comment ${publishResult.fbCommentId})` : ""),
+          );
         } else {
           const retries = (item.sendRetries ?? 0) + 1;
           await fbQueueRepo.updateStatus(item.id, "scheduled", {

@@ -137,9 +137,12 @@ async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
           ? "#Haiti #Éducation"
           : "#Haiti #EdLightNews";
 
-  // Budget: 280 chars total
-  // Fixed: \n\n + url + \n\n + hashtags
-  const fixedParts = `\n\n${articleUrl}\n\n${hashtags}`;
+  // Budget: 280 chars total.
+  // X t.co always shortens URLs to ~23 chars regardless of source length;
+  // we use a conservative 12-char wedge for the URL + ellipsis to give the
+  // headline more room (P1.3 — the image now carries the visual hook).
+  const URL_BUDGET = 12;
+  const fixedParts = `\n\n${" ".repeat(URL_BUDGET)}\n\n${hashtags}`;
   const headlineBudget = MAX_TEXT_LENGTH - fixedParts.length;
 
   if (headlineBudget < 20) return null; // Can't fit a meaningful headline
@@ -149,9 +152,13 @@ async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
       ? title.slice(0, headlineBudget - 1) + "…"
       : title;
 
-  const text = `${truncatedTitle}${fixedParts}`;
+  // Real text uses the actual article URL; X auto-shortens via t.co.
+  const text = `${truncatedTitle}\n\n${articleUrl}\n\n${hashtags}`;
 
-  return { text: text.slice(0, MAX_TEXT_LENGTH) };
+  return {
+    text: text.slice(0, MAX_TEXT_LENGTH),
+    imageUrl: item.imageUrl || undefined,
+  };
 }
 
 export interface BuildXQueueResult {

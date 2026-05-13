@@ -90,9 +90,18 @@ export async function processThScheduled(): Promise<ProcessThScheduledResult> {
         }
 
         if (publishResult.posted && publishResult.thPostId) {
-          await thQueueRepo.markSent(item.id, publishResult.thPostId);
+          const extra: Record<string, unknown> = {};
+          if (publishResult.thReplyMediaId) extra.thReplyMediaId = publishResult.thReplyMediaId;
+          await thQueueRepo.markSent(
+            item.id,
+            publishResult.thPostId,
+            Object.keys(extra).length ? extra : undefined,
+          );
           result.sent++;
-          console.log(`[processThScheduled] ${item.id} sent: ${publishResult.thPostId}`);
+          console.log(
+            `[processThScheduled] ${item.id} sent: ${publishResult.thPostId}` +
+              (publishResult.thReplyMediaId ? ` (reply ${publishResult.thReplyMediaId})` : ""),
+          );
         } else {
           const retries = (item.sendRetries ?? 0) + 1;
           await thQueueRepo.updateStatus(item.id, "scheduled", {

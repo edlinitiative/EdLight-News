@@ -90,9 +90,18 @@ export async function processXScheduled(): Promise<ProcessXScheduledResult> {
         }
 
         if (publishResult.posted && publishResult.xTweetId) {
-          await xQueueRepo.markSent(item.id, publishResult.xTweetId);
+          const extra: Record<string, unknown> = {};
+          if (publishResult.xMediaId) extra.xMediaId = publishResult.xMediaId;
+          await xQueueRepo.markSent(
+            item.id,
+            publishResult.xTweetId,
+            Object.keys(extra).length ? extra : undefined,
+          );
           result.sent++;
-          console.log(`[processXScheduled] ${item.id} sent: ${publishResult.xTweetId}`);
+          console.log(
+            `[processXScheduled] ${item.id} sent: ${publishResult.xTweetId}` +
+              (publishResult.xMediaId ? ` (media ${publishResult.xMediaId})` : ""),
+          );
         } else {
           const retries = (item.sendRetries ?? 0) + 1;
           await xQueueRepo.updateStatus(item.id, "scheduled", {

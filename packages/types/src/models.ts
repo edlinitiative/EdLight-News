@@ -858,6 +858,8 @@ export interface FbQueueItem {
   sendRetries?: number;
   /** Facebook post ID returned by the API after successful publish. */
   fbPostId?: string;
+  /** ID of the auto-comment containing the article link (P1.1). */
+  fbCommentId?: string;
   reasons: string[];
   payload?: FbMessagePayload;
   error?: string;
@@ -879,10 +881,17 @@ export type ThQueueStatus =
 
 /** The formatted message payload ready to publish via Threads API. */
 export interface ThMessagePayload {
-  /** Text body of the Threads post (max 500 chars). Links go inline. */
+  /** Text body of the Threads post (max 500 chars). */
   text: string;
   /** Optional public image URL for image posts. */
   imageUrl?: string;
+  /**
+   * Article URL that should be posted as a self-reply (P1.2).
+   * Threads suppresses outbound links in the parent post body, so we keep
+   * the parent text clean and reply with the link. When unset, no reply
+   * is posted (legacy posts that already embedded the link inline).
+   */
+  replyLinkUrl?: string;
 }
 
 /** Firestore collection: th_queue */
@@ -898,6 +907,8 @@ export interface ThQueueItem {
   sendRetries?: number;
   /** Threads media ID returned by the API after successful publish. */
   thPostId?: string;
+  /** Threads media ID of the self-reply containing the article link (P1.2). */
+  thReplyMediaId?: string;
   reasons: string[];
   payload?: ThMessagePayload;
   error?: string;
@@ -921,6 +932,8 @@ export type XQueueStatus =
 export interface XMessagePayload {
   /** Tweet text (max 280 chars). Links and hashtags embedded inline. */
   text: string;
+  /** Optional public image URL — uploaded via v1.1 media endpoint when OAuth1 creds are configured (P1.3). */
+  imageUrl?: string;
 }
 
 /** Firestore collection: x_queue */
@@ -936,6 +949,8 @@ export interface XQueueItem {
   sendRetries?: number;
   /** Tweet ID returned by the X API after successful publish. */
   xTweetId?: string;
+  /** Media ID attached to the tweet, when image upload succeeded (P1.3). */
+  xMediaId?: string;
   reasons: string[];
   payload?: XMessagePayload;
   error?: string;

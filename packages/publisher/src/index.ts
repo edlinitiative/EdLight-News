@@ -516,6 +516,8 @@ function getFBCredentials(): { accessToken: string; pageId: string } | null {
 export interface FBPublishResult {
   posted: boolean;
   fbPostId?: string;
+  /** ID of the auto-comment that contains the article link (P1.1). */
+  fbCommentId?: string;
   dryRun: boolean;
   error?: string;
 }
@@ -523,9 +525,13 @@ export interface FBPublishResult {
 /**
  * Publish to a Facebook Page via Graph API.
  *
- * Two modes:
- *   1. Link post — `message` + `link` → FB auto-generates preview card
- *   2. Photo post — `url` + `caption` (when imageUrl is set and no linkUrl)
+ * Strategy (controlled by FB_LINK_IN_COMMENT, default ON):
+ *   • imageUrl + linkUrl → photo post + auto-comment with the link
+ *     (Facebook suppresses link posts; native photo + first-comment link
+ *     typically lifts reach 2–4×)
+ *   • linkUrl only       → text+link feed post (legacy fallback)
+ *   • imageUrl only      → photo post, no comment step
+ *   • text only          → plain feed post
  *
  * Falls back to dry-run if FB_PAGE_ACCESS_TOKEN / FB_PAGE_ID are not set.
  */
@@ -540,55 +546,159 @@ export async function publishToFacebook(
     return { posted: false, dryRun: true };
   }
 
+  // Feature flag: defaults to ON. Set FB_LINK_IN_COMMENT=false to revert
+  // to the legacy `/feed` link post behavior.
+  const linkInComment = process.env.FB_LINK_IN_COMMENT !== "false";
+
+  const startedAt = Date.now();
   try {
     const { accessToken, pageId } = creds;
     const apiHost = "graph.facebook.com";
     const apiVersion = "v21.0";
+    const apiBase = `https://${apiHost}/${apiVersion}`;
 
-    let endpoint: string;
-    const params: Record<string, string> = { access_token: accessToken };
-
-    if (payload.linkUrl) {
-      // Link post — FB generates the preview card from the URL
-      endpoint = `https://${apiHost}/${apiVersion}/${pageId}/feed`;
-      params.message = payload.text;
-      params.link = payload.linkUrl;
-    } else if (payload.imageUrl) {
-      // Photo post
-      endpoint = `https://${apiHost}/${apiVersion}/${pageId}/photos`;
-      params.url = payload.imageUrl;
-      params.caption = payload.text;
-    } else {
-      // Text-only post
-      endpoint = `https://${apiHost}/${apiVersion}/${pageId}/feed`;
-      params.message = payload.text;
-    }
-
-    const res = await fetch(endpoint, {
-      method: "POST",
-      body: new URLSearchParams(params),
-    });
-
-    const data = (await res.json()) as {
+    async function fbPost(
+      endpoint: string,
+      params: Record<string, string>,
+    ): Promise<{
       id?: string;
       post_id?: string;
       error?: { message: string; code: number };
-    };
-
-    if (data.error) {
-      throw new Error(`FB API error (${data.error.code}): ${data.error.message}`);
+    }> {
+      const body = new URLSearchParams({ access_token: accessToken, ...params });
+      const res = await fetch(endpoint, { method: "POST", body });
+      return (await res.json()) as {
+        id?: string;
+        post_id?: string;
+        error?: { message: string; code: number };
+      };
     }
 
-    const postId = data.post_id ?? data.id;
-    if (postId) {
-      console.log(`[publisher] FB post published: ${postId}`);
+    // ── Path A: photo + comment-with-link (preferred) ────────────────────
+    if (linkInComment && payload.imageUrl && payload.linkUrl) {
+      const photoData = await fbPost(`${apiBase}/${pageId}/photos`, {
+        url: payload.imageUrl,
+        caption: payload.text,
+        published: "true",
+      });
+      if (photoData.error) {
+        throw new Error(
+          `FB photo error (${photoData.error.code}): ${photoData.error.message}`,
+        );
+      }
+      // /photos returns { id: photoId, post_id: pageId_postId }
+      const postId = photoData.post_id ?? photoData.id;
+      if (!postId) throw new Error("FB photo returned no post_id and no error");
+
+      // Comment with the link. Failure here must NOT roll back the post —
+      // we still consider the publish a success and log the comment failure.
+      let commentId: string | undefined;
+      try {
+        const commentData = await fbPost(`${apiBase}/${postId}/comments`, {
+          message: payload.linkUrl,
+        });
+        if (commentData.error) {
+          console.warn(
+            `[publisher] FB comment failed for ${postId} (${commentData.error.code}): ${commentData.error.message}`,
+          );
+        } else {
+          commentId = commentData.id;
+        }
+      } catch (err) {
+        console.warn(
+          `[publisher] FB comment threw for ${postId}:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+
+      console.log(
+        JSON.stringify({
+          platform: "fb",
+          action: "photo+comment",
+          postId,
+          commentId,
+          ok: true,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+      return { posted: true, fbPostId: postId, fbCommentId: commentId, dryRun: false };
+    }
+
+    // ── Path B: link post fallback (no image) ────────────────────────────
+    if (payload.linkUrl) {
+      const data = await fbPost(`${apiBase}/${pageId}/feed`, {
+        message: payload.text,
+        link: payload.linkUrl,
+      });
+      if (data.error) {
+        throw new Error(`FB API error (${data.error.code}): ${data.error.message}`);
+      }
+      const postId = data.post_id ?? data.id;
+      if (!postId) throw new Error("FB API returned no post ID and no error");
+      console.log(
+        JSON.stringify({
+          platform: "fb",
+          action: "link-feed",
+          postId,
+          ok: true,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
       return { posted: true, fbPostId: postId, dryRun: false };
     }
 
-    throw new Error("FB API returned no post ID and no error");
+    // ── Path C: photo-only (no link → no comment step) ───────────────────
+    if (payload.imageUrl) {
+      const data = await fbPost(`${apiBase}/${pageId}/photos`, {
+        url: payload.imageUrl,
+        caption: payload.text,
+        published: "true",
+      });
+      if (data.error) {
+        throw new Error(`FB API error (${data.error.code}): ${data.error.message}`);
+      }
+      const postId = data.post_id ?? data.id;
+      if (!postId) throw new Error("FB API returned no post ID and no error");
+      console.log(
+        JSON.stringify({
+          platform: "fb",
+          action: "photo-only",
+          postId,
+          ok: true,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+      return { posted: true, fbPostId: postId, dryRun: false };
+    }
+
+    // ── Path D: text-only ────────────────────────────────────────────────
+    const data = await fbPost(`${apiBase}/${pageId}/feed`, { message: payload.text });
+    if (data.error) {
+      throw new Error(`FB API error (${data.error.code}): ${data.error.message}`);
+    }
+    const postId = data.post_id ?? data.id;
+    if (!postId) throw new Error("FB API returned no post ID and no error");
+    console.log(
+      JSON.stringify({
+        platform: "fb",
+        action: "text-only",
+        postId,
+        ok: true,
+        durationMs: Date.now() - startedAt,
+      }),
+    );
+    return { posted: true, fbPostId: postId, dryRun: false };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[publisher] FB publish failed: ${msg}`);
+    console.error(
+      JSON.stringify({
+        platform: "fb",
+        action: "publish",
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: msg,
+      }),
+    );
     return { posted: false, dryRun: false, error: msg };
   }
 }
@@ -607,6 +717,8 @@ function getThreadsCredentials(): { accessToken: string; userId: string } | null
 export interface ThPublishResult {
   posted: boolean;
   thPostId?: string;
+  /** Threads media ID of the self-reply containing the article link (P1.2). */
+  thReplyMediaId?: string;
   dryRun: boolean;
   error?: string;
 }
@@ -617,6 +729,11 @@ export interface ThPublishResult {
  * Uses the same two-step container flow as Instagram:
  *   1. POST /threads — create media container
  *   2. POST /threads_publish — publish the container
+ *
+ * When `payload.replyLinkUrl` is set (P1.2), an immediate self-reply is
+ * posted containing only the link. Threads suppresses outbound links in
+ * the parent body, so the reply keeps the parent clean while still giving
+ * users a tap target.
  *
  * Falls back to dry-run if THREADS_ACCESS_TOKEN / THREADS_USER_ID are not set.
  */
@@ -631,11 +748,13 @@ export async function publishToThreads(
     return { posted: false, dryRun: true };
   }
 
+  const startedAt = Date.now();
   try {
     const { accessToken, userId } = creds;
     const apiHost = "graph.threads.net";
     const apiVersion = "v1.0";
     const baseUrl = `https://${apiHost}/${apiVersion}/${userId}`;
+    const apiBase = `https://${apiHost}/${apiVersion}`;
     const authHeader = `Bearer ${accessToken}`;
 
     async function thPost(
@@ -661,7 +780,6 @@ export async function publishToThreads(
     }
 
     async function waitForContainer(containerId: string): Promise<void> {
-      const apiBase = `https://${apiHost}/${apiVersion}`;
       for (let attempt = 0; attempt < 10; attempt++) {
         const status = await thGet(`${apiBase}/${containerId}?fields=status`);
         const code = status.status ?? "UNKNOWN";
@@ -675,7 +793,7 @@ export async function publishToThreads(
       throw new Error(`Threads container ${containerId} did not become FINISHED in time`);
     }
 
-    // Step 1: Create media container
+    // ── Step 1: Create parent media container ────────────────────────────
     const containerParams: Record<string, string> = { text: payload.text };
     if (payload.imageUrl) {
       containerParams.media_type = "IMAGE";
@@ -694,7 +812,7 @@ export async function publishToThreads(
     // Wait for container to finish processing
     await waitForContainer(containerId);
 
-    // Step 2: Publish
+    // ── Step 2: Publish parent ───────────────────────────────────────────
     const publishData = await thPost(`${baseUrl}/threads_publish`, {
       creation_id: containerId,
     });
@@ -702,11 +820,68 @@ export async function publishToThreads(
       throw new Error(`Threads publish error: ${publishData.error.message}`);
     }
 
-    console.log(`[publisher] Threads post published: ${publishData.id}`);
-    return { posted: true, thPostId: publishData.id, dryRun: false };
+    const parentMediaId = publishData.id!;
+    console.log(`[publisher] Threads post published: ${parentMediaId}`);
+
+    // ── Step 3 (optional): Self-reply with link ──────────────────────────
+    let replyMediaId: string | undefined;
+    if (payload.replyLinkUrl) {
+      try {
+        const replyText = `🔗 ${payload.replyLinkUrl}`;
+        const replyContainer = await thPost(`${baseUrl}/threads`, {
+          media_type: "TEXT",
+          text: replyText,
+          reply_to_id: parentMediaId,
+        });
+        if (replyContainer.error) {
+          throw new Error(replyContainer.error.message);
+        }
+        const replyContainerId = replyContainer.id!;
+        await waitForContainer(replyContainerId);
+        const replyPublish = await thPost(`${baseUrl}/threads_publish`, {
+          creation_id: replyContainerId,
+        });
+        if (replyPublish.error) {
+          throw new Error(replyPublish.error.message);
+        }
+        replyMediaId = replyPublish.id;
+        console.log(`[publisher] Threads reply published: ${replyMediaId} (parent ${parentMediaId})`);
+      } catch (err) {
+        // Reply failure must NOT roll back the parent post.
+        console.warn(
+          `[publisher] Threads self-reply failed for ${parentMediaId}:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+
+    console.log(
+      JSON.stringify({
+        platform: "th",
+        action: payload.replyLinkUrl ? "post+reply" : "post",
+        postId: parentMediaId,
+        replyMediaId,
+        ok: true,
+        durationMs: Date.now() - startedAt,
+      }),
+    );
+    return {
+      posted: true,
+      thPostId: parentMediaId,
+      thReplyMediaId: replyMediaId,
+      dryRun: false,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[publisher] Threads publish failed: ${msg}`);
+    console.error(
+      JSON.stringify({
+        platform: "th",
+        action: "publish",
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: msg,
+      }),
+    );
     return { posted: false, dryRun: false, error: msg };
   }
 }
@@ -721,11 +896,146 @@ function getXCredentials(): { accessToken: string } | null {
   return { accessToken };
 }
 
+/**
+ * OAuth 1.0a user-context credentials for X v1.1 media upload (P1.3).
+ * X v2 still requires v1.1 + OAuth1 for media. When any of the four are
+ * missing, image upload is skipped and tweets fall back to text-only.
+ */
+function getXOAuth1Credentials(): {
+  consumerKey: string;
+  consumerSecret: string;
+  accessToken: string;
+  accessSecret: string;
+} | null {
+  const consumerKey = process.env.X_CONSUMER_KEY ?? process.env.X_API_KEY;
+  const consumerSecret = process.env.X_CONSUMER_SECRET ?? process.env.X_API_SECRET;
+  const accessToken = process.env.X_OAUTH1_ACCESS_TOKEN;
+  const accessSecret = process.env.X_OAUTH1_ACCESS_SECRET;
+  if (!consumerKey || !consumerSecret || !accessToken || !accessSecret) return null;
+  return { consumerKey, consumerSecret, accessToken, accessSecret };
+}
+
+let _xOAuth1WarnedMissing = false;
+function warnXOAuth1MissingOnce(): void {
+  if (_xOAuth1WarnedMissing) return;
+  _xOAuth1WarnedMissing = true;
+  console.log(
+    "[publisher] X media upload disabled — set X_CONSUMER_KEY, X_CONSUMER_SECRET, X_OAUTH1_ACCESS_TOKEN, X_OAUTH1_ACCESS_SECRET to enable image tweets",
+  );
+}
+
 export interface XPublishResult {
   posted: boolean;
   xTweetId?: string;
+  /** Media ID attached to the tweet when image upload succeeded (P1.3). */
+  xMediaId?: string;
   dryRun: boolean;
   error?: string;
+}
+
+/**
+ * Build an OAuth 1.0a Authorization header for a request.
+ * Implements the standard signature flow described at
+ * https://developer.x.com/en/docs/authentication/oauth-1-0a
+ */
+async function buildOAuth1Header(
+  method: "GET" | "POST",
+  url: string,
+  bodyParams: Record<string, string>,
+  creds: NonNullable<ReturnType<typeof getXOAuth1Credentials>>,
+): Promise<string> {
+  const { createHmac, randomBytes } = await import("node:crypto");
+  const oauthParams: Record<string, string> = {
+    oauth_consumer_key: creds.consumerKey,
+    oauth_nonce: randomBytes(16).toString("hex"),
+    oauth_signature_method: "HMAC-SHA1",
+    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
+    oauth_token: creds.accessToken,
+    oauth_version: "1.0",
+  };
+  const enc = (s: string) => encodeURIComponent(s).replace(/[!'()*]/g, (c) =>
+    "%" + c.charCodeAt(0).toString(16).toUpperCase(),
+  );
+  const allParams: Record<string, string> = { ...oauthParams, ...bodyParams };
+  const paramString = Object.keys(allParams)
+    .sort()
+    .map((k) => `${enc(k)}=${enc(allParams[k]!)}`)
+    .join("&");
+  const baseString = [method, enc(url), enc(paramString)].join("&");
+  const signingKey = `${enc(creds.consumerSecret)}&${enc(creds.accessSecret)}`;
+  const signature = createHmac("sha1", signingKey).update(baseString).digest("base64");
+  oauthParams.oauth_signature = signature;
+  return (
+    "OAuth " +
+    Object.keys(oauthParams)
+      .sort()
+      .map((k) => `${enc(k)}="${enc(oauthParams[k]!)}"`)
+      .join(", ")
+  );
+}
+
+/**
+ * Download an image and upload it to X via the v1.1 media endpoint.
+ * Returns null on any failure — the caller falls back to text-only.
+ *
+ * Limits: 10s download timeout, 5MB max file size.
+ */
+async function uploadXMedia(imageUrl: string): Promise<string | null> {
+  const oauth1 = getXOAuth1Credentials();
+  if (!oauth1) {
+    warnXOAuth1MissingOnce();
+    return null;
+  }
+  try {
+    const ac = new AbortController();
+    const timeoutId = setTimeout(() => ac.abort(), 10_000);
+    const imgRes = await fetch(imageUrl, { signal: ac.signal }).finally(() =>
+      clearTimeout(timeoutId),
+    );
+    if (!imgRes.ok) {
+      console.warn(`[publisher] xMediaUploadFailed: image fetch ${imgRes.status}`);
+      return null;
+    }
+    const buf = Buffer.from(await imgRes.arrayBuffer());
+    if (buf.byteLength > 5 * 1024 * 1024) {
+      console.warn(`[publisher] xMediaUploadFailed: image too large (${buf.byteLength}B)`);
+      return null;
+    }
+
+    const uploadUrl = "https://upload.twitter.com/1.1/media/upload.json";
+    // Multipart upload — body params are NOT signed in OAuth1 for multipart,
+    // but the simple base64-in-form variant IS signed (treated like form params).
+    // We use the simple variant: send `media_data` (base64) as a form field.
+    const mediaData = buf.toString("base64");
+    const bodyParams = { media_data: mediaData };
+    const auth = await buildOAuth1Header("POST", uploadUrl, bodyParams, oauth1);
+    const form = new URLSearchParams(bodyParams);
+    const upRes = await fetch(uploadUrl, {
+      method: "POST",
+      headers: {
+        Authorization: auth,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form,
+    });
+    const upJson = (await upRes.json()) as {
+      media_id_string?: string;
+      errors?: { message: string }[];
+    };
+    if (!upRes.ok || !upJson.media_id_string) {
+      console.warn(
+        `[publisher] xMediaUploadFailed: upload ${upRes.status} ${upJson.errors?.[0]?.message ?? ""}`,
+      );
+      return null;
+    }
+    return upJson.media_id_string;
+  } catch (err) {
+    console.warn(
+      `[publisher] xMediaUploadFailed:`,
+      err instanceof Error ? err.message : err,
+    );
+    return null;
+  }
 }
 
 /**
@@ -733,10 +1043,12 @@ export interface XPublishResult {
  *
  *   POST https://api.x.com/2/tweets
  *
- * Text-only in v1. Media upload (images) can be added later via the
- * upload.twitter.com/1.1/media/upload.json endpoint.
+ * When `payload.imageUrl` is set AND OAuth1 credentials are configured
+ * (P1.3), the image is first uploaded via the v1.1 media endpoint and
+ * attached to the tweet. Any failure during media upload (no creds,
+ * fetch failure, file too large, upload error) silently falls back to
+ * a text-only tweet — never blocking the post.
  *
- * Requires a user-context OAuth token with tweet.write scope.
  * Falls back to dry-run if X_ACCESS_TOKEN / X_BEARER_TOKEN is not set.
  */
 export async function publishToX(
@@ -750,8 +1062,22 @@ export async function publishToX(
     return { posted: false, dryRun: true };
   }
 
+  const startedAt = Date.now();
   try {
     const { accessToken } = creds;
+
+    // ── Optional: upload media (graceful fallback to text-only) ──────────
+    const mediaUploadEnabled = process.env.X_MEDIA_UPLOAD !== "false";
+    let mediaId: string | undefined;
+    if (mediaUploadEnabled && payload.imageUrl) {
+      const id = await uploadXMedia(payload.imageUrl);
+      if (id) mediaId = id;
+    }
+
+    const tweetBody: { text: string; media?: { media_ids: string[] } } = {
+      text: payload.text,
+    };
+    if (mediaId) tweetBody.media = { media_ids: [mediaId] };
 
     const res = await fetch("https://api.x.com/2/tweets", {
       method: "POST",
@@ -759,7 +1085,7 @@ export async function publishToX(
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text: payload.text }),
+      body: JSON.stringify(tweetBody),
     });
 
     const data = (await res.json()) as {
@@ -773,14 +1099,31 @@ export async function publishToX(
 
     const tweetId = data.data?.id;
     if (tweetId) {
-      console.log(`[publisher] X tweet published: ${tweetId}`);
-      return { posted: true, xTweetId: tweetId, dryRun: false };
+      console.log(
+        JSON.stringify({
+          platform: "x",
+          action: mediaId ? "tweet+media" : "tweet",
+          postId: tweetId,
+          mediaId,
+          ok: true,
+          durationMs: Date.now() - startedAt,
+        }),
+      );
+      return { posted: true, xTweetId: tweetId, xMediaId: mediaId, dryRun: false };
     }
 
     throw new Error("X API returned no tweet ID and no error");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[publisher] X publish failed: ${msg}`);
+    console.error(
+      JSON.stringify({
+        platform: "x",
+        action: "publish",
+        ok: false,
+        durationMs: Date.now() - startedAt,
+        error: msg,
+      }),
+    );
     return { posted: false, dryRun: false, error: msg };
   }
 }

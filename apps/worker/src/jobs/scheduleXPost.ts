@@ -11,20 +11,29 @@ import { xQueueRepo } from "@edlight-news/firebase";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
-/** Maximum X posts per day. */
-const DAILY_CAP = 10;
+/** Maximum X posts per day. Raised from 10 → 15 (P1.3). */
+const DAILY_CAP = 15;
 
-/** X posting slots (Haiti local time). */
+/**
+ * X posting slots (Haiti local time).
+ * Cadence raised from 10 → 15 slots per day to match Threads volume
+ * strategy and capture more diaspora engagement windows.
+ */
 const SLOTS = [
   { hour: 6, minute: 0 },
   { hour: 7, minute: 30 },
+  { hour: 8, minute: 30 },
   { hour: 9, minute: 0 },
   { hour: 10, minute: 30 },
+  { hour: 11, minute: 0 },
   { hour: 12, minute: 0 },
   { hour: 13, minute: 30 },
+  { hour: 14, minute: 30 },
   { hour: 15, minute: 30 },
   { hour: 17, minute: 0 },
+  { hour: 18, minute: 0 },
   { hour: 19, minute: 0 },
+  { hour: 20, minute: 0 },
   { hour: 21, minute: 0 },
 ];
 
