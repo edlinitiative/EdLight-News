@@ -48,15 +48,30 @@ have() { command -v "$1" >/dev/null 2>&1; }
 need() { have "$1" || { echo "✘ missing required tool: $1" >&2; exit 1; }; }
 need gcloud
 
-current_env() {
+current_env_json() {
   gcloud run services describe "$SERVICE" \
     --project="$PROJECT_ID" --region="$REGION" \
-    --format="value(spec.template.spec.containers[0].env)" 2>/dev/null
+    --format=json 2>/dev/null
+}
+
+# Returns value of env var, or empty if unset.
+get_var() {
+  local name="$1"
+  current_env_json | python3 -c "
+import json, sys
+envs = json.load(sys.stdin)['spec']['template']['spec']['containers'][0].get('env', [])
+for e in envs:
+    if e.get('name') == '$name':
+        print(e.get('value', ''))
+        break
+"
 }
 
 assert_var_present() {
   local name="$1"
-  if ! current_env | grep -qE "(^|,)${name}="; then
+  local val
+  val=$(get_var "$name")
+  if [[ -z "$val" ]]; then
     echo "✘ Required env var ${name} is NOT set on ${SERVICE}." >&2
     echo "  Set it first via: gcloud run services update ${SERVICE} \\" >&2
     echo "    --update-env-vars ${name}=<value>" >&2
@@ -67,10 +82,10 @@ assert_var_present() {
 
 confirm_var_value() {
   local name="$1" expected="$2"
-  local line
-  line=$(current_env | tr ',' '\n' | grep -E "^${name}=" || true)
-  echo "  ${line:-${name}=<unset>}"
-  if [[ "$line" != "${name}=${expected}" ]]; then
+  local current
+  current=$(get_var "$name")
+  echo "  ${name}=${current:-<unset>}"
+  if [[ "$current" != "$expected" ]]; then
     echo "→ updating ${name}=${expected}"
     gcloud run services update "$SERVICE" \
       --project="$PROJECT_ID" --region="$REGION" \
