@@ -14,8 +14,8 @@ and the observability/safety-net work in this rollout PR.
 1. Make sure the worker is healthy and PR #65 is fully deployed.
 2. Confirm `HASHTAG_ROTATION=true` on Cloud Run (PR #65 turned this on).
 3. Confirm the dashboards load:
-   - <https://edlight.news/admin/social-metrics>
-   - <https://edlight.news/admin/wa-channel>
+   - <https://news.edlight.org/admin/social-metrics>
+   - <https://news.edlight.org/admin/wa-channel>
 4. Take a baseline WhatsApp snapshot in `/admin/wa-channel`.
 
 ## Day-by-day plan
