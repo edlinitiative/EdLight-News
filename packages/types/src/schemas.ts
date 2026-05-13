@@ -1175,6 +1175,7 @@ export const fbQueueItemSchema = z.object({
   queuedDate: z.string().optional(),
   sendRetries: z.number().int().min(0).optional(),
   fbPostId: z.string().optional(),
+  fbCommentId: z.string().optional(),
   reasons: z.array(z.string()),
   payload: fbMessagePayloadSchema.optional(),
   error: z.string().optional(),
@@ -1204,6 +1205,7 @@ export const thQueueStatusSchema = z.enum([
 export const thMessagePayloadSchema = z.object({
   text: z.string().min(1),
   imageUrl: z.string().url().optional(),
+  replyLinkUrl: z.string().url().optional(),
 });
 
 export const thQueueItemSchema = z.object({
@@ -1216,6 +1218,7 @@ export const thQueueItemSchema = z.object({
   queuedDate: z.string().optional(),
   sendRetries: z.number().int().min(0).optional(),
   thPostId: z.string().optional(),
+  thReplyMediaId: z.string().optional(),
   reasons: z.array(z.string()),
   payload: thMessagePayloadSchema.optional(),
   error: z.string().optional(),
@@ -1244,6 +1247,7 @@ export const xQueueStatusSchema = z.enum([
 
 export const xMessagePayloadSchema = z.object({
   text: z.string().min(1),
+  imageUrl: z.string().url().optional(),
 });
 
 export const xQueueItemSchema = z.object({
@@ -1256,6 +1260,7 @@ export const xQueueItemSchema = z.object({
   queuedDate: z.string().optional(),
   sendRetries: z.number().int().min(0).optional(),
   xTweetId: z.string().optional(),
+  xMediaId: z.string().optional(),
   reasons: z.array(z.string()),
   payload: xMessagePayloadSchema.optional(),
   error: z.string().optional(),

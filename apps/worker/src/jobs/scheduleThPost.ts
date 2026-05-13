@@ -11,18 +11,53 @@ import { thQueueRepo } from "@edlight-news/firebase";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
-/** Maximum Threads posts per day. */
-const DAILY_CAP = 6;
+/** Maximum Threads posts per day. Raised from 6 → 12 (P1.2). */
+const DAILY_CAP = 12;
 
-/** Threads posting slots (Haiti local time). */
+/**
+ * Threads posting slots (Haiti local time).
+ * Cadence raised from 6 → 12 slots per day so we capture more of the
+ * Threads algorithm's volume reward. Slots avoid the 23:00–05:30 quiet
+ * window enforced below.
+ */
 const SLOTS = [
   { hour: 7, minute: 30 },
+  { hour: 9, minute: 0 },
   { hour: 10, minute: 30 },
-  { hour: 13, minute: 0 },
+  { hour: 12, minute: 0 },
+  { hour: 13, minute: 30 },
+  { hour: 15, minute: 0 },
   { hour: 16, minute: 0 },
+  { hour: 17, minute: 30 },
   { hour: 18, minute: 30 },
+  { hour: 20, minute: 0 },
   { hour: 21, minute: 0 },
+  { hour: 22, minute: 0 },
 ];
+
+/**
+ * Quiet hours window (Haiti local time) — no scheduling between 23:00 and 05:30.
+ * Mirrors IG quiet hours so we don't post overnight.
+ */
+const QUIET_HOURS_START = { hour: 23, minute: 0 };
+const QUIET_HOURS_END = { hour: 5, minute: 30 };
+
+function isInQuietHours(hour: number, minute: number): boolean {
+  const m = hour * 60 + minute;
+  const start = QUIET_HOURS_START.hour * 60 + QUIET_HOURS_START.minute;
+  const end = QUIET_HOURS_END.hour * 60 + QUIET_HOURS_END.minute;
+  // Quiet window wraps midnight: [23:00, 24:00) ∪ [00:00, 05:30)
+  return m >= start || m < end;
+}
+
+/** Exported for unit tests (P1.2). */
+export function _isInQuietHoursForTest(hour: number, minute: number): boolean {
+  return isInQuietHours(hour, minute);
+}
+
+/** Exported for unit tests (P1.2). */
+export const _SLOTS_FOR_TEST = SLOTS;
+export const _DAILY_CAP_FOR_TEST = DAILY_CAP;
 
 function toHaitiDate(date: Date): Date {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -59,6 +94,8 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
 
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
     for (const slot of SLOTS) {
+      // Skip slots inside the quiet window (defense in depth).
+      if (isInQuietHours(slot.hour, slot.minute)) continue;
       if (dayOffset === 0) {
         if (
           haitiHour > slot.hour ||
