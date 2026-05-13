@@ -110,7 +110,11 @@ export function getHaitiOffsetHours(date: Date = new Date()): number {
 // Pinned morning slots for daily staples, followed by general engagement slots.
 // First 3 are reserved for taux, daily_fact/utility, and histoire respectively.
 /** @internal exported for tests */
-export const SLOTS = [
+/**
+ * Default IG posting slots (Haiti local time).
+ * 3 pinned staple slots + 7 general slots = 10 total.
+ */
+const SLOTS_DEFAULT = [
   { hour: 6, minute: 30 },    // Pinned: taux du jour
   { hour: 6, minute: 50 },    // Pinned: fait du jour / utility
   { hour: 7, minute: 0 },     // Pinned: histoire
@@ -122,6 +126,33 @@ export const SLOTS = [
   { hour: 18, minute: 0 },    // Evening
   { hour: 20, minute: 0 },    // Late evening
 ];
+
+/**
+ * Diaspora-optimised slots (P2: IG_DIASPORA_HOURS=true).
+ * Keeps the 3 pinned staple slots unchanged (Haiti audience wakes up to
+ * them) but shifts the 7 general slots toward evenings EST / Haiti time
+ * so that the Haitian diaspora in North America (same timezone) sees
+ * content during their commute / evening wind-down.
+ */
+const SLOTS_DIASPORA = [
+  { hour: 6, minute: 30 },    // Pinned: taux du jour
+  { hour: 6, minute: 50 },    // Pinned: fait du jour / utility
+  { hour: 7, minute: 0 },     // Pinned: histoire
+  { hour: 12, minute: 0 },    // Midday (shared Haiti + diaspora lunch break)
+  { hour: 17, minute: 0 },    // Diaspora commute / end of work
+  { hour: 18, minute: 0 },    // Diaspora dinner
+  { hour: 19, minute: 0 },    // Diaspora prime time
+  { hour: 20, minute: 0 },    // Diaspora prime time (late)
+  { hour: 21, minute: 0 },    // Diaspora evening
+  { hour: 22, minute: 0 },    // Diaspora night (before quiet hours at 23:00)
+];
+
+/**
+ * Active slot schedule — toggled by the IG_DIASPORA_HOURS env flag.
+ * @internal exported for tests
+ */
+export const SLOTS =
+  process.env.IG_DIASPORA_HOURS === "true" ? SLOTS_DIASPORA : SLOTS_DEFAULT;
 
 /**
  * Return the next available slot that isn't already taken.

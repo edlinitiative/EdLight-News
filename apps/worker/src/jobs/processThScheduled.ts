@@ -104,8 +104,11 @@ export async function processThScheduled(): Promise<ProcessThScheduledResult> {
           );
         } else {
           const retries = (item.sendRetries ?? 0) + 1;
+          // P3: exponential backoff — retry after 15min × retryCount
+          const backoffMs = retries * 15 * 60 * 1000;
           await thQueueRepo.updateStatus(item.id, "scheduled", {
             sendRetries: retries,
+            scheduledFor: new Date(Date.now() + backoffMs).toISOString(),
             error: publishResult.error ?? "Unknown error",
           });
           result.failed++;
@@ -119,8 +122,10 @@ export async function processThScheduled(): Promise<ProcessThScheduledResult> {
 
         try {
           const retries = (item.sendRetries ?? 0) + 1;
+          const backoffMs = retries * 15 * 60 * 1000;
           await thQueueRepo.updateStatus(item.id, "scheduled", {
             sendRetries: retries,
+            scheduledFor: new Date(Date.now() + backoffMs).toISOString(),
             error: msg,
           });
         } catch {

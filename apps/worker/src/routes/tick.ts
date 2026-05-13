@@ -23,6 +23,10 @@ import { processFbScheduled } from "../jobs/processFbScheduled.js";
 import { buildThQueue } from "../jobs/buildThQueue.js";
 import { scheduleThPost } from "../jobs/scheduleThPost.js";
 import { processThScheduled } from "../jobs/processThScheduled.js";
+import { buildXQueue } from "../jobs/buildXQueue.js";
+import { scheduleXPost } from "../jobs/scheduleXPost.js";
+import { processXScheduled } from "../jobs/processXScheduled.js";
+import { pullSocialMetrics } from "../jobs/pullSocialMetrics.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -348,10 +352,51 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
       .find((r) => r && typeof r === "object" && "error" in r)?.error as string | undefined;
     markStep("threads", step13StartMs, thError);
 
-    // Step 14: X (Twitter) pipeline — paused until credentials/product setup is ready
+    // Step 14: X (Twitter) pipeline (P2 — live)
     const step14StartMs = Date.now();
-    const xResult = { paused: true, reason: "x-paused" };
-    markStep("x", step14StartMs);
+    const xResult: Record<string, unknown> = {};
+    try {
+      xResult.buildQueue = await buildXQueue();
+    } catch (err) {
+      console.error("[tick] buildXQueue error:", err);
+      xResult.buildQueue = { error: String(err) };
+    }
+    try {
+      xResult.schedule = await scheduleXPost();
+    } catch (err) {
+      console.error("[tick] scheduleXPost error:", err);
+      xResult.schedule = { error: String(err) };
+    }
+    try {
+      xResult.process = await processXScheduled();
+    } catch (err) {
+      console.error("[tick] processXScheduled error:", err);
+      xResult.process = { error: String(err) };
+    }
+    const xError = ([xResult.buildQueue, xResult.schedule, xResult.process] as Array<Record<string, unknown> | undefined>)
+      .find((r) => r && "error" in r)?.error as string | undefined;
+    markStep("x", step14StartMs, xError);
+
+    // Step 15: Social metrics pull (P2 — runs at 03:00 Haiti time, feature-flagged)
+    const step15StartMs = Date.now();
+    let metricsResult: Record<string, unknown> = { skipped: true };
+    try {
+      const haitiHour = parseInt(
+        new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Port-au-Prince",
+          hour: "2-digit",
+          hour12: false,
+        }).format(new Date()),
+        10,
+      );
+      if (haitiHour === 3) {
+        metricsResult = (await pullSocialMetrics()) as unknown as Record<string, unknown>;
+      }
+    } catch (err) {
+      console.error("[tick] pullSocialMetrics error:", err);
+      metricsResult = { error: String(err) };
+    }
+    markStep("socialMetrics", step15StartMs, (metricsResult as any).error);
 
     // Ping Google if any content was published this tick
     const pingStartMs = Date.now();
@@ -371,7 +416,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     markStep("pingSearchEngines", pingStartMs, anyPublished ? pingError : undefined);
 
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { stepStatus, ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, discoverResult, historyResult, igResult, waResult, fbResult, thResult, xResult });
+    console.log(`[tick] done in ${durationMs}ms`, { stepStatus, ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, discoverResult, historyResult, igResult, waResult, fbResult, thResult, xResult, metricsResult });
 
     res.json({
       ok: true,
@@ -393,6 +438,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         facebook: fbResult,
         threads: thResult,
         x: xResult,
+        socialMetrics: metricsResult,
       },
     });
   } catch (err) {

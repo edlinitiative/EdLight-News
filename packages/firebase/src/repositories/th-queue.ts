@@ -246,3 +246,18 @@ export async function purgeAll(): Promise<number> {
 
   return totalDeleted;
 }
+
+/**
+ * Patch social engagement metrics onto a sent Threads queue item.
+ * Called by pullSocialMetrics (P2) after fetching Threads Insights.
+ */
+export async function patchSocialMetrics(
+  id: string,
+  metrics: Record<string, unknown>,
+): Promise<void> {
+  await collection().doc(id).update({
+    socialMetrics: metrics,
+    socialMetricsFetchedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+}

@@ -16,6 +16,11 @@
 
 import { itemsRepo, waQueueRepo, contentVersionsRepo } from "@edlight-news/firebase";
 import type { Item, WaMessagePayload } from "@edlight-news/types";
+import {
+  isStockMarketFalsePositive,
+  lacksScholarshipEvidence,
+} from "../services/classify.js";
+import { pickHashtags, type SocialHashtagTopic } from "../services/hashtags.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
@@ -111,8 +116,18 @@ async function composeWaMessage(
   // Compose message text with WhatsApp formatting
   const lines: string[] = [];
 
-  // Category emoji prefix
-  const cat = item.category?.toLowerCase() ?? "";
+  // Category emoji prefix — with scholarship topic guard
+  const rawCat = item.category?.toLowerCase() ?? "";
+  let cat = rawCat;
+  if (cat === "scholarship" || cat === "bourses") {
+    const corpus = `${title} ${summary} ${item.extractedText ?? ""}`;
+    if (isStockMarketFalsePositive(corpus) || lacksScholarshipEvidence(corpus)) {
+      console.warn(
+        `[buildWaQueue] Downgrading scholarship → news for item ${item.id}`,
+      );
+      cat = "news";
+    }
+  }
   const emoji =
     cat === "scholarship" ? "🎓" :
     cat === "opportunity" ? "🚀" :
@@ -135,6 +150,18 @@ async function composeWaMessage(
   lines.push(`🔗 ${articleUrl}`);
   lines.push("");
   lines.push("_EdLight News — Nouvèl ak opòtinite pou jèn Ayisyen_");
+
+  // P3: append rotating hashtags when HASHTAG_ROTATION=true
+  if (process.env.HASHTAG_ROTATION === "true") {
+    const waHashtagTopic: SocialHashtagTopic =
+      cat === "scholarship" ? "scholarship"
+      : cat === "opportunity" ? "opportunity"
+      : cat === "education" ? "education"
+      : cat === "news" ? "news"
+      : "other";
+    lines.push("");
+    lines.push(pickHashtags(waHashtagTopic, item.id));
+  }
 
   return {
     text: lines.join("\n"),

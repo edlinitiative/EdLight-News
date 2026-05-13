@@ -15,6 +15,11 @@ import {
   contentVersionsRepo,
 } from "@edlight-news/firebase";
 import type { Item, XMessagePayload } from "@edlight-news/types";
+import {
+  isStockMarketFalsePositive,
+  lacksScholarshipEvidence,
+} from "../services/classify.js";
+import { pickHashtagsX } from "../services/hashtags.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
@@ -127,22 +132,34 @@ async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
 
   const articleUrl = `${SITE_URL}/news/${item.id}`;
 
-  const topic = topicForSocial(item);
-  const hashtags =
-    topic === "scholarship"
-      ? "#Haiti #Bourses"
-      : topic === "opportunity"
-        ? "#Haiti #Opportunités"
-        : topic === "education"
-          ? "#Haiti #Éducation"
-          : "#Haiti #EdLightNews";
+  let topic = topicForSocial(item);
+  // ── Topic guard — downgrade mis-tagged scholarship items ──────────────
+  if (topic === "scholarship") {
+    const corpus = `${title} ${item.extractedText ?? ""}`;
+    if (isStockMarketFalsePositive(corpus) || lacksScholarshipEvidence(corpus)) {
+      console.warn(
+        `[buildXQueue] Downgrading scholarship → news for item ${item.id} ` +
+          `(no scholarship evidence). Title: "${title.slice(0, 80)}"`,
+      );
+      topic = "news";
+    }
+  }
+  const hashtags = pickHashtagsX(topic, item.id);
 
   // Budget: 280 chars total.
   // X t.co always shortens URLs to ~23 chars regardless of source length;
   // we use a conservative 12-char wedge for the URL + ellipsis to give the
   // headline more room (P1.3 — the image now carries the visual hook).
   const URL_BUDGET = 12;
-  const fixedParts = `\n\n${" ".repeat(URL_BUDGET)}\n\n${hashtags}`;
+
+  // P3: optional Threads cross-platform CTA (X_THREADS_CTA=true)
+  const threadsHandle =
+    process.env.X_THREADS_CTA === "true"
+      ? (process.env.THREADS_HANDLE ?? "@edlightnews")
+      : null;
+  const ctaLine = threadsHandle ? `\n\n🧵 Threads: ${threadsHandle}` : "";
+
+  const fixedParts = `\n\n${" ".repeat(URL_BUDGET)}\n\n${hashtags}${ctaLine}`;
   const headlineBudget = MAX_TEXT_LENGTH - fixedParts.length;
 
   if (headlineBudget < 20) return null; // Can't fit a meaningful headline
@@ -153,7 +170,7 @@ async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
       : title;
 
   // Real text uses the actual article URL; X auto-shortens via t.co.
-  const text = `${truncatedTitle}\n\n${articleUrl}\n\n${hashtags}`;
+  const text = `${truncatedTitle}\n\n${articleUrl}\n\n${hashtags}${ctaLine}`;
 
   return {
     text: text.slice(0, MAX_TEXT_LENGTH),
