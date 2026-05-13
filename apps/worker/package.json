@@ -49,7 +49,8 @@
     "backfill:narrative": "tsx src/scripts/backfillNarrative.ts",
     "backfill:classification": "tsx src/scripts/backfillClassification.ts",
     "backfill:verticals": "tsx src/scripts/backfillVerticals.ts",
-    "backfill:bourses-fix": "tsx src/scripts/backfillBoursesStockMarketFix.ts"
+    "backfill:bourses-fix": "tsx src/scripts/backfillBoursesStockMarketFix.ts",
+    "backfill:apply-fields": "tsx src/scripts/backfillApplyFields.ts"
   },
   "dependencies": {
     "@edlight-news/firebase": "workspace:*",
