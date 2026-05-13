@@ -22,6 +22,7 @@ import {
 import {
   generateSocialPosts,
   socialToFbPayload,
+  socialEngagementBoost,
 } from "@edlight-news/generator";
 import { toSocialInput } from "../services/socialInput.js";
 
@@ -103,19 +104,23 @@ const OPPORTUNITY_HOOKS_QUESTION = [
   "Qui devrait postuler à ça? 👇",
 ];
 
-function pickScholarshipHook(seed: string): string {
+function pickScholarshipHook(seed: string): { text: string; variant: string } {
   const h = smallHash(seed);
-  // ~30% question-form (3 of 10)
+  // ~30% question-form (3 of 10) — A/B test tracked via hookVariant on queue item
   const useQuestion = h % 10 < 3;
   const pool = useQuestion ? SCHOLARSHIP_HOOKS_QUESTION : SCHOLARSHIP_HOOKS_DECLARATIVE;
-  return pool[h % pool.length]!;
+  const text = pool[h % pool.length]!;
+  const variant = useQuestion ? `scholarship-question-${h % SCHOLARSHIP_HOOKS_QUESTION.length}` : `scholarship-declarative-${h % SCHOLARSHIP_HOOKS_DECLARATIVE.length}`;
+  return { text, variant };
 }
 
-function pickOpportunityHook(seed: string): string {
+function pickOpportunityHook(seed: string): { text: string; variant: string } {
   const h = smallHash(seed);
   const useQuestion = h % 10 < 3;
   const pool = useQuestion ? OPPORTUNITY_HOOKS_QUESTION : OPPORTUNITY_HOOKS_DECLARATIVE;
-  return pool[h % pool.length]!;
+  const text = pool[h % pool.length]!;
+  const variant = useQuestion ? `opportunity-question-${h % OPPORTUNITY_HOOKS_QUESTION.length}` : `opportunity-declarative-${h % OPPORTUNITY_HOOKS_DECLARATIVE.length}`;
+  return { text, variant };
 }
 
 function topicForSocial(item: Item): SocialTopic {
@@ -258,7 +263,7 @@ async function composeFbMessageV2(
   item: Item,
   cv: ContentVersion,
   articleUrl: string,
-): Promise<FbMessagePayload | null> {
+): Promise<{ payload: FbMessagePayload; hookVariant: string } | null> {
   try {
     const input = toSocialInput(item, cv, articleUrl);
     if (!input) return null;
@@ -269,10 +274,12 @@ async function composeFbMessageV2(
       );
       return null;
     }
-    return socialToFbPayload(result.output, {
+    const fbPayload = socialToFbPayload(result.output, {
       articleUrl,
       imageUrl: item.imageUrl ?? undefined,
     });
+    if (!fbPayload) return null;
+    return { payload: fbPayload, hookVariant: "v2" };
   } catch (err) {
     console.warn(
       `[buildFbQueue] social v2 generator threw for ${item.id}:`,
@@ -290,7 +297,7 @@ async function composeFbMessageV2(
 async function composeFbMessage(
   item: Item,
   cv: ContentVersion,
-): Promise<FbMessagePayload | null> {
+): Promise<{ payload: FbMessagePayload; hookVariant: string } | null> {
   const title = cv.title || item.title;
   const summary = cv.summary || (item as any).summary || "";
   const articleVersionId = cv.id;
@@ -329,16 +336,17 @@ async function composeFbMessage(
     }
   }
 
-  const hook =
+  const hookResult =
     topic === "scholarship"
       ? pickScholarshipHook(item.id)
       : topic === "opportunity"
         ? pickOpportunityHook(item.id)
-        : topic === "education"
-          ? "À retenir pour les étudiants"
-          : topic === "news"
-            ? "À la une"
-            : "À lire";
+        : null;
+  const hook = hookResult?.text ?? (
+    topic === "education" ? "À retenir pour les étudiants" :
+    topic === "news" ? "À la une" : "À lire"
+  );
+  const hookVariant = hookResult?.variant ?? topic;
 
   const lines: string[] = [];
   lines.push(`${hook} : ${title}`);
@@ -360,9 +368,12 @@ async function composeFbMessage(
   lines.push("Lire l'article complet sur EdLight News.");
 
   return {
-    text: lines.join("\n"),
-    linkUrl: articleUrl,
-    imageUrl: item.imageUrl || undefined,
+    payload: {
+      text: lines.join("\n"),
+      linkUrl: articleUrl,
+      imageUrl: item.imageUrl || undefined,
+    },
+    hookVariant,
   };
 }
 
@@ -421,6 +432,12 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
     const existingSourceIds =
       await fbQueueRepo.listSourceContentIdsSince(queueWindowCutoff);
 
+    // Load recent sent items so we can apply the social engagement boost (P2).
+    const existingFbItems =
+      process.env.SOCIAL_METRICS_FEEDBACK === "true"
+        ? await fbQueueRepo.listRecentSent(72, 100)
+        : [];
+
     // Backpressure: scheduler only sends DAILY_CAP=13/day. Cap the queued
     // backlog at ~3 days of capacity to avoid a permanent stale pile.
     const BACKPRESSURE_LIMIT = 40;
@@ -435,7 +452,18 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
     const scoredItems = itemPairs
       .map(({ item, cv }) => {
         const scored = scoreForFb(item);
-        return { item, cv, score: scored.score, reasons: scored.reasons };
+        // P2: apply social engagement boost from historical metrics on
+        // previously queued items for this source (SOCIAL_METRICS_FEEDBACK).
+        const priorFbItem = existingFbItems.find(
+          (q) => q.sourceContentId === item.id && q.socialMetrics,
+        );
+        const boost = socialEngagementBoost(priorFbItem?.socialMetrics, "fb");
+        const boostedScore = Math.min(100, scored.score + boost);
+        const boostedReasons =
+          boost > 0
+            ? [...scored.reasons, `+${boost} social engagement boost`]
+            : scored.reasons;
+        return { item, cv, score: boostedScore, reasons: boostedReasons };
       })
       .filter((si) => si.score >= MIN_SCORE_THRESHOLD)
       .sort((a, b) => b.score - a.score);
@@ -465,7 +493,9 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           continue;
         }
 
-        const payload = await composeFbMessage(item, cv);
+        const composed = await composeFbMessage(item, cv);
+        const payload = composed?.payload ?? null;
+        const itemHookVariant = composed?.hookVariant;
         if (!payload) {
           result.skipped++;
           continue;
@@ -479,6 +509,7 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           queuedDate: haitiToday,
           reasons,
           payload,
+          hookVariant: itemHookVariant,
         });
 
         newItemsQueued++;

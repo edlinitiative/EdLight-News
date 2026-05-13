@@ -14,6 +14,7 @@ import {
   AtSign,
   Twitter,
   Users,
+  BarChart2,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { href: "/admin/fb-queue", label: "FB Queue", Icon: Share2 },
   { href: "/admin/th-queue", label: "TH Queue", Icon: AtSign },
   { href: "/admin/x-queue", label: "X Queue", Icon: Twitter },
+  { href: "/admin/social-metrics", label: "Social Metrics", Icon: BarChart2 },
 ] as const;
 
 export function AdminSidebar() {

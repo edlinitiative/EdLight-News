@@ -860,6 +860,11 @@ export interface FbQueueItem {
   fbPostId?: string;
   /** ID of the auto-comment containing the article link (P1.1). */
   fbCommentId?: string;
+  /** A/B test: which hook variant was used in the post text (P4). */
+  hookVariant?: string;
+  /** Engagement metrics fetched from FB Insights (P2). */
+  socialMetrics?: Record<string, number>;
+  socialMetricsFetchedAt?: Timestamp;
   reasons: string[];
   payload?: FbMessagePayload;
   error?: string;
@@ -909,6 +914,9 @@ export interface ThQueueItem {
   thPostId?: string;
   /** Threads media ID of the self-reply containing the article link (P1.2). */
   thReplyMediaId?: string;
+  /** Engagement metrics fetched from Threads Insights (P2). */
+  socialMetrics?: Record<string, number>;
+  socialMetricsFetchedAt?: Timestamp;
   reasons: string[];
   payload?: ThMessagePayload;
   error?: string;
@@ -951,6 +959,9 @@ export interface XQueueItem {
   xTweetId?: string;
   /** Media ID attached to the tweet, when image upload succeeded (P1.3). */
   xMediaId?: string;
+  /** Engagement metrics fetched from X public_metrics (P2). */
+  socialMetrics?: Record<string, number>;
+  socialMetricsFetchedAt?: Timestamp;
   reasons: string[];
   payload?: XMessagePayload;
   error?: string;

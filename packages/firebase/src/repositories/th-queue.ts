@@ -126,6 +126,27 @@ export async function countSentToday(): Promise<number> {
   return snap.data().count;
 }
 
+export async function listRecentSent(sinceHours = 24, limit = 50): Promise<ThQueueItem[]> {
+  const since = new Date(Date.now() - sinceHours * 60 * 60 * 1000);
+  const snap = await collection()
+    .where("status", "==", "sent" satisfies ThQueueStatus)
+    .limit(Math.max(limit * 4, 100))
+    .get();
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }) as ThQueueItem)
+    .filter((item) => {
+      const ts = item.updatedAt as unknown as { toDate?: () => Date; _seconds?: number } | null;
+      const date = ts?.toDate ? ts.toDate() : ts?._seconds ? new Date(ts._seconds * 1000) : null;
+      return date ? date.getTime() >= since.getTime() : false;
+    })
+    .sort((a, b) => {
+      const aTs = a.updatedAt as unknown as { _seconds?: number } | null;
+      const bTs = b.updatedAt as unknown as { _seconds?: number } | null;
+      return (bTs?._seconds ?? 0) - (aTs?._seconds ?? 0);
+    })
+    .slice(0, limit);
+}
+
 export async function listSentToday(limit = 20): Promise<ThQueueItem[]> {
   const { startTs } = haitiDayBounds();
   const snap = await collection()

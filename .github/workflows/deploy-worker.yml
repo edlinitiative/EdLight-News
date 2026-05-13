@@ -295,6 +295,18 @@ jobs:
             IMAGE_BATCH_LIMIT=5
             IG_LLM_VALIDATE_PUBLISHER=true
             IG_LLM_IMAGE_FINDER=true
+            FB_LINK_IN_COMMENT=true
+            TH_LINK_REPLY=true
+            X_MEDIA_UPLOAD=true
+            SOCIAL_METRICS_FEEDBACK=true
+            HASHTAG_ROTATION=true
+            IG_DIASPORA_HOURS=true
+            X_THREADS_CTA=true
+            THREADS_HANDLE=${{ secrets.THREADS_HANDLE }}
+            X_CONSUMER_KEY=${{ secrets.X_CONSUMER_KEY }}
+            X_CONSUMER_SECRET=${{ secrets.X_CONSUMER_SECRET }}
+            X_OAUTH1_ACCESS_TOKEN=${{ secrets.X_OAUTH1_ACCESS_TOKEN }}
+            X_OAUTH1_ACCESS_SECRET=${{ secrets.X_OAUTH1_ACCESS_SECRET }}
 
       - name: Get service URL
         id: service_url
