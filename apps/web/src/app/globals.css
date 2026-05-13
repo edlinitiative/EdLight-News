@@ -18,6 +18,9 @@
   --error: #93000a;
   --error-container: #ffdad6;
 
+  --ed-surface: #fff8f5;
+  --ed-surface-dim: #e8e3e1;
+  --ed-surface-bright: #fff8f5;
   --ed-surface-container-lowest: #ffffff;
   --ed-surface-container-low: #f9f2f0;
   --ed-surface-container: #f5f0ee;
@@ -49,6 +52,9 @@
   --ed-on-surface: #e7e1df;
   --ed-on-surface-variant: #b8b3b8;
   --ed-outline: #49454f;
+  --ed-surface: #141210;
+  --ed-surface-dim: #0f0d0c;
+  --ed-surface-bright: #2a2826;
 }
 
 /* ── Smooth page enter ──────────────────────────────────────────── */
