@@ -23,10 +23,17 @@ export interface CreateSnapshotInput {
 
 export async function create(input: CreateSnapshotInput): Promise<WaChannelSnapshot> {
   const ref = collection().doc();
-  const data = {
-    ...input,
+  // Strip undefined values — Firestore rejects them unless ignoreUndefinedProperties
+  // is set on the Admin SDK init, which we don't do globally.
+  const data: Record<string, unknown> = {
+    dateISO: input.dateISO,
+    followerCount: input.followerCount,
+    source: input.source,
     createdAt: FieldValue.serverTimestamp(),
   };
+  if (typeof input.notes === "string" && input.notes.length > 0) {
+    data.notes = input.notes;
+  }
   await ref.set(data);
   const snap = await ref.get();
   return { id: ref.id, ...(snap.data() as Omit<WaChannelSnapshot, "id">) };
