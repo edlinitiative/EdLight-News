@@ -6,7 +6,7 @@ import {
   type StoryFeatureTopic,
 } from "./storyFeatures.js";
 
-const URL = "https://edlight.news/article/123";
+const URL = "https://news.edlight.org/article/123";
 
 describe("featuresForTopic — per-topic shape contract", () => {
   it("scholarship → article link + Postule CTA", () => {

@@ -124,5 +124,19 @@ service cloud.firestore {
     match /ig_queue/{docId} {
       allow read, write: if false;
     }
+
+    // ── Social-growth observability (rollout PR) ────────────────────────
+
+    // Social boost log: server-only (Admin SDK bypasses these rules).
+    // Time-series log of every non-zero boost applied by applySocialBoost.
+    match /social_boost_log/{docId} {
+      allow read, write: if false;
+    }
+
+    // WhatsApp Channel snapshots: server-only.
+    // Manual follower-count snapshots (Meta API does not expose this).
+    match /wa_channel_snapshots/{docId} {
+      allow read, write: if false;
+    }
   }
 }

@@ -101,8 +101,8 @@ watch_reminder() {
 
 ────────────────────────────────────────────────────────────────────────
   ⏱  Watch the dashboard for the next 24h:
-      https://edlight.news/admin/social-metrics
-      https://edlight.news/admin/wa-channel
+      https://news.edlight.org/admin/social-metrics
+      https://news.edlight.org/admin/wa-channel
 
   Look for:
     • Boost health  → no spike in "At cap (+20)"
