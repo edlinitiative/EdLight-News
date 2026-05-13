@@ -147,3 +147,54 @@ export function pickHashtagsX(topic: SocialHashtagTopic, seed: string): string {
   const idx = hashCode(seed) % pool.length;
   return pool[idx]!.join(" ");
 }
+
+/**
+ * Instagram caption hashtag bundle (P4 followup).
+ *
+ * Returns a deterministic bundle of `count` unique hashtags drawn from the
+ * topic pool, falling back to evergreen tags so we always hit the requested
+ * count. Only emits non-empty output when `HASHTAG_ROTATION=true`; otherwise
+ * returns "" so callers can append nothing without a layout change.
+ */
+const IG_EVERGREEN: string[] = [
+  "#Haïti",
+  "#Haiti",
+  "#EdLightNews",
+  "#Diaspora",
+  "#HaitiYouth",
+  "#Éducation",
+  "#Education",
+  "#Actualités",
+];
+
+export function pickHashtagsIg(
+  topic: SocialHashtagTopic,
+  seed: string,
+  count = 6,
+): string {
+  if (process.env.HASHTAG_ROTATION !== "true") return "";
+
+  const pool = (POOLS[topic] ?? POOLS.other).flat();
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  const startIdx = hashCode(seed) % Math.max(pool.length, 1);
+
+  // Walk the topic pool starting from a seed-determined offset so the same
+  // item gets the same bundle on every retry.
+  for (let i = 0; i < pool.length && ordered.length < count; i++) {
+    const tag = pool[(startIdx + i) % pool.length]!;
+    if (!seen.has(tag.toLowerCase())) {
+      seen.add(tag.toLowerCase());
+      ordered.push(tag);
+    }
+  }
+  // Top up from evergreen pool, also seeded so order is deterministic.
+  for (let i = 0; i < IG_EVERGREEN.length && ordered.length < count; i++) {
+    const tag = IG_EVERGREEN[(startIdx + i) % IG_EVERGREEN.length]!;
+    if (!seen.has(tag.toLowerCase())) {
+      seen.add(tag.toLowerCase());
+      ordered.push(tag);
+    }
+  }
+  return ordered.join(" ");
+}

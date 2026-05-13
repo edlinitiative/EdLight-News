@@ -23,9 +23,27 @@ import type { Item, IGQueueStatus, Source, ContentVersion, IGFormattedPayload } 
 import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 import { selectImageForIG } from "../services/igImagePipeline.js";
 import { toSocialInput } from "../services/socialInput.js";
+import { pickHashtagsIg, type SocialHashtagTopic } from "../services/hashtags.js";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://news.edlight.org";
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
+
+/**
+ * Map an IG type to the SocialHashtagTopic taxonomy used by the rotation
+ * service. Story-only items return null (no IG feed post).
+ */
+function igTypeToHashtagTopic(igType: string | undefined): SocialHashtagTopic {
+  switch (igType) {
+    case "scholarship":
+      return "scholarship";
+    case "opportunity":
+      return "opportunity";
+    case "news":
+      return "news";
+    default:
+      return "other";
+  }
+}
 
 /**
  * Apply the social v2 IG caption wedge to a payload. Slides are not touched —
@@ -531,9 +549,25 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         // Slides are now final. Upgrade caption / hashtags from the social
         // v2 generator without touching slides. No-op when the flag is off,
         // when the LLM call fails, or for story_only items.
-        const finalPayload = frCv
+        let finalPayload = frCv
           ? await applyIgV2CaptionWedge(item, frCv, payload)
           : payload;
+
+        // ── Hashtag rotation (P4 followup) ──────────────────────────────
+        // When HASHTAG_ROTATION=true, append a deterministic 6-tag bundle
+        // to the caption. We do not strip whatever the v2 wedge added; the
+        // dedupe inside pickHashtagsIg keeps overlap minimal.
+        if (process.env.HASHTAG_ROTATION === "true" && finalPayload.caption) {
+          const topic = igTypeToHashtagTopic(decision.igType);
+          const bundle = pickHashtagsIg(topic, item.id, 6);
+          if (bundle && !finalPayload.caption.includes(bundle)) {
+            const sep = finalPayload.caption.endsWith("\n") ? "\n" : "\n\n";
+            finalPayload = {
+              ...finalPayload,
+              caption: `${finalPayload.caption}${sep}${bundle}`,
+            };
+          }
+        }
 
         // Insert as queued
         const targetPostDate = extractTargetPostDate(item);

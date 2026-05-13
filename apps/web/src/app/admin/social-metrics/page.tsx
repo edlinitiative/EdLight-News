@@ -33,6 +33,11 @@ interface MetricsData {
   threads: PlatformData;
   x: PlatformData;
   hookStats: HookStat[];
+  hookStatsByPlatform?: {
+    fb: { variants: HookStat[]; totalPosts: number };
+    th: { variants: HookStat[]; totalPosts: number };
+    x: { variants: HookStat[]; totalPosts: number };
+  };
   metricsEnabled: boolean;
 }
 
@@ -247,12 +252,37 @@ export default function SocialMetricsPage() {
 
           <div>
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-stone-400">
-              <TrendingUp className="h-4 w-4" /> A/B Hook Performance (Facebook)
+              <TrendingUp className="h-4 w-4" /> A/B Hook Performance (per platform)
             </h2>
-            <HookABTable stats={data.hookStats} />
-            <p className="mt-2 text-xs text-stone-400">
-              Ranked by average engagement per post. Needs ≥ 3 posts per variant to be considered significant.
+            <p className="mb-4 text-xs text-stone-400">
+              Variants with fewer than 5 posts are hidden. Ranked by average engagement per post.
             </p>
+            <div className="space-y-6">
+              {(
+                [
+                  { key: "fb" as const, label: "Facebook" },
+                  { key: "th" as const, label: "Threads" },
+                  { key: "x" as const, label: "X / Twitter" },
+                ]
+              ).map(({ key, label }) => {
+                const panel =
+                  data.hookStatsByPlatform?.[key] ??
+                  (key === "fb"
+                    ? { variants: data.hookStats, totalPosts: data.fb.withMetrics }
+                    : { variants: [], totalPosts: 0 });
+                return (
+                  <div key={key}>
+                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-stone-500">
+                      {label}{" "}
+                      <span className="text-stone-400">
+                        ({panel.totalPosts} posts with metrics, {panel.variants.length} qualifying variants)
+                      </span>
+                    </h3>
+                    <HookABTable stats={panel.variants} />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </>
       )}

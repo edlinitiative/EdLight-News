@@ -1091,6 +1091,14 @@ export const igStoryQueueItemSchema = z.object({
   sourceItemIds: z.array(z.string()),
   igMediaId: z.string().optional(),
   payload: igStoryPayloadSchema.optional(),
+  storyFeatures: z
+    .object({
+      linkUrl: z.string().url().optional(),
+      pollQuestion: z.string().min(1).max(80).optional(),
+      pollOptions: z.array(z.string().min(1).max(40)).min(2).max(4).optional(),
+      ctaText: z.string().min(1).max(60).optional(),
+    })
+    .optional(),
   error: z.string().optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
@@ -1222,6 +1230,7 @@ export const thQueueItemSchema = z.object({
   sendRetries: z.number().int().min(0).optional(),
   thPostId: z.string().optional(),
   thReplyMediaId: z.string().optional(),
+  hookVariant: z.string().optional(),
   socialMetrics: z.record(z.number()).optional(),
   socialMetricsFetchedAt: timestampSchema.optional(),
   reasons: z.array(z.string()),
@@ -1266,6 +1275,7 @@ export const xQueueItemSchema = z.object({
   sendRetries: z.number().int().min(0).optional(),
   xTweetId: z.string().optional(),
   xMediaId: z.string().optional(),
+  hookVariant: z.string().optional(),
   socialMetrics: z.record(z.number()).optional(),
   socialMetricsFetchedAt: timestampSchema.optional(),
   reasons: z.array(z.string()),

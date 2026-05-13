@@ -479,3 +479,31 @@ export function socialEngagementBoost(
   if (reach >= 50 || engagement >= 3) return 3;
   return 0;
 }
+
+/**
+ * Combined cross-platform engagement boost (P4 followup).
+ *
+ * Sums per-platform boosts and adds a small "consistency" bonus when a topic
+ * resonated on multiple surfaces. Capped at 20 so social signal can never
+ * dominate editorial scoring.
+ *
+ * Usage:
+ *   const boost = socialEngagementBoostMulti({
+ *     fb: fbItem?.socialMetrics,
+ *     th: thItem?.socialMetrics,
+ *     x:  xItem?.socialMetrics,
+ *   });
+ */
+export function socialEngagementBoostMulti(input: {
+  fb?: Record<string, number> | null;
+  th?: Record<string, number> | null;
+  x?: Record<string, number> | null;
+}): number {
+  const fb = socialEngagementBoost(input.fb ?? null, "fb");
+  const th = socialEngagementBoost(input.th ?? null, "th");
+  const x = socialEngagementBoost(input.x ?? null, "x");
+  const platformsHit = [fb, th, x].filter((b) => b > 0).length;
+  // +2 per extra platform that engaged (max +4 when all three hit).
+  const consistencyBonus = Math.max(0, platformsHit - 1) * 2;
+  return Math.min(20, fb + th + x + consistencyBonus);
+}

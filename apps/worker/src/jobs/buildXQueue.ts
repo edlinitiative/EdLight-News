@@ -112,8 +112,11 @@ function scoreForX(item: Item): number {
 /**
  * Compose an X (Twitter) post payload for a content item.
  * Ultra-short: headline + link + 2 hashtags, max 280 chars.
+ * Returns the payload plus the A/B hookVariant identifier (P4 followup).
  */
-async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
+async function composeXMessage(
+  item: Item,
+): Promise<{ payload: XMessagePayload; hookVariant: string } | null> {
   let frTitle: string | undefined;
 
   try {
@@ -172,9 +175,14 @@ async function composeXMessage(item: Item): Promise<XMessagePayload | null> {
   // Real text uses the actual article URL; X auto-shortens via t.co.
   const text = `${truncatedTitle}\n\n${articleUrl}\n\n${hashtags}${ctaLine}`;
 
+  const hookVariant = `x-${topic}-v1${threadsHandle ? "-cta" : ""}`;
+
   return {
-    text: text.slice(0, MAX_TEXT_LENGTH),
-    imageUrl: item.imageUrl || undefined,
+    payload: {
+      text: text.slice(0, MAX_TEXT_LENGTH),
+      imageUrl: item.imageUrl || undefined,
+    },
+    hookVariant,
   };
 }
 
@@ -243,11 +251,12 @@ export async function buildXQueue(): Promise<BuildXQueueResult> {
           continue;
         }
 
-        const payload = await composeXMessage(item);
-        if (!payload) {
+        const composed = await composeXMessage(item);
+        if (!composed) {
           result.skipped++;
           continue;
         }
+        const { payload, hookVariant } = composed;
 
         await xQueueRepo.createXQueueItem({
           sourceContentId: item.id,
@@ -259,6 +268,7 @@ export async function buildXQueue(): Promise<BuildXQueueResult> {
             `Auto-queued: score=${score}, category=${item.category ?? "unknown"}`,
           ],
           payload,
+          hookVariant,
         });
 
         newItemsQueued++;
