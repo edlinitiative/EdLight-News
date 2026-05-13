@@ -24,3 +24,5 @@ export * as waQueueRepo from "./wa-queue.js";
 export * as fbQueueRepo from "./fb-queue.js";
 export * as thQueueRepo from "./th-queue.js";
 export * as xQueueRepo from "./x-queue.js";
+export * as socialBoostLogRepo from "./social-boost-log.js";
+export * as waChannelSnapshotsRepo from "./wa-channel-snapshots.js";

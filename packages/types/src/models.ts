@@ -783,9 +783,67 @@ export interface IGStoryQueueItem {
     /** Default fallback CTA text used when no poll is shown. */
     ctaText?: string;
   };
+  /**
+   * Per-feature attempt outcomes recorded by the publisher (rollout PR).
+   * One entry per sticker we tried to attach to the story container. Empty
+   * or missing when no features were requested. Used by the admin
+   * dashboard to flag silent IG sticker rejections (Task 3).
+   */
+  stickerAttempt?: Array<{
+    feature: "linkSticker" | "poll";
+    status: "attached" | "skipped";
+    /** Short error/skip reason — present when status="skipped". */
+    reason?: string;
+  }>;
   error?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+/**
+ * Firestore collection: social_boost_log
+ *
+ * One entry per call to `applySocialBoost` that produced a non-zero boost.
+ * Used by `/api/admin/social-metrics` to compute the "Boost health" panel
+ * (Task 2 — rollout PR). Pruned by retention policy after 30 days.
+ */
+export interface SocialBoostLogEntry {
+  id: string;
+  /** The Item.id (sourceContentId) the boost was applied to. */
+  itemId: string;
+  /** Topic bucket the item belonged to (news, scholarship, opportunity, ...). */
+  topic: string;
+  /** Score before boost (0-100). */
+  baseScore: number;
+  /** Score after boost (0-100). */
+  boostedScore: number;
+  /** Final boost applied (0-20). */
+  boost: number;
+  /** Which platforms contributed >0 boost — e.g. ["fb", "th"]. */
+  platformsContributed: string[];
+  /** True when the boost hit the +20 cap. */
+  capped: boolean;
+  appliedAt: Timestamp;
+}
+
+/**
+ * Firestore collection: wa_channel_snapshots
+ *
+ * Manual or scripted snapshots of the WhatsApp Channel follower count.
+ * The Meta API does not currently expose this number, so we record it by
+ * hand (one entry per check) and let the admin UI compute trends.
+ */
+export interface WaChannelSnapshot {
+  id: string;
+  /** ISO date (YYYY-MM-DD) the snapshot was taken. */
+  dateISO: string;
+  /** Reported follower count at the time of the snapshot. */
+  followerCount: number;
+  /** Where the number came from — "manual" | "script" | "api". */
+  source: "manual" | "script" | "api";
+  /** Optional free-text note (campaign label, anomaly, etc.). */
+  notes?: string;
+  createdAt: Timestamp;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

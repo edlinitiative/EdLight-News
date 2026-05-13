@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { fbQueueRepo, thQueueRepo, xQueueRepo } from "@edlight-news/firebase";
+import {
+  fbQueueRepo,
+  thQueueRepo,
+  xQueueRepo,
+  igStoryQueueRepo,
+  socialBoostLogRepo,
+  waChannelSnapshotsRepo,
+} from "@edlight-news/firebase";
 
 export const dynamic = "force-dynamic";
 const NO_STORE = { headers: { "Cache-Control": "no-store" } };
@@ -189,6 +196,9 @@ export async function GET() {
         },
         hookStats,
         hookStatsByPlatform,
+        boostMetrics: await safeRollupBoosts(),
+        storyStickers: await safeRollupStoryStickers(),
+        waChannel: await safeWaChannelSummary(),
         metricsEnabled: process.env.SOCIAL_METRICS_FEEDBACK === "true",
       },
       NO_STORE,
@@ -199,5 +209,110 @@ export async function GET() {
       { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 500, ...NO_STORE },
     );
+  }
+}
+
+// ── Rollout PR rollups (boost / sticker / wa) ──────────────────────────────
+
+async function safeRollupBoosts() {
+  try {
+    return await socialBoostLogRepo.rollup(168);
+  } catch (err) {
+    console.warn("[api/admin/social-metrics] boost rollup failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Roll up IG Story sticker attempts over the last ~7 days.
+ *
+ * Tolerates the legacy queue items that pre-date Task 3 — those have no
+ * `stickerAttempt` field and contribute 0 to totals so the dashboard
+ * never crashes on a freshly-deployed environment.
+ */
+async function safeRollupStoryStickers(): Promise<{
+  windowDays: number;
+  storiesConsidered: number;
+  storiesWithAttempts: number;
+  linkSticker: { attached: number; skipped: number; successRate: number | null };
+  poll: { attached: number; skipped: number; successRate: number | null };
+  recentSkips: Array<{ storyId: string; feature: string; reason: string }>;
+} | null> {
+  try {
+    const windowDays = 7;
+    // ig-story-queue repo exposes `listRecentByStatus` only for some statuses.
+    // We pull the last 50 posted stories which comfortably covers ~7 days.
+    const recent = await igStoryQueueRepo.listByStatus("posted", 50);
+    const storiesConsidered = recent.length;
+    let linkAttached = 0,
+      linkSkipped = 0,
+      pollAttached = 0,
+      pollSkipped = 0;
+    const recentSkips: Array<{ storyId: string; feature: string; reason: string }> = [];
+    let storiesWithAttempts = 0;
+    for (const s of recent) {
+      const attempts = s.stickerAttempt;
+      if (!attempts || attempts.length === 0) continue;
+      storiesWithAttempts++;
+      for (const a of attempts) {
+        if (a.feature === "linkSticker") {
+          if (a.status === "attached") linkAttached++;
+          else {
+            linkSkipped++;
+            if (recentSkips.length < 10) {
+              recentSkips.push({
+                storyId: s.id,
+                feature: a.feature,
+                reason: a.reason ?? "unknown",
+              });
+            }
+          }
+        } else if (a.feature === "poll") {
+          if (a.status === "attached") pollAttached++;
+          else {
+            pollSkipped++;
+            if (recentSkips.length < 10) {
+              recentSkips.push({
+                storyId: s.id,
+                feature: a.feature,
+                reason: a.reason ?? "unknown",
+              });
+            }
+          }
+        }
+      }
+    }
+    function rate(att: number, skp: number): number | null {
+      const t = att + skp;
+      return t === 0 ? null : Math.round((att / t) * 1000) / 10; // %
+    }
+    return {
+      windowDays,
+      storiesConsidered,
+      storiesWithAttempts,
+      linkSticker: {
+        attached: linkAttached,
+        skipped: linkSkipped,
+        successRate: rate(linkAttached, linkSkipped),
+      },
+      poll: {
+        attached: pollAttached,
+        skipped: pollSkipped,
+        successRate: rate(pollAttached, pollSkipped),
+      },
+      recentSkips,
+    };
+  } catch (err) {
+    console.warn("[api/admin/social-metrics] sticker rollup failed:", err);
+    return null;
+  }
+}
+
+async function safeWaChannelSummary() {
+  try {
+    return await waChannelSnapshotsRepo.summarize();
+  } catch (err) {
+    console.warn("[api/admin/social-metrics] wa-channel summary failed:", err);
+    return null;
   }
 }

@@ -27,4 +27,6 @@ export {
   fbQueueRepo,
   thQueueRepo,
   xQueueRepo,
+  socialBoostLogRepo,
+  waChannelSnapshotsRepo,
 } from "./repositories/index.js";

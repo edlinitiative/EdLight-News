@@ -27,6 +27,7 @@ import { buildXQueue } from "../jobs/buildXQueue.js";
 import { scheduleXPost } from "../jobs/scheduleXPost.js";
 import { processXScheduled } from "../jobs/processXScheduled.js";
 import { pullSocialMetrics } from "../jobs/pullSocialMetrics.js";
+import { monitorSocial } from "../jobs/monitorSocial.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -398,6 +399,18 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
     markStep("socialMetrics", step15StartMs, (metricsResult as any).error);
 
+    // Step 15b: Lightweight rollout alerts (Task 6 — runs every tick,
+    // very cheap, swallows all errors). At most 3 alerts per tick.
+    const step15bStartMs = Date.now();
+    let monitorResult: Record<string, unknown> = {};
+    try {
+      monitorResult = (await monitorSocial()) as unknown as Record<string, unknown>;
+    } catch (err) {
+      console.warn("[tick] monitorSocial error:", err);
+      monitorResult = { error: String(err) };
+    }
+    markStep("monitorSocial", step15bStartMs, (monitorResult as any).error);
+
     // Ping Google if any content was published this tick
     const pingStartMs = Date.now();
     let pingError: string | undefined;
@@ -439,6 +452,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         threads: thResult,
         x: xResult,
         socialMetrics: metricsResult,
+        monitorSocial: monitorResult,
       },
     });
   } catch (err) {

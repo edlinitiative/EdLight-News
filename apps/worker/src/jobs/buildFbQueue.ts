@@ -25,6 +25,7 @@ import {
   socialEngagementBoost,
 } from "@edlight-news/generator";
 import { toSocialInput } from "../services/socialInput.js";
+import { applySocialBoostSingle } from "../services/socialBoost.js";
 
 /** Feature flag — when "true", try the social v2 generator before legacy composer. */
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
@@ -479,10 +480,33 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
           boost > 0
             ? [...scored.reasons, `+${boost} social engagement boost`]
             : scored.reasons;
-        return { item, cv, score: boostedScore, reasons: boostedReasons };
+        return {
+          item,
+          cv,
+          score: boostedScore,
+          reasons: boostedReasons,
+          boost,
+          baseScore: scored.score,
+          priorMetrics: priorFbItem?.socialMetrics ?? null,
+        };
       })
       .filter((si) => si.score >= MIN_SCORE_THRESHOLD)
       .sort((a, b) => b.score - a.score);
+
+    // Rollout PR Task 2 — emit `socialBoostApplied` log + persist
+    // social_boost_log entry for every item whose score was actually bumped.
+    // Fire-and-forget; failures here must never block queue building.
+    for (const si of scoredItems) {
+      if (si.boost > 0) {
+        void applySocialBoostSingle({
+          itemId: si.item.id,
+          topic: topicForSocial(si.item),
+          baseScore: si.baseScore,
+          platform: "fb",
+          metrics: si.priorMetrics,
+        }).catch(() => undefined);
+      }
+    }
 
     for (const { item, cv, score, reasons } of scoredItems) {
       if (newItemsQueued >= MAX_NEW_ITEMS_PER_RUN) break;
