@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Manrope, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = "G-K5NW47QMJX";
 import { LanguageProvider } from "@/lib/language-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { NavBar } from "@/components/NavBar";
@@ -137,6 +140,18 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-screen flex-col bg-surface text-on-surface">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
         <ThemeProvider>
           <LanguageProvider>
             <Suspense fallback={null}>
