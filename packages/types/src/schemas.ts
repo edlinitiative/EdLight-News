@@ -1329,3 +1329,86 @@ export type CreateContributorProfile = z.infer<
   typeof createContributorProfileSchema
 >;
 export type CreateDraft = z.infer<typeof createDraftSchema>;
+
+// ── Reels pipeline schemas ─────────────────────────────────────────────────
+
+export const reelsTopicSchema = z.enum([
+  "scholarship",
+  "opportunity",
+  "taux",
+  "news",
+  "histoire",
+  "fact",
+  "education",
+]);
+
+export const reelsTemplateSchema = z.enum([
+  "BigStatistic",
+  "PullQuote",
+  "HeadlinePhoto",
+  "NumberedPoints",
+]);
+
+export const reelsPendingStatusSchema = z.enum([
+  "pending",
+  "approved",
+  "posted",
+  "rejected",
+]);
+
+export const reelsMetricsSchema = z.object({
+  plays: z.number().min(0).optional(),
+  reach: z.number().min(0).optional(),
+  likes: z.number().min(0).optional(),
+  comments: z.number().min(0).optional(),
+  shares: z.number().min(0).optional(),
+  saves: z.number().min(0).optional(),
+  totalInteractions: z.number().min(0).optional(),
+  avgWatchTimeSec: z.number().min(0).optional(),
+  totalWatchTimeSec: z.number().min(0).optional(),
+  watchCompletionRate: z.number().min(0).max(1).optional(),
+  lastSyncedAt: timestampSchema.optional(),
+});
+
+export const reelsCostBreakdownSchema = z.object({
+  ttsUsd: z.number().min(0),
+  whisperUsd: z.number().min(0),
+  llmUsd: z.number().min(0),
+  renderUsd: z.number().min(0),
+  totalUsd: z.number().min(0),
+});
+
+export const reelsPendingItemSchema = z.object({
+  id: z.string().min(1),
+  sourceItemId: z.string().min(1),
+  topic: reelsTopicSchema,
+  template: reelsTemplateSchema,
+  reelVariant: z.string().min(1),
+  language: z.enum(["fr", "ht", "en"]),
+  scriptText: z.string().min(1),
+  igCaption: z.string().min(1),
+  mp4Url: z.string().min(1),
+  thumbnailUrl: z.string().optional().default(""),
+  durationSec: z.number().min(0),
+  status: reelsPendingStatusSchema,
+  generatedAt: timestampSchema,
+  approvedAt: timestampSchema.optional(),
+  approvedBy: z.string().optional(),
+  postedAt: timestampSchema.optional(),
+  igMediaId: z.string().optional(),
+  igPostUrl: z.string().url().optional(),
+  rejectionReason: z.string().optional(),
+  costEstimateUsd: z.number().min(0).optional(),
+  costBreakdown: reelsCostBreakdownSchema.optional(),
+  socialMetrics: reelsMetricsSchema.optional(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+
+export const createReelsPendingItemSchema = reelsPendingItemSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CreateReelsPendingItem = z.infer<typeof createReelsPendingItemSchema>;

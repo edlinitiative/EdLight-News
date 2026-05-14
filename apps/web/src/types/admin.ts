@@ -240,3 +240,77 @@ export interface XQueueCounts {
   skipped: number;
   totalDocs: number;
 }
+
+// ── Reels Pending Review ────────────────────────────────────────────────────
+
+export type ReelsPendingStatus = "pending" | "approved" | "posted" | "rejected";
+
+export interface ReelsPendingEntry {
+  id: string;
+  sourceItemId: string;
+  topic: string;
+  template: string;
+  reelVariant: string;
+  language: string;
+  scriptText: string;
+  igCaption: string;
+  mp4Url: string;
+  thumbnailUrl: string;
+  durationSec: number;
+  status: ReelsPendingStatus;
+  generatedAt: string | null;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  postedAt: string | null;
+  igMediaId: string | null;
+  igPostUrl: string | null;
+  rejectionReason: string | null;
+  costEstimateUsd: number | null;
+  costBreakdown: {
+    ttsUsd: number;
+    whisperUsd: number;
+    llmUsd: number;
+    renderUsd: number;
+    totalUsd: number;
+  } | null;
+  socialMetrics: {
+    plays?: number;
+    reach?: number;
+    likes?: number;
+    comments?: number;
+    shares?: number;
+    saves?: number;
+    totalInteractions?: number;
+    avgWatchTimeSec?: number;
+    watchCompletionRate?: number;
+    lastSyncedAt?: string | null;
+  } | null;
+  article: {
+    title: string | null;
+    summary: string | null;
+    sourceName: string | null;
+    canonicalUrl: string | null;
+    imageUrl: string | null;
+  } | null;
+}
+
+export interface ReelsLeaderboardEntry {
+  reelVariant: string;
+  topic: string;
+  template: string;
+  posts: number;
+  avgWatchCompletionRate: number;
+  avgPlays: number;
+  avgTotalInteractions: number;
+}
+
+export interface ReelsPendingResponse {
+  pending: ReelsPendingEntry[];
+  approved: ReelsPendingEntry[];
+  posted: ReelsPendingEntry[];
+  leaderboard: ReelsLeaderboardEntry[];
+  costToday: number;
+  ceilingUsd: number;
+  haitiDate: string;
+  enabled: boolean;
+}

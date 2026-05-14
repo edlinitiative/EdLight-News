@@ -29,6 +29,7 @@ import { scheduleXPost } from "../jobs/scheduleXPost.js";
 import { processXScheduled } from "../jobs/processXScheduled.js";
 import { pullSocialMetrics } from "../jobs/pullSocialMetrics.js";
 import { monitorSocial } from "../jobs/monitorSocial.js";
+import { buildReelsQueue } from "../jobs/buildReelsQueue.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -424,6 +425,17 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
     markStep("monitorSocial", step15bStartMs, (monitorResult as any).error);
 
+    // Step 16: Reels pipeline (cold-start, REELS_ENABLED-gated, 1/day max)
+    const step16StartMs = Date.now();
+    let reelsResult: Record<string, unknown> = { skipped: "REELS_ENABLED!=true" };
+    try {
+      reelsResult = (await buildReelsQueue()) as unknown as Record<string, unknown>;
+    } catch (err) {
+      console.error("[tick] buildReelsQueue error:", err);
+      reelsResult = { error: String(err) };
+    }
+    markStep("reels", step16StartMs, (reelsResult as any).error);
+
     // Ping Google if any content was published this tick
     const pingStartMs = Date.now();
     let pingError: string | undefined;
@@ -442,7 +454,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     markStep("pingSearchEngines", pingStartMs, anyPublished ? pingError : undefined);
 
     const durationMs = Date.now() - startMs;
-    console.log(`[tick] done in ${durationMs}ms`, { stepStatus, ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, discoverResult, historyResult, igResult, waResult, fbResult, thResult, xResult, metricsResult });
+    console.log(`[tick] done in ${durationMs}ms`, { stepStatus, ingestResult, processResult, generateResult, published, synthesisResult, imageResult, utilityResult, datasetResult, discoverResult, historyResult, igResult, waResult, fbResult, thResult, xResult, metricsResult, reelsResult });
 
     res.json({
       ok: true,
@@ -466,6 +478,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         x: xResult,
         socialMetrics: metricsResult,
         monitorSocial: monitorResult,
+        reels: reelsResult,
       },
     });
   } catch (err) {

@@ -126,6 +126,13 @@ export type {
   XQueueStatus,
   XMessagePayload,
   XQueueItem,
+  // Reels pipeline types
+  ReelsTopic,
+  ReelsTemplate,
+  ReelsPendingStatus,
+  ReelsMetrics,
+  ReelsCostBreakdown,
+  ReelsPendingItem,
 } from "./models.js";
 
 export {
@@ -255,6 +262,14 @@ export {
   xMessagePayloadSchema,
   xQueueItemSchema,
   createXQueueItemSchema,
+  // Reels pipeline schemas
+  reelsTopicSchema,
+  reelsTemplateSchema,
+  reelsPendingStatusSchema,
+  reelsMetricsSchema,
+  reelsCostBreakdownSchema,
+  reelsPendingItemSchema,
+  createReelsPendingItemSchema,
 } from "./schemas.js";
 
 export type {
@@ -291,4 +306,6 @@ export type {
   CreateThQueueItem,
   // X (Twitter) create types
   CreateXQueueItem,
+  // Reels create types
+  CreateReelsPendingItem,
 } from "./schemas.js";

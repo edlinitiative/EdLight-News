@@ -10,4 +10,11 @@ export const OPPORTUNITY_FILTER_PARAM_KEYS = [
   "sort",
   "deadline",
   "expired",
+  // Wider taxonomy (v3) — fine-grained filters surfaced from
+  // Item.opportunity (kind / audience / fundingType). All optional;
+  // chips only render when the underlying field is populated.
+  "kind",
+  "audience",
+  "funding",
+  "lifecycle",
 ] as const;

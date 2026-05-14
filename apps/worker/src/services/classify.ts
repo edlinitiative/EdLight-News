@@ -187,6 +187,15 @@ import {
   STRICT_SCHOLARSHIP_KEYWORDS,
   scoreOpportunity,
   OPPORTUNITY_SCORE_THRESHOLD,
+  // Wider opportunity taxonomy — fine-grained kind / audience / funding
+  // / location / Haiti-eligibility / lifecycle / trust-tier inference.
+  // Layered on top of the 4-bucket scoring so legacy filters still work.
+  inferOpportunityKind,
+  inferOpportunityAudience,
+  inferFundingType,
+  inferLocationType,
+  inferHaitiEligibility,
+  inferOpportunityLifecycle,
 } from "@edlight-news/generator";
 
 // Re-export so existing call sites (jobs/buildFbQueue.ts, scripts/*) keep
@@ -418,8 +427,25 @@ export function classifyItem(
   const geoTag: GeoTag = haitiPresent ? "HT" : "Global";
 
   // ── Opportunity struct ────────────────────────────────────────────────
+  // Always populate the legacy fields (deadline) plus the new wider-taxonomy
+  // enrichments. All new fields are optional in the Opportunity type so this
+  // is fully backwards compatible with existing Items.
+  const rawCombined = `${title} ${summary} ${body}`;
+  const kind = inferOpportunityKind(rawCombined);
+  const audience = inferOpportunityAudience(rawCombined);
+  const fundingType = inferFundingType(rawCombined);
+  const locationType = inferLocationType(rawCombined);
+  const haitiEligible = inferHaitiEligibility(rawCombined);
+  const lifecycle = inferOpportunityLifecycle(deadline);
+
   const opportunity: Opportunity = {
     ...(deadline ? { deadline } : {}),
+    ...(kind ? { kind } : {}),
+    ...(audience.length ? { audience } : {}),
+    ...(fundingType !== "unclear" ? { fundingType } : {}),
+    ...(locationType !== "unclear" ? { locationType } : {}),
+    ...(haitiEligible !== "unclear" ? { haitiEligible } : {}),
+    lifecycle,
   };
 
   return {

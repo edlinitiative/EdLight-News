@@ -15,7 +15,8 @@
  *   X:       impressions, likes, retweets, replies, bookmarks
  */
 
-import { fbQueueRepo, thQueueRepo, xQueueRepo } from "@edlight-news/firebase";
+import { fbQueueRepo, thQueueRepo, xQueueRepo, reelsPendingRepo } from "@edlight-news/firebase";
+import type { ReelsMetrics } from "@edlight-news/types";
 
 // ── Feature flag ──────────────────────────────────────────────────────────────
 const ENABLED = process.env.SOCIAL_METRICS_FEEDBACK === "true";
@@ -138,20 +139,23 @@ export interface PullSocialMetricsResult {
   fb: { fetched: number; errors: number; skipped: number };
   th: { fetched: number; errors: number; skipped: number };
   x: { fetched: number; errors: number; skipped: number };
+  reels: { fetched: number; errors: number; skipped: number; resolved: number };
   disabled?: true;
 }
 
 export async function pullSocialMetrics(): Promise<PullSocialMetricsResult> {
   const empty = { fetched: 0, errors: 0, skipped: 0 };
+  const emptyReels = { ...empty, resolved: 0 };
   if (!ENABLED) {
     console.log("[pullSocialMetrics] Disabled (SOCIAL_METRICS_FEEDBACK != true)");
-    return { fb: empty, th: empty, x: empty, disabled: true };
+    return { fb: empty, th: empty, x: empty, reels: emptyReels, disabled: true };
   }
 
   const result: PullSocialMetricsResult = {
     fb: { ...empty },
     th: { ...empty },
     x: { ...empty },
+    reels: { ...emptyReels },
   };
 
   // ── FB ──────────────────────────────────────────────────────────────────
@@ -239,6 +243,162 @@ export async function pullSocialMetrics(): Promise<PullSocialMetricsResult> {
     console.error("[pullSocialMetrics] X list error:", err);
   }
 
+  // ── Reels (Instagram Graph API) ──────────────────────────────────────────
+  // Cadence per-Reel based on age:
+  //   < 24h posted → refresh every 2h
+  //   2–7 d         → refresh every 12h
+  //   8–60 d        → refresh once per day
+  // Reels older than 60d are dropped — IG metrics stabilize well before then.
+  try {
+    const igUserId = process.env.IG_USER_ID;
+    const igToken =
+      process.env.IG_ACCESS_TOKEN ?? process.env.FB_PAGE_ACCESS_TOKEN;
+    const reelItems = await reelsPendingRepo.listPostedSince(60, 200);
+
+    // Resolve shortcode → IG numeric media id, cache in-tick to amortize the
+    // /{ig-user-id}/media call across all stale Reels in this run.
+    let mediaIdCache: Map<string, string> | null = null;
+    const resolveMediaId = async (shortcode: string): Promise<string | null> => {
+      if (/^\d+$/.test(shortcode)) return shortcode; // already numeric
+      if (!igUserId || !igToken) return null;
+      if (!mediaIdCache) {
+        mediaIdCache = new Map();
+        try {
+          const url = `https://graph.facebook.com/v19.0/${igUserId}/media?fields=id,shortcode&limit=100&access_token=${igToken}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = (await res.json()) as {
+              data?: Array<{ id: string; shortcode: string }>;
+            };
+            for (const m of json.data ?? []) {
+              if (m.id && m.shortcode) mediaIdCache.set(m.shortcode, m.id);
+            }
+            result.reels.resolved = mediaIdCache.size;
+          }
+        } catch (err) {
+          console.warn("[pullSocialMetrics] IG media resolve failed:", err);
+        }
+      }
+      return mediaIdCache.get(shortcode) ?? null;
+    };
+
+    for (const item of reelItems) {
+      if (!item.igMediaId) {
+        result.reels.skipped++;
+        continue;
+      }
+      // Cadence gate
+      const postedAt = (item.postedAt as { toDate?: () => Date } | undefined)?.toDate?.();
+      const lastSyncedAt = (
+        item.socialMetrics as { lastSyncedAt?: { toDate?: () => Date } } | undefined
+      )?.lastSyncedAt?.toDate?.();
+      const ageMs = postedAt ? Date.now() - postedAt.getTime() : Infinity;
+      const sinceSyncMs = lastSyncedAt
+        ? Date.now() - lastSyncedAt.getTime()
+        : Infinity;
+      const cadenceMs =
+        ageMs < 24 * 3600 * 1000
+          ? 2 * 3600 * 1000
+          : ageMs < 7 * 24 * 3600 * 1000
+            ? 12 * 3600 * 1000
+            : 24 * 3600 * 1000;
+      if (sinceSyncMs < cadenceMs) {
+        result.reels.skipped++;
+        continue;
+      }
+
+      try {
+        const mediaId = await resolveMediaId(item.igMediaId);
+        if (!mediaId) {
+          result.reels.errors++;
+          continue;
+        }
+        const metrics = await fetchReelMetrics(mediaId, item.durationSec, igToken);
+        if (metrics) {
+          await reelsPendingRepo.patchSocialMetrics(item.id, metrics);
+          result.reels.fetched++;
+          console.log(
+            JSON.stringify({
+              event: "reelMetricsSynced",
+              reelId: item.id,
+              igMediaId: item.igMediaId,
+              plays: metrics.plays ?? 0,
+              watchCompletionRate: metrics.watchCompletionRate ?? 0,
+            }),
+          );
+        } else {
+          result.reels.errors++;
+        }
+      } catch (err) {
+        console.error(
+          `[pullSocialMetrics] Reel error for ${item.id}:`,
+          err instanceof Error ? err.message : err,
+        );
+        result.reels.errors++;
+      }
+    }
+  } catch (err) {
+    console.error("[pullSocialMetrics] Reels list error:", err);
+  }
+
   console.log("[pullSocialMetrics] Done:", result);
   return result;
+}
+
+/**
+ * Fetch IG Reel insights for one media id and compute `watchCompletionRate`
+ * locally from `ig_reels_avg_watch_time` / `durationSec`.
+ *
+ * Docs: https://developers.facebook.com/docs/instagram-api/guides/insights
+ * Returns a partial ReelsMetrics shape suitable for `patchSocialMetrics`.
+ */
+async function fetchReelMetrics(
+  mediaId: string,
+  durationSec: number,
+  token: string | undefined,
+): Promise<ReelsMetrics | null> {
+  if (!token) return null;
+  const metricList = [
+    "plays",
+    "reach",
+    "likes",
+    "comments",
+    "shares",
+    "saved",
+    "total_interactions",
+    "ig_reels_avg_watch_time",
+    "ig_reels_video_view_total_time",
+  ].join(",");
+  try {
+    const url = `https://graph.facebook.com/v19.0/${mediaId}/insights?metric=${metricList}&access_token=${token}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      data?: Array<{ name: string; values?: Array<{ value: number }> }>;
+    };
+    const raw: Record<string, number> = {};
+    for (const item of json.data ?? []) {
+      raw[item.name] = item.values?.[0]?.value ?? 0;
+    }
+    // IG returns watch-time in **milliseconds**; convert to seconds.
+    const avgWatchTimeSec = (raw.ig_reels_avg_watch_time ?? 0) / 1000;
+    const totalWatchTimeSec = (raw.ig_reels_video_view_total_time ?? 0) / 1000;
+    const watchCompletionRate =
+      durationSec > 0 ? Math.min(avgWatchTimeSec / durationSec, 1) : 0;
+
+    return {
+      plays: raw.plays ?? 0,
+      reach: raw.reach ?? 0,
+      likes: raw.likes ?? 0,
+      comments: raw.comments ?? 0,
+      shares: raw.shares ?? 0,
+      saves: raw.saved ?? 0,
+      totalInteractions: raw.total_interactions ?? 0,
+      avgWatchTimeSec,
+      totalWatchTimeSec,
+      watchCompletionRate,
+    };
+  } catch {
+    return null;
+  }
 }

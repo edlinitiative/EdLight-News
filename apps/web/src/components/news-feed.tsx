@@ -91,6 +91,28 @@ export interface FeedItem {
   vertical?: string;
   /** Confidence (0-100) that this item is a real opportunity. Set by worker. */
   opportunityScore?: number;
+  /**
+   * Structured opportunity payload — fine-grained kind / audience /
+   * funding / location / Haiti-eligibility / lifecycle, populated by
+   * the worker classifier (see `apps/worker/src/services/classify.ts`).
+   * All fields optional so older items keep working unchanged.
+   */
+  opportunity?: {
+    deadline?: string;
+    kind?: string;
+    audience?: string[];
+    fundingType?: string;
+    locationType?: string;
+    haitiEligible?: string;
+    eligibleRegions?: string[];
+    lifecycle?: string;
+    trustTier?: string;
+    eligibility?: string[];
+    coverage?: string;
+    howToApply?: string;
+    officialLink?: string;
+    applicationSteps?: string[];
+  };
   /** How many items share the same dedupeGroupId */
   dupeCount?: number;
   /** True when item has no audienceFitScore (pre-v2 legacy) */

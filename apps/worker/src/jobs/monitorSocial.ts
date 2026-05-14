@@ -17,6 +17,7 @@ import {
   socialBoostLogRepo,
   igStoryQueueRepo,
   waChannelSnapshotsRepo,
+  reelsPendingRepo,
 } from "@edlight-news/firebase";
 
 export interface MonitorSocialResult {
@@ -101,6 +102,45 @@ export async function monitorSocial(): Promise<MonitorSocialResult> {
     }
   } catch (err) {
     console.warn("[monitorSocial] wa-channel check failed:", err);
+  }
+
+  // ── 4. Reel performance decline (avg watchCompletionRate over 7d) ────
+  try {
+    const threshold = Number(
+      process.env.REEL_COMPLETION_ALERT_THRESHOLD ?? "0.30",
+    );
+    const recentReels = await reelsPendingRepo.listPostedSince(7, 50);
+    const withMetrics = recentReels.filter(
+      (r) => typeof r.socialMetrics?.watchCompletionRate === "number",
+    );
+    const avg =
+      withMetrics.length > 0
+        ? withMetrics.reduce(
+            (s, r) => s + (r.socialMetrics?.watchCompletionRate ?? 0),
+            0,
+          ) / withMetrics.length
+        : null;
+    details.reels = {
+      window: "7d",
+      posted: recentReels.length,
+      withMetrics: withMetrics.length,
+      avgWatchCompletionRate: avg,
+      threshold,
+    };
+    // Only fire after a meaningful sample (≥ 5 posted Reels with metrics).
+    if (withMetrics.length >= 5 && avg !== null && avg < threshold) {
+      alerts.push("reelPerformanceDecline");
+      emit("socialBoostAlert", {
+        kind: "reelPerformanceDecline",
+        avgWatchCompletionRate: avg,
+        threshold,
+        sample: withMetrics.length,
+        windowDays: 7,
+        message: `Reels avg completion ${(avg * 100).toFixed(1)}% (< ${(threshold * 100).toFixed(0)}%) over ${withMetrics.length} posts — review template / Sandra script.`,
+      });
+    }
+  } catch (err) {
+    console.warn("[monitorSocial] reels check failed:", err);
   }
 
   // Forward to webhook if configured.

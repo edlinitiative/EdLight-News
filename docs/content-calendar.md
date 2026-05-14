@@ -244,3 +244,22 @@ is raised by +10 globally in cold-start (see `COLD_START_SCORE_BONUS` in
   cold-start score bump. Healthy: ~30-50/day. If 0, the floor isn't
   doing anything (queue is too thin); if > 200/day, the threshold is too
   aggressive — file a tuning issue.
+
+---
+
+## Reels (gated by `REELS_ENABLED`)
+
+| Cadence | Topic preference | Pick rule |
+|---|---|---|
+| Up to **1 / day** (Haiti tz) | scholarship → histoire → opportunity → taux → fact → news | Top-scoring open content version of the highest-priority topic available; daily slot enforced by `reelsPendingRepo.listOpenSlotsForDay` |
+
+Hard caps:
+
+- **$1.00 / day** combined LLM + TTS + Whisper cost (`REELS_DAILY_COST_CEILING_USD`).
+- **30 s** body, plus 1.2 s intro + 1.5 s outro.
+- **No auto-publish** — every Reel goes through `/admin/reels-pending` for human
+  approval and manual posting from the IG app (so trending audio can be picked
+  at post time). Switch to API publish targeted at IG ≥ 5k followers.
+
+Full workflow: [docs/social-team-guide.md § 6 Reels review](./social-team-guide.md#6-reels-review).
+Style + voice contract: [docs/reels-style-guide.md](./reels-style-guide.md).

@@ -117,6 +117,32 @@ export type {
   SubcategoryMatch,
 } from "./opportunityScoring.js";
 
+// ── Re-export wider opportunity-taxonomy module ────────────────────────────
+// Fine-grained kind / audience / funding / location / Haiti-eligibility /
+// lifecycle / trust-tier inference. Layered on top of the 4-bucket scoring
+// model so legacy filters and Firestore indexes keep working.
+export {
+  OPPORTUNITY_KINDS,
+  OPPORTUNITY_AUDIENCES,
+  inferOpportunityKind,
+  kindToBroadCategory,
+  inferOpportunityAudience,
+  inferFundingType,
+  inferLocationType,
+  inferHaitiEligibility,
+  inferOpportunityLifecycle,
+  inferTrustTier,
+} from "./opportunityTaxonomy.js";
+export type {
+  OpportunityKind,
+  OpportunityAudience,
+  OpportunityFundingType,
+  OpportunityLocationType,
+  HaitiEligibility,
+  OpportunityLifecycle,
+  OpportunityTrustTier,
+} from "./opportunityTaxonomy.js";
+
 // ── Re-export dataset content module ────────────────────────────────────────
 export {
   generateDatasetArticle,

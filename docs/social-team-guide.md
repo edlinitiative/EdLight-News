@@ -121,3 +121,66 @@ removed from a publisher.
 | Engagement boost scorer | [packages/generator/src/opportunityScoring.ts](../packages/generator/src/opportunityScoring.ts) |
 | IG Story sticker overlay | [packages/publisher/src/index.ts](../packages/publisher/src/index.ts) (`publishIgStory`) |
 | Admin dashboard | [apps/web/src/app/admin/social-metrics/page.tsx](../apps/web/src/app/admin/social-metrics/page.tsx) |
+
+---
+
+## 6. Reels review
+
+Sandra-voiced Instagram Reels are generated daily by the worker (gated by
+`REELS_ENABLED=true`) and queued at
+[`/admin/reels-pending`](/admin/reels-pending) for human review **before** they
+go live. The full style + voice contract is in
+[docs/reels-style-guide.md](./reels-style-guide.md).
+
+### Daily flow
+
+1. **Worker generates** — at most 1 Reel per Haiti-day, capped at $1.00 of
+   combined LLM + TTS + Whisper cost. Picks the top-scoring item from the
+   topic preference order
+   `scholarship → histoire → opportunity → taux → fact → news`.
+2. **You review** at `/admin/reels-pending`:
+   - Watch the embedded MP4 (1080×1920, ≤ 30 s).
+   - Read Sandra's voiceover script — verify no invented stats, correct
+     dates, no editorializing.
+   - Read the IG caption — copy with the **Copy** button if you'll paste it
+     unchanged, or rewrite it before posting.
+   - If anything is off, click **Reject** and enter a reason. The slot
+     re-opens for tomorrow.
+   - If it's good, click **Approve**. Status flips to `approved` and the
+     download link unlocks.
+3. **You post manually** from the Instagram app:
+   - Download the MP4 from the dashboard.
+   - Open IG → Create → Reel → upload the MP4.
+   - **Pick a trending audio track** (this is the whole reason we don't
+     auto-publish in v1 — Reels reach is dominated by trending audio).
+   - Paste the caption.
+   - Publish, then copy the post URL.
+4. **You paste the URL back** into the dashboard's "Mark posted" form. The
+   shortcode is parsed and stored as `igMediaId`; the metrics worker takes
+   over from there.
+5. **Metrics auto-sync**: every 2 h for the first 24 h, then every 12 h
+   through day 7, then daily through day 60. Watch-completion rate appears
+   in the **Leaderboard** section, and high performers feed
+   `reelEngagementBoost` back into the editorial scorer.
+
+### Common rejection reasons
+
+- "Invented a stat the source didn't have" — re-prompt issue, file a ticket.
+- "Wrong template for the topic" — `pickTemplate` heuristics may need a
+  tune (deterministic per source-item id, so re-running won't change it).
+- "Sandra's voiceover ran > 28 s" — script length cap drift; check
+  `generateReelScript` word-count.
+- "Footage didn't match" — Pexels query needs better keywords; falls back
+  to brand stock if no good match.
+
+### Where things live
+
+| What | Where |
+|---|---|
+| Reels worker job | [apps/worker/src/jobs/buildReelsQueue.ts](../apps/worker/src/jobs/buildReelsQueue.ts) |
+| Reels generation | [packages/reels-generator](../packages/reels-generator) |
+| Sandra voice | [packages/sandra-voice](../packages/sandra-voice) |
+| Pending repo | [packages/firebase/src/repositories/reels-pending.ts](../packages/firebase/src/repositories/reels-pending.ts) |
+| Admin UI | [apps/web/src/app/admin/reels-pending/page.tsx](../apps/web/src/app/admin/reels-pending/page.tsx) |
+| Metrics sync | [apps/worker/src/jobs/pullSocialMetrics.ts](../apps/worker/src/jobs/pullSocialMetrics.ts) (Reels section) |
+| Performance alert | [apps/worker/src/jobs/monitorSocial.ts](../apps/worker/src/jobs/monitorSocial.ts) (`reelPerformanceDecline`) |

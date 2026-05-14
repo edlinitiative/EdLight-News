@@ -15,6 +15,7 @@ import {
   Twitter,
   Users,
   BarChart2,
+  Film,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { href: "/admin/fb-queue", label: "FB Queue", Icon: Share2 },
   { href: "/admin/th-queue", label: "TH Queue", Icon: AtSign },
   { href: "/admin/x-queue", label: "X Queue", Icon: Twitter },
+  { href: "/admin/reels-pending", label: "Reels Pending", Icon: Film },
   { href: "/admin/social-metrics", label: "Social Metrics", Icon: BarChart2 },
 ] as const;
 

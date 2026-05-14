@@ -29,4 +29,5 @@ export {
   xQueueRepo,
   socialBoostLogRepo,
   waChannelSnapshotsRepo,
+  reelsPendingRepo,
 } from "./repositories/index.js";

@@ -228,5 +228,41 @@ export async function runCleanup(): Promise<Record<string, unknown>> {
     }
   }
 
+  // ── items lifecycle pass ────────────────────────────────────────────────
+  // Flip opportunity.lifecycle to "expired" for items whose deadline has
+  // passed. Inference at ingest time only reflects "now" at ingest, so this
+  // is the cron-side correction. Bounded scan to keep reads cheap.
+  try {
+    const nowIso = new Date().toISOString();
+    const candidates = await db.collection("items")
+      .where("vertical", "==", "opportunites")
+      .where("opportunity.deadline", "<", nowIso)
+      .where("opportunity.deadline", "!=", null)
+      .limit(500)
+      .get()
+      .catch(() => null);
+    let flipped = 0;
+    if (candidates) {
+      const writer = db.batch();
+      let pending = 0;
+      for (const doc of candidates.docs) {
+        const data = doc.data() as { opportunity?: { lifecycle?: string; deadline?: string | null } };
+        if (data.opportunity?.lifecycle === "expired") continue;
+        writer.update(doc.ref, { "opportunity.lifecycle": "expired" });
+        flipped++;
+        pending++;
+        if (pending >= BATCH_SIZE) {
+          await writer.commit();
+          pending = 0;
+        }
+      }
+      if (pending > 0) await writer.commit();
+    }
+    summary.itemsLifecycleExpired = flipped;
+  } catch (err) {
+    console.warn("[cleanup] items lifecycle pass failed:", err);
+    summary.itemsLifecycleExpired = { error: err instanceof Error ? err.message : String(err) };
+  }
+
   return summary;
 }
