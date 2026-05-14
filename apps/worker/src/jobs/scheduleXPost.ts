@@ -8,18 +8,19 @@
  */
 
 import { xQueueRepo } from "@edlight-news/firebase";
+import { isColdStartMode, logColdStartBootOnce } from "../services/coldStart.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
-/** Maximum X posts per day. Raised from 10 → 15 (P1.3). */
-const DAILY_CAP = 15;
+/** Scale-mode X cap. @internal exported for tests */
+export const DAILY_CAP_SCALE = 15;
+/** Cold-start X cap (2/day). @internal exported for tests */
+export const DAILY_CAP_COLD_START = 2;
 
-/**
- * X posting slots (Haiti local time).
- * Cadence raised from 10 → 15 slots per day to match Threads volume
- * strategy and capture more diaspora engagement windows.
- */
-const SLOTS = [
+/** Scale-mode X slots (Haiti local time).
+ *  15 slots to match diaspora engagement windows.
+ *  @internal exported for tests */
+export const SLOTS_SCALE = [
   { hour: 6, minute: 0 },
   { hour: 7, minute: 30 },
   { hour: 8, minute: 30 },
@@ -36,6 +37,20 @@ const SLOTS = [
   { hour: 20, minute: 0 },
   { hour: 21, minute: 0 },
 ];
+
+/** Cold-start X slots — morning + evening peaks only.
+ *  @internal exported for tests */
+export const SLOTS_COLD_START = [
+  { hour: 9, minute: 0 },
+  { hour: 18, minute: 0 },
+];
+
+export function activeDailyCap(): number {
+  return isColdStartMode() ? DAILY_CAP_COLD_START : DAILY_CAP_SCALE;
+}
+export function activeSlots(): typeof SLOTS_SCALE {
+  return isColdStartMode() ? SLOTS_COLD_START : SLOTS_SCALE;
+}
 
 function toHaitiDate(date: Date): Date {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -71,7 +86,7 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   const haitiDay = haitiNow.getUTCDate();
 
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-    for (const slot of SLOTS) {
+    for (const slot of activeSlots()) {
       if (dayOffset === 0) {
         if (
           haitiHour > slot.hour ||
@@ -124,16 +139,18 @@ export async function scheduleXPost(): Promise<ScheduleXPostResult> {
   const result: ScheduleXPostResult = { scheduled: 0, skippedCap: 0 };
 
   try {
+    logColdStartBootOnce();
+    const dailyCap = activeDailyCap();
     const sentToday = await xQueueRepo.countSentToday();
     const scheduledToday = await xQueueRepo.countScheduledToday();
     const totalToday = sentToday + scheduledToday;
 
-    if (totalToday >= DAILY_CAP) {
-      console.log(`[scheduleXPost] Daily cap reached (${totalToday}/${DAILY_CAP})`);
+    if (totalToday >= dailyCap) {
+      console.log(`[scheduleXPost] Daily cap reached (${totalToday}/${dailyCap})`);
       return result;
     }
 
-    const remaining = DAILY_CAP - totalToday;
+    const remaining = dailyCap - totalToday;
 
     const queued = await xQueueRepo.listQueuedByScore(remaining);
     if (queued.length === 0) {

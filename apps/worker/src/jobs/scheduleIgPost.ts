@@ -21,6 +21,7 @@
 import { igQueueRepo } from "@edlight-news/firebase";
 import type { IGPostType } from "@edlight-news/types";
 import { STALENESS_TTL_HOURS, isStale } from "./igStaleness.js";
+import { isColdStartMode, logColdStartBootOnce } from "../services/coldStart.js";
 
 // Re-export so existing consumers (tests, scripts) keep working.
 export { STALENESS_TTL_HOURS, isStale };
@@ -28,14 +29,36 @@ export { STALENESS_TTL_HOURS, isStale };
 // Haiti timezone
 const HAITI_TZ = "America/Port-au-Prince";
 
-// ── Per-type daily caps ─────────────────────────────────────────────────────
+// ── Per-type daily caps ─────────────────────────────────────────
 // Prevent any single type from dominating the feed. undefined = no cap.
-/** @internal exported for tests */
-export const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
+/** Scale-mode per-type caps. @internal exported for tests */
+export const TYPE_DAILY_CAPS_SCALE: Partial<Record<IGPostType, number>> = {
   scholarship: 3,
   opportunity: 2,
   taux: 1,
 };
+
+/**
+ * Cold-start per-type caps. With only 2 IG posts per day no category can
+ * be more than 1 — every type collapses to 1.
+ * @internal exported for tests
+ */
+export const TYPE_DAILY_CAPS_COLD_START: Partial<Record<IGPostType, number>> = {
+  scholarship: 1,
+  opportunity: 1,
+  taux: 1,
+  histoire: 1,
+  utility: 1,
+  news: 1,
+};
+
+/** Backwards-compatible alias for the scale-mode caps (legacy importers). */
+export const TYPE_DAILY_CAPS = TYPE_DAILY_CAPS_SCALE;
+
+/** @internal exported for tests */
+export function activeTypeCaps(): Partial<Record<IGPostType, number>> {
+  return isColdStartMode() ? TYPE_DAILY_CAPS_COLD_START : TYPE_DAILY_CAPS_SCALE;
+}
 
 // ── Daily staples: types that MUST post every day ───────────────────────────
 // These are scheduled in bulk before any regular items.
@@ -44,10 +67,25 @@ export const TYPE_DAILY_CAPS: Partial<Record<IGPostType, number>> = {
 export const DAILY_STAPLES: IGPostType[] = ["taux", "histoire", "utility"];
 
 // ── Daily cap: 3 staples + 5 regular = 8 (10 for urgent) ───────────────────
+/** Scale-mode normal cap (8/day). @internal exported for tests */
+export const DAILY_CAP_NORMAL_SCALE = 8;
+/** Scale-mode urgent cap (10/day). @internal exported for tests */
+export const DAILY_CAP_URGENT_SCALE = 10;
+/** Cold-start cap (2/day, applies to both normal and urgent). @internal exported for tests */
+export const DAILY_CAP_COLD_START = 2;
+
+/** Back-compat re-exports for existing callers/tests. */
+export const DAILY_CAP_NORMAL = DAILY_CAP_NORMAL_SCALE;
+export const DAILY_CAP_URGENT = DAILY_CAP_URGENT_SCALE;
+
 /** @internal exported for tests */
-export const DAILY_CAP_NORMAL = 8;
+export function activeDailyCapNormal(): number {
+  return isColdStartMode() ? DAILY_CAP_COLD_START : DAILY_CAP_NORMAL_SCALE;
+}
 /** @internal exported for tests */
-export const DAILY_CAP_URGENT = 10; // for items with score >= 90
+export function activeDailyCapUrgent(): number {
+  return isColdStartMode() ? DAILY_CAP_COLD_START : DAILY_CAP_URGENT_SCALE;
+}
 
 /** Maps staple types to their pinned slot index in SLOTS. @internal exported for tests */
 export const STAPLE_SLOT_INDEX: Record<string, number> = {
@@ -148,11 +186,70 @@ const SLOTS_DIASPORA = [
 ];
 
 /**
- * Active slot schedule — toggled by the IG_DIASPORA_HOURS env flag.
+ * Cold-start IG slots (Haiti local time) -- only 2 posts per day.
+ * Slot 0 (07:00) is pinned to taux (the daily habit-builder).
+ * Slot 1 (18:00) is pinned by weekday -- see EVENING_BY_WEEKDAY below.
  * @internal exported for tests
  */
-export const SLOTS =
-  process.env.IG_DIASPORA_HOURS === "true" ? SLOTS_DIASPORA : SLOTS_DEFAULT;
+export const SLOTS_COLD_START = [
+  { hour: 7, minute: 0 },     // morning  -- taux
+  { hour: 18, minute: 0 },    // evening  -- weekday-driven category
+];
+
+/**
+ * Active slot schedule -- toggled by COLD_START_MODE first, then by the
+ * IG_DIASPORA_HOURS env flag. Resolved at module load for back-compat
+ * with existing test importers; cold-start production deploys set the flag
+ * in env before the worker boots.
+ * @internal exported for tests
+ */
+export const SLOTS = isColdStartMode()
+  ? SLOTS_COLD_START
+  : process.env.IG_DIASPORA_HOURS === "true"
+    ? SLOTS_DIASPORA
+    : SLOTS_DEFAULT;
+
+/**
+ * In cold-start mode, slot 0 is the morning taux slot. Override the
+ * STAPLE_SLOT_INDEX so non-taux staples (utility, histoire) do NOT get
+ * pinned to the evening slot -- the evening slot is reserved for the
+ * weekday-driven category pick.
+ */
+if (isColdStartMode()) {
+  // Only taux holds a pinned morning slot in cold-start.
+  for (const k of Object.keys(STAPLE_SLOT_INDEX)) {
+    if (k !== "taux") delete STAPLE_SLOT_INDEX[k];
+  }
+}
+
+// -- Cold-start IG calendar pinning -----------------------------------
+// Slot 1 (18:00) preferred categories per Haiti-local weekday.
+// Order matters: first preference, then fallback. The selector falls
+// through to "scholarship" (cold-start growth driver) and finally to the
+// top-scoring item if none of the preferred types are queued.
+//
+// Weekday map: 0 = Sunday ... 6 = Saturday (matches Date#getUTCDay() of a
+// Haiti-local date built via toHaitiDate()).
+type IgPreferredCategory = IGPostType | "fact";
+/** @internal exported for tests */
+export const EVENING_BY_WEEKDAY: Record<number, IgPreferredCategory[]> = {
+  0: ["news", "histoire"],          // Sun -- weekly recap or histoire
+  1: ["scholarship"],                // Mon
+  2: ["fact"],                       // Tue -- maps to "utility" (daily fact)
+  3: ["scholarship"],                // Wed
+  4: ["histoire"],                   // Thu
+  5: ["scholarship"],                // Fri
+  6: ["histoire", "fact"],           // Sat
+};
+
+/**
+ * Map a preferred-category token to the actual IGPostType used in the queue.
+ * "fact" is editorial shorthand for the daily-fact utility series.
+ * @internal exported for tests
+ */
+export function preferredToIgType(pref: IgPreferredCategory): IGPostType {
+  return pref === "fact" ? "utility" : pref;
+}
 
 /**
  * Return the next available slot that isn't already taken.
@@ -279,6 +376,9 @@ export function matchesTargetPostDate(
 }
 
 export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
+  logColdStartBootOnce();
+  const coldStart = isColdStartMode();
+  const typeCaps = activeTypeCaps();
   let expired = 0;
   let totalScheduled = 0;
 
@@ -383,6 +483,10 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   // ════════════════════════════════════════════════════════════════════
 
   for (const stapleType of DAILY_STAPLES) {
+    // Cold-start: only "taux" is a pinned daily staple. The evening slot
+    // is reserved for the weekday-driven pick in PHASE 2; avoid scheduling
+    // histoire/utility into it here.
+    if (coldStart && stapleType !== "taux") continue;
     // Date-aware check: for types that carry a targetPostDate (e.g. histoire),
     // only consider an item as "already covered" if its targetPostDate matches
     // today. This prevents yesterday's spilled histoire from blocking today's.
@@ -480,9 +584,10 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
   // PHASE 2 — Schedule 1 regular item (if under daily cap)
   // ════════════════════════════════════════════════════════════════════
 
-  // Determine effective cap — urgent content (score ≥ 90) gets higher cap
+  // Determine effective cap — urgent content (score ≥ 90) gets higher cap.
+  // In cold-start mode both caps collapse to DAILY_CAP_COLD_START (=2).
   const topFreshScore = fresh.find((f) => !scheduledThisTick.has(f.id))?.score ?? 0;
-  const maxToday = topFreshScore >= 90 ? DAILY_CAP_URGENT : DAILY_CAP_NORMAL;
+  const maxToday = topFreshScore >= 90 ? activeDailyCapUrgent() : activeDailyCapNormal();
 
   if (totalToday >= maxToday) {
     if (totalScheduled > 0) {
@@ -494,10 +599,62 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
 
   let regularItem: typeof fresh[0] | undefined;
 
+  // ══ Cold-start: weekday-driven evening slot pick ═══════════════════════
+  // In cold-start mode the only "regular" slot of the day is 18:00 and we
+  // pin its category by Haiti-local weekday. Fallback chain:
+  //   preferred[0] → preferred[1] → "scholarship" → top-scoring any
+  if (coldStart) {
+    const haitiNow = toHaitiDate(new Date());
+    const weekday = haitiNow.getUTCDay();
+    const preferred = EVENING_BY_WEEKDAY[weekday] ?? [];
+    const findByType = (igType: IGPostType) =>
+      fresh.find(
+        (q) =>
+          q.igType === igType &&
+          !scheduledThisTick.has(q.id) &&
+          matchesTargetPostDate(q, haitiToday),
+      );
+    let chosenType: IGPostType | undefined;
+    for (const pref of preferred) {
+      const igType = preferredToIgType(pref);
+      const c = findByType(igType);
+      if (c) {
+        regularItem = c;
+        chosenType = igType;
+        break;
+      }
+    }
+    if (!regularItem) {
+      const c = findByType("scholarship");
+      if (c) {
+        regularItem = c;
+        chosenType = "scholarship";
+      }
+    }
+    if (!regularItem) {
+      regularItem = fresh.find(
+        (f) => !scheduledThisTick.has(f.id) && matchesTargetPostDate(f, haitiToday),
+      );
+      chosenType = regularItem?.igType;
+    }
+    console.log(
+      JSON.stringify({
+        event: "igSlotSelection",
+        slot: "evening",
+        weekday,
+        preferred,
+        chosenType: chosenType ?? null,
+        chosenItemId: regularItem?.id ?? null,
+      }),
+    );
+    // Fall through to the slot-allocation block below; skip the scale-mode
+    // diversity / per-type-cap heuristics entirely in cold-start.
+  }
+
   // ── Type diversity: ensure news gets represented ─────────────────────
   const hasNewsToday = (todayTypeCounts.get("news") ?? 0) > 0;
   const nonNewsToday = todayStatuses.filter((i) => i.igType !== "news").length;
-  const needsNewsDiversity = !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
+  const needsNewsDiversity = !coldStart && !hasNewsToday && (nonNewsToday >= 2 || totalToday >= 2);
 
   if (needsNewsDiversity) {
     const bestNewsCandidate = fresh.find(
@@ -542,7 +699,7 @@ export async function scheduleIgPost(): Promise<ScheduleIgPostResult> {
     for (const candidate of fresh) {
       if (scheduledThisTick.has(candidate.id)) continue;
       if (!matchesTargetPostDate(candidate, haitiToday)) continue;
-      const cap = TYPE_DAILY_CAPS[candidate.igType];
+      const cap = typeCaps[candidate.igType];
       const typeCount = todayTypeCounts.get(candidate.igType) ?? 0;
       if (cap != null && typeCount >= cap) {
         if ((candidate.score ?? 0) >= 75) {

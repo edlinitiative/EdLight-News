@@ -11,25 +11,41 @@
  */
 
 import { waQueueRepo } from "@edlight-news/firebase";
+import { isColdStartMode, logColdStartBootOnce } from "../services/coldStart.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
-/** Maximum WA messages per day. Raised from 5 → 8 (P2). */
-const DAILY_CAP = 8;
+/** Scale-mode WA cap. @internal exported for tests */
+export const DAILY_CAP_SCALE = 8;
+/** Cold-start WA cap (1/day). @internal exported for tests */
+export const DAILY_CAP_COLD_START = 1;
 
-/** WA sending slots (Haiti local time).
- *  Raised from 5 → 8 slots (P2) to match the cadence raise.
- *  Quiet hours 23:00–06:00 are enforced in getNextAvailableSlot. */
-const SLOTS = [
-  { hour: 7, minute: 0 },     // Morning
-  { hour: 8, minute: 30 },    // Mid-morning (new P2)
-  { hour: 10, minute: 0 },    // Late-morning
-  { hour: 12, minute: 0 },    // Midday (new P2)
-  { hour: 13, minute: 0 },    // Early afternoon
-  { hour: 15, minute: 30 },   // Afternoon
-  { hour: 17, minute: 30 },   // Late afternoon (new P2)
-  { hour: 19, minute: 0 },    // Evening
+/** Scale-mode WA slots (Haiti local time).
+ *  8 slots; quiet hours 23:00–06:00 enforced in getNextAvailableSlot.
+ *  @internal exported for tests */
+export const SLOTS_SCALE = [
+  { hour: 7, minute: 0 },
+  { hour: 8, minute: 30 },
+  { hour: 10, minute: 0 },
+  { hour: 12, minute: 0 },
+  { hour: 13, minute: 0 },
+  { hour: 15, minute: 30 },
+  { hour: 17, minute: 30 },
+  { hour: 19, minute: 0 },
 ];
+
+/** Cold-start WA slot — single mid-morning send.
+ *  @internal exported for tests */
+export const SLOTS_COLD_START = [
+  { hour: 10, minute: 0 },
+];
+
+export function activeDailyCap(): number {
+  return isColdStartMode() ? DAILY_CAP_COLD_START : DAILY_CAP_SCALE;
+}
+export function activeSlots(): typeof SLOTS_SCALE {
+  return isColdStartMode() ? SLOTS_COLD_START : SLOTS_SCALE;
+}
 
 function toHaitiDate(date: Date): Date {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -65,7 +81,7 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   const haitiDay = haitiNow.getUTCDate();
 
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-    for (const slot of SLOTS) {
+    for (const slot of activeSlots()) {
       // Enforce quiet hours: no WA messages 23:00–06:00 Haiti time (P2).
       if (slot.hour >= 23 || slot.hour < 6) continue;
 
@@ -122,17 +138,19 @@ export async function scheduleWaPost(): Promise<ScheduleWaPostResult> {
   const result: ScheduleWaPostResult = { scheduled: 0, skippedCap: 0 };
 
   try {
+    logColdStartBootOnce();
+    const dailyCap = activeDailyCap();
     // Check daily cap
     const sentToday = await waQueueRepo.countSentToday();
     const scheduledToday = await waQueueRepo.countScheduledToday();
     const totalToday = sentToday + scheduledToday;
 
-    if (totalToday >= DAILY_CAP) {
-      console.log(`[scheduleWaPost] Daily cap reached (${totalToday}/${DAILY_CAP})`);
+    if (totalToday >= dailyCap) {
+      console.log(`[scheduleWaPost] Daily cap reached (${totalToday}/${dailyCap})`);
       return result;
     }
 
-    const remaining = DAILY_CAP - totalToday;
+    const remaining = dailyCap - totalToday;
 
     // Get queued items (highest score first)
     const queued = await waQueueRepo.listQueuedByScore(remaining);

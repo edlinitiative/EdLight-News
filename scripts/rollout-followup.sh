@@ -6,6 +6,8 @@
 #   scripts/rollout-followup.sh --day=2
 #   scripts/rollout-followup.sh --day=3
 #   scripts/rollout-followup.sh --day=all      # runs 1, 2, 3 sequentially
+#   scripts/rollout-followup.sh --mode=cold-start   # flip into cold-start
+#   scripts/rollout-followup.sh --mode=scale        # exit cold-start
 #
 # Env required:
 #   PROJECT_ID    GCP project (default: edlight-news)
@@ -18,6 +20,17 @@
 #           WA_IG_CTA=true and FB_WA_CTA=true (cross-platform CTAs)
 #   Day 3 — enables IG_STORY_FEATURES=true (Story stickers).
 #
+# What gets flipped, by --mode:
+#   cold-start — sets COLD_START_MODE=true and disables the heavy growth
+#                features that need an existing audience to be measured:
+#                  WA_IG_CTA=false       FB_WA_CTA=false
+#                  IG_STORY_FEATURES=false   HASHTAG_ROTATION=false
+#                  SOCIAL_METRICS_FEEDBACK=false
+#                Universal flags are KEPT ON: FB_LINK_IN_COMMENT,
+#                TH_LINK_REPLY, X_MEDIA_UPLOAD, IG_DIASPORA_HOURS.
+#   scale      — sets COLD_START_MODE=false and re-enables the same five
+#                growth features so we resume the day-1/2/3 rollout state.
+#
 # Each step prints the env var(s) it is about to mutate, runs the
 # `gcloud run services update` (idempotent), then echoes a "watch dashboard
 # 24h" reminder. Every step is reversible with the same command and the
@@ -29,19 +42,27 @@ REGION="${REGION:-us-central1}"
 SERVICE="${SERVICE:-edlight-news-worker}"
 
 usage() {
-  sed -n '2,30p' "$0"
+  sed -n '2,40p' "$0"
   exit 1
 }
 
 DAY=""
+MODE=""
 for arg in "$@"; do
   case "$arg" in
-    --day=*) DAY="${arg#*=}" ;;
+    --day=*)  DAY="${arg#*=}" ;;
+    --mode=*) MODE="${arg#*=}" ;;
     -h|--help) usage ;;
     *) echo "unknown arg: $arg" >&2; usage ;;
   esac
 done
-[[ -z "$DAY" ]] && usage
+if [[ -z "$DAY" && -z "$MODE" ]]; then
+  usage
+fi
+if [[ -n "$DAY" && -n "$MODE" ]]; then
+  echo "✘ pass either --day or --mode, not both" >&2
+  exit 1
+fi
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -142,6 +163,56 @@ day3() {
   confirm_var_value IG_STORY_FEATURES true
   watch_reminder
 }
+
+# ── mode: cold-start ─────────────────────────────────────────────────────────
+mode_cold_start() {
+  echo "═══ Mode → COLD-START ═══"
+  echo "Engaging cold-start cadence on ${SERVICE} (${PROJECT_ID}/${REGION})."
+  confirm_var_value COLD_START_MODE         true
+  confirm_var_value WA_IG_CTA                false
+  confirm_var_value FB_WA_CTA                false
+  confirm_var_value IG_STORY_FEATURES        false
+  confirm_var_value HASHTAG_ROTATION         false
+  confirm_var_value SOCIAL_METRICS_FEEDBACK  false
+  cat <<'EOF'
+
+Universal flags KEPT ON (do NOT flip these in cold-start):
+  FB_LINK_IN_COMMENT, TH_LINK_REPLY, X_MEDIA_UPLOAD, IG_DIASPORA_HOURS
+
+Cold-start cadence (per Haiti day):
+  IG carousel  : 2/day  (07:00 taux, 18:00 weekday-driven)
+  FB           : 1/day  (12:00)
+  Threads      : 4/day  (08, 12, 16, 20)
+  X (Twitter)  : 2/day  (09, 18)
+  WhatsApp     : 1/day  (10:00)
+
+Exit when IG followers ≥ 500 (or per docs/content-calendar.md).
+EOF
+  watch_reminder
+}
+
+# ── mode: scale ─────────────────────────────────────────────────────────────
+mode_scale() {
+  echo "═══ Mode → SCALE (exit cold-start) ═══"
+  echo "Restoring full cadence + growth features on ${SERVICE}."
+  confirm_var_value COLD_START_MODE         false
+  confirm_var_value WA_IG_CTA                true
+  confirm_var_value FB_WA_CTA                true
+  confirm_var_value IG_STORY_FEATURES        true
+  confirm_var_value HASHTAG_ROTATION         true
+  confirm_var_value SOCIAL_METRICS_FEEDBACK  true
+  watch_reminder
+}
+
+if [[ -n "$MODE" ]]; then
+  case "$MODE" in
+    cold-start) mode_cold_start ;;
+    scale)      mode_scale ;;
+    *) echo "✘ unknown --mode=$MODE (expected cold-start | scale)" >&2; exit 1 ;;
+  esac
+  echo "✓ rollout mode '${MODE}' applied"
+  exit 0
+fi
 
 case "$DAY" in
   1)   day1 ;;

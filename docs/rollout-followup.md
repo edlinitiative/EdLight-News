@@ -100,6 +100,14 @@ gcloud run services update edlight-news-worker \
 
 ## Post-rollout review (T + 14 days)
 
+> ⚠️ **Cold-start note:** if the worker is in `COLD_START_MODE=true` for any
+> portion of the 14-day window, this date-based review is **not** the right
+> trigger — the growth flags are intentionally OFF in cold-start, so reach
+> deltas are noise. Use the **follower milestone** instead: run the
+> post-rollout review 14 days after `scripts/rollout-followup.sh
+> --mode=scale` is applied (i.e. after we exit cold-start at IG ≥ 500
+> followers — see [docs/content-calendar.md](./content-calendar.md)).
+
 After 14 days of all three days at `true`, append a section to this file
 under `## Outcomes` with:
 - WhatsApp Channel net followers gained
