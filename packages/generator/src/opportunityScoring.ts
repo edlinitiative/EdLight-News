@@ -507,3 +507,43 @@ export function socialEngagementBoostMulti(input: {
   const consistencyBonus = Math.max(0, platformsHit - 1) * 2;
   return Math.min(20, fb + th + x + consistencyBonus);
 }
+
+/**
+ * Reel-driven engagement boost (Task 6, Reels Pipeline v1).
+ *
+ * Items whose source produced a high-performing Reel get a small score
+ * lift so the next batch leans into formats Sandra's audience actually
+ * watches through. Capped at +12 to stay subordinate to editorial scoring.
+ *
+ * Heuristics — based on a *single* Reel's aggregate metrics
+ *   (`reelsPendingRepo` returns `socialMetrics` when synced):
+ *   - watchCompletionRate ≥ 0.55 AND plays ≥ 200 → +12 (banger)
+ *   - watchCompletionRate ≥ 0.45 AND plays ≥ 100 → +8  (strong)
+ *   - watchCompletionRate ≥ 0.35 OR  plays ≥ 50  → +4  (decent)
+ *   - high totalInteractions (≥ 25) regardless of watch → +3
+ *   - no metrics or below thresholds              → 0
+ *
+ * Caller is responsible for finding the most recent Reel keyed by
+ * `sourceItemId` (typically via `reelsPendingRepo.findBySourceItemId`).
+ */
+export function reelEngagementBoost(
+  metrics:
+    | {
+        plays?: number;
+        watchCompletionRate?: number;
+        totalInteractions?: number;
+      }
+    | undefined
+    | null,
+): number {
+  if (!metrics) return 0;
+  const plays = metrics.plays ?? 0;
+  const wcr = metrics.watchCompletionRate ?? 0;
+  const interactions = metrics.totalInteractions ?? 0;
+
+  if (wcr >= 0.55 && plays >= 200) return 12;
+  if (wcr >= 0.45 && plays >= 100) return 8;
+  if (wcr >= 0.35 || plays >= 50) return 4;
+  if (interactions >= 25) return 3;
+  return 0;
+}

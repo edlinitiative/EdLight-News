@@ -1412,3 +1412,91 @@ export interface Draft {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Reels pipeline types ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** Topics the Reels pipeline knows how to render. Mirrors ReelTopic in
+ *  @edlight-news/reels-generator (kept in sync intentionally). */
+export type ReelsTopic =
+  | "scholarship"
+  | "opportunity"
+  | "taux"
+  | "news"
+  | "histoire"
+  | "fact"
+  | "education";
+
+/** Visual templates rendered by the Reels worker. */
+export type ReelsTemplate =
+  | "BigStatistic"
+  | "PullQuote"
+  | "HeadlinePhoto"
+  | "NumberedPoints";
+
+/** Status flow for a queued Reel awaiting human review / posting. */
+export type ReelsPendingStatus = "pending" | "approved" | "posted" | "rejected";
+
+/** IG Insights snapshot for a posted Reel. `watchCompletionRate` is computed
+ *  locally as `min(avgWatchTimeSec / durationSec, 1.0)`. */
+export interface ReelsMetrics {
+  plays?: number;
+  reach?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  saves?: number;
+  totalInteractions?: number;
+  avgWatchTimeSec?: number;
+  totalWatchTimeSec?: number;
+  watchCompletionRate?: number;
+  lastSyncedAt?: Timestamp;
+}
+
+/** Per-generation cost ledger so the daily ceiling can be enforced. USD. */
+export interface ReelsCostBreakdown {
+  ttsUsd: number;
+  whisperUsd: number;
+  llmUsd: number;
+  renderUsd: number;
+  totalUsd: number;
+}
+
+/** Firestore collection: reels_pending_review */
+export interface ReelsPendingItem {
+  id: string;
+  /** Source content item that seeded this Reel. */
+  sourceItemId: string;
+  topic: ReelsTopic;
+  template: ReelsTemplate;
+  /** Stable variant id e.g. "scholarship-BigStatistic-v1" — used by metrics. */
+  reelVariant: string;
+  language: "fr" | "ht" | "en";
+  /** Sandra's voiceover script (literal text). */
+  scriptText: string;
+  /** Caption to paste in the IG app at post time. */
+  igCaption: string;
+  /** Cloud Storage URL (gs:// or signed https) to the rendered MP4. */
+  mp4Url: string;
+  /** Cloud Storage URL to the first-frame PNG thumbnail (may be empty in v1). */
+  thumbnailUrl?: string;
+  /** Voiceover duration in seconds — drives watch-completion math. */
+  durationSec: number;
+  status: ReelsPendingStatus;
+  generatedAt: Timestamp;
+  approvedAt?: Timestamp;
+  approvedBy?: string;
+  postedAt?: Timestamp;
+  /** Entered by the human reviewer when marking as posted. */
+  igMediaId?: string;
+  /** IG post URL the human pasted in — kept for audit + as fallback. */
+  igPostUrl?: string;
+  rejectionReason?: string;
+  costEstimateUsd?: number;
+  costBreakdown?: ReelsCostBreakdown;
+  /** Populated by pullSocialMetrics after `igMediaId` is set. */
+  socialMetrics?: ReelsMetrics;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

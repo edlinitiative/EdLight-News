@@ -6,9 +6,12 @@ Automated content factory for Haitian students — scholarships, news, opportuni
 > [docs/content-calendar.md](./docs/content-calendar.md) for the per-day /
 > per-platform posting calendar (and the cold-start vs scale mode rules),
 > [docs/SOCIAL_GROWTH_CHANGELOG.md](./docs/SOCIAL_GROWTH_CHANGELOG.md) for the
-> rolling list of feature flags, and [docs/social-team-guide.md](./docs/social-team-guide.md)
+> rolling list of feature flags,
+> [docs/reels-style-guide.md](./docs/reels-style-guide.md) for the Sandra-voice
+> Reels pipeline (templates, brand, cost ceiling, metrics loop),
+> and [docs/social-team-guide.md](./docs/social-team-guide.md)
 > for the social team's operational playbook (dashboard, A/B variants,
-> common questions).
+> Reels review workflow, common questions).
 
 ## Architecture
 

@@ -1,0 +1,45 @@
+{
+  "name": "@edlight-news/reels-generator",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./brand": "./dist/brand.js",
+    "./templates/*": "./dist/templates/*",
+    "./remotion-root": "./dist/templates/Root.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "test": "node --import tsx --test src/pickTemplate.test.ts src/brand.test.ts src/generateReelScript.test.ts src/pickStockFootage.test.ts"
+  },
+  "dependencies": {
+    "@edlight-news/generator": "workspace:*",
+    "@edlight-news/sandra-voice": "workspace:*",
+    "@edlight-news/types": "workspace:*",
+    "zod": "^3.23.0"
+  },
+  "peerDependencies": {
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/renderer": "^4.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "remotion": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@remotion/bundler": { "optional": true },
+    "@remotion/renderer": { "optional": true },
+    "react": { "optional": true },
+    "react-dom": { "optional": true },
+    "remotion": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.0",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.5"
+  }
+}
