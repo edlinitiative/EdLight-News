@@ -16,7 +16,7 @@
 
 import { igStoryQueueRepo, uploadStorySlide } from "@edlight-news/firebase";
 import { generateStoryAssets } from "@edlight-news/renderer/ig-story.js";
-import { publishIgStory } from "@edlight-news/publisher";
+import { publishIgStory, addStoryToHighlight } from "@edlight-news/publisher";
 import type { IGStoryQueueItem } from "@edlight-news/types";
 import { validateStoryPayloadForPublishing } from "../services/igPublishValidation.js";
 import type { IGPublishIssue } from "@edlight-news/generator/ig/index.js";
@@ -39,6 +39,7 @@ export const processIgStoryDeps = {
   generateStoryAssets,
   uploadStorySlide,
   publishIgStory,
+  addStoryToHighlight,
   sleep: (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
 
@@ -156,6 +157,27 @@ export async function processIgStory(): Promise<ProcessIgStoryResult> {
                 : {}),
             });
             result.posted++;
+
+            // Add to daily Highlights reel when the source job flagged it
+            // (cold-start mode). The helper logs a structured candidate so
+            // the operator can hand-add until Meta ships a Graph endpoint.
+            if (storyItem.addToHighlight) {
+              try {
+                await processIgStoryDeps.addStoryToHighlight(
+                  lastMediaId,
+                  storyItem.dateKey,
+                  {
+                    storyId: storyItem.id,
+                    ...(storyItem.slot ? { slot: storyItem.slot } : {}),
+                  },
+                );
+              } catch (err) {
+                console.warn(
+                  `[processIgStory] addStoryToHighlight failed for ${storyItem.id}:`,
+                  err instanceof Error ? err.message : err,
+                );
+              }
+            }
           } else if (result.dryRun > 0) {
             // Dry-run mode — mark as queued so it retries when creds are set
             await processIgStoryDeps.updateStoryStatus(storyItem.id, "queued", {

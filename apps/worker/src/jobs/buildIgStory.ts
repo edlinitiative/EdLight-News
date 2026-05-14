@@ -317,12 +317,16 @@ export async function buildIgStory(): Promise<BuildIgStoryResult> {
       storyFeatures = pickStoryFeatures(present, SITE_URL);
     }
 
-    // Insert into ig_story_queue
+    // Insert into ig_story_queue. Tag with slot="summary" so the
+    // cold-start cap counter (scheduleIgStoryFrames) recognises this
+    // as the recap slot and the dashboard can group it consistently.
     await igStoryQueueRepo.createStoryQueueItem({
       dateKey,
       status: "queued" as IGStoryQueueStatus,
       sourceItemIds,
       payload,
+      slot: "summary",
+      addToHighlight: true,
       ...(storyFeatures ? { storyFeatures } : {}),
     });
 

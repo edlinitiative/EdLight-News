@@ -758,16 +758,41 @@ export interface IGStoryPayload {
   dateLabel: string;
 }
 
+/**
+ * Cold-start story slot tag.
+ *
+ *  - `midday_poll`     12:00 — binary poll on today's taux
+ *  - `afternoon_quiz`  15:00 — quiz / fact poll
+ *  - `summary_recap`   20:30 — daily recap (taux + facts + headlines)
+ *  - `summary`         legacy daily-summary tag (kept for back-compat)
+ *
+ * Per-post story echoes (published inline by `processIgScheduled`) are
+ * not persisted in `ig_story_queue` so they have no slot.
+ */
+export type IGStoryQueueSlot =
+  | "midday_poll"
+  | "afternoon_quiz"
+  | "summary_recap"
+  | "summary";
+
 /** Firestore collection: ig_story_queue */
 export interface IGStoryQueueItem {
   id: string;
-  /** ISO date key YYYY-MM-DD — one story per day */
+  /** ISO date key YYYY-MM-DD — multiple stories per day allowed (one per slot) */
   dateKey: string;
   status: IGStoryQueueStatus;
   /** Source item IDs included in the summary */
   sourceItemIds: string[];
   igMediaId?: string;
   payload?: IGStoryPayload;
+  /** Cold-start slot tag — enforces one story per slot per day. */
+  slot?: IGStoryQueueSlot;
+  /**
+   * If true, the worker logs `igStoryHighlightCandidate` after a successful
+   * publish so the operator (or a future Graph API endpoint) can add the
+   * frame to a daily Highlights reel.
+   */
+  addToHighlight?: boolean;
   /**
    * Optional sticker overlays attached at publish time (P4 followup).
    * All fields are best-effort: the publisher silently skips any sticker

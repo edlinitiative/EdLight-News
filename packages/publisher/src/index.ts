@@ -466,6 +466,73 @@ function buildDryRunStickerAttempts(
   return out.length ? out : undefined;
 }
 
+// ── Story Highlights ──────────────────────────────────────────────────────
+
+export interface IGStoryHighlightResult {
+  /** True when we recorded the candidate (always true today). */
+  recorded: boolean;
+  /** True when the call was a no-op because Graph API support is missing. */
+  apiUnsupported: boolean;
+  /** True when no IG credentials are configured (full dry-run). */
+  dryRun: boolean;
+  reason?: string;
+}
+
+/**
+ * Add a published Story to a daily "Today" Highlights reel.
+ *
+ * Meta's public Instagram Graph API does **not** currently expose a
+ * highlight-add endpoint for business accounts. Rather than half-implement
+ * via the deprecated Mobile API (which Meta actively breaks), this helper
+ * always emits a structured `igStoryHighlightCandidate` log line that the
+ * social-team operator can pick up to add the story manually each evening.
+ *
+ * If/when Meta ships a Graph endpoint, swap the body for the API call \u2014
+ * callers don't need to change.
+ *
+ * @param mediaId  IG media ID returned by `publishIgStory`
+ * @param highlightLabel  human-readable highlight name (e.g. "2026-05-14")
+ * @param meta  optional context for the operator log (slot, topic, etc.)
+ */
+export async function addStoryToHighlight(
+  mediaId: string,
+  highlightLabel: string,
+  meta?: Record<string, string>,
+): Promise<IGStoryHighlightResult> {
+  const creds = getIGCredentials();
+  const payload = {
+    event: "igStoryHighlightCandidate",
+    mediaId,
+    highlightLabel,
+    ...(meta ?? {}),
+  };
+
+  if (!creds) {
+    console.log(
+      `[publisher] ${JSON.stringify({ ...payload, dryRun: true })}`,
+    );
+    return {
+      recorded: true,
+      apiUnsupported: false,
+      dryRun: true,
+      reason: "no-credentials",
+    };
+  }
+
+  // Public Graph API does not expose highlight-add today. Emit a
+  // structured log so the operator can hand-add via the IG mobile app
+  // and the dashboard can count pending candidates.
+  console.log(
+    `[publisher] ${JSON.stringify({ ...payload, apiUnsupported: true })}`,
+  );
+  return {
+    recorded: true,
+    apiUnsupported: true,
+    dryRun: false,
+    reason: "ig-graph-api-unsupported",
+  };
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // ── WhatsApp Business API publishing ────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
