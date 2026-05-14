@@ -8,19 +8,19 @@
  */
 
 import { thQueueRepo } from "@edlight-news/firebase";
+import { isColdStartMode, logColdStartBootOnce } from "../services/coldStart.js";
 
 const HAITI_TZ = "America/Port-au-Prince";
 
-/** Maximum Threads posts per day. Raised from 6 → 12 (P1.2). */
-const DAILY_CAP = 12;
+/** Scale-mode Threads cap. @internal exported for tests */
+export const DAILY_CAP_SCALE = 12;
+/** Cold-start Threads cap (4/day). @internal exported for tests */
+export const DAILY_CAP_COLD_START = 4;
 
-/**
- * Threads posting slots (Haiti local time).
- * Cadence raised from 6 → 12 slots per day so we capture more of the
- * Threads algorithm's volume reward. Slots avoid the 23:00–05:30 quiet
- * window enforced below.
- */
-const SLOTS = [
+/** Scale-mode Threads slots (Haiti local time).
+ *  12 slots—avoids the 23:00–05:30 quiet window enforced below.
+ *  @internal exported for tests */
+export const SLOTS_SCALE = [
   { hour: 7, minute: 30 },
   { hour: 9, minute: 0 },
   { hour: 10, minute: 30 },
@@ -34,6 +34,23 @@ const SLOTS = [
   { hour: 21, minute: 0 },
   { hour: 22, minute: 0 },
 ];
+
+/** Cold-start Threads slots — 4 evenly-spaced posts per day.
+ *  @internal exported for tests */
+export const SLOTS_COLD_START = [
+  { hour: 8, minute: 0 },
+  { hour: 12, minute: 0 },
+  { hour: 16, minute: 0 },
+  { hour: 20, minute: 0 },
+];
+
+/** Active cap, resolved at call time so tests can flip COLD_START_MODE. */
+export function activeDailyCap(): number {
+  return isColdStartMode() ? DAILY_CAP_COLD_START : DAILY_CAP_SCALE;
+}
+export function activeSlots(): typeof SLOTS_SCALE {
+  return isColdStartMode() ? SLOTS_COLD_START : SLOTS_SCALE;
+}
 
 /**
  * Quiet hours window (Haiti local time) — no scheduling between 23:00 and 05:30.
@@ -55,9 +72,10 @@ export function _isInQuietHoursForTest(hour: number, minute: number): boolean {
   return isInQuietHours(hour, minute);
 }
 
-/** Exported for unit tests (P1.2). */
-export const _SLOTS_FOR_TEST = SLOTS;
-export const _DAILY_CAP_FOR_TEST = DAILY_CAP;
+/** Exported for unit tests (P1.2) — returns the **scale-mode** slot list
+ *  for back-compat with existing tests asserting cadence at the default. */
+export const _SLOTS_FOR_TEST = SLOTS_SCALE;
+export const _DAILY_CAP_FOR_TEST = DAILY_CAP_SCALE;
 
 function toHaitiDate(date: Date): Date {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -93,7 +111,7 @@ function getNextAvailableSlot(takenSlotISOs: Set<string>): Date | null {
   const haitiDay = haitiNow.getUTCDate();
 
   for (let dayOffset = 0; dayOffset <= 1; dayOffset++) {
-    for (const slot of SLOTS) {
+    for (const slot of activeSlots()) {
       // Skip slots inside the quiet window (defense in depth).
       if (isInQuietHours(slot.hour, slot.minute)) continue;
       if (dayOffset === 0) {
@@ -148,16 +166,18 @@ export async function scheduleThPost(): Promise<ScheduleThPostResult> {
   const result: ScheduleThPostResult = { scheduled: 0, skippedCap: 0 };
 
   try {
+    logColdStartBootOnce();
+    const dailyCap = activeDailyCap();
     const sentToday = await thQueueRepo.countSentToday();
     const scheduledToday = await thQueueRepo.countScheduledToday();
     const totalToday = sentToday + scheduledToday;
 
-    if (totalToday >= DAILY_CAP) {
-      console.log(`[scheduleThPost] Daily cap reached (${totalToday}/${DAILY_CAP})`);
+    if (totalToday >= dailyCap) {
+      console.log(`[scheduleThPost] Daily cap reached (${totalToday}/${dailyCap})`);
       return result;
     }
 
-    const remaining = DAILY_CAP - totalToday;
+    const remaining = dailyCap - totalToday;
 
     const queued = await thQueueRepo.listQueuedByScore(remaining);
     if (queued.length === 0) {

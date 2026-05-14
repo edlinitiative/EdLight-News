@@ -24,6 +24,23 @@ import { ensureOpportunityBackground } from "../services/geminiImageGen.js";
 import { selectImageForIG } from "../services/igImagePipeline.js";
 import { toSocialInput } from "../services/socialInput.js";
 import { pickHashtagsIg, type SocialHashtagTopic } from "../services/hashtags.js";
+import { isColdStartMode, logColdStartBootOnce } from "../services/coldStart.js";
+
+/**
+ * Cold-start raises the per-item score floor by +10. The intent is that
+ * during the early-growth phase only the strongest items reach the queue —
+ * weaker fillers are deferred. Staple types (taux/utility/histoire) bypass
+ * this gate because their daily-cadence guarantee is more important than
+ * their score (they're often the only item of their type in queue).
+ *
+ * @internal exported for tests
+ */
+export const COLD_START_SCORE_BONUS = 10;
+const COLD_START_BYPASS_TYPES: ReadonlySet<string> = new Set([
+  "taux",
+  "utility",
+  "histoire",
+]);
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://news.edlight.org";
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
@@ -207,6 +224,8 @@ export interface BuildIgQueueResult {
 }
 
 export async function buildIgQueue(): Promise<BuildIgQueueResult> {
+  logColdStartBootOnce();
+  const coldStart = isColdStartMode();
   const result: BuildIgQueueResult = {
     evaluated: 0,
     queued: 0,
@@ -379,8 +398,30 @@ export async function buildIgQueue(): Promise<BuildIgQueueResult> {
         }
 
         if (!decision.igEligible || !decision.igType) {
-          // Do NOT write a "skipped" Firestore entry — that burns quota on every tick.
+          // Do NOT write a "skipped" Firestore entry -- that burns quota on every tick.
           // The item will be re-evaluated next tick (still fast via the batch Set check).
+          result.skipped++;
+          continue;
+        }
+
+        // Cold-start: raise the per-item score floor by +COLD_START_SCORE_BONUS
+        // so weaker items defer until we exit cold-start. Staples bypass the
+        // gate (they are guaranteed-cadence and may be the only item of their
+        // type in queue on any given day).
+        if (
+          coldStart &&
+          !COLD_START_BYPASS_TYPES.has(decision.igType) &&
+          (decision.igPriorityScore ?? 0) < COLD_START_SCORE_BONUS
+        ) {
+          console.log(
+            JSON.stringify({
+              event: "coldStartScoreFloor",
+              itemId: item.id,
+              igType: decision.igType,
+              score: decision.igPriorityScore ?? 0,
+              floor: COLD_START_SCORE_BONUS,
+            }),
+          );
           result.skipped++;
           continue;
         }

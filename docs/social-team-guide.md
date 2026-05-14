@@ -3,6 +3,14 @@
 A practical guide for the EdLight social team to read, debug, and tune the
 auto-distribution pipeline (FB, Instagram, Threads, X, WhatsApp).
 
+> ⚠️ **Cold-start mode active?** When `COLD_START_MODE=true` on the worker
+> the cadences in this doc are overridden by a much smaller schedule
+> (2 IG / 1 FB / 4 Threads / 2 X / 1 WhatsApp per day). The growth
+> features (hashtag rotation, cross-platform CTAs, story stickers,
+> metrics feedback) are also OFF. **Read [docs/content-calendar.md](content-calendar.md)
+> first** — it is the source of truth during cold-start. Exit when IG
+> followers ≥ 500.
+
 ## 1. The dashboard
 
 `/admin/social-metrics` (Next.js admin app) is the single pane of glass.

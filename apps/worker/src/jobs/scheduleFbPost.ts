@@ -19,17 +19,21 @@
 
 import { fbQueueRepo, getDb } from "@edlight-news/firebase";
 import type { FbQueueItem, Item } from "@edlight-news/types";
+import { isColdStartMode, logColdStartBootOnce } from "../services/coldStart.js";
 
-/** Maximum FB posts per day (increased from 8). */
-const DAILY_CAP = 13;
+/** Scale-mode FB cap (high cadence). @internal exported for tests */
+export const DAILY_CAP_SCALE = 13;
+/** Cold-start FB cap (1/day). @internal exported for tests */
+export const DAILY_CAP_COLD_START = 1;
 
 /** Maximum scholarship posts per day. */
 const SCHOLARSHIP_DAILY_CAP = 3;
 
-/** Facebook posting slots (Haiti local time America/Port-au-Prince).
+/** Facebook posting slots — scale mode (Haiti local time).
  *  13 slots spread 7am–7pm (1-hour spacing for Haiti sleep patterns).
  *  Urgent news (hurricane, earthquake, etc.) can use extended slots up to 11pm. */
-const SLOTS = [
+/** @internal exported for tests */
+export const SLOTS_SCALE = [
   { hour: 7, minute: 0 },
   { hour: 8, minute: 0 },
   { hour: 9, minute: 0 },
@@ -44,6 +48,20 @@ const SLOTS = [
   { hour: 18, minute: 0 },
   { hour: 19, minute: 0 },
 ];
+
+/** Cold-start FB slot — single midday post (Haiti local time).
+ *  @internal exported for tests */
+export const SLOTS_COLD_START = [
+  { hour: 12, minute: 0 },
+];
+
+/** Active cap, resolved at call time so tests can flip COLD_START_MODE. */
+export function activeDailyCap(): number {
+  return isColdStartMode() ? DAILY_CAP_COLD_START : DAILY_CAP_SCALE;
+}
+export function activeSlots(): typeof SLOTS_SCALE {
+  return isColdStartMode() ? SLOTS_COLD_START : SLOTS_SCALE;
+}
 
 /** Extended slots for urgent news (hurricane, earthquake, etc.).
  *  Allows posting up to 11pm if critical breaking news. */
@@ -121,8 +139,13 @@ function getNextAvailableSlot(
   const haitiNow = toHaitiDate(now);
   const haitiToday = new Date(haitiNow.getFullYear(), haitiNow.getMonth(), haitiNow.getDate());
 
-  // Use extended slots for urgent news, otherwise stick to normal slots
-  const slotsToUse = isUrgent ? [...SLOTS, ...EXTENDED_SLOTS] : SLOTS;
+  // Use extended slots for urgent news, otherwise stick to normal slots.
+  // In cold-start mode the single midday slot stays put — extended slots
+  // are not appended (we don't want urgent FB posts at 23:00 with 2 followers).
+  const baseSlots = activeSlots();
+  const slotsToUse = isUrgent && !isColdStartMode()
+    ? [...baseSlots, ...EXTENDED_SLOTS]
+    : baseSlots;
 
   for (const slot of slotsToUse) {
     const candidate = new Date(
@@ -319,16 +342,18 @@ export async function scheduleFbPost(): Promise<ScheduleFbPostResult> {
   };
 
   try {
+    logColdStartBootOnce();
+    const dailyCap = activeDailyCap();
     const sentToday = await fbQueueRepo.countSentToday();
     const scheduledToday = await fbQueueRepo.countScheduledToday();
     const totalToday = sentToday + scheduledToday;
 
-    if (totalToday >= DAILY_CAP) {
-      console.log(`[scheduleFbPost] Daily cap reached (${totalToday}/${DAILY_CAP})`);
+    if (totalToday >= dailyCap) {
+      console.log(`[scheduleFbPost] Daily cap reached (${totalToday}/${dailyCap})`);
       return result;
     }
 
-    const remaining = DAILY_CAP - totalToday;
+    const remaining = dailyCap - totalToday;
 
     const queued = await fbQueueRepo.listQueuedByScore(remaining * 3); // overfetch so dedup has options
     if (queued.length === 0) {

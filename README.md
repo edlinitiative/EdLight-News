@@ -3,6 +3,8 @@
 Automated content factory for Haitian students — scholarships, news, opportunities, and resources in French + Haitian Creole.
 
 > **Social distribution docs:** see
+> [docs/content-calendar.md](./docs/content-calendar.md) for the per-day /
+> per-platform posting calendar (and the cold-start vs scale mode rules),
 > [docs/SOCIAL_GROWTH_CHANGELOG.md](./docs/SOCIAL_GROWTH_CHANGELOG.md) for the
 > rolling list of feature flags, and [docs/social-team-guide.md](./docs/social-team-guide.md)
 > for the social team's operational playbook (dashboard, A/B variants,

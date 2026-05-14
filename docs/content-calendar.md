@@ -1,0 +1,184 @@
+# Cold-Start Content Calendar
+
+> **Audience:** EdLight social team, on-call operator.
+> **Status:** v1 — accompanies the `feat/cold-start-mode` PR.
+
+EdLight runs in two cadence modes. Which one is active is controlled by a
+single env flag on the Cloud Run worker:
+
+| Flag                         | Cold-start | Scale |
+| ---------------------------- | :--------: | :---: |
+| `COLD_START_MODE`            | `true`     | `false` _(default)_ |
+| `HASHTAG_ROTATION`           | `false`    | `true` |
+| `WA_IG_CTA`                  | `false`    | `true` |
+| `FB_WA_CTA`                  | `false`    | `true` |
+| `IG_STORY_FEATURES`          | `false`    | `true` |
+| `SOCIAL_METRICS_FEEDBACK`    | `false`    | `true` |
+| `FB_LINK_IN_COMMENT`         | `true`     | `true` |
+| `TH_LINK_REPLY`              | `true`     | `true` |
+| `X_MEDIA_UPLOAD`             | `true`     | `true` |
+| `IG_DIASPORA_HOURS`          | `true`     | `true` |
+
+The four "universal" flags at the bottom stay on in **both** modes — they
+are platform-format choices, not growth experiments. Use the helper script
+to flip everything atomically:
+
+```bash
+scripts/rollout-followup.sh --mode=cold-start    # engage
+scripts/rollout-followup.sh --mode=scale         # exit
+```
+
+---
+
+## Why cold-start?
+
+When IG follower count is low (< ~500), the algorithmic surface (Reels,
+Explore, hashtag pages) returns near-zero discovery. Posting 10×/day in
+that environment burns editorial calories with no measurable lift while
+training the audience to expect filler. Cold-start cuts cadence to the
+**bare minimum that builds a daily habit**:
+
+- Same morning anchor every day (the **taux du jour**).
+- Same evening rhythm by weekday (rotating high-signal categories).
+- No filler, no FOMO posts, no cross-platform CTAs that lead to empty
+  channels.
+
+The goal during cold-start is to **earn the first 500 followers**, after
+which we re-enable the growth flags and resume the day-1/2/3 rollout.
+
+---
+
+## Per-platform cadence
+
+| Platform | Scale cap (per day) | Cold-start cap | Cold-start slots (Haiti time) |
+| -------- | ------------------: | -------------: | ----------------------------- |
+| IG carousel | 8 (10 urgent) | **2**         | 07:00 (taux), 18:00 (weekday) |
+| IG Story    | ~8 (1 / carousel)  | **≤ 2** _(naturally bounded by IG cap)_ | piggybacks on carousel publish |
+| Facebook    | 13                | **1**         | 12:00                         |
+| Threads     | 12                | **4**         | 08:00, 12:00, 16:00, 20:00    |
+| X (Twitter) | 15                | **2**         | 09:00, 18:00                  |
+| WhatsApp    | 8                 | **1**         | 10:00                         |
+| **Daily total** | **~57** | **10**       | — |
+
+> **Why the asymmetry?** Threads and X are still in growth mode for
+> EdLight too, but their algorithms reward _consistency over volume_, so
+> we keep 2-4 slots/day there. IG and FB collapse hardest because that's
+> where the follower-zero penalty bites hardest.
+
+---
+
+## IG weekly evening rotation
+
+The 18:00 slot is **pinned by Haiti-local weekday**. Order is preference
+order — if the first category has nothing in queue, the scheduler falls
+through. Final fallback is `scholarship` (the cold-start growth driver),
+then top-scoring item of any type.
+
+| Day | First choice | Second choice |
+| --- | ------------ | ------------- |
+| Sun | news (weekly recap) | histoire |
+| Mon | scholarship  | — |
+| Tue | utility (daily fact) | — |
+| Wed | scholarship  | — |
+| Thu | histoire     | — |
+| Fri | scholarship  | — |
+| Sat | histoire     | utility (fact) |
+
+Three Mon/Wed/Fri scholarship slots is intentional: scholarships are the
+single highest-converting content type for follower acquisition in Haiti.
+
+Each evening pick logs an `igSlotSelection` event with the chosen weekday,
+preference list, and final type — search Cloud Logging for that to verify
+the calendar is firing as expected.
+
+---
+
+## IG Story plan
+
+In cold-start mode IG Stories piggyback on each carousel publish (the
+existing per-post story system in `processIgScheduled`). With only 2
+carousels per day, the realistic story volume is **2–4 frames/day**.
+
+The `buildPollStoryFromTopic` module (added in this PR) provides 9
+ready-made poll templates across `taux`, `scholarship`, and `general`
+topics for a future per-slot story scheduler. It rotates deterministically
+by Haiti dateKey — same date always picks the same template, so operators
+can preview tomorrow's poll by querying with the future date.
+
+> **Future work:** A dedicated per-slot story scheduler with 5 distinct
+> times (07:30, 10:00, 13:00, 17:00, 19:30) is planned for the post-500
+> phase. The poll builder above is the v1 building block.
+
+---
+
+## What NOT to post during cold-start
+
+- ❌ Cross-platform CTAs ("Follow us on WhatsApp / Threads / …"). The
+  destination channels are also at low follower counts; the CTA both
+  fails to convert AND signals "we're empty over there too".
+- ❌ Hashtag-rotation experiments. The rotation service tunes itself
+  against engagement signals we don't have yet.
+- ❌ Story stickers (polls/links/sliders) on under-watched stories — the
+  IG sticker analytics are noisy below ~50 viewers/story.
+- ❌ Filler "did you know" posts that aren't part of the locked weekly
+  rotation. Every post must earn its slot during cold-start.
+
+---
+
+## Exit criteria
+
+Exit cold-start when **all** of the following hold for ≥ 7 consecutive
+days:
+
+1. IG follower count ≥ **500**.
+2. Median IG carousel reach ≥ **300** (proxy for algorithmic surfacing).
+3. At least one inbound DM or Story reply per day (any platform).
+4. No taux / histoire / utility staple has been missed in the last 7
+   days (check `STAPLE WATCHDOG` warnings in Cloud Logging — there
+   should be zero).
+
+When ready:
+
+```bash
+scripts/rollout-followup.sh --mode=scale
+```
+
+Then watch the social-metrics dashboard for 24h before running
+`--day=1`, `--day=2`, `--day=3` to re-engage the growth features.
+
+---
+
+## Manual seeding playbook
+
+During the first 30 days of cold-start the editorial team should hand-pick
+content that the auto-scorer might rank too low to surface on its own:
+
+1. **Mondays:** confirm at least one **scholarship** with a deadline in
+   the next 21 days is queued by 09:00 Haiti time. If none, pull a
+   high-prestige opportunity from the manual backlog and admin-push it.
+2. **Tuesdays:** verify a fresh **fait du jour** (utility) was generated
+   overnight. If not, rerun the daily-fact builder.
+3. **Sundays:** review the past week's `igSlotSelection` logs for any
+   slot that fell through to "any" — that's a queue-thinness signal.
+
+The scheduler will never post junk just to fill a slot — an empty slot is
+preferred over a sub-threshold post in cold-start mode. The score floor
+is raised by +10 globally in cold-start (see `COLD_START_SCORE_BONUS` in
+`apps/worker/src/jobs/buildIgQueue.ts`).
+
+---
+
+## Operational checks
+
+- **Cold Run worker logs** (filter `event=coldStartModeActive`) — should
+  emit exactly once per worker boot when the flag is on. If you see this
+  event after running `--mode=scale`, the deployment hasn't picked up the
+  new env yet; force a new revision.
+- **`event=igSlotSelection`** — one per IG tick that schedules the
+  evening slot. Verify `chosenType` matches the calendar above.
+- **`event=igMorningSelection`** — emitted when the morning taux slot
+  has no candidate (taux generator failed). Investigate upstream.
+- **`event=coldStartScoreFloor`** — emitted per item rejected by the +10
+  cold-start score bump. Healthy: ~30-50/day. If 0, the floor isn't
+  doing anything (queue is too thin); if > 200/day, the threshold is too
+  aggressive — file a tuning issue.
