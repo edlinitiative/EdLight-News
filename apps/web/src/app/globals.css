@@ -18,13 +18,18 @@
   --error: #93000a;
   --error-container: #ffdad6;
 
+  --ed-surface: #fff8f5;
+  --ed-surface-dim: #e8e1de;
+  --ed-surface-bright: #fff8f5;
   --ed-surface-container-lowest: #ffffff;
   --ed-surface-container-low: #f9f2f0;
   --ed-surface-container: #f5f0ee;
   --ed-surface-container-high: #ede8e6;
+  --ed-surface-container-highest: #e7e2e0;
   --ed-on-surface: #1d1b1a;
   --ed-on-surface-variant: #464555;
   --ed-outline: #c7c4d8;
+  --outline-variant: #c7c4d8;
 }
 
 .dark {
@@ -42,13 +47,18 @@
   --error: #ffb4ab;
   --error-container: #690005;
 
+  --ed-surface: #141210;
+  --ed-surface-dim: #0f0d0c;
+  --ed-surface-bright: #34302e;
   --ed-surface-container-lowest: #0f0d0c;
   --ed-surface-container-low: #1a1817;
   --ed-surface-container: #1e1c1b;
   --ed-surface-container-high: #292725;
+  --ed-surface-container-highest: #34302e;
   --ed-on-surface: #e7e1df;
   --ed-on-surface-variant: #b8b3b8;
   --ed-outline: #49454f;
+  --outline-variant: #49454f;
 }
 
 /* ── Smooth page enter ──────────────────────────────────────────── */
