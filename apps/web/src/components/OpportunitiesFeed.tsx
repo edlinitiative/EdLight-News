@@ -68,6 +68,59 @@ const EXPIRED_FILTER_CHIPS: { key: string; fr: string; ht: string }[] = [
   { key: "show",   fr: "Afficher expirés",   ht: "Montre ekspire" },
 ];
 
+// ── Wider-taxonomy chip labels (v3) ─────────────────────────────────────────
+// These render in the FiltersDrawer only when the underlying field is
+// populated on at least one item — keeping the UI clean for legacy items
+// that haven't been re-classified yet.
+const KIND_LABELS: Record<string, { fr: string; ht: string }> = {
+  scholarship:           { fr: "Bourse",                ht: "Bous" },
+  fellowship:            { fr: "Fellowship",            ht: "Felowship" },
+  grant:                 { fr: "Subvention / grant",    ht: "Sibvansyon" },
+  travel_grant:          { fr: "Bourse de voyage",      ht: "Bous vwayaj" },
+  internship:            { fr: "Stage",                 ht: "Estaj" },
+  apprenticeship:        { fr: "Alternance",            ht: "Altèrnans" },
+  competition:           { fr: "Concours",              ht: "Konkou" },
+  hackathon:             { fr: "Hackathon",             ht: "Hackathon" },
+  essay_contest:         { fr: "Concours d'écriture",   ht: "Konkou ekriti" },
+  award:                 { fr: "Prix / award",          ht: "Prim" },
+  startup_program:       { fr: "Programme startup",     ht: "Pwogram startup" },
+  incubator:             { fr: "Incubateur",            ht: "Inkibatè" },
+  accelerator:           { fr: "Accélérateur",          ht: "Akseleratè" },
+  leadership_program:    { fr: "Leadership",            ht: "Lidèchip" },
+  exchange_program:      { fr: "Échange",               ht: "Echanj" },
+  volunteer_program:     { fr: "Volontariat",           ht: "Volontarya" },
+  research_program:      { fr: "Recherche",             ht: "Rechèch" },
+  training:              { fr: "Formation",             ht: "Fòmasyon" },
+  bootcamp:              { fr: "Bootcamp",              ht: "Bootcamp" },
+  conference:            { fr: "Conférence",            ht: "Konferans" },
+  mentorship:            { fr: "Mentorat",              ht: "Mantora" },
+  youth_delegation:      { fr: "Délégation jeunes",     ht: "Delegasyon jèn" },
+  call_for_applications: { fr: "Appel à candidatures",  ht: "Apèl kandida" },
+};
+
+const AUDIENCE_LABELS: Record<string, { fr: string; ht: string }> = {
+  high_school:        { fr: "Lycée",               ht: "Lise" },
+  university:         { fr: "Université",          ht: "Inivèsite" },
+  young_professional: { fr: "Jeune professionnel", ht: "Jèn pwofesyonèl" },
+  entrepreneur:       { fr: "Entrepreneur",        ht: "Antreprenè" },
+  ngo:                { fr: "ONG",                 ht: "ONG" },
+  teacher:            { fr: "Enseignant",          ht: "Pwofesè" },
+  researcher:         { fr: "Chercheur",           ht: "Chèrchè" },
+};
+
+const FUNDING_LABELS: Record<string, { fr: string; ht: string }> = {
+  fully_funded:      { fr: "100% financé",        ht: "Finanse 100%" },
+  partially_funded:  { fr: "Partiellement financé", ht: "Finanse an pati" },
+  paid:              { fr: "Rémunéré",             ht: "Peye" },
+  free:              { fr: "Gratuit",              ht: "Gratis" },
+};
+
+const LIFECYCLE_LABELS: Record<string, { fr: string; ht: string }> = {
+  open:          { fr: "Ouvert",         ht: "Louvri" },
+  deadline_soon: { fr: "Bientôt clôturé", ht: "Pre fini" },
+  expired:       { fr: "Expiré",         ht: "Ekspire" },
+};
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export interface OpportunitiesFeedProps {
@@ -100,6 +153,11 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
   const subcategoryFilter = searchParams.get("subcategory") ?? "all";
   const deadlineFilter = searchParams.get("deadline") ?? "all";
   const expiredFilter = searchParams.get("expired") ?? "hide";
+  // Wider taxonomy filters (v3) — "all" when not set.
+  const kindFilter = searchParams.get("kind") ?? "all";
+  const audienceFilter = searchParams.get("audience") ?? "all";
+  const fundingFilter = searchParams.get("funding") ?? "all";
+  const lifecycleFilter = searchParams.get("lifecycle") ?? "all";
   const sortMode: SortMode = (["deadline", "latest", "relevance"].includes(searchParams.get("sort") ?? "")
     ? searchParams.get("sort") as SortMode
     : "relevance");
@@ -112,7 +170,9 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
         (key === "subcategory" && value === "all") ||
         (key === "sort" && value === "relevance") ||
         (key === "deadline" && value === "all") ||
-        (key === "expired" && value === "hide")
+        (key === "expired" && value === "hide") ||
+        ((key === "kind" || key === "audience" || key === "funding" || key === "lifecycle") &&
+          value === "all")
       ) {
         params.delete(key);
       } else {
@@ -175,6 +235,47 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       }));
   }, [enriched, lang]);
 
+  // ── Wider taxonomy option lists (v3) ───────────────────────────────────
+  // Counts only items where the field was inferred. Hidden entirely when 0.
+  const buildTaxonomyOptions = (
+    pick: (e: (typeof enriched)[number]) => string | string[] | undefined,
+    labels: Record<string, { fr: string; ht: string }>,
+  ) => {
+    const counts: Record<string, number> = {};
+    for (const e of enriched) {
+      const v = pick(e);
+      if (!v) continue;
+      const values = Array.isArray(v) ? v : [v];
+      for (const k of values) {
+        if (!k) continue;
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, n]) => ({
+        key,
+        label: `${labels[key] ? (fr ? labels[key].fr : labels[key].ht) : key} (${n})`,
+      }));
+  };
+
+  const kindOptions = useMemo(
+    () => buildTaxonomyOptions((e) => e.article.opportunity?.kind, KIND_LABELS),
+    [enriched, fr],
+  );
+  const audienceOptions = useMemo(
+    () => buildTaxonomyOptions((e) => e.article.opportunity?.audience, AUDIENCE_LABELS),
+    [enriched, fr],
+  );
+  const fundingOptions = useMemo(
+    () => buildTaxonomyOptions((e) => e.article.opportunity?.fundingType, FUNDING_LABELS),
+    [enriched, fr],
+  );
+  const lifecycleOptions = useMemo(
+    () => buildTaxonomyOptions((e) => e.article.opportunity?.lifecycle, LIFECYCLE_LABELS),
+    [enriched, fr],
+  );
+
   // ── Filtering ───────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let items = enriched;
@@ -194,6 +295,22 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
     // Expired filter
     if (expiredFilter !== "show") {
       items = items.filter((e) => !e.deadlineStatus.isExpired);
+    }
+
+    // Wider-taxonomy filters (v3)
+    if (kindFilter !== "all") {
+      items = items.filter((e) => e.article.opportunity?.kind === kindFilter);
+    }
+    if (audienceFilter !== "all") {
+      items = items.filter((e) =>
+        e.article.opportunity?.audience?.includes(audienceFilter) ?? false,
+      );
+    }
+    if (fundingFilter !== "all") {
+      items = items.filter((e) => e.article.opportunity?.fundingType === fundingFilter);
+    }
+    if (lifecycleFilter !== "all") {
+      items = items.filter((e) => e.article.opportunity?.lifecycle === lifecycleFilter);
     }
 
     // Saved-only filter
@@ -240,15 +357,22 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
     });
 
     return items;
-  }, [enriched, subcategoryFilter, deadlineFilter, expiredFilter, sortMode, showSavedOnly, savedIds]);
+  }, [enriched, subcategoryFilter, deadlineFilter, expiredFilter, kindFilter, audienceFilter, fundingFilter, lifecycleFilter, sortMode, showSavedOnly, savedIds]);
 
   const savedCount = savedIds.size;
 
   // ── Drawer filter count (filters inside the drawer) ─────────────────────
   const drawerFilterCount = useMemo(
     () =>
-      [deadlineFilter !== "all", expiredFilter !== "hide"].filter(Boolean).length,
-    [deadlineFilter, expiredFilter],
+      [
+        deadlineFilter !== "all",
+        expiredFilter !== "hide",
+        kindFilter !== "all",
+        audienceFilter !== "all",
+        fundingFilter !== "all",
+        lifecycleFilter !== "all",
+      ].filter(Boolean).length,
+    [deadlineFilter, expiredFilter, kindFilter, audienceFilter, fundingFilter, lifecycleFilter],
   );
 
   // ── Active filter chips ─────────────────────────────────────────────────
@@ -274,6 +398,34 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
         label: fr ? "Expirés visibles" : "Ekspire vizib",
       });
     }
+    if (kindFilter !== "all") {
+      const kl = KIND_LABELS[kindFilter];
+      out.push({
+        key: "kind",
+        label: `${fr ? "Type" : "Tip"}: ${kl ? (fr ? kl.fr : kl.ht) : kindFilter}`,
+      });
+    }
+    if (audienceFilter !== "all") {
+      const al = AUDIENCE_LABELS[audienceFilter];
+      out.push({
+        key: "audience",
+        label: `${fr ? "Public" : "Piblik"}: ${al ? (fr ? al.fr : al.ht) : audienceFilter}`,
+      });
+    }
+    if (fundingFilter !== "all") {
+      const fl = FUNDING_LABELS[fundingFilter];
+      out.push({
+        key: "funding",
+        label: `${fr ? "Financement" : "Finansman"}: ${fl ? (fr ? fl.fr : fl.ht) : fundingFilter}`,
+      });
+    }
+    if (lifecycleFilter !== "all") {
+      const ll = LIFECYCLE_LABELS[lifecycleFilter];
+      out.push({
+        key: "lifecycle",
+        label: `${fr ? "Statut" : "Estati"}: ${ll ? (fr ? ll.fr : ll.ht) : lifecycleFilter}`,
+      });
+    }
     if (sortMode !== "relevance") {
       const sortLabels: Record<string, { fr: string; ht: string }> = {
         deadline: { fr: "Deadline proche", ht: "Dat limit pi pre" },
@@ -288,31 +440,78 @@ export function OpportunitiesFeed({ articles, lang }: OpportunitiesFeedProps) {
       }
     }
     return out;
-  }, [subcategoryFilter, deadlineFilter, expiredFilter, sortMode, fr]);
+  }, [subcategoryFilter, deadlineFilter, expiredFilter, kindFilter, audienceFilter, fundingFilter, lifecycleFilter, sortMode, fr]);
 
   // ── Drawer filter groups ────────────────────────────────────────────────
   const drawerGroups = useMemo<FilterGroup[]>(
-    () => [
-      {
-        paramKey: "deadline",
-        title: "Deadline",
-        options: DEADLINE_FILTER_CHIPS.map((c) => ({
-          key: c.key,
-          label: fr ? c.fr : c.ht,
-        })),
-        activeValue: deadlineFilter,
-      },
-      {
-        paramKey: "expired",
-        title: fr ? "Expirés" : "Ekspire",
-        options: EXPIRED_FILTER_CHIPS.map((c) => ({
-          key: c.key,
-          label: fr ? c.fr : c.ht,
-        })),
-        activeValue: expiredFilter,
-      },
+    () => {
+      const groups: FilterGroup[] = [
+        {
+          paramKey: "deadline",
+          title: "Deadline",
+          options: DEADLINE_FILTER_CHIPS.map((c) => ({
+            key: c.key,
+            label: fr ? c.fr : c.ht,
+          })),
+          activeValue: deadlineFilter,
+        },
+        {
+          paramKey: "expired",
+          title: fr ? "Expirés" : "Ekspire",
+          options: EXPIRED_FILTER_CHIPS.map((c) => ({
+            key: c.key,
+            label: fr ? c.fr : c.ht,
+          })),
+          activeValue: expiredFilter,
+        },
+      ];
+      if (kindOptions.length > 0) {
+        groups.push({
+          paramKey: "kind",
+          title: fr ? "Type d'opportunité" : "Tip opotinite",
+          options: kindOptions,
+          activeValue: kindFilter,
+        });
+      }
+      if (audienceOptions.length > 0) {
+        groups.push({
+          paramKey: "audience",
+          title: fr ? "Public ciblé" : "Piblik vize",
+          options: audienceOptions,
+          activeValue: audienceFilter,
+        });
+      }
+      if (fundingOptions.length > 0) {
+        groups.push({
+          paramKey: "funding",
+          title: fr ? "Financement" : "Finansman",
+          options: fundingOptions,
+          activeValue: fundingFilter,
+        });
+      }
+      if (lifecycleOptions.length > 0) {
+        groups.push({
+          paramKey: "lifecycle",
+          title: fr ? "Statut" : "Estati",
+          options: lifecycleOptions,
+          activeValue: lifecycleFilter,
+        });
+      }
+      return groups;
+    },
+    [
+      fr,
+      deadlineFilter,
+      expiredFilter,
+      kindFilter,
+      audienceFilter,
+      fundingFilter,
+      lifecycleFilter,
+      kindOptions,
+      audienceOptions,
+      fundingOptions,
+      lifecycleOptions,
     ],
-    [fr, deadlineFilter, expiredFilter],
   );
 
   return (

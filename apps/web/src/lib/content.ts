@@ -152,6 +152,27 @@ export function enrichArticles(
         vertical: item?.vertical,
         deadline: item?.deadline,
         opportunityScore: item?.opportunityScore,
+        // Pass the full structured opportunity payload (kind / audience /
+        // funding / lifecycle / etc.) to the client so /opportunites can
+        // expose fine-grained filters without re-running the classifier.
+        opportunity: item?.opportunity
+          ? {
+              deadline: item.opportunity.deadline,
+              kind: item.opportunity.kind,
+              audience: item.opportunity.audience,
+              fundingType: item.opportunity.fundingType,
+              locationType: item.opportunity.locationType,
+              haitiEligible: item.opportunity.haitiEligible,
+              eligibleRegions: item.opportunity.eligibleRegions,
+              lifecycle: item.opportunity.lifecycle,
+              trustTier: item.opportunity.trustTier,
+              eligibility: item.opportunity.eligibility,
+              coverage: item.opportunity.coverage,
+              howToApply: item.opportunity.howToApply,
+              officialLink: item.opportunity.officialLink,
+              applicationSteps: item.opportunity.applicationSteps,
+            }
+          : undefined,
         publishedAt,
         // image fields
         imageUrl: item?.imageUrl ?? null,

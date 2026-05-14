@@ -101,13 +101,45 @@ export interface ItemSource {
   aggregatorUrl?: string;
 }
 
-/** Structured opportunity data (for Bourses / Ressources) */
+/** Structured opportunity data (for Bourses / Ressources)
+ *
+ *  All fields are optional and additive — older Items without these
+ *  enrichments keep working unchanged. The wider taxonomy fields
+ *  (kind, audience, fundingType, locationType, haitiEligible, lifecycle,
+ *  trustTier, applicationSteps) are populated by the deterministic
+ *  classifier (`apps/worker/src/services/classify.ts` + the inference
+ *  helpers in `@edlight-news/generator/opportunityTaxonomy`). They power
+ *  the /opportunites filter UI and the admin review queue without
+ *  requiring a new Firestore collection — the broad `category` enum on
+ *  the Item still acts as the index key.
+ */
 export interface Opportunity {
   deadline?: string; // ISO date string
   eligibility?: string[];
   coverage?: string;
   howToApply?: string;
   officialLink?: string;
+
+  // ── Wider taxonomy (v3 — additive, all optional) ─────────────────────
+  /** Fine-grained opportunity kind (22 possible values — see
+   *  `OpportunityKind` in @edlight-news/generator). */
+  kind?: string;
+  /** Audiences this opportunity targets (multi-label). */
+  audience?: string[];
+  /** "fully_funded" | "partially_funded" | "paid" | "free" | "unclear" */
+  fundingType?: string;
+  /** "online" | "in_person" | "hybrid" | "unclear" */
+  locationType?: string;
+  /** "yes" | "no" | "unclear" — does the eligibility text accept Haiti? */
+  haitiEligible?: string;
+  /** Free-form ISO list of regions / countries open to applicants. */
+  eligibleRegions?: string[];
+  /** Computed deadline-driven status — refreshed at read time too. */
+  lifecycle?: string;
+  /** Source provenance tier — "official" | "aggregator" | "media" | "social". */
+  trustTier?: string;
+  /** Ordered application walkthrough steps (when extractable from text). */
+  applicationSteps?: string[];
 }
 
 // ── Synthesis types ────────────────────────────────────────────────────────
