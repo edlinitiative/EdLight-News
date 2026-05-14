@@ -103,6 +103,7 @@ export type {
   IGQueueItem,
   // Instagram Stories types
   IGStoryQueueStatus,
+  IGStoryQueueSlot,
   IGStorySlide,
   IGStoryPayload,
   IGStoryQueueItem,
@@ -229,6 +230,7 @@ export {
   createIGQueueItemSchema,
   // Instagram Stories schemas
   igStoryQueueStatusSchema,
+  igStoryQueueSlotSchema,
   igStorySlideSchema,
   igStoryPayloadSchema,
   igStoryQueueItemSchema,

@@ -262,6 +262,14 @@
       ]
     },
     {
+      "collectionGroup": "ig_story_queue",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "dateKey", "order": "ASCENDING" },
+        { "fieldPath": "slot", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "fb_queue",
       "queryScope": "COLLECTION",
       "fields": [

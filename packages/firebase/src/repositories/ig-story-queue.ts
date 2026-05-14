@@ -31,6 +31,46 @@ export async function getByDateKey(dateKey: string): Promise<IGStoryQueueItem | 
   return { id: doc.id, ...doc.data() } as IGStoryQueueItem;
 }
 
+/** Return ALL story-queue items for a given Haiti dateKey (any slot). */
+export async function listByDateKey(dateKey: string): Promise<IGStoryQueueItem[]> {
+  const snap = await collection()
+    .where("dateKey", "==", dateKey)
+    .get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as IGStoryQueueItem);
+}
+
+/**
+ * Count story-queue items for a given dateKey, optionally filtered by status.
+ * Used by `scheduleIgStoryFrames` to enforce the cold-start daily cap.
+ */
+export async function countByDateKey(
+  dateKey: string,
+  statuses?: readonly IGStoryQueueStatus[],
+): Promise<number> {
+  let query = collection().where("dateKey", "==", dateKey);
+  if (statuses && statuses.length > 0) {
+    query = query.where("status", "in", statuses as IGStoryQueueStatus[]);
+  }
+  const snap = await query.count().get();
+  return snap.data().count;
+}
+
+/**
+ * True iff a story-queue item already exists for (dateKey, slot).
+ * Used to make slot-fill jobs idempotent across ticks.
+ */
+export async function existsForSlot(
+  dateKey: string,
+  slot: NonNullable<IGStoryQueueItem["slot"]>,
+): Promise<boolean> {
+  const snap = await collection()
+    .where("dateKey", "==", dateKey)
+    .where("slot", "==", slot)
+    .limit(1)
+    .get();
+  return !snap.empty;
+}
+
 export async function listByStatus(
   status: IGStoryQueueStatus,
   limit = 10,

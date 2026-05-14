@@ -1084,6 +1084,19 @@ export const igStoryPayloadSchema = z.object({
   dateLabel: z.string().min(1),
 });
 
+/**
+ * Cold-start story slot tags. Used by `scheduleIgStoryFrames` to enforce one
+ * story per slot per day. Legacy summary stories (built by `buildIgStory`)
+ * use `"summary"`. Per-post echoes published inline by `processIgScheduled`
+ * are NOT persisted in this collection so they have no slot.
+ */
+export const igStoryQueueSlotSchema = z.enum([
+  "midday_poll",
+  "afternoon_quiz",
+  "summary_recap",
+  "summary", // back-compat with the legacy daily summary
+]);
+
 export const igStoryQueueItemSchema = z.object({
   id: z.string().min(1),
   dateKey: z.string().min(1),
@@ -1091,6 +1104,16 @@ export const igStoryQueueItemSchema = z.object({
   sourceItemIds: z.array(z.string()),
   igMediaId: z.string().optional(),
   payload: igStoryPayloadSchema.optional(),
+  /** Optional cold-start slot tag — see `igStoryQueueSlotSchema`. */
+  slot: igStoryQueueSlotSchema.optional(),
+  /**
+   * If true, after a successful publish the worker emits a structured
+   * `igStoryHighlightCandidate` log so the operator (or a future Meta
+   * Graph endpoint) can pin the frame to a daily Highlights reel.
+   * Adding to Highlights is NOT supported by the public IG Graph API
+   * today — the log is the integration point.
+   */
+  addToHighlight: z.boolean().optional(),
   storyFeatures: z
     .object({
       linkUrl: z.string().url().optional(),

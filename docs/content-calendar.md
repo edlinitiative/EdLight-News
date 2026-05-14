@@ -53,11 +53,73 @@ which we re-enable the growth flags and resume the day-1/2/3 rollout.
 | Platform | Scale cap (per day) | Cold-start cap | Cold-start slots (Haiti time) |
 | -------- | ------------------: | -------------: | ----------------------------- |
 | IG carousel | 8 (10 urgent) | **2**         | 07:00 (taux), 18:00 (weekday) |
-| IG Story    | ~8 (1 / carousel)  | **≤ 2** _(naturally bounded by IG cap)_ | piggybacks on carousel publish |
+| IG Story    | summary only (1)   | **5**         | 07:30 echo, 12:00 poll, 15:00 quiz, 18:30 echo, 20:30 recap |
 | Facebook    | 13                | **1**         | 12:00                         |
 | Threads     | 12                | **4**         | 08:00, 12:00, 16:00, 20:00    |
 | X (Twitter) | 15                | **2**         | 09:00, 18:00                  |
 | WhatsApp    | 8                 | **1**         | 10:00                         |
+
+### IG Story strategy (cold-start, 5 frames/day)
+
+IG Stories are the highest-leverage surface for follower growth: poll
+sticker taps and story replies feed directly into the Reach Accounts →
+Followers loop. Cold-start ships **5 frames/day** assembled from three
+sources:
+
+| Slot (Haiti) | Frame type      | Source job                          | Sticker     |
+| ------------ | --------------- | ----------------------------------- | ----------- |
+| 07:30        | morning echo    | `processIgScheduled` (per-post)     | link        |
+| **12:00**    | midday poll     | `scheduleIgStoryFrames` → `buildPollStoryFromTopic("taux")`     | poll (A/B)  |
+| **15:00**    | afternoon quiz  | `scheduleIgStoryFrames` → `buildPollStoryFromTopic("general")`  | poll (A/B)  |
+| 18:30        | evening echo    | `processIgScheduled` (per-post)     | link        |
+| **20:30**    | summary recap   | `scheduleIgStoryFrames` → `buildIgStory` | question |
+
+The two echoes (07:30, 18:30) are published inline by `processIgScheduled`
+the moment the matching carousel goes out. The three bold rows are filled
+by the new `scheduleIgStoryFrames` job, which is a **no-op in scale mode**
+and runs every tick (every 5 min) in cold-start.
+
+**Idempotency** — each slot is gated by `igStoryQueueRepo.existsForSlot`,
+and a hard `STORY_DAILY_CAP_COLD_START = 5` cap is enforced across the
+union of all `ig_story_queue` rows for the day, so a misfire or overlap
+between echo + summary can never overshoot.
+
+**Poll templates** — `buildPollStoryFromTopic` deterministically rotates
+through 9 templates (3 topics × 3 templates) keyed by `(topic, dateKey)`.
+Same date + same topic = same template, so re-runs of the same tick are
+safe and the operator can preview tomorrow's question by bumping the
+date.
+
+### Story Highlights — daily "Today" reel
+
+Every cold-start story row carries `addToHighlight: true`. After
+`processIgStory` publishes the frame, it calls
+`addStoryToHighlight(mediaId, dateKey)` which emits a structured
+`igStoryHighlightCandidate` log line. The operator picks these up each
+evening (or via a future Cloud Logging sink) and hand-adds them to the
+day's "Today" Highlights reel via the IG mobile app.
+
+> **Why manual?** Meta's public Instagram Graph API does **not** expose a
+> highlight-add endpoint for business accounts. The
+> [`addStoryToHighlight`](../packages/publisher/src/index.ts) helper is
+> wired so the moment Meta ships the endpoint we can flip the body
+> without touching callers.
+
+The pending-candidate log shape:
+
+```json
+{
+  "event": "igStoryHighlightCandidate",
+  "mediaId": "17900000000000000",
+  "highlightLabel": "2026-05-14",
+  "storyId": "abc123",
+  "slot": "midday_poll",
+  "apiUnsupported": true
+}
+```
+
+Filter Cloud Logging with `jsonPayload.event="igStoryHighlightCandidate"`
+to get the day's add-to-highlight queue.
 | **Daily total** | **~57** | **10**       | — |
 
 > **Why the asymmetry?** Threads and X are still in growth mode for

@@ -11,6 +11,7 @@ import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { buildIgTaux } from "../jobs/buildIgTaux.js";
 import { buildIgStory } from "../jobs/buildIgStory.js";
+import { scheduleIgStoryFrames } from "../jobs/scheduleIgStoryFrames.js";
 import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
 import { processIgScheduled } from "../jobs/processIgScheduled.js";
 import { processIgStory } from "../jobs/processIgStory.js";
@@ -234,6 +235,18 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
 
     // ── Phase C: Build + post story (gated on staples being posted) ─
+    // Cold-start mode: fill the 3 dedicated story slots (12:00 poll,
+    // 15:00 quiz, 20:30 recap). Idempotent + cap-gated. In scale mode
+    // this is a no-op and the legacy buildIgStory path runs as before.
+    let storyFramesResult: any = { scheduled: 0, skipped: [], coldStart: false };
+    try {
+      storyFramesResult = await scheduleIgStoryFrames();
+    } catch (err) {
+      console.error("[tick] scheduleIgStoryFrames error:", err);
+      storyFramesResult = { error: String(err) };
+    }
+    (igResult as any).storyFrames = storyFramesResult;
+
     try {
       igResult.story = await buildIgStory();
     } catch (err) {
