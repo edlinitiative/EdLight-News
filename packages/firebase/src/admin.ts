@@ -45,7 +45,20 @@ export function getDb(): Firestore {
     // is wired in before the gRPC channel can be created.
     // gRPC breaks in serverless (Vercel/Node 18+/OpenSSL 3) with:
     //   "DECODER routines::unsupported"
-    db = initializeFirestore(getApp(), { preferRest: true });
+    //
+    // `ignoreUndefinedProperties: true` makes the SDK silently drop fields
+    // whose value is `undefined` instead of throwing
+    //   `Cannot use "undefined" as a Firestore value`.
+    // This used to crash buildFbQueue/buildThQueue whenever an item had
+    // no imageUrl. Adapters (socialToFbPayload, socialToThPayload) still
+    // set imageUrl on the payload object — with this flag they become
+    // safe writes.
+    db = initializeFirestore(getApp(), {
+      preferRest: true,
+      // `ignoreUndefinedProperties` is supported at runtime but is missing
+      // from the FirestoreSettings type — we cast to bypass.
+      ignoreUndefinedProperties: true,
+    } as Parameters<typeof initializeFirestore>[1]);
   }
   return db;
 }
