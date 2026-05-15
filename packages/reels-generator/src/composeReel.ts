@@ -16,6 +16,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 import type { ReelScript } from "./generateReelScript.js";
 import type { ReelTemplate, ReelTopic } from "./types.js";
 import type { CaptionWord, ResolvedClip } from "./templates/types.js";
@@ -79,11 +80,36 @@ export async function composeReel(
   await fs.mkdir(outDir, { recursive: true });
   const outputPath = path.join(outDir, "reel.mp4");
 
-  const entry =
-    input.remotionEntry ??
-    // Default — assumes the consumer installs this package and points Remotion
-    // at our Root via their own entrypoint. If they don't, they pass remotionEntry.
-    path.resolve(process.cwd(), "node_modules/@edlight-news/reels-generator/dist/templates/Root.js");
+  // Resolve the Remotion entry. Prefer the caller-supplied path. Otherwise
+  // locate `templates/Root.js` relative to THIS compiled module so the lookup
+  // works regardless of cwd or whether @edlight-news/reels-generator is
+  // symlinked into the consumer's node_modules.
+  //
+  // composeReel.js sits at <pkg>/dist/composeReel.js, so Root.js is
+  // <pkg>/dist/templates/Root.js — one directory below us.
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    input.remotionEntry,
+    path.join(moduleDir, "templates", "Root.js"),
+    path.resolve(process.cwd(), "node_modules/@edlight-news/reels-generator/dist/templates/Root.js"),
+    path.resolve(process.cwd(), "packages/reels-generator/dist/templates/Root.js"),
+  ].filter((p): p is string => Boolean(p));
+
+  let entry: string | undefined;
+  for (const c of candidates) {
+    try {
+      await fs.access(c);
+      entry = c;
+      break;
+    } catch {
+      // try next
+    }
+  }
+  if (!entry) {
+    throw new Error(
+      `composeReel: could not locate Remotion entry Root.js. Tried: ${candidates.join(", ")}. Did the templates build (tsc -p tsconfig.templates.json) run?`,
+    );
+  }
 
   // Bundle the React tree once. Remotion caches webpack output between calls.
   const bundleLocation = await bundle(entry);
