@@ -16,6 +16,8 @@ on:
       - "packages/renderer/**"
       - "packages/scraper/**"
       - "packages/publisher/**"
+      - "packages/sandra-voice/**"
+      - "packages/reels-generator/**"
       - "packages/types/**"
       - "tsconfig.base.json"
       - "infra/firebase/firestore.indexes.json"

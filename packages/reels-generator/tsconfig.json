@@ -7,10 +7,15 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "jsx": "react-jsx",
-    "lib": ["ES2023", "DOM"],
-    "types": ["node", "react"]
+    "lib": ["ES2023"],
+    "types": ["node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["**/*.test.ts", "**/*.test.tsx", "dist", "node_modules"]
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/templates/**/*.tsx",
+    "dist",
+    "node_modules"
+  ]
 }

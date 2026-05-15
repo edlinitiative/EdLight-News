@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist/templates",
+    "rootDir": "./src/templates",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2023", "DOM"],
+    "types": ["node", "react"]
+  },
+  "include": ["src/templates/**/*"],
+  "exclude": ["dist", "node_modules"]
+}

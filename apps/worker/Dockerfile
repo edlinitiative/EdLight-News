@@ -33,6 +33,8 @@ COPY packages/scraper/package.json packages/scraper/package.json
 COPY packages/generator/package.json packages/generator/package.json
 COPY packages/renderer/package.json packages/renderer/package.json
 COPY packages/publisher/package.json packages/publisher/package.json
+COPY packages/sandra-voice/package.json packages/sandra-voice/package.json
+COPY packages/reels-generator/package.json packages/reels-generator/package.json
 COPY apps/worker/package.json apps/worker/package.json
 RUN pnpm install --frozen-lockfile
 
