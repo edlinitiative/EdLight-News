@@ -25,9 +25,17 @@ import {
   lacksScholarshipEvidence,
 } from "../services/classify.js";
 import { pickHashtags } from "../services/hashtags.js";
+import { verifyOpportunityClassification } from "../services/verifyOpportunityClassification.js";
+import { getDb } from "@edlight-news/firebase";
 
 /** Feature flag — when "true", try the social v2 generator before legacy composer. */
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
+
+/** Feature flag — DeepSeek second-pass verification of opportunity-tagged items. */
+const VERIFY_OPPORTUNITIES = process.env.VERIFY_OPPORTUNITIES !== "false";
+
+/** Per-tick cap on DeepSeek verification calls. */
+const MAX_VERIFICATIONS_PER_RUN = 30;
 
 const HAITI_TZ = "America/Port-au-Prince";
 
@@ -117,12 +125,13 @@ function topicForSocial(item: Item): SocialTopic {
 }
 
 /**
- * Scoring heuristic for Threads eligibility.
+ * Scoring heuristic for Threads eligibility. Topic is passed in so the
+ * caller can override after a DeepSeek verification demotion (see
+ * verifyOpportunityClassification).
  */
-function scoreForTh(item: Item): number {
+function scoreForTh(item: Item, topic: SocialTopic = topicForSocial(item)): number {
   let score = 0;
 
-  const topic = topicForSocial(item);
   // Lead the feed with opportunities. Threads has higher organic reach
   // for short link posts, so a strong opportunity bias here pays off.
   if (topic === "scholarship") score += 70;
@@ -333,16 +342,18 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
     }
 
     let newItemsQueued = 0;
+    let verificationsUsed = 0;
 
     const scoredItems = items
       .map((item) => ({ item, score: scoreForTh(item) }))
       .filter((si) => si.score >= MIN_SCORE_THRESHOLD)
       .sort((a, b) => b.score - a.score);
 
-    for (const { item, score } of scoredItems) {
+    for (const { item, score: initialScore } of scoredItems) {
       if (newItemsQueued >= MAX_NEW_ITEMS_PER_RUN) break;
 
       result.evaluated++;
+      let score = initialScore;
 
       try {
         if (existingSourceIds.has(item.id)) {
@@ -360,6 +371,44 @@ export async function buildThQueue(): Promise<BuildThQueueResult> {
         ) {
           result.skipped++;
           continue;
+        }
+
+        // ── DeepSeek verification gate ────────────────────────────────────
+        // Only opportunity-tagged items reach this branch with a score high
+        // enough to lead the feed. Verify with DeepSeek that they are real
+        // callable opportunities — demote to news if they are mislabelled
+        // general news (e.g. an Iran/US "accord" that the keyword tagger
+        // flagged as `programmes`). Demoted items are rescored as news;
+        // most fall below MIN_SCORE_THRESHOLD and drop out of the queue.
+        const initialTopic = topicForSocial(item);
+        if (
+          VERIFY_OPPORTUNITIES &&
+          (initialTopic === "opportunity" || initialTopic === "scholarship") &&
+          verificationsUsed < MAX_VERIFICATIONS_PER_RUN
+        ) {
+          verificationsUsed++;
+          const verdict = await verifyOpportunityClassification(
+            {
+              itemId: item.id,
+              title: item.title ?? "",
+              summary:
+                (item as unknown as { summary?: string }).summary ??
+                item.extractedText?.slice(0, 1500),
+              originalTopic: initialTopic,
+            },
+            getDb(),
+          );
+          if (verdict.demoted) {
+            console.log(
+              `[buildThQueue] DeepSeek demoted ${item.id} from ${initialTopic} → ${verdict.finalTopic} ` +
+                `(label=${verdict.verifiedLabel}, conf=${verdict.confidence.toFixed(2)}): ${verdict.reason}`,
+            );
+            score = scoreForTh(item, verdict.finalTopic);
+            if (score < MIN_SCORE_THRESHOLD) {
+              result.skipped++;
+              continue;
+            }
+          }
         }
 
         const composed = await composeThMessage(item);
