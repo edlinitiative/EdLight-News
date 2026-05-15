@@ -429,7 +429,8 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
       error: msg,
     });
     result.errors++;
-    result.skipped = `build-failed:${msg.slice(0, 80)}`;
+    // Keep enough detail to debug ENOENT-style errors that include a path.
+    result.skipped = `build-failed:${msg.slice(0, 400)}`;
     return result;
   }
 
