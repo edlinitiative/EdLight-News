@@ -17,6 +17,7 @@ import React from "react";
 import {
   AbsoluteFill,
   Img,
+  OffthreadVideo,
   interpolate,
   useCurrentFrame,
   useVideoConfig,
@@ -52,22 +53,41 @@ export const HeadlinePhotoTemplate: React.FC<HeadlinePhotoTemplateProps> = ({
   const headlineOpacity = interpolate(frame, [0, 12], [0, 1], { extrapolateRight: "clamp" });
 
   const imageUrl = heroImageUrl ?? clips[0]?.url;
+  // Stock clips from Pexels are MP4 videos; explicit hero photos are images.
+  // Use OffthreadVideo for video URLs (Remotion's <Img> rejects video MIME).
+  const isVideo = !!imageUrl && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(imageUrl);
 
   return (
     <AbsoluteFill style={{ backgroundColor: palette.primary }}>
       {imageUrl ? (
-        <Img
-          src={imageUrl}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transform: `scale(${zoom})`,
-            transformOrigin: "center 40%",
-          }}
-        />
+        isVideo ? (
+          <OffthreadVideo
+            src={imageUrl}
+            muted
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: `scale(${zoom})`,
+              transformOrigin: "center 40%",
+            }}
+          />
+        ) : (
+          <Img
+            src={imageUrl}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: `scale(${zoom})`,
+              transformOrigin: "center 40%",
+            }}
+          />
+        )
       ) : null}
       {/* Bottom-half gradient — guarantees headline contrast over any photo. */}
       <div
