@@ -6,15 +6,12 @@ export * from "./types.js";
 export * from "./brand.js";
 export { pickTemplate, TEMPLATE_PREFERENCE } from "./pickTemplate.js";
 
-// Templates are exported but consumers will mostly hit `buildReel` / `composeReel`.
-export { BigStatisticTemplate } from "./templates/BigStatisticTemplate.js";
-export { PullQuoteTemplate } from "./templates/PullQuoteTemplate.js";
-export { HeadlinePhotoTemplate } from "./templates/HeadlinePhotoTemplate.js";
-export { NumberedPointsTemplate } from "./templates/NumberedPointsTemplate.js";
-export { IntroCard } from "./templates/IntroCard.js";
-export { OutroCard } from "./templates/OutroCard.js";
-export { Captions } from "./templates/Captions.js";
-export { RemotionRoot } from "./templates/Root.js";
+// Note: React/Remotion templates (templates/*.tsx) are built separately via
+// `tsconfig.templates.json` only when Remotion peer deps are installed. They
+// are NOT re-exported here so this package can be consumed by the Node-only
+// worker without `@types/react` / `remotion`. Consumers that render reels
+// (a dedicated Remotion bundler entrypoint) import them via the
+// `@edlight-news/reels-generator/templates/*` subpath.
 export type {
   BaseTemplateProps,
   CaptionWord,
