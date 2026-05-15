@@ -2,29 +2,38 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { SANDRA_VOICE, speakAsSandra } from "./index.js";
 
-test("SANDRA_VOICE has stable defaults", () => {
-  assert.equal(SANDRA_VOICE.format, "mp3");
-  assert.ok(SANDRA_VOICE.model.length > 0);
+test("SANDRA_VOICE has stable Google Cloud TTS defaults", () => {
+  assert.equal(SANDRA_VOICE.audioEncoding, "MP3");
   assert.ok(SANDRA_VOICE.voice.length > 0);
-  assert.ok(SANDRA_VOICE.speed > 0 && SANDRA_VOICE.speed <= 4);
+  assert.ok(SANDRA_VOICE.languageCode.includes("-"));
+  assert.ok(SANDRA_VOICE.speakingRate > 0 && SANDRA_VOICE.speakingRate <= 4);
+  assert.ok(SANDRA_VOICE.pitch >= -20 && SANDRA_VOICE.pitch <= 20);
 });
 
 test("speakAsSandra rejects empty input", async () => {
   await assert.rejects(
-    () => speakAsSandra("", { apiKey: "sk-test" }),
+    () => speakAsSandra("", { apiKey: "test-key" }),
     /empty text/i,
   );
 });
 
-test("speakAsSandra rejects when no API key is available", async () => {
-  const original = process.env.OPENAI_API_KEY;
-  delete process.env.OPENAI_API_KEY;
+test("speakAsSandra rejects when no Google API key is available", async () => {
+  const originals = {
+    GOOGLE_TTS_API_KEY: process.env.GOOGLE_TTS_API_KEY,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    GOOGLE_VISION_API_KEY: process.env.GOOGLE_VISION_API_KEY,
+  };
+  delete process.env.GOOGLE_TTS_API_KEY;
+  delete process.env.GOOGLE_API_KEY;
+  delete process.env.GOOGLE_VISION_API_KEY;
   try {
     await assert.rejects(
       () => speakAsSandra("Bonjou! Sandra la."),
-      /OPENAI_API_KEY/,
+      /Google TTS API key/,
     );
   } finally {
-    if (original !== undefined) process.env.OPENAI_API_KEY = original;
+    for (const [k, v] of Object.entries(originals)) {
+      if (v !== undefined) process.env[k] = v;
+    }
   }
 });

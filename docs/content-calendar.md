@@ -255,7 +255,7 @@ is raised by +10 globally in cold-start (see `COLD_START_SCORE_BONUS` in
 
 Hard caps:
 
-- **$1.00 / day** combined LLM + TTS + Whisper cost (`REELS_DAILY_COST_CEILING_USD`).
+- **$1.00 / day** combined LLM + TTS + STT cost (`REELS_DAILY_COST_CEILING_USD`).
 - **30 s** body, plus 1.2 s intro + 1.5 s outro.
 - **No auto-publish** — every Reel goes through `/admin/reels-pending` for human
   approval and manual posting from the IG app (so trending audio can be picked
