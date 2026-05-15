@@ -1,8 +1,11 @@
 FROM node:20-slim AS base
 
-# Install Chromium for Playwright-based image rendering
+# Install Chromium for Playwright-based image rendering, plus ffmpeg for
+# Reels audio mux (composeReel runs `ffmpeg -i video -i audio ... output.mp4`
+# after Remotion produces the silent video).
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
+    ffmpeg \
     fonts-liberation \
     libnspr4 \
     libnss3 \

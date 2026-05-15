@@ -50,6 +50,8 @@ const PRICE_PER_MILLION_CHARS: Record<string, number> = {
 function inferVoiceTier(voiceName: string): string {
   const lower = voiceName.toLowerCase();
   if (lower.includes("studio")) return "studio";
+  // Chirp HD / Chirp 3 — must come before generic 'chirp' check.
+  if (lower.includes("chirp3") || lower.includes("chirp-hd") || lower.includes("chirp_hd")) return "chirp";
   if (lower.includes("neural2")) return "neural2";
   if (lower.includes("wavenet")) return "wavenet";
   if (lower.includes("polyglot")) return "polyglot";
