@@ -104,7 +104,7 @@ export interface ReelArtifact {
   }>;
   durationSec: number;
   videoBytes: number;
-  voiceModel: string;
+  voiceTier: string;
   voiceVoice: string;
   cost: ReelCostBreakdown;
   metrics: ReelMetrics;
