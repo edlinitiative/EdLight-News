@@ -1,5 +1,5 @@
 import { Timestamp } from "firebase-admin/firestore";
-import { rawItemsRepo, itemsRepo, sourcesRepo } from "@edlight-news/firebase";
+import { rawItemsRepo, itemsRepo, sourcesRepo, getDb } from "@edlight-news/firebase";
 import { extractArticleContent, parseGoogleNewsTitle, isBotProtectionPage } from "@edlight-news/scraper";
 import type { QualityFlags } from "@edlight-news/types";
 import {
@@ -10,6 +10,8 @@ import {
 } from "./scoring.js";
 import { classifyItem } from "./classify.js";
 import { mirrorPublisherImage } from "./mirrorPublisherImage.js";
+import { verifyOpportunityClassification } from "./verifyOpportunityClassification.js";
+import { FieldValue } from "firebase-admin/firestore";
 
 /** Max raw_items to process per tick (article extraction can be slow) */
 const BATCH_LIMIT = parseInt(process.env.PROCESS_BATCH_LIMIT ?? "25", 10);
@@ -205,6 +207,52 @@ export async function processRawItems(): Promise<{
             }
           : {}),
       });
+
+      // ── DeepSeek verifier gate ───────────────────────────────────────
+      // The deterministic classifier above is keyword-based and routinely
+      // tags general news as opportunities (any article mentioning "accord",
+      // "programme", "lance", etc). Before this item appears on /opportunites,
+      // ask DeepSeek whether it's truly actionable. If not, strip the
+      // opportunity fields so the website filter (vertical=="opportunites")
+      // skips it. Results cache per-item so repeated ticks are free.
+      if (classification.isOpportunity) {
+        try {
+          const originalTopic =
+            classification.category === "bourses" ||
+            classification.category === "scholarship"
+              ? "scholarship"
+              : "opportunity";
+          const verdict = await verifyOpportunityClassification(
+            {
+              itemId: item.id,
+              title,
+              summary: summary || extractedText?.slice(0, 1500) || "",
+              originalTopic,
+            },
+            getDb(),
+          );
+          if (verdict.demoted) {
+            console.log(
+              `[process] verifier demoted item ${item.id}: ${verdict.verifiedLabel} (conf=${verdict.confidence.toFixed(2)}) — ${verdict.reason}`,
+            );
+            await itemsRepo.updateItem(item.id, {
+              vertical: FieldValue.delete() as unknown as undefined,
+              category: "news",
+              opportunity: FieldValue.delete() as unknown as undefined,
+              opportunityDemotedAt: new Date(),
+              opportunityDemotedReason: verdict.reason.slice(0, 280),
+              opportunityDemotedLabel: verdict.verifiedLabel,
+              opportunityDemotedConfidence: verdict.confidence,
+              opportunityDemotedBy: "deepseek-inline-process",
+            } as Record<string, unknown>);
+          }
+        } catch (err) {
+          console.warn(
+            `[process] verifier error for ${item.id}, keeping classification:`,
+            err instanceof Error ? err.message : err,
+          );
+        }
+      }
 
       await rawItemsRepo.markProcessed(raw.id);
       processed++;
