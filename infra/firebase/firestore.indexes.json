@@ -286,6 +286,14 @@
       ]
     },
     {
+      "collectionGroup": "wa_queue",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "scheduledFor", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "th_queue",
       "queryScope": "COLLECTION",
       "fields": [
