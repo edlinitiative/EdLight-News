@@ -96,6 +96,13 @@ export async function composeReel(
   const totalFrames = MOTION.intro.durationFrames + bodyFrames + MOTION.outro.durationFrames;
   const durationSec = totalFrames / FRAME.fps;
 
+  // Reuse the system Chromium that the worker container already installs for
+  // Playwright. Avoids Remotion downloading its own ~150MB Chrome on cold start.
+  const chromiumExecutablePath =
+    process.env.PLAYWRIGHT_CHROMIUM_PATH ||
+    process.env.REMOTION_CHROME_EXECUTABLE ||
+    undefined;
+
   // Resolve clips into the simpler shape templates expect.
   const resolvedClips: ResolvedClip[] = input.clips.map((c) => ({
     url: c.url,
@@ -121,6 +128,7 @@ export async function composeReel(
     serveUrl: bundleLocation,
     id: compositionId,
     inputProps,
+    ...(chromiumExecutablePath ? { browserExecutable: chromiumExecutablePath } : {}),
   });
 
   // Override durationInFrames so each render matches the actual voiceover length.
@@ -132,6 +140,7 @@ export async function composeReel(
     outputLocation: outputPath,
     inputProps,
     audioBitrate: "192k",
+    ...(chromiumExecutablePath ? { browserExecutable: chromiumExecutablePath } : {}),
     // Mux the voiceover via Remotion's audioFile if supported, otherwise the
     // template <Audio> tag handles it. We pass it via inputProps too as a
     // safety net.

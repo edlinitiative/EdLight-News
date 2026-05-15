@@ -123,6 +123,12 @@ importers:
       '@huggingface/transformers':
         specifier: ^4.0.1
         version: 4.0.1
+      '@remotion/bundler':
+        specifier: ^4.0.0
+        version: 4.0.460(@swc/helpers@0.5.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@remotion/renderer':
+        specifier: ^4.0.0
+        version: 4.0.460(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -132,6 +138,15 @@ importers:
       firebase-admin:
         specifier: ^12.1.0
         version: 12.7.0
+      react:
+        specifier: ^18.3.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.0
+        version: 18.3.1(react@18.3.1)
+      remotion:
+        specifier: ^4.0.0
+        version: 4.0.460(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       zod:
         specifier: ^3.23.8
         version: 3.25.76
@@ -142,6 +157,9 @@ importers:
       '@types/node':
         specifier: ^20.12.12
         version: 20.19.33
+      '@types/react':
+        specifier: ^18.3.0
+        version: 18.3.28
       tsx:
         specifier: ^4.11.0
         version: 4.21.0
@@ -9055,7 +9073,7 @@ snapshots:
       htmlparser2: 10.1.0
       is-plain-object: 5.0.0
       parse-srcset: 1.0.2
-      postcss: 8.5.6
+      postcss: 8.5.10
 
   sax@1.4.4: {}
 
@@ -9706,7 +9724,7 @@ snapshots:
       esbuild: 0.27.3
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
-      postcss: 8.5.6
+      postcss: 8.5.10
       rollup: 4.59.0
       tinyglobby: 0.2.15
     optionalDependencies:

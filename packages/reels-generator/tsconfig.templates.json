@@ -1,16 +1,18 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist/templates",
-    "rootDir": "./src/templates",
-    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "jsx": "react-jsx",
     "lib": ["ES2023", "DOM"],
-    "types": ["node", "react"]
+    "types": ["node", "react"],
+    // composite=false: this is a secondary build that overlays JSX templates
+    // on top of the primary Node build. Don't emit a buildinfo conflict.
+    "composite": false
   },
-  "include": ["src/templates/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "dist", "node_modules"]
 }
