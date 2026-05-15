@@ -56,10 +56,18 @@ export interface VerifyOpportunityResult {
   cached: boolean;
 }
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_BASE =
-  process.env.DEEPSEEK_API_BASE ?? "https://api.deepseek.com";
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
+// NOTE: do NOT cache these at module-load time — scripts that run dotenv
+// after import (e.g. backfillVerifyOpportunities) would see undefined here
+// and silently no-op every verification. Always read at call time.
+function getDeepSeekKey(): string | undefined {
+  return process.env.DEEPSEEK_API_KEY;
+}
+function getDeepSeekBase(): string {
+  return process.env.DEEPSEEK_API_BASE ?? "https://api.deepseek.com";
+}
+function getDeepSeekModel(): string {
+  return process.env.DEEPSEEK_MODEL ?? "deepseek-chat";
+}
 
 const AUDIT_COLLECTION = "classification_audits";
 const MIN_CONFIDENCE_TO_DEMOTE = 0.7;
@@ -126,7 +134,7 @@ export async function verifyOpportunityClassification(
   }
 
   // No DeepSeek key → no-op (caller behavior is unchanged).
-  if (!DEEPSEEK_API_KEY) {
+  if (!getDeepSeekKey()) {
     return passthrough(input);
   }
 
@@ -158,7 +166,7 @@ export async function verifyOpportunityClassification(
         reason: result.reason,
         demoted: result.demoted,
         verifiedAt: new Date(),
-        model: DEEPSEEK_MODEL,
+        model: getDeepSeekModel(),
       },
       { merge: true },
     )
@@ -234,14 +242,14 @@ async function callDeepSeek(
   const timer = setTimeout(() => ac.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const resp = await fetch(`${DEEPSEEK_API_BASE}/chat/completions`, {
+    const resp = await fetch(`${getDeepSeekBase()}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+        Authorization: `Bearer ${getDeepSeekKey()}`,
       },
       body: JSON.stringify({
-        model: DEEPSEEK_MODEL,
+        model: getDeepSeekModel(),
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
