@@ -89,11 +89,12 @@ HeadlinePhoto / NumberedPoints), and the cost / metrics / alert loop.
 | Env var | Default | Purpose |
 |---|---|---|
 | `REELS_ENABLED` | `false` | Master gate. When false, the worker logs `reelsDisabled` and the tick step is a no-op. |
-| `REELS_DAILY_COST_CEILING_USD` | `1.00` | Hard cap on combined LLM + TTS + Whisper spend per Haiti-day. Emits `reelsCostCeilingHit` when exceeded. |
+| `REELS_DAILY_COST_CEILING_USD` | `1.00` | Hard cap on combined LLM + TTS + STT spend per Haiti-day. Emits `reelsCostCeilingHit` when exceeded. |
 | `REELS_STORAGE_BUCKET` | `FIREBASE_STORAGE_BUCKET` | Cloud Storage bucket the rendered MP4 lands in (`reels/{date}/{id}.mp4`). |
 | `PEXELS_API_KEY` | _(empty → falls back to brand stock)_ | Stock-footage source for `HeadlinePhoto` / `PullQuote` backgrounds. |
 | `WIKIMEDIA_USER_AGENT` | `EdLightNewsBot/1.0` | UA for Wikimedia Commons image fetches (required by their API ToS). |
-| `SANDRA_TTS_PROVIDER` / `SANDRA_TTS_VOICE` / `SANDRA_TTS_MODEL` | provider-default | Sandra's voice configuration (consumed by `@edlight-news/sandra-voice`). |
+| `SANDRA_TTS_VOICE` / `SANDRA_TTS_LANGUAGE_CODE` / `SANDRA_TTS_SPEAKING_RATE` / `SANDRA_TTS_PITCH` | `fr-FR-Neural2-C` / `fr-FR` / `1.0` / `0.0` | Sandra's Google Cloud TTS voice configuration (consumed by `@edlight-news/sandra-voice`). |
+| `GOOGLE_TTS_API_KEY` (or fallback `GOOGLE_API_KEY` / `GOOGLE_VISION_API_KEY`) | _(reused)_ | Auth for Google Cloud Text-to-Speech (Sandra) and Speech-to-Text (captions). One Google Cloud project, one bill. |
 | `IG_USER_ID` | _(reused from publisher)_ | Required for the IG Graph API shortcode→media-id resolve in `pullSocialMetrics`. |
 | `IG_ACCESS_TOKEN` / `FB_PAGE_ACCESS_TOKEN` | _(reused)_ | Token used to call `/{ig-user-id}/media` and `/{media-id}/insights`. |
 | `REEL_COMPLETION_ALERT_THRESHOLD` | `0.30` | `monitorSocial` fires `reelPerformanceDecline` when 7-day avg `watchCompletionRate` falls below this with ≥ 5 posted Reels. |

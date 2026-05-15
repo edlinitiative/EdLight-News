@@ -85,7 +85,7 @@ Every visual constant comes from
   highlight uses `palette.secondary`).
 - **Motion**: cubic-bezier easings in `MOTION.ease`. Use `MOTION.duration.quick`
   / `normal` / `slow` for transitions (8 / 14 / 22 frames).
-- **Captions**: Whisper-aligned word-level karaoke, 7-word window, bottom 22 %
+- **Captions**: Google STT word-level karaoke, 7-word window, bottom 22 %
   of frame, dark scrim at 55 % opacity for legibility.
 - **Intro / Outro**: rendered from `IntroCard` / `OutroCard`. Always include the
   EdLight logo + Sandra avatar; never override their durations per-render.
@@ -107,7 +107,7 @@ daily by [`reelsPendingRepo.sumCostForDay()`](../packages/firebase/src/repositor
   Reel if a `pending` or `approved` Reel already exists for the day.
 - Stock footage is free (Pexels / Wikimedia / brand fallback). Render compute
   is amortized to $0 (worker CPU only).
-- LLM + TTS + Whisper are the only metered costs; full breakdown is logged in
+- LLM (Gemini) + TTS (Google) + STT (Google) are the only metered costs; full breakdown is logged in
   `cost.totalUsd` per artifact.
 
 ---

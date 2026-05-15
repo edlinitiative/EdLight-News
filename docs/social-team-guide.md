@@ -135,7 +135,7 @@ go live. The full style + voice contract is in
 ### Daily flow
 
 1. **Worker generates** — at most 1 Reel per Haiti-day, capped at $1.00 of
-   combined LLM + TTS + Whisper cost. Picks the top-scoring item from the
+   combined LLM + TTS + STT cost. Picks the top-scoring item from the
    topic preference order
    `scholarship → histoire → opportunity → taux → fact → news`.
 2. **You review** at `/admin/reels-pending`:

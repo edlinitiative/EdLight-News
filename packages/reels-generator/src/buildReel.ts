@@ -95,7 +95,7 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
 
   // ── 4. Captions ──────────────────────────────────────────────────────────
   const transcript = await runStage("transcribeForCaptions", () =>
-    transcribeForCaptions(voice.audioPath, "fr"),
+    transcribeForCaptions(voice.audioPath, "fr-FR"),
   );
 
   // ── 5. Footage ───────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
     })),
     durationSec: composed.durationSec,
     videoBytes: composed.outputBytes,
-    voiceModel: voice.model,
+    voiceTier: voice.voiceTier,
     voiceVoice: voice.voice,
     cost,
     metrics,

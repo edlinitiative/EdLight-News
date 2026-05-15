@@ -5,31 +5,51 @@
  * worker import from here so that any future voice change automatically
  * propagates to every surface where Sandra speaks.
  *
+ * Provider: **Google Cloud Text-to-Speech**.
+ * Why Google: we already use Gemini + Google Vision; one billing
+ * account; Neural2 French voices are excellent and price-competitive
+ * ($16 / 1M chars) versus OpenAI tts-1-hd ($30 / 1M).
+ *
  * Env overrides (all optional):
- *   SANDRA_TTS_MODEL  — defaults to "tts-1-hd"
- *   SANDRA_TTS_VOICE  — defaults to "nova"  (warm female, multilingual)
- *   SANDRA_TTS_SPEED  — defaults to "1.0"
+ *   SANDRA_TTS_VOICE          — defaults to "fr-FR-Neural2-C" (warm female FR)
+ *   SANDRA_TTS_LANGUAGE_CODE  — defaults to "fr-FR"
+ *   SANDRA_TTS_SPEAKING_RATE  — defaults to "1.0" (range 0.25–4.0)
+ *   SANDRA_TTS_PITCH          — defaults to "0.0" (range -20.0–20.0 semitones)
+ *   SANDRA_TTS_AUDIO_ENCODING — defaults to "MP3" (Reels needs MP3 for ffmpeg)
  *
  * If you change the defaults below, update docs/SANDRA_VOICE_PROFILE.md
  * and notify the Sandra team — this is brand-defining audio.
  */
 
-export type SandraTtsFormat = "mp3" | "opus" | "aac" | "flac" | "wav" | "pcm";
+export type SandraTtsAudioEncoding =
+  | "MP3"
+  | "OGG_OPUS"
+  | "LINEAR16"
+  | "MULAW"
+  | "ALAW";
 
 export interface SandraVoiceConfig {
-  /** OpenAI TTS model — `tts-1` (faster) or `tts-1-hd` (higher quality). */
-  readonly model: string;
-  /** OpenAI voice id. `nova` is warm, multilingual, and works for FR/Kreyòl. */
+  /**
+   * Google Cloud TTS voice name.
+   * `fr-FR-Neural2-C` = warm, mid-range female, French (France).
+   * Browse: https://cloud.google.com/text-to-speech/docs/voices
+   */
   readonly voice: string;
-  /** Playback speed multiplier (0.25 – 4.0). 1.0 = natural. */
-  readonly speed: number;
-  /** Output container/codec. Reels uses mp3 for ffmpeg compatibility. */
-  readonly format: SandraTtsFormat;
+  /** BCP-47 language code. Must match the voice region. */
+  readonly languageCode: string;
+  /** Speaking rate (0.25 – 4.0). 1.0 = natural. */
+  readonly speakingRate: number;
+  /** Pitch in semitones (-20.0 – 20.0). 0 = natural. */
+  readonly pitch: number;
+  /** Audio container/codec. Reels uses MP3 for ffmpeg compatibility. */
+  readonly audioEncoding: SandraTtsAudioEncoding;
 }
 
 export const SANDRA_VOICE: SandraVoiceConfig = Object.freeze({
-  model: process.env.SANDRA_TTS_MODEL ?? "tts-1-hd",
-  voice: process.env.SANDRA_TTS_VOICE ?? "nova",
-  speed: Number(process.env.SANDRA_TTS_SPEED ?? "1.0"),
-  format: "mp3",
+  voice: process.env.SANDRA_TTS_VOICE ?? "fr-FR-Neural2-C",
+  languageCode: process.env.SANDRA_TTS_LANGUAGE_CODE ?? "fr-FR",
+  speakingRate: Number(process.env.SANDRA_TTS_SPEAKING_RATE ?? "1.0"),
+  pitch: Number(process.env.SANDRA_TTS_PITCH ?? "0.0"),
+  audioEncoding:
+    (process.env.SANDRA_TTS_AUDIO_ENCODING as SandraTtsAudioEncoding) ?? "MP3",
 });
