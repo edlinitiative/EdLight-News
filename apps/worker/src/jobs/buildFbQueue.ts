@@ -26,9 +26,14 @@ import {
 } from "@edlight-news/generator";
 import { toSocialInput } from "../services/socialInput.js";
 import { applySocialBoostSingle } from "../services/socialBoost.js";
+import { verifyOpportunityClassification } from "../services/verifyOpportunityClassification.js";
 
 /** Feature flag — when "true", try the social v2 generator before legacy composer. */
 const SOCIAL_V2_ENABLED = process.env.SOCIAL_GENERATOR_V2 === "true";
+
+/** Feature flag — DeepSeek second-pass verifier for opportunity-tagged items. */
+const VERIFY_OPPORTUNITIES = process.env.VERIFY_OPPORTUNITIES !== "false";
+const MAX_VERIFICATIONS_PER_RUN = 30;
 
 const HAITI_TZ = "America/Port-au-Prince";
 
@@ -179,11 +184,14 @@ function topicForSocial(item: Item): SocialTopic {
   return "other";
 }
 
-function scoreForFb(item: Item): { score: number; reasons: string[] } {
+function scoreForFb(
+  item: Item,
+  topicOverride?: SocialTopic,
+): { score: number; reasons: string[] } {
   const reasons: string[] = [];
   let score = 0;
 
-  const topic = topicForSocial(item);
+  const topic = topicOverride ?? topicForSocial(item);
   // Lead the feed with opportunities. Bourses/Opportunités sit ~25 pts
   // above generic news so weak news rarely crowds out an opportunity.
   // story_only is hard-zeroed; the loop also filters it out below.
@@ -508,10 +516,14 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
       }
     }
 
-    for (const { item, cv, score, reasons } of scoredItems) {
+    let verificationsUsed = 0;
+
+    for (const { item, cv, score: initialScore, reasons: initialReasons } of scoredItems) {
       if (newItemsQueued >= MAX_NEW_ITEMS_PER_RUN) break;
 
       result.evaluated++;
+      let score = initialScore;
+      let reasons = initialReasons;
 
       try {
         if (existingSourceIds.has(item.id)) {
@@ -531,6 +543,41 @@ export async function buildFbQueue(): Promise<BuildFbQueueResult> {
         ) {
           result.skipped++;
           continue;
+        }
+
+        // ── DeepSeek verification gate ────────────────────────────────────
+        // See verifyOpportunityClassification.ts for rationale.
+        const initialTopic = topicForSocial(item);
+        if (
+          VERIFY_OPPORTUNITIES &&
+          (initialTopic === "opportunity" || initialTopic === "scholarship") &&
+          verificationsUsed < MAX_VERIFICATIONS_PER_RUN
+        ) {
+          verificationsUsed++;
+          const verdict = await verifyOpportunityClassification(
+            {
+              itemId: item.id,
+              title: item.title ?? "",
+              summary:
+                (item as unknown as { summary?: string }).summary ??
+                item.extractedText?.slice(0, 1500),
+              originalTopic: initialTopic,
+            },
+            getDb(),
+          );
+          if (verdict.demoted) {
+            console.log(
+              `[buildFbQueue] DeepSeek demoted ${item.id} from ${initialTopic} → ${verdict.finalTopic} ` +
+                `(label=${verdict.verifiedLabel}, conf=${verdict.confidence.toFixed(2)}): ${verdict.reason}`,
+            );
+            const rescored = scoreForFb(item, verdict.finalTopic);
+            score = rescored.score;
+            reasons = [...rescored.reasons, `demoted by deepseek (${verdict.verifiedLabel})`];
+            if (score < MIN_SCORE_THRESHOLD) {
+              result.skipped++;
+              continue;
+            }
+          }
         }
 
         const composed = await composeFbMessage(item, cv);
