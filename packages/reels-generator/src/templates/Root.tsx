@@ -11,7 +11,7 @@
  */
 
 import React from "react";
-import { Composition } from "remotion";
+import { Composition, registerRoot } from "remotion";
 import { FRAME, MOTION } from "../brand.js";
 import { BigStatisticTemplate } from "./BigStatisticTemplate.js";
 import { PullQuoteTemplate } from "./PullQuoteTemplate.js";
@@ -114,3 +114,7 @@ export const RemotionRoot: React.FC = () => {
     </>
   );
 };
+
+// Required by Remotion's bundle()/renderMedia(): the entry file must call
+// registerRoot() with the component that holds the <Composition> tree.
+registerRoot(RemotionRoot);
