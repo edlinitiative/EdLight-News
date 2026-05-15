@@ -269,6 +269,13 @@ async function postReelDraftToSlack(opts: {
               },
               {
                 type: "button",
+                text: { type: "plain_text", text: "⬇ Download", emoji: true },
+                // GCS honors response-content-disposition to force a download
+                // dialog instead of inline playback in the browser.
+                url: `${opts.mp4Url}${opts.mp4Url.includes("?") ? "&" : "?"}response-content-disposition=${encodeURIComponent(`attachment; filename="${opts.reelId}.mp4"`)}`,
+              },
+              {
+                type: "button",
                 text: { type: "plain_text", text: "✅ Review in admin", emoji: true },
                 url: opts.adminUrl,
               },
