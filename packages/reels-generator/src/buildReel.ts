@@ -40,6 +40,12 @@ export interface BuildReelInput {
   topic: ReelTopic;
   /** Source item driving the reel — see GenerateReelScriptInput for shape. */
   item: GenerateReelScriptInput["item"];
+  /**
+   * Optional URL of the article's own hero photo. Strongly recommended for
+   * news/opportunity items — used as the reel's background instead of
+   * generic Pexels b-roll for the `HeadlinePhoto` template.
+   */
+  imageUrl?: string;
   /** Optional context items for the LLM. */
   contextItems?: GenerateReelScriptInput["contextItems"];
   /** Day-of-week 0-6 for deterministic template rotation. Defaults to today UTC. */
@@ -88,20 +94,24 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   const scriptCostUsd = estimateScriptCost(script);
   const scriptMs = Date.now() - scriptStart;
 
-  // ── 3. Voice ─────────────────────────────────────────────────────────────
-  const voice = await runStage("synthesizeVoice", () =>
-    synthesizeVoice(script.voiceover, reelId),
-  );
+  // ── 3+5. Voice and footage in parallel ───────────────────────────────
+  // Voice synthesis (TTS network call, ~2-4s) and stock footage search
+  // (Pexels API, ~1-3s) are independent of each other once the script is
+  // ready. Running them concurrently saves the smaller of the two stages
+  // (≈30% of pre-render wall time).
+  const footageQuery = buildFootageQuery(input.topic, script);
+  const [voice, clips] = await Promise.all([
+    runStage("synthesizeVoice", () =>
+      synthesizeVoice(script.voiceover, reelId),
+    ),
+    runStage("pickStockFootage", () =>
+      pickStockFootage({ topic: input.topic, query: footageQuery, count: 3 }),
+    ),
+  ]);
 
-  // ── 4. Captions ──────────────────────────────────────────────────────────
+  // ── 4. Captions (depends on voice) ───────────────────────────────────
   const transcript = await runStage("transcribeForCaptions", () =>
     transcribeForCaptions(voice.audioPath, "fr-FR"),
-  );
-
-  // ── 5. Footage ───────────────────────────────────────────────────────────
-  const footageQuery = buildFootageQuery(input.topic, script);
-  const clips = await runStage("pickStockFootage", () =>
-    pickStockFootage({ topic: input.topic, query: footageQuery, count: 3 }),
   );
 
   // ── 6. Compose ───────────────────────────────────────────────────────────
@@ -114,8 +124,7 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
       audioPath: voice.audioPath,
       audioDurationSec: transcript.durationSec,
       clips,
-      captions: transcript.words,
-      remotionEntry: input.remotionEntry,
+      captions: transcript.words,      heroImageUrl: input.imageUrl,      remotionEntry: input.remotionEntry,
     }),
   );
 
@@ -216,14 +225,37 @@ function buildFootageQuery(topic: ReelTopic, script: ReelScript): string {
   ].filter(Boolean) as string[];
 
   const head = candidates[0] ?? script.caption.slice(0, 60);
-  // Strip punctuation, keep up to 5 meaningful tokens.
+
+  // Drop French stop-words and short tokens — they dilute the Pexels match.
+  const STOP = new Set([
+    "pour", "avec", "sans", "dans", "chez", "vers", "sous", "sur", "par",
+    "les", "des", "une", "deux", "trois", "cette", "cet", "ces",
+    "qui", "que", "quoi", "dont", "mais", "donc", "car", "ainsi",
+    "nouvelle", "nouveau", "nouvelles", "nouveaux",
+    "the", "and", "for", "with", "from", "this", "that", "these", "those",
+  ]);
+
   const tokens = head
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .split(/\s+/)
-    .filter((t) => t.length > 2)
-    .slice(0, 5);
-  return tokens.join(" ");
+    .filter((t) => t.length > 3 && !STOP.has(t))
+    .slice(0, 4);
+
+  // Append topic English keyword — Pexels has weak French coverage, so a
+  // bilingual query ("bourse étudiants Haïti scholarship") catches both.
+  const topicEn: Record<ReelTopic, string> = {
+    scholarship: "scholarship student",
+    opportunity: "opportunity youth career",
+    education: "classroom education",
+    news: "Haiti",
+    histoire: "Haiti history archive",
+    taux: "Haiti statistics chart",
+    fact: "Haiti education",
+  };
+  const enHint = topicEn[topic] ?? "Haiti";
+
+  return [...tokens, enHint].join(" ").trim();
 }
 
 /**

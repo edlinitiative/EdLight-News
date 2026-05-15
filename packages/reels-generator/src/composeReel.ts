@@ -17,7 +17,11 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import type { ReelScript } from "./generateReelScript.js";
+
+const execFileP = promisify(execFile);
 import type { ReelTemplate, ReelTopic } from "./types.js";
 import type { CaptionWord, ResolvedClip } from "./templates/types.js";
 import type { StockClip } from "./pickStockFootage.js";
@@ -32,6 +36,13 @@ export interface ComposeReelInput {
   audioDurationSec: number;
   clips: StockClip[];
   captions: CaptionWord[];
+  /**
+   * Optional URL of the article's own hero photo. When present, the
+   * `HeadlinePhoto` template uses it directly instead of generic Pexels
+   * b-roll. Highly recommended for news/opportunity items — the article
+   * image is always topical, while Pexels keyword search is hit-or-miss.
+   */
+  heroImageUrl?: string;
   /** Optional override for the entrypoint .tsx file (defaults to the package's Root). */
   remotionEntry?: string;
 }
@@ -147,7 +158,12 @@ export async function composeReel(
   };
 
   // Template-specific props — only fields that template renders.
-  const templateProps = buildTemplateProps(input.template, input.script, input.clips);
+  const templateProps = buildTemplateProps(
+    input.template,
+    input.script,
+    input.clips,
+    input.heroImageUrl,
+  );
   const inputProps = { ...baseProps, ...templateProps };
 
   const composition = await selectComposition({
@@ -157,21 +173,37 @@ export async function composeReel(
     ...(chromiumExecutablePath ? { browserExecutable: chromiumExecutablePath } : {}),
   });
 
-  // Override durationInFrames so each render matches the actual voiceover length.
+  // Render the silent video first. Audio is muxed in a separate ffmpeg pass
+  // below — Remotion's `audioFile` option does not exist on renderMedia, and
+  // every template currently omits an <Audio> tag, so passing it here would
+  // produce a silent MP4 (which is what was happening in production until
+  // 2026-05-15).
+  //
+  // Concurrency: bumped to half the available CPUs (clamped 1..4) so a
+  // 4 vCPU Cloud Run instance renders ~3-4x faster than the default.
+  const cpuHalf = Math.max(1, Math.min(4, Math.floor((os.cpus()?.length ?? 2) / 2)));
+  const silentVideoPath = path.join(outDir, "reel.silent.mp4");
+
   await renderMedia({
     composition: { ...composition, durationInFrames: bodyFrames },
     serveUrl: bundleLocation,
     codec: "h264",
     audioCodec: "aac",
-    outputLocation: outputPath,
+    outputLocation: silentVideoPath,
     inputProps,
     audioBitrate: "192k",
+    concurrency: cpuHalf,
     ...(chromiumExecutablePath ? { browserExecutable: chromiumExecutablePath } : {}),
-    // Mux the voiceover via Remotion's audioFile if supported, otherwise the
-    // template <Audio> tag handles it. We pass it via inputProps too as a
-    // safety net.
-    // @ts-expect-error — `audioFile` is supported but not in older type defs.
-    audioFile: input.audioPath,
+  });
+
+  // Mux voiceover onto the silent video. Stream-copy the video so this
+  // step completes in <2s and never re-encodes (preserves quality, saves CPU).
+  // `-shortest` clips the output to whichever stream ends first; we already
+  // sized the body to match audio duration so the trim should be a no-op.
+  await muxAudioOntoVideo({
+    videoPath: silentVideoPath,
+    audioPath: input.audioPath,
+    outputPath,
   });
 
   const stat = await fs.stat(outputPath);
@@ -184,6 +216,45 @@ export async function composeReel(
 }
 
 /**
+ * Mux an audio track onto a silent video using ffmpeg. Video is stream-copied
+ * (no re-encode); audio is encoded to AAC 192k. Requires `ffmpeg` on PATH.
+ *
+ * Why ffmpeg and not Remotion-native: Remotion has no documented
+ * post-render audio overlay path, and `<Audio>` inside the composition would
+ * require Chromium to fetch the local MP3 over `file://` (which the headless
+ * browser refuses for security). System ffmpeg sidesteps both issues.
+ */
+async function muxAudioOntoVideo(opts: {
+  videoPath: string;
+  audioPath: string;
+  outputPath: string;
+}): Promise<void> {
+  const ffmpegBin = process.env.FFMPEG_PATH || "ffmpeg";
+  const args = [
+    "-y",
+    "-i", opts.videoPath,
+    "-i", opts.audioPath,
+    "-map", "0:v:0",
+    "-map", "1:a:0",
+    "-c:v", "copy",
+    "-c:a", "aac",
+    "-b:a", "192k",
+    "-shortest",
+    "-movflags", "+faststart",
+    opts.outputPath,
+  ];
+  try {
+    await execFileP(ffmpegBin, args, { maxBuffer: 8 * 1024 * 1024 });
+  } catch (err) {
+    const e = err as NodeJS.ErrnoException & { stderr?: Buffer | string };
+    const stderr = typeof e.stderr === "string" ? e.stderr : e.stderr?.toString() ?? "";
+    throw new Error(
+      `composeReel: ffmpeg audio mux failed (${e.code ?? "unknown"}). ${stderr.slice(-500)}`,
+    );
+  }
+}
+
+/**
  * Map the script onto template-specific props. Field names match the
  * `*TemplateProps` interfaces in `templates/`.
  */
@@ -191,6 +262,7 @@ function buildTemplateProps(
   template: ReelTemplate,
   script: ReelScript,
   clips: StockClip[],
+  heroImageUrl?: string,
 ): Record<string, unknown> {
   switch (template) {
     case "BigStatistic":
@@ -203,12 +275,20 @@ function buildTemplateProps(
       return {
         quote: script.quote,
         attribution: script.attribution,
-        bgImageUrl: clips.find((c) => c.kind === "image")?.url ?? clips[0]?.url,
+        bgImageUrl:
+          heroImageUrl ??
+          clips.find((c) => c.kind === "image")?.url ??
+          clips[0]?.url,
       };
     case "HeadlinePhoto":
       return {
         headline: script.headline,
-        heroImageUrl: clips[0]?.url,
+        // Prefer the article's own hero image (always topical). Fall back to
+        // first stock image, then first stock clip of any kind.
+        heroImageUrl:
+          heroImageUrl ??
+          clips.find((c) => c.kind === "image")?.url ??
+          clips[0]?.url,
       };
     case "NumberedPoints":
       return {
