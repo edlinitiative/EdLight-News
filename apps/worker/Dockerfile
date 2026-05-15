@@ -43,6 +43,10 @@ COPY packages packages
 COPY apps/worker apps/worker
 COPY tsconfig.base.json ./
 RUN pnpm --filter @edlight-news/worker... build
+# Build the React/Remotion templates separately (excluded from the Node build
+# of @edlight-news/reels-generator). Required so composeReel can resolve
+# node_modules/@edlight-news/reels-generator/dist/templates/Root.js at render time.
+RUN pnpm --filter @edlight-news/reels-generator exec tsc -p tsconfig.templates.json
 
 EXPOSE 8080
 CMD ["node", "apps/worker/dist/index.js"]

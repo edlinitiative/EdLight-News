@@ -187,6 +187,112 @@ async function postWebhook(text: string): Promise<void> {
   }
 }
 
+/**
+ * Post a rich Slack draft so the reviewer can preview the reel without
+ * leaving Slack: title, topic, template, duration, cost, MP4 link, IG
+ * caption draft, and a one-click admin URL.
+ */
+async function postReelDraftToSlack(opts: {
+  reelId: string;
+  topic: ReelsTopic;
+  template: ReelsTemplate;
+  durationSec: number;
+  costUsd: number;
+  mp4Url: string;
+  scriptText: string;
+  igCaption: string;
+  sourceTitle: string | null;
+  sourceUrl: string;
+  adminUrl: string;
+}): Promise<void> {
+  const url = process.env.ALERT_WEBHOOK_URL;
+  if (!url) return;
+  const truncate = (s: string, n: number) =>
+    s.length > n ? `${s.slice(0, n - 1)}…` : s;
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: `🎬 New Sandra Reel ready for review — ${opts.topic} / ${opts.template}`,
+        blocks: [
+          {
+            type: "header",
+            text: {
+              type: "plain_text",
+              text: `🎬 Sandra Reel ready: ${opts.topic}`,
+              emoji: true,
+            },
+          },
+          {
+            type: "section",
+            fields: [
+              { type: "mrkdwn", text: `*Template:*\n${opts.template}` },
+              { type: "mrkdwn", text: `*Duration:*\n${opts.durationSec.toFixed(1)}s` },
+              { type: "mrkdwn", text: `*Cost:*\n$${opts.costUsd.toFixed(4)}` },
+              { type: "mrkdwn", text: `*Reel ID:*\n\`${opts.reelId}\`` },
+            ],
+          },
+          ...(opts.sourceTitle
+            ? [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `*Source:* <${opts.sourceUrl}|${truncate(opts.sourceTitle, 120)}>`,
+                  },
+                },
+              ]
+            : []),
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `*Sandra script (FR):*\n>>>${truncate(opts.scriptText, 600)}`,
+            },
+          },
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `*IG caption draft:*\n>>>${truncate(opts.igCaption, 500)}`,
+            },
+          },
+          {
+            type: "actions",
+            elements: [
+              {
+                type: "button",
+                text: { type: "plain_text", text: "▶ Watch MP4", emoji: true },
+                url: opts.mp4Url,
+                style: "primary",
+              },
+              {
+                type: "button",
+                text: { type: "plain_text", text: "✅ Review in admin", emoji: true },
+                url: opts.adminUrl,
+              },
+            ],
+          },
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text:
+                  "Cold-start: 1 reel/day, $1.00/day cost ceiling. " +
+                  "Approve in admin to add to the manual posting queue.",
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  } catch (err) {
+    console.warn("[buildReelsQueue] Slack draft post failed:", err);
+  }
+}
+
 /** Map the orchestrator's ReelCostBreakdown to our Firestore shape. */
 function mapCost(
   cost: import("@edlight-news/reels-generator").BuildReelResult["artifact"]["cost"],
@@ -402,12 +508,22 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
     haitiDate: haitiToday,
   });
 
-  void postWebhook(
-    `🎬 New EdLight Reel ready for review (${pick.topic} / ${built.artifact.template}) — ` +
-      `${SITE_URL.replace("news.", "")}/admin/reels-pending`,
-  );
+  void postReelDraftToSlack({
+    reelId: inserted.id,
+    topic: pick.topic,
+    template: built.artifact.template as ReelsTemplate,
+    durationSec: built.artifact.durationSec,
+    costUsd: cost.totalUsd,
+    mp4Url,
+    scriptText: built.artifact.script.voiceover,
+    igCaption: create.igCaption,
+    sourceTitle: pick.cv.title || pick.item.title || null,
+    sourceUrl: articleUrl,
+    adminUrl: `${SITE_URL}/admin/reels-pending`,
+  });
 
   // Suppress unused imports warning.
   void randomUUID;
+  void postWebhook;
   return result;
 }
