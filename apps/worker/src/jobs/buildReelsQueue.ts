@@ -427,6 +427,10 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
         url: articleUrl,
         sourceName: pick.item.source?.name,
       },
+      // Use the article's own scraped hero image as the reel background
+      // when present (works for ~90% of news/opportunity items). Falls back
+      // to Pexels b-roll inside buildReel only when missing.
+      imageUrl: pick.item.imageUrl || undefined,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

@@ -285,7 +285,7 @@ async function composeFbMessageV2(
     }
     const fbPayload = socialToFbPayload(result.output, {
       articleUrl,
-      imageUrl: item.imageUrl ?? undefined,
+      ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
     });
     if (!fbPayload) return null;
     return { payload: fbPayload, hookVariant: "v2" };
@@ -396,7 +396,7 @@ async function composeFbMessage(
     payload: {
       text: lines.join("\n"),
       linkUrl: articleUrl,
-      imageUrl: item.imageUrl || undefined,
+      ...(item.imageUrl ? { imageUrl: item.imageUrl } : {}),
     },
     hookVariant: `${hookVariant}${waCtaSuffix}`,
   };

@@ -46,7 +46,10 @@ export interface SandraVoiceConfig {
 }
 
 export const SANDRA_VOICE: SandraVoiceConfig = Object.freeze({
-  voice: process.env.SANDRA_TTS_VOICE ?? "fr-FR-Neural2-C",
+  // Chirp 3 HD voices are dramatically more natural than Neural2 at the same
+  // price tier ($16/M chars). `Despina` is a warm female French voice; alts
+  // we can A/B: `fr-FR-Chirp3-HD-Charon`, `fr-FR-Chirp3-HD-Kore`, `fr-FR-Chirp3-HD-Leda`.
+  voice: process.env.SANDRA_TTS_VOICE ?? "fr-FR-Chirp3-HD-Despina",
   languageCode: process.env.SANDRA_TTS_LANGUAGE_CODE ?? "fr-FR",
   speakingRate: Number(process.env.SANDRA_TTS_SPEAKING_RATE ?? "1.0"),
   pitch: Number(process.env.SANDRA_TTS_PITCH ?? "0.0"),
