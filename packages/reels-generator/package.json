@@ -11,10 +11,11 @@
     "./remotion-root": "./dist/templates/Root.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p tsconfig.templates.json",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "node --import tsx --test src/pickTemplate.test.ts src/brand.test.ts src/generateReelScript.test.ts src/pickStockFootage.test.ts src/extractHeroNumber.test.ts src/alignCaptions.test.ts"
+    "test": "node --import tsx --test src/pickTemplate.test.ts src/brand.test.ts src/generateReelScript.test.ts src/pickStockFootage.test.ts src/extractHeroNumber.test.ts src/alignCaptions.test.ts src/__tests__/captionFidelity.integration.test.ts",
+    "test:reels:scene-change": "node --import tsx --test src/__tests__/sceneChange.integration.test.ts"
   },
   "dependencies": {
     "@edlight-news/generator": "workspace:*",

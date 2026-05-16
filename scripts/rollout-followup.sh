@@ -8,6 +8,7 @@
 #   scripts/rollout-followup.sh --day=all      # runs 1, 2, 3 sequentially
 #   scripts/rollout-followup.sh --mode=cold-start   # flip into cold-start
 #   scripts/rollout-followup.sh --mode=scale        # exit cold-start
+#   scripts/rollout-followup.sh --mode=reels-on     # flip REELS_ENABLED=true (post-staging gate)
 #
 # Env required:
 #   PROJECT_ID    GCP project (default: edlight-news)
@@ -30,6 +31,10 @@
 #                TH_LINK_REPLY, X_MEDIA_UPLOAD, IG_DIASPORA_HOURS.
 #   scale      — sets COLD_START_MODE=false and re-enables the same five
 #                growth features so we resume the day-1/2/3 rollout state.
+#   reels-on   — flips REELS_ENABLED=true after a successful staging
+#                re-render. PREREQ: complete the manual re-render gate in
+#                docs/reels-staging-rerender-gate.md — do NOT run this mode
+#                until all six visual-checklist boxes are signed off.
 #
 # Each step prints the env var(s) it is about to mutate, runs the
 # `gcloud run services update` (idempotent), then echoes a "watch dashboard
@@ -204,11 +209,53 @@ mode_scale() {
   watch_reminder
 }
 
+# ── mode: reels-on ────────────────────────────────────────────
+# Post-staging-gate flip. By the time you run this, you should have:
+#   1. Re-rendered the reference gating item per
+#      docs/reels-staging-rerender-gate.md (Step 2).
+#   2. Verified all five ffprobe invariants (Step 3).
+#   3. Spot-checked the four extracted frames (Step 4).
+#   4. Signed off all six items in the visual checklist (Step 5).
+# This mode is intentionally a no-op if REELS_ENABLED is already true,
+# so it is safe to re-run.
+mode_reels_on() {
+  echo "═══ Mode → REELS-ON (post-staging gate) ═══"
+  local current_reels
+  current_reels=$(get_var REELS_ENABLED)
+  if [[ "$current_reels" != "false" && "$current_reels" != "" && "$current_reels" != "true" ]]; then
+    echo "✘ REELS_ENABLED has unexpected value '${current_reels}' (expected 'true', 'false', or unset)." >&2
+    echo "  Inspect the service env before flipping:" >&2
+    echo "    gcloud run services describe ${SERVICE} --region ${REGION} --project ${PROJECT_ID}" >&2
+    exit 1
+  fi
+  echo "Current REELS_ENABLED=${current_reels:-<unset>}"
+  echo ""
+  echo "⚠  Pre-flight: confirm you have completed the staging re-render gate."
+  echo "   See: docs/reels-staging-rerender-gate.md"
+  echo ""
+  confirm_var_value REELS_ENABLED true
+  cat <<'EOF'
+
+✅ Reels enabled. Watch /admin/reels-pending and #reels-review for the
+   first generation. Per the runbook (Step 7), monitor for 48h:
+     • reelRenderQualityFailed events  → ffprobe gate trips
+     • captionAlignment.method = "proportional-fallback"  → STT outage
+     • First three reels manually reviewed before declaring success
+
+   Revert at any time:
+     gcloud run services update ${SERVICE} \
+       --project=${PROJECT_ID} --region=${REGION} \
+       --update-env-vars REELS_ENABLED=false
+EOF
+  watch_reminder
+}
+
 if [[ -n "$MODE" ]]; then
   case "$MODE" in
     cold-start) mode_cold_start ;;
     scale)      mode_scale ;;
-    *) echo "✘ unknown --mode=$MODE (expected cold-start | scale)" >&2; exit 1 ;;
+    reels-on)   mode_reels_on ;;
+    *) echo "✘ unknown --mode=$MODE (expected cold-start | scale | reels-on)" >&2; exit 1 ;;
   esac
   echo "✓ rollout mode '${MODE}' applied"
   exit 0
