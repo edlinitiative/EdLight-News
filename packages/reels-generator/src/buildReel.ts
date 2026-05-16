@@ -18,9 +18,10 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { pickTemplate } from "./pickTemplate.js";
+import { pickTemplate, TEMPLATE_PREFERENCE } from "./pickTemplate.js";
 import {
   generateReelScript,
+  TemplateRequirementError,
   type GenerateReelScriptInput,
   type ReelScript,
 } from "./generateReelScript.js";
@@ -78,19 +79,52 @@ export interface BuildReelResult {
 export async function buildReel(input: BuildReelInput): Promise<BuildReelResult> {
   const reelId = `reel_${Date.now()}_${randomUUID().slice(0, 8)}`;
   const dow = input.dayOfWeek ?? new Date().getUTCDay();
-  const template =
-    input.templateOverride ?? pickTemplate(input.topic, dow, input.item.id);
 
   // ── 1+2. Script ──────────────────────────────────────────────────────────
   const scriptStart = Date.now();
-  const script = await runStage("generateReelScript", () =>
-    generateReelScript({
-      topic: input.topic,
-      template,
-      item: input.item,
-      contextItems: input.contextItems,
-    }),
-  );
+  let template =
+    input.templateOverride ?? pickTemplate(input.topic, dow, input.item.id);
+  let script: ReelScript;
+  try {
+    script = await runStage("generateReelScript", () =>
+      generateReelScript({
+        topic: input.topic,
+        template,
+        item: input.item,
+        contextItems: input.contextItems,
+      }),
+    );
+  } catch (err) {
+    // Recoverable: the LLM honestly couldn't fill template-specific fields
+    // (e.g. no real quote in the source for PullQuote). Fall back to the
+    // next template in the topic's preference list and retry once. Anything
+    // else — LLM failure, JSON error, network — is rethrown unchanged.
+    const cause = unwrapStageError(err);
+    if (
+      !input.templateOverride &&
+      cause instanceof TemplateRequirementError
+    ) {
+      const fallback = pickFallbackTemplate(input.topic, cause.template);
+      if (fallback) {
+        console.warn(
+          `[buildReel] template "${cause.template}" missing ${cause.missingFields.join(", ")} for item ${input.item.id} — retrying with "${fallback}"`,
+        );
+        template = fallback;
+        script = await runStage("generateReelScript", () =>
+          generateReelScript({
+            topic: input.topic,
+            template,
+            item: input.item,
+            contextItems: input.contextItems,
+          }),
+        );
+      } else {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
   const scriptCostUsd = estimateScriptCost(script);
   const scriptMs = Date.now() - scriptStart;
 
@@ -209,7 +243,9 @@ async function runStage<T>(name: string, fn: () => Promise<T>): Promise<T> {
     return await fn();
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`buildReel stage "${name}" failed: ${msg}`);
+    // Preserve the original error on `.cause` so callers can branch on the
+    // typed subclass (e.g. TemplateRequirementError) for recoverable retries.
+    throw new Error(`buildReel stage "${name}" failed: ${msg}`, { cause: err });
   }
 }
 
@@ -266,4 +302,30 @@ function buildFootageQuery(topic: ReelTopic, script: ReelScript): string {
 function estimateScriptCost(_script: ReelScript): number {
   // Hardcoded conservative estimate; the real provider may differ.
   return 0.001;
+}
+
+/**
+ * Unwrap the `runStage` wrapper to expose the original cause. `runStage`
+ * rethrows as `new Error("buildReel stage \"x\" failed: ...")` which loses
+ * the prototype — keep the message but also stash the original on `.cause`
+ * so we can branch on `instanceof TemplateRequirementError`.
+ */
+function unwrapStageError(err: unknown): unknown {
+  if (err && typeof err === "object" && "cause" in err) {
+    return (err as { cause: unknown }).cause;
+  }
+  return err;
+}
+
+/**
+ * Pick the next template from a topic's preference list, skipping `failed`.
+ * Returns undefined when no alternative exists — caller should rethrow.
+ */
+function pickFallbackTemplate(
+  topic: ReelTopic,
+  failed: ReelTemplate,
+): ReelTemplate | undefined {
+  const list = TEMPLATE_PREFERENCE[topic];
+  if (!list) return undefined;
+  return list.find((t) => t !== failed);
 }

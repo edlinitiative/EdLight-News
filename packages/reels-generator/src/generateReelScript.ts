@@ -52,6 +52,28 @@ const reelScriptSchema = z.object({
 
 export type ReelScript = z.infer<typeof reelScriptSchema>;
 
+/**
+ * Thrown when the LLM returns a schema-valid script that is missing the
+ * fields a specific template requires (e.g. PullQuote without `quote`).
+ *
+ * This is recoverable at the orchestrator level — `buildReel` catches it and
+ * retries once with the next template in the topic's preference list. We use
+ * a dedicated class so the retry logic only fires on this exact failure mode
+ * and never swallows real LLM/JSON errors.
+ */
+export class TemplateRequirementError extends Error {
+  readonly template: ReelTemplate;
+  readonly missingFields: string[];
+  constructor(template: ReelTemplate, missingFields: string[]) {
+    super(
+      `generateReelScript: template "${template}" requires fields: ${missingFields.join(", ")}`,
+    );
+    this.name = "TemplateRequirementError";
+    this.template = template;
+    this.missingFields = missingFields;
+  }
+}
+
 // ── Input ──────────────────────────────────────────────────────────────────
 
 export interface ReelSourceItem {
@@ -227,8 +249,6 @@ export function assertScriptForTemplate(
       break;
   }
   if (missing.length > 0) {
-    throw new Error(
-      `generateReelScript: template "${template}" requires fields: ${missing.join(", ")}`,
-    );
+    throw new TemplateRequirementError(template, missing);
   }
 }

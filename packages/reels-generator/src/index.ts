@@ -19,7 +19,7 @@ export type {
 } from "./templates/types.js";
 
 // Orchestrator pieces — the worker calls these.
-export { generateReelScript } from "./generateReelScript.js";
+export { generateReelScript, TemplateRequirementError } from "./generateReelScript.js";
 export type {
   ReelScript,
   GenerateReelScriptInput,
