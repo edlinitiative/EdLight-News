@@ -43,7 +43,7 @@ export const PullQuoteTemplate: React.FC<PullQuoteTemplateProps> = ({
   captions,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const palette = getPalette(topic);
 
   // Word-by-word reveal across the first 5 seconds (150 frames @ 30fps).
@@ -62,6 +62,25 @@ export const PullQuoteTemplate: React.FC<PullQuoteTemplateProps> = ({
     { extrapolateRight: "clamp" },
   );
 
+  // Ken Burns on the background image — slow drift + zoom over full duration.
+  const bgZoom = interpolate(frame, [0, durationInFrames], [1.0, 1.08], {
+    extrapolateRight: "clamp",
+  });
+  const bgPanY = interpolate(frame, [0, durationInFrames], [0, -20], {
+    extrapolateRight: "clamp",
+  });
+
+  // Outro decay — last 12 frames soften before transitioning out.
+  const decayStart = Math.max(0, durationInFrames - 12);
+  const outroOpacity = interpolate(frame, [decayStart, durationInFrames], [1, 0.6], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const outroScale = interpolate(frame, [decayStart, durationInFrames], [1, 0.96], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   return (
     <AbsoluteFill style={{ backgroundColor: palette.primary }}>
       {bgImageUrl ? (
@@ -74,6 +93,8 @@ export const PullQuoteTemplate: React.FC<PullQuoteTemplateProps> = ({
             height: "100%",
             objectFit: "cover",
             opacity: 0.35,
+            transform: `scale(${bgZoom}) translateY(${bgPanY}px)`,
+            transformOrigin: "center 45%",
           }}
         />
       ) : null}
@@ -96,6 +117,8 @@ export const PullQuoteTemplate: React.FC<PullQuoteTemplateProps> = ({
           justifyContent: "center",
           padding: "0 90px",
           gap: 50,
+          transform: `scale(${outroScale})`,
+          opacity: outroOpacity,
         }}
       >
         <div

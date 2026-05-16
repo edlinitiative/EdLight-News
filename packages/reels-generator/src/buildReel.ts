@@ -18,7 +18,7 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { pickTemplate, TEMPLATE_PREFERENCE } from "./pickTemplate.js";
+import { pickTemplateWithDowngrade, TEMPLATE_PREFERENCE } from "./pickTemplate.js";
 import {
   generateReelScript,
   TemplateRequirementError,
@@ -26,7 +26,7 @@ import {
   type ReelScript,
 } from "./generateReelScript.js";
 import { synthesizeVoice } from "./synthesizeVoice.js";
-import { transcribeForCaptions } from "./transcribeForCaptions.js";
+import { alignCaptions } from "./alignCaptions.js";
 import { pickStockFootage, type StockClip } from "./pickStockFootage.js";
 import { composeReel } from "./composeReel.js";
 import type {
@@ -92,8 +92,23 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   // A caller-supplied templateOverride short-circuits all fallbacks so
   // admin re-rolls remain authoritative.
   const scriptStart = Date.now();
-  const initialTemplate =
-    input.templateOverride ?? pickTemplate(input.topic, dow, input.item.id);
+  const pickResult = input.templateOverride
+    ? {
+        template: input.templateOverride,
+        downgraded: false as const,
+        heroNumber: null,
+      }
+    : pickTemplateWithDowngrade(input.topic, dow, input.item.id, {
+        title: input.item.title,
+        summary: input.item.summary,
+        structured: input.item.structured,
+      });
+  if (pickResult.downgraded) {
+    console.warn(
+      `[buildReel] templateDowngraded { from: "${pickResult.from}", to: "${pickResult.template}", reason: "${pickResult.reason}", itemId: "${input.item.id}" }`,
+    );
+  }
+  const initialTemplate = pickResult.template;
   const candidateList = input.templateOverride
     ? [input.templateOverride]
     : buildFallbackOrder(input.topic, initialTemplate);
@@ -110,6 +125,7 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
           template,
           item: input.item,
           contextItems: input.contextItems,
+          heroNumber: pickResult.heroNumber ?? undefined,
         }),
       );
       break;
@@ -155,9 +171,18 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
     ),
   ]);
 
-  // ── 4. Captions (depends on voice) ───────────────────────────────────
-  const transcript = await runStage("transcribeForCaptions", () =>
-    transcribeForCaptions(voice.audioPath, "fr-FR"),
+  // ── 4. Captions (depends on voice + script) ──────────────────────────
+  //
+  // alignCaptions feeds the ground-truth script as a recognizer prompt and
+  // re-pairs the returned timestamps with the script tokens, so the burned
+  // overlay never contains an STT mistranscription (v1 bug: "sisters in
+  // public house"). The Result shape matches the legacy transcribeForCaptions.
+  const transcript = await runStage("alignCaptions", () =>
+    alignCaptions({
+      audioPath: voice.audioPath,
+      scriptText: script.voiceover,
+      language: "fr-FR",
+    }),
   );
 
   // ── 6. Compose ───────────────────────────────────────────────────────────

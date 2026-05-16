@@ -14,7 +14,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
-    "test": "node --import tsx --test src/pickTemplate.test.ts src/brand.test.ts src/generateReelScript.test.ts src/pickStockFootage.test.ts"
+    "test": "node --import tsx --test src/pickTemplate.test.ts src/brand.test.ts src/generateReelScript.test.ts src/pickStockFootage.test.ts src/extractHeroNumber.test.ts src/alignCaptions.test.ts"
   },
   "dependencies": {
     "@edlight-news/generator": "workspace:*",

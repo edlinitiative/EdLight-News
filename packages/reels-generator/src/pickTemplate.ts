@@ -1,4 +1,9 @@
 import type { ReelTopic, ReelTemplate } from "./types.js";
+import {
+  extractHeroNumber,
+  type HeroNumber,
+  type HeroNumberSource,
+} from "./extractHeroNumber.js";
 
 /**
  * Per-topic template preference, in priority order.
@@ -60,4 +65,60 @@ export function pickTemplate(
   const idx = (hashCode(itemId) + dayOfWeek) % list.length;
   // We've narrowed `list` to non-empty above, so this index is safe.
   return list[idx]!;
+}
+
+// ── Downgrade rules ────────────────────────────────────────────────────────
+
+/**
+ * Result of `pickTemplateWithDowngrade`. When `downgraded` is true the
+ * orchestrator should also emit `templateDowngraded` to logs.
+ */
+export interface PickTemplateResult {
+  template: ReelTemplate;
+  /** True iff the original pick was rejected and we moved down the list. */
+  downgraded: boolean;
+  /** The original (rejected) template, when `downgraded`. */
+  from?: ReelTemplate;
+  /** Why we downgraded (e.g. "no-salient-number"). */
+  reason?: string;
+  /** Salient hero number found, if any. Forwarded to the script prompt. */
+  heroNumber: HeroNumber | null;
+}
+
+/**
+ * Pick a template, then verify content-level constraints. Currently this
+ * downgrades `BigStatistic` when the source has no salient number (only the
+ * year, or no number at all) — that is the v1 bug where "2026" landed as
+ * the hero of a scholarship reel.
+ *
+ * Other templates pass through unchanged for now; further content-aware
+ * downgrades (e.g. PullQuote without a real quote) live in the LLM stage and
+ * surface as `TemplateRequirementError`, which `buildReel` already retries.
+ */
+export function pickTemplateWithDowngrade(
+  topic: ReelTopic,
+  dayOfWeek: number,
+  itemId: string,
+  source: HeroNumberSource,
+): PickTemplateResult {
+  const initial = pickTemplate(topic, dayOfWeek, itemId);
+  const hero = extractHeroNumber(source);
+
+  if (initial === "BigStatistic" && (hero === null || hero.kind === "year")) {
+    const list = TEMPLATE_PREFERENCE[topic] ?? [];
+    const next = list.find((t) => t !== "BigStatistic");
+    if (next) {
+      return {
+        template: next,
+        downgraded: true,
+        from: "BigStatistic",
+        reason: hero === null ? "no-salient-number" : "year-only-salient-number",
+        heroNumber: hero,
+      };
+    }
+    // Single-template topic that's BigStatistic-only — keep it; the LLM will
+    // do its best with the year.
+  }
+
+  return { template: initial, downgraded: false, heroNumber: hero };
 }

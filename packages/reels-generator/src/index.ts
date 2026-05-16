@@ -4,7 +4,10 @@
 
 export * from "./types.js";
 export * from "./brand.js";
-export { pickTemplate, TEMPLATE_PREFERENCE } from "./pickTemplate.js";
+export { pickTemplate, pickTemplateWithDowngrade, TEMPLATE_PREFERENCE } from "./pickTemplate.js";
+export type { PickTemplateResult } from "./pickTemplate.js";
+export { extractHeroNumber, HERO_NUMBER_SALIENCE } from "./extractHeroNumber.js";
+export type { HeroNumber, HeroNumberKind, HeroNumberSource } from "./extractHeroNumber.js";
 
 // Note: React/Remotion templates (templates/*.tsx) are built separately via
 // `tsconfig.templates.json` only when Remotion peer deps are installed. They
@@ -27,6 +30,9 @@ export type {
 export { synthesizeVoice } from "./synthesizeVoice.js";
 export { pickStockFootage } from "./pickStockFootage.js";
 export type { StockClip } from "./pickStockFootage.js";
+export { alignCaptions } from "./alignCaptions.js";
+export type { AlignCaptionsInput, AlignCaptionsResult, AlignmentDiagnostic } from "./alignCaptions.js";
+/** @deprecated use `alignCaptions` — kept for one release for back-compat. */
 export { transcribeForCaptions } from "./transcribeForCaptions.js";
 export { composeReel } from "./composeReel.js";
 export { buildReel } from "./buildReel.js";

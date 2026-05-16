@@ -15,6 +15,7 @@
 import { z } from "zod";
 import { callLLM, type LLMOptions } from "@edlight-news/generator";
 import type { ReelTopic, ReelTemplate } from "./types.js";
+import type { HeroNumber } from "./extractHeroNumber.js";
 
 // ── Schemas ────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,12 @@ export interface GenerateReelScriptInput {
   item: ReelSourceItem;
   /** Optional secondary items used as context (not the focus). */
   contextItems?: ReelSourceItem[];
+  /**
+   * Salient hero number pre-extracted by `extractHeroNumber`. When present
+   * AND the template is `BigStatistic`, the prompt instructs the LLM to use
+   * this exact value as the `hero` field instead of inventing one.
+   */
+  heroNumber?: HeroNumber;
   /** Optional override for the LLM call (provider, temperature, etc.). */
   llm?: LLMOptions;
 }
@@ -104,11 +111,13 @@ export interface GenerateReelScriptInput {
 // ── Prompt ─────────────────────────────────────────────────────────────────
 
 function buildPrompt(input: GenerateReelScriptInput): string {
-  const { topic, template, item, contextItems = [] } = input;
+  const { topic, template, item, contextItems = [], heroNumber } = input;
 
   const templateInstructions: Record<ReelTemplate, string> = {
     BigStatistic:
-      "Pick or compute ONE stat from the source. Fill `hero` (the number, ≤ 40 chars), `hook` (≤ 8 words above it), `context` (≤ 90 chars below).",
+      heroNumber
+        ? `Use this EXACT pre-selected hero value (do not invent a different number): hero = "${heroNumber.value}" (kind: ${heroNumber.kind}). Make it the first 1–2 spoken words after the hook in the voiceover. Fill \`hook\` (≤ 8 words above it) and \`context\` (≤ 90 chars below).`
+        : "Pick or compute ONE stat from the source. Fill `hero` (the number, ≤ 40 chars), `hook` (≤ 8 words above it), `context` (≤ 90 chars below). Do NOT use a bare year (e.g. \"2026\") as the hero — pick the deadline, count, or amount instead.",
     PullQuote:
       "Extract or paraphrase ONE quote from the source. Fill `quote` (≤ 28 words, no quote marks) and `attribution` (person, role, year if known).",
     HeadlinePhoto:
