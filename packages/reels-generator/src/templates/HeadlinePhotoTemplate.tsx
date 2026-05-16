@@ -42,15 +42,31 @@ export const HeadlinePhotoTemplate: React.FC<HeadlinePhotoTemplateProps> = ({
   sourceLabel,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const palette = getPalette(topic);
 
   const totalFrames = Math.max(1, Math.round(durationSec * fps));
+  // Ken Burns: 1.0 → 1.10 across the entire body section. Pan up slightly
+  // so the action stays in frame even as we zoom on a face.
   const zoom = interpolate(frame, [0, totalFrames], [1.0, 1.1], {
+    extrapolateRight: "clamp",
+  });
+  const panY = interpolate(frame, [0, totalFrames], [0, -24], {
     extrapolateRight: "clamp",
   });
   const headlineY = interpolate(frame, [0, 14], [60, 0], { extrapolateRight: "clamp" });
   const headlineOpacity = interpolate(frame, [0, 12], [0, 1], { extrapolateRight: "clamp" });
+
+  // Outro decay — last 12 frames.
+  const decayStart = Math.max(0, durationInFrames - 12);
+  const outroOpacity = interpolate(frame, [decayStart, durationInFrames], [1, 0.6], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const outroScale = interpolate(frame, [decayStart, durationInFrames], [1, 0.96], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
   const imageUrl = heroImageUrl ?? clips[0]?.url;
   // Stock clips from Pexels are MP4 videos; explicit hero photos are images.
@@ -70,7 +86,7 @@ export const HeadlinePhotoTemplate: React.FC<HeadlinePhotoTemplateProps> = ({
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              transform: `scale(${zoom})`,
+              transform: `scale(${zoom}) translateY(${panY}px)`,
               transformOrigin: "center 40%",
             }}
           />
@@ -83,7 +99,7 @@ export const HeadlinePhotoTemplate: React.FC<HeadlinePhotoTemplateProps> = ({
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              transform: `scale(${zoom})`,
+              transform: `scale(${zoom}) translateY(${panY}px)`,
               transformOrigin: "center 40%",
             }}
           />
@@ -103,8 +119,9 @@ export const HeadlinePhotoTemplate: React.FC<HeadlinePhotoTemplateProps> = ({
           left: 80,
           right: 80,
           bottom: 320,
-          transform: `translateY(${headlineY}px)`,
-          opacity: headlineOpacity,
+          transform: `translateY(${headlineY}px) scale(${outroScale})`,
+          transformOrigin: "left bottom",
+          opacity: headlineOpacity * outroOpacity,
           display: "flex",
           flexDirection: "column",
           gap: 22,

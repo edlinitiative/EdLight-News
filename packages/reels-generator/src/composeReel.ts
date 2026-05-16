@@ -191,6 +191,17 @@ export async function composeReel(
     audioCodec: "aac",
     outputLocation: silentVideoPath,
     inputProps,
+    // ── Quality knobs (v1.1) ───────────────────────────────────────────
+    // v1 shipped a 259 kbps / yuvj420p / 24 kHz / BT.470BG mess. The fix
+    // is to set every Remotion knob explicitly so we get a 6-12 Mbps,
+    // yuv420p limited-range, BT.709-tagged H.264 stream that survives
+    // IG's re-encode without falling off a quality cliff.
+    pixelFormat: "yuv420p",
+    crf: 18,
+    x264Preset: "slow",
+    colorSpace: "bt709",
+    jpegQuality: 95,
+    enforceAudioTrack: true,
     audioBitrate: "192k",
     concurrency: cpuHalf,
     ...(chromiumExecutablePath ? { browserExecutable: chromiumExecutablePath } : {}),
@@ -206,12 +217,155 @@ export async function composeReel(
     outputPath,
   });
 
+  // ── Quality gate ──────────────────────────────────────────────────────
+  // Validate the rendered MP4 against the v1.1 quality bar BEFORE returning.
+  // If any check fails we throw a `ReelRenderQualityError` so the worker
+  // surfaces it as `reelRenderQualityFailed` and does NOT enqueue the doc.
+  await assertRenderQuality(outputPath);
+
   const stat = await fs.stat(outputPath);
   return {
     outputPath,
     outputBytes: stat.size,
     durationSec,
     compositionId,
+  };
+}
+
+/** Thrown by `assertRenderQuality` when ffprobe flags a sub-spec render. */
+export class ReelRenderQualityError extends Error {
+  readonly metric: string;
+  readonly expected: string;
+  readonly actual: string | number;
+  constructor(metric: string, expected: string, actual: string | number) {
+    super(
+      `reelRenderQualityFailed: ${metric} expected ${expected}, got ${actual}`,
+    );
+    this.name = "ReelRenderQualityError";
+    this.metric = metric;
+    this.expected = expected;
+    this.actual = actual;
+  }
+}
+
+/**
+ * Run `ffprobe` on the muxed output and assert the five quality invariants
+ * (video bitrate, audio sample rate, audio bitrate, color space, pixel
+ * format). Logs `reelRenderQualityFailed` as a single-line structured event
+ * before throwing so observability picks it up even when the throw is
+ * swallowed by the worker's error reporter.
+ */
+async function assertRenderQuality(mp4Path: string): Promise<void> {
+  const ffprobeBin = process.env.FFPROBE_PATH || "ffprobe";
+  const args = [
+    "-v", "error",
+    "-print_format", "json",
+    "-show_streams",
+    "-show_format",
+    mp4Path,
+  ];
+  let probe: FfprobeOutput;
+  try {
+    const { stdout } = await execFileP(ffprobeBin, args, {
+      maxBuffer: 4 * 1024 * 1024,
+    });
+    probe = JSON.parse(stdout) as FfprobeOutput;
+  } catch (err) {
+    // Don't block the pipeline on a missing ffprobe binary, but log loudly.
+    console.warn(
+      `[composeReel] ffprobe unavailable or failed — skipping quality gate. ${(err as Error).message}`,
+    );
+    return;
+  }
+
+  const video = probe.streams?.find((s) => s.codec_type === "video");
+  const audio = probe.streams?.find((s) => s.codec_type === "audio");
+  if (!video || !audio) {
+    throw new ReelRenderQualityError("streams", "video+audio present", "missing");
+  }
+
+  // Video bitrate — soft floor. CRF mode produces variable bitrate; we just
+  // want to catch the v1 "259 kbps" regression. Format-level bitrate is the
+  // most reliable source (per-stream bit_rate is often missing on H.264).
+  const videoBitrate = Number(video.bit_rate ?? 0);
+  const formatBitrate = Number(probe.format?.bit_rate ?? 0);
+  const effectiveVideoBitrate = videoBitrate > 0 ? videoBitrate : formatBitrate;
+  const MIN_VIDEO_BPS = 6_000_000; // 6 Mbps
+  if (effectiveVideoBitrate > 0 && effectiveVideoBitrate < MIN_VIDEO_BPS) {
+    logQualityFail("videoBitrate", `>= ${MIN_VIDEO_BPS}`, effectiveVideoBitrate);
+    throw new ReelRenderQualityError(
+      "videoBitrate",
+      `>= ${MIN_VIDEO_BPS} bps`,
+      effectiveVideoBitrate,
+    );
+  }
+
+  // Audio sample rate — must be 48000.
+  const sampleRate = Number(audio.sample_rate ?? 0);
+  if (sampleRate !== 48000) {
+    logQualityFail("audioSampleRate", "48000", sampleRate);
+    throw new ReelRenderQualityError("audioSampleRate", "48000 Hz", sampleRate);
+  }
+
+  // Audio bitrate >= 160 kbps.
+  const audioBitrate = Number(audio.bit_rate ?? 0);
+  if (audioBitrate > 0 && audioBitrate < 160_000) {
+    logQualityFail("audioBitrate", ">= 160000", audioBitrate);
+    throw new ReelRenderQualityError(
+      "audioBitrate",
+      ">= 160000 bps",
+      audioBitrate,
+    );
+  }
+
+  // Pixel format — yuv420p (limited range). Reject yuvj420p (full range) which
+  // many IG players misinterpret as washed-out.
+  if (video.pix_fmt && video.pix_fmt !== "yuv420p") {
+    logQualityFail("pixelFormat", "yuv420p", video.pix_fmt);
+    throw new ReelRenderQualityError("pixelFormat", "yuv420p", video.pix_fmt);
+  }
+
+  // Color space — bt709 (HD). ffprobe surfaces this as `color_space` and
+  // `color_primaries` independently; accept either being bt709 (some encoders
+  // only tag one). Pre-fix v1 used BT.470BG / PAL which is wrong for HD.
+  const colorSpace = (video.color_space ?? "").toLowerCase();
+  const colorPrimaries = (video.color_primaries ?? "").toLowerCase();
+  // Some encoders write "unknown" which is benign; we only fail on an
+  // explicitly wrong tag (smpte170m, bt470bg, bt601, etc.).
+  const WRONG_COLOR = ["bt470bg", "bt470m", "smpte170m", "bt601", "bt601-7"];
+  if (
+    (colorSpace && WRONG_COLOR.includes(colorSpace)) ||
+    (colorPrimaries && WRONG_COLOR.includes(colorPrimaries))
+  ) {
+    logQualityFail("colorSpace", "bt709", colorSpace || colorPrimaries);
+    throw new ReelRenderQualityError(
+      "colorSpace",
+      "bt709",
+      colorSpace || colorPrimaries,
+    );
+  }
+}
+
+function logQualityFail(metric: string, expected: string, actual: string | number) {
+  console.warn(
+    `[composeReel] reelRenderQualityFailed ${JSON.stringify({ metric, expected, actual })}`,
+  );
+}
+
+interface FfprobeOutput {
+  streams?: Array<{
+    codec_type?: string;
+    codec_name?: string;
+    bit_rate?: string;
+    sample_rate?: string;
+    pix_fmt?: string;
+    color_space?: string;
+    color_primaries?: string;
+    color_transfer?: string;
+  }>;
+  format?: {
+    bit_rate?: string;
+    duration?: string;
   };
 }
 
@@ -230,6 +384,11 @@ async function muxAudioOntoVideo(opts: {
   outputPath: string;
 }): Promise<void> {
   const ffmpegBin = process.env.FFMPEG_PATH || "ffmpeg";
+  // Audio is re-encoded to AAC 192 kbps @ 48 kHz stereo — IG re-encodes
+  // anything sub-spec into noticeable telephone-quality. Video is
+  // stream-copied (Remotion already wrote it with the right pixel format
+  // and color space) but we re-tag color metadata defensively in case the
+  // muxed container drops it.
   const args = [
     "-y",
     "-i", opts.videoPath,
@@ -239,6 +398,12 @@ async function muxAudioOntoVideo(opts: {
     "-c:v", "copy",
     "-c:a", "aac",
     "-b:a", "192k",
+    "-ar", "48000",
+    "-ac", "2",
+    // Re-tag (does not re-encode) color metadata on the video stream.
+    "-color_primaries", "bt709",
+    "-color_trc", "bt709",
+    "-colorspace", "bt709",
     "-shortest",
     "-movflags", "+faststart",
     opts.outputPath,

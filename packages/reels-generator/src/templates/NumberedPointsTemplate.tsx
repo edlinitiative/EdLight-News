@@ -35,13 +35,34 @@ export const NumberedPointsTemplate: React.FC<NumberedPointsTemplateProps> = ({
   captions,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const palette = getPalette(topic);
 
   const totalFrames = Math.max(1, Math.round(durationSec * fps));
   const perPointFrames = Math.max(1, Math.floor(totalFrames / Math.max(1, points.length)));
   const pointIdx = Math.min(points.length - 1, Math.floor(frame / perPointFrames));
   const localFrame = frame - pointIdx * perPointFrames;
+
+  // Always-on background motion: gradient angle cycles every 5 s so even
+  // "static" frames pass scene-change detection.
+  const bgPeriod = 5 * fps;
+  const bgAngle = (frame % bgPeriod) / bgPeriod * 360;
+
+  // Outro decay on the final point card only.
+  const isLast = pointIdx === points.length - 1;
+  const decayStart = Math.max(0, durationInFrames - 12);
+  const outroOpacity = isLast
+    ? interpolate(frame, [decayStart, durationInFrames], [1, 0.6], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 1;
+  const outroScale = isLast
+    ? interpolate(frame, [decayStart, durationInFrames], [1, 0.96], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 1;
 
   // Slide the active point in from below; fade in over 10 frames.
   const pointY = interpolate(localFrame, [0, 10], [40, 0], { extrapolateRight: "clamp" });
@@ -64,8 +85,13 @@ export const NumberedPointsTemplate: React.FC<NumberedPointsTemplateProps> = ({
   const number = String(pointIdx + 1).padStart(2, "0");
   const currentPoint = points[pointIdx] ?? "";
 
+  // Subtle 8 % brightness wash overlay the alternating bg colour, swept by
+  // bgAngle so the field never holds still between scene-change samples.
+  const tint = isPaper ? palette.ink : palette.secondary;
+  const bgImage = `linear-gradient(${bgAngle}deg, transparent 0%, ${tint}14 50%, transparent 100%)`;
+
   return (
-    <AbsoluteFill style={{ backgroundColor: bg }}>
+    <AbsoluteFill style={{ backgroundColor: bg, backgroundImage: bgImage }}>
       <div
         style={{
           width: "100%",
@@ -74,6 +100,9 @@ export const NumberedPointsTemplate: React.FC<NumberedPointsTemplateProps> = ({
           flexDirection: "column",
           padding: "120px 90px 0",
           gap: 80,
+          transform: `scale(${outroScale})`,
+          opacity: outroOpacity,
+          transformOrigin: "center center",
         }}
       >
         <div

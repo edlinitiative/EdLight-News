@@ -84,13 +84,58 @@ Every visual constant comes from
 - **Type**: heading = display weight, body = regular, captions = bold (karaoke
   highlight uses `palette.secondary`).
 - **Motion**: cubic-bezier easings in `MOTION.ease`. Use `MOTION.duration.quick`
-  / `normal` / `slow` for transitions (8 / 14 / 22 frames).
-- **Captions**: Google STT word-level karaoke, 7-word window, bottom 22 %
-  of frame, dark scrim at 55 % opacity for legibility.
+  / `normal` / `slow` for transitions (8 / 14 / 22 frames). See §4a for the
+  v1.1 motion language every template must implement.
+- **Captions**: Google STT timestamps + ground-truth script tokens
+  (`alignCaptions`), ≤ 4-word window, anchored 280 px above the frame
+  bottom, max 86 % width, ink-tinted background at 88 % opacity. Body 56 px;
+  active word 60 px in `palette.secondary`. Captions never display a token
+  that wasn't in `script.voiceover`.
 - **Intro / Outro**: rendered from `IntroCard` / `OutroCard`. Always include the
   EdLight logo + Sandra avatar; never override their durations per-render.
 - **Footage**: stock image/video credits rendered in the corner via
   `clips[].credit`; missing credits fall back to `"EdLight News"`.
+
+---
+
+## 4a. Motion language (v1.1)
+
+Every template must move on every frame — scene-change between any two
+consecutive frames must register `> 0.001` so the IG algorithm classifies
+the post as video, not slideshow. Templates compose these primitives:
+
+| Primitive               | Where it applies                       | Spec                                                  |
+| ----------------------- | -------------------------------------- | ----------------------------------------------------- |
+| Animated background     | All templates                          | Gradient angle / Ken Burns over 4–5 s loop            |
+| Hero entrance           | BigStatistic, HeadlinePhoto headline   | Scale 1.4 → 1.0 / 60 → 0 px translate over 12–14 f    |
+| Counter morph           | BigStatistic when hero is numeric      | 0 → final over 18 f, ease-out cubic                   |
+| Pulse                   | BigStatistic hero                      | 1.0 ↔ 1.04, period ≈ 1.7 s                            |
+| Word-by-word reveal     | PullQuote, captions                    | Word at a time across 5 s for quotes; per-word fade   |
+| Slide-in cards          | NumberedPoints                         | Translate 40 → 0 px + fade over 10 f, dwell, crossfade |
+| Particle drift          | BigStatistic background                | 24 particles @ 8 % opacity, vertical drift            |
+| **Outro decay (every body template)** | Last 12 frames before transition  | scale 1 → 0.92–0.96, opacity 1 → 0.6                  |
+
+Render-config invariants (enforced post-render by `assertRenderQuality`):
+crf 18, x264 preset `slow`, pixel format `yuv420p`, color space `bt709`,
+audio 48 kHz / 192 kbps stereo, video bitrate ≥ 6 Mbps. Failing any of
+these throws `ReelRenderQualityError` and the orchestrator reschedules.
+
+### Hero number selection
+
+`pickTemplateWithDowngrade` runs `extractHeroNumber` on each item's
+title + summary + structured fields and downgrades off `BigStatistic`
+when the only salient number is a bare year. Salience hierarchy:
+
+| Kind       | Salience | Example                                  |
+| ---------- | -------- | ---------------------------------------- |
+| currency   | 100      | `$5,000 USD`, `5K HTG`, `2 millions`     |
+| deadline   | 90       | `15 mars 2026`, `15/03/2026`             |
+| count      | 75       | `200 lauréats`, `25 places`              |
+| percentage | 60       | `87 %`                                   |
+| year       | 5        | `2026` (intentionally low — rarely hero) |
+
+Structured hints (`amount_usd`, `deadline`, `count`) get a `+5` salience
+boost so they win when both free text and structured data are present.
 
 ---
 
