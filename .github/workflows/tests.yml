@@ -143,7 +143,11 @@ jobs:
       # specifiers that Remotion's webpack does not auto-rewrite to .tsx.
       # composeReel.ts production code points Remotion at dist/templates/Root.js;
       # the test mirrors that.
-      - name: Build reels-generator (templates compile to dist/)
+      - name: Build workspace deps for reels-generator
+        if: steps.filter.outputs.templates == 'true'
+        run: pnpm turbo build --filter=@edlight-news/generator --filter=@edlight-news/sandra-voice
+
+      - name: Build reels-generator templates to dist/
         if: steps.filter.outputs.templates == 'true'
         run: pnpm --filter @edlight-news/reels-generator exec tsc -p tsconfig.templates.json
 
