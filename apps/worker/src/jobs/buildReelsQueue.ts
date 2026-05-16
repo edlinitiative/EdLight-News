@@ -520,7 +520,10 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
     haitiDate: haitiToday,
   });
 
-  void postReelDraftToSlack({
+  // Awaited (not fire-and-forget): on Cloud Run, the container's CPU is
+  // throttled/suspended once the request handler returns, which would drop
+  // the in-flight webhook fetch and silently lose the Slack notification.
+  await postReelDraftToSlack({
     reelId: inserted.id,
     topic: pick.topic,
     template: built.artifact.template as ReelsTemplate,
