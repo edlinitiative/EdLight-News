@@ -170,4 +170,8 @@ gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.serv
 
 - [Social Growth Rollout (PR #65 + observability PR)](docs/rollout-followup.md)
   — staged 3-day flag flip + observability dashboards.
+- [Reels Staging Re-Render Gate](docs/reels-staging-rerender-gate.md)
+  — manual gate to run before flipping `REELS_ENABLED=true` after any
+  Reels-impacting code change. Five ffprobe invariants + six-item visual
+  checklist + 48 h post-flip watch list.
 
