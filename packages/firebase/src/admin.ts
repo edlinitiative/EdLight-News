@@ -45,20 +45,22 @@ export function getDb(): Firestore {
     // is wired in before the gRPC channel can be created.
     // gRPC breaks in serverless (Vercel/Node 18+/OpenSSL 3) with:
     //   "DECODER routines::unsupported"
+    db = initializeFirestore(getApp(), { preferRest: true });
+
+    // `ignoreUndefinedProperties` MUST be set via db.settings(), not via
+    // initializeFirestore: firebase-admin's wrapper only forwards
+    // `preferRest` to the underlying @google-cloud/firestore instance and
+    // silently drops every other key. Calling .settings() before any read
+    // or write applies it directly.
     //
-    // `ignoreUndefinedProperties: true` makes the SDK silently drop fields
-    // whose value is `undefined` instead of throwing
+    // With this enabled the SDK silently skips fields whose value is
+    // `undefined` instead of throwing
     //   `Cannot use "undefined" as a Firestore value`.
-    // This used to crash buildFbQueue/buildThQueue whenever an item had
-    // no imageUrl. Adapters (socialToFbPayload, socialToThPayload) still
-    // set imageUrl on the payload object — with this flag they become
-    // safe writes.
-    db = initializeFirestore(getApp(), {
-      preferRest: true,
-      // `ignoreUndefinedProperties` is supported at runtime but is missing
-      // from the FirestoreSettings type — we cast to bypass.
-      ignoreUndefinedProperties: true,
-    } as Parameters<typeof initializeFirestore>[1]);
+    // Adapters (socialToFbPayload, socialToThPayload) and various write
+    // sites still set fields like `imageUrl: opts.imageUrl` unconditionally,
+    // which would otherwise crash buildFbQueue/buildThQueue whenever an
+    // item had no image. This flag makes those writes safe.
+    db.settings({ ignoreUndefinedProperties: true });
   }
   return db;
 }
