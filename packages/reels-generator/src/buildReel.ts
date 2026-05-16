@@ -81,49 +81,61 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   const dow = input.dayOfWeek ?? new Date().getUTCDay();
 
   // ── 1+2. Script ──────────────────────────────────────────────────────────
+  //
+  // We walk the topic's TEMPLATE_PREFERENCE list, starting at the picked
+  // template, and retry up to `list.length` times. Each retry is triggered
+  // only by TemplateRequirementError (the LLM honestly couldn't fill the
+  // template-specific fields, e.g. PullQuote on an article with no quote).
+  // Any other error — JSON, network, LLM provider — is fatal and rethrown
+  // immediately so we don't burn $N retries on a transient outage.
+  //
+  // A caller-supplied templateOverride short-circuits all fallbacks so
+  // admin re-rolls remain authoritative.
   const scriptStart = Date.now();
-  let template =
+  const initialTemplate =
     input.templateOverride ?? pickTemplate(input.topic, dow, input.item.id);
-  let script: ReelScript;
-  try {
-    script = await runStage("generateReelScript", () =>
-      generateReelScript({
-        topic: input.topic,
-        template,
-        item: input.item,
-        contextItems: input.contextItems,
-      }),
-    );
-  } catch (err) {
-    // Recoverable: the LLM honestly couldn't fill template-specific fields
-    // (e.g. no real quote in the source for PullQuote). Fall back to the
-    // next template in the topic's preference list and retry once. Anything
-    // else — LLM failure, JSON error, network — is rethrown unchanged.
-    const cause = unwrapStageError(err);
-    if (
-      !input.templateOverride &&
-      cause instanceof TemplateRequirementError
-    ) {
-      const fallback = pickFallbackTemplate(input.topic, cause.template);
-      if (fallback) {
-        console.warn(
-          `[buildReel] template "${cause.template}" missing ${cause.missingFields.join(", ")} for item ${input.item.id} — retrying with "${fallback}"`,
-        );
-        template = fallback;
-        script = await runStage("generateReelScript", () =>
-          generateReelScript({
-            topic: input.topic,
-            template,
-            item: input.item,
-            contextItems: input.contextItems,
-          }),
-        );
-      } else {
+  const candidateList = input.templateOverride
+    ? [input.templateOverride]
+    : buildFallbackOrder(input.topic, initialTemplate);
+
+  let template = initialTemplate;
+  let script: ReelScript | undefined;
+  let lastError: unknown;
+  for (const candidate of candidateList) {
+    template = candidate;
+    try {
+      script = await runStage("generateReelScript", () =>
+        generateReelScript({
+          topic: input.topic,
+          template,
+          item: input.item,
+          contextItems: input.contextItems,
+        }),
+      );
+      break;
+    } catch (err) {
+      lastError = err;
+      const cause = unwrapStageError(err);
+      if (!(cause instanceof TemplateRequirementError)) {
         throw err;
       }
-    } else {
-      throw err;
+      // Try the next candidate, if any.
+      const next = candidateList[candidateList.indexOf(candidate) + 1];
+      if (next) {
+        console.warn(
+          `[buildReel] template "${cause.template}" missing ${cause.missingFields.join(", ")} for item ${input.item.id} — retrying with "${next}"`,
+        );
+      } else {
+        console.warn(
+          `[buildReel] template "${cause.template}" missing ${cause.missingFields.join(", ")} for item ${input.item.id} — no more fallbacks`,
+        );
+      }
     }
+  }
+  if (!script) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("buildReel: exhausted all template fallbacks");
   }
   const scriptCostUsd = estimateScriptCost(script);
   const scriptMs = Date.now() - scriptStart;
@@ -318,14 +330,17 @@ function unwrapStageError(err: unknown): unknown {
 }
 
 /**
- * Pick the next template from a topic's preference list, skipping `failed`.
- * Returns undefined when no alternative exists — caller should rethrow.
+ * Build the candidate template list for fallback retries. Starts with the
+ * picked template, then appends the remaining templates from the topic's
+ * preference list (in order, no duplicates). If the picked template isn't
+ * in the preference list (shouldn't happen, but defensive), we still try
+ * the whole preference list after it.
  */
-function pickFallbackTemplate(
+function buildFallbackOrder(
   topic: ReelTopic,
-  failed: ReelTemplate,
-): ReelTemplate | undefined {
-  const list = TEMPLATE_PREFERENCE[topic];
-  if (!list) return undefined;
-  return list.find((t) => t !== failed);
+  picked: ReelTemplate,
+): ReelTemplate[] {
+  const list = TEMPLATE_PREFERENCE[topic] ?? [];
+  const tail = list.filter((t) => t !== picked);
+  return [picked, ...tail];
 }
