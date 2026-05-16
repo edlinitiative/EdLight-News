@@ -81,3 +81,72 @@ jobs:
 
       - name: Generator tests (IG formatters, normalize, etc.)
         run: pnpm turbo test --filter=@edlight-news/generator
+
+      # Reels-generator unit + caption-fidelity integration tests.
+      # Caption-fidelity mocks Google STT via globalThis.fetch — runs in ~5 s.
+      # Heavier scene-change render test runs in a separate path-filtered job
+      # (see `scene-change` below).
+      - name: Reels-generator tests (template selection, caption fidelity, …)
+        run: pnpm turbo test --filter=@edlight-news/reels-generator
+
+  # ────────────────────────────────────────────────────────────────────────
+  # Scene-change render gate — guards the v1 "static plates" regression.
+  #
+  # This job bundles Remotion against the actual `dist/templates/Root.js`,
+  # renders 4 s of each body template, and uses ffmpeg's `freezedetect` to
+  # assert no template ever resolves to a single static frame for the
+  # whole clip. See packages/reels-generator/src/__tests__/sceneChange.integration.test.ts
+  # for the full rationale + threshold calibration notes.
+  #
+  # NOT a required check on `main` — it's path-filtered. Adding it to the
+  # protection rule would block PRs that touch unrelated files. Reviewers
+  # should still wait for it on PRs that do touch templates.
+  # ────────────────────────────────────────────────────────────────────────
+  scene-change:
+    name: Reels scene-change render
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            templates:
+              - 'packages/reels-generator/src/templates/**'
+              - 'packages/reels-generator/src/__tests__/sceneChange.integration.test.ts'
+
+      - name: Setup pnpm
+        if: steps.filter.outputs.templates == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        if: steps.filter.outputs.templates == 'true'
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install ffmpeg
+        if: steps.filter.outputs.templates == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Install dependencies
+        if: steps.filter.outputs.templates == 'true'
+        run: pnpm install --frozen-lockfile
+
+      # Templates must be built — `Root.tsx` uses NodeNext .js import
+      # specifiers that Remotion's webpack does not auto-rewrite to .tsx.
+      # composeReel.ts production code points Remotion at dist/templates/Root.js;
+      # the test mirrors that.
+      - name: Build reels-generator (templates compile to dist/)
+        if: steps.filter.outputs.templates == 'true'
+        run: pnpm --filter @edlight-news/reels-generator build
+
+      - name: Render + freezedetect 4 templates
+        if: steps.filter.outputs.templates == 'true'
+        run: pnpm --filter @edlight-news/reels-generator test:reels:scene-change
