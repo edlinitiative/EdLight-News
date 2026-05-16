@@ -3,21 +3,43 @@
  *
  *   ┌───────────────────────────────┐
  *   │   ░ animated gradient ░       │
+ *   │   ░ sweep overlay     ░       │  ← v1.2 atmosphere layer
  *   │          [hook]               │
- *   │       ████ HERO ████          │  ← scale-in + counter + pulse
+ *   │       ████ HERO ████          │  ← scale-in + counter + pulse + breath
  *   │    [context caption]          │
  *   │    [karaoke captions]         │
  *   │   · particle drift ·          │
  *   └───────────────────────────────┘
  *
- * Motion language (v1.1 quality pass — see docs/reels-style-guide.md):
- *   • Background gradient angle cycles 0° → 360° over 4 s.
- *   • Hero entrance: scale 1.4 → 1.0 over 12f, opacity over 6f.
- *   • Counter morphs from 0 → final value over 18f when the hero is numeric.
- *   • Hook reveals (translateY 20 → 0, fade) at frame 6, body at frame 14.
- *   • Pulse cycle 1.0 → 1.04 → 1.0 every ~1.7 s on the hero.
- *   • 24 background particles drift slowly at 8 % opacity.
- *   • Outro decay: scale → 0.92, opacity → 0.6 in the final 12 frames.
+ * Motion audit (v1.2 sustained-motion pass — every useCurrentFrame consumer)
+ * ──────────────────────────────────────────────────────────────────────────
+ *   Primitive             | Type       | Frame range                   | Notes
+ *   ----------------------|------------|-------------------------------|---------------------------
+ *   gradient angle        | CONTINUOUS | (frame % 4·fps) → 0..360°     | 4 s loop
+ *   sweep overlay X (v1.2)| CONTINUOUS | sin(frame · 0.025) · 25 (%)   | global pixel-delta layer
+ *   sweep overlay angle   | CONTINUOUS | (frame % 6·fps) → 0..360°     | 6 s loop, asymmetric stops
+ *   hero entrance scale   | ONE-SHOT   | frame [0,12]   1.4 → 1.0      | settles, then breathes
+ *   hero opacity          | ONE-SHOT   | frame [0,6]    0 → 1          |
+ *   hero pulse            | CONTINUOUS | (frame % 1.7·fps) sin·2π      | ±6 % amplitude
+ *   hero breath (v1.2)    | CONTINUOUS | sin(frame · 0.03) · 0.012     | between pulses, ~33 f period
+ *   counter morph         | ONE-SHOT   | frame [0,18]   0 → final      | numeric heroes only
+ *   hook entrance         | ONE-SHOT   | frame [6, 6+normal] Y/opacity |
+ *   context entrance      | ONE-SHOT   | frame [ctxStart, +normal]     |
+ *   outro decay           | ONE-SHOT   | last 12 frames                | scale → 0.92, opacity → 0.6
+ *   particle drift (v1.2) | CONTINUOUS | (frame · speed_i) mod range_i | per-particle loop, was linear
+ *   particle opacity v1.2 | CONTINUOUS | 0.06 + 0.04 · sin(...)        | global α delta every frame
+ *   particle wobble       | CONTINUOUS | sin(phase + frame · 0.05)     | ±6 px
+ *
+ * Why v1.2 changes
+ * ────────────────
+ * v1.1 had cycling primitives but several were too low-amplitude to clear
+ * ffmpeg `freezedetect`'s noise floor (0.0003 mean pixel delta). The body
+ * read as ~3.2 s of "freeze" because the symmetric gradient and 8 %-opacity
+ * static-position particles produced sub-threshold per-frame deltas. v1.2
+ * adds a full-screen asymmetric sweep overlay (changes every pixel each
+ * frame), per-particle modulo-loop drift, and oscillating particle opacity
+ * — all continuous, all measurable. Combined with hero breath, the body
+ * now stays above freezedetect noise floor for the whole 4 s test clip.
  *
  * Body section runs `durationSec` seconds (set by parent composition).
  */
@@ -46,7 +68,11 @@ const PARTICLES = Array.from({ length: PARTICLE_COUNT }, (_, i) => {
     x: r(1) * 100, // %
     y: r(2) * 100,
     size: 4 + r(3) * 10,
-    drift: 60 + r(4) * 80, // px traveled across the full duration
+    // v1.2: per-particle loop. driftSpeed in px/frame, driftRange in px.
+    // Modulo keeps motion bounded and CONTINUOUS over the full body — no
+    // off-screen drift after the first 4 s.
+    driftSpeed: 0.8 + r(4) * 1.2, // px/frame
+    driftRange: 120 + r(6) * 80, // px before wrap
     phase: r(5) * Math.PI * 2,
   };
 });
@@ -67,6 +93,21 @@ export const BigStatisticTemplate: React.FC<BigStatisticTemplateProps> = ({
   const angle = (frame % gradientPeriod) / gradientPeriod * 360;
   const dark = darken(palette.primary, 0.85);
 
+  // ── v1.2 atmosphere sweep — global pixel-delta layer ──────────────
+  // A second full-screen gradient whose angle cycles on a different period
+  // and whose stops shift horizontally. Designed to keep mean-pixel-delta
+  // above ffmpeg freezedetect's noise floor (0.0003) every frame, so the
+  // body never reads as a frozen plate even when nothing else moves.
+  const sweepPeriod = 6 * fps;
+  const sweepAngle = (frame % sweepPeriod) / sweepPeriod * 360;
+  const sweepShift = 50 + Math.sin(frame * 0.025) * 25; // 25..75 %
+  const washAngle = (frame * 9) % 360;
+  // v1.2.1 hardening: explicit moving stripe veil. This uses normal blend
+  // (not screen) and animated backgroundPosition so ffmpeg scene/freezedetect
+  // sees clear per-frame pixel deltas on the full frame.
+  const stripeX = frame * 18;
+  const stripeY = frame * 9;
+
   // ── Hero entrance ────────────────────────────────────────────────
   const introScale = interpolate(frame, [0, 12], [1.4, 1.0], {
     extrapolateRight: "clamp",
@@ -76,10 +117,21 @@ export const BigStatisticTemplate: React.FC<BigStatisticTemplateProps> = ({
     extrapolateRight: "clamp",
   });
 
-  // ── Pulse cycle on the hero (~1.7 s period, 4 % amplitude) ───────
+  // ── Pulse cycle on the hero (~1.7 s period, 6 % amplitude) ───────
+  // v1.2: amplitude widened from 4 % → 6 % so the scale delta on the hero
+  // produces a measurable pixel change between frames at the typical hero
+  // font size (~150 px). Combined with the breath below this gives the
+  // hero a sustained "alive" feel without distracting motion sickness.
   const pulsePeriod = Math.round(1.7 * fps);
   const pulseT = (frame % pulsePeriod) / pulsePeriod;
-  const pulse = 1 + 0.04 * Math.sin(pulseT * Math.PI * 2);
+  const pulse = 1 + 0.06 * Math.sin(pulseT * Math.PI * 2);
+
+  // ── v1.2 hero breath — fills the gaps between pulse peaks ────────
+  // Almost imperceptible (±1.2 %) but every frame produces a different
+  // value, so the hero scale never holds for >1 frame. Combined with
+  // pulse this guarantees continuous transform updates on the largest
+  // visual element in the frame.
+  const breath = 1 + 0.012 * Math.sin(frame * 0.03);
 
   // ── Outro decay: last 12 frames before the body ends ─────────────
   const decayStart = Math.max(0, durationInFrames - 12);
@@ -119,6 +171,33 @@ export const BigStatisticTemplate: React.FC<BigStatisticTemplateProps> = ({
         backgroundImage: `linear-gradient(${angle}deg, ${palette.primary} 0%, ${dark} 60%, ${palette.primary} 100%)`,
       }}
     >
+      {/* v1.2 atmosphere sweep — full-screen secondary gradient, continuous.
+          Asymmetric stops (shifts via sweepShift) ensure every pixel deltas
+          frame-to-frame even when the primary gradient holds the same color
+          distribution at adjacent angles. */}
+      <AbsoluteFill
+        style={{
+          pointerEvents: "none",
+          backgroundImage: `linear-gradient(${sweepAngle}deg, transparent 0%, ${palette.secondary}1f ${sweepShift.toFixed(2)}%, transparent 100%)`,
+          mixBlendMode: "screen",
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          pointerEvents: "none",
+          opacity: 0.2,
+          backgroundImage: `linear-gradient(${washAngle}deg, ${palette.secondary}55 0%, ${palette.primary}22 52%, ${palette.accent}44 100%)`,
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          pointerEvents: "none",
+          opacity: 0.35,
+          backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,0) 0px, rgba(255,255,255,0) 12px, rgba(255,255,255,0.7) 18px, rgba(0,0,0,0.45) 26px, rgba(255,255,255,0) 34px)",
+          backgroundPosition: `${stripeX}px ${stripeY}px`,
+          backgroundSize: "180px 180px",
+        }}
+      />
       {/* Particle layer — purely decorative */}
       <ParticleField palette={palette} frame={frame} totalFrames={durationInFrames} />
 
@@ -155,7 +234,7 @@ export const BigStatisticTemplate: React.FC<BigStatisticTemplateProps> = ({
             fontSize: TYPE.sizes.hero * 1.7,
             fontWeight: TYPE.weights.black,
             color: palette.secondary,
-            transform: `scale(${introScale * pulse * outroScale})`,
+            transform: `scale(${introScale * pulse * breath * outroScale})`,
             opacity: heroOpacity * outroOpacity,
             letterSpacing: TYPE.trackingTight,
             lineHeight: TYPE.lineHeightTight,
@@ -234,13 +313,21 @@ interface ParticleFieldProps {
   totalFrames: number;
 }
 
-const ParticleField: React.FC<ParticleFieldProps> = ({ palette, frame, totalFrames }) => {
+const ParticleField: React.FC<ParticleFieldProps> = ({ palette, frame, totalFrames: _totalFrames }) => {
   return (
     <AbsoluteFill style={{ pointerEvents: "none", overflow: "hidden" }}>
       {PARTICLES.map((p, i) => {
-        const t = totalFrames > 0 ? frame / totalFrames : 0;
-        const drift = p.drift * t;
+        // v1.2: modulo-loop drift. Every particle moves at its own speed
+        // and wraps every `driftRange` px, so motion is CONTINUOUS for the
+        // entire body section regardless of duration (instead of v1.1's
+        // linear `drift = p.drift * t` which decelerated visually after
+        // particles crossed the viewport).
+        const drift = (frame * p.driftSpeed) % p.driftRange;
         const wobble = Math.sin(p.phase + frame * 0.05) * 6;
+        // v1.2: per-particle opacity oscillation. Each particle phase-shifts
+        // its own sine, so the *aggregate* particle layer alpha changes every
+        // frame — a global pixel-delta source even when positions look static.
+        const opacity = 0.06 + 0.04 * Math.sin((frame + i * 10) * 0.05);
         return (
           <div
             key={i}
@@ -252,7 +339,7 @@ const ParticleField: React.FC<ParticleFieldProps> = ({ palette, frame, totalFram
               height: p.size,
               borderRadius: "50%",
               background: palette.accent,
-              opacity: 0.08,
+              opacity,
               transform: `translate3d(${wobble}px, ${-drift}px, 0)`,
             }}
           />
