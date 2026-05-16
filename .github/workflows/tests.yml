@@ -145,7 +145,7 @@ jobs:
       # the test mirrors that.
       - name: Build reels-generator (templates compile to dist/)
         if: steps.filter.outputs.templates == 'true'
-        run: pnpm --filter @edlight-news/reels-generator build
+        run: pnpm --filter @edlight-news/reels-generator exec tsc -p tsconfig.templates.json
 
       - name: Render + freezedetect 4 templates
         if: steps.filter.outputs.templates == 'true'
