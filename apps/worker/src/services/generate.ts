@@ -13,6 +13,8 @@ import type { QualityFlags, ItemCategory, Opportunity } from "@edlight-news/type
 import { computeScoring } from "./scoring.js";
 import { classifyItem } from "./classify.js";
 import { classifyWithZeroShot, resolveCategory } from "./zeroShotClassifier.js";
+import { verifyOpportunityClassification } from "./verifyOpportunityClassification.js";
+import { getDb } from "@edlight-news/firebase";
 import { PUBLISH_SCORE_THRESHOLD } from "@edlight-news/generator";
 import { isBotProtectionPage } from "@edlight-news/scraper";
 
@@ -273,6 +275,7 @@ export async function generateForItems(): Promise<{
         finalOpportunity = undefined;
 
         // ── Infer vertical from content signals ───────────────────────────
+        // (verifier gate runs below for the opportunity branches above)
         // The website uses `vertical` as the primary taxonomy for section
         // pages (world, education, business). Without this, articles only
         // appear via keyword fallback matching.
@@ -294,6 +297,48 @@ export async function generateForItems(): Promise<{
           finalVertical = "business";
         } else {
           finalVertical = undefined;
+        }
+      }
+
+      // ── DeepSeek verifier gate ───────────────────────────────────────
+      // Before we publish anything as an "opportunity" or "bourse", ask
+      // DeepSeek whether the article is *actually* actionable for the reader.
+      // The keyword + Gemini classifiers happily mislabel general news as
+      // opportunities (Iran/US "accord", scholarship-already-awarded stories,
+      // PM-IMF meetings, etc). The verifier catches ~25 % of those at write
+      // time so we never display them on /opportunites or /bourses.
+      // Runs only when we'd otherwise publish to the opportunity vertical;
+      // results are cached per-itemId in classification_audits so retries
+      // are free.
+      if (finalVertical === "opportunites") {
+        try {
+          const originalTopic =
+            finalCategory === "scholarship" || finalCategory === "bourses"
+              ? "scholarship"
+              : "opportunity";
+          const verdict = await verifyOpportunityClassification(
+            {
+              itemId: item.id,
+              title: draft.title_fr || item.title,
+              summary: draft.body_fr || item.summary || item.extractedText || "",
+              originalTopic,
+            },
+            getDb(),
+          );
+          if (verdict.demoted) {
+            console.log(
+              `[generate] verifier demoted item ${item.id}: ${verdict.verifiedLabel} (conf=${verdict.confidence.toFixed(2)}) — ${verdict.reason}`,
+            );
+            finalVertical = undefined;
+            finalCategory = "news" as ItemCategory;
+            finalOpportunity = undefined;
+            finalDeadline = null;
+          }
+        } catch (err) {
+          console.warn(
+            `[generate] verifier error for ${item.id}, keeping classification:`,
+            err instanceof Error ? err.message : err,
+          );
         }
       }
 
