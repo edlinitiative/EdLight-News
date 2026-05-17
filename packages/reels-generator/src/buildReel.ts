@@ -156,6 +156,30 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   const scriptCostUsd = estimateScriptCost(script);
   const scriptMs = Date.now() - scriptStart;
 
+  // ── Task 4 (v1.3): Log scene-cut plan or fallback ────────────────────
+  // When the LLM returns a structured `scenes` array (one entry per scene
+  // in the template director), log `reelSceneCutPlanned` so we can verify
+  // scene-boundary audio alignment in prod. When absent, the director
+  // allocates audio proportionally across scenes and we log the fallback.
+  if (script.scenes && script.scenes.length > 0) {
+    console.log(JSON.stringify({
+      event: "reelSceneCutPlanned",
+      reelId,
+      sceneCount: script.scenes.length,
+      scenes: script.scenes.map((s) => ({
+        id: s.sceneId, targetSec: s.targetDurationSec,
+        words: s.text.trim().split(/\s+/).length,
+      })),
+    }));
+  } else {
+    console.log(JSON.stringify({
+      event: "reelSceneCutPlanned",
+      reelId,
+      scriptStructureFallback: true,
+      note: "LLM did not return structured scenes — director uses proportional audio allocation",
+    }));
+  }
+
   // ── 3+5. Voice and footage in parallel ───────────────────────────────
   // Voice synthesis (TTS network call, ~2-4s) and stock footage search
   // (Pexels API, ~1-3s) are independent of each other once the script is

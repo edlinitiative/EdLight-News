@@ -65,6 +65,11 @@ function inferVoiceTier(voiceName: string): string {
  *
  * @param text   The voiceover script. Stripped of leading/trailing ws.
  * @param reelId Used to namespace the tmp file so concurrent reels don't clash.
+ *
+ * Speaking rate: controlled globally by `SANDRA_TTS_SPEAKING_RATE` (default 1.0)
+ * or overridden for Reels specifically via `REELS_SANDRA_SPEAKING_RATE` (default
+ * 1.1 when set). Reels target 12–16 s; at 1.1× Sandra delivers ~55 words in 13s.
+ * Set `REELS_SANDRA_SPEAKING_RATE=1.1` in the worker Cloud Run service to activate.
  */
 export async function synthesizeVoice(
   text: string,
@@ -75,7 +80,17 @@ export async function synthesizeVoice(
     throw new Error("synthesizeVoice: empty text after cleanup.");
   }
 
-  const audio = await speakAsSandra(cleaned);
+  // Task 6: Reels-specific speaking rate override.
+  // `REELS_SANDRA_SPEAKING_RATE` takes precedence over the global Sandra rate.
+  // When not set we use the default SANDRA_VOICE.speakingRate from config.ts.
+  const reelsRate = process.env.REELS_SANDRA_SPEAKING_RATE;
+  const speakingRateOverride = reelsRate !== undefined
+    ? { speakingRate: Number(reelsRate) }
+    : undefined;
+
+  const audio = await speakAsSandra(cleaned, {
+    ...(speakingRateOverride ? { voiceOverride: speakingRateOverride } : {}),
+  });
 
   // Write to OS tmp dir under a reels subdir we own.
   const dir = path.join(os.tmpdir(), "edlight-reels", reelId);

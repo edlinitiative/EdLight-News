@@ -179,3 +179,59 @@ export function getPalette(topic: ReelTopic): TopicPalette {
   }
   return p;
 }
+
+// ── Background helpers ────────────────────────────────────────────────
+//
+// Design rule (v1.3): backgrounds must be clean gradients only.
+// Allowed: solid color, linear-gradient, cycling angle/lightness.
+// BANNED: repeating-linear-gradient, background-repeat, tiled patterns,
+//         raster textures, crosshatch, diagonal-stripe overlays.
+// See docs/reels-style-guide.md §3 Backgrounds for the full spec.
+
+/**
+ * Shift an #RRGGBB color's brightness by `deltaPercent` points (positive =
+ * lighter, negative = darker). Each channel shifts uniformly — adequate for
+ * the subtle ±4% lightness nudges we use in scene backgrounds.
+ */
+export function shiftLightness(hex: string, deltaPercent: number): string {
+  if (!hex.startsWith("#") || hex.length !== 7) return hex;
+  const delta = Math.round(255 * deltaPercent / 100);
+  const clamp = (v: number) => Math.min(255, Math.max(0, v));
+  const r = clamp(parseInt(hex.slice(1, 3), 16) + delta);
+  const g = clamp(parseInt(hex.slice(3, 5), 16) + delta);
+  const b = clamp(parseInt(hex.slice(5, 7), 16) + delta);
+  const toHex = (n: number) => n.toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+/**
+ * Returns a `background` CSS string for a scene: a clean, continuously
+ * animating linear-gradient.
+ *
+ * - Gradient angle cycles ±6° around a base angle over a 4-second loop.
+ * - Each scene index shifts the base angle by 30° so adjacent scenes look
+ *   visibly different — key for hard cuts to register as scene changes.
+ * - Stop colours are lightness-shifted variants of `palette.primary`.
+ *
+ * NO tile pattern. NO background-image. NO repeat. Pure math on `frame`.
+ *
+ * @param palette - topic palette
+ * @param frame   - current Remotion frame (inside a Sequence = local frame)
+ * @param fps     - frames per second from useVideoConfig()
+ * @param sceneIndex - 0-based scene position (gives each scene a distinct hue)
+ */
+export function backgroundForScene(
+  palette: TopicPalette,
+  frame: number,
+  fps: number,
+  sceneIndex: number = 0,
+): { background: string } {
+  const cyclePosition = (frame % (fps * 4)) / (fps * 4); // 0..1 over 4s
+  const wobble = Math.sin(cyclePosition * Math.PI * 2);
+  const baseAngle = 135 + sceneIndex * 30; // scenes: 135°, 165°, 195°, 225°…
+  const angle = baseAngle + wobble * 6;    // ±6° continuous wobble
+  const lightShift = wobble * 4;           // ±4% lightness
+  const stop1 = shiftLightness(palette.primary, lightShift);
+  const stop2 = shiftLightness(palette.primary, -lightShift * 0.5);
+  return { background: `linear-gradient(${angle.toFixed(2)}deg, ${stop1} 0%, ${stop2} 100%)` };
+}
