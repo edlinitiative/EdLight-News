@@ -1,18 +1,31 @@
 /**
- * CtaScene — shared CTA used by all four body template directors.
+ * CtaScene — shared CTA used by all four body template directors (v1.4).
  *
- * Visual: palette.secondary as the full-bleed background (brand flip —
- * the strongest visual punctuation in any Reel). A bold action verb
- * ("LIRE LA SUITE" / "POSTULE" / "EN SAVOIR PLUS") pulses gently; the
- * EdLight handle sits below in smaller caps.
- *
- * Duration target: 60 frames (2 s). Works well as the closing scene across
- * all topic types.
+ * Visual upgrades over v1.3:
+ *   - Halo: soft radial glow behind the action verb (palette.primary @ low α).
+ *   - Animated chevron: down-arrow indicator that pulses to drive the action.
+ *   - Stronger entrance: overshoot scale 1.06 → 1.0, opacity starts at 0.55
+ *     so the cut never reveals an empty CTA scene.
+ *   - Pulse: subtle scale 1.00 → 1.03 on a 1.4 s loop, plus tracking pump on
+ *     the accent bar so the screen always has motion.
  */
 
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { TYPE, getPalette, backgroundForScene } from "../../brand.js";
+import {
+  AbsoluteFill,
+  Easing,
+  interpolate,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+import {
+  MOTION,
+  TYPE,
+  enterFromCutOpacity,
+  enterFromCutScale,
+  getPalette,
+  shiftLightness,
+} from "../../brand.js";
 import type { ReelTopic } from "../../types.js";
 
 export interface CtaSceneProps {
@@ -43,53 +56,101 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
   const { fps } = useVideoConfig();
   const palette = getPalette(topic);
 
-  // ── Background: solid palette.secondary — pure brand flip ──────────
-  // Using mostly palette.secondary (not blended with primary) maximises
-  // the scene-cut visibility. The cut FROM any palette.primary-based scene
-  // TO this secondary background scores ~0.3-0.6 in ffmpeg's MAD metric
-  // (enough to clear the MIN_HARD_CUT_COUNT gate at threshold 0.2).
-  const angle = 135 + Math.sin((frame % (fps * 4)) / (fps * 4) * Math.PI * 2) * 6;
-  const bg = `linear-gradient(${angle.toFixed(2)}deg, ${palette.secondary} 0%, ${palette.secondary}ee 100%)`;
+  // ── Background: palette.secondary with subtle radial highlight + vignette ─
+  // Maintains the high-contrast "brand flip" required by the scene-cut test
+  // (paper → secondary scores ~0.3–0.5 MAD, primary → secondary scores ~0.6+).
+  const cycleT = (frame % (fps * 4)) / (fps * 4);
+  const wobble = Math.sin(cycleT * Math.PI * 2);
+  const angle = 135 + sceneIndex * 30 + wobble * 6;
+  const stop1 = shiftLightness(palette.secondary, wobble * 3);
+  const stop2 = shiftLightness(palette.secondary, -wobble * 1.5);
+  const haloDriftX = 50 + Math.sin(cycleT * Math.PI * 2) * 6;
+  const haloDriftY = 50 + Math.cos(cycleT * Math.PI * 2) * 4;
+  const bg = `radial-gradient(ellipse 70% 50% at ${haloDriftX}% ${haloDriftY}%, ${shiftLightness(palette.secondary, 6)} 0%, transparent 60%),
+              radial-gradient(ellipse 92% 72% at 50% 52%, transparent 50%, rgba(0,0,0,0.18) 100%),
+              linear-gradient(${angle.toFixed(2)}deg, ${stop1} 0%, ${stop2} 100%)`;
 
-  // ── Entrance: whole card scales in 0.94 → 1.0 over 12 frames ─────
-  const entrance = interpolate(frame, [0, 12], [0.94, 1.0], {
-    extrapolateRight: "clamp",
-  });
-  const fadeIn = interpolate(frame, [0, 8], [0, 1], {
-    extrapolateRight: "clamp",
-  });
+  // ── Entrance ───────────────────────────────────────────────────────
+  const entranceScale = enterFromCutScale(frame, 8, 1.06);
+  const entranceOpacity = enterFromCutOpacity(frame, 6, 0.55);
 
-  // ── Pulse: scale 1.0 → 1.04 → 1.0 every 1.2 s ───────────────────
-  const pulsePeriod = Math.round(1.2 * fps);
+  // ── Pulse: subtle scale 1.0 → 1.03 every 1.4 s ────────────────────
+  const pulsePeriod = Math.round(1.4 * fps);
   const pulseT = (frame % pulsePeriod) / pulsePeriod;
-  const pulse = 1 + 0.04 * Math.sin(pulseT * Math.PI * 2);
+  const pulse = 1 + 0.03 * Math.sin(pulseT * Math.PI * 2);
+
+  // ── Halo: soft radial glow behind the label that breathes ─────────
+  const haloPulse = 1 + 0.06 * Math.sin(pulseT * Math.PI * 2);
+  const haloOpacity = 0.32 + 0.10 * Math.sin(pulseT * Math.PI * 2);
+
+  // ── Chevron: bobs down 6 px on the same cadence as the pulse ──────
+  const chevronY = 4 + 6 * Math.sin(pulseT * Math.PI * 2);
+  const chevronOpacity = interpolate(frame, [4, 14], [0, 0.85], {
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(...MOTION.ease.out),
+  });
+
+  // ── Accent bar: animated draw-on then breathe ─────────────────────
+  const barWidth = interpolate(frame, [0, 12], [40, 92], {
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(...MOTION.ease.out),
+  });
 
   const label = ctaLabel ?? DEFAULT_CTA[topic] ?? "LIRE LA SUITE";
 
   return (
     <AbsoluteFill
-      style={{ background: bg, display: "flex", flexDirection: "column",
-               alignItems: "center", justifyContent: "center", gap: 32,
-               opacity: fadeIn, transform: `scale(${entrance})` }}
+      style={{
+        background: bg,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 40,
+        opacity: entranceOpacity,
+        transform: `scale(${entranceScale})`,
+      }}
     >
       {/* Accent bar */}
-      <div style={{ width: 60, height: 5, borderRadius: 3,
-                    backgroundColor: palette.primary, opacity: 0.7 }} />
-
-      {/* Action verb */}
       <div
         style={{
-          fontFamily: TYPE.display,
-          fontWeight: TYPE.weights.black,
-          fontSize: TYPE.sizes.hero,
-          color: palette.primary,
-          letterSpacing: "0.04em",
-          textAlign: "center",
-          transform: `scale(${pulse})`,
-          textShadow: "0 4px 18px rgba(0,0,0,0.18)",
+          width: barWidth,
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: palette.primary,
+          opacity: 0.85,
         }}
-      >
-        {label}
+      />
+
+      {/* Halo glow + action verb */}
+      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: "-80px -120px",
+            background: `radial-gradient(ellipse at center, ${palette.primary} 0%, transparent 65%)`,
+            opacity: haloOpacity,
+            transform: `scale(${haloPulse})`,
+            filter: "blur(8px)",
+          }}
+        />
+        <div
+          style={{
+            position: "relative",
+            fontFamily: TYPE.display,
+            fontWeight: TYPE.weights.black,
+            fontSize: TYPE.sizes.hero,
+            color: palette.primary,
+            letterSpacing: "0.04em",
+            textAlign: "center",
+            transform: `scale(${pulse})`,
+            textShadow: "0 4px 22px rgba(0,0,0,0.22)",
+            lineHeight: 1,
+          }}
+        >
+          {label}
+        </div>
       </div>
 
       {/* EdLight handle */}
@@ -99,13 +160,54 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
           fontWeight: TYPE.weights.medium,
           fontSize: TYPE.sizes.caption,
           color: palette.primary,
-          letterSpacing: "0.10em",
+          letterSpacing: TYPE.trackingLoose,
           textTransform: "uppercase",
-          opacity: 0.75,
+          opacity: 0.78,
         }}
       >
         edlight.news
       </div>
+
+      {/* Animated chevron — directional cue */}
+      <div
+        aria-hidden
+        style={{
+          marginTop: 12,
+          transform: `translateY(${chevronY}px)`,
+          opacity: chevronOpacity,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 4,
+        }}
+      >
+        <Chevron color={palette.primary} size={40} />
+        <Chevron color={palette.primary} size={40} opacity={0.55} />
+      </div>
     </AbsoluteFill>
   );
 };
+
+/** Down-pointing chevron SVG — pure stroke, no fill. */
+const Chevron: React.FC<{ color: string; size: number; opacity?: number }> = ({
+  color,
+  size,
+  opacity = 1,
+}) => (
+  <svg
+    width={size}
+    height={size * 0.5}
+    viewBox="0 0 24 12"
+    fill="none"
+    style={{ opacity }}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M2 2 L12 10 L22 2"
+      stroke={color}
+      strokeWidth={3.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

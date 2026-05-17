@@ -1,19 +1,17 @@
 /**
- * BigStatisticTemplate — director + 4 scene cuts (v1.3).
+ * BigStatisticTemplate — director + 4 scene cuts (v1.4).
  *
  * Director plan (390 frames = 13 s @ 30 fps):
  *   Scene 0  HookScene        90f  3 s  Bold title card, animated underline
- *   Scene 1  HeroNumberScene 120f  4 s  Salient number, counter animation
+ *   Scene 1  HeroNumberScene 120f  4 s  Salient number — mega scale, counter, halo
  *   Scene 2  BenefitsScene   120f  4 s  Supporting context, staggered lines
  *   Scene 3  CtaScene         60f  2 s  Brand-flip CTA (shared component)
  *
- * Architecture (v1.3):
- *   - Each scene rendered inside a Remotion Sequence. useCurrentFrame() is
- *     sequence-local (0 → durationFrames-1).
- *   - Captions lives OUTSIDE all Sequences — karaoke spans all cuts.
- *   - NO tile patterns. NO repeating-linear-gradient. Clean gradients only
- *     via backgroundForScene() from brand.ts.
- *   - Hard cuts only (v1.4 will add optional dissolves).
+ * v1.4 upgrades:
+ *   - Mega-scale hero number (240 px) with halo glow behind
+ *   - enterFromCut helpers — no empty frames immediately after a cut
+ *   - paperBackgroundForScene / backgroundForScene give depth (radial highlight + vignette)
+ *   - Eyebrow + counter combination above the number for premium editorial feel
  */
 
 import React from "react";
@@ -25,7 +23,17 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { TYPE, MOTION, getPalette, backgroundForScene } from "../brand.js";
+import {
+  MOTION,
+  TYPE,
+  backgroundForScene,
+  enterFromCutOpacity,
+  enterFromCutScale,
+  enterFromCutTranslateY,
+  getPalette,
+  paperBackgroundForScene,
+  shiftLightness,
+} from "../brand.js";
 import { Captions } from "./Captions.js";
 import { CtaScene } from "./scenes/CtaScene.js";
 import type { BaseTemplateProps, DirectorSpec } from "./types.js";
@@ -45,75 +53,122 @@ export interface BigStatisticTemplateProps extends BaseTemplateProps {
 }
 
 // ── Scene 0: HookScene (3 s) ──────────────────────────────────────────────
-// Paper (light) background: the opening scene is a clean, bright title card.
-// HookScene(paper) → HeroScene(dark) scores ~0.87 in ffmpeg scene detection,
-// creating the first of three hard cuts the test requires.
+// Paper background with subtle depth. Cut to HeroNumberScene (dark) scores
+// ~0.87 in ffmpeg scene detection.
 const HookScene: React.FC<BigStatisticTemplateProps> = ({ topic, hook }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const palette = getPalette(topic);
-  const bg = { background: palette.paper };
+  const bg = paperBackgroundForScene(palette, frame, fps, 0);
 
-  const titleOpacity = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: "clamp" });
-  const titleY = interpolate(frame, [0, 14], [24, 0], {
+  const titleOpacity = enterFromCutOpacity(frame, 6);
+  const titleScale = enterFromCutScale(frame, 8, 1.04);
+  const titleY = enterFromCutTranslateY(frame, 7, 12);
+  const eyebrowOpacity = interpolate(frame, [6, 16], [0, 0.78], { extrapolateRight: "clamp" });
+  const underlineW = interpolate(frame, [12, 32], [0, 132], {
     extrapolateRight: "clamp",
-    easing: Easing.bezier(0, 0, 0.2, 1),
+    easing: Easing.bezier(...MOTION.ease.out),
   });
-  const underlineW = interpolate(frame, [14, 38], [0, 120], { extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ ...bg, display: "flex", flexDirection: "column",
                             alignItems: "center", justifyContent: "center",
-                            padding: "0 80px", gap: 20 }}>
+                            padding: "0 80px", gap: 26 }}>
+      <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.semibold,
+                    fontSize: TYPE.sizes.caption, color: palette.primary,
+                    letterSpacing: TYPE.trackingLoose, textTransform: "uppercase",
+                    opacity: eyebrowOpacity }}>
+        EN UN CHIFFRE
+      </div>
       <div style={{ fontFamily: TYPE.display, fontWeight: TYPE.weights.black,
-                    fontSize: TYPE.sizes.headline * 1.1, color: palette.primary,
-                    textAlign: "center", letterSpacing: "0.04em", textTransform: "uppercase",
-                    opacity: titleOpacity, transform: `translateY(${titleY}px)`,
-                    lineHeight: TYPE.lineHeightTight }}>
+                    fontSize: TYPE.sizes.headline, color: palette.ink,
+                    textAlign: "center", letterSpacing: TYPE.trackingTight,
+                    opacity: titleOpacity,
+                    transform: `translateY(${titleY}px) scale(${titleScale})`,
+                    lineHeight: TYPE.lineHeightTight,
+                    maxWidth: 900 }}>
         {hook}
       </div>
       <div style={{ width: underlineW, height: 6, borderRadius: 3,
-                    backgroundColor: palette.primary }} />
+                    backgroundColor: palette.secondary }} />
     </AbsoluteFill>
   );
 };
 
 // ── Scene 1: HeroNumberScene (4 s) ────────────────────────────────────────
-// Uses palette.paper (light) so the cut from dark HookScene is obvious.
-// Light-on-dark alternation ensures every scene boundary scores >= 0.25
-// in ffmpeg scene detection (paper→primary produces ~0.87 MAD score).
 const HeroNumberScene: React.FC<BigStatisticTemplateProps> = ({ topic, hero, hook }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const palette = getPalette(topic);
   const bg = backgroundForScene(palette, frame, fps, 1);
 
-  const introScale = interpolate(frame, [0, 14], [1.35, 1.0], {
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0, 0, 0.2, 1),
-  });
-  const heroOpacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: "clamp" });
-  const pulsePeriod = Math.round(1.7 * fps);
-  const pulse = 1 + 0.04 * Math.sin((frame % pulsePeriod) / pulsePeriod * Math.PI * 2);
+  // Counter animation on the hero number — over ~30 frames (1 s).
   const counterText = animateCounter(hero, frame, 30);
-  const kindOpacity = interpolate(frame, [10, 22], [0, 1], { extrapolateRight: "clamp" });
+
+  // Snappy overshoot scale: 1.10 → 1.0 in 8 frames so the cut never reveals
+  // a tiny invisible number.
+  const heroScale = enterFromCutScale(frame, 8, 1.10);
+  const heroOpacity = enterFromCutOpacity(frame, 5, 0.50);
+
+  // Subtle breathing pulse after entrance.
+  const pulsePeriod = Math.round(2.0 * fps);
+  const pulseT = (Math.max(0, frame - 12) % pulsePeriod) / pulsePeriod;
+  const pulse = 1 + 0.018 * Math.sin(pulseT * Math.PI * 2);
+
+  // Eyebrow + framing label appear AFTER the number lands.
+  const labelOpacity = interpolate(frame, [10, 24], [0, 0.85], {
+    extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out),
+  });
+  const labelY = interpolate(frame, [10, 24], [12, 0], {
+    extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out),
+  });
+
+  // Halo glow behind the hero number for depth.
+  const haloPulse = 1 + 0.08 * Math.sin(pulseT * Math.PI * 2);
+  const haloOpacity = 0.42 + 0.10 * Math.sin(pulseT * Math.PI * 2);
 
   return (
     <AbsoluteFill style={{ ...bg, display: "flex", flexDirection: "column",
                             alignItems: "center", justifyContent: "center",
-                            padding: "0 80px", gap: 32 }}>
-      <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.medium,
+                            padding: "0 80px", gap: 28 }}>
+      <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.semibold,
                     fontSize: TYPE.sizes.caption, color: palette.accent,
-                    letterSpacing: "0.10em", textTransform: "uppercase",
-                    opacity: kindOpacity * 0.75 }}>
-        {hook}
+                    letterSpacing: TYPE.trackingLoose, textTransform: "uppercase",
+                    opacity: labelOpacity * 0.85,
+                    transform: `translateY(${labelY}px)` }}>
+        CHIFFRE CLÉ
       </div>
-      <div style={{ fontFamily: TYPE.display, fontWeight: TYPE.weights.black,
-                    fontSize: TYPE.sizes.hero * 1.9, color: palette.secondary,
-                    transform: `scale(${introScale * pulse})`, opacity: heroOpacity,
-                    letterSpacing: TYPE.trackingTight, lineHeight: 1,
-                    textAlign: "center", textShadow: "0 6px 32px rgba(0,0,0,0.3)" }}>
-        {counterText}
+
+      {/* Halo + number */}
+      <div style={{ position: "relative", display: "flex",
+                    alignItems: "center", justifyContent: "center" }}>
+        <div aria-hidden style={{ position: "absolute", inset: "-120px -160px",
+                                  background: `radial-gradient(ellipse at center, ${shiftLightness(palette.secondary, 8)} 0%, transparent 65%)`,
+                                  opacity: haloOpacity,
+                                  transform: `scale(${haloPulse})`,
+                                  filter: "blur(12px)" }} />
+        <div style={{ position: "relative", fontFamily: TYPE.display,
+                      fontWeight: TYPE.weights.black,
+                      fontSize: TYPE.sizes.mega,
+                      color: palette.secondary,
+                      transform: `scale(${heroScale * pulse})`,
+                      opacity: heroOpacity,
+                      letterSpacing: TYPE.trackingTight, lineHeight: 0.92,
+                      textAlign: "center",
+                      textShadow: "0 10px 40px rgba(0,0,0,0.35)" }}>
+          {counterText}
+        </div>
+      </div>
+
+      {/* Hook word beneath number — anchors meaning */}
+      <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.medium,
+                    fontSize: TYPE.sizes.body, color: palette.accent,
+                    letterSpacing: TYPE.trackingNormal,
+                    opacity: labelOpacity * 0.85,
+                    transform: `translateY(${labelY}px)`,
+                    textAlign: "center", maxWidth: 800,
+                    lineHeight: TYPE.lineHeightNormal }}>
+        {hook}
       </div>
     </AbsoluteFill>
   );
@@ -126,31 +181,39 @@ const BenefitsScene: React.FC<BigStatisticTemplateProps> = ({ topic, context, ho
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const palette = getPalette(topic);
-  const bg = { background: palette.paper };
+  const bg = paperBackgroundForScene(palette, frame, fps, 2);
 
-  const mkEntrance = (delay: number) => ({
-    opacity: interpolate(frame, [delay, delay + 12], [0, 1], { extrapolateRight: "clamp" }),
-    y: interpolate(frame, [delay, delay + 14], [24, 0], {
-      extrapolateRight: "clamp", easing: Easing.bezier(0, 0, 0.2, 1),
+  // Snappy first-line entrance — second line staggered.
+  const e0 = {
+    opacity: enterFromCutOpacity(frame, 5, 0.55),
+    y: enterFromCutTranslateY(frame, 7, 12),
+  };
+  const mkStaggered = (delay: number) => ({
+    opacity: interpolate(frame, [delay, delay + 10], [0, 1], {
+      extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out),
+    }),
+    y: interpolate(frame, [delay, delay + 12], [20, 0], {
+      extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out),
     }),
   });
-  const e0 = mkEntrance(4);
-  const e1 = mkEntrance(14);
-  const e2 = mkEntrance(24);
+  const e1 = mkStaggered(8);
+  const e2 = mkStaggered(18);
   const lines = splitIntoLines(context, 3);
-  const accentH = interpolate(frame, [0, 18], [0, 0.55 * 1920], { extrapolateRight: "clamp" });
+  const accentH = interpolate(frame, [0, 18], [220, 0.65 * 1920], {
+    extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out),
+  });
 
   return (
     <AbsoluteFill style={{ ...bg, display: "flex", flexDirection: "row",
                             alignItems: "center" }}>
-      <div style={{ width: 8, height: accentH, backgroundColor: palette.primary,
-                    borderRadius: "0 4px 4px 0", flexShrink: 0 }} />
+      <div style={{ width: 10, height: accentH, backgroundColor: palette.secondary,
+                    borderRadius: "0 5px 5px 0", flexShrink: 0 }} />
       <div style={{ display: "flex", flexDirection: "column",
-                    padding: "0 72px 0 40px", gap: 28 }}>
-        <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.medium,
+                    padding: "0 80px 0 48px", gap: 28, flex: 1 }}>
+        <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.semibold,
                       fontSize: TYPE.sizes.caption, color: palette.primary,
-                      letterSpacing: "0.10em", textTransform: "uppercase",
-                      opacity: e0.opacity, transform: `translateY(${e0.y}px)` }}>
+                      letterSpacing: TYPE.trackingLoose, textTransform: "uppercase",
+                      opacity: e0.opacity * 0.85, transform: `translateY(${e0.y}px)` }}>
           {hook}
         </div>
         {lines.slice(0, 2).map((line, i) => {
@@ -160,6 +223,7 @@ const BenefitsScene: React.FC<BigStatisticTemplateProps> = ({ topic, context, ho
                                    fontWeight: i === 0 ? TYPE.weights.bold : TYPE.weights.regular,
                                    fontSize: i === 0 ? TYPE.sizes.title : TYPE.sizes.body,
                                    color: palette.ink, lineHeight: TYPE.lineHeightNormal,
+                                   letterSpacing: TYPE.trackingTight,
                                    opacity: e.opacity, transform: `translateY(${e.y}px)` }}>
               {line}
             </div>
@@ -214,7 +278,7 @@ function animateCounter(hero: string, frame: number, frames: number): string {
   const rounded = isInt ? Math.round(current) : current;
   const display = isInt
     ? sep
-      ? Math.round(rounded).toLocaleString("fr-FR").replace(/\u202f/g, sep === "," ? "," : " ")
+      ? Math.round(rounded).toLocaleString("fr-FR").replace(/ /g, sep === "," ? "," : " ")
       : String(Math.round(rounded))
     : rounded.toFixed(1);
   return `${prefix}${display}${suffix}`;
@@ -236,6 +300,3 @@ function splitIntoLines(text: string, maxLines: number): string[] {
   }
   return lines.filter(Boolean);
 }
-
-// Keep MOTION imported — used in brand-level constants referenced by Root.
-void MOTION;

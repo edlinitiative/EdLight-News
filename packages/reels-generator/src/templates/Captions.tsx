@@ -1,13 +1,18 @@
 /**
- * Captions — karaoke-style word-level caption bar.
+ * Captions — premium karaoke caption bar (v1.4).
  *
- * v1.1 layout rules (from Reels Quality PR):
+ * v1.4 layout & motion rules:
  *   - Anchored 280 px above the frame bottom (clear of IG's UI overlay).
- *   - Max width 86 % of frame (≤ 928 px @ 1080w) — never clips the right edge.
- *   - At most 4 words visible at a time. If the 4-word window would exceed
- *     `maxWidth`, drops to 3.
- *   - Body 56 px; active word 60 px (visual emphasis).
- *   - Ink-tinted background at 88 % opacity + soft drop shadow.
+ *   - Active word renders at 68 px with a scale-pop on becoming active.
+ *   - Spoken words (left of active) and upcoming words (right of active)
+ *     render at 50 px and dim to 70 % opacity.
+ *   - Active word gets a subtle accent underline (palette.secondary) that
+ *     draws on with each new active word.
+ *   - Word-boundary truncation: the visible window is built by ACCUMULATING
+ *     measured width — words only enter the window if they fit cleanly.
+ *     We never show a mid-word ellipsis (regression caught in v1.3 frames:
+ *     "campag", "visant u").
+ *   - Bar background uses 86 % ink + soft drop shadow for glass feel.
  *
  * `offsetSec` is preserved for back-compat — pass 0 if the caption bar is
  * mounted directly under the audio (current orchestrator does exactly that).
@@ -26,7 +31,7 @@ export interface CaptionsProps {
   offsetSec?: number;
   /**
    * Maximum visible window size. Hard upper bound; the renderer may show
-   * fewer words when the 4-word window would overflow `MAX_WIDTH_PX`.
+   * fewer words when accumulated word width exceeds `MAX_WIDTH_PX`.
    */
   windowSize?: number;
 }
@@ -36,15 +41,16 @@ const FRAME_WIDTH = 1080;
 const MAX_WIDTH_RATIO = 0.86;
 const MAX_WIDTH_PX = Math.floor(FRAME_WIDTH * MAX_WIDTH_RATIO); // 928
 const PADDING_BOTTOM = 280;
-const BAR_PADDING_X = 28;
-const BAR_PADDING_Y = 24;
-const BORDER_RADIUS = 16;
-const FONT_SIZE_BODY = 56;
-const FONT_SIZE_ACTIVE = 60;
+const BAR_PADDING_X = 32;
+const BAR_PADDING_Y = 26;
+const BORDER_RADIUS = 22;
+const FONT_SIZE_BODY = 50;
+const FONT_SIZE_ACTIVE = 68;
 const MAX_WORDS = 4;
-/** Rough average char width @ 56 px Inter Bold. Calibrated visually. */
-const AVG_CHAR_PX_BODY = 30;
-const AVG_CHAR_PX_ACTIVE = 33;
+/** Rough average char width for Inter Bold @ these sizes. Calibrated visually. */
+const AVG_CHAR_PX_BODY = 27;
+const AVG_CHAR_PX_ACTIVE = 38;
+const WORD_GAP_PX = 16;
 
 export const Captions: React.FC<CaptionsProps> = ({
   topic,
@@ -61,29 +67,29 @@ export const Captions: React.FC<CaptionsProps> = ({
   // Absolute voiceover time.
   const tSec = frame / fps + offsetSec;
 
-  // Find the active word.
+  // ── Active word ────────────────────────────────────────────────────
   let activeIdx = words.findIndex((w) => tSec >= w.start && tSec < w.end);
   if (activeIdx === -1) {
     const lastIdx = words.findLastIndex((w) => w.end <= tSec);
     activeIdx = lastIdx === -1 ? 0 : lastIdx;
   }
+  const activeWord = words[activeIdx]!;
 
-  // Word window: slide forward one word at a time so the active word
-  // always sits inside the visible cluster (preferring center placement
-  // when possible). With windowSize=4, the active word can sit at slots
-  // 0..3; keeping it near slot 1 reads most naturally for L→R languages.
+  // ── Build the visible window by accumulating WHOLE WORDS only ──────
+  // Strategy: pivot on the active word, add words to the left and right
+  // alternately while accumulated width stays under MAX_WIDTH_PX. Never
+  // split a word — never show a mid-word ellipsis.
   const maxWords = Math.max(1, Math.min(MAX_WORDS, windowSize));
-  let start = Math.max(0, activeIdx - 1);
-  let end = Math.min(words.length, start + maxWords);
-  start = Math.max(0, end - maxWords);
+  const window = buildVisibleWindow(words, activeIdx, maxWords, MAX_WIDTH_PX - BAR_PADDING_X * 2);
 
-  // Width-aware shrink: if the 4-word window would exceed MAX_WIDTH_PX
-  // (long Haitian compound nouns, long French verb tenses), drop to 3.
-  let visible = words.slice(start, end);
-  if (estimateWindowWidth(visible, activeIdx - start) > MAX_WIDTH_PX) {
-    end = Math.min(words.length, start + Math.max(1, maxWords - 1));
-    visible = words.slice(start, end);
-  }
+  // ── Per-active-word entrance: scale-pop with overshoot ─────────────
+  // The active word "pops" each time it becomes active. We compute its
+  // age (frames since it became active) and apply an overshoot curve.
+  const activeAgeSec = Math.max(0, tSec - activeWord.start);
+  const activeAgeFrames = activeAgeSec * fps;
+  const popDuration = 6;
+  const popScale = activePopScale(activeAgeFrames, popDuration);
+  const underlineProgress = Math.min(1, activeAgeFrames / 8);
 
   return (
     <AbsoluteFill
@@ -96,39 +102,62 @@ export const Captions: React.FC<CaptionsProps> = ({
     >
       <div
         style={{
-          maxWidth: MAX_WIDTH_PX,
           padding: `${BAR_PADDING_Y}px ${BAR_PADDING_X}px`,
-          background: `${palette.ink}E0`, // 0xE0 ≈ 88 %
+          background: `${palette.ink}DC`, // ~86 % opacity
           borderRadius: BORDER_RADIUS,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+          boxShadow: "0 16px 38px rgba(0,0,0,0.40), 0 2px 4px rgba(0,0,0,0.18)",
           fontFamily: TYPE.body,
           fontWeight: TYPE.weights.bold,
-          lineHeight: 1.18,
+          lineHeight: 1.04,
           textAlign: "center",
           letterSpacing: TYPE.trackingNormal,
-          // Cluster words on one line; the width-aware shrink keeps us
-          // inside MAX_WIDTH_PX so wrap shouldn't trigger, but if a single
-          // word is wider than the bar we let it scale rather than clip.
           whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          display: "inline-flex",
+          alignItems: "baseline",
+          gap: WORD_GAP_PX,
         }}
       >
-        {visible.map((w, i) => {
-          const globalIdx = start + i;
+        {window.map((w, i) => {
+          const globalIdx = window[0]!.globalIdx + i;
           const isActive = globalIdx === activeIdx;
+          const isSpoken = globalIdx < activeIdx;
+          const baseSize = isActive ? FONT_SIZE_ACTIVE : FONT_SIZE_BODY;
+          const opacity = isActive ? 1 : isSpoken ? 0.55 : 0.78;
+          const color = isActive ? palette.secondary : palette.accent;
+
           return (
             <span
               key={`${globalIdx}-${w.start}`}
               style={{
-                color: isActive ? palette.secondary : palette.accent,
-                marginRight: i === visible.length - 1 ? 0 : 14,
-                fontSize: isActive ? FONT_SIZE_ACTIVE : FONT_SIZE_BODY,
-                transition: "color 80ms linear, font-size 80ms linear",
+                position: "relative",
+                color,
+                fontSize: baseSize,
+                opacity,
+                transform: isActive ? `scale(${popScale})` : "scale(1)",
+                transformOrigin: "center bottom",
+                transition: "color 60ms linear, opacity 80ms linear",
+                whiteSpace: "nowrap",
                 verticalAlign: "baseline",
               }}
             >
               {w.word}
+              {isActive ? (
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: -8,
+                    height: 5,
+                    borderRadius: 3,
+                    background: palette.secondary,
+                    transform: `scaleX(${underlineProgress.toFixed(3)})`,
+                    transformOrigin: "left center",
+                    opacity: 0.85,
+                  }}
+                />
+              ) : null}
             </span>
           );
         })}
@@ -137,19 +166,91 @@ export const Captions: React.FC<CaptionsProps> = ({
   );
 };
 
+// ── Helpers ─────────────────────────────────────────────────────────────
+
+interface VisibleWord extends CaptionWord {
+  globalIdx: number;
+}
+
+/** Estimated width (px) of a single word at its target size. */
+function wordWidth(word: string, isActive: boolean): number {
+  const charPx = isActive ? AVG_CHAR_PX_ACTIVE : AVG_CHAR_PX_BODY;
+  return word.length * charPx;
+}
+
 /**
- * Rough width estimate (px) for a caption window. We assume the active word
- * renders at the larger size; everything else at body size. Adds the per-word
- * right margin (14 px) and the bar's horizontal padding. Deliberately
- * conservative — when in doubt we shrink to 3 words.
+ * Build the visible window. Pivot on the active word; alternately add
+ * words to the right (upcoming) and left (spoken). Each word must FIT
+ * entirely — no partial words.
+ *
+ * Returns a contiguous slice of `words` whose total measured width does
+ * not exceed `maxContentWidth`.
  */
-function estimateWindowWidth(words: CaptionWord[], activeRelIdx: number): number {
-  let px = BAR_PADDING_X * 2;
-  for (let i = 0; i < words.length; i++) {
-    const w = words[i]!;
-    const charPx = i === activeRelIdx ? AVG_CHAR_PX_ACTIVE : AVG_CHAR_PX_BODY;
-    px += w.word.length * charPx;
-    if (i < words.length - 1) px += 14; // marginRight
+function buildVisibleWindow(
+  words: CaptionWord[],
+  activeIdx: number,
+  maxWords: number,
+  maxContentWidth: number,
+): VisibleWord[] {
+  if (words.length === 0 || activeIdx < 0 || activeIdx >= words.length) return [];
+
+  const active = words[activeIdx]!;
+  let usedWidth = wordWidth(active.word, true);
+  let leftIdx = activeIdx;
+  let rightIdx = activeIdx;
+
+  // Try to add 1 upcoming + 1 spoken + 1 upcoming (or whatever fits).
+  // Order: right first (matches natural reading flow / shows what's coming).
+  let toggle: "right" | "left" = "right";
+  while (rightIdx - leftIdx + 1 < maxWords) {
+    if (toggle === "right" && rightIdx + 1 < words.length) {
+      const candidate = words[rightIdx + 1]!;
+      const cw = wordWidth(candidate.word, false) + WORD_GAP_PX;
+      if (usedWidth + cw > maxContentWidth) break;
+      rightIdx += 1;
+      usedWidth += cw;
+    } else if (toggle === "left" && leftIdx - 1 >= 0) {
+      const candidate = words[leftIdx - 1]!;
+      const cw = wordWidth(candidate.word, false) + WORD_GAP_PX;
+      if (usedWidth + cw > maxContentWidth) break;
+      leftIdx -= 1;
+      usedWidth += cw;
+    } else if (toggle === "right" && rightIdx + 1 >= words.length && leftIdx > 0) {
+      // No more right candidates, try left this turn.
+      toggle = "left";
+      continue;
+    } else if (toggle === "left" && leftIdx === 0 && rightIdx + 1 < words.length) {
+      toggle = "right";
+      continue;
+    } else {
+      break;
+    }
+    toggle = toggle === "right" ? "left" : "right";
   }
-  return px;
+
+  return words.slice(leftIdx, rightIdx + 1).map((w, i) => ({
+    ...w,
+    globalIdx: leftIdx + i,
+  }));
+}
+
+/**
+ * Overshoot pop curve for the active word.
+ * Frame 0  → 1.00 (starts at size)
+ * Frame 2  → 1.12 (peak overshoot)
+ * Frame 6  → 1.00 (settled)
+ * After    → 1.00 + tiny breathe
+ */
+function activePopScale(ageFrames: number, durationFrames: number): number {
+  if (ageFrames < 0) return 1;
+  if (ageFrames >= durationFrames) {
+    // Tiny breathe after the pop so the active word feels alive.
+    const breathe = Math.sin((ageFrames - durationFrames) * 0.10) * 0.012;
+    return 1 + breathe;
+  }
+  const t = ageFrames / durationFrames;
+  // Quadratic up then settle: 0 → 1 (peak at t=0.3)
+  const peak = 0.12;
+  const settle = 1 + peak * Math.sin(t * Math.PI);
+  return settle;
 }
