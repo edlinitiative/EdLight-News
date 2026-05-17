@@ -25,8 +25,21 @@ import type { HeroNumber } from "./extractHeroNumber.js";
  * that the template-required fields are present after parsing.
  */
 const reelScriptSchema = z.object({
-  /** The voiceover Sandra reads — 35–80 words, hits 15–28s at her cadence. */
-  voiceover: z.string().min(40).max(600),
+  /**
+   * Sandra's voiceover — 45–65 words, hits 12–16s at 1.1× speed cadence.
+   * Hard cap 65 words so the body composition stays in 360–480 frames.
+   */
+  voiceover: z.string().min(20).max(500),
+  /**
+   * Optional structured scene chunks (v1.3). When present, each entry maps to
+   * one scene in the template director. If missing, buildReel falls back to
+   * proportional allocation. The LLM may omit this field.
+   */
+  scenes: z.array(z.object({
+    sceneId: z.string(),
+    text: z.string(),
+    targetDurationSec: z.number().positive(),
+  })).optional(),
   /** Hook for BigStatistic; small text above the hero number. */
   hook: z.string().max(60).optional(),
   /** The hero string for BigStatistic (the number). */
@@ -154,14 +167,14 @@ function buildPrompt(input: GenerateReelScriptInput): string {
     ? `\n\nSTRUCTURED DATA:\n${JSON.stringify(item.structured, null, 2)}`
     : "";
 
-  return `You are writing a 15–28 second Reel script for EdLight News, voiced by Sandra.
+  return `You are writing a 12–16 second Reel script for EdLight News, voiced by Sandra.
 
 SANDRA'S VOICE:
 - Warm, factual, intelligent. Never sensational.
 - Haitian-French register. Code-switch to Kreyòl ONLY for one short phrase max.
 - Never invent statistics. If the source doesn't have it, omit it.
 - End the voiceover on a forward-looking note ("on suit ça", "à demain", "rete branche").
-- 35–80 words for the voiceover. Aim for ~22 seconds at normal cadence.
+- 45–65 words for the voiceover. Hard cap 65 words. Aim for ~13 seconds (Sandra speaks at 1.1× in Reels).
 
 TOPIC: ${topic}
 ${topicGuidance[topic]}
@@ -175,7 +188,7 @@ ${item.sourceName ? `Source: ${item.sourceName}\n` : ""}Summary: ${item.summary}
 
 OUTPUT REQUIREMENTS:
 - Return ONLY a JSON object, no markdown fences.
-- "voiceover": Sandra's spoken script (35–80 words, French, plain text — no SSML, no stage directions).
+- "voiceover": Sandra's spoken script (45–65 words, HARD CAP 65 words, French, plain text — no SSML, no stage directions).
 - Template-specific fields per the TEMPLATE section above.
 - "caption": IG caption, 1–2 short sentences + 3–6 hashtags inline. French.
 - "hashtags": array of 3–8 hashtag strings (no leading #).
