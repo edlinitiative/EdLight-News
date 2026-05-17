@@ -230,9 +230,24 @@ function buildSpeechContexts(
     ),
   ).slice(0, 32);
 
-  const phrases = [scriptText.slice(0, 4500)];
+  // Google STT limits each individual phrase to 100 characters.
+  // Split the script at word boundaries into ≤100-char chunks.
+  const words = scriptText.split(/\s+/);
+  const chunks: string[] = [];
+  let current = "";
+  for (const w of words) {
+    const candidate = current ? `${current} ${w}` : w;
+    if (candidate.length > 100) {
+      if (current) chunks.push(current);
+      current = w.slice(0, 100);
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) chunks.push(current);
+
   return [
-    { phrases, boost: 20 },
+    { phrases: chunks.slice(0, 50), boost: 20 },
     ...(properNouns.length > 0 ? [{ phrases: properNouns, boost: 15 }] : []),
   ];
 }
