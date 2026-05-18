@@ -47,6 +47,14 @@ export interface BuildReelInput {
    * generic Pexels b-roll for the `HeadlinePhoto` template.
    */
   imageUrl?: string;
+  /**
+   * v1.6 — Canonical clickable URL where the viewer can actually act
+   * (apply, register, read full article). For aggregated content this is
+   * the ORIGINAL publisher URL (e.g. royalsociety.org), NOT the
+   * edlight.news article page. Rendered on the CTA scene as the destination
+   * handoff. Falls back to `item.url` when omitted.
+   */
+  sourceUrl?: string;
   /** Optional context items for the LLM. */
   contextItems?: GenerateReelScriptInput["contextItems"];
   /** Day-of-week 0-6 for deterministic template rotation. Defaults to today UTC. */
@@ -228,6 +236,12 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   );
 
   // ── 6. Compose ───────────────────────────────────────────────────────────
+  // v1.6: derive the canonical action URL. Prefer the caller-supplied
+  // sourceUrl (the original publisher URL where the viewer can act); fall
+  // back to item.url. extractSourceDomain() handles Google News redirect
+  // wrappers and strips www/m. prefixes.
+  const resolvedSourceUrl = input.sourceUrl ?? input.item.url;
+  const sourceDomain = extractSourceDomain(resolvedSourceUrl);
   const composed = await runStage("composeReel", () =>
     composeReel({
       reelId,
@@ -237,7 +251,11 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
       audioPath: voice.audioPath,
       audioDurationSec: transcript.durationSec,
       clips,
-      captions: transcript.words,      heroImageUrl: input.imageUrl,      remotionEntry: input.remotionEntry,
+      captions: transcript.words,
+      heroImageUrl: input.imageUrl,
+      remotionEntry: input.remotionEntry,
+      sourceUrl: resolvedSourceUrl,
+      sourceDomain,
     }),
   );
 
@@ -410,4 +428,33 @@ function buildFallbackOrder(
   const list = TEMPLATE_PREFERENCE[topic] ?? [];
   const tail = list.filter((t) => t !== picked);
   return [picked, ...tail];
+}
+
+/**
+ * Extract a display-ready domain (e.g. "royalsociety.org") from any URL.
+ * Strips protocol, www./m. prefixes, and trailing paths. Returns undefined
+ * for empty/invalid input so callers can degrade gracefully.
+ *
+ * Special-cases Google News redirect URLs (news.google.com/articles/...?url=…)
+ * by unwrapping the `url` query parameter when present.
+ */
+export function extractSourceDomain(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  let candidate = raw;
+  try {
+    const u = new URL(raw);
+    if (u.hostname.endsWith("news.google.com")) {
+      const inner = u.searchParams.get("url");
+      if (inner) candidate = inner;
+    }
+  } catch {
+    // Not a parseable URL — fall through to regex below.
+  }
+  try {
+    const u = new URL(candidate);
+    return u.hostname.replace(/^(www|m)\./i, "");
+  } catch {
+    const m = candidate.match(/^(?:https?:\/\/)?(?:www\.|m\.)?([^\/?#]+)/i);
+    return m?.[1];
+  }
 }

@@ -390,6 +390,16 @@ console.log(
 
 // ── 4. buildReel ───────────────────────────────────────────────────────
 const articleUrl = `${SITE_URL}/news/${pick.cv.id}?lang=fr`;
+// v1.6: the action URL (where the viewer can actually apply / register / read
+// the source) is the publisher's original URL, NOT the edlight.news article
+// page. EdLight News aggregates — most opportunities cannot be acted on from
+// our site. CtaScene renders this domain so viewers know exactly where to go.
+const sourceOriginalUrl =
+  (pick.item.source as { originalUrl?: string } | undefined)?.originalUrl;
+const actionUrl = sourceOriginalUrl ?? articleUrl;
+console.log(
+  `[runBuildReelsQueueOnce] action URL: ${actionUrl} (sourceOriginalUrl=${sourceOriginalUrl ?? "<none>"})`,
+);
 console.log("[runBuildReelsQueueOnce] calling buildReel()…");
 // Build the richest summary we can: prefer the article body (≤ 1.5 k chars,
 // the LLM context budget can absorb it) and fall back to the short summary.
@@ -415,6 +425,7 @@ const built = await buildReel({
     sourceName: pick.item.source?.name,
   },
   imageUrl: pick.item.imageUrl || undefined,
+  sourceUrl: actionUrl,
 });
 console.log("[runBuildReelsQueueOnce] buildReel done. videoPath=", built.videoPath);
 

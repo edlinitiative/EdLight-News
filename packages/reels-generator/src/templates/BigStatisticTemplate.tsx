@@ -36,6 +36,7 @@ import {
 } from "../brand.js";
 import { Captions } from "./Captions.js";
 import { CtaScene } from "./scenes/CtaScene.js";
+import { scaleSceneDurations } from "./types.js";
 import type { BaseTemplateProps, DirectorSpec } from "./types.js";
 
 // ── Director spec ─────────────────────────────────────────────────────────
@@ -45,6 +46,9 @@ export const BIG_STATISTIC_SCENES: DirectorSpec = [
   { id: "context", durationFrames: 120 },
   { id: "cta",     durationFrames: 60  },
 ] as const;
+
+/** v1.6 alias used by the director with scaleSceneDurations(). */
+export const BIG_STATISTIC_BASELINE = BIG_STATISTIC_SCENES;
 
 export interface BigStatisticTemplateProps extends BaseTemplateProps {
   hero: string;
@@ -236,24 +240,36 @@ const BenefitsScene: React.FC<BigStatisticTemplateProps> = ({ topic, context, ho
 
 // ── Director wrapper ──────────────────────────────────────────────────────
 export const BigStatisticTemplate: React.FC<BigStatisticTemplateProps> = (props) => {
+  const baseTotal = BIG_STATISTIC_BASELINE.reduce((s, x) => s + x.durationFrames, 0);
+  const scenes = scaleSceneDurations(
+    BIG_STATISTIC_BASELINE,
+    props.bodyDurationFrames ?? baseTotal,
+    BIG_STATISTIC_BASELINE.length - 1,
+  );
   let cursor = 0;
+  const ctaStart = scenes.slice(0, -1).reduce((s, x) => s + x.durationFrames, 0);
+
   return (
     <AbsoluteFill style={{ backgroundColor: getPalette(props.topic).primary }}>
-      {BIG_STATISTIC_SCENES.map((scene, i) => {
+      {scenes.map((scene, i) => {
         const from = cursor;
         cursor += scene.durationFrames;
         const el =
           scene.id === "hook"    ? <HookScene {...props} /> :
           scene.id === "hero"    ? <HeroNumberScene {...props} /> :
           scene.id === "context" ? <BenefitsScene {...props} /> :
-                                   <CtaScene topic={props.topic} sceneIndex={i} />;
+                                   <CtaScene
+                                     topic={props.topic}
+                                     sceneIndex={i}
+                                     sourceDomain={props.sourceDomain}
+                                   />;
         return (
           <Sequence key={scene.id} from={from} durationInFrames={scene.durationFrames}>
             {el}
           </Sequence>
         );
       })}
-      <Captions topic={props.topic} words={props.captions} />
+      <Captions topic={props.topic} words={props.captions} dimAfterFrame={ctaStart} />
     </AbsoluteFill>
   );
 };

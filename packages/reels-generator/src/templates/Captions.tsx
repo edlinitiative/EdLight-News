@@ -19,7 +19,7 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import type { CaptionWord } from "./types.js";
 import { TYPE, getPalette } from "../brand.js";
 import type { ReelTopic } from "../types.js";
@@ -34,6 +34,17 @@ export interface CaptionsProps {
    * fewer words when accumulated word width exceeds `MAX_WIDTH_PX`.
    */
   windowSize?: number;
+  /**
+   * v1.6 — Frame at which to start dimming the caption bar. Used by
+   * templates to fade the bar to ~30 % opacity during the CTA scene so
+   * the active verb + source domain own the viewer's attention.
+   * When undefined, captions render at full strength throughout.
+   */
+  dimAfterFrame?: number;
+  /** Opacity floor reached `dimFadeFrames` after `dimAfterFrame`. Default 0.3. */
+  dimToOpacity?: number;
+  /** Frames over which to ramp down to `dimToOpacity`. Default 14. */
+  dimFadeFrames?: number;
 }
 
 // ── Layout constants (kept here so designers can audit in one place) ───
@@ -57,6 +68,9 @@ export const Captions: React.FC<CaptionsProps> = ({
   words,
   offsetSec = 0,
   windowSize = MAX_WORDS,
+  dimAfterFrame,
+  dimToOpacity = 0.3,
+  dimFadeFrames = 14,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -91,6 +105,19 @@ export const Captions: React.FC<CaptionsProps> = ({
   const popScale = activePopScale(activeAgeFrames, popDuration);
   const underlineProgress = Math.min(1, activeAgeFrames / 8);
 
+  // v1.6 — fade the bar during the CTA window so the caption text no
+  // longer competes with the action verb / source domain. Linear ramp
+  // from 1.0 → dimToOpacity over `dimFadeFrames`.
+  const barOpacity =
+    dimAfterFrame != null
+      ? interpolate(
+          frame,
+          [dimAfterFrame, dimAfterFrame + dimFadeFrames],
+          [1, dimToOpacity],
+          { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+        )
+      : 1;
+
   return (
     <AbsoluteFill
       style={{
@@ -98,6 +125,7 @@ export const Captions: React.FC<CaptionsProps> = ({
         alignItems: "center",
         paddingBottom: PADDING_BOTTOM,
         pointerEvents: "none",
+        opacity: barOpacity,
       }}
     >
       <div

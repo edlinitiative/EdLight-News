@@ -1,13 +1,25 @@
 /**
- * CtaScene — shared CTA used by all four body template directors (v1.4).
+ * CtaScene — shared CTA used by all four body template directors (v1.6).
  *
- * Visual upgrades over v1.3:
- *   - Halo: soft radial glow behind the action verb (palette.primary @ low α).
- *   - Animated chevron: down-arrow indicator that pulses to drive the action.
- *   - Stronger entrance: overshoot scale 1.06 → 1.0, opacity starts at 0.55
- *     so the cut never reveals an empty CTA scene.
- *   - Pulse: subtle scale 1.00 → 1.03 on a 1.4 s loop, plus tracking pump on
- *     the accent bar so the screen always has motion.
+ * v1.6 overhaul rationale
+ * ───────────────────────
+ * Before v1.6 the CTA prominently displayed "edlight.news" — but viewers
+ * cannot apply for a Royal Society scholarship on edlight.news. The CTA
+ * scene now hands them off to the actual source. It also absorbs any
+ * audio overhang via a dynamic `durationInFrames` (no more solid-blue
+ * void tail).
+ *
+ * Layout (top → bottom)
+ *   ─ accent bar (animated draw-on)
+ *   ─ POSTULE / CANDIDATER / …      ← action verb (huge, pulse)
+ *   ─ royalsociety.org · 15 mars    ← sourceDomain · deadline
+ *   ─ 👉 Lien en description        ← tap-cue (replaces v1.5 down-chevron)
+ *   ─ @edlightnews · suis pour plus  ← brand lockup (fades in last 0.6 s)
+ *
+ * Dynamic duration
+ *   useVideoConfig().durationInFrames returns the SEQUENCE length here,
+ *   so when the director uses scaleSceneDurations() to pad this scene
+ *   with body slack, the lockup correctly fades in at the very end.
  */
 
 import React from "react";
@@ -34,6 +46,18 @@ export interface CtaSceneProps {
   ctaLabel?: string;
   /** Scene index for backgroundForScene() — pass the actual index in the director. */
   sceneIndex?: number;
+  /**
+   * v1.6 — Display-ready domain of the actionable source (e.g.
+   * "royalsociety.org"). Replaces "edlight.news" as the destination.
+   * When undefined, falls back to "edlight.news" (legacy behaviour).
+   */
+  sourceDomain?: string;
+  /**
+   * v1.6 — Optional second line, typically the deadline string from
+   * keyFacts ("15 mars 2025"). When present, rendered as
+   * "{sourceDomain} · {deadline}" to reinforce urgency.
+   */
+  deadline?: string;
 }
 
 /** Per-topic CTA verbs — editorial, not marketing. */
@@ -51,9 +75,11 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
   topic,
   ctaLabel,
   sceneIndex = 3,
+  sourceDomain,
+  deadline,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
   const palette = getPalette(topic);
 
   // ── Background: palette.secondary with subtle radial highlight + vignette ─
@@ -83,9 +109,10 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
   const haloPulse = 1 + 0.06 * Math.sin(pulseT * Math.PI * 2);
   const haloOpacity = 0.32 + 0.10 * Math.sin(pulseT * Math.PI * 2);
 
-  // ── Chevron: bobs down 6 px on the same cadence as the pulse ──────
-  const chevronY = 4 + 6 * Math.sin(pulseT * Math.PI * 2);
-  const chevronOpacity = interpolate(frame, [4, 14], [0, 0.85], {
+  // ── Tap cue: horizontal bob (replaces v1.5 down-chevron which pointed
+  //    at the IG UI overlay area where there's nothing to interact with).
+  const tapBob = 4 * Math.sin(pulseT * Math.PI * 2);
+  const tapOpacity = interpolate(frame, [4, 14], [0, 0.92], {
     extrapolateRight: "clamp",
     easing: Easing.bezier(...MOTION.ease.out),
   });
@@ -96,7 +123,22 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
     easing: Easing.bezier(...MOTION.ease.out),
   });
 
+  // ── Brand lockup: fades in during the FINAL 18 frames (0.6 s) so the
+  //    closing beat shows "@edlightnews · suis pour plus" without
+  //    competing with the action verb during the main dwell.
+  const lockupStart = Math.max(0, durationInFrames - 18);
+  const lockupOpacity = interpolate(
+    frame, [lockupStart, lockupStart + 12], [0, 0.78],
+    { extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out) },
+  );
+
   const label = ctaLabel ?? DEFAULT_CTA[topic] ?? "LIRE LA SUITE";
+  // Compose destination line: "royalsociety.org · 15 mars" when both present;
+  // either alone otherwise; fall back to edlight.news as a last resort
+  // (only when both upstream fields are empty — should not happen in
+  // practice post-pipeline-plumbing).
+  const destination = sourceDomain ?? "edlight.news";
+  const destinationLine = deadline ? `${destination} · ${deadline}` : destination;
 
   return (
     <AbsoluteFill
@@ -106,9 +148,10 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 40,
+        gap: 28,
         opacity: entranceOpacity,
         transform: `scale(${entranceScale})`,
+        padding: "0 64px",
       }}
     >
       {/* Accent bar */}
@@ -153,59 +196,78 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
         </div>
       </div>
 
-      {/* EdLight handle */}
+      {/* Destination line — the actual handoff (v1.6 fix for issue #2). */}
       <div
         style={{
+          fontFamily: TYPE.body,
+          fontWeight: TYPE.weights.bold,
+          fontSize: TYPE.sizes.body,
+          color: palette.primary,
+          letterSpacing: "0.01em",
+          textAlign: "center",
+          maxWidth: 920,
+          lineHeight: 1.2,
+          opacity: 0.95,
+        }}
+      >
+        {destinationLine}
+      </div>
+
+      {/* Tap cue — "Lien en description" with hand-tap glyph.
+          Replaces v1.5 down-chevron which pointed at the IG UI strip. */}
+      <div
+        aria-hidden
+        style={{
+          marginTop: 6,
+          transform: `translateX(${tapBob}px)`,
+          opacity: tapOpacity,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 12,
+          fontFamily: TYPE.body,
+          fontWeight: TYPE.weights.semibold,
+          fontSize: 30,
+          color: palette.primary,
+          letterSpacing: TYPE.trackingLoose,
+          textTransform: "uppercase",
+        }}
+      >
+        <TapGlyph color={palette.primary} size={36} />
+        <span>Lien en description</span>
+      </div>
+
+      {/* Brand lockup — fades in during the final 0.6 s as a closing beat
+          (v1.6 fix for issue #10 — provides the outro sting without
+          mounting a separate scene). */}
+      <div
+        style={{
+          marginTop: 18,
           fontFamily: TYPE.body,
           fontWeight: TYPE.weights.medium,
           fontSize: TYPE.sizes.caption,
           color: palette.primary,
           letterSpacing: TYPE.trackingLoose,
           textTransform: "uppercase",
-          opacity: 0.78,
+          opacity: lockupOpacity,
         }}
       >
-        edlight.news
-      </div>
-
-      {/* Animated chevron — directional cue */}
-      <div
-        aria-hidden
-        style={{
-          marginTop: 12,
-          transform: `translateY(${chevronY}px)`,
-          opacity: chevronOpacity,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 4,
-        }}
-      >
-        <Chevron color={palette.primary} size={40} />
-        <Chevron color={palette.primary} size={40} opacity={0.55} />
+        @edlightnews · suis pour plus
       </div>
     </AbsoluteFill>
   );
 };
 
-/** Down-pointing chevron SVG — pure stroke, no fill. */
-const Chevron: React.FC<{ color: string; size: number; opacity?: number }> = ({
-  color,
-  size,
-  opacity = 1,
-}) => (
-  <svg
-    width={size}
-    height={size * 0.5}
-    viewBox="0 0 24 12"
-    fill="none"
-    style={{ opacity }}
-    xmlns="http://www.w3.org/2000/svg"
-  >
+/**
+ * Hand-tap glyph — points at the caption area below the post.
+ * Pure-SVG so no external icon font is needed.
+ */
+const TapGlyph: React.FC<{ color: string; size: number }> = ({ color, size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
-      d="M2 2 L12 10 L22 2"
+      d="M9 11V6a2 2 0 1 1 4 0v5M13 11V4a2 2 0 1 1 4 0v8M17 11V7a2 2 0 1 1 4 0v9a6 6 0 0 1-6 6h-2a6 6 0 0 1-5.2-3l-3.3-5.7a2 2 0 0 1 .7-2.7l.3-.2a2 2 0 0 1 2.8.7L9 14"
       stroke={color}
-      strokeWidth={3.5}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
     />

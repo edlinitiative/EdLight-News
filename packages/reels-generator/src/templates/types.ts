@@ -49,6 +49,85 @@ export interface BaseTemplateProps {
   dateLabel: string;
   /** Source publication / author for credit footer. */
   sourceLabel?: string;
+  /**
+   * v1.6 — Canonical clickable URL where the viewer can actually act
+   * (apply, register, read full article). For aggregated content this is
+   * the ORIGINAL publisher URL (e.g. royalsociety.org), NOT edlight.news.
+   * Rendered on the CTA scene as the destination handoff.
+   */
+  sourceUrl?: string;
+  /**
+   * v1.6 — Display-ready source domain (e.g. "royalsociety.org") derived
+   * from sourceUrl. Used by CtaScene + source-attribution chips so the
+   * viewer always knows where the information came from. When absent,
+   * scenes degrade gracefully (omit the chip, fall back to edlight.news
+   * on the CTA).
+   */
+  sourceDomain?: string;
+  /**
+   * v1.6 — Actual body length in frames (after the composer scales it to
+   * the audio length). Directors use this with `scaleSceneDurations()` to
+   * absorb the audio overhang into the CTA scene instead of leaving a
+   * solid-color void at the tail.
+   */
+  bodyDurationFrames?: number;
+}
+
+// ── v1.6: shared scene-duration scaler ─────────────────────────────────
+//
+// Every body director sums its baseline scene durations to ~390 frames
+// (13 s). When the actual audio is longer (up to MAX_REEL_SEC = 16 s) the
+// composer extends `bodyFrames` to match — but if the director keeps its
+// fixed 390 f scene list, the final 3 s render onto the parent wrapper's
+// default backgroundColor (solid `palette.primary`) producing the
+// "blue void" tail. This helper proportionally absorbs the extra (or
+// shortfall) into the chosen padding scene (the CTA by default), keeping
+// the carefully-tuned shorter scenes intact.
+
+/**
+ * Scale a baseline DirectorSpec to exactly `totalFrames` by absorbing the
+ * delta into `padIndex` (defaults to the last scene = CTA). When total
+ * is shorter than the baseline, scales all scenes down proportionally.
+ */
+export function scaleSceneDurations(
+  baseline: DirectorSpec,
+  totalFrames: number,
+  padIndex: number = baseline.length - 1,
+): SceneSpec[] {
+  const baseTotal = baseline.reduce((s, x) => s + x.durationFrames, 0);
+  if (totalFrames <= 0 || baseTotal <= 0) {
+    return baseline.map((s) => ({ ...s }));
+  }
+  const delta = totalFrames - baseTotal;
+  if (delta === 0) return baseline.map((s) => ({ ...s }));
+
+  if (delta > 0) {
+    // Audio longer than baseline — pad the CTA scene with the slack so the
+    // viewer dwells on the actionable info, not a blue wrapper.
+    return baseline.map((s, i) => ({
+      ...s,
+      durationFrames: i === padIndex ? s.durationFrames + delta : s.durationFrames,
+    }));
+  }
+
+  // Audio shorter than baseline — proportional scale, but every scene gets
+  // at least 30 frames (1 s) so transitions remain perceptible.
+  const ratio = totalFrames / baseTotal;
+  const MIN_FRAMES = 30;
+  const scaled = baseline.map((s) => ({
+    ...s,
+    durationFrames: Math.max(MIN_FRAMES, Math.round(s.durationFrames * ratio)),
+  }));
+  // Trim/extend the pad scene to land exactly on totalFrames.
+  const sum = scaled.reduce((acc, x) => acc + x.durationFrames, 0);
+  const drift = totalFrames - sum;
+  if (drift !== 0 && scaled[padIndex]) {
+    scaled[padIndex] = {
+      ...scaled[padIndex]!,
+      durationFrames: Math.max(MIN_FRAMES, scaled[padIndex]!.durationFrames + drift),
+    };
+  }
+  return scaled;
 }
 
 // ── Scene-cut architecture (v1.3) ─────────────────────────────────────────

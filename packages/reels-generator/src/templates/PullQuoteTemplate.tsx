@@ -36,6 +36,7 @@ import {
 } from "../brand.js";
 import { Captions } from "./Captions.js";
 import { CtaScene } from "./scenes/CtaScene.js";
+import { scaleSceneDurations } from "./types.js";
 import type { BaseTemplateProps, DirectorSpec } from "./types.js";
 
 export const PULL_QUOTE_SCENES: DirectorSpec = [
@@ -194,24 +195,38 @@ const ContextScene: React.FC<PullQuoteTemplateProps> = ({ topic, attribution }) 
 
 // ── Director wrapper ──────────────────────────────────────────────────────
 export const PullQuoteTemplate: React.FC<PullQuoteTemplateProps> = (props) => {
+  // v1.6 — scale baseline so CTA absorbs audio overhang (issue #1).
+  const baseTotal = PULL_QUOTE_SCENES.reduce((s, x) => s + x.durationFrames, 0);
+  const scenes = scaleSceneDurations(
+    PULL_QUOTE_SCENES,
+    props.bodyDurationFrames ?? baseTotal,
+    PULL_QUOTE_SCENES.length - 1,
+  );
   let cursor = 0;
+  const ctaStart = scenes.slice(0, -1).reduce((s, x) => s + x.durationFrames, 0);
+
   return (
     <AbsoluteFill style={{ backgroundColor: getPalette(props.topic).primary }}>
-      {PULL_QUOTE_SCENES.map((scene, i) => {
+      {scenes.map((scene, i) => {
         const from = cursor;
         cursor += scene.durationFrames;
         const el =
           scene.id === "attribution" ? <AttributionScene {...props} /> :
           scene.id === "quote"       ? <QuoteRevealScene {...props} /> :
           scene.id === "context"     ? <ContextScene {...props} /> :
-                                        <CtaScene topic={props.topic} ctaLabel="EN SAVOIR PLUS" sceneIndex={i} />;
+                                        <CtaScene
+                                          topic={props.topic}
+                                          ctaLabel="EN SAVOIR PLUS"
+                                          sceneIndex={i}
+                                          sourceDomain={props.sourceDomain}
+                                        />;
         return (
           <Sequence key={scene.id} from={from} durationInFrames={scene.durationFrames}>
             {el}
           </Sequence>
         );
       })}
-      <Captions topic={props.topic} words={props.captions} />
+      <Captions topic={props.topic} words={props.captions} dimAfterFrame={ctaStart} />
     </AbsoluteFill>
   );
 };

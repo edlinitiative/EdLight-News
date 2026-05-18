@@ -43,6 +43,17 @@ export interface ComposeReelInput {
    * image is always topical, while Pexels keyword search is hit-or-miss.
    */
   heroImageUrl?: string;
+  /**
+   * v1.6 — Canonical clickable URL where the viewer can act (apply, read,
+   * register). Used by CtaScene as the destination handoff. Falls back to
+   * the edlight.news article page when omitted.
+   */
+  sourceUrl?: string;
+  /**
+   * v1.6 — Display-ready domain (e.g. "royalsociety.org") for CTA + chip
+   * rendering. Derived from sourceUrl by buildReel.
+   */
+  sourceDomain?: string;
   /** Optional override for the entrypoint .tsx file (defaults to the package's Root). */
   remotionEntry?: string;
 }
@@ -158,6 +169,12 @@ export async function composeReel(
     captions: input.captions,
     clips: resolvedClips,
     sourceLabel: input.script.sourceLabel,
+    // v1.6: source plumbing so CtaScene can render the actual publisher URL.
+    sourceUrl: input.sourceUrl,
+    sourceDomain: input.sourceDomain,
+    // v1.6: directors use this to scale scene durations and absorb the
+    // audio overhang into the CTA scene (fixes the "blue void" tail).
+    bodyDurationFrames: bodyFrames,
   };
 
   // Template-specific props — only fields that template renders.

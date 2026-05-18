@@ -36,6 +36,7 @@ import {
 } from "../brand.js";
 import { Captions } from "./Captions.js";
 import { CtaScene } from "./scenes/CtaScene.js";
+import { scaleSceneDurations } from "./types.js";
 import type { BaseTemplateProps, DirectorSpec, SceneSpec } from "./types.js";
 
 // Dynamic director: framing hook + up to 3 point cards + CTA = 390f max
@@ -223,9 +224,17 @@ const PointScene: React.FC<PointSceneProps> = ({ topic, points, pointIndex, tota
 // ── Director wrapper ──────────────────────────────────────────────────────
 export const NumberedPointsTemplate: React.FC<NumberedPointsTemplateProps> = (props) => {
   const n = Math.min(3, Math.max(1, props.points.length));
-  const scenes = buildDirectorSpec(n);
+  const baseline = buildDirectorSpec(n);
+  // v1.6 — scale so CTA absorbs any audio overhang (issue #1).
+  const baseTotal = baseline.reduce((s, x) => s + x.durationFrames, 0);
+  const scenes = scaleSceneDurations(
+    baseline,
+    props.bodyDurationFrames ?? baseTotal,
+    baseline.length - 1,
+  );
   let cursor = 0;
   let pointIdx = 0;
+  const ctaStart = scenes.slice(0, -1).reduce((s, x) => s + x.durationFrames, 0);
 
   return (
     <AbsoluteFill style={{ backgroundColor: getPalette(props.topic).primary }}>
@@ -237,7 +246,12 @@ export const NumberedPointsTemplate: React.FC<NumberedPointsTemplateProps> = (pr
         if (scene.id === "hook") {
           el = <HookScene {...props} />;
         } else if (scene.id === "cta") {
-          el = <CtaScene topic={props.topic} sceneIndex={i} />;
+          el = <CtaScene
+                 topic={props.topic}
+                 sceneIndex={i}
+                 sourceDomain={props.sourceDomain}
+                 deadline={props.keyFacts?.deadline}
+               />;
         } else {
           const pi = pointIdx++;
           el = <PointScene {...props} pointIndex={pi} totalPoints={n} sceneIndex={i} />;
@@ -248,7 +262,7 @@ export const NumberedPointsTemplate: React.FC<NumberedPointsTemplateProps> = (pr
           </Sequence>
         );
       })}
-      <Captions topic={props.topic} words={props.captions} />
+      <Captions topic={props.topic} words={props.captions} dimAfterFrame={ctaStart} />
     </AbsoluteFill>
   );
 };
