@@ -52,6 +52,19 @@ function buildDirectorSpec(pointCount: number): DirectorSpec {
 export interface NumberedPointsTemplateProps extends BaseTemplateProps {
   framing: string;
   points: string[];
+  /**
+   * Optional supporting facts (deadline/amount/eligibility/action). Currently
+   * accepted for prop compatibility with `HeadlinePhoto`; not yet rendered
+   * in the NumberedPoints scene stack (the points themselves carry the same
+   * information). Kept here so a future scene can opt in without a schema
+   * migration. See `composeReel.buildTemplateProps`.
+   */
+  keyFacts?: {
+    amount?: string;
+    deadline?: string;
+    eligibility?: string;
+    action?: string;
+  };
 }
 
 // ── Scene 0: HookScene (2 s) ──────────────────────────────────────────────

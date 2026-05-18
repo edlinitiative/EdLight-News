@@ -233,13 +233,18 @@ export async function composeReel(
   // Validate the rendered MP4 against the v1.1 quality bar BEFORE returning.
   // If any check fails we throw a `ReelRenderQualityError` so the worker
   // surfaces it as `reelRenderQualityFailed` and does NOT enqueue the doc.
-  await assertRenderQuality(outputPath);
+  const probedDurationSec = await assertRenderQuality(outputPath);
+  // v1.5: trust the muxed file as the source of truth for duration. The
+  // pre-mux `durationSec` was the planned composition length; if audio was
+  // shorter than planned, `-shortest` clipped the video and the planned
+  // value would mislead downstream analytics (completion rate, watch time).
+  const finalDurationSec = probedDurationSec ?? durationSec;
 
   const stat = await fs.stat(outputPath);
   return {
     outputPath,
     outputBytes: stat.size,
-    durationSec,
+    durationSec: finalDurationSec,
     compositionId,
   };
 }
@@ -261,13 +266,18 @@ export class ReelRenderQualityError extends Error {
 }
 
 /**
- * Run `ffprobe` on the muxed output and assert the five quality invariants
+ * Run `ffprobe` on the muxed output and assert the quality invariants
  * (video bitrate, audio sample rate, audio bitrate, color space, pixel
- * format). Logs `reelRenderQualityFailed` as a single-line structured event
- * before throwing so observability picks it up even when the throw is
- * swallowed by the worker's error reporter.
+ * format, duration ≥ MIN_DURATION_SEC, hard-cut count ≥ MIN_HARD_CUTS).
+ * Logs `reelRenderQualityFailed` as a single-line structured event before
+ * throwing so observability picks it up even when the throw is swallowed
+ * by the worker's error reporter.
+ *
+ * Returns the muxed file duration (in seconds) as probed by ffprobe, so
+ * the composer can write the *actual* (not planned) duration to Firestore.
+ * Returns `null` only when ffprobe is unavailable (graceful skip).
  */
-async function assertRenderQuality(mp4Path: string): Promise<void> {
+async function assertRenderQuality(mp4Path: string): Promise<number | null> {
   const ffprobeBin = process.env.FFPROBE_PATH || "ffprobe";
   const args = [
     "-v", "error",
@@ -287,7 +297,7 @@ async function assertRenderQuality(mp4Path: string): Promise<void> {
     console.warn(
       `[composeReel] ffprobe unavailable or failed — skipping quality gate. ${(err as Error).message}`,
     );
-    return;
+    return null;
   }
 
   const video = probe.streams?.find((s) => s.codec_type === "video");
@@ -360,6 +370,70 @@ async function assertRenderQuality(mp4Path: string): Promise<void> {
       "bt709",
       colorSpace || colorPrimaries,
     );
+  }
+
+  // ── Duration gate (v1.5) ─────────────────────────────────────────────
+  // The body composition was sized to audio length, then ffmpeg `-shortest`
+  // muxed. If the LLM returned a too-short script, audio is < 8 s and we
+  // end up with a 2-cut reel missing the CTA. Reject anything < 12 s.
+  const probedDuration = Number(probe.format?.duration ?? 0);
+  const MIN_DURATION_SEC = 12;
+  if (probedDuration > 0 && probedDuration < MIN_DURATION_SEC) {
+    logQualityFail("duration", `>= ${MIN_DURATION_SEC}s`, probedDuration);
+    throw new ReelRenderQualityError(
+      "duration",
+      `>= ${MIN_DURATION_SEC} s`,
+      `${probedDuration.toFixed(2)} s`,
+    );
+  }
+
+  // ── Hard-cut gate (v1.5) ─────────────────────────────────────────────
+  // The scene-cut architecture is only valuable if cuts actually fire.
+  // Re-run the same ffmpeg scene detector that CI uses (`select=gt(scene,0.20)`).
+  // Fewer than 3 cuts means the body was truncated and the CTA / final scene
+  // never rendered, or a director regression flattened the scene boundaries.
+  const MIN_HARD_CUTS = 3;
+  const hardCuts = await countHardCuts(mp4Path);
+  if (hardCuts >= 0 && hardCuts < MIN_HARD_CUTS) {
+    logQualityFail("hardCuts", `>= ${MIN_HARD_CUTS}`, hardCuts);
+    throw new ReelRenderQualityError(
+      "hardCuts",
+      `>= ${MIN_HARD_CUTS} (scene>=0.20)`,
+      hardCuts,
+    );
+  }
+
+  return probedDuration > 0 ? probedDuration : null;
+}
+
+/**
+ * Run ffmpeg scene detection at the same threshold the CI integration test
+ * uses (`scene>0.20`). Returns the number of detected cuts, or -1 if the
+ * ffmpeg binary is unavailable (so callers can soft-skip).
+ */
+async function countHardCuts(mp4Path: string): Promise<number> {
+  const ffmpegBin = process.env.FFMPEG_PATH || "ffmpeg";
+  try {
+    const { stderr } = await execFileP(
+      ffmpegBin,
+      [
+        "-hide_banner",
+        "-loglevel", "info",
+        "-i", mp4Path,
+        "-filter:v", "select='gt(scene,0.20)',showinfo",
+        "-f", "null",
+        "-",
+      ],
+      { maxBuffer: 8 * 1024 * 1024 },
+    );
+    // Each detected cut produces one `Parsed_showinfo … pts_time:` line.
+    const matches = stderr.match(/Parsed_showinfo_\d+ @ .+ pts_time:/g);
+    return matches ? matches.length : 0;
+  } catch (err) {
+    console.warn(
+      `[composeReel] hard-cut detector unavailable — skipping. ${(err as Error).message}`,
+    );
+    return -1;
   }
 }
 
@@ -471,11 +545,13 @@ function buildTemplateProps(
           heroImageUrl ??
           clips.find((c) => c.kind === "image")?.url ??
           clips[0]?.url,
+        keyFacts: script.keyFacts,
       };
     case "NumberedPoints":
       return {
         framing: script.framing,
         points: script.points ?? [],
+        keyFacts: script.keyFacts,
       };
   }
 }

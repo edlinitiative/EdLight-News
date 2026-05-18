@@ -180,6 +180,24 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
     }));
   }
 
+  // ── v1.5: script observability ───────────────────────────────────────
+  // Log the per-reel word count + keyFact count so the dashboard can spot
+  // model drift (e.g. Gemini suddenly returning 20-word scripts and tripping
+  // the duration gate). These are the inputs to the v1.5 retry logic in
+  // generateReelScript().
+  const voiceoverWords = script.voiceover.trim().split(/\s+/).filter(Boolean).length;
+  const keyFactCount = script.keyFacts
+    ? Object.values(script.keyFacts).filter(Boolean).length
+    : 0;
+  console.log(JSON.stringify({
+    event: "reelScriptGenerated",
+    reelId,
+    template,
+    voiceoverWords,
+    keyFactCount,
+    hasScenes: Boolean(script.scenes && script.scenes.length > 0),
+  }));
+
   // ── 3+5. Voice and footage in parallel ───────────────────────────────
   // Voice synthesis (TTS network call, ~2-4s) and stock footage search
   // (Pexels API, ~1-3s) are independent of each other once the script is

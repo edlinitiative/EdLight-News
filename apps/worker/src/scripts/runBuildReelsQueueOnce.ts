@@ -26,6 +26,8 @@
  */
 
 import { promises as fs } from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import {
   contentVersionsRepo,
   getDb,
@@ -42,6 +44,8 @@ import type {
 } from "@edlight-news/types";
 import { Timestamp } from "firebase-admin/firestore";
 import { buildReel } from "@edlight-news/reels-generator";
+
+const execFileP = promisify(execFile);
 
 // ─── CLI args ────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -223,6 +227,57 @@ async function postReelDraftToSlack(opts: {
   });
 }
 
+// ─── QA invariants probe (v1.5) ──────────────────────────────────────────
+// Re-runs ffprobe + ffmpeg scene detect on the rendered mp4 and returns a
+// flat summary used by the post-render check above. Mirrors the assertions
+// in composeReel.assertRenderQuality but stays out-of-band so we never
+// double-fail (composer already threw if invariants were broken).
+interface QaInvariants {
+  durationSec: number;
+  videoBitrate: number;
+  audioBitrate: number;
+  hardCuts: number;
+  /** Always 0 here — composer fills the real value via alignCaptions mismatch. */
+  audioMismatch: number;
+}
+async function probeQaInvariants(mp4Path: string): Promise<QaInvariants> {
+  const ffprobeBin = process.env.FFPROBE_PATH || "ffprobe";
+  const ffmpegBin = process.env.FFMPEG_PATH || "ffmpeg";
+  const probe = JSON.parse(
+    (await execFileP(ffprobeBin, [
+      "-v", "error", "-print_format", "json",
+      "-show_streams", "-show_format", mp4Path,
+    ], { maxBuffer: 4 * 1024 * 1024 })).stdout,
+  ) as {
+    streams?: Array<{ codec_type?: string; bit_rate?: string }>;
+    format?: { duration?: string; bit_rate?: string };
+  };
+  const v = probe.streams?.find((s) => s.codec_type === "video");
+  const a = probe.streams?.find((s) => s.codec_type === "audio");
+  const durationSec = Number(probe.format?.duration ?? 0);
+  const videoBitrate = Number(v?.bit_rate ?? probe.format?.bit_rate ?? 0);
+  const audioBitrate = Number(a?.bit_rate ?? 0);
+  // Scene-cut count via the same threshold the integration test uses.
+  let hardCuts = 0;
+  try {
+    const { stderr } = await execFileP(
+      ffmpegBin,
+      [
+        "-hide_banner", "-loglevel", "info",
+        "-i", mp4Path,
+        "-filter:v", "select='gt(scene,0.20)',showinfo",
+        "-f", "null", "-",
+      ],
+      { maxBuffer: 8 * 1024 * 1024 },
+    );
+    const matches = stderr.match(/Parsed_showinfo_\d+ @ .+ pts_time:/g);
+    hardCuts = matches ? matches.length : 0;
+  } catch {
+    hardCuts = -1;
+  }
+  return { durationSec, videoBitrate, audioBitrate, hardCuts, audioMismatch: 0 };
+}
+
 // ─── Candidate pick (auto or by --itemId) ───────────────────────────────
 
 async function pickCandidate(): Promise<{
@@ -288,6 +343,7 @@ async function pickCandidate(): Promise<{
 
 // ─── Main ────────────────────────────────────────────────────────────────
 
+async function main() {
 const t0 = Date.now();
 console.log("[runBuildReelsQueueOnce] flags:", { force, itemId: itemIdArg ?? null });
 console.log("[runBuildReelsQueueOnce] FIREBASE_STORAGE_BUCKET =", process.env.FIREBASE_STORAGE_BUCKET);
@@ -335,21 +391,51 @@ console.log(
 // ── 4. buildReel ───────────────────────────────────────────────────────
 const articleUrl = `${SITE_URL}/news/${pick.cv.id}?lang=fr`;
 console.log("[runBuildReelsQueueOnce] calling buildReel()…");
+// Build the richest summary we can: prefer the article body (≤ 1.5 k chars,
+// the LLM context budget can absorb it) and fall back to the short summary.
+// Without the body, Gemini frequently returns 15-word scripts that fail the
+// new 38-word minimum gate in generateReelScript.
+const cvBody = (pick.cv as unknown as { body?: string }).body ?? "";
+const cvSummary = pick.cv.summary ?? "";
+const itemSummary = (pick.item as unknown as { summary?: string }).summary ?? "";
+const richSummary =
+  cvBody.length > cvSummary.length
+    ? cvBody.slice(0, 1500)
+    : cvSummary || itemSummary || "";
+console.log(
+  `[runBuildReelsQueueOnce] summary length: ${richSummary.length} chars (cv.body=${cvBody.length}, cv.summary=${cvSummary.length}, item.summary=${itemSummary.length})`,
+);
 const built = await buildReel({
   topic: pick.topic,
   item: {
     id: pick.item.id,
     title: pick.cv.title || pick.item.title,
-    summary:
-      pick.cv.summary ||
-      (pick.item as unknown as { summary?: string }).summary ||
-      "",
+    summary: richSummary,
     url: articleUrl,
     sourceName: pick.item.source?.name,
   },
   imageUrl: pick.item.imageUrl || undefined,
 });
 console.log("[runBuildReelsQueueOnce] buildReel done. videoPath=", built.videoPath);
+
+// ── 4b. QA invariants (v1.5) ──────────────────────────────────────────
+// composeReel already runs the production quality gate (duration, hard cuts,
+// bitrate, codec). This block re-asserts the same 4 invariants from a
+// human-readable angle and prints a compact summary BEFORE upload, so a
+// failed QA run leaves a clear paper trail in the script's stdout.
+const invariants = await probeQaInvariants(built.videoPath);
+console.log("[runBuildReelsQueueOnce] QA invariants:", JSON.stringify(invariants));
+const failures: string[] = [];
+if (invariants.durationSec < 12) failures.push(`duration ${invariants.durationSec.toFixed(2)}s < 12s`);
+if (invariants.hardCuts < 3)     failures.push(`hardCuts ${invariants.hardCuts} < 3`);
+if (invariants.videoBitrate > 0 && invariants.videoBitrate < 2_000_000) failures.push(`videoBitrate ${invariants.videoBitrate} < 2 Mbps`);
+if (invariants.audioMismatch > 2) failures.push(`captionMismatch ${invariants.audioMismatch} > 2`);
+if (failures.length > 0) {
+  console.error(`[runBuildReelsQueueOnce] ❌ QA invariants failed: ${failures.join("; ")}`);
+  console.error("[runBuildReelsQueueOnce] ABORTING — mp4 will NOT be uploaded and no Slack notification will be posted.");
+  process.exit(2);
+}
+console.log("[runBuildReelsQueueOnce] ✅ All QA invariants pass — proceeding to upload.");
 
 // ── 5. Upload mp4 ──────────────────────────────────────────────────────
 const buf = await fs.readFile(built.videoPath);
@@ -407,3 +493,9 @@ void Promise.allSettled([
 console.log(
   `[runBuildReelsQueueOnce] DONE in ${((Date.now() - t0) / 1000).toFixed(1)}s — cost $${cost.totalUsd.toFixed(4)}.`,
 );
+}
+
+main().catch((err) => {
+  console.error("[runBuildReelsQueueOnce] FATAL:", err);
+  process.exit(1);
+});

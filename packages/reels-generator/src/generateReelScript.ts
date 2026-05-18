@@ -24,12 +24,36 @@ import type { HeroNumber } from "./extractHeroNumber.js";
  * because each template uses a different subset; the orchestrator validates
  * that the template-required fields are present after parsing.
  */
+/** Min/max word counts for Sandra's voiceover. */
+export const VOICEOVER_MIN_WORDS = 35;
+export const VOICEOVER_MAX_WORDS = 72;
+/** Min/max scenes the LLM should structure (when it returns `scenes`). */
+export const MIN_STRUCTURED_SCENES = 3;
+
+function countWords(s: string): number {
+  return s.trim().split(/\s+/).filter(Boolean).length;
+}
+
 const reelScriptSchema = z.object({
   /**
-   * Sandra's voiceover — 45–65 words, hits 12–16s at 1.1× speed cadence.
-   * Hard cap 65 words so the body composition stays in 360–480 frames.
+   * Sandra's voiceover — 38–70 words, hits 12–16 s at 1.1× speed cadence.
+   * The word-count floor is enforced because shorter scripts collapse the
+   * body composition to < 8 s, which truncates the CTA scene and trips
+   * the post-mux duration gate. See `composeReel.assertRenderQuality`.
    */
-  voiceover: z.string().min(20).max(500),
+  voiceover: z
+    .string()
+    .min(20)
+    .max(500)
+    .refine(
+      (s) => {
+        const w = countWords(s);
+        return w >= VOICEOVER_MIN_WORDS && w <= VOICEOVER_MAX_WORDS;
+      },
+      (s) => ({
+        message: `voiceover must be ${VOICEOVER_MIN_WORDS}–${VOICEOVER_MAX_WORDS} words (got ${countWords(s)})`,
+      }),
+    ),
   /**
    * Optional structured scene chunks (v1.3). When present, each entry maps to
    * one scene in the template director. If missing, buildReel falls back to
@@ -56,6 +80,21 @@ const reelScriptSchema = z.object({
   framing: z.string().max(60).optional(),
   /** 3–5 bullet points for NumberedPoints. */
   points: z.array(z.string().max(110)).min(2).max(5).optional(),
+  /**
+   * Information-dense supporting facts that templates can render as cards
+   * (HeadlinePhoto ContextScene, NumberedPoints sub-scenes). All optional;
+   * each ≤ 48 chars so it fits a 1080-wide hero card without wrapping.
+   * The LLM is instructed to only fill a field when the source explicitly
+   * states the value — never invent.
+   */
+  keyFacts: z
+    .object({
+      amount: z.string().max(48).optional(),
+      deadline: z.string().max(48).optional(),
+      eligibility: z.string().max(48).optional(),
+      action: z.string().max(48).optional(),
+    })
+    .optional(),
   /** IG caption — 1–2 short sentences + 3–6 hashtags. */
   caption: z.string().min(20).max(800),
   /** Hashtags as a flat array, no leading #. We add # at render. */
@@ -123,8 +162,9 @@ export interface GenerateReelScriptInput {
 
 // ── Prompt ─────────────────────────────────────────────────────────────────
 
-function buildPrompt(input: GenerateReelScriptInput): string {
+function buildPrompt(input: GenerateReelScriptInput, opts?: { strict?: boolean }): string {
   const { topic, template, item, contextItems = [], heroNumber } = input;
+  const strict = opts?.strict ?? false;
 
   const templateInstructions: Record<ReelTemplate, string> = {
     BigStatistic:
@@ -169,12 +209,38 @@ function buildPrompt(input: GenerateReelScriptInput): string {
 
   return `You are writing a 12–16 second Reel script for EdLight News, voiced by Sandra.
 
+${strict ? "⚠ STRICT RETRY: the previous output failed validation. Follow EVERY rule below exactly.\n\n" : ""}🎯 THE SINGLE MOST IMPORTANT RULE — VOICEOVER LENGTH 🎯
+The "voiceover" field MUST be 50–65 words. NOT a 1-sentence tagline. NOT a
+2-sentence summary. It is a 13-SECOND spoken paragraph.
+
+WORKED EXAMPLE (count the words — this is 56 words, ✅ acceptable):
+"La Royal Society lance la première session des bourses Short Industry
+Fellowships 2026, ouvertes aux chercheurs jusqu'au 15 mars. Le programme finance
+des collaborations industrielles au Royaume-Uni, de six à vingt-quatre mois,
+avec voyage et hébergement couverts. Les domaines visés : sciences naturelles,
+ingénierie, technologies appliquées. Candidatures sur royalsociety.org. On suit ça."
+
+WRONG EXAMPLE (this is 14 words — REJECTED):
+"La Royal Society offre des bourses, dépôt jusqu'au 15 mars. À ne pas manquer."
+
+Count your words before returning. If under 50, ADD another fact from the body
+(length of program, funding components, host country, application URL, who
+should apply). If over 65, trim filler.
+
 SANDRA'S VOICE:
 - Warm, factual, intelligent. Never sensational.
 - Haitian-French register. Code-switch to Kreyòl ONLY for one short phrase max.
-- Never invent statistics. If the source doesn't have it, omit it.
 - End the voiceover on a forward-looking note ("on suit ça", "à demain", "rete branche").
-- 45–65 words for the voiceover. Hard cap 65 words. Aim for ~13 seconds (Sandra speaks at 1.1× in Reels).
+
+STRICT FACT POLICY (zero tolerance):
+- NEVER invent a fact. If the source does not state it, omit it.
+- Do NOT add nationalities, locations, eligibility groups, or beneficiaries that
+  are not explicitly named in the source. Example: if the source does not say
+  "Haitian students", do NOT say "étudiants haïtiens" — say "candidats" instead.
+- Numbers (amounts, deadlines, counts, years) must be copy-pasted verbatim from
+  the source. Do not approximate, convert currencies, or round.
+- If you cannot find a specific fact for a "keyFacts" slot, OMIT that slot —
+  do not invent.
 
 TOPIC: ${topic}
 ${topicGuidance[topic]}
@@ -184,17 +250,26 @@ ${templateInstructions[template]}
 
 SOURCE ITEM:
 Title: ${item.title}
-${item.sourceName ? `Source: ${item.sourceName}\n` : ""}Summary: ${item.summary}${structuredBlock}${contextBlock}
+${item.sourceName ? `Source: ${item.sourceName}\n` : ""}Body (your ONLY source of facts — read it fully and pull amount, deadline, eligibility, host, action from it):
+${item.summary}${structuredBlock}${contextBlock}
 
-OUTPUT REQUIREMENTS:
-- Return ONLY a JSON object, no markdown fences.
-- "voiceover": Sandra's spoken script (45–65 words, HARD CAP 65 words, French, plain text — no SSML, no stage directions).
-- Template-specific fields per the TEMPLATE section above.
-- "caption": IG caption, 1–2 short sentences + 3–6 hashtags inline. French.
-- "hashtags": array of 3–8 hashtag strings (no leading #).
-- "sourceLabel": short attribution chip (e.g. "Le Nouvelliste · 15 mars").
+REQUIRED STRUCTURED OUTPUT:
+1. "voiceover": Sandra's spoken script (50–65 words, French/Kreyòl, plain text — no SSML, no stage directions). MUST be 50+ words. Count before returning.
+2. "scenes": REQUIRED. An array of 3 or 4 scene objects (one per template scene).
+   Each: { "sceneId": string, "text": string, "targetDurationSec": number > 0 }.
+   Sum of targetDurationSec ≈ length of voiceover at 1.1× speed (typically 12–15s).
+3. "keyFacts": REQUIRED. Object with up to 4 short fields, each ≤ 48 chars.
+   Fill ONLY when the source explicitly states the value. Omit fields not in source.
+   - "amount":      e.g. "Bourse complète", "15 000 USD/an"
+   - "deadline":    e.g. "15 mars 2026", "Dépôt avant 30 avril"
+   - "eligibility": e.g. "Étudiants en master", "Chercheurs UK"
+   - "action":      e.g. "Postuler sur royalsociety.org"
+4. Template-specific fields per the TEMPLATE section above.
+5. "caption": IG caption, 1–2 short sentences + 3–6 hashtags inline. French.
+6. "hashtags": array of 3–8 hashtag strings (no leading #).
+7. "sourceLabel": short attribution chip (e.g. "Le Nouvelliste · 15 mars").
 
-Do NOT include any field not specified above. Do NOT wrap in markdown.`;
+Return ONLY a JSON object. No markdown fences. No extra fields.`;
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────
@@ -203,44 +278,86 @@ Do NOT include any field not specified above. Do NOT wrap in markdown.`;
  * Generate a script for a single reel. The returned object is fully validated
  * and contains the fields needed to render `template`. Callers should still
  * verify template-specific required fields with `assertScriptForTemplate`.
+ *
+ * Retries up to 2 times on word-count, missing-scenes, or schema failures.
+ * Each retry switches to the "strict" prompt variant that names the failure.
+ * `TemplateRequirementError` is thrown immediately (no retry — the orchestrator
+ * walks the template fallback list instead).
  */
 export async function generateReelScript(
   input: GenerateReelScriptInput,
 ): Promise<ReelScript> {
-  const prompt = buildPrompt(input);
-  const raw = await callLLM(prompt, {
-    temperature: 0.4,
-    maxOutputTokens: 1200,
-    jsonMode: true,
-    ...input.llm,
-  });
+  const MAX_ATTEMPTS = 3; // 1 normal + 2 strict retries
+  let lastErr: Error | null = null;
 
-  // The LLM occasionally wraps in ```json fences despite jsonMode — strip defensively.
-  const cleaned = raw
-    .trim()
-    .replace(/^```json\s*/i, "")
-    .replace(/^```\s*/i, "")
-    .replace(/```\s*$/i, "")
-    .trim();
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    const strict = attempt > 1;
+    const prompt = buildPrompt(input, { strict });
+    const raw = await callLLM(prompt, {
+      // Lower the temperature on retry to reduce drift.
+      temperature: strict ? 0.2 : 0.4,
+      maxOutputTokens: 1200,
+      jsonMode: true,
+      ...input.llm,
+    });
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(cleaned);
-  } catch (err) {
-    throw new Error(
-      `generateReelScript: LLM returned non-JSON output: ${(err as Error).message}\n--- raw ---\n${raw.slice(0, 400)}`,
-    );
+    const cleaned = raw
+      .trim()
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```\s*$/i, "")
+      .trim();
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (err) {
+      lastErr = new Error(
+        `generateReelScript: LLM returned non-JSON output: ${(err as Error).message}\n--- raw ---\n${raw.slice(0, 400)}`,
+      );
+      console.warn(
+        `[generateReelScript] attempt ${attempt}/${MAX_ATTEMPTS} JSON parse failed — ${(err as Error).message}`,
+      );
+      continue;
+    }
+
+    const result = reelScriptSchema.safeParse(parsed);
+    if (!result.success) {
+      lastErr = new Error(
+        `generateReelScript: schema validation failed: ${result.error.message}`,
+      );
+      console.warn(
+        `[generateReelScript] attempt ${attempt}/${MAX_ATTEMPTS} schema failed — ${result.error.issues.map((i) => i.path.join(".") + ":" + i.message).join("; ")}`,
+      );
+      continue;
+    }
+
+    // Soft requirement (not enforced by zod because it would break callers
+    // that legitimately pass a `scenes`-less script through the test fixtures):
+    // when scenes are missing OR fewer than MIN_STRUCTURED_SCENES, retry.
+    const scenes = result.data.scenes ?? [];
+    if (scenes.length < MIN_STRUCTURED_SCENES) {
+      lastErr = new Error(
+        `generateReelScript: missing structured scenes (got ${scenes.length}, need ≥ ${MIN_STRUCTURED_SCENES})`,
+      );
+      console.warn(
+        `[generateReelScript] attempt ${attempt}/${MAX_ATTEMPTS} scenes=${scenes.length} (< ${MIN_STRUCTURED_SCENES}) — retrying`,
+      );
+      // Only retry if attempts remain; on the final attempt, accept the
+      // script (composer falls back to proportional allocation).
+      if (attempt < MAX_ATTEMPTS) continue;
+    }
+
+    assertScriptForTemplate(result.data, input.template);
+    if (attempt > 1) {
+      console.log(
+        `[generateReelScript] succeeded on attempt ${attempt}/${MAX_ATTEMPTS} (strict prompt).`,
+      );
+    }
+    return result.data;
   }
 
-  const result = reelScriptSchema.safeParse(parsed);
-  if (!result.success) {
-    throw new Error(
-      `generateReelScript: schema validation failed: ${result.error.message}`,
-    );
-  }
-
-  assertScriptForTemplate(result.data, input.template);
-  return result.data;
+  throw lastErr ?? new Error("generateReelScript: exhausted retries");
 }
 
 /**

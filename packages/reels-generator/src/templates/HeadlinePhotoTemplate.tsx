@@ -47,6 +47,17 @@ export const HEADLINE_PHOTO_SCENES: DirectorSpec = [
 export interface HeadlinePhotoTemplateProps extends BaseTemplateProps {
   headline: string;
   heroImageUrl?: string;
+  /**
+   * Optional supporting facts. When present, ContextScene renders these as
+   * an information-dense card stack instead of echoing the headline. All
+   * fields ≤ 48 chars (enforced upstream by the script schema).
+   */
+  keyFacts?: {
+    amount?: string;
+    deadline?: string;
+    eligibility?: string;
+    action?: string;
+  };
 }
 
 // ── Scene 0: PhotoEstablishScene (4 s) ────────────────────────────────────
@@ -171,7 +182,11 @@ const HeadlineScene: React.FC<HeadlinePhotoTemplateProps> = ({ topic, headline, 
 };
 
 // ── Scene 2: ContextScene (3 s) ───────────────────────────────────────────
-const ContextScene: React.FC<HeadlinePhotoTemplateProps> = ({ topic, headline }) => {
+// When `keyFacts` are provided the scene renders an information-dense card
+// stack (amount / deadline / eligibility / action) instead of echoing the
+// headline. Cards animate in with a staggered cascade so the eye lands on
+// each fact in turn — this is the single most actionable scene in the reel.
+const ContextScene: React.FC<HeadlinePhotoTemplateProps> = ({ topic, headline, keyFacts }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const palette = getPalette(topic);
@@ -183,6 +198,14 @@ const ContextScene: React.FC<HeadlinePhotoTemplateProps> = ({ topic, headline })
     extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out),
   });
 
+  // Build the visible card list from keyFacts, skipping empty slots. Order
+  // is intentional: deadline first (most urgent), then amount, then who.
+  const cards: Array<{ label: string; value: string; tint: string }> = [];
+  if (keyFacts?.deadline)    cards.push({ label: "ÉCHÉANCE",    value: keyFacts.deadline,    tint: palette.secondary });
+  if (keyFacts?.amount)      cards.push({ label: "MONTANT",     value: keyFacts.amount,      tint: palette.primary });
+  if (keyFacts?.eligibility) cards.push({ label: "POUR QUI",    value: keyFacts.eligibility, tint: palette.ink });
+  if (keyFacts?.action)      cards.push({ label: "ACTION",      value: keyFacts.action,      tint: palette.secondary });
+
   return (
     <AbsoluteFill style={{ ...bg, display: "flex", flexDirection: "column",
                             alignItems: "flex-start", justifyContent: "center",
@@ -192,15 +215,54 @@ const ContextScene: React.FC<HeadlinePhotoTemplateProps> = ({ topic, headline })
                     fontSize: TYPE.sizes.caption, color: palette.primary,
                     letterSpacing: TYPE.trackingLoose, textTransform: "uppercase",
                     opacity: opacity * 0.7 }}>
-        EN BREF
+        {cards.length > 0 ? "L'ESSENTIEL" : "EN BREF"}
       </div>
-      <div style={{ fontFamily: TYPE.display, fontWeight: TYPE.weights.bold,
-                    fontSize: TYPE.sizes.title, lineHeight: TYPE.lineHeightTight,
-                    color: palette.ink, letterSpacing: TYPE.trackingTight,
-                    opacity, transform: `translateY(${y}px)`,
-                    maxWidth: 880 }}>
-        {headline}
-      </div>
+
+      {cards.length > 0 ? (
+        // Card stack — each card staggers in 6 frames after the previous.
+        <div style={{ display: "flex", flexDirection: "column", gap: 18, width: "100%", maxWidth: 880 }}>
+          {cards.map((card, idx) => {
+            const cardOpacity = interpolate(
+              frame, [4 + idx * 6, 14 + idx * 6], [0, 1],
+              { extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out) },
+            );
+            const cardX = interpolate(
+              frame, [4 + idx * 6, 14 + idx * 6], [-24, 0],
+              { extrapolateRight: "clamp", easing: Easing.bezier(...MOTION.ease.out) },
+            );
+            return (
+              <div key={card.label}
+                   style={{ display: "flex", flexDirection: "column", gap: 6,
+                            padding: "18px 24px",
+                            borderLeft: `8px solid ${card.tint}`,
+                            backgroundColor: `${palette.accent}cc`,
+                            borderRadius: 8,
+                            opacity: cardOpacity,
+                            transform: `translateX(${cardX}px)` }}>
+                <div style={{ fontFamily: TYPE.body, fontWeight: TYPE.weights.bold,
+                              fontSize: TYPE.sizes.footer, color: card.tint,
+                              letterSpacing: TYPE.trackingLoose, textTransform: "uppercase" }}>
+                  {card.label}
+                </div>
+                <div style={{ fontFamily: TYPE.display, fontWeight: TYPE.weights.bold,
+                              fontSize: TYPE.sizes.title, color: palette.ink,
+                              lineHeight: 1.1, letterSpacing: TYPE.trackingTight }}>
+                  {card.value}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        // Fallback: no keyFacts available — echo the headline.
+        <div style={{ fontFamily: TYPE.display, fontWeight: TYPE.weights.bold,
+                      fontSize: TYPE.sizes.title, lineHeight: TYPE.lineHeightTight,
+                      color: palette.ink, letterSpacing: TYPE.trackingTight,
+                      opacity, transform: `translateY(${y}px)`,
+                      maxWidth: 880 }}>
+          {headline}
+        </div>
+      )}
     </AbsoluteFill>
   );
 };
