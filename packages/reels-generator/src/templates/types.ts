@@ -76,7 +76,7 @@ export interface BaseTemplateProps {
 // ── v1.6: shared scene-duration scaler ─────────────────────────────────
 //
 // Every body director sums its baseline scene durations to ~390 frames
-// (13 s). When the actual audio is longer (up to MAX_REEL_SEC = 16 s) the
+// (13 s). When the actual audio is longer (up to MAX_REEL_SEC = 20 s) the
 // composer extends `bodyFrames` to match — but if the director keeps its
 // fixed 390 f scene list, the final 3 s render onto the parent wrapper's
 // default backgroundColor (solid `palette.primary`) producing the

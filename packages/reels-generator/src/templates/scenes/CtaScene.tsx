@@ -1,18 +1,21 @@
 /**
- * CtaScene — shared CTA used by all four body template directors (v1.6).
+ * CtaScene — shared CTA used by all four body template directors (v1.7).
  *
- * v1.6 overhaul rationale
- * ───────────────────────
- * Before v1.6 the CTA prominently displayed "edlight.news" — but viewers
- * cannot apply for a Royal Society scholarship on edlight.news. The CTA
- * scene now hands them off to the actual source. It also absorbs any
- * audio overhang via a dynamic `durationInFrames` (no more solid-blue
- * void tail).
+ * v1.7 editorial pivot
+ * ────────────────────
+ * v1.6 sent viewers to the publisher domain (royalsociety.org,
+ * news.google.com, …) which (a) leaks brand equity, (b) breaks on
+ * Google News redirect blobs, and (c) confuses Haitian viewers who
+ * came for EdLight, not for a foreign publisher. v1.7 always hands
+ * viewers off to **news.edlight.org** — our editorial hub where the
+ * full story (with citations + apply links) lives. The publisher
+ * still gets credit via the SourceChip on every body scene.
  *
  * Layout (top → bottom)
  *   ─ accent bar (animated draw-on)
  *   ─ POSTULE / CANDIDATER / …      ← action verb (huge, pulse)
- *   ─ royalsociety.org · 15 mars    ← sourceDomain · deadline
+ *   ─ news.edlight.org              ← destination (brand)
+ *   ─ pour plus d'infos             ← reason to visit
  *   ─ 👉 Lien en description        ← tap-cue (replaces v1.5 down-chevron)
  *   ─ @edlightnews · suis pour plus  ← brand lockup (fades in last 0.6 s)
  *
@@ -48,14 +51,16 @@ export interface CtaSceneProps {
   sceneIndex?: number;
   /**
    * v1.6 — Display-ready domain of the actionable source (e.g.
-   * "royalsociety.org"). Replaces "edlight.news" as the destination.
-   * When undefined, falls back to "edlight.news" (legacy behaviour).
+   * "royalsociety.org"). Kept on the prop signature for backwards
+   * compatibility with template callers, but v1.7 ignores it in the
+   * CTA destination line (publisher attribution lives on SourceChip).
    */
   sourceDomain?: string;
   /**
-   * v1.6 — Optional second line, typically the deadline string from
-   * keyFacts ("15 mars 2025"). When present, rendered as
-   * "{sourceDomain} · {deadline}" to reinforce urgency.
+   * v1.6 — Optional deadline string from keyFacts. v1.7 no longer
+   * concatenates it into the destination line (it appears on the
+   * urgent deadline card in the body); kept on the prop signature
+   * for backwards compatibility only.
    */
   deadline?: string;
 }
@@ -75,8 +80,8 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
   topic,
   ctaLabel,
   sceneIndex = 3,
-  sourceDomain,
-  deadline,
+  sourceDomain: _sourceDomain,
+  deadline: _deadline,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
@@ -133,12 +138,11 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
   );
 
   const label = ctaLabel ?? DEFAULT_CTA[topic] ?? "LIRE LA SUITE";
-  // Compose destination line: "royalsociety.org · 15 mars" when both present;
-  // either alone otherwise; fall back to edlight.news as a last resort
-  // (only when both upstream fields are empty — should not happen in
-  // practice post-pipeline-plumbing).
-  const destination = sourceDomain ?? "edlight.news";
-  const destinationLine = deadline ? `${destination} · ${deadline}` : destination;
+  // v1.7 — Always brand-owned destination. Publisher attribution is
+  // handled by SourceChip on the body scenes; the CTA is a clean
+  // "come back to us" handoff.
+  const destinationLine = "news.edlight.org";
+  const reasonLine = "pour plus d'infos";
 
   return (
     <AbsoluteFill
@@ -196,7 +200,7 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
         </div>
       </div>
 
-      {/* Destination line — the actual handoff (v1.6 fix for issue #2). */}
+      {/* Destination line — brand handoff (v1.7). */}
       <div
         style={{
           fontFamily: TYPE.body,
@@ -206,11 +210,27 @@ export const CtaScene: React.FC<CtaSceneProps> = ({
           letterSpacing: "0.01em",
           textAlign: "center",
           maxWidth: 920,
-          lineHeight: 1.2,
-          opacity: 0.95,
+          lineHeight: 1.1,
+          opacity: 0.98,
         }}
       >
         {destinationLine}
+      </div>
+
+      {/* Reason line — why visit (v1.7). */}
+      <div
+        style={{
+          marginTop: -14,
+          fontFamily: TYPE.body,
+          fontWeight: TYPE.weights.medium,
+          fontSize: TYPE.sizes.caption,
+          color: palette.primary,
+          letterSpacing: TYPE.trackingLoose,
+          textAlign: "center",
+          opacity: 0.78,
+        }}
+      >
+        {reasonLine}
       </div>
 
       {/* Tap cue — "Lien en description" with hand-tap glyph.

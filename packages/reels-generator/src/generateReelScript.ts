@@ -24,9 +24,14 @@ import type { HeroNumber } from "./extractHeroNumber.js";
  * because each template uses a different subset; the orchestrator validates
  * that the template-required fields are present after parsing.
  */
-/** Min/max word counts for Sandra's voiceover. */
+/** Min/max word counts for Sandra's voiceover.
+ *  v1.7: tightened max from 72→55 so the French TTS audio always fits
+ *  in the 20s body window (composeReel.MAX_REEL_SEC). At ~3.5–3.8 wps
+ *  in Haitian French, 55 words ≈ 14–16s of audio — leaves ≥4s of
+ *  margin before `-shortest` would clip anything. Shorter scripts also
+ *  measurably improve IG Reels completion rate. */
 export const VOICEOVER_MIN_WORDS = 35;
-export const VOICEOVER_MAX_WORDS = 72;
+export const VOICEOVER_MAX_WORDS = 55;
 /** Min/max scenes the LLM should structure (when it returns `scenes`). */
 export const MIN_STRUCTURED_SCENES = 3;
 
@@ -36,7 +41,7 @@ function countWords(s: string): number {
 
 const reelScriptSchema = z.object({
   /**
-   * Sandra's voiceover — 38–70 words, hits 12–16 s at 1.1× speed cadence.
+   * Sandra's voiceover — 35–55 words, hits 12–16 s at 1.1× speed cadence.
    * The word-count floor is enforced because shorter scripts collapse the
    * body composition to < 8 s, which truncates the CTA scene and trips
    * the post-mux duration gate. See `composeReel.assertRenderQuality`.

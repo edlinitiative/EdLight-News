@@ -35,6 +35,8 @@
  * legacy items written before the gate existed.
  */
 
+import { isDeadlinePast } from "./deadlineParsing.js";
+
 // ── Normalisation ────────────────────────────────────────────────────────────
 
 /** Strip accents + lowercase. */
@@ -340,8 +342,15 @@ export function scoreOpportunity(
   }
 
   if (input.deadline) {
-    score += 20;
-    reasons.push("+20 parsed deadline");
+    // v1.7 — only credit a deadline that's actually still open;
+    // strongly penalise expired ones so they slide below the gate.
+    if (isDeadlinePast(input.deadline)) {
+      score -= 30;
+      reasons.push("-30 expired deadline");
+    } else {
+      score += 20;
+      reasons.push("+20 parsed future deadline");
+    }
   }
 
   if (anyMatch(blob, APPLY_VERB_RE)) {

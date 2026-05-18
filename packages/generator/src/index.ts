@@ -117,6 +117,9 @@ export type {
   SubcategoryMatch,
 } from "./opportunityScoring.js";
 
+// ── Re-export deadline-parsing module (v1.7) ───────────────────────────────
+export { parseDeadline, isDeadlinePast } from "./deadlineParsing.js";
+
 // ── Re-export wider opportunity-taxonomy module ────────────────────────────
 // Fine-grained kind / audience / funding / location / Haiti-eligibility /
 // lifecycle / trust-tier inference. Layered on top of the 4-bucket scoring

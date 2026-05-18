@@ -22,7 +22,7 @@ describe("scoreOpportunity — real opportunities (should pass)", () => {
       summary:
         "L'ambassade des États-Unis lance l'appel à candidatures pour la bourse Fulbright. Date limite : 15 mars 2026.",
       body: "Pour postuler, soumettre votre candidature en ligne. Eligibilité : étudiants haïtiens en master ou doctorat.",
-      deadline: "2026-03-15",
+      deadline: "2099-03-15",
       publisherName: "Campus France",
     });
     assert.ok(r.score >= 80, `expected ≥80, got ${r.score} — reasons: ${r.reasons.join(", ")}`);
@@ -34,7 +34,7 @@ describe("scoreOpportunity — real opportunities (should pass)", () => {
       title: "Offre de stage en marketing chez UNESCO Haïti",
       summary:
         "L'UNESCO recrute un stagiaire pour un stage de 6 mois à Port-au-Prince. Postuler avant le 30 mai.",
-      deadline: "2026-05-30",
+      deadline: "2099-05-30",
     });
     assert.ok(r.score >= OPPORTUNITY_SCORE_THRESHOLD, `expected ≥50, got ${r.score}`);
     assert.equal(r.subcategory, "stages");
@@ -45,7 +45,7 @@ describe("scoreOpportunity — real opportunities (should pass)", () => {
       title: "Hackathon Caraïbes 2026 — inscriptions ouvertes",
       summary:
         "Étudiants universitaires : participez au hackathon régional. Apply for the challenge before June 1st.",
-      deadline: "2026-06-01",
+      deadline: "2099-06-01",
     });
     assert.ok(r.score >= OPPORTUNITY_SCORE_THRESHOLD, `got ${r.score}`);
     assert.equal(r.subcategory, "concours");
@@ -107,7 +107,7 @@ describe("scoreOpportunity — false positives (should fail gate)", () => {
       title: "Date limite d'inscription des électeurs reportée",
       summary:
         "Le CEP annonce le report de la date limite pour l'inscription des électeurs sur les listes du scrutin.",
-      deadline: "2026-04-30",
+      deadline: "2099-04-30",
     });
     assert.ok(r.score < OPPORTUNITY_SCORE_THRESHOLD, `got ${r.score}`);
   });
@@ -171,9 +171,11 @@ describe("passesOpportunityGate", () => {
   it("real Fulbright passes", () => {
     assert.equal(
       passesOpportunityGate({
-        title: "Bourse Fulbright 2026",
+        title: "Bourse Fulbright 2099",
+        // Far-future deadline so the v1.7 expired-deadline penalty
+        // (-30) does not flip this fixture as calendar time advances.
         summary: "Appel à candidatures, date limite 15 mars",
-        deadline: "2026-03-15",
+        deadline: "2099-03-15",
       }),
       true,
     );

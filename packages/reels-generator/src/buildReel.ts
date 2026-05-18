@@ -29,6 +29,7 @@ import { synthesizeVoice } from "./synthesizeVoice.js";
 import { alignCaptions } from "./alignCaptions.js";
 import { pickStockFootage, type StockClip } from "./pickStockFootage.js";
 import { composeReel } from "./composeReel.js";
+import { isDeadlinePast } from "@edlight-news/generator";
 import type {
   ReelArtifact,
   ReelCostBreakdown,
@@ -186,6 +187,25 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
       scriptStructureFallback: true,
       note: "LLM did not return structured scenes — director uses proportional audio allocation",
     }));
+  }
+
+  // ── v1.7: strip expired keyFacts.deadline ──────────────────────────
+  // The LLM extracts `keyFacts.deadline` verbatim from the article body,
+  // which may already be in the past for archived items. The picker
+  // already filters items whose `opportunity.deadline` parses as past
+  // (see buildReelsQueue / runBuildReelsQueueOnce), but defence-in-depth
+  // here ensures the urgent-deadline card (HeadlinePhotoTemplate) and any
+  // future surface never displays a stale date.
+  if (script.keyFacts?.deadline) {
+    if (isDeadlinePast(script.keyFacts.deadline)) {
+      console.log(JSON.stringify({
+        event: "reelKeyFactDeadlineStripped",
+        reelId,
+        originalDeadline: script.keyFacts.deadline,
+        reason: "expired",
+      }));
+      script = { ...script, keyFacts: { ...script.keyFacts, deadline: undefined } };
+    }
   }
 
   // ── v1.5: script observability ───────────────────────────────────────

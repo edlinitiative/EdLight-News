@@ -38,6 +38,7 @@ import type {
 } from "@edlight-news/types";
 import { Timestamp } from "firebase-admin/firestore";
 import { buildReel } from "@edlight-news/reels-generator";
+import { isDeadlinePast } from "@edlight-news/generator";
 
 const REELS_ENABLED = process.env.REELS_ENABLED === "true";
 const DAILY_COST_CEILING_USD = Number(
@@ -384,6 +385,7 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
   };
 
   const candidates: Candidate[] = [];
+  let skippedExpired = 0;
   for (const [itemId, cv] of cvByItemId) {
     const item = itemMap.get(itemId);
     if (!item) continue;
@@ -391,8 +393,19 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
     if (!topic) continue;
     const topicRank = TOPIC_PREFERENCE.indexOf(topic);
     if (topicRank === -1) continue;
+    // v1.7 — never post a reel whose opportunity deadline has already
+    // passed. The picker stays permissive on unparseable deadlines
+    // (isDeadlinePast is fail-open).
+    const deadlineStr = (item as { opportunity?: { deadline?: string } }).opportunity?.deadline;
+    if (isDeadlinePast(deadlineStr)) {
+      skippedExpired += 1;
+      continue;
+    }
     const score = scoreForReels(item, topic);
     candidates.push({ item, cv, topic, score, topicRank });
+  }
+  if (skippedExpired > 0) {
+    emit("reelsExpiredDeadlinesSkipped", { count: skippedExpired });
   }
 
   if (candidates.length === 0) {

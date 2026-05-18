@@ -44,6 +44,7 @@ import type {
 } from "@edlight-news/types";
 import { Timestamp } from "firebase-admin/firestore";
 import { buildReel } from "@edlight-news/reels-generator";
+import { isDeadlinePast } from "@edlight-news/generator";
 
 const execFileP = promisify(execFile);
 
@@ -326,6 +327,7 @@ async function pickCandidate(): Promise<{
     if (cv.itemId && !cvByItemId.has(cv.itemId)) cvByItemId.set(cv.itemId, cv);
   }
   const candidates: Array<{ item: Item; cv: ContentVersion; topic: ReelsTopic; score: number; rank: number }> = [];
+  let skippedExpired = 0;
   for (const [iid, cv] of cvByItemId) {
     const item = itemMap.get(iid);
     if (!item) continue;
@@ -333,7 +335,15 @@ async function pickCandidate(): Promise<{
     if (!topic) continue;
     const rank = TOPIC_PREFERENCE.indexOf(topic);
     if (rank === -1) continue;
+    const deadlineStr = (item as { opportunity?: { deadline?: string } }).opportunity?.deadline;
+    if (isDeadlinePast(deadlineStr)) {
+      skippedExpired += 1;
+      continue;
+    }
     candidates.push({ item, cv, topic, rank, score: scoreForReels(item, topic) });
+  }
+  if (skippedExpired > 0) {
+    console.log(`[runBuildReelsQueueOnce] skipped ${skippedExpired} item(s) with expired deadlines.`);
   }
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => (a.rank !== b.rank ? a.rank - b.rank : b.score - a.score));

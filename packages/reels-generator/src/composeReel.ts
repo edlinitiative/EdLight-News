@@ -137,10 +137,12 @@ export async function composeReel(
   const bundleLocation = await bundle(entry);
 
   // Body duration — clamped to MAX_REEL_SEC.
-  // v1.3: director spec targets 12–16 s; cap at 16 s so the composition
-  // length matches the Sequence architecture. Audio longer than this is
-  // trimmed by the ffmpeg `-shortest` mux pass (see muxAudioOntoVideo).
-  const MAX_REEL_SEC = 16;
+  // v1.7: raised 16→20s after audio truncation reports. At French TTS
+  // pace (~3.5–3.8 wps), the 55-word voiceover cap (generateReelScript.ts)
+  // lands ~14–16s; the extra headroom guarantees `-shortest` never
+  // trims voiceover mid-sentence. IG Reels still favours <22s for
+  // completion rate, so 20s is the sweet spot.
+  const MAX_REEL_SEC = 20;
   const bodySec = Math.min(MAX_REEL_SEC, Math.max(8, input.audioDurationSec));
   const bodyFrames = Math.round(bodySec * FRAME.fps);
   // Total = intro + body + outro. Intro/outro durations live in MOTION.

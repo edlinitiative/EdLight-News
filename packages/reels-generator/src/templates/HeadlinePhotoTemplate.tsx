@@ -9,7 +9,7 @@
  *
  * v1.6 fixes
  *   #1 — Director now uses `scaleSceneDurations()` so when the audio runs
- *        long (up to 16 s) the slack is absorbed into the CTA instead of
+ *        long (up to 20 s) the slack is absorbed into the CTA instead of
  *        leaving a 3 s solid-blue void after the CTA window closes.
  *   #3 — When no hero image is available, PhotoEstablishScene renders a
  *        graphic fallback (gradient + topic glyph + eyebrow) instead of
