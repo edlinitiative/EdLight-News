@@ -45,6 +45,11 @@ RUN pnpm install --frozen-lockfile
 COPY packages packages
 COPY apps/worker apps/worker
 COPY tsconfig.base.json ./
+# Bundle the source-seed manifest so the /seed-sources HTTP endpoint and
+# the seed:sources CLI can both run inside the container without extra
+# volume mounts. The path resolution in services/seedSources.ts walks
+# up to the monorepo root → /app/docs/sources.seed.json.
+COPY docs/sources.seed.json docs/sources.seed.json
 RUN pnpm --filter @edlight-news/worker... build
 # Build the React/Remotion templates separately (excluded from the Node build
 # of @edlight-news/reels-generator). Required so composeReel can resolve
