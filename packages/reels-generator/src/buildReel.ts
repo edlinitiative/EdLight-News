@@ -55,6 +55,20 @@ export interface BuildReelInput {
   templateOverride?: ReelTemplate;
   /** Optional override for the Remotion entrypoint passed to composeReel. */
   remotionEntry?: string;
+  /**
+   * Editorial override: skip the LLM script generation stage and use this
+   * pre-written, fully-validated script. Used by the v2 format-driven
+   * pipeline which generates a structured storyboard upstream and wants
+   * the rendered MP4 to use that exact spoken voiceover. When set, no
+   * template-fallback retries run; the caller is fully responsible for
+   * matching the script fields to the requested template.
+   */
+  scriptOverride?: ReelScript;
+  /**
+   * Language code for the voiceover ("fr" | "ht" | "en"). Defaults to "fr".
+   * Only affects TTS voice selection and caption alignment language hint.
+   */
+  language?: "fr" | "ht" | "en";
 }
 
 export interface BuildReelResult {
@@ -116,7 +130,15 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   let template = initialTemplate;
   let script: ReelScript | undefined;
   let lastError: unknown;
-  for (const candidate of candidateList) {
+
+  // Editorial override path: skip LLM script gen entirely. Used by the v2
+  // format-driven orchestrator which has already produced a validated
+  // storyboard + script upstream and wants byte-for-byte control of the
+  // spoken voiceover.
+  if (input.scriptOverride) {
+    script = input.scriptOverride;
+  } else {
+    for (const candidate of candidateList) {
     template = candidate;
     try {
       script = await runStage("generateReelScript", () =>
@@ -148,6 +170,7 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
       }
     }
   }
+  } // end editorial-override else
   if (!script) {
     throw lastError instanceof Error
       ? lastError
@@ -201,11 +224,14 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
   // re-pairs the returned timestamps with the script tokens, so the burned
   // overlay never contains an STT mistranscription (v1 bug: "sisters in
   // public house"). The Result shape matches the legacy transcribeForCaptions.
+  const langHint =
+    input.language === "en" ? "en-US" :
+    input.language === "ht" ? "ht-HT" : "fr-FR";
   const transcript = await runStage("alignCaptions", () =>
     alignCaptions({
       audioPath: voice.audioPath,
       scriptText: script.voiceover,
-      language: "fr-FR",
+      language: langHint,
     }),
   );
 
@@ -256,7 +282,7 @@ export async function buildReel(input: BuildReelInput): Promise<BuildReelResult>
     topic: input.topic,
     template,
     status: "pending_review",
-    language: "fr",
+    language: input.language ?? "fr",
     sourceItemId: input.item.id,
     sourceItemTitle: input.item.title,
     sourceUrl: input.item.url,

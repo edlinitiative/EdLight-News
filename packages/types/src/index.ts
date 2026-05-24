@@ -270,6 +270,11 @@ export {
   reelsCostBreakdownSchema,
   reelsPendingItemSchema,
   createReelsPendingItemSchema,
+  // Reels v2 editorial schemas
+  reelFormatSchema,
+  reelSceneVisualTypeSchema,
+  reelSceneSchema,
+  reelQualityScoreSchema,
 } from "./schemas.js";
 
 export type {

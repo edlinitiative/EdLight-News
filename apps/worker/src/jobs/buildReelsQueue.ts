@@ -37,13 +37,33 @@ import type {
   CreateReelsPendingItem,
 } from "@edlight-news/types";
 import { Timestamp } from "firebase-admin/firestore";
-import { buildReel } from "@edlight-news/reels-generator";
+import {
+  buildReelV2,
+  FORMAT_TO_TEMPLATE,
+  type ReelFormat,
+  type ReelQualityScore,
+  type ReelScene,
+} from "@edlight-news/reels-generator";
 
 const REELS_ENABLED = process.env.REELS_ENABLED === "true";
 const DAILY_COST_CEILING_USD = Number(
   process.env.REELS_DAILY_COST_CEILING_USD ?? "1.00",
 );
+/** Day-of-week (Haiti tz) on which to attempt a weekly roundup. 5 = Friday. */
+const REELS_ROUNDUP_DOW = Number(process.env.REELS_ROUNDUP_DOW ?? "5");
+/** Min opportunity-eligible items in the candidate pool to trigger roundup. */
+const REELS_ROUNDUP_MIN_ITEMS = Number(process.env.REELS_ROUNDUP_MIN_ITEMS ?? "3");
+const REELS_ROUNDUP_MAX_ITEMS = 5;
 const HAITI_TZ = "America/Port-au-Prince";
+
+function haitiDow(date: Date = new Date()): number {
+  // Intl returns localized weekday; map by ISO with Sunday=0.
+  const name = new Intl.DateTimeFormat("en-US", {
+    timeZone: HAITI_TZ,
+    weekday: "short",
+  }).format(date);
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(name);
+}
 
 /** Ordered preference — earlier topics win during cold-start virality phase. */
 const TOPIC_PREFERENCE: ReelsTopic[] = [
@@ -196,43 +216,133 @@ async function postReelDraftToSlack(opts: {
   reelId: string;
   topic: ReelsTopic;
   template: ReelsTemplate;
+  /** v2 editorial format (optional for back-compat with v1 callers). */
+  format?: ReelFormat;
+  /** v2 reel title (shown in Slack header when present). */
+  title?: string;
+  /** First spoken line, duplicated for quick scanning. */
+  hook?: string;
+  /** Per-scene storyboard preview. */
+  storyboard?: ReelScene[];
+  /** Deterministic quality score. */
+  qualityScore?: ReelQualityScore;
   durationSec: number;
   costUsd: number;
   mp4Url: string;
   scriptText: string;
   igCaption: string;
+  hashtags?: string[];
   sourceTitle: string | null;
   sourceUrl: string;
   adminUrl: string;
-}): Promise<void> {
+}): Promise<{ ok: boolean; ts?: string }> {
   const url = process.env.ALERT_WEBHOOK_URL;
-  if (!url) return;
+  if (!url) return { ok: false };
   const truncate = (s: string, n: number) =>
     s.length > n ? `${s.slice(0, n - 1)}…` : s;
+
+  // Build optional v2 storyboard / quality blocks so the reviewer can see
+  // scene-by-scene structure and the deterministic QA verdict inline.
+  const storyboardBlock =
+    opts.storyboard && opts.storyboard.length > 0
+      ? [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text:
+                `*Storyboard (${opts.storyboard.length} scenes):*\n` +
+                opts.storyboard
+                  .map(
+                    (s, i) =>
+                      `${i + 1}. *${s.visualType}* — _${truncate(s.voiceover, 90)}_` +
+                      (s.onScreenText ? `\n   overlay: ${truncate(s.onScreenText, 60)}` : ""),
+                  )
+                  .join("\n"),
+            },
+          },
+        ]
+      : [];
+
+  const qualityBlock = opts.qualityScore
+    ? [
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: `*Quality:*\n${opts.qualityScore.total}/100 ${opts.qualityScore.passed ? "✅ pass" : "⚠️ review"}`,
+            },
+            {
+              type: "mrkdwn",
+              text:
+                `*Hook:* ${opts.qualityScore.hookStrength} · ` +
+                `*Clarity:* ${opts.qualityScore.scriptClarity} · ` +
+                `*Visual:* ${opts.qualityScore.visualRelevance} · ` +
+                `*Duration:* ${opts.qualityScore.durationFit}`,
+            },
+          ],
+        },
+        ...(opts.qualityScore.notes.length > 0
+          ? [
+              {
+                type: "context",
+                elements: [
+                  {
+                    type: "mrkdwn",
+                    text: `_Notes:_ ${opts.qualityScore.notes.map((n) => `• ${n}`).join("  ")}`,
+                  },
+                ],
+              },
+            ]
+          : []),
+      ]
+    : [];
+
+  const headerLabel = opts.format ?? opts.topic;
+  const titleLine = opts.title ? `*${truncate(opts.title, 120)}*` : null;
+  const hookLine = opts.hook ? `🎯 _${truncate(opts.hook, 140)}_` : null;
+  const hashtagLine =
+    opts.hashtags && opts.hashtags.length > 0
+      ? opts.hashtags.map((h) => `#${h}`).join(" ")
+      : null;
+
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: `🎬 New Sandra Reel ready for review — ${opts.topic} / ${opts.template}`,
+        text: `🎬 New Sandra Reel ready for review — ${headerLabel} / ${opts.template}`,
         blocks: [
           {
             type: "header",
             text: {
               type: "plain_text",
-              text: `🎬 Sandra Reel ready: ${opts.topic}`,
+              text: `🎬 Sandra Reel: ${headerLabel}`,
               emoji: true,
             },
           },
+          ...(titleLine || hookLine
+            ? [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: [titleLine, hookLine].filter(Boolean).join("\n"),
+                  },
+                },
+              ]
+            : []),
           {
             type: "section",
             fields: [
+              { type: "mrkdwn", text: `*Format:*\n${opts.format ?? "—"}` },
               { type: "mrkdwn", text: `*Template:*\n${opts.template}` },
               { type: "mrkdwn", text: `*Duration:*\n${opts.durationSec.toFixed(1)}s` },
               { type: "mrkdwn", text: `*Cost:*\n$${opts.costUsd.toFixed(4)}` },
-              { type: "mrkdwn", text: `*Reel ID:*\n\`${opts.reelId}\`` },
             ],
           },
+          ...qualityBlock,
           ...(opts.sourceTitle
             ? [
                 {
@@ -244,18 +354,21 @@ async function postReelDraftToSlack(opts: {
                 },
               ]
             : []),
+          ...storyboardBlock,
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `*Sandra script (FR):*\n>>>${truncate(opts.scriptText, 600)}`,
+              text: `*Sandra script:*\n>>>${truncate(opts.scriptText, 600)}`,
             },
           },
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `*IG caption draft:*\n>>>${truncate(opts.igCaption, 500)}`,
+              text:
+                `*IG caption draft:*\n>>>${truncate(opts.igCaption, 500)}` +
+                (hashtagLine ? `\n${truncate(hashtagLine, 250)}` : ""),
             },
           },
           {
@@ -295,8 +408,20 @@ async function postReelDraftToSlack(opts: {
         ],
       }),
     });
+    // Slack incoming webhooks don't return a message ts; chat.postMessage
+    // does. We try to parse a JSON body opportunistically and fall back to
+    // a plain ok signal so the caller can still flip the status.
+    let ts: string | undefined;
+    try {
+      const j = (await res.clone().json()) as { ts?: string };
+      if (j && typeof j.ts === "string") ts = j.ts;
+    } catch {
+      // ignore — most workspace webhooks return "ok" as text/plain.
+    }
+    return { ok: res.ok, ts };
   } catch (err) {
     console.warn("[buildReelsQueue] Slack draft post failed:", err);
+    return { ok: false };
   }
 }
 
@@ -414,47 +539,87 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
     title: pick.item.title?.slice(0, 80) ?? null,
   });
 
-  // ── 4. Build the reel end-to-end ──────────────────────────────────────
+  // ── 4. Build the reel end-to-end (v2 format-driven pipeline) ─────────
+  //
+  // Roundup mode: on the configured day-of-week (Haiti tz, default Friday)
+  // when we have ≥ REELS_ROUNDUP_MIN_ITEMS opportunity-eligible candidates,
+  // bundle the top 3–5 into a single weekly_opportunity_roundup Reel.
+  // Otherwise fall back to single-item alert/explainer mode driven by the
+  // top candidate.
+  const isRoundupDay = haitiDow() === REELS_ROUNDUP_DOW;
+  const opportunityCandidates = candidates.filter(
+    (c) => c.topic === "opportunity" || c.topic === "scholarship",
+  );
+  const useRoundup =
+    isRoundupDay && opportunityCandidates.length >= REELS_ROUNDUP_MIN_ITEMS;
+
   const articleUrl = `${SITE_URL}/news/${pick.cv.id}?lang=fr`;
+
+  const primaryItem = useRoundup ? opportunityCandidates[0]! : pick;
+  const roundupExtras = useRoundup
+    ? opportunityCandidates
+        .slice(1, REELS_ROUNDUP_MAX_ITEMS)
+        .map((c) => ({
+          id: c.item.id,
+          title: c.cv.title || c.item.title,
+          summary:
+            c.cv.summary ||
+            (c.item as unknown as { summary?: string }).summary ||
+            "",
+          url: `${SITE_URL}/news/${c.cv.id}?lang=fr`,
+          sourceName: c.item.source?.name,
+        }))
+    : undefined;
+
   let built;
   try {
-    built = await buildReel({
-      topic: pick.topic,
-      item: {
-        id: pick.item.id,
-        title: pick.cv.title || pick.item.title,
-        summary: pick.cv.summary || (pick.item as unknown as { summary?: string }).summary || "",
-        url: articleUrl,
-        sourceName: pick.item.source?.name,
+    built = await buildReelV2({
+      primary: {
+        id: primaryItem.item.id,
+        title: primaryItem.cv.title || primaryItem.item.title,
+        summary:
+          primaryItem.cv.summary ||
+          (primaryItem.item as unknown as { summary?: string }).summary ||
+          "",
+        url: useRoundup
+          ? `${SITE_URL}/news/${primaryItem.cv.id}?lang=fr`
+          : articleUrl,
+        sourceName: primaryItem.item.source?.name,
+        category: primaryItem.item.category,
+        vertical: primaryItem.item.vertical,
+        imageUrl: primaryItem.item.imageUrl || undefined,
       },
-      // Use the article's own scraped hero image as the reel background
-      // when present (works for ~90% of news/opportunity items). Falls back
-      // to Pexels b-roll inside buildReel only when missing.
-      imageUrl: pick.item.imageUrl || undefined,
+      roundup: roundupExtras,
+      language: "fr",
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     emit("reelGenerationFailed", {
-      itemId: pick.item.id,
-      topic: pick.topic,
+      itemId: primaryItem.item.id,
+      topic: primaryItem.topic,
+      stage: "buildReelV2",
       error: msg,
     });
     result.errors++;
-    // Keep enough detail to debug ENOENT-style errors that include a path.
     result.skipped = `build-failed:${msg.slice(0, 400)}`;
     return result;
   }
+
+  const v1 = built.v1;
+  const reelV2 = built.reel;
+  const format: ReelFormat = reelV2.format;
+  const quality: ReelQualityScore | undefined = reelV2.qualityScore;
 
   // ── 5. Upload MP4 to Cloud Storage ────────────────────────────────────
   let mp4Url: string;
   try {
     const buf = await fs.readFile(built.videoPath);
-    const objectPath = `reels/${haitiToday}/${built.artifact.id}.mp4`;
+    const objectPath = `reels/${haitiToday}/${v1.id}.mp4`;
     mp4Url = await uploadImageBuffer(objectPath, buf, "video/mp4");
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     emit("reelGenerationFailed", {
-      itemId: pick.item.id,
+      itemId: primaryItem.item.id,
       stage: "upload",
       error: msg,
     });
@@ -463,25 +628,36 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
     return result;
   }
 
-  // ── 6. Insert pending row ─────────────────────────────────────────────
-  const reelVariant = `${pick.topic}-${built.artifact.template}-v1`;
-  const cost = mapCost(built.artifact.cost);
+  // ── 6. Insert pending row (v1 fields + v2 editorial fields) ──────────
+  const renderedTemplate = (v1.template ?? FORMAT_TO_TEMPLATE[format]) as ReelsTemplate;
+  const reelVariant = `${format}-${renderedTemplate}-v2`;
+  const cost = mapCost(v1.cost);
 
   const create: CreateReelsPendingItem = {
-    sourceItemId: pick.item.id,
-    topic: pick.topic,
-    template: built.artifact.template as ReelsTemplate,
+    sourceItemId: primaryItem.item.id,
+    topic: primaryItem.topic,
+    template: renderedTemplate,
     reelVariant,
     language: "fr",
-    scriptText: built.artifact.script.voiceover,
-    igCaption: built.artifact.captionDraft ?? built.artifact.script.caption ?? "",
+    scriptText: reelV2.script,
+    igCaption: reelV2.caption,
     mp4Url,
     thumbnailUrl: "",
-    durationSec: built.artifact.durationSec,
-    status: "pending",
+    durationSec: reelV2.durationSec ?? v1.durationSec,
+    // We mark the freshly-built Reel as pending_review (v2 status). Older
+    // v1 admin tooling treats any non-approved/posted status as actionable.
+    status: "pending_review",
     generatedAt: Timestamp.now(),
     costEstimateUsd: cost.totalUsd,
     costBreakdown: cost,
+    // ── v2 editorial fields ──────────────────────────────────────────
+    format,
+    title: reelV2.title,
+    hook: reelV2.hook,
+    sourceItemIds: reelV2.sourceItemIds,
+    storyboard: reelV2.storyboard,
+    hashtags: reelV2.hashtags,
+    qualityScore: quality,
   };
 
   let inserted;
@@ -490,7 +666,7 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     emit("reelGenerationFailed", {
-      itemId: pick.item.id,
+      itemId: primaryItem.item.id,
       stage: "persist",
       error: msg,
     });
@@ -511,31 +687,52 @@ export async function buildReelsQueue(): Promise<BuildReelsQueueResult> {
 
   emit("reelGenerated", {
     reelId: inserted.id,
-    sourceItemId: pick.item.id,
-    topic: pick.topic,
-    template: built.artifact.template,
+    sourceItemId: primaryItem.item.id,
+    sourceItemIds: reelV2.sourceItemIds,
+    topic: primaryItem.topic,
+    format,
+    template: renderedTemplate,
     reelVariant,
-    durationSec: built.artifact.durationSec,
+    durationSec: reelV2.durationSec,
+    qualityScoreTotal: quality?.total,
+    qualityPassed: quality?.passed,
     costUsd: cost.totalUsd,
     haitiDate: haitiToday,
   });
 
-  // Awaited (not fire-and-forget): on Cloud Run, the container's CPU is
-  // throttled/suspended once the request handler returns, which would drop
-  // the in-flight webhook fetch and silently lose the Slack notification.
-  await postReelDraftToSlack({
+  // Awaited (not fire-and-forget): on Cloud Run the container's CPU is
+  // throttled once the request handler returns, which would drop the
+  // in-flight webhook fetch and silently lose the Slack notification.
+  const slackResult = await postReelDraftToSlack({
     reelId: inserted.id,
-    topic: pick.topic,
-    template: built.artifact.template as ReelsTemplate,
-    durationSec: built.artifact.durationSec,
+    topic: primaryItem.topic,
+    template: renderedTemplate,
+    format,
+    title: reelV2.title,
+    hook: reelV2.hook,
+    storyboard: reelV2.storyboard,
+    qualityScore: quality,
+    durationSec: reelV2.durationSec ?? v1.durationSec,
     costUsd: cost.totalUsd,
     mp4Url,
-    scriptText: built.artifact.script.voiceover,
-    igCaption: create.igCaption,
-    sourceTitle: pick.cv.title || pick.item.title || null,
+    scriptText: reelV2.script,
+    igCaption: reelV2.caption,
+    hashtags: reelV2.hashtags,
+    sourceTitle:
+      primaryItem.cv.title || primaryItem.item.title || null,
     sourceUrl: articleUrl,
     adminUrl: `${SITE_URL}/admin/reels-pending`,
   });
+
+  if (slackResult.ok) {
+    try {
+      await reelsPendingRepo.markSentToSlack(inserted.id, {
+        slackMessageTs: slackResult.ts,
+      });
+    } catch (err) {
+      console.warn("[buildReelsQueue] markSentToSlack failed:", err);
+    }
+  }
 
   // Suppress unused imports warning.
   void randomUUID;

@@ -1354,7 +1354,64 @@ export const reelsPendingStatusSchema = z.enum([
   "approved",
   "posted",
   "rejected",
+  // v2 lifecycle additions — superset of v1. Older docs with the v1 statuses
+  // above continue to validate.
+  "draft",
+  "rendering",
+  "pending_review",
+  "sent_to_slack",
+  "needs_edit",
+  "failed",
 ]);
+
+// ── v2 format-driven schemas (editorial layer) ───────────────────────────
+//
+// Stored alongside the v1 `ReelsPendingItem` fields on the same document.
+// All v2 fields are OPTIONAL so v1 docs continue to validate untouched.
+
+export const reelFormatSchema = z.enum([
+  "opportunity_alert",
+  "haiti_explainer",
+  "weekly_opportunity_roundup",
+]);
+
+export const reelSceneVisualTypeSchema = z.enum([
+  "animated_headline",
+  "image_card",
+  "deadline_card",
+  "checklist",
+  "map",
+  "logo_card",
+  "quote_card",
+  "brand_close",
+  "b_roll",
+  "roundup_item",
+]);
+
+export const reelSceneSchema = z.object({
+  id: z.string().min(1),
+  startSec: z.number().min(0),
+  endSec: z.number().min(0),
+  voiceover: z.string().min(1),
+  onScreenText: z.string(),
+  visualType: reelSceneVisualTypeSchema,
+  assetHints: z.array(z.string()).optional(),
+  assetUrls: z.array(z.string()).optional(),
+});
+
+export const reelQualityScoreSchema = z.object({
+  total: z.number().min(0).max(100),
+  hookStrength: z.number().min(0).max(100),
+  scriptClarity: z.number().min(0).max(100),
+  visualRelevance: z.number().min(0).max(100),
+  voiceNaturalness: z.number().min(0).max(100),
+  captionReadability: z.number().min(0).max(100),
+  brandConsistency: z.number().min(0).max(100),
+  durationFit: z.number().min(0).max(100),
+  mobileSafeArea: z.number().min(0).max(100),
+  notes: z.array(z.string()),
+  passed: z.boolean(),
+});
 
 export const reelsMetricsSchema = z.object({
   plays: z.number().min(0).optional(),
@@ -1403,6 +1460,23 @@ export const reelsPendingItemSchema = z.object({
   socialMetrics: reelsMetricsSchema.optional(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
+  // ── v2 editorial fields (all optional for v1 back-compat) ──────────────
+  /** Editorial format the Reel belongs to (drives reviewer UX). */
+  format: reelFormatSchema.optional(),
+  /** Reel title shown in Slack / admin lists. */
+  title: z.string().max(200).optional(),
+  /** First scene's spoken line, duplicated for quick reviewer scanning. */
+  hook: z.string().max(300).optional(),
+  /** Multi-source items for weekly_opportunity_roundup. */
+  sourceItemIds: z.array(z.string().min(1)).optional(),
+  /** Structured per-scene storyboard (voiceover + visual). */
+  storyboard: z.array(reelSceneSchema).optional(),
+  /** Hashtags as a flat array (no leading #). */
+  hashtags: z.array(z.string().min(2).max(40)).optional(),
+  /** Deterministic editorial QA score. */
+  qualityScore: reelQualityScoreSchema.optional(),
+  /** Slack message timestamp once the review card is posted. */
+  slackMessageTs: z.string().optional(),
 });
 
 export const createReelsPendingItemSchema = reelsPendingItemSchema.omit({

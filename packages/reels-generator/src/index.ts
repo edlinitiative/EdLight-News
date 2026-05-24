@@ -40,3 +40,9 @@ export type {
   BuildReelInput,
   BuildReelResult,
 } from "./buildReel.js";
+
+// ── v2 format-driven pipeline ────────────────────────────────────────────
+// New editorial layer: format classification → storyboard → assets →
+// quality score. Wraps `buildReel` for the actual MP4 render. See
+// `./format/buildReelV2.ts` for the orchestrator entry point.
+export * from "./format/index.js";

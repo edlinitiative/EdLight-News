@@ -241,6 +241,23 @@ export async function patchSocialMetrics(
   });
 }
 
+/**
+ * Mark a v2 Reel as successfully delivered to Slack for human review.
+ * The `slackMessageTs` field stores Slack's message timestamp so a later
+ * tool can update the same message (e.g. after approval) instead of
+ * posting a duplicate.
+ */
+export async function markSentToSlack(
+  id: string,
+  args: { slackMessageTs?: string },
+): Promise<void> {
+  await collection().doc(id).update({
+    status: "sent_to_slack",
+    ...(args.slackMessageTs ? { slackMessageTs: args.slackMessageTs } : {}),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
