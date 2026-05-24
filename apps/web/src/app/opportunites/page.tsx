@@ -20,6 +20,10 @@ import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/oppor
 import { scoreOpportunity, OPPORTUNITY_SCORE_THRESHOLD } from "@edlight-news/generator";
 import { buildOgMetadata } from "@/lib/og";
 
+// 600s = 10-min ISR. Note: paired with unstable_cache(1800s) in content.ts —
+// after a worker rollout that adds new opportunity items, a fresh deploy is
+// required to invalidate the data-cache namespace; tag-based revalidation
+// from /api/admin/revalidate?tag=feed is the supported manual lever.
 export const revalidate = 600;
 
 export async function generateMetadata({
