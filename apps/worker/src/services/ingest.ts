@@ -30,11 +30,11 @@ function titleFingerprint(title: string): string {
 export async function ingest(): Promise<{ ingested: number; skipped: number; errors: number }> {
   const allSources = await sourcesRepo.getEnabledSources();
 
-  // Rotation: within each priority bucket, process sources with the OLDEST
-  // (or missing) lastCheckedAt first. This guarantees newly-seeded sources
-  // — which have no lastCheckedAt yet — jump to the front of the queue on
-  // the first tick after seeding, instead of being permanently starved by
-  // long-lived hot sources.
+  // Rotation: process the sources with the OLDEST (or missing) lastCheckedAt
+  // FIRST, then break ties by priority (hot > normal) and type (rss > html).
+  // Putting lastCheckedAt before priority is critical: priority-first sorting
+  // permanently starves normal-priority sources whenever there are more hot
+  // sources than the per-tick cap.
   const getLastChecked = (s: Source): number => {
     const v = (s as Source & { lastCheckedAt?: { toMillis?: () => number } }).lastCheckedAt;
     return v?.toMillis?.() ?? 0; // null/undefined → 0 → first
@@ -43,8 +43,8 @@ export async function ingest(): Promise<{ ingested: number; skipped: number; err
     const prio = (s: Source) => (s.priority === "hot" ? 0 : 1);
     const typ = (s: Source) => (s.type === "rss" ? 0 : 1);
     return (
-      prio(a) - prio(b) ||
       getLastChecked(a) - getLastChecked(b) ||
+      prio(a) - prio(b) ||
       typ(a) - typ(b)
     );
   });
