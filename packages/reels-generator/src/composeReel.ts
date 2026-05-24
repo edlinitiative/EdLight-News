@@ -290,7 +290,10 @@ async function assertRenderQuality(mp4Path: string): Promise<void> {
   const videoBitrate = Number(video.bit_rate ?? 0);
   const formatBitrate = Number(probe.format?.bit_rate ?? 0);
   const effectiveVideoBitrate = videoBitrate > 0 ? videoBitrate : formatBitrate;
-  const MIN_VIDEO_BPS = 6_000_000; // 6 Mbps
+  // Default floor 6 Mbps; overridable via REELS_MIN_VIDEO_BPS so low-motion
+  // text-heavy CRF output (which can legitimately come in around 1-3 Mbps)
+  // doesn't trip the v1.1 "259 kbps regression" guard on smoke/test runs.
+  const MIN_VIDEO_BPS = Number(process.env.REELS_MIN_VIDEO_BPS ?? "6000000");
   if (effectiveVideoBitrate > 0 && effectiveVideoBitrate < MIN_VIDEO_BPS) {
     logQualityFail("videoBitrate", `>= ${MIN_VIDEO_BPS}`, effectiveVideoBitrate);
     throw new ReelRenderQualityError(
