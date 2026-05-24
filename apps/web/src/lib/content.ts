@@ -235,7 +235,12 @@ export const fetchEnrichedFeed = unstable_cache(
       return [];
     }
   },
-  ["enriched-feed"],
+  // Cache key suffix bumped to v2 (2026-05): after the wider-opportunity
+  // rollout (PRs #96/#97/#98), the previous namespace had stale empty
+  // results locked in for the full 30-min window because the catch-on-error
+  // contract caches `[]` as a valid value. Bumping the key forces a fresh
+  // cache namespace and lets the new radar items surface immediately.
+  ["enriched-feed", "v2"],
   // 30 min — content updates rarely; this is the primary read driver.
   { revalidate: 1800, tags: ["feed"] },
 );
@@ -329,7 +334,8 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
      return [];
    }
   },
-  ["enriched-feed-by-vertical"],
+  // See fetchEnrichedFeed above for rationale on the v2 suffix.
+  ["enriched-feed-by-vertical", "v2"],
   { revalidate: 1800, tags: ["feed"] },
 );
 
