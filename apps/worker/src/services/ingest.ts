@@ -1,12 +1,16 @@
-import { Timestamp } from "firebase-admin/firestore";
-import { sourcesRepo, rawItemsRepo } from "@edlight-news/firebase";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { getDb, sourcesRepo, rawItemsRepo } from "@edlight-news/firebase";
 import { fetchRSS, scrapeHTML, computeHash } from "@edlight-news/scraper";
 import type { Source, RawItemStatus } from "@edlight-news/types";
 
 /** Maximum items to ingest per source per tick */
 const PER_SOURCE_LIMIT = parseInt(process.env.INGEST_PER_SOURCE_LIMIT ?? "20", 10);
-/** Maximum sources to process per tick (keep tick fast) */
-const MAX_SOURCES = parseInt(process.env.INGEST_MAX_SOURCES ?? "20", 10);
+/**
+ * Maximum sources to process per tick (keep tick fast).
+ * Default 60: with the 107-source catalogue this gives ~2-tick full-rotation
+ * (≈30 min) while still finishing each tick well under the 540s Cloud Run cap.
+ */
+const MAX_SOURCES = parseInt(process.env.INGEST_MAX_SOURCES ?? "60", 10);
 
 /**
  * Normalize a title into a dedup fingerprint.
@@ -26,14 +30,27 @@ function titleFingerprint(title: string): string {
 export async function ingest(): Promise<{ ingested: number; skipped: number; errors: number }> {
   const allSources = await sourcesRepo.getEnabledSources();
 
-  // Sort: hot before normal, then rss before html (RSS is more reliable from containers)
+  // Rotation: within each priority bucket, process sources with the OLDEST
+  // (or missing) lastCheckedAt first. This guarantees newly-seeded sources
+  // — which have no lastCheckedAt yet — jump to the front of the queue on
+  // the first tick after seeding, instead of being permanently starved by
+  // long-lived hot sources.
+  const getLastChecked = (s: Source): number => {
+    const v = (s as Source & { lastCheckedAt?: { toMillis?: () => number } }).lastCheckedAt;
+    return v?.toMillis?.() ?? 0; // null/undefined → 0 → first
+  };
   allSources.sort((a, b) => {
     const prio = (s: Source) => (s.priority === "hot" ? 0 : 1);
     const typ = (s: Source) => (s.type === "rss" ? 0 : 1);
-    return prio(a) - prio(b) || typ(a) - typ(b);
+    return (
+      prio(a) - prio(b) ||
+      getLastChecked(a) - getLastChecked(b) ||
+      typ(a) - typ(b)
+    );
   });
 
   const sources = allSources.slice(0, MAX_SOURCES);
+  const db = getDb();
 
   let ingested = 0;
   let skipped = 0;
@@ -85,6 +102,17 @@ export async function ingest(): Promise<{ ingested: number; skipped: number; err
     } catch (err) {
       console.error(`[ingest] error fetching source ${source.id} (${source.name}):`, err);
       errors++;
+    }
+
+    // Stamp lastCheckedAt so the next tick rotates to other sources.
+    // Done outside the inner try so a single failing source still advances
+    // the rotation pointer (otherwise one broken source would block ingest).
+    try {
+      await db.collection("sources").doc(source.id).update({
+        lastCheckedAt: FieldValue.serverTimestamp(),
+      });
+    } catch (err) {
+      console.warn(`[ingest] failed to stamp lastCheckedAt on ${source.id}:`, err);
     }
   }
 
