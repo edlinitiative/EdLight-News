@@ -11,6 +11,7 @@ import express from "express";
 import { tickRouter } from "./routes/tick.js";
 import { processIgNowRouter } from "./routes/processIgNow.js";
 import { cleanupRouter } from "./routes/cleanup.js";
+import { seedSourcesRouter } from "./routes/seedSources.js";
 import { reviewRouter } from "./routes/review.js";
 import { getVisionQuotaStatus } from "./services/googleVisionSearch.js";
 import { warmUpClassifier } from "./services/zeroShotClassifier.js";
@@ -72,6 +73,11 @@ app.use(processIgNowRouter);
 
 // Weekly maintenance — triggered by Cloud Scheduler (OIDC)
 app.use(cleanupRouter);
+
+// On-demand re-seed of the `sources` collection from the bundled
+// docs/sources.seed.json. Idempotent. Used to roll out new opportunity
+// radar sources without rebuilding the image.
+app.use(seedSourcesRouter);
 
 const PORT = parseInt(process.env.PORT ?? "8080", 10);
 app.listen(PORT, () => {

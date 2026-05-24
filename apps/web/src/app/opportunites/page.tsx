@@ -137,20 +137,66 @@ export default async function OpportunitesPage({
             deadline: a.deadline,
             publisherName: a.sourceName,
           }).score;
-    if (score < OPPORTUNITY_SCORE_THRESHOLD) return false;
+
+    // ── Kind-aware threshold (v3, wider taxonomy) ──
+    // The 50-point bar was tuned for scholarship-style copy
+    // ("bourse / fellowship / DAAD / Fulbright"). Hackathons,
+    // leadership programs, mentorship and call-for-applications items
+    // rarely cross 50 even when they're legitimate. Drop the bar to 35
+    // for those kinds; keep 50 for scholarship-class items so quality
+    // stays high there.
+    const kind = a.opportunity?.kind ?? "";
+    const SCHOLARSHIP_KINDS = new Set([
+      "scholarship",
+      "fellowship",
+      "grant",
+      "travel_grant",
+    ]);
+    const isScholarshipKind = !kind || SCHOLARSHIP_KINDS.has(kind);
+    const minScore = isScholarshipKind ? OPPORTUNITY_SCORE_THRESHOLD : 35;
+    if (score < minScore) return false;
 
     return true;
   });
 
-  const articles = rankAndDeduplicate(opportunityPool, {
-    // 0.50 (was 0.40) — drops borderline items where the deterministic scorer
-    // gave only a small category bonus but no real Haiti/student signal.
-    // Combined with the HT/Diaspora geo boost in ranking.ts, this surfaces
-    // actually-Haitian-relevant opportunities first while still admitting
-    // global scholarships (Fulbright, Erasmus+, DAAD, …) that are open to HT.
-    audienceFitThreshold: 0.50,
+  // ── Pre-rank kind- and lifecycle-aware boosts ───────────────────────────
+  // The global ranker filters on audienceFitScore. The previous 0.50 bar
+  // rejected globally open opportunities (Erasmus, Schwarzman, MIT Solve,
+  // …) that don't mention Haiti by name. Rather than lowering the bar for
+  // everyone we *boost* items that are clearly open to Haitian applicants
+  // OR fall under the wider taxonomy where strict Haiti-naming isn't
+  // expected, then drop the threshold modestly.
+  const WIDER_BOOST_SCHOLARSHIP_KINDS = new Set([
+    "scholarship",
+    "fellowship",
+    "grant",
+    "travel_grant",
+  ]);
+  const boostedPool = opportunityPool.map((a) => {
+    let boost = 0;
+    const kind = a.opportunity?.kind ?? "";
+    if (kind && !WIDER_BOOST_SCHOLARSHIP_KINDS.has(kind)) boost += 0.20;
+    if (a.opportunity?.haitiEligible && a.opportunity.haitiEligible !== "no") {
+      boost += 0.10;
+    }
+    if (a.opportunity?.lifecycle === "deadline_soon") boost += 0.15;
+    if (a.opportunity?.lifecycle === "expired") boost -= 0.30;
+
+    if (boost === 0 || a.audienceFitScore == null) return a;
+    return {
+      ...a,
+      audienceFitScore: Math.max(0, Math.min(1, a.audienceFitScore + boost)),
+    };
+  });
+
+  const articles = rankAndDeduplicate(boostedPool, {
+    // 0.40 (was 0.50) — paired with the kind/lifecycle boosts above this
+    // surfaces a much wider catalogue (hackathons, accelerators, leadership
+    // programs, FR appels, …) without re-introducing the off-mission noise
+    // the 0.50 bar was originally added to suppress.
+    audienceFitThreshold: 0.40,
     publisherCap: 3,
-    topN: 40,
+    topN: 60,
   });
 
   const fr = lang === "fr";
