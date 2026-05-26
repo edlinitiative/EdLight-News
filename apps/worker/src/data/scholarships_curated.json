@@ -3,994 +3,2275 @@
     "name": "Chevening Scholarships",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-11-05", "notes": "Cycle annuel \u2014 ouvre en aoÃ»t", "sourceUrl": "https://www.chevening.org/scholarships/" },
+    "deadline": {
+      "dateISO": "2026-11-05",
+      "notes": "Cycle annuel — ouvre en aoÃ»t",
+      "sourceUrl": "https://www.chevening.org/scholarships/"
+    },
     "howToApplyUrl": "https://www.chevening.org/scholarships/",
     "officialUrl": "https://www.chevening.org/",
     "relatedPagePath": "/bourses/guides/chevening-haiti",
-    "eligibilitySummary": "Bourses du gouvernement britannique pour leaders \u00e9mergents. Couvre frais de scolarit\u00e9, allocation mensuelle, vol aller-retour et visa.",
-    "programDescription": "Chevening est le programme de bourses internationales du gouvernement britannique financ\u00e9 par le Foreign, Commonwealth & Development Office. Il finance une ann\u00e9e de master dans n'importe quelle universit\u00e9 du Royaume-Uni pour des candidat\u00b7es \u00e0 fort potentiel de leadership. La candidature haïtienne est trait\u00e9e via l'ambassade britannique en R\u00e9publique dominicaine.",
+    "eligibilitySummary": "Bourses du gouvernement britannique pour leaders émergents. Couvre frais de scolarité, allocation mensuelle, vol aller-retour et visa.",
+    "programDescription": "Chevening est le programme de bourses internationales du gouvernement britannique financé par le Foreign, Commonwealth & Development Office. Il finance une année de master dans n'importe quelle université du Royaume-Uni pour des candidat·es à fort potentiel de leadership. La candidature haïtienne est traitée via l'ambassade britannique en République dominicaine.",
     "applicationSteps": [
-      { "title": "V\u00e9rifier l'\u00e9ligibilit\u00e9", "description": "Citoyennet\u00e9 haïtienne, retour au pays \u00e0 l'issue de la bourse, 2+ ans d'exp\u00e9rience professionnelle (\u00e9quivalent temps plein, b\u00e9n\u00e9volat compris), bachelor compl\u00e9t\u00e9.", "url": "https://www.chevening.org/scholarship/haiti/" },
-      { "title": "Cr\u00e9er un compte et postuler en ligne", "description": "Ouverture du portail en aoÃ»t. Choisir jusqu'\u00e0 trois programmes de master au Royaume-Uni. Pr\u00e9parer 4 essais (leadership, networking, \u00e9tudes, plan de carri\u00e8re).", "url": "https://www.chevening.org/apply/" },
-      { "title": "Entretien \u00e0 l'ambassade", "description": "Les candidat\u00b7es retenu\u00b7es sont convoqu\u00e9\u00b7es pour un entretien (g\u00e9n\u00e9ralement entre f\u00e9vrier et avril) avec un panel d'\u00e9valuation." },
-      { "title": "Confirmer l'admission universitaire", "description": "Obtenir une lettre d'admission inconditionnelle d'au moins une des universit\u00e9s vis\u00e9es avant le 14 juillet." }
+      {
+        "title": "Vérifier l'éligibilité",
+        "description": "Citoyenneté haïtienne, retour au pays à l'issue de la bourse, 2+ ans d'expérience professionnelle (équivalent temps plein, bénévolat compris), bachelor complété.",
+        "url": "https://www.chevening.org/scholarship/haiti/"
+      },
+      {
+        "title": "Créer un compte et postuler en ligne",
+        "description": "Ouverture du portail en aoÃ»t. Choisir jusqu'à trois programmes de master au Royaume-Uni. Préparer 4 essais (leadership, networking, études, plan de carrière).",
+        "url": "https://www.chevening.org/apply/"
+      },
+      {
+        "title": "Entretien à l'ambassade",
+        "description": "Les candidat·es retenu·es sont convoqué·es pour un entretien (généralement entre février et avril) avec un panel d'évaluation."
+      },
+      {
+        "title": "Confirmer l'admission universitaire",
+        "description": "Obtenir une lettre d'admission inconditionnelle d'au moins une des universités visées avant le 14 juillet."
+      }
     ],
     "keyDates": [
-      { "label": "Ouverture des candidatures", "monthRange": "AoÃ»t", "notes": "Le portail ouvre d\u00e9but aoÃ»t chaque ann\u00e9e." },
-      { "label": "Cl\u00f4ture des candidatures", "monthRange": "D\u00e9but novembre" },
-      { "label": "Entretiens", "monthRange": "F\u00e9vrier \u2013 avril" },
-      { "label": "R\u00e9sultats finaux", "monthRange": "Juin" },
-      { "label": "D\u00e9but du master au Royaume-Uni", "monthRange": "Septembre \u2013 octobre" }
+      {
+        "label": "Ouverture des candidatures",
+        "monthRange": "AoÃ»t",
+        "notes": "Le portail ouvre début aoÃ»t chaque année."
+      },
+      {
+        "label": "Clôture des candidatures",
+        "monthRange": "Début novembre"
+      },
+      {
+        "label": "Entretiens",
+        "monthRange": "Février – avril"
+      },
+      {
+        "label": "Résultats finaux",
+        "monthRange": "Juin"
+      },
+      {
+        "label": "Début du master au Royaume-Uni",
+        "monthRange": "Septembre – octobre"
+      }
     ],
-    "tags": ["prestigious", "government", "uk", "leadership"],
-    "sources": [{ "url": "https://www.chevening.org/scholarships/", "label": "Chevening Official" }]
+    "tags": [
+      "prestigious",
+      "government",
+      "uk",
+      "leadership"
+    ],
+    "sources": [
+      {
+        "url": "https://www.chevening.org/scholarships/",
+        "label": "Chevening Official"
+      }
+    ]
   },
   {
     "name": "Commonwealth Scholarships (CSFP)",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "unknown",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-12-16", "notes": "V\u00e9rifier l'\u00e9ligibilit\u00e9 d'Haïti chaque ann\u00e9e (Commonwealth uniquement)", "sourceUrl": "https://cscuk.fcdo.gov.uk/scholarships/" },
+    "deadline": {
+      "dateISO": "2026-12-16",
+      "notes": "Vérifier l'éligibilité d'Haïti chaque année (Commonwealth uniquement)",
+      "sourceUrl": "https://cscuk.fcdo.gov.uk/scholarships/"
+    },
     "howToApplyUrl": "https://cscuk.fcdo.gov.uk/apply/",
     "officialUrl": "https://cscuk.fcdo.gov.uk/",
-    "eligibilitySummary": "Bourses pour citoyen\u00b7nes des pays du Commonwealth. Haïti n'est pas membre du Commonwealth, mais quelques bourses tierces (ex. Distance Learning, Shared Scholarships avec un partenaire) peuvent s'ouvrir.",
-    "tags": ["government", "uk", "developing-countries"],
-    "sources": [{ "url": "https://cscuk.fcdo.gov.uk/scholarships/", "label": "CSFP Official" }]
+    "eligibilitySummary": "Bourses pour citoyen·nes des pays du Commonwealth. Haïti n'est pas membre du Commonwealth, mais quelques bourses tierces (ex. Distance Learning, Shared Scholarships avec un partenaire) peuvent s'ouvrir.",
+    "tags": [
+      "government",
+      "uk",
+      "developing-countries"
+    ],
+    "sources": [
+      {
+        "url": "https://cscuk.fcdo.gov.uk/scholarships/",
+        "label": "CSFP Official"
+      }
+    ]
   },
   {
     "name": "DAAD Scholarships (Allemagne)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2026-10-15", "notes": "Varie par programme \u2014 g\u00e9n\u00e9ralement entre aoÃ»t et octobre", "sourceUrl": "https://www.daad.de/en/studying-in-germany/scholarships/" },
+    "deadline": {
+      "dateISO": "2026-10-15",
+      "notes": "Varie par programme — généralement entre aoÃ»t et octobre",
+      "sourceUrl": "https://www.daad.de/en/studying-in-germany/scholarships/"
+    },
     "howToApplyUrl": "https://www.daad.de/en/studying-in-germany/scholarships/",
     "officialUrl": "https://www.daad.de/",
     "relatedPagePath": "/bourses/guides/daad-haiti",
-    "eligibilitySummary": "Le DAAD est le service d'\u00e9changes acad\u00e9miques allemand. Bourses compl\u00e8tes pour master, doctorat, et programmes de recherche en Allemagne.",
-    "programDescription": "Le DAAD finance plus de 100 000 \u00e9tudiant\u00b7es et chercheur\u00b7ses chaque ann\u00e9e. Les programmes phares pour les pays en d\u00e9veloppement incluent EPOS (Development-Related Postgraduate Courses), Helmut-Schmidt-Programm (Master en politiques publiques), et Leadership for Africa. La majorit\u00e9 des cours sont enseign\u00e9s en anglais.",
+    "eligibilitySummary": "Le DAAD est le service d'échanges académiques allemand. Bourses complètes pour master, doctorat, et programmes de recherche en Allemagne.",
+    "programDescription": "Le DAAD finance plus de 100 000 étudiant·es et chercheur·ses chaque année. Les programmes phares pour les pays en développement incluent EPOS (Development-Related Postgraduate Courses), Helmut-Schmidt-Programm (Master en politiques publiques), et Leadership for Africa. La majorité des cours sont enseignés en anglais.",
     "applicationSteps": [
-      { "title": "Choisir le programme DAAD", "description": "EPOS pour master en d\u00e9veloppement, Helmut-Schmidt pour politiques publiques, ou bourse de recherche individuelle pour PhD.", "url": "https://www2.daad.de/deutschland/stipendium/datenbank/en/21148-scholarship-database/" },
-      { "title": "Identifier l'universit\u00e9 d'accueil", "description": "Obtenir une admission ou une lettre de soutien d'un superviseur (pour la recherche)." },
-      { "title": "Pr\u00e9parer le dossier", "description": "CV, lettre de motivation, plan de recherche (PhD), 2 lettres de recommandation, certificats acad\u00e9miques traduits." },
-      { "title": "Soumettre via le portail DAAD", "description": "D\u00e9pôt en ligne sur portal.daad.de avant la deadline du programme." }
+      {
+        "title": "Choisir le programme DAAD",
+        "description": "EPOS pour master en développement, Helmut-Schmidt pour politiques publiques, ou bourse de recherche individuelle pour PhD.",
+        "url": "https://www2.daad.de/deutschland/stipendium/datenbank/en/21148-scholarship-database/"
+      },
+      {
+        "title": "Identifier l'université d'accueil",
+        "description": "Obtenir une admission ou une lettre de soutien d'un superviseur (pour la recherche)."
+      },
+      {
+        "title": "Préparer le dossier",
+        "description": "CV, lettre de motivation, plan de recherche (PhD), 2 lettres de recommandation, certificats académiques traduits."
+      },
+      {
+        "title": "Soumettre via le portail DAAD",
+        "description": "Dépôt en ligne sur portal.daad.de avant la deadline du programme."
+      }
     ],
-    "tags": ["government", "germany", "research", "epos"],
-    "sources": [{ "url": "https://www.daad.de/en/studying-in-germany/scholarships/", "label": "DAAD Official" }]
+    "tags": [
+      "government",
+      "germany",
+      "research",
+      "epos"
+    ],
+    "sources": [
+      {
+        "url": "https://www.daad.de/en/studying-in-germany/scholarships/",
+        "label": "DAAD Official"
+      }
+    ]
   },
   {
     "name": "Erasmus+ Mundus Joint Masters",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2026-02-15", "notes": "Varie par consortium \u2014 g\u00e9n\u00e9ralement janvier-f\u00e9vrier", "sourceUrl": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en" },
+    "deadline": {
+      "dateISO": "2027-02-15",
+      "notes": "Varie par consortium — généralement janvier-février",
+      "sourceUrl": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en"
+    },
     "howToApplyUrl": "https://erasmus-plus.ec.europa.eu/opportunities/individuals/students/erasmus-mundus-joint-masters-scholarships",
     "officialUrl": "https://erasmus-plus.ec.europa.eu/",
     "relatedPagePath": "/bourses/guides/erasmus-haiti",
-    "eligibilitySummary": "Master conjoint (2 ans) dans 2 \u00e0 4 universit\u00e9s europ\u00e9ennes diff\u00e9rentes. Bourse compl\u00e8te (~1 400 \u20ac/mois + frais + voyage) pour les candidat\u00b7es des pays partenaires (Haïti incluse).",
-    "programDescription": "Les Erasmus Mundus Joint Masters sont des programmes int\u00e9gr\u00e9s couvrant un large \u00e9ventail de disciplines. L'\u00e9tudiant\u00b7e \u00e9tudie dans au moins deux pays europ\u00e9ens et obtient un diplôme conjoint, double ou multiple. Les candidat\u00b7es haïtien\u00b7nes b\u00e9n\u00e9ficient du tarif Region 1/Partner Country (bourse plus g\u00e9n\u00e9reuse).",
+    "eligibilitySummary": "Master conjoint (2 ans) dans 2 à 4 universités européennes différentes. Bourse complète (~1 400 €/mois + frais + voyage) pour les candidat·es des pays partenaires (Haïti incluse).",
+    "programDescription": "Les Erasmus Mundus Joint Masters sont des programmes intégrés couvrant un large éventail de disciplines. L'étudiant·e étudie dans au moins deux pays européens et obtient un diplôme conjoint, double ou multiple. Les candidat·es haïtien·nes bénéficient du tarif Region 1/Partner Country (bourse plus généreuse).",
     "applicationSteps": [
-      { "title": "Parcourir le catalogue", "description": "Plus de 200 masters disponibles. Filtrer par discipline et v\u00e9rifier l'\u00e9ligibilit\u00e9 d'Haïti.", "url": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en" },
-      { "title": "Postuler directement au consortium", "description": "Chaque master a son propre portail et ses propres dates. La majorit\u00e9 cl\u00f4ture entre janvier et f\u00e9vrier pour la rentr\u00e9e suivante." },
-      { "title": "Pr\u00e9parer les essais et lettres", "description": "Lettre de motivation orient\u00e9e mobilit\u00e9, 2 lettres acad\u00e9miques, preuve de niveau d'anglais (IELTS/TOEFL)." }
+      {
+        "title": "Parcourir le catalogue",
+        "description": "Plus de 200 masters disponibles. Filtrer par discipline et vérifier l'éligibilité d'Haïti.",
+        "url": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en"
+      },
+      {
+        "title": "Postuler directement au consortium",
+        "description": "Chaque master a son propre portail et ses propres dates. La majorité clôture entre janvier et février pour la rentrée suivante."
+      },
+      {
+        "title": "Préparer les essais et lettres",
+        "description": "Lettre de motivation orientée mobilité, 2 lettres académiques, preuve de niveau d'anglais (IELTS/TOEFL)."
+      }
     ],
-    "tags": ["eu", "mobility", "joint-master", "prestigious"],
-    "sources": [{ "url": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en", "label": "Erasmus Mundus Catalogue" }]
+    "tags": [
+      "eu",
+      "mobility",
+      "joint-master",
+      "prestigious"
+    ],
+    "sources": [
+      {
+        "url": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en",
+        "label": "Erasmus Mundus Catalogue"
+      }
+    ]
   },
   {
     "name": "Bourses AUF (Agence Universitaire de la Francophonie)",
     "country": "Global",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2026-04-15", "notes": "Variable par appel \u2014 plusieurs sessions par an", "sourceUrl": "https://www.auf.org/nos-actions/toutes-nos-actions/bourses/" },
+    "deadline": {
+      "dateISO": "2027-04-15",
+      "notes": "Variable par appel — plusieurs sessions par an",
+      "sourceUrl": "https://www.auf.org/appels-a-candidatures/"
+    },
     "howToApplyUrl": "https://www.auf.org/nos-actions/toutes-nos-actions/bourses/",
     "officialUrl": "https://www.auf.org/",
-    "eligibilitySummary": "L'AUF soutient la mobilit\u00e9 \u00e9tudiante dans l'espace francophone. Bourses pour masters et doctorats dans les universit\u00e9s partenaires.",
-    "programDescription": "L'AUF finance des mobilit\u00e9s court/long terme \u00e0 destination des universit\u00e9s membres dans 119 pays. Pour Haïti, les programmes phares incluent Eugen Ionescu (court s\u00e9jour de recherche en Roumanie), les bourses de mobilit\u00e9 de master vers le Maghreb/Europe, et les bourses doctorales et postdoctorales.",
-    "tags": ["francophone", "auf", "mobility"],
-    "sources": [{ "url": "https://www.auf.org/nos-actions/toutes-nos-actions/bourses/", "label": "AUF Official" }]
+    "eligibilitySummary": "L'AUF soutient la mobilité étudiante dans l'espace francophone. Bourses pour masters et doctorats dans les universités partenaires.",
+    "programDescription": "L'AUF finance des mobilités court/long terme à destination des universités membres dans 119 pays. Pour Haïti, les programmes phares incluent Eugen Ionescu (court séjour de recherche en Roumanie), les bourses de mobilité de master vers le Maghreb/Europe, et les bourses doctorales et postdoctorales.",
+    "tags": [
+      "francophone",
+      "auf",
+      "mobility"
+    ],
+    "sources": [
+      {
+        "url": "https://www.auf.org/appels-a-candidatures/",
+        "label": "AUF — Appels à candidatures"
+      }
+    ]
   },
   {
     "name": "CSC Scholarships (Chinese Government Scholarship)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "unknown",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-03-31", "notes": "Cycle annuel \u2014 v\u00e9rifier les relations dipl. Haïti-Chine", "sourceUrl": "https://www.csc.edu.cn/studyinchina" },
+    "deadline": {
+      "dateISO": "2027-03-31",
+      "notes": "Cycle annuel — vérifier les relations dipl. Haïti-Chine",
+      "sourceUrl": "https://www.csc.edu.cn/studyinchina"
+    },
     "howToApplyUrl": "https://studyinchina.csc.edu.cn/",
     "officialUrl": "https://www.csc.edu.cn/",
-    "eligibilitySummary": "Le gouvernement chinois offre des bourses compl\u00e8tes couvrant scolarit\u00e9, h\u00e9bergement, allocation mensuelle et assurance m\u00e9dicale. Note : Haïti n'a pas de relations diplomatiques formelles avec la R\u00e9publique populaire de Chine \u2014 l'\u00e9ligibilit\u00e9 doit \u00eatre confirm\u00e9e au cas par cas.",
-    "tags": ["government", "china", "full-funding"],
-    "sources": [{ "url": "https://www.csc.edu.cn/studyinchina", "label": "CSC Official" }]
+    "eligibilitySummary": "Le gouvernement chinois offre des bourses complètes couvrant scolarité, hébergement, allocation mensuelle et assurance médicale. Note : Haïti n'a pas de relations diplomatiques formelles avec la République populaire de Chine — l'éligibilité doit être confirmée au cas par cas.",
+    "tags": [
+      "government",
+      "china",
+      "full-funding"
+    ],
+    "sources": [
+      {
+        "url": "https://www.csc.edu.cn/studyinchina",
+        "label": "CSC Official"
+      }
+    ]
   },
   {
-    "name": "Bourse d'exemption des droits de scolarit\u00e9 (Qu\u00e9bec)",
+    "name": "Bourse d'exemption des droits de scolarité (Québec)",
     "country": "CA",
     "fundingType": "tuition-only",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "howToApplyUrl": "https://www.quebec.ca/education/aide-financiere-aux-etudes/bourses-exemption-droits-scolarite",
+    "howToApplyUrl": "https://www.quebec.ca/education/aide-financiere-aux-etudes",
     "officialUrl": "https://www.quebec.ca/education/aide-financiere-aux-etudes",
-    "eligibilitySummary": "Le Qu\u00e9bec offre des exemptions de frais de scolarit\u00e9 major\u00e9s pour les \u00e9tudiant\u00b7es haïtien\u00b7nes, leur permettant de payer les m\u00eames frais qu'un\u00b7e r\u00e9sident\u00b7e qu\u00e9b\u00e9cois\u00b7e.",
-    "programDescription": "Haïti b\u00e9n\u00e9ficie d'une entente de coop\u00e9ration avec le Qu\u00e9bec : les \u00e9tudiant\u00b7es haïtien\u00b7nes admis\u00b7es dans une universit\u00e9 qu\u00e9b\u00e9coise peuvent demander cette exemption qui ram\u00e8ne les frais d'environ 20 000 $/an \u00e0 environ 3 000 $/an. La demande se fait via l'universit\u00e9 d'accueil apr\u00e8s admission.",
+    "eligibilitySummary": "Le Québec offre des exemptions de frais de scolarité majorés pour les étudiant·es haïtien·nes, leur permettant de payer les mêmes frais qu'un·e résident·e québécois·e.",
+    "programDescription": "Haïti bénéficie d'une entente de coopération avec le Québec : les étudiant·es haïtien·nes admis·es dans une université québécoise peuvent demander cette exemption qui ramène les frais d'environ 20 000 $/an à environ 3 000 $/an. La demande se fait via l'université d'accueil après admission.",
     "applicationSteps": [
-      { "title": "\u00cAtre admis\u00b7e dans une universit\u00e9 qu\u00e9b\u00e9coise", "description": "Postuler directement aux universit\u00e9s vis\u00e9es (UdeM, McGill, Laval, UQAM, etc.) avec un dossier acad\u00e9mique solide." },
-      { "title": "Soumettre le formulaire d'exemption", "description": "Apr\u00e8s admission, l'universit\u00e9 fournit le formulaire. Joindre passeport haïtien valide et preuve de citoyennet\u00e9." },
-      { "title": "Renouveler chaque session", "description": "L'exemption s'applique session par session tant que l'\u00e9tudiant\u00b7e reste en r\u00e8gle acad\u00e9miquement." }
+      {
+        "title": "Être admis·e dans une université québécoise",
+        "description": "Postuler directement aux universités visées (UdeM, McGill, Laval, UQAM, etc.) avec un dossier académique solide."
+      },
+      {
+        "title": "Soumettre le formulaire d'exemption",
+        "description": "Après admission, l'université fournit le formulaire. Joindre passeport haïtien valide et preuve de citoyenneté."
+      },
+      {
+        "title": "Renouveler chaque session",
+        "description": "L'exemption s'applique session par session tant que l'étudiant·e reste en règle académiquement."
+      }
     ],
-    "tags": ["quebec", "tuition-exemption", "haiti-specific", "prestigious"],
-    "sources": [{ "url": "https://www.quebec.ca/education/aide-financiere-aux-etudes/bourses-exemption-droits-scolarite", "label": "Qu\u00e9bec Official" }]
+    "tags": [
+      "quebec",
+      "tuition-exemption",
+      "haiti-specific",
+      "prestigious"
+    ],
+    "sources": [
+      {
+        "url": "https://www.quebec.ca/education/aide-financiere-aux-etudes",
+        "label": "Québec Official"
+      }
+    ],
+    "deadline": {
+      "dateISO": "2027-03-01",
+      "notes": "Dates d'admission spécifiques à chaque université québécoise — la demande d'exemption se fait après l'admission. Les demandes d'exemption sont généralement traitées en continu.",
+      "sourceUrl": "https://www.quebec.ca/education/aide-financiere-aux-etudes"
+    }
   },
   {
     "name": "MasterCard Foundation Scholars Program",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "notes": "Varie par universit\u00e9 partenaire \u2014 g\u00e9n\u00e9ralement entre novembre et mars", "sourceUrl": "https://mastercardfdn.org/all/scholars/" },
+    "deadline": {
+      "notes": "Varie par université partenaire — généralement entre novembre et mars",
+      "sourceUrl": "https://mastercardfdn.org/all/scholars/"
+    },
     "howToApplyUrl": "https://mastercardfdn.org/all/scholars/",
     "officialUrl": "https://mastercardfdn.org/all/scholars/",
     "relatedPagePath": "/bourses/guides/mastercard-haiti",
-    "eligibilitySummary": "Programme pour jeunes talentueux\u00b7ses d'Afrique et de la Caraïbe (Haïti incluse). Couvre frais de scolarit\u00e9, h\u00e9bergement, livres, et soutien acad\u00e9mique.",
-    "programDescription": "Le programme finance plus de 35 000 jeunes leaders depuis 2012. Haïti est explicitement \u00e9ligible via plusieurs universit\u00e9s partenaires : American University of Beirut, EARTH University (Costa Rica), McGill University, University of British Columbia, et plusieurs partenaires africains. Au-del\u00e0 du financement, le programme offre du mentorat, des stages d'\u00e9t\u00e9, et un r\u00e9seau d'alumni de plus de 30 000 personnes.",
+    "eligibilitySummary": "Programme pour jeunes talentueux·ses d'Afrique et de la Caraïbe (Haïti incluse). Couvre frais de scolarité, hébergement, livres, et soutien académique.",
+    "programDescription": "Le programme finance plus de 35 000 jeunes leaders depuis 2012. Haïti est explicitement éligible via plusieurs universités partenaires : American University of Beirut, EARTH University (Costa Rica), McGill University, University of British Columbia, et plusieurs partenaires africains. Au-delà du financement, le programme offre du mentorat, des stages d'été, et un réseau d'alumni de plus de 30 000 personnes.",
     "applicationSteps": [
-      { "title": "Identifier l'universit\u00e9 partenaire", "description": "Liste compl\u00e8te sur le site MCF. Pour Haïti, EARTH University (Costa Rica, agriculture durable) et McGill (Canada) sont les deux portes d'entr\u00e9e les plus accessibles.", "url": "https://mastercardfdn.org/all/scholars/scholars-program-partners/" },
-      { "title": "Postuler \u00e0 l'universit\u00e9 ET au programme MCF", "description": "Deux candidatures parall\u00e8les. Le statut de bourse MCF est attribu\u00e9 par l'universit\u00e9 partenaire." },
-      { "title": "Engagement de retour", "description": "Engagement moral \u00e0 contribuer au d\u00e9veloppement de son pays d'origine apr\u00e8s les \u00e9tudes (Give Back commitment)." }
+      {
+        "title": "Identifier l'université partenaire",
+        "description": "Liste complète sur le site MCF. Pour Haïti, EARTH University (Costa Rica, agriculture durable) et McGill (Canada) sont les deux portes d'entrée les plus accessibles.",
+        "url": "https://mastercardfdn.org/all/scholars/scholars-program-partners/"
+      },
+      {
+        "title": "Postuler à l'université ET au programme MCF",
+        "description": "Deux candidatures parallèles. Le statut de bourse MCF est attribué par l'université partenaire."
+      },
+      {
+        "title": "Engagement de retour",
+        "description": "Engagement moral à contribuer au développement de son pays d'origine après les études (Give Back commitment)."
+      }
     ],
-    "tags": ["foundation", "developing-countries", "caribbean", "prestigious"],
-    "sources": [{ "url": "https://mastercardfdn.org/all/scholars/", "label": "MCF Scholars Official" }]
+    "tags": [
+      "foundation",
+      "developing-countries",
+      "caribbean",
+      "prestigious"
+    ],
+    "sources": [
+      {
+        "url": "https://mastercardfdn.org/all/scholars/",
+        "label": "MCF Scholars Official"
+      }
+    ]
   },
   {
     "name": "Fulbright Foreign Student Program",
     "country": "US",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-05-31", "notes": "Date Haïti g\u00e9r\u00e9e par l'ambassade US \u00e0 Port-au-Prince \u2014 g\u00e9n\u00e9ralement mai-juin", "sourceUrl": "https://ht.usembassy.gov/education-culture/" },
+    "deadline": {
+      "dateISO": "2026-05-31",
+      "notes": "Date Haïti gérée par l'ambassade US à Port-au-Prince — généralement mai-juin",
+      "sourceUrl": "https://ht.usembassy.gov/education-culture/"
+    },
     "howToApplyUrl": "https://foreign.fulbrightonline.org/",
     "officialUrl": "https://www.fulbright.org/",
     "relatedPagePath": "/bourses/guides/fulbright-haiti",
-    "eligibilitySummary": "Programme phare du gouvernement am\u00e9ricain pour \u00e9tudes sup\u00e9rieures aux \u00c9tats-Unis. Couvre frais de scolarit\u00e9, allocation mensuelle, assurance sant\u00e9 et vol aller-retour.",
-    "programDescription": "Fulbright est le programme d'\u00e9changes \u00e9ducatifs phare du gouvernement am\u00e9ricain, op\u00e9rant dans plus de 160 pays depuis 1946. La candidature haïtienne est g\u00e9r\u00e9e directement par l'ambassade des \u00c9tats-Unis \u00e0 Port-au-Prince. Le programme couvre tous les domaines acad\u00e9miques sauf m\u00e9decine clinique. Engagement de retour de 2 ans en Haïti requis (visa J-1).",
+    "eligibilitySummary": "Programme phare du gouvernement américain pour études supérieures aux États-Unis. Couvre frais de scolarité, allocation mensuelle, assurance santé et vol aller-retour.",
+    "programDescription": "Fulbright est le programme d'échanges éducatifs phare du gouvernement américain, opérant dans plus de 160 pays depuis 1946. La candidature haïtienne est gérée directement par l'ambassade des États-Unis à Port-au-Prince. Le programme couvre tous les domaines académiques sauf médecine clinique. Engagement de retour de 2 ans en Haïti requis (visa J-1).",
     "applicationSteps": [
-      { "title": "Contacter l'ambassade US Port-au-Prince", "description": "La section culturelle de l'ambassade publie l'appel local chaque ann\u00e9e (g\u00e9n\u00e9ralement entre mars et mai).", "url": "https://ht.usembassy.gov/education-culture/" },
-      { "title": "Pr\u00e9parer le dossier acad\u00e9mique", "description": "Bachelor compl\u00e9t\u00e9, GPA \u00e9lev\u00e9, plan d'\u00e9tudes argument\u00e9, 3 lettres de recommandation, score TOEFL/IELTS." },
-      { "title": "Entretien de pr\u00e9s\u00e9lection", "description": "Conduit par la commission Fulbright haïtienne (octobre-novembre)." },
-      { "title": "Placement universitaire IIE", "description": "Si retenu\u00b7e, l'Institute of International Education g\u00e8re le placement dans une universit\u00e9 am\u00e9ricaine adapt\u00e9e au profil." }
+      {
+        "title": "Contacter l'ambassade US Port-au-Prince",
+        "description": "La section culturelle de l'ambassade publie l'appel local chaque année (généralement entre mars et mai).",
+        "url": "https://ht.usembassy.gov/education-culture/"
+      },
+      {
+        "title": "Préparer le dossier académique",
+        "description": "Bachelor complété, GPA élevé, plan d'études argumenté, 3 lettres de recommandation, score TOEFL/IELTS."
+      },
+      {
+        "title": "Entretien de présélection",
+        "description": "Conduit par la commission Fulbright haïtienne (octobre-novembre)."
+      },
+      {
+        "title": "Placement universitaire IIE",
+        "description": "Si retenu·e, l'Institute of International Education gère le placement dans une université américaine adaptée au profil."
+      }
     ],
-    "tags": ["prestigious", "government", "us", "exchange"],
+    "tags": [
+      "prestigious",
+      "government",
+      "us",
+      "exchange"
+    ],
     "sources": [
-      { "url": "https://foreign.fulbrightonline.org/", "label": "Fulbright Foreign Student" },
-      { "url": "https://ht.usembassy.gov/education-culture/", "label": "US Embassy Haiti" }
+      {
+        "url": "https://foreign.fulbrightonline.org/",
+        "label": "Fulbright Foreign Student"
+      },
+      {
+        "url": "https://ht.usembassy.gov/education-culture/",
+        "label": "US Embassy Haiti"
+      }
     ]
   },
   {
     "name": "Rhodes Scholarship",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "unknown",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "monthRange": "Juillet \u2013 octobre selon la circonscription", "notes": "Pas de circonscription Haïti d\u00e9di\u00e9e ; les candidat\u00b7es haïtien\u00b7nes peuvent postuler via 'Global' (anciennement 'Syria, Jordan, Lebanon and Palestine + Global') ou par r\u00e9sidence/double-citoyennet\u00e9.", "sourceUrl": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/" },
+    "deadline": {
+      "monthRange": "Juillet – octobre selon la circonscription",
+      "notes": "Pas de circonscription Haïti dédiée ; les candidat·es haïtien·nes peuvent postuler via 'Global' (anciennement 'Syria, Jordan, Lebanon and Palestine + Global') ou par résidence/double-citoyenneté.",
+      "sourceUrl": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/"
+    },
     "howToApplyUrl": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/which-scholarship-to-apply-for/",
     "officialUrl": "https://www.rhodeshouse.ox.ac.uk/",
     "relatedPagePath": "/bourses/guides/rhodes-haiti",
-    "eligibilitySummary": "La plus ancienne et l'une des plus prestigieuses bourses au monde. Finance int\u00e9gralement 2 \u00e0 3 ans d'\u00e9tudes \u00e0 l'Universit\u00e9 d'Oxford. Haïti n'a pas de circonscription d\u00e9di\u00e9e ; passage par la circonscription Global.",
-    "programDescription": "Cr\u00e9\u00e9e en 1903 par le testament de Cecil Rhodes, la bourse couvre tous les frais d'Oxford (scolarit\u00e9, college fees) plus une allocation annuelle d'environ £18 970, le voyage aller-retour, et le visa. Environ 100 boursi\u00e8r\u00b7es s\u00e9lectionn\u00e9\u00b7es par an dans 22+ circonscriptions. La 'Rhodes Scholarship for Global' (\u00e9largie en 2018) est la voie d'entr\u00e9e pour les candidat\u00b7es de pays sans circonscription propre, dont Haïti. Crit\u00e8res : excellence acad\u00e9mique, caract\u00e8re, leadership, engagement envers le service.",
+    "eligibilitySummary": "La plus ancienne et l'une des plus prestigieuses bourses au monde. Finance intégralement 2 à 3 ans d'études à l'Université d'Oxford. Haïti n'a pas de circonscription dédiée ; passage par la circonscription Global.",
+    "programDescription": "Créée en 1903 par le testament de Cecil Rhodes, la bourse couvre tous les frais d'Oxford (scolarité, college fees) plus une allocation annuelle d'environ £18 970, le voyage aller-retour, et le visa. Environ 100 boursièr·es sélectionné·es par an dans 22+ circonscriptions. La 'Rhodes Scholarship for Global' (élargie en 2018) est la voie d'entrée pour les candidat·es de pays sans circonscription propre, dont Haïti. Critères : excellence académique, caractère, leadership, engagement envers le service.",
     "applicationSteps": [
-      { "title": "V\u00e9rifier la circonscription \u00e9ligible", "description": "Pour les Haïtien\u00b7nes : circonscription 'Global' (ouverte aux candidat\u00b7es des pays non couverts par une autre circonscription).", "url": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/which-scholarship-to-apply-for/" },
-      { "title": "Pr\u00e9parer le dossier", "description": "Personal statement (1 000 mots), CV acad\u00e9mique, 5 \u00e0 8 lettres de recommandation (selon la circonscription), transcripts." },
-      { "title": "Choisir le programme \u00e0 Oxford", "description": "Master (MSc, MPhil, MSt, BCL\u2026) ou DPhil. Postuler en parall\u00e8le \u00e0 l'admission Oxford (deadlines janvier-d\u00e9cembre)." },
-      { "title": "Entretiens", "description": "Pr\u00e9-s\u00e9lection sur dossier, puis entretiens finaux organis\u00e9s par la Rhodes Trust (g\u00e9n\u00e9ralement novembre-d\u00e9cembre)." }
+      {
+        "title": "Vérifier la circonscription éligible",
+        "description": "Pour les Haïtien·nes : circonscription 'Global' (ouverte aux candidat·es des pays non couverts par une autre circonscription).",
+        "url": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/which-scholarship-to-apply-for/"
+      },
+      {
+        "title": "Préparer le dossier",
+        "description": "Personal statement (1 000 mots), CV académique, 5 à 8 lettres de recommandation (selon la circonscription), transcripts."
+      },
+      {
+        "title": "Choisir le programme à Oxford",
+        "description": "Master (MSc, MPhil, MSt, BCL…) ou DPhil. Postuler en parallèle à l'admission Oxford (deadlines janvier-décembre)."
+      },
+      {
+        "title": "Entretiens",
+        "description": "Pré-sélection sur dossier, puis entretiens finaux organisés par la Rhodes Trust (généralement novembre-décembre)."
+      }
     ],
     "keyDates": [
-      { "label": "Ouverture (Global)", "monthRange": "Juin" },
-      { "label": "Cl\u00f4ture (Global)", "monthRange": "Septembre" },
-      { "label": "Entretiens", "monthRange": "Novembre" },
-      { "label": "R\u00e9sultats", "monthRange": "D\u00e9cembre" },
-      { "label": "Rentr\u00e9e \u00e0 Oxford", "monthRange": "Octobre suivant" }
+      {
+        "label": "Ouverture (Global)",
+        "monthRange": "Juin"
+      },
+      {
+        "label": "Clôture (Global)",
+        "monthRange": "Septembre"
+      },
+      {
+        "label": "Entretiens",
+        "monthRange": "Novembre"
+      },
+      {
+        "label": "Résultats",
+        "monthRange": "Décembre"
+      },
+      {
+        "label": "Rentrée à Oxford",
+        "monthRange": "Octobre suivant"
+      }
     ],
-    "tags": ["prestigious", "oxford", "uk", "leadership", "rhodes"],
+    "tags": [
+      "prestigious",
+      "oxford",
+      "uk",
+      "leadership",
+      "rhodes"
+    ],
     "sources": [
-      { "url": "https://www.rhodeshouse.ox.ac.uk/", "label": "Rhodes House Oxford" },
-      { "url": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/which-scholarship-to-apply-for/", "label": "Rhodes Scholarship \u2014 Which to apply for" }
+      {
+        "url": "https://www.rhodeshouse.ox.ac.uk/",
+        "label": "Rhodes House Oxford"
+      },
+      {
+        "url": "https://www.rhodeshouse.ox.ac.uk/scholarships/the-rhodes-scholarship/which-scholarship-to-apply-for/",
+        "label": "Rhodes Scholarship — Which to apply for"
+      }
     ]
   },
   {
     "name": "United World Colleges (UWC)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-01-15", "notes": "Comit\u00e9 national haïtien : la s\u00e9lection se fait via le UWC National Committee Haïti. Inscriptions g\u00e9n\u00e9ralement entre septembre et d\u00e9cembre.", "sourceUrl": "https://www.uwc.org/apply" },
+    "deadline": {
+      "dateISO": "2027-01-15",
+      "notes": "Comité national haïtien : la sélection se fait via le UWC National Committee Haïti. Inscriptions généralement entre septembre et décembre.",
+      "sourceUrl": "https://www.uwc.org/apply"
+    },
     "howToApplyUrl": "https://www.uwc.org/apply",
     "officialUrl": "https://www.uwc.org/",
     "relatedPagePath": "/bourses/guides/uwc-haiti",
     "heroImageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1600&q=80",
-    "eligibilitySummary": "Programme international de fin de secondaire (16-19 ans) dans 18 colleges r\u00e9partis dans le monde. Bourses compl\u00e8tes ou partielles bas\u00e9es sur le besoin financier. Haïti dispose d'un comit\u00e9 national actif.",
-    "programDescription": "United World Colleges (UWC) est un mouvement \u00e9ducatif international fond\u00e9 en 1962 qui rassemble des \u00e9l\u00e8ves de 16 \u00e0 19 ans de plus de 150 pays sur 18 campus (UWC Atlantic au Pays de Galles, UWC Adriatic, UWC Costa Rica, UWC Dilijan en Arm\u00e9nie, etc.). Les \u00e9l\u00e8ves suivent le Baccalaur\u00e9at International (IB) pendant deux ans, dans un environnement r\u00e9sidentiel et multiculturel ax\u00e9 sur la paix, le d\u00e9veloppement durable et l'engagement civique. La s\u00e9lection est nationale : pour Haïti, c'est le Comit\u00e9 National Haïtien UWC qui recrute, \u00e9value et nomine les candidat\u00b7es chaque ann\u00e9e.",
+    "eligibilitySummary": "Programme international de fin de secondaire (16-19 ans) dans 18 colleges répartis dans le monde. Bourses complètes ou partielles basées sur le besoin financier. Haïti dispose d'un comité national actif.",
+    "programDescription": "United World Colleges (UWC) est un mouvement éducatif international fondé en 1962 qui rassemble des élèves de 16 à 19 ans de plus de 150 pays sur 18 campus (UWC Atlantic au Pays de Galles, UWC Adriatic, UWC Costa Rica, UWC Dilijan en Arménie, etc.). Les élèves suivent le Baccalauréat International (IB) pendant deux ans, dans un environnement résidentiel et multiculturel axé sur la paix, le développement durable et l'engagement civique. La sélection est nationale : pour Haïti, c'est le Comité National Haïtien UWC qui recrute, évalue et nomine les candidat·es chaque année.",
     "subPrograms": [
       {
-        "name": "UWC Haïti (Comit\u00e9 National)",
-        "description": "La voie principale pour un\u00b7e \u00e9l\u00e8ve haïtien\u00b7ne. Le Comit\u00e9 National recrute en seconde/premi\u00e8re et place les candidat\u00b7es retenu\u00b7es dans l'un des 18 campus mondiaux pour les deux ann\u00e9es de l'IB.",
-        "level": ["short_programs"],
-        "eligibility": "\u00c9l\u00e8ves haïtien\u00b7nes de 15 \u00e0 17 ans en fin de seconde ou premi\u00e8re. R\u00e9sultats acad\u00e9miques solides, engagement extra-scolaire, motivation interculturelle.",
+        "name": "UWC Haïti (Comité National)",
+        "description": "La voie principale pour un·e élève haïtien·ne. Le Comité National recrute en seconde/première et place les candidat·es retenu·es dans l'un des 18 campus mondiaux pour les deux années de l'IB.",
+        "level": [
+          "short_programs"
+        ],
+        "eligibility": "Élèves haïtien·nes de 15 à 17 ans en fin de seconde ou première. Résultats académiques solides, engagement extra-scolaire, motivation interculturelle.",
         "url": "https://www.uwc.org/national-committees",
         "relatedPagePath": "/bourses/guides/uwc-haiti"
       },
       {
         "name": "UWC Costa Rica",
-        "description": "Campus situ\u00e9 \u00e0 Santa Ana, Costa Rica. Forte communaut\u00e9 latino-am\u00e9ricaine et caribbeenne, programme bilingue espagnol/anglais. Souvent un point de chute pour les \u00e9l\u00e8ves haïtien\u00b7nes francophones grÃ¢ce \u00e0 la proximit\u00e9 g\u00e9ographique et culturelle.",
-        "level": ["short_programs"],
-        "eligibility": "S\u00e9lectionn\u00e9\u00b7es via le Comit\u00e9 National Haïti.",
+        "description": "Campus situé à Santa Ana, Costa Rica. Forte communauté latino-américaine et caribbeenne, programme bilingue espagnol/anglais. Souvent un point de chute pour les élèves haïtien·nes francophones grÃ¢ce à la proximité géographique et culturelle.",
+        "level": [
+          "short_programs"
+        ],
+        "eligibility": "Sélectionné·es via le Comité National Haïti.",
         "url": "https://www.uwccostarica.org/"
       },
       {
         "name": "UWC Atlantic (Pays de Galles)",
-        "description": "Campus historique fond\u00e9 en 1962, situ\u00e9 dans le chÃ¢teau de St Donat. Premier campus UWC au monde.",
-        "level": ["short_programs"],
-        "eligibility": "S\u00e9lectionn\u00e9\u00b7es via le Comit\u00e9 National Haïti.",
+        "description": "Campus historique fondé en 1962, situé dans le chÃ¢teau de St Donat. Premier campus UWC au monde.",
+        "level": [
+          "short_programs"
+        ],
+        "eligibility": "Sélectionné·es via le Comité National Haïti.",
         "url": "https://www.uwcatlantic.org/"
       },
       {
-        "name": "UWC Davis Scholars (poursuite aux \u00c9tats-Unis)",
-        "description": "Apr\u00e8s l'IB, les diplôm\u00e9\u00b7es UWC sont automatiquement \u00e9ligibles au Davis United World College Scholars Program qui finance les \u00e9tudes de bachelor dans plus de 100 universit\u00e9s am\u00e9ricaines partenaires.",
-        "level": ["bachelor"],
+        "name": "UWC Davis Scholars (poursuite aux États-Unis)",
+        "description": "Après l'IB, les diplômé·es UWC sont automatiquement éligibles au Davis United World College Scholars Program qui finance les études de bachelor dans plus de 100 universités américaines partenaires.",
+        "level": [
+          "bachelor"
+        ],
         "url": "https://www.davisuwcscholars.org/"
       }
     ],
     "applicationSteps": [
-      { "title": "Contacter le Comit\u00e9 National UWC Haïti", "description": "Le comit\u00e9 publie ses appels chaque ann\u00e9e (rentr\u00e9e scolaire). Page d\u00e9di\u00e9e EdLight News disponible.", "url": "https://www.uwc.org/national-committees" },
-      { "title": "Soumettre la candidature locale", "description": "Formulaire, lettre de motivation, bulletins, lettres de recommandation. Deadline g\u00e9n\u00e9ralement en novembre/d\u00e9cembre." },
-      { "title": "Entretiens et activit\u00e9s de s\u00e9lection", "description": "Le comit\u00e9 organise des entretiens individuels et parfois des journ\u00e9es de groupe pour \u00e9valuer le profil interculturel." },
-      { "title": "Placement dans un campus UWC", "description": "Les \u00e9l\u00e8ves retenu\u00b7es indiquent leurs pr\u00e9f\u00e9rences ; le placement final est d\u00e9cid\u00e9 par UWC International en fonction des places et bourses disponibles." }
+      {
+        "title": "Contacter le Comité National UWC Haïti",
+        "description": "Le comité publie ses appels chaque année (rentrée scolaire). Page dédiée EdLight News disponible.",
+        "url": "https://www.uwc.org/national-committees"
+      },
+      {
+        "title": "Soumettre la candidature locale",
+        "description": "Formulaire, lettre de motivation, bulletins, lettres de recommandation. Deadline généralement en novembre/décembre."
+      },
+      {
+        "title": "Entretiens et activités de sélection",
+        "description": "Le comité organise des entretiens individuels et parfois des journées de groupe pour évaluer le profil interculturel."
+      },
+      {
+        "title": "Placement dans un campus UWC",
+        "description": "Les élèves retenu·es indiquent leurs préférences ; le placement final est décidé par UWC International en fonction des places et bourses disponibles."
+      }
     ],
     "keyDates": [
-      { "label": "Ouverture des candidatures Haïti", "monthRange": "Septembre" },
-      { "label": "Cl\u00f4ture", "monthRange": "Novembre \u2013 d\u00e9cembre" },
-      { "label": "Entretiens", "monthRange": "Janvier \u2013 f\u00e9vrier" },
-      { "label": "R\u00e9sultats et placement", "monthRange": "Mars \u2013 avril" },
-      { "label": "Rentr\u00e9e UWC", "monthRange": "AoÃ»t \u2013 septembre" }
+      {
+        "label": "Ouverture des candidatures Haïti",
+        "monthRange": "Septembre"
+      },
+      {
+        "label": "Clôture",
+        "monthRange": "Novembre – décembre"
+      },
+      {
+        "label": "Entretiens",
+        "monthRange": "Janvier – février"
+      },
+      {
+        "label": "Résultats et placement",
+        "monthRange": "Mars – avril"
+      },
+      {
+        "label": "Rentrée UWC",
+        "monthRange": "AoÃ»t – septembre"
+      }
     ],
-    "tags": ["highschool", "international", "ib", "scholarship", "prestigious"],
+    "tags": [
+      "highschool",
+      "international",
+      "ib",
+      "scholarship",
+      "prestigious"
+    ],
     "sources": [
-      { "url": "https://www.uwc.org/", "label": "UWC International" },
-      { "url": "https://www.uwc.org/apply", "label": "UWC \u2014 How to apply" },
-      { "url": "https://www.davisuwcscholars.org/", "label": "Davis UWC Scholars Program" }
+      {
+        "url": "https://www.uwc.org/",
+        "label": "UWC International"
+      },
+      {
+        "url": "https://www.uwc.org/apply",
+        "label": "UWC — How to apply"
+      },
+      {
+        "url": "https://www.davisuwcscholars.org/",
+        "label": "Davis UWC Scholars Program"
+      }
     ]
   },
   {
     "name": "Schwarzman Scholars",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-09-15", "notes": "Cycle annuel \u2014 ouverture en avril, cl\u00f4ture mi-septembre", "sourceUrl": "https://www.schwarzmanscholars.org/admissions/" },
+    "deadline": {
+      "dateISO": "2026-09-15",
+      "notes": "Cycle annuel — ouverture en avril, clôture mi-septembre",
+      "sourceUrl": "https://www.schwarzmanscholars.org/admissions/"
+    },
     "howToApplyUrl": "https://www.schwarzmanscholars.org/admissions/",
     "officialUrl": "https://www.schwarzmanscholars.org/",
-    "eligibilitySummary": "Master d'un an en Global Affairs \u00e0 l'universit\u00e9 Tsinghua (P\u00e9kin). Bourse compl\u00e8te (scolarit\u00e9, h\u00e9bergement, voyage, allocation) pour 150 jeunes leaders mondiaux par an.",
-    "programDescription": "Inspir\u00e9 du mod\u00e8le Rhodes, Schwarzman finance un master d'un an au Schwarzman College de l'universit\u00e9 Tsinghua \u00e0 P\u00e9kin. Le programme cible 200 boursi\u00e8r\u00b7es de moins de 28 ans avec un fort potentiel de leadership. Concentrations possibles : Public Policy, Economics & Business, International Studies. Aucune connaissance pr\u00e9alable du chinois requise.",
-    "tags": ["prestigious", "china", "tsinghua", "global-affairs", "leadership"],
-    "sources": [{ "url": "https://www.schwarzmanscholars.org/", "label": "Schwarzman Scholars" }]
+    "eligibilitySummary": "Master d'un an en Global Affairs à l'université Tsinghua (Pékin). Bourse complète (scolarité, hébergement, voyage, allocation) pour 150 jeunes leaders mondiaux par an.",
+    "programDescription": "Inspiré du modèle Rhodes, Schwarzman finance un master d'un an au Schwarzman College de l'université Tsinghua à Pékin. Le programme cible 200 boursièr·es de moins de 28 ans avec un fort potentiel de leadership. Concentrations possibles : Public Policy, Economics & Business, International Studies. Aucune connaissance préalable du chinois requise.",
+    "tags": [
+      "prestigious",
+      "china",
+      "tsinghua",
+      "global-affairs",
+      "leadership"
+    ],
+    "sources": [
+      {
+        "url": "https://www.schwarzmanscholars.org/",
+        "label": "Schwarzman Scholars"
+      }
+    ]
   },
   {
     "name": "Knight-Hennessy Scholars (Stanford)",
     "country": "US",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-10-08", "notes": "Cycle annuel \u2014 cl\u00f4ture d\u00e9but octobre", "sourceUrl": "https://knight-hennessy.stanford.edu/" },
+    "deadline": {
+      "dateISO": "2026-10-08",
+      "notes": "Cycle annuel — clôture début octobre",
+      "sourceUrl": "https://knight-hennessy.stanford.edu/"
+    },
     "howToApplyUrl": "https://knight-hennessy.stanford.edu/admission",
     "officialUrl": "https://knight-hennessy.stanford.edu/",
-    "eligibilitySummary": "Bourse compl\u00e8te pour tout programme de troisi\u00e8me cycle \u00e0 Stanford (master, PhD, MBA, JD, MD, etc.). Couvre scolarit\u00e9, allocation de vie, voyage, et activit\u00e9s de leadership.",
-    "programDescription": "Le programme Knight-Hennessy s\u00e9lectionne ~100 boursi\u00e8r\u00b7es par an parmi tous les programmes gradu\u00e9s de Stanford. Crit\u00e8res : ind\u00e9pendance d'esprit, but civique, leadership. Le programme inclut le King Global Leadership Program, un curriculum compl\u00e9mentaire de leadership.",
+    "eligibilitySummary": "Bourse complète pour tout programme de troisième cycle à Stanford (master, PhD, MBA, JD, MD, etc.). Couvre scolarité, allocation de vie, voyage, et activités de leadership.",
+    "programDescription": "Le programme Knight-Hennessy sélectionne ~100 boursièr·es par an parmi tous les programmes gradués de Stanford. Critères : indépendance d'esprit, but civique, leadership. Le programme inclut le King Global Leadership Program, un curriculum complémentaire de leadership.",
     "applicationSteps": [
-      { "title": "Postuler en parall\u00e8le \u00e0 Stanford", "description": "Il faut postuler s\u00e9par\u00e9ment au programme gradu\u00e9 Stanford choisi ET au Knight-Hennessy. Les deux candidatures sont ind\u00e9pendantes mais li\u00e9es." },
-      { "title": "Pr\u00e9parer les essais Knight-Hennessy", "description": "Plusieurs essais courts (300 mots) sur ind\u00e9pendance d'esprit, but, et leadership." },
-      { "title": "Lettres de recommandation", "description": "2 lettres : une acad\u00e9mique, une de leadership/professionnelle." }
+      {
+        "title": "Postuler en parallèle à Stanford",
+        "description": "Il faut postuler séparément au programme gradué Stanford choisi ET au Knight-Hennessy. Les deux candidatures sont indépendantes mais liées."
+      },
+      {
+        "title": "Préparer les essais Knight-Hennessy",
+        "description": "Plusieurs essais courts (300 mots) sur indépendance d'esprit, but, et leadership."
+      },
+      {
+        "title": "Lettres de recommandation",
+        "description": "2 lettres : une académique, une de leadership/professionnelle."
+      }
     ],
-    "tags": ["prestigious", "stanford", "us", "leadership"],
-    "sources": [{ "url": "https://knight-hennessy.stanford.edu/", "label": "Knight-Hennessy Scholars" }]
+    "tags": [
+      "prestigious",
+      "stanford",
+      "us",
+      "leadership"
+    ],
+    "sources": [
+      {
+        "url": "https://knight-hennessy.stanford.edu/",
+        "label": "Knight-Hennessy Scholars"
+      }
+    ]
   },
   {
     "name": "Marshall Scholarships",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["US"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "US"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "no",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-09-25", "notes": "R\u00e9serv\u00e9 aux citoyen\u00b7nes am\u00e9ricain\u00b7es \u2014 utile pour les Haïtien\u00b7nes \u00e0 double citoyennet\u00e9 US", "sourceUrl": "https://www.marshallscholarship.org/" },
+    "deadline": {
+      "dateISO": "2026-09-25",
+      "notes": "Réservé aux citoyen·nes américain·es — utile pour les Haïtien·nes à double citoyenneté US",
+      "sourceUrl": "https://www.marshallscholarship.org/"
+    },
     "howToApplyUrl": "https://www.marshallscholarship.org/apply",
     "officialUrl": "https://www.marshallscholarship.org/",
-    "eligibilitySummary": "Bourse britannique exclusivement pour citoyen\u00b7nes am\u00e9ricain\u00b7es. Finance 1 \u00e0 2 ans d'\u00e9tudes graduates dans n'importe quelle universit\u00e9 du Royaume-Uni. Pertinent pour la diaspora haïtienne aux \u00c9tats-Unis.",
-    "tags": ["prestigious", "uk", "us", "diaspora"],
-    "sources": [{ "url": "https://www.marshallscholarship.org/", "label": "Marshall Scholarships" }]
+    "eligibilitySummary": "Bourse britannique exclusivement pour citoyen·nes américain·es. Finance 1 à 2 ans d'études graduates dans n'importe quelle université du Royaume-Uni. Pertinent pour la diaspora haïtienne aux États-Unis.",
+    "tags": [
+      "prestigious",
+      "uk",
+      "us",
+      "diaspora"
+    ],
+    "sources": [
+      {
+        "url": "https://www.marshallscholarship.org/",
+        "label": "Marshall Scholarships"
+      }
+    ]
   },
   {
     "name": "Clarendon Fund Scholarships (Oxford)",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "monthRange": "Janvier (selon le programme Oxford choisi)", "notes": "Pas de candidature s\u00e9par\u00e9e \u2014 toute candidature graduate \u00e0 Oxford est automatiquement consid\u00e9r\u00e9e", "sourceUrl": "https://www.ox.ac.uk/clarendon" },
+    "deadline": {
+      "monthRange": "Janvier (selon le programme Oxford choisi)",
+      "notes": "Pas de candidature séparée — toute candidature graduate à Oxford est automatiquement considérée",
+      "sourceUrl": "https://www.ox.ac.uk/clarendon"
+    },
     "howToApplyUrl": "https://www.ox.ac.uk/clarendon",
     "officialUrl": "https://www.ox.ac.uk/clarendon",
-    "eligibilitySummary": "Bourse Oxford ouverte \u00e0 tous les pays. ~140 nouvelles bourses par an pour master et doctorat. Couverture compl\u00e8te (scolarit\u00e9 + allocation).",
-    "programDescription": "Clarendon est la bourse phare d'Oxford bas\u00e9e sur le m\u00e9rite, ouverte \u00e0 toutes nationalit\u00e9s et tous domaines acad\u00e9miques. Pas de formulaire s\u00e9par\u00e9 : toute candidature graduate Oxford soumise avant la deadline pertinente est automatiquement consid\u00e9r\u00e9e.",
-    "tags": ["prestigious", "oxford", "uk"],
-    "sources": [{ "url": "https://www.ox.ac.uk/clarendon", "label": "Clarendon Fund Oxford" }]
+    "eligibilitySummary": "Bourse Oxford ouverte à tous les pays. ~140 nouvelles bourses par an pour master et doctorat. Couverture complète (scolarité + allocation).",
+    "programDescription": "Clarendon est la bourse phare d'Oxford basée sur le mérite, ouverte à toutes nationalités et tous domaines académiques. Pas de formulaire séparé : toute candidature graduate Oxford soumise avant la deadline pertinente est automatiquement considérée.",
+    "tags": [
+      "prestigious",
+      "oxford",
+      "uk"
+    ],
+    "sources": [
+      {
+        "url": "https://www.ox.ac.uk/clarendon",
+        "label": "Clarendon Fund Oxford"
+      }
+    ]
   },
   {
     "name": "Gates Cambridge Scholarship",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-12-03", "notes": "Round international \u2014 cycle annuel", "sourceUrl": "https://www.gatescambridge.org/" },
+    "deadline": {
+      "dateISO": "2026-12-03",
+      "notes": "Round international — cycle annuel",
+      "sourceUrl": "https://www.gatescambridge.org/"
+    },
     "howToApplyUrl": "https://www.gatescambridge.org/apply/",
     "officialUrl": "https://www.gatescambridge.org/",
-    "eligibilitySummary": "Bourse compl\u00e8te de la Fondation Gates pour master et PhD \u00e0 l'universit\u00e9 de Cambridge. ~80 boursi\u00e8r\u00b7es par an, ouvert \u00e0 toutes nationalit\u00e9s hors Royaume-Uni.",
-    "tags": ["prestigious", "cambridge", "uk", "gates-foundation"],
-    "sources": [{ "url": "https://www.gatescambridge.org/", "label": "Gates Cambridge" }]
+    "eligibilitySummary": "Bourse complète de la Fondation Gates pour master et PhD à l'université de Cambridge. ~80 boursièr·es par an, ouvert à toutes nationalités hors Royaume-Uni.",
+    "tags": [
+      "prestigious",
+      "cambridge",
+      "uk",
+      "gates-foundation"
+    ],
+    "sources": [
+      {
+        "url": "https://www.gatescambridge.org/",
+        "label": "Gates Cambridge"
+      }
+    ]
   },
   {
     "name": "Yenching Academy of Peking University",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "unknown",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-12-15", "notes": "Cycle annuel \u2014 cl\u00f4ture mi-d\u00e9cembre", "sourceUrl": "https://yenchingacademy.pku.edu.cn/ADMISSION.htm" },
+    "deadline": {
+      "dateISO": "2026-12-15",
+      "notes": "Cycle annuel — clôture mi-décembre",
+      "sourceUrl": "https://yenchingacademy.pku.edu.cn/ADMISSION.htm"
+    },
     "howToApplyUrl": "https://yenchingacademy.pku.edu.cn/ADMISSION.htm",
     "officialUrl": "https://yenchingacademy.pku.edu.cn/",
-    "eligibilitySummary": "Master interdisciplinaire en China Studies \u00e0 l'universit\u00e9 de P\u00e9kin. Bourse compl\u00e8te pour ~125 boursi\u00e8r\u00b7es internationaux\u00b7ales par an.",
-    "tags": ["china", "peking-university", "interdisciplinary"],
-    "sources": [{ "url": "https://yenchingacademy.pku.edu.cn/", "label": "Yenching Academy" }]
+    "eligibilitySummary": "Master interdisciplinaire en China Studies à l'université de Pékin. Bourse complète pour ~125 boursièr·es internationaux·ales par an.",
+    "tags": [
+      "china",
+      "peking-university",
+      "interdisciplinary"
+    ],
+    "sources": [
+      {
+        "url": "https://yenchingacademy.pku.edu.cn/",
+        "label": "Yenching Academy"
+      }
+    ]
   },
   {
-    "name": "MEXT \u2014 Bourses du gouvernement japonais (Monbukagakusho)",
+    "name": "MEXT — Bourses du gouvernement japonais (Monbukagakusho)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "monthRange": "Mai \u2013 juin (recommandation ambassade) / Janvier (university recommendation)", "notes": "Candidature via l'ambassade du Japon en R\u00e9publique dominicaine pour les Haïtien\u00b7nes", "sourceUrl": "https://www.studyinjapan.go.jp/en/planning/scholarship/application/" },
+    "deadline": {
+      "monthRange": "Mai – juin (recommandation ambassade) / Janvier (university recommendation)",
+      "notes": "Candidature via l'ambassade du Japon en République dominicaine pour les Haïtien·nes",
+      "sourceUrl": "https://www.studyinjapan.go.jp/en/planning/scholarship/application/"
+    },
     "howToApplyUrl": "https://www.studyinjapan.go.jp/en/planning/scholarship/application/",
     "officialUrl": "https://www.mext.go.jp/en/",
-    "eligibilitySummary": "Bourse compl\u00e8te du gouvernement japonais. Couvre scolarit\u00e9, allocation mensuelle (~117 000 \u00a5/mois pour graduate), voyage, et cours pr\u00e9paratoire de japonais. Haïti est \u00e9ligible via l'ambassade du Japon (RD).",
-    "programDescription": "MEXT (Monbukagakusho) finance des \u00e9tudiant\u00b7es internationaux\u00b7ales depuis 1954. Trois cat\u00e9gories principales : Research Student (master/PhD), Undergraduate, et programmes sp\u00e9cialis\u00e9s (Teacher Training, Japanese Studies). La voie 'embassy recommendation' est la plus accessible : examens de s\u00e9lection (anglais + japonais + sp\u00e9cialit\u00e9) organis\u00e9s par l'ambassade en R\u00e9publique dominicaine pour la r\u00e9gion caribbeenne.",
-    "tags": ["government", "japan", "full-funding", "language-included"],
-    "sources": [{ "url": "https://www.studyinjapan.go.jp/en/", "label": "Study in Japan (MEXT)" }]
+    "eligibilitySummary": "Bourse complète du gouvernement japonais. Couvre scolarité, allocation mensuelle (~117 000 ¥/mois pour graduate), voyage, et cours préparatoire de japonais. Haïti est éligible via l'ambassade du Japon (RD).",
+    "programDescription": "MEXT (Monbukagakusho) finance des étudiant·es internationaux·ales depuis 1954. Trois catégories principales : Research Student (master/PhD), Undergraduate, et programmes spécialisés (Teacher Training, Japanese Studies). La voie 'embassy recommendation' est la plus accessible : examens de sélection (anglais + japonais + spécialité) organisés par l'ambassade en République dominicaine pour la région caribbeenne.",
+    "tags": [
+      "government",
+      "japan",
+      "full-funding",
+      "language-included"
+    ],
+    "sources": [
+      {
+        "url": "https://www.studyinjapan.go.jp/en/",
+        "label": "Study in Japan (MEXT)"
+      }
+    ]
   },
   {
     "name": "OAS Academic Scholarship Program",
     "country": "Global",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "monthRange": "Variable selon l'appel", "notes": "Plusieurs appels par an, par accord avec les universit\u00e9s partenaires (Mexique, Colombie, Argentine, Br\u00e9sil, etc.)", "sourceUrl": "https://www.oas.org/en/scholarships/regular_program.asp" },
+    "deadline": {
+      "monthRange": "Variable selon l'appel",
+      "notes": "Plusieurs appels par an, par accord avec les universités partenaires (Mexique, Colombie, Argentine, Brésil, etc.)",
+      "sourceUrl": "https://www.oas.org/en/scholarships/regular_program.asp"
+    },
     "howToApplyUrl": "https://www.oas.org/en/scholarships/regular_program.asp",
     "officialUrl": "https://www.oas.org/en/scholarships/",
-    "eligibilitySummary": "Bourses de l'Organisation des \u00c9tats Am\u00e9ricains pour \u00e9tudes de master et PhD dans les universit\u00e9s partenaires des Am\u00e9riques. Haïti est \u00c9tat membre.",
-    "programDescription": "L'OEA est l'organisation politique r\u00e9gionale des Am\u00e9riques (35 \u00c9tats membres dont Haïti). Son programme de bourses fonctionne sur des accords bilat\u00e9raux avec des universit\u00e9s d'Am\u00e9rique latine (UNAM Mexique, Los Andes Colombie, USP Br\u00e9sil, etc.) ainsi qu'aux \u00c9tats-Unis et au Canada. La couverture varie : souvent les frais de scolarit\u00e9 sont couverts \u00e0 100 % et l'\u00e9tudiant\u00b7e prend en charge le voyage et les frais de vie.",
-    "tags": ["oas", "americas", "latin-america", "international-org"],
-    "sources": [{ "url": "https://www.oas.org/en/scholarships/", "label": "OAS Scholarships" }]
+    "eligibilitySummary": "Bourses de l'Organisation des États Américains pour études de master et PhD dans les universités partenaires des Amériques. Haïti est État membre.",
+    "programDescription": "L'OEA est l'organisation politique régionale des Amériques (35 États membres dont Haïti). Son programme de bourses fonctionne sur des accords bilatéraux avec des universités d'Amérique latine (UNAM Mexique, Los Andes Colombie, USP Brésil, etc.) ainsi qu'aux États-Unis et au Canada. La couverture varie : souvent les frais de scolarité sont couverts à 100 % et l'étudiant·e prend en charge le voyage et les frais de vie.",
+    "tags": [
+      "oas",
+      "americas",
+      "latin-america",
+      "international-org"
+    ],
+    "sources": [
+      {
+        "url": "https://www.oas.org/en/scholarships/",
+        "label": "OAS Scholarships"
+      }
+    ]
   },
   {
     "name": "IDB-IIC Japan Scholarship Program",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-03-31", "notes": "Cycle annuel \u2014 cl\u00f4ture fin mars", "sourceUrl": "https://www.iadb.org/en/about-us/idb-iic-japan-scholarship-program-jsp" },
+    "deadline": {
+      "dateISO": "2027-03-31",
+      "notes": "Cycle annuel — clôture fin mars",
+      "sourceUrl": "https://www.iadb.org/en/about-us/idb-iic-japan-scholarship-program-jsp"
+    },
     "howToApplyUrl": "https://www.iadb.org/en/about-us/idb-iic-japan-scholarship-program-jsp",
     "officialUrl": "https://www.iadb.org/en/about-us/idb-iic-japan-scholarship-program-jsp",
-    "eligibilitySummary": "Bourse de la Banque Interam\u00e9ricaine de D\u00e9veloppement (BID) pour master en \u00e9conomie, finance, d\u00e9veloppement, environnement, sant\u00e9 publique. R\u00e9serv\u00e9 aux ressortissant\u00b7es des pays membres emprunteurs (Haïti incluse).",
-    "tags": ["idb", "iadb", "japan", "development", "americas"],
-    "sources": [{ "url": "https://www.iadb.org/en/about-us/idb-iic-japan-scholarship-program-jsp", "label": "IDB-IIC JSP" }]
+    "eligibilitySummary": "Bourse de la Banque Interaméricaine de Développement (BID) pour master en économie, finance, développement, environnement, santé publique. Réservé aux ressortissant·es des pays membres emprunteurs (Haïti incluse).",
+    "tags": [
+      "idb",
+      "iadb",
+      "japan",
+      "development",
+      "americas"
+    ],
+    "sources": [
+      {
+        "url": "https://www.iadb.org/en/about-us/idb-iic-japan-scholarship-program-jsp",
+        "label": "IDB-IIC JSP"
+      }
+    ]
   },
   {
     "name": "Eiffel Excellence Scholarship Program (France)",
     "country": "FR",
     "fundingType": "stipend",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-01-09", "notes": "Cycle annuel \u2014 candidature uniquement par les \u00e9tablissements français eux-m\u00eames", "sourceUrl": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence" },
+    "deadline": {
+      "dateISO": "2027-01-09",
+      "notes": "Cycle annuel — candidature uniquement par les établissements français eux-mêmes",
+      "sourceUrl": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence"
+    },
     "howToApplyUrl": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence",
     "officialUrl": "https://www.campusfrance.org/en/",
-    "eligibilitySummary": "Bourse du Minist\u00e8re français des Affaires \u00e9trang\u00e8res pour attirer les meilleur\u00b7es \u00e9tudiant\u00b7es internationaux\u00b7ales. Allocation mensuelle (1 181 \u20ac master / 1 700 \u20ac PhD) + voyage + assurance ; les frais de scolarit\u00e9 ne sont pas couverts directement mais souvent r\u00e9duits.",
-    "programDescription": "L'\u00e9tudiant\u00b7e ne candidate pas directement \u00e0 Eiffel : c'est l'\u00e9tablissement français d'enseignement sup\u00e9rieur qui pr\u00e9sente le dossier. Domaines prioritaires : sciences (ing\u00e9nierie, sciences exactes), \u00e9conomie/gestion, droit/sciences politiques. Forte concurrence : ~400-450 boursi\u00e8r\u00b7es retenu\u00b7es par an sur ~1 800 candidatures.",
+    "eligibilitySummary": "Bourse du Ministère français des Affaires étrangères pour attirer les meilleur·es étudiant·es internationaux·ales. Allocation mensuelle (1 181 € master / 1 700 € PhD) + voyage + assurance ; les frais de scolarité ne sont pas couverts directement mais souvent réduits.",
+    "programDescription": "L'étudiant·e ne candidate pas directement à Eiffel : c'est l'établissement français d'enseignement supérieur qui présente le dossier. Domaines prioritaires : sciences (ingénierie, sciences exactes), économie/gestion, droit/sciences politiques. Forte concurrence : ~400-450 boursièr·es retenu·es par an sur ~1 800 candidatures.",
     "applicationSteps": [
-      { "title": "Identifier un master/PhD français cibl\u00e9", "description": "L'\u00e9tablissement doit \u00eatre engag\u00e9 dans le programme Eiffel. V\u00e9rifier sur Campus France." },
-      { "title": "Convaincre l'\u00e9tablissement de pr\u00e9senter votre dossier", "description": "Contacter le service international ou le directeur du programme suffisamment tôt (juin-octobre)." },
-      { "title": "L'\u00e9tablissement soumet la candidature", "description": "Deadline g\u00e9n\u00e9ralement d\u00e9but janvier. R\u00e9sultats annonc\u00e9s en mars-avril." }
+      {
+        "title": "Identifier un master/PhD français ciblé",
+        "description": "L'établissement doit être engagé dans le programme Eiffel. Vérifier sur Campus France."
+      },
+      {
+        "title": "Convaincre l'établissement de présenter votre dossier",
+        "description": "Contacter le service international ou le directeur du programme suffisamment tôt (juin-octobre)."
+      },
+      {
+        "title": "L'établissement soumet la candidature",
+        "description": "Deadline généralement début janvier. Résultats annoncés en mars-avril."
+      }
     ],
-    "tags": ["france", "government", "campus-france"],
-    "sources": [{ "url": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence", "label": "Eiffel \u2014 Campus France" }]
+    "tags": [
+      "france",
+      "government",
+      "campus-france"
+    ],
+    "sources": [
+      {
+        "url": "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence",
+        "label": "Eiffel — Campus France"
+      }
+    ]
   },
   {
     "name": "Vanier Canada Graduate Scholarships",
     "country": "CA",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["phd"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-11-01", "notes": "Deadline universitaire \u2014 chaque universit\u00e9 a sa propre deadline interne plus tôt", "sourceUrl": "https://vanier.gc.ca/en/home-accueil.html" },
+    "deadline": {
+      "dateISO": "2026-11-01",
+      "notes": "Deadline universitaire — chaque université a sa propre deadline interne plus tôt",
+      "sourceUrl": "https://vanier.gc.ca/en/home-accueil.html"
+    },
     "howToApplyUrl": "https://vanier.gc.ca/en/home-accueil.html",
     "officialUrl": "https://vanier.gc.ca/",
-    "eligibilitySummary": "Bourse doctorale phare du Canada \u2014 50 000 $ CAD/an pendant 3 ans. Ouverte \u00e0 toutes nationalit\u00e9s. Candidature via une universit\u00e9 canadienne d'accueil.",
-    "tags": ["canada", "phd", "research", "prestigious"],
-    "sources": [{ "url": "https://vanier.gc.ca/", "label": "Vanier CGS" }]
+    "eligibilitySummary": "Bourse doctorale phare du Canada — 50 000 $ CAD/an pendant 3 ans. Ouverte à toutes nationalités. Candidature via une université canadienne d'accueil.",
+    "tags": [
+      "canada",
+      "phd",
+      "research",
+      "prestigious"
+    ],
+    "sources": [
+      {
+        "url": "https://vanier.gc.ca/",
+        "label": "Vanier CGS"
+      }
+    ]
   },
   {
     "name": "Trudeau Foundation Doctoral Scholarships",
     "country": "CA",
     "fundingType": "full",
-    "eligibleCountries": ["Global"],
-    "level": ["phd"],
+    "eligibleCountries": [
+      "Global"
+    ],
+    "level": [
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-11-21", "notes": "Cycle annuel \u2014 cl\u00f4ture en novembre", "sourceUrl": "https://www.trudeaufoundation.ca/scholarship" },
+    "deadline": {
+      "dateISO": "2026-11-21",
+      "notes": "Cycle annuel — clôture en novembre",
+      "sourceUrl": "https://www.trudeaufoundation.ca/scholarship"
+    },
     "howToApplyUrl": "https://www.trudeaufoundation.ca/scholarship",
     "officialUrl": "https://www.trudeaufoundation.ca/",
-    "eligibilitySummary": "Bourse doctorale en sciences humaines et sociales (max 25/an). 40 000 $ CAD/an pendant 3 ans + 20 000 $ CAD pour mobilit\u00e9 et activit\u00e9s. Quatre piliers : droits humains, citoyennet\u00e9 responsable, Canada dans le monde, environnement.",
-    "tags": ["canada", "phd", "humanities", "social-sciences"],
-    "sources": [{ "url": "https://www.trudeaufoundation.ca/", "label": "Trudeau Foundation" }]
+    "eligibilitySummary": "Bourse doctorale en sciences humaines et sociales (max 25/an). 40 000 $ CAD/an pendant 3 ans + 20 000 $ CAD pour mobilité et activités. Quatre piliers : droits humains, citoyenneté responsable, Canada dans le monde, environnement.",
+    "tags": [
+      "canada",
+      "phd",
+      "humanities",
+      "social-sciences"
+    ],
+    "sources": [
+      {
+        "url": "https://www.trudeaufoundation.ca/",
+        "label": "Trudeau Foundation"
+      }
+    ]
   },
   {
     "name": "Rotary Peace Fellowship",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-05-15", "notes": "Cycle annuel \u2014 candidature via un Rotary club local", "sourceUrl": "https://www.rotary.org/en/our-programs/peace-fellowships" },
+    "deadline": {
+      "dateISO": "2027-05-15",
+      "notes": "Cycle annuel — candidature via un Rotary club local",
+      "sourceUrl": "https://www.rotary.org/en/our-programs/peace-fellowships"
+    },
     "howToApplyUrl": "https://www.rotary.org/en/our-programs/peace-fellowships",
     "officialUrl": "https://www.rotary.org/",
-    "eligibilitySummary": "Master de 15-24 mois ou certificat professionnel de 3 mois en r\u00e9solution de conflits, paix, d\u00e9veloppement. 6 universit\u00e9s partenaires dans le monde. Candidature endorsing requise par un club Rotary local.",
-    "programDescription": "Le Rotary Peace Centers Program forme des praticien\u00b7nes de la paix. Master \u00e0 Duke/UNC, International Christian University Tokyo, Bradford UK, Queensland Australia, Uppsala Sweden. Certificat professionnel \u00e0 Chulalongkorn (BangkokÔ) ou Makerere (Ouganda). La candidature requiert un endorsement par un Rotary club local : il faut d'abord contacter un club en Haïti.",
-    "tags": ["peace", "rotary", "international", "leadership"],
-    "sources": [{ "url": "https://www.rotary.org/en/our-programs/peace-fellowships", "label": "Rotary Peace Fellowships" }]
+    "eligibilitySummary": "Master de 15-24 mois ou certificat professionnel de 3 mois en résolution de conflits, paix, développement. 6 universités partenaires dans le monde. Candidature endorsing requise par un club Rotary local.",
+    "programDescription": "Le Rotary Peace Centers Program forme des praticien·nes de la paix. Master à Duke/UNC, International Christian University Tokyo, Bradford UK, Queensland Australia, Uppsala Sweden. Certificat professionnel à Chulalongkorn (BangkokÔ) ou Makerere (Ouganda). La candidature requiert un endorsement par un Rotary club local : il faut d'abord contacter un club en Haïti.",
+    "tags": [
+      "peace",
+      "rotary",
+      "international",
+      "leadership"
+    ],
+    "sources": [
+      {
+        "url": "https://www.rotary.org/en/our-programs/peace-fellowships",
+        "label": "Rotary Peace Fellowships"
+      }
+    ]
   },
   {
     "name": "Aga Khan Foundation International Scholarship Programme",
     "country": "Global",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "unknown",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-03-31", "notes": "Cycle annuel \u2014 V\u00e9rifier l'\u00e9ligibilit\u00e9 g\u00e9ographique d'Haïti chaque ann\u00e9e", "sourceUrl": "https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme" },
+    "deadline": {
+      "dateISO": "2027-03-31",
+      "notes": "Cycle annuel — Vérifier l'éligibilité géographique d'Haïti chaque année",
+      "sourceUrl": "https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme"
+    },
     "howToApplyUrl": "https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme",
     "officialUrl": "https://the.akdn/",
-    "eligibilitySummary": "Demi-bourse + demi-pr\u00eat (50/50) pour master/PhD. Concentr\u00e9e sur les pays o\u00f9 op\u00e8re la fondation (principalement Asie centrale, du Sud, Afrique de l'Est) \u2014 v\u00e9rifier l'\u00e9ligibilit\u00e9 d'Haïti annuellement.",
-    "tags": ["foundation", "aga-khan", "international"],
-    "sources": [{ "url": "https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme", "label": "AKDN Scholarship" }]
+    "eligibilitySummary": "Demi-bourse + demi-prêt (50/50) pour master/PhD. Concentrée sur les pays où opère la fondation (principalement Asie centrale, du Sud, Afrique de l'Est) — vérifier l'éligibilité d'Haïti annuellement.",
+    "tags": [
+      "foundation",
+      "aga-khan",
+      "international"
+    ],
+    "sources": [
+      {
+        "url": "https://the.akdn/en/how-we-work/our-agencies/aga-khan-foundation/international-scholarship-programme",
+        "label": "AKDN Scholarship"
+      }
+    ]
   },
   {
     "name": "Joint Japan/World Bank Graduate Scholarship Program (JJ/WBGSP)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-02-28", "notes": "Cycle annuel \u2014 cl\u00f4ture fin f\u00e9vrier", "sourceUrl": "https://www.worldbank.org/en/programs/scholarships" },
+    "deadline": {
+      "dateISO": "2027-02-28",
+      "notes": "Cycle annuel — clôture fin février",
+      "sourceUrl": "https://www.worldbank.org/en/programs/scholarships"
+    },
     "howToApplyUrl": "https://www.worldbank.org/en/programs/scholarships",
     "officialUrl": "https://www.worldbank.org/en/programs/scholarships",
-    "eligibilitySummary": "Bourse de la Banque Mondiale (financ\u00e9e par le Japon) pour master en politiques de d\u00e9veloppement. R\u00e9serv\u00e9 aux ressortissant\u00b7es des pays \u00e9ligibles (Haïti incluse) avec 3+ ans d'exp\u00e9rience professionnelle.",
-    "tags": ["world-bank", "japan", "development", "policy"],
-    "sources": [{ "url": "https://www.worldbank.org/en/programs/scholarships", "label": "JJ/WBGSP" }]
+    "eligibilitySummary": "Bourse de la Banque Mondiale (financée par le Japon) pour master en politiques de développement. Réservé aux ressortissant·es des pays éligibles (Haïti incluse) avec 3+ ans d'expérience professionnelle.",
+    "tags": [
+      "world-bank",
+      "japan",
+      "development",
+      "policy"
+    ],
+    "sources": [
+      {
+        "url": "https://www.worldbank.org/en/programs/scholarships",
+        "label": "JJ/WBGSP"
+      }
+    ]
   },
   {
     "name": "Holland Scholarship",
     "country": "Global",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-05-01", "notes": "Cycle annuel \u2014 cl\u00f4ture entre f\u00e9vrier et mai selon l'universit\u00e9", "sourceUrl": "https://www.studyinholland.nl/finances/holland-scholarship" },
-    "howToApplyUrl": "https://www.studyinholland.nl/finances/holland-scholarship",
-    "officialUrl": "https://www.studyinholland.nl/",
-    "eligibilitySummary": "5 000 \u20ac vers\u00e9s la premi\u00e8re ann\u00e9e d'\u00e9tudes aux Pays-Bas. Cumulable avec d'autres bourses. Tr\u00e8s accessible : candidature simple via l'universit\u00e9 n\u00e9erlandaise d'accueil.",
-    "tags": ["netherlands", "easy-application", "first-year"],
-    "sources": [{ "url": "https://www.studyinholland.nl/finances/holland-scholarship", "label": "Holland Scholarship" }]
+    "deadline": {
+      "dateISO": "2027-05-01",
+      "notes": "Cycle annuel — clôture entre février et mai selon l'université",
+      "sourceUrl": "https://www.studyinnl.org/finances/nl-scholarship"
+    },
+    "howToApplyUrl": "https://www.studyinnl.org/finances/nl-scholarship",
+    "officialUrl": "https://www.studyinnl.org/",
+    "eligibilitySummary": "5 000 € versés la première année d'études aux Pays-Bas. Cumulable avec d'autres bourses. Très accessible : candidature simple via l'université néerlandaise d'accueil.",
+    "tags": [
+      "netherlands",
+      "easy-application",
+      "first-year"
+    ],
+    "sources": [
+      {
+        "url": "https://www.studyinnl.org/finances/nl-scholarship",
+        "label": "NL Scholarship (Study in NL)"
+      }
+    ]
   },
   {
     "name": "Swiss Government Excellence Scholarships",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["phd", "short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "phd",
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "unknown",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-12-01", "notes": "Cycle annuel \u2014 v\u00e9rifier l'\u00e9ligibilit\u00e9 d'Haïti dans la liste pays par pays", "sourceUrl": "https://www.sbfi.admin.ch/sbfi/en/home/education/scholarships-and-grants/swiss-government-excellence-scholarships.html" },
+    "deadline": {
+      "dateISO": "2026-12-01",
+      "notes": "Cycle annuel — vérifier l'éligibilité d'Haïti dans la liste pays par pays",
+      "sourceUrl": "https://www.sbfi.admin.ch/sbfi/en/home/education/scholarships-and-grants/swiss-government-excellence-scholarships.html"
+    },
     "howToApplyUrl": "https://www.sbfi.admin.ch/sbfi/en/home/education/scholarships-and-grants/swiss-government-excellence-scholarships.html",
     "officialUrl": "https://www.sbfi.admin.ch/",
-    "eligibilitySummary": "Bourse du gouvernement suisse pour recherche doctorale et postdoctorale. Couvre allocation, scolarit\u00e9, assurance sant\u00e9. Liste des pays \u00e9ligibles publi\u00e9e chaque ann\u00e9e.",
-    "tags": ["switzerland", "government", "research", "phd"],
-    "sources": [{ "url": "https://www.sbfi.admin.ch/sbfi/en/home/education/scholarships-and-grants/swiss-government-excellence-scholarships.html", "label": "SBFI Switzerland" }]
+    "eligibilitySummary": "Bourse du gouvernement suisse pour recherche doctorale et postdoctorale. Couvre allocation, scolarité, assurance santé. Liste des pays éligibles publiée chaque année.",
+    "tags": [
+      "switzerland",
+      "government",
+      "research",
+      "phd"
+    ],
+    "sources": [
+      {
+        "url": "https://www.sbfi.admin.ch/sbfi/en/home/education/scholarships-and-grants/swiss-government-excellence-scholarships.html",
+        "label": "SBFI Switzerland"
+      }
+    ]
   },
   {
     "name": "Reach Oxford Scholarship",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-01-21", "notes": "Cycle annuel \u2014 candidature en parall\u00e8le de la candidature undergraduate \u00e0 Oxford", "sourceUrl": "https://www.ox.ac.uk/admissions/undergraduate/fees-and-funding/oxford-support/reach-oxford-scholarship" },
+    "deadline": {
+      "dateISO": "2027-01-21",
+      "notes": "Cycle annuel — candidature en parallèle de la candidature undergraduate à Oxford",
+      "sourceUrl": "https://www.ox.ac.uk/admissions/undergraduate/fees-and-funding/oxford-support/reach-oxford-scholarship"
+    },
     "howToApplyUrl": "https://www.ox.ac.uk/admissions/undergraduate/fees-and-funding/oxford-support/reach-oxford-scholarship",
     "officialUrl": "https://www.ox.ac.uk/",
-    "eligibilitySummary": "Bourse de bachelor (undergraduate) \u00e0 Oxford pour \u00e9tudiant\u00b7es de pays \u00e0 faible revenu sans autre option de financement local. Couvre frais, allocation, voyage. Haïti est explicitement \u00e9ligible.",
-    "programDescription": "L'une des rares bourses d'undergraduate \u00e0 couverture compl\u00e8te \u00e0 Oxford pour les non-UK. Tr\u00e8s comp\u00e9titive (~5 boursi\u00e8r\u00b7es par an). La candidature se fait apr\u00e8s avoir \u00e9t\u00e9 admis\u00b7e \u00e0 Oxford via le processus UCAS standard.",
-    "tags": ["uk", "oxford", "bachelor", "developing-countries", "rare"],
-    "sources": [{ "url": "https://www.ox.ac.uk/admissions/undergraduate/fees-and-funding/oxford-support/reach-oxford-scholarship", "label": "Reach Oxford" }]
+    "eligibilitySummary": "Bourse de bachelor (undergraduate) à Oxford pour étudiant·es de pays à faible revenu sans autre option de financement local. Couvre frais, allocation, voyage. Haïti est explicitement éligible.",
+    "programDescription": "L'une des rares bourses d'undergraduate à couverture complète à Oxford pour les non-UK. Très compétitive (~5 boursièr·es par an). La candidature se fait après avoir été admis·e à Oxford via le processus UCAS standard.",
+    "tags": [
+      "uk",
+      "oxford",
+      "bachelor",
+      "developing-countries",
+      "rare"
+    ],
+    "sources": [
+      {
+        "url": "https://www.ox.ac.uk/admissions/undergraduate/fees-and-funding/oxford-support/reach-oxford-scholarship",
+        "label": "Reach Oxford"
+      }
+    ]
   },
   {
     "name": "Wells Mountain Initiative Scholarship",
     "country": "Global",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-03-01", "notes": "Cycle annuel \u2014 cl\u00f4ture d\u00e9but mars", "sourceUrl": "https://wellsmountaininitiative.org/our-programs/wmi-scholar-program/" },
+    "deadline": {
+      "dateISO": "2027-03-01",
+      "notes": "Cycle annuel — clôture début mars",
+      "sourceUrl": "https://wellsmountaininitiative.org/our-programs/wmi-scholar-program/"
+    },
     "howToApplyUrl": "https://wellsmountaininitiative.org/our-programs/wmi-scholar-program/",
     "officialUrl": "https://wellsmountaininitiative.org/",
-    "eligibilitySummary": "Bourse jusqu'\u00e0 3 000 $ USD/an pour bachelor dans le pays d'origine ou un pays voisin. R\u00e9serv\u00e9e aux \u00e9tudiant\u00b7es de pays en d\u00e9veloppement, dont Haïti. Engagement de retour communautaire requis.",
-    "tags": ["foundation", "developing-countries", "local-studies", "give-back"],
-    "sources": [{ "url": "https://wellsmountaininitiative.org/", "label": "Wells Mountain Initiative" }]
+    "eligibilitySummary": "Bourse jusqu'à 3 000 $ USD/an pour bachelor dans le pays d'origine ou un pays voisin. Réservée aux étudiant·es de pays en développement, dont Haïti. Engagement de retour communautaire requis.",
+    "tags": [
+      "foundation",
+      "developing-countries",
+      "local-studies",
+      "give-back"
+    ],
+    "sources": [
+      {
+        "url": "https://wellsmountaininitiative.org/",
+        "label": "Wells Mountain Initiative"
+      }
+    ]
   },
   {
     "name": "Yale Young Global Scholars (YYGS)",
     "country": "US",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-01-15", "notes": "Programme d'\u00e9t\u00e9 de 2 semaines pour lyc\u00e9en\u00b7nes \u2014 candidature en novembre/janvier", "sourceUrl": "https://globalscholars.yale.edu/" },
+    "deadline": {
+      "dateISO": "2027-01-15",
+      "notes": "Programme d'été de 2 semaines pour lycéen·nes — candidature en novembre/janvier",
+      "sourceUrl": "https://globalscholars.yale.edu/"
+    },
     "howToApplyUrl": "https://globalscholars.yale.edu/admissions",
     "officialUrl": "https://globalscholars.yale.edu/",
-    "eligibilitySummary": "Programme acad\u00e9mique d'\u00e9t\u00e9 de 2 semaines sur le campus de Yale pour lyc\u00e9en\u00b7nes (15-17 ans). Bourses de besoin financier disponibles, pouvant couvrir 100 % des frais.",
-    "programDescription": "YYGS rassemble plus de 1 800 lyc\u00e9en\u00b7nes de plus de 130 pays chaque \u00e9t\u00e9 \u00e0 Yale. Sept sessions th\u00e9matiques : Politics/Law/Economics, International Affairs, STEM, Literature/Philosophy, Innovations in Science & Tech, Solving Global Challenges. Bourses bas\u00e9es sur le besoin financier des familles \u2014 Haïti et la r\u00e9gion caribbeenne sont \u00e9ligibles \u00e0 100 % de couverture pour les familles \u00e0 faible revenu.",
-    "tags": ["highschool", "yale", "us", "summer-program"],
-    "sources": [{ "url": "https://globalscholars.yale.edu/", "label": "Yale Young Global Scholars" }]
+    "eligibilitySummary": "Programme académique d'été de 2 semaines sur le campus de Yale pour lycéen·nes (15-17 ans). Bourses de besoin financier disponibles, pouvant couvrir 100 % des frais.",
+    "programDescription": "YYGS rassemble plus de 1 800 lycéen·nes de plus de 130 pays chaque été à Yale. Sept sessions thématiques : Politics/Law/Economics, International Affairs, STEM, Literature/Philosophy, Innovations in Science & Tech, Solving Global Challenges. Bourses basées sur le besoin financier des familles — Haïti et la région caribbeenne sont éligibles à 100 % de couverture pour les familles à faible revenu.",
+    "tags": [
+      "highschool",
+      "yale",
+      "us",
+      "summer-program"
+    ],
+    "sources": [
+      {
+        "url": "https://globalscholars.yale.edu/",
+        "label": "Yale Young Global Scholars"
+      }
+    ]
   },
   {
     "name": "Bourses Haïti–Taïwan (ICDF / MOFA)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-03-15", "notes": "Deux cycles : MOFA Taiwan Scholarship (étudiants haïtiens) et ICDF (programmes en anglais). Candidature via l'Ambassade de Taïwan en Haïti.", "sourceUrl": "https://www.icdf.org.tw/wSite/lp?ctNode=30316" },
+    "deadline": {
+      "dateISO": "2027-03-15",
+      "notes": "Deux cycles : MOFA Taiwan Scholarship (étudiants haïtiens) et ICDF (programmes en anglais). Candidature via l'Ambassade de Taïwan en Haïti.",
+      "sourceUrl": "https://www.icdf.org.tw/wSite/lp?ctNode=30316"
+    },
     "howToApplyUrl": "https://www.icdf.org.tw/wSite/lp?ctNode=30316",
     "officialUrl": "https://www.icdf.org.tw/",
     "relatedPagePath": "/bourses/guides/haiti-taiwan",
     "eligibilitySummary": "Haïti est l'un des alliés diplomatiques de Taïwan : bourses bilatérales gérées par l'Ambassade de la République de Chine (Taïwan) à Port-au-Prince. Couvre frais de scolarité, allocation mensuelle (~25 000 NTD), assurance santé, vol aller-retour.",
     "programDescription": "Deux dispositifs distincts : (1) MOFA Taiwan Scholarship — bourses linguistiques et académiques pour étudiant·es des pays alliés, programmes enseignés en mandarin (1 an de Mandarin gratuit en bonus). (2) Taiwan ICDF Higher Education Scholarship — bourses pour bachelor/master/PhD en anglais dans des universités taïwanaises partenaires (NTU, NCKU, NCTU, etc.) en agriculture, ingénierie, santé publique, business, ICT. Quota annuel pour Haïti : ~10–15 places combinées.",
     "applicationSteps": [
-      { "title": "Contacter l'Ambassade de Taïwan en Haïti", "description": "L'Ambassade publie l'appel à candidatures chaque année (janvier-mars). Demander le formulaire et la liste des documents requis." },
-      { "title": "Préparer le dossier", "description": "Diplôme + relevés de notes traduits, lettre de motivation, plan d'études, deux lettres de recommandation, certificat médical, passeport valide." },
-      { "title": "Soumettre via l'Ambassade", "description": "Le dossier passe par l'Ambassade qui le transmet à Taipei. Présélection locale, puis sélection finale par MOFA/ICDF." },
-      { "title": "Visa et départ", "description": "Bourse confirmée généralement en juin-juillet ; départ en septembre pour la rentrée universitaire taïwanaise." }
+      {
+        "title": "Contacter l'Ambassade de Taïwan en Haïti",
+        "description": "L'Ambassade publie l'appel à candidatures chaque année (janvier-mars). Demander le formulaire et la liste des documents requis."
+      },
+      {
+        "title": "Préparer le dossier",
+        "description": "Diplôme + relevés de notes traduits, lettre de motivation, plan d'études, deux lettres de recommandation, certificat médical, passeport valide."
+      },
+      {
+        "title": "Soumettre via l'Ambassade",
+        "description": "Le dossier passe par l'Ambassade qui le transmet à Taipei. Présélection locale, puis sélection finale par MOFA/ICDF."
+      },
+      {
+        "title": "Visa et départ",
+        "description": "Bourse confirmée généralement en juin-juillet ; départ en septembre pour la rentrée universitaire taïwanaise."
+      }
     ],
-    "tags": ["taiwan", "government", "bilateral", "haiti-allies", "asia"],
+    "tags": [
+      "taiwan",
+      "government",
+      "bilateral",
+      "haiti-allies",
+      "asia"
+    ],
     "sources": [
-      { "url": "https://www.icdf.org.tw/wSite/lp?ctNode=30316", "label": "Taiwan ICDF Scholarships" },
-      { "url": "https://en.mofa.gov.tw/cp.aspx?n=99", "label": "MOFA Taiwan Scholarship" }
+      {
+        "url": "https://www.icdf.org.tw/wSite/lp?ctNode=30316",
+        "label": "Taiwan ICDF Scholarships"
+      },
+      {
+        "url": "https://en.mofa.gov.tw/cp.aspx?n=99",
+        "label": "MOFA Taiwan Scholarship"
+      }
     ]
   },
   {
     "name": "Bourses Haïti–Maroc (AMCI)",
     "country": "Global",
     "fundingType": "tuition-only",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-04-30", "notes": "Cycle annuel — campagne ouverte février/mars via l'Ambassade du Royaume du Maroc en Haïti.", "sourceUrl": "https://www.amci.ma/" },
+    "deadline": {
+      "dateISO": "2027-04-30",
+      "notes": "Cycle annuel — campagne ouverte février/mars via l'Ambassade du Royaume du Maroc en Haïti.",
+      "sourceUrl": "https://www.amci.ma/"
+    },
     "howToApplyUrl": "https://www.amci.ma/",
     "officialUrl": "https://www.amci.ma/",
     "relatedPagePath": "/bourses/guides/haiti-maroc",
     "eligibilitySummary": "Bourses de l'Agence Marocaine de Coopération Internationale (AMCI) ouvertes aux étudiant·es haïtien·nes. Couvre frais de scolarité dans les universités publiques marocaines + allocation mensuelle (~750 MAD) + logement universitaire.",
     "programDescription": "Programme de coopération Sud-Sud : Haïti dispose d'un quota annuel d'une vingtaine de bourses (chiffre variable selon convention bilatérale en vigueur). Filières offertes : sciences (médecine, ingénierie, agronomie, sciences humaines) dans les universités publiques au Maroc (Mohammed V Rabat, Hassan II Casablanca, Cadi Ayyad Marrakech, etc.). Enseignement en français pour la plupart des filières.",
     "applicationSteps": [
-      { "title": "Retrait du dossier à l'Ambassade", "description": "L'Ambassade du Maroc à Port-au-Prince publie l'avis (généralement février-mars). Retirer ou télécharger le formulaire AMCI." },
-      { "title": "Constitution du dossier", "description": "Bac ou diplôme antérieur certifié, relevés de notes, acte de naissance, certificat médical, photos, formulaire AMCI rempli." },
-      { "title": "Sélection en deux temps", "description": "Présélection par l'Ambassade puis confirmation finale par l'AMCI à Rabat. Affectation universitaire communiquée en juillet-août." },
-      { "title": "Pré-rentrée", "description": "Stage linguistique éventuel + inscription administrative en septembre. Première année souvent en cycle préparatoire." }
+      {
+        "title": "Retrait du dossier à l'Ambassade",
+        "description": "L'Ambassade du Maroc à Port-au-Prince publie l'avis (généralement février-mars). Retirer ou télécharger le formulaire AMCI."
+      },
+      {
+        "title": "Constitution du dossier",
+        "description": "Bac ou diplôme antérieur certifié, relevés de notes, acte de naissance, certificat médical, photos, formulaire AMCI rempli."
+      },
+      {
+        "title": "Sélection en deux temps",
+        "description": "Présélection par l'Ambassade puis confirmation finale par l'AMCI à Rabat. Affectation universitaire communiquée en juillet-août."
+      },
+      {
+        "title": "Pré-rentrée",
+        "description": "Stage linguistique éventuel + inscription administrative en septembre. Première année souvent en cycle préparatoire."
+      }
     ],
-    "tags": ["morocco", "amci", "government", "francophone", "africa", "south-south"],
+    "tags": [
+      "morocco",
+      "amci",
+      "government",
+      "francophone",
+      "africa",
+      "south-south"
+    ],
     "sources": [
-      { "url": "https://www.amci.ma/", "label": "Agence Marocaine de Coopération Internationale" }
+      {
+        "url": "https://www.amci.ma/",
+        "label": "Agence Marocaine de Coopération Internationale"
+      }
     ]
   },
   {
     "name": "Bourses Haïti–Cuba (ELAM, Médecine)",
     "country": "Global",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-05-31", "notes": "Programme bilatéral historique — candidatures via le Ministère de la Santé Publique (MSPP) et l'Ambassade de Cuba en Haïti.", "sourceUrl": "https://instituciones.sld.cu/elam/" },
+    "deadline": {
+      "dateISO": "2027-05-31",
+      "notes": "Programme bilatéral historique — candidatures via le Ministère de la Santé Publique (MSPP) et l'Ambassade de Cuba en Haïti.",
+      "sourceUrl": "https://instituciones.sld.cu/elam/"
+    },
     "howToApplyUrl": "https://instituciones.sld.cu/elam/",
     "officialUrl": "https://instituciones.sld.cu/elam/",
     "relatedPagePath": "/bourses/guides/haiti-cuba",
     "eligibilitySummary": "Études complètes de médecine (6 ans) à l'École Latino-Américaine de Médecine (ELAM) à La Havane. Bourse intégrale : scolarité, hébergement universitaire, repas, allocation mensuelle modeste, soins. Engagement moral de retour au pays après diplôme.",
     "programDescription": "Coopération médicale Cuba–Haïti depuis 1998 : Cuba a déjà formé plus de 1 000 médecins haïtien·nes via l'ELAM. Le cursus se déroule en espagnol (1ère année préparatoire en langue + sciences fondamentales). Très sélectif côté haïtien : sélection coordonnée par le MSPP et la Brigade médicale cubaine. Au-delà de la médecine, l'Ambassade de Cuba propose aussi des bourses dans d'autres filières (ingénierie, sciences vétérinaires, sport).",
     "applicationSteps": [
-      { "title": "Annonce officielle MSPP", "description": "Le Ministère de la Santé Publique et de la Population publie l'appel chaque année (mars-mai). L'avis est aussi diffusé via les facultés de médecine et certaines universités d'État." },
-      { "title": "Dossier de candidature", "description": "Diplôme du Bac (ou attestation provisoire), relevés des deux dernières années du secondaire, acte de naissance, certificat médical détaillé, certificat de bonne vie et mœurs, lettre de motivation." },
-      { "title": "Tests et entretiens", "description": "Tests écrits (sciences, culture générale) + entretien devant un panel mixte MSPP / Ambassade de Cuba. Pré-sélection des meilleur·es candidat·es selon le quota annuel (~30–50 places)." },
-      { "title": "Préparatoire à La Havane", "description": "Année 0 : cours intensifs d'espagnol et de sciences fondamentales à l'ELAM avant l'entrée en cursus médical." }
+      {
+        "title": "Annonce officielle MSPP",
+        "description": "Le Ministère de la Santé Publique et de la Population publie l'appel chaque année (mars-mai). L'avis est aussi diffusé via les facultés de médecine et certaines universités d'État."
+      },
+      {
+        "title": "Dossier de candidature",
+        "description": "Diplôme du Bac (ou attestation provisoire), relevés des deux dernières années du secondaire, acte de naissance, certificat médical détaillé, certificat de bonne vie et mœurs, lettre de motivation."
+      },
+      {
+        "title": "Tests et entretiens",
+        "description": "Tests écrits (sciences, culture générale) + entretien devant un panel mixte MSPP / Ambassade de Cuba. Pré-sélection des meilleur·es candidat·es selon le quota annuel (~30–50 places)."
+      },
+      {
+        "title": "Préparatoire à La Havane",
+        "description": "Année 0 : cours intensifs d'espagnol et de sciences fondamentales à l'ELAM avant l'entrée en cursus médical."
+      }
     ],
-    "tags": ["cuba", "elam", "medicine", "bilateral", "south-south", "francophone"],
+    "tags": [
+      "cuba",
+      "elam",
+      "medicine",
+      "bilateral",
+      "south-south",
+      "francophone"
+    ],
     "sources": [
-      { "url": "https://instituciones.sld.cu/elam/", "label": "ELAM Cuba" }
+      {
+        "url": "https://instituciones.sld.cu/elam/",
+        "label": "ELAM Cuba"
+      }
     ]
   },
   {
     "name": "Bourses Haïti–Mexique (AMEXCID)",
     "country": "MX",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd", "short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd",
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-09-15", "notes": "Convocation annuelle ouverte généralement entre juin et septembre — candidature via l'Ambassade du Mexique en Haïti.", "sourceUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros" },
+    "deadline": {
+      "dateISO": "2027-09-15",
+      "notes": "Convocation annuelle ouverte généralement entre juin et septembre — candidature via l'Ambassade du Mexique en Haïti.",
+      "sourceUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros"
+    },
     "howToApplyUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros",
     "officialUrl": "https://www.gob.mx/amexcid",
     "relatedPagePath": "/bourses/guides/haiti-mexique",
     "eligibilitySummary": "Programme de bourses du gouvernement mexicain via l'AMEXCID. Couvre scolarité, allocation mensuelle, assurance santé et vol aller-retour. Études en espagnol. Haïti figure parmi les pays prioritaires (Caraïbes / Amérique latine).",
     "programDescription": "L'Agencia Mexicana de Cooperación Internacional para el Desarrollo (AMEXCID) coordonne plus de 700 bourses chaque année pour des étudiant·es internationaux. Filières prioritaires : énergies renouvelables, ingénierie, agronomie, gestion publique, santé, sciences sociales. Universités partenaires : UNAM, IPN, COLMEX, CINVESTAV, ITESM, UAM, etc.",
     "applicationSteps": [
-      { "title": "Vérifier la convocation annuelle", "description": "L'AMEXCID publie l'appel global chaque année. L'Ambassade du Mexique en Haïti relaie l'information et précise les filières ouvertes pour les Haïtien·nes." },
-      { "title": "Préparer le dossier", "description": "Lettre d'admission (ou pré-admission) à un programme mexicain, CV, lettre de motivation en espagnol, plan de recherche (master/PhD), 2 lettres de recommandation, justificatifs de niveau d'espagnol (B2 minimum)." },
-      { "title": "Dépôt à l'Ambassade", "description": "Soumission du dossier complet à l'Ambassade du Mexique à Port-au-Prince qui le transmet à l'AMEXCID. Réponse en 2–4 mois." }
+      {
+        "title": "Vérifier la convocation annuelle",
+        "description": "L'AMEXCID publie l'appel global chaque année. L'Ambassade du Mexique en Haïti relaie l'information et précise les filières ouvertes pour les Haïtien·nes."
+      },
+      {
+        "title": "Préparer le dossier",
+        "description": "Lettre d'admission (ou pré-admission) à un programme mexicain, CV, lettre de motivation en espagnol, plan de recherche (master/PhD), 2 lettres de recommandation, justificatifs de niveau d'espagnol (B2 minimum)."
+      },
+      {
+        "title": "Dépôt à l'Ambassade",
+        "description": "Soumission du dossier complet à l'Ambassade du Mexique à Port-au-Prince qui le transmet à l'AMEXCID. Réponse en 2–4 mois."
+      }
     ],
-    "tags": ["mexico", "amexcid", "government", "spanish", "latam"],
+    "tags": [
+      "mexico",
+      "amexcid",
+      "government",
+      "spanish",
+      "latam"
+    ],
     "sources": [
-      { "url": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros", "label": "AMEXCID Becas" }
+      {
+        "url": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros",
+        "label": "AMEXCID Becas"
+      }
     ]
   },
   {
     "name": "Bourses Haïti–Brésil (PEC-G & PEC-PG)",
     "country": "Global",
     "fundingType": "tuition-only",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-05-31", "notes": "Deux programmes : PEC-G (undergrad — clôture mai) et PEC-PG (postgrad — clôture variable). Candidature via l'Ambassade du Brésil en Haïti.", "sourceUrl": "http://portal.mec.gov.br/pec-g" },
+    "deadline": {
+      "dateISO": "2027-05-31",
+      "notes": "Deux programmes : PEC-G (undergrad — clôture mai) et PEC-PG (postgrad — clôture variable). Candidature via l'Ambassade du Brésil en Haïti.",
+      "sourceUrl": "http://portal.mec.gov.br/pec-g"
+    },
     "howToApplyUrl": "http://portal.mec.gov.br/pec-g",
     "officialUrl": "http://portal.mec.gov.br/pec-g",
     "relatedPagePath": "/bourses/guides/haiti-bresil",
     "eligibilitySummary": "Programme Étudiant·es-Convention de Graduation (PEC-G) et Post-Graduation (PEC-PG) du gouvernement brésilien. Études gratuites dans les universités fédérales brésiliennes ; allocation possible (mérite). Haïti participe activement depuis les années 2000.",
     "programDescription": "PEC-G (undergraduate) : sélection sur concours pour entrer dans une université fédérale brésilienne. L'étudiant·e suit d'abord un cours intensif de portugais (Celpe-Bras) puis intègre la licence. PEC-PG (master/PhD) : pour étudiant·es déjà diplômé·es. Bourses CAPES/CNPq pouvant couvrir l'allocation. Universités d'accueil : USP, Unicamp, UFRJ, UFMG, UnB, UFSC, etc.",
     "applicationSteps": [
-      { "title": "Examen Celpe-Bras (PEC-G)", "description": "Maîtrise du portugais : examen Celpe-Bras requis pour valider l'entrée. Préparation possible via l'Ambassade ou en ligne." },
-      { "title": "Dossier via l'Ambassade", "description": "Diplôme du Bac authentifié, relevés, lettre de motivation en portugais, choix de 3 cours et 3 universités, justificatif de revenu (PEC-G demande une preuve de capacité financière minimale ~400 USD/mois)." },
-      { "title": "Sélection MEC + universités", "description": "Sélection finale par le MEC brésilien + acceptation par les universités. Réponse en juillet-août pour rentrée en mars suivant (calendrier sud-américain)." }
+      {
+        "title": "Examen Celpe-Bras (PEC-G)",
+        "description": "Maîtrise du portugais : examen Celpe-Bras requis pour valider l'entrée. Préparation possible via l'Ambassade ou en ligne."
+      },
+      {
+        "title": "Dossier via l'Ambassade",
+        "description": "Diplôme du Bac authentifié, relevés, lettre de motivation en portugais, choix de 3 cours et 3 universités, justificatif de revenu (PEC-G demande une preuve de capacité financière minimale ~400 USD/mois)."
+      },
+      {
+        "title": "Sélection MEC + universités",
+        "description": "Sélection finale par le MEC brésilien + acceptation par les universités. Réponse en juillet-août pour rentrée en mars suivant (calendrier sud-américain)."
+      }
     ],
-    "tags": ["brazil", "pec-g", "pec-pg", "government", "portuguese", "latam", "south-south"],
+    "tags": [
+      "brazil",
+      "pec-g",
+      "pec-pg",
+      "government",
+      "portuguese",
+      "latam",
+      "south-south"
+    ],
     "sources": [
-      { "url": "http://portal.mec.gov.br/pec-g", "label": "MEC Brésil — PEC-G" }
+      {
+        "url": "http://portal.mec.gov.br/pec-g",
+        "label": "MEC Brésil — PEC-G"
+      }
     ]
   },
   {
     "name": "Bourses Russie (Open Doors / Government Scholarship)",
     "country": "RU",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-12-10", "notes": "Quota Russian Government : campagne novembre-décembre via Rossotrudnichestvo. Open Doors : olympiade pour master/PhD en parallèle.", "sourceUrl": "https://education-in-russia.com/" },
+    "deadline": {
+      "dateISO": "2026-12-10",
+      "notes": "Quota Russian Government : campagne novembre-décembre via Rossotrudnichestvo. Open Doors : olympiade pour master/PhD en parallèle.",
+      "sourceUrl": "https://education-in-russia.com/"
+    },
     "howToApplyUrl": "https://education-in-russia.com/",
     "officialUrl": "https://education-in-russia.com/",
     "eligibilitySummary": "Bourses du gouvernement russe pour étudier dans les universités d'État russes. Couvre scolarité, allocation mensuelle modeste, hébergement universitaire. Haïti dispose d'un quota annuel (~10–15 places). Cours en russe (1 an préparatoire de langue) ou en anglais selon le programme.",
-    "tags": ["russia", "government", "bilateral", "rossotrudnichestvo"],
+    "tags": [
+      "russia",
+      "government",
+      "bilateral",
+      "rossotrudnichestvo"
+    ],
     "sources": [
-      { "url": "https://education-in-russia.com/", "label": "Education in Russia" }
+      {
+        "url": "https://education-in-russia.com/",
+        "label": "Education in Russia"
+      }
     ]
   },
   {
     "name": "Bourses Argentine (PROFEACU / Becas Bilaterales)",
     "country": "Global",
     "fundingType": "tuition-only",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd", "short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd",
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-08-31", "notes": "Convocation annuelle via la Cancillería argentine — relayée par l'Ambassade en République Dominicaine (qui couvre Haïti).", "sourceUrl": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas" },
+    "deadline": {
+      "dateISO": "2027-08-31",
+      "notes": "Convocation annuelle via la Cancillería argentine — relayée par l'Ambassade en République Dominicaine (qui couvre Haïti).",
+      "sourceUrl": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas"
+    },
     "howToApplyUrl": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas",
     "officialUrl": "https://www.cancilleria.gob.ar/",
     "eligibilitySummary": "Bourses bilatérales du Ministère des Affaires étrangères argentin pour études de master, PhD et stages de recherche. Couvre frais d'inscription et allocation. Haïti est éligible via la coopération Sud-Sud / SEGIB (espace ibéro-américain).",
-    "tags": ["argentina", "government", "spanish", "latam", "south-south"],
+    "tags": [
+      "argentina",
+      "government",
+      "spanish",
+      "latam",
+      "south-south"
+    ],
     "sources": [
-      { "url": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas", "label": "Cancillería Argentina — Becas" }
+      {
+        "url": "https://www.cancilleria.gob.ar/es/iniciativas/cooperacion-internacional/becas",
+        "label": "Cancillería Argentina — Becas"
+      }
     ]
   },
   {
     "name": "Programme d'Aide à l'Éducation (FAES / MENFP, Haïti)",
     "country": "HT",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor", "master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor",
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-09-30", "notes": "Cycles annuels variables — surveiller les avis du FAES et du MENFP en début d'année académique.", "sourceUrl": "https://faes.gouv.ht/" },
+    "deadline": {
+      "dateISO": "2027-09-30",
+      "notes": "Cycles annuels variables — surveiller les avis du FAES et du MENFP en début d'année académique.",
+      "sourceUrl": "https://faes.gouv.ht/"
+    },
     "howToApplyUrl": "https://faes.gouv.ht/",
     "officialUrl": "https://faes.gouv.ht/",
     "eligibilitySummary": "Programmes d'aide financière pilotés par le Fonds d'Assistance Économique et Sociale (FAES) et le Ministère de l'Éducation Nationale (MENFP) pour soutenir des étudiant·es haïtien·nes (universités locales et certains programmes à l'étranger). Modalités variables selon les enveloppes annuelles.",
     "programDescription": "Le FAES gère plusieurs enveloppes d'aide à l'éducation (bourses scolaires, kits, soutien aux étudiant·es vulnérables) financées par l'État haïtien et certains bailleurs (BID, Banque mondiale). Le MENFP gère des bourses ponctuelles vers Cuba, Russie, Maroc, Taïwan en partenariat avec les ambassades. Vérifier régulièrement le portail des deux institutions et la presse nationale (Le Nouvelliste, Le National) pour les annonces.",
-    "tags": ["haiti", "government", "menfp", "faes", "local"],
+    "tags": [
+      "haiti",
+      "government",
+      "menfp",
+      "faes",
+      "local"
+    ],
     "sources": [
-      { "url": "https://faes.gouv.ht/", "label": "FAES Haïti" },
-      { "url": "https://menfp.gouv.ht/", "label": "MENFP Haïti" }
+      {
+        "url": "https://faes.gouv.ht/",
+        "label": "FAES Haïti"
+      },
+      {
+        "url": "https://menfp.gouv.ht/",
+        "label": "MENFP Haïti"
+      }
     ]
   },
   {
     "name": "Hennessy Fellowship (Vanderbilt, Owen Graduate School)",
     "country": "US",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-01-08", "notes": "Bourse complète MBA — candidature couplée à l'admission Owen (Round 1 ou 2).", "sourceUrl": "https://business.vanderbilt.edu/mba/admissions/scholarships/" },
+    "deadline": {
+      "dateISO": "2027-01-08",
+      "notes": "Bourse complète MBA — candidature couplée à l'admission Owen (Round 1 ou 2).",
+      "sourceUrl": "https://business.vanderbilt.edu/mba/admissions/scholarships/"
+    },
     "howToApplyUrl": "https://business.vanderbilt.edu/mba/admissions/scholarships/",
     "officialUrl": "https://business.vanderbilt.edu/mba/",
     "eligibilitySummary": "Bourse MBA complète à la Owen Graduate School of Management de Vanderbilt. Une des bourses de leadership les plus généreuses des États-Unis pour le MBA. Ouverte aux candidat·es internationaux·les, dont Haïti.",
-    "tags": ["us", "vanderbilt", "mba", "leadership", "private"],
+    "tags": [
+      "us",
+      "vanderbilt",
+      "mba",
+      "leadership",
+      "private"
+    ],
     "sources": [
-      { "url": "https://business.vanderbilt.edu/mba/admissions/scholarships/", "label": "Vanderbilt Owen Hennessy Fellowship" }
+      {
+        "url": "https://business.vanderbilt.edu/mba/admissions/scholarships/",
+        "label": "Vanderbilt Owen Hennessy Fellowship"
+      }
     ]
   },
   {
     "name": "Stamps Scholars Program",
     "country": "US",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["bachelor"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "bachelor"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-01-15", "notes": "Calendrier propre à chaque université partenaire — candidature en parallèle de l'admission undergraduate.", "sourceUrl": "https://www.stampsscholars.org/" },
+    "deadline": {
+      "dateISO": "2027-01-15",
+      "notes": "Calendrier propre à chaque université partenaire — candidature en parallèle de l'admission undergraduate.",
+      "sourceUrl": "https://www.stampsscholars.org/"
+    },
     "howToApplyUrl": "https://www.stampsscholars.org/",
     "officialUrl": "https://www.stampsscholars.org/",
     "eligibilitySummary": "Bourses d'undergraduate ultra-sélectives dans une cinquantaine d'universités américaines partenaires (Georgia Tech, Notre Dame, USC, Tulane, Miami, Tech, Wake Forest, etc.). Couvre scolarité + frais + un budget enrichissement (recherche, voyage d'étude, conférences). International éligible selon l'université.",
-    "tags": ["us", "bachelor", "leadership", "foundation", "stamps"],
+    "tags": [
+      "us",
+      "bachelor",
+      "leadership",
+      "foundation",
+      "stamps"
+    ],
     "sources": [
-      { "url": "https://www.stampsscholars.org/", "label": "Stamps Scholars" }
+      {
+        "url": "https://www.stampsscholars.org/",
+        "label": "Stamps Scholars"
+      }
     ]
   },
   {
     "name": "Paul & Daisy Soros Fellowship for New Americans",
     "country": "US",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-10-23", "notes": "Bourse pour la diaspora — Haïtien·nes immigrant·es ou enfants d'immigrant·es aux États-Unis.", "sourceUrl": "https://www.pdsoros.org/" },
+    "deadline": {
+      "dateISO": "2026-10-23",
+      "notes": "Bourse pour la diaspora — Haïtien·nes immigrant·es ou enfants d'immigrant·es aux États-Unis.",
+      "sourceUrl": "https://www.pdsoros.org/"
+    },
     "howToApplyUrl": "https://www.pdsoros.org/apply",
     "officialUrl": "https://www.pdsoros.org/",
     "eligibilitySummary": "Pour la diaspora haïtienne : 30 fellowships annuels ($90 000 sur 2 ans) destinés aux New Americans (immigrant·es de 1ère/2ème génération aux US) pour études graduées dans n'importe quelle discipline.",
-    "tags": ["us", "diaspora", "graduate", "foundation", "new-americans"],
+    "tags": [
+      "us",
+      "diaspora",
+      "graduate",
+      "foundation",
+      "new-americans"
+    ],
     "sources": [
-      { "url": "https://www.pdsoros.org/", "label": "Paul & Daisy Soros Fellowship" }
+      {
+        "url": "https://www.pdsoros.org/",
+        "label": "Paul & Daisy Soros Fellowship"
+      }
     ]
   },
   {
     "name": "Pickering Foreign Affairs Fellowship",
     "country": "US",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2026-09-15", "notes": "Pour la diaspora — citoyen·nes ou résident·es US. Préparation à la carrière diplomatique au Département d'État.", "sourceUrl": "https://pickeringfellowship.org/" },
+    "deadline": {
+      "dateISO": "2026-09-15",
+      "notes": "Pour la diaspora — citoyen·nes ou résident·es US. Préparation à la carrière diplomatique au Département d'État.",
+      "sourceUrl": "https://pickeringfellowship.org/"
+    },
     "howToApplyUrl": "https://pickeringfellowship.org/apply",
     "officialUrl": "https://pickeringfellowship.org/",
     "eligibilitySummary": "Bourse complète de master en relations internationales / politiques publiques + emploi garanti au Département d'État américain comme Foreign Service Officer. Réservée aux US citizens (diaspora haïtienne éligible si naturalisée).",
-    "tags": ["us", "diaspora", "master", "diplomacy", "government"],
+    "tags": [
+      "us",
+      "diaspora",
+      "master",
+      "diplomacy",
+      "government"
+    ],
     "sources": [
-      { "url": "https://pickeringfellowship.org/", "label": "Pickering Fellowship" }
+      {
+        "url": "https://pickeringfellowship.org/",
+        "label": "Pickering Fellowship"
+      }
     ]
   },
   {
     "name": "Atlantic Fellows for Social and Economic Equity (LSE)",
     "country": "UK",
     "fundingType": "full",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-01-31", "notes": "Programme d'un an à la London School of Economics — candidatures ouvertes en automne.", "sourceUrl": "https://afsee.atlanticfellows.lse.ac.uk/" },
+    "deadline": {
+      "dateISO": "2027-01-31",
+      "notes": "Programme d'un an à la London School of Economics — candidatures ouvertes en automne.",
+      "sourceUrl": "https://afsee.atlanticfellows.lse.ac.uk/"
+    },
     "howToApplyUrl": "https://afsee.atlanticfellows.lse.ac.uk/apply/",
     "officialUrl": "https://afsee.atlanticfellows.lse.ac.uk/",
     "eligibilitySummary": "Programme d'un an à LSE pour leaders engagé·es sur les inégalités économiques et sociales. Couvre scolarité, allocation, voyage. Ouvert aux candidat·es du monde entier, Haïti incluse.",
-    "tags": ["uk", "lse", "leadership", "social-justice", "atlantic-fellows"],
+    "tags": [
+      "uk",
+      "lse",
+      "leadership",
+      "social-justice",
+      "atlantic-fellows"
+    ],
     "sources": [
-      { "url": "https://afsee.atlanticfellows.lse.ac.uk/", "label": "Atlantic Fellows AFSEE" }
+      {
+        "url": "https://afsee.atlanticfellows.lse.ac.uk/",
+        "label": "Atlantic Fellows AFSEE"
+      }
     ]
   },
   {
     "name": "Echoing Green Fellowship",
     "country": "Global",
     "fundingType": "stipend",
-    "eligibleCountries": ["HT"],
-    "level": ["short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "exact",
-    "deadline": { "dateISO": "2027-01-21", "notes": "Pour entrepreneur·es sociaux·ales en early stage — candidature mondiale.", "sourceUrl": "https://echoinggreen.org/fellowship/" },
+    "deadline": {
+      "dateISO": "2027-01-21",
+      "notes": "Pour entrepreneur·es sociaux·ales en early stage — candidature mondiale.",
+      "sourceUrl": "https://echoinggreen.org/fellowship/"
+    },
     "howToApplyUrl": "https://echoinggreen.org/fellowship/apply/",
     "officialUrl": "https://echoinggreen.org/",
     "eligibilitySummary": "Fellowship de 18 mois pour entrepreneur·es sociaux·ales à l'origine d'organisations à fort impact. Offre $80–90 000 de stipend + accompagnement, formation et accès à un réseau mondial. Ouvert aux fondateur·rices haïtien·nes.",
-    "tags": ["global", "fellowship", "social-entrepreneurship", "foundation"],
+    "tags": [
+      "global",
+      "fellowship",
+      "social-entrepreneurship",
+      "foundation"
+    ],
     "sources": [
-      { "url": "https://echoinggreen.org/fellowship/", "label": "Echoing Green Fellowship" }
+      {
+        "url": "https://echoinggreen.org/fellowship/",
+        "label": "Echoing Green Fellowship"
+      }
     ]
   },
   {
     "name": "Open Society University Network — Civic Engagement Awards",
     "country": "Global",
     "fundingType": "partial",
-    "eligibleCountries": ["HT"],
-    "level": ["master", "phd", "short_programs"],
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master",
+      "phd",
+      "short_programs"
+    ],
     "kind": "program",
     "haitianEligibility": "yes",
     "recurring": true,
     "deadlineAccuracy": "varies",
-    "deadline": { "dateISO": "2027-03-31", "notes": "Plusieurs cycles annuels selon les sous-programmes (Civil Society Scholar Awards, OSF Fellowships).", "sourceUrl": "https://www.opensocietyfoundations.org/grants" },
+    "deadline": {
+      "dateISO": "2027-03-31",
+      "notes": "Plusieurs cycles annuels selon les sous-programmes (Civil Society Scholar Awards, OSF Fellowships).",
+      "sourceUrl": "https://www.opensocietyfoundations.org/grants"
+    },
     "howToApplyUrl": "https://www.opensocietyfoundations.org/grants",
     "officialUrl": "https://www.opensocietyfoundations.org/",
     "eligibilitySummary": "Plusieurs programmes Open Society Foundations (OSF) pour chercheur·euses, journalistes, activistes : Civil Society Scholar Awards, OSF Fellowships, Soros Justice Fellowships. Haïti éligible. Montants variables selon le programme.",
-    "tags": ["global", "foundation", "research", "civil-society", "osf"],
+    "tags": [
+      "global",
+      "foundation",
+      "research",
+      "civil-society",
+      "osf"
+    ],
     "sources": [
-      { "url": "https://www.opensocietyfoundations.org/grants", "label": "Open Society Foundations Grants" }
+      {
+        "url": "https://www.opensocietyfoundations.org/grants",
+        "label": "Open Society Foundations Grants"
+      }
+    ]
+  },
+  {
+    "name": "Cornell Johnson MBA Merit Scholarships",
+    "country": "US",
+    "fundingType": "partial",
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": {
+      "dateISO": "2027-01-08",
+      "notes": "Bourse attribuée automatiquement lors de la décision d'admission. Candidater au Round 1 (septembre) ou Round 2 (janvier) pour maximiser les chances. Round 3 : 7 avril 2027.",
+      "sourceUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/"
+    },
+    "howToApplyUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/",
+    "officialUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/",
+    "eligibilitySummary": "Bourses partielles au mérite attribuées automatiquement à l'admission. Plus de $14 millions distribués chaque année aux nouveaux étudiants du MBA. Toutes les nationalités éligibles. Aucune candidature séparée requise.",
+    "programDescription": "Johnson dispose de plus de $14 millions de fonds de bourses à attribuer chaque année. Les bourses au mérite sont attribuées sans égard à la citoyenneté — les étudiant·es haïtien·nes sont éligibles. La sélection est basée sur : leadership, performance académique, scores d'examen (GMAT/GRE), expérience professionnelle, essais, recommandations, engagement communautaire. Si sélectionné·e, la bourse est incluse dans la notification d'admission. Environ 35% des étudiant·es reçoivent une aide.",
+    "applicationSteps": [
+      {
+        "title": "Postuler au MBA Two-Year (Ithaca) ou Tech MBA (NYC)",
+        "description": "Soumettre le dossier complet via le portail Cornell Admissions. Choisir un seul programme. Dates : Round 1 (17 sept), Round 2 (8 jan), Round 3 (7 avril).",
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/"
+      },
+      {
+        "title": "Aucune candidature séparée pour la bourse",
+        "description": "La considération pour les bourses au mérite est automatique avec la candidature au MBA. Le comité d'admission évalue chaque candidat·e."
+      },
+      {
+        "title": "Recevoir la décision d'admission + bourse",
+        "description": "La bourse est communiquée simultanément avec la décision d'admission. Délai typique : 6-8 semaines après la date limite du round."
+      }
+    ],
+    "tags": [
+      "us",
+      "cornell",
+      "ivy-league",
+      "mba",
+      "merit",
+      "private"
+    ],
+    "sources": [
+      {
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/",
+        "label": "Cornell Johnson Scholarships & Grants"
+      },
+      {
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/",
+        "label": "Cornell Johnson MBA Admissions"
+      }
+    ]
+  },
+  {
+    "name": "Sage Scholars Program (Cornell Johnson)",
+    "country": "US",
+    "fundingType": "partial",
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": {
+      "dateISO": "2027-01-08",
+      "notes": "Un petit nombre de Sage Scholars sélectionnés à chaque round d'admission. Round 1 (17 sept 2025), Round 2 (8 jan 2026), Round 3 (7 avril 2026). GMAT/GRE requis.",
+      "sourceUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/"
+    },
+    "howToApplyUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/",
+    "officialUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/",
+    "eligibilitySummary": "Bourse basée sur l'excellence académique (GPA undergraduate + score GMAT/GRE). Toutes les nationalités. Aucune candidature séparée mais soumettre un score GMAT/GRE est obligatoire.",
+    "programDescription": "Le programme Sage Scholars récompense un petit groupe de candidat·es à chaque round sur la base de résultats académiques exceptionnels. Le score GMAT/GRE est obligatoire pour être considéré·e. Les bourses sont attribuées sans candidature séparée mais le/la candidat·e doit soumettre un score GMAT/GRE dans son dossier.",
+    "applicationSteps": [
+      {
+        "title": "Préparer un dossier académique solide",
+        "description": "GPA undergraduate élevé + score GMAT/GRE compétitif (GMAT 700+ recommandé). Le score GMAT/GRE est obligatoire pour cette bourse."
+      },
+      {
+        "title": "Postuler au Round 1 ou 2 pour maximiser les chances",
+        "description": "Les Sage Scholars sont sélectionné·es à chaque round, mais les fonds disponibles diminuent au Round 3.",
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/important-dates/"
+      }
+    ],
+    "tags": [
+      "us",
+      "cornell",
+      "ivy-league",
+      "mba",
+      "academic",
+      "merit"
+    ],
+    "sources": [
+      {
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/",
+        "label": "Cornell Johnson Sage Scholars"
+      }
+    ]
+  },
+  {
+    "name": "Forté Fellow Program (Cornell Johnson)",
+    "country": "US",
+    "fundingType": "partial",
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "exact",
+    "deadline": {
+      "dateISO": "2027-01-08",
+      "notes": "Attribué automatiquement à l'admission. Candidater au Round 1 (17 sept) ou Round 2 (8 jan). Toutes nationalités.",
+      "sourceUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/"
+    },
+    "howToApplyUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/",
+    "officialUrl": "https://www.fortefoundation.org/",
+    "eligibilitySummary": "Bourse Forté pour candidat·es qui soutiennent la mission d'avancement des femmes en affaires (tous genres éligibles). Toutes nationalités, Haïti incluse. Aucune candidature séparée.",
+    "programDescription": "Johnson est partenaire de Forté depuis 2004. Les Forté Fellows sont sélectionné·es par le comité d'admission du MBA parmi les candidat·es qui démontrent un engagement envers l'avancement des femmes dans le monde des affaires. Le programme offre aussi accès à la conférence annuelle Forté, mentorat, et réseautage professionnel.",
+    "applicationSteps": [
+      {
+        "title": "Démontrer son engagement pour les femmes en affaires",
+        "description": "Inclure dans ses essais ou son CV des expériences de mentorat, leadership féminin, ou initiatives DEI."
+      },
+      {
+        "title": "Postuler au MBA Johnson",
+        "description": "Aucune candidature séparée — le comité d'admission identifie les candidat·es éligibles pendant le processus d'admission standard.",
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/"
+      }
+    ],
+    "tags": [
+      "us",
+      "cornell",
+      "ivy-league",
+      "mba",
+      "women",
+      "diversity",
+      "forte"
+    ],
+    "sources": [
+      {
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/",
+        "label": "Cornell Johnson Forté Fellows"
+      },
+      {
+        "url": "https://www.fortefoundation.org/",
+        "label": "Forté Foundation"
+      }
+    ]
+  },
+  {
+    "name": "Fried Fellowships (Cornell Johnson, 2ème année)",
+    "country": "US",
+    "fundingType": "partial",
+    "eligibleCountries": [
+      "HT"
+    ],
+    "level": [
+      "master"
+    ],
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "recurring": true,
+    "deadlineAccuracy": "varies",
+    "deadline": {
+      "dateISO": "2028-06-01",
+      "notes": "Attribué en 2ème année du MBA (après la 1ère année). 5 bourses décernées sur la base de l'excellence académique et des contributions à Johnson. C'est la seule bourse accessible aux étudiant·es qui n'ont pas eu de bourse en 1ère année.",
+      "sourceUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/"
+    },
+    "howToApplyUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/",
+    "officialUrl": "https://www.johnson.cornell.edu/programs/full-time-mba/",
+    "eligibilitySummary": "Bourse de 2ème année du MBA Johnson : 5 étudiant·es sélectionné·es pour leur excellence académique et contribution à la communauté Johnson. Unique car accessible même sans bourse en 1ère année. Toutes nationalités.",
+    "programDescription": "Les Fried Fellowships sont uniques : 5 bourses attribuées en 2ème année du MBA pour récompenser l'excellence académique et les contributions à la communauté Johnson. C'est la seule bourse Johnson qui peut être obtenue par des étudiant·es n'ayant pas reçu de bourse en 1ère année.",
+    "tags": [
+      "us",
+      "cornell",
+      "ivy-league",
+      "mba",
+      "second-year"
+    ],
+    "sources": [
+      {
+        "url": "https://www.johnson.cornell.edu/programs/full-time-mba/admissions/financial-planning/scholarships-and-grants/",
+        "label": "Cornell Johnson Fried Fellowships"
+      }
     ]
   }
 ]
