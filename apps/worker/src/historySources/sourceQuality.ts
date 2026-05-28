@@ -78,7 +78,6 @@ const TIER2_DOMAINS: readonly string[] = [
   "theguardian.com",
   "nytimes.com",
   "lemonde.fr",
-  "rfi.fr",
   "aljazeera.com",
   "reuters.com",
   "apnews.com",
