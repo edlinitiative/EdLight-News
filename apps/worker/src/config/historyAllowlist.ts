@@ -58,7 +58,6 @@ export const HISTORY_ALLOWED_DOMAINS: readonly string[] = [
   "theguardian.com",
   "nytimes.com",
   "lemonde.fr",
-  "rfi.fr",
   "history.com",
   "nationalgeographic.com",
   "aljazeera.com",
