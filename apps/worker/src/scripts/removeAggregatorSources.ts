@@ -31,14 +31,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = path.resolve(__dirname, "../../../..");
 dotenv.config({ path: path.resolve(monorepoRoot, ".env") });
 
-/** Hostnames considered news aggregators — keep in sync with scoring.ts. */
+/**
+ * Hostnames considered aggregators. Covers both:
+ *   - News aggregators (keep in sync with scoring.ts AGGREGATOR_DOMAINS)
+ *   - Scholarship/opportunity aggregators (third-party listing sites that
+ *     republish calls without primary-source verification)
+ */
 const AGGREGATOR_HOSTS = [
+  // News aggregators
   "news.google.com",
   "news.yahoo.com",
   "msn.com",
   "flipboard.com",
   "smartnews.com",
   "rfi.fr",
+  // Scholarship / opportunity aggregators
+  "opportunitydesk.org",
+  "afterschoolafrica.com",
+  "scholars4dev.com",
+  "scholarshippositions.com",
+  "oppcentral.com",
+  "scholarshiproar.com",
 ] as const;
 
 function hostOf(url: string | undefined | null): string {
