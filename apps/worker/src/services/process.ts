@@ -147,6 +147,30 @@ export async function processRawItems(): Promise<{
         ? (classification.geoTag ?? scoring.geoTag)
         : scoring.geoTag;
 
+      // ── Off-mission news gate ─────────────────────────────────────────
+      // The site exists to serve Haitian students; non-Haiti news (e.g.
+      // generic Latin America wire copy, US politics, world football)
+      // should never become an `items` doc. We allow:
+      //   • opportunities/scholarships — globally eligible by design,
+      //     Mastercard / Chevening / DAAD etc. are intentionally open
+      //     to international applicants
+      //   • items with geoTag "HT" or "Diaspora" — scored as relevant
+      //     based on Haiti/diaspora keyword markers in title+body
+      // Anything else with category "news" is dropped at ingest so it
+      // never propagates to /news, /world, or social channels.
+      if (
+        !classification.isOpportunity
+        && effectiveGeoTag !== "HT"
+        && effectiveGeoTag !== "Diaspora"
+      ) {
+        await rawItemsRepo.markSkipped(
+          raw.id,
+          "Off-mission: no Haiti/diaspora signal in news article",
+        );
+        skipped++;
+        continue;
+      }
+
       // Upsert item keyed by canonical URL (deduplicates across sources)
       const summary = raw.description?.trim() || title;
 
