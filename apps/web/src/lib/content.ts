@@ -235,12 +235,13 @@ export const fetchEnrichedFeed = unstable_cache(
       return [];
     }
   },
-  // Cache key suffix bumped to v2 (2026-05): after the wider-opportunity
-  // rollout (PRs #96/#97/#98), the previous namespace had stale empty
-  // results locked in for the full 30-min window because the catch-on-error
-  // contract caches `[]` as a valid value. Bumping the key forces a fresh
-  // cache namespace and lets the new radar items surface immediately.
-  ["enriched-feed", "v2"],
+  // Cache key suffix bumped to v3 (2026-05): after the aggregator + non-Haiti
+  // news purges (PRs #103-#106), the v2 namespace still served stale homepage
+  // results pointing to deleted items (manifesting as "Not found" tiles and
+  // off-mission articles like Cuba scenarios / Brazil sports). Bumping the
+  // key forces a fresh cache namespace so the next render reflects the
+  // cleaned-up Firestore state.
+  ["enriched-feed", "v3"],
   // 30 min — content updates rarely; this is the primary read driver.
   { revalidate: 1800, tags: ["feed"] },
 );
@@ -334,8 +335,8 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
      return [];
    }
   },
-  // See fetchEnrichedFeed above for rationale on the v2 suffix.
-  ["enriched-feed-by-vertical", "v2"],
+  // See fetchEnrichedFeed above for rationale on the v3 suffix.
+  ["enriched-feed-by-vertical", "v3"],
   { revalidate: 1800, tags: ["feed"] },
 );
 
@@ -395,7 +396,9 @@ export const fetchTrending = unstable_cache(
      return [];
    }
   },
-  ["trending-feed"],
+  // v3 suffix added 2026-05 in line with the enriched-feed bump after the
+  // aggregator + non-Haiti purges (PRs #103-#106).
+  ["trending-feed", "v3"],
   { revalidate: 1800, tags: ["trending"] },
 );
 
