@@ -41,6 +41,40 @@ const OFF_MISSION_MARKERS = [
   "massacre", "braquage", "armed robbery",
 ];
 
+// ── Major-world-news markers ─────────────────────────────────────────────────
+// Non-Haiti news is dropped by default (see process.ts off-mission gate). These
+// markers carve out the ONLY exceptions: globally significant events that a
+// Haitian reader would reasonably expect to see — wars, major-power elections,
+// scientific/medical breakthroughs, pandemics, and region/economy shifts that
+// touch Haiti (fuel prices, remittances, US immigration policy, Caribbean
+// disasters). Deliberately NARROW — celebrity, entertainment, and routine
+// sports are intentionally excluded so /world stays curated, not a firehose.
+const WORLD_SIGNIFICANCE_MARKERS = [
+  // War / armed conflict
+  "guerre mondiale", "world war", "guerre", "war breaks out", "conflit armé",
+  "armed conflict", "invasion", "cessez-le-feu", "ceasefire", "frappe militaire",
+  "airstrike", "missile", "coup d'état", "coup d'etat", "génocide", "genocide",
+  "attaque terroriste", "terrorist attack",
+  // Major elections / governance
+  "élection présidentielle", "presidential election", "élection américaine",
+  "us election", "élections françaises", "élection française", "french election",
+  "referendum", "référendum", "impeachment", "destitution",
+  // Science / medicine breakthroughs
+  "découverte scientifique", "scientific breakthrough", "breakthrough",
+  "prix nobel", "nobel prize", "vaccin", "vaccine", "essai clinique",
+  "clinical trial", "percée médicale", "medical breakthrough",
+  // Health emergencies
+  "pandémie", "pandemic", "épidémie", "epidemic", "état d'urgence sanitaire",
+  "public health emergency",
+  // Economy / climate that reaches Haiti
+  "récession mondiale", "global recession", "prix du pétrole", "oil prices",
+  "crise économique mondiale", "sommet sur le climat", "climate summit", "cop3",
+  // US immigration / diaspora policy (high-impact for Haitians)
+  "temporary protected status", "statut de protection temporaire",
+  "immigration policy", "politique d'immigration", "mass deportation",
+  "expulsions massives",
+];
+
 // ── Domain extraction ───────────────────────────────────────────────────────
 export function extractDomain(url: string): string {
   try {
@@ -186,6 +220,22 @@ export function computeScoring(title: string, body: string, category?: string): 
   }
 
   return { audienceFitScore: score, geoTag, offMission };
+}
+
+// ── Major world news gate ────────────────────────────────────────────────────
+
+/**
+ * Whether a non-Haiti news item is globally significant enough to surface in
+ * the curated /world section. Pure deterministic keyword match against
+ * WORLD_SIGNIFICANCE_MARKERS. Requires the signal to appear in the TITLE (or,
+ * for longer pieces, at least two body hits) so a passing mention deep in an
+ * article doesn't smuggle in routine world/celebrity/sports copy.
+ */
+export function isMajorWorldNews(title: string, body: string): boolean {
+  const titleHits = countMatches(title, WORLD_SIGNIFICANCE_MARKERS);
+  if (titleHits >= 1) return true;
+  const bodyHits = countMatches(body, WORLD_SIGNIFICANCE_MARKERS);
+  return bodyHits >= 2;
 }
 
 // ── Dedupe group ID ─────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import {
   computeDedupeGroupId,
   buildItemSource,
   isAggregatorUrl,
+  isMajorWorldNews,
 } from "./scoring.js";
 import { classifyItem } from "./classify.js";
 import { mirrorPublisherImage } from "./mirrorPublisherImage.js";
@@ -149,23 +150,34 @@ export async function processRawItems(): Promise<{
 
       // ── Off-mission news gate ─────────────────────────────────────────
       // The site exists to serve Haitian students; non-Haiti news (e.g.
-      // generic Latin America wire copy, US politics, world football)
+      // generic Latin America wire copy, celebrity, routine world sports)
       // should never become an `items` doc. We allow:
       //   • opportunities/scholarships — globally eligible by design,
       //     Mastercard / Chevening / DAAD etc. are intentionally open
       //     to international applicants
       //   • items with geoTag "HT" or "Diaspora" — scored as relevant
       //     based on Haiti/diaspora keyword markers in title+body
-      // Anything else with category "news" is dropped at ingest so it
-      // never propagates to /news, /world, or social channels.
+      //   • MAJOR world news — wars, major-power elections, scientific/
+      //     medical breakthroughs, pandemics, and region/economy shifts
+      //     that reach Haiti (see isMajorWorldNews). These keep geoTag
+      //     "Global" so they surface in the curated /world section but are
+      //     deprioritised on the Haiti-first homepage by the feed ranker.
+      // Everything else with category "news" is dropped at ingest.
+      const majorWorld =
+        !classification.isOpportunity
+        && effectiveGeoTag !== "HT"
+        && effectiveGeoTag !== "Diaspora"
+        && isMajorWorldNews(title, textForScoring);
+
       if (
         !classification.isOpportunity
         && effectiveGeoTag !== "HT"
         && effectiveGeoTag !== "Diaspora"
+        && !majorWorld
       ) {
         await rawItemsRepo.markSkipped(
           raw.id,
-          "Off-mission: no Haiti/diaspora signal in news article",
+          "Off-mission: no Haiti/diaspora signal or major-world significance",
         );
         skipped++;
         continue;

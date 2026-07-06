@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildItemSource, computeScoring } from "./scoring.js";
+import { buildItemSource, computeScoring, isMajorWorldNews } from "./scoring.js";
 
 describe("computeScoring geoTag", () => {
   it("classifies a normal Google News Haiti headline as HT, not Diaspora", () => {
@@ -56,5 +56,61 @@ describe("buildItemSource", () => {
     assert.equal(source.originalUrl, "https://www.miamiherald.com/news/nation-world/world/americas/haiti/article123.html");
     assert.equal(source.aggregatorUrl, undefined);
     assert.equal(weakSource, false);
+  });
+});
+
+describe("isMajorWorldNews", () => {
+  it("admits a major-power presidential election", () => {
+    assert.equal(
+      isMajorWorldNews(
+        "US presidential election: results roll in across swing states",
+        "Voters cast ballots nationwide.",
+      ),
+      true,
+    );
+  });
+
+  it("admits war / armed conflict", () => {
+    assert.equal(
+      isMajorWorldNews("La guerre s'intensifie à la frontière", "..."),
+      true,
+    );
+  });
+
+  it("admits a scientific breakthrough", () => {
+    assert.equal(
+      isMajorWorldNews("Scientific breakthrough: new malaria vaccine approved", "..."),
+      true,
+    );
+  });
+
+  it("rejects routine world sports", () => {
+    assert.equal(
+      isMajorWorldNews(
+        "USA vs Belgium — FIFA World Cup 2026 round of 16",
+        "The match kicks off at 8pm.",
+      ),
+      false,
+    );
+  });
+
+  it("rejects celebrity/entertainment trivia", () => {
+    assert.equal(
+      isMajorWorldNews(
+        "Taylor Swift and Travis Kelce marry in New York",
+        "The couple celebrated with friends and family.",
+      ),
+      false,
+    );
+  });
+
+  it("requires a title hit, not just a passing body mention", () => {
+    assert.equal(
+      isMajorWorldNews(
+        "Local festival draws a crowd",
+        "One attendee mentioned the pandemic in passing.",
+      ),
+      false,
+    );
   });
 });

@@ -76,6 +76,61 @@ function bigramDice(a: string, b: string): number {
 /** Similarity threshold above which two titles are considered the same story. */
 const DICE_THRESHOLD = 0.65;
 
+/**
+ * Significant-word set for same-story detection: accent- AND digit-stripped,
+ * stop-words removed, lightly de-pluralised. Digit-stripping is what lets an
+ * evolving story match itself across updates (e.g. a death toll going from
+ * "3 000 morts" to "3 500 morts").
+ */
+function sigWordSet(title: string): Set<string> {
+  const words = normTitle(title)
+    .replace(/\d+/g, " ")
+    .split(" ")
+    .filter((w) => w.length >= 4 && !STOP.has(w))
+    .map((w) => (w.length > 4 && w.endsWith("s") ? w.slice(0, -1) : w));
+  return new Set(words);
+}
+
+/** Fraction of the SMALLER title's significant words shared with the larger. */
+function wordContainment(a: string, b: string): number {
+  const sa = sigWordSet(a);
+  const sb = sigWordSet(b);
+  const small = sa.size <= sb.size ? sa : sb;
+  const large = small === sa ? sb : sa;
+  if (small.size < 3) return 0; // too few words to judge confidently
+  let overlap = 0;
+  for (const w of small) if (large.has(w)) overlap++;
+  return overlap / small.size;
+}
+
+/**
+ * Containment threshold for treating two NEWS titles as the same story.
+ * Higher than a Dice match because containment is more permissive; only
+ * applied to non-opportunity items so distinct scholarships (which share
+ * words like "bourse"/"master") are never merged together.
+ */
+const CONTAINMENT_THRESHOLD = 0.75;
+
+const RANK_OPPORTUNITY_CATS = new Set([
+  "scholarship", "opportunity", "bourses", "concours", "stages", "programmes",
+]);
+
+function isOpportunityItem(a: FeedItem): boolean {
+  return a.vertical === "opportunites" || RANK_OPPORTUNITY_CATS.has(a.category ?? "");
+}
+
+/** Whether two feed items are the same story (Dice, or word-containment for news). */
+function isSameStory(a: FeedItem, b: FeedItem): boolean {
+  const ta = a.title ?? "";
+  const tb = b.title ?? "";
+  if (bigramDice(ta, tb) >= DICE_THRESHOLD) return true;
+  // Word-containment safety net — news only (never merges distinct opportunities).
+  if (!isOpportunityItem(a) && !isOpportunityItem(b)) {
+    return wordContainment(ta, tb) >= CONTAINMENT_THRESHOLD;
+  }
+  return false;
+}
+
 // ── Content merging helpers ──────────────────────────────────────────────────
 
 /**
@@ -375,7 +430,7 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
     let matched = false;
     for (let i = 0; i < mergedBuckets.length; i++) {
       // Compare against the first item in each bucket (representative)
-      if (bigramDice(item.title ?? "", mergedBuckets[i][0].title ?? "") >= DICE_THRESHOLD) {
+      if (isSameStory(item, mergedBuckets[i][0])) {
         mergedBuckets[i].push(item);
         matched = true;
         break;
