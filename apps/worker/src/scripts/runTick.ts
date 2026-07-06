@@ -24,6 +24,7 @@ import { buildIgStory } from "../jobs/buildIgStory.js";
 import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
 import { processIgScheduled } from "../jobs/processIgScheduled.js";
 import { processIgStory } from "../jobs/processIgStory.js";
+import { cleanupReels } from "../jobs/cleanupReels.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -154,6 +155,14 @@ async function main() {
     console.log("[ig] storyProcess:", JSON.stringify(igStoryProcess, null, 2));
   } catch (err) {
     console.warn("[ig] error:", err instanceof Error ? err.message : err);
+  }
+
+  console.log("\n=== Step 11: Reel retention cleanup ===");
+  try {
+    const cleanupResult = await cleanupReels();
+    console.log(JSON.stringify(cleanupResult, null, 2));
+  } catch (err) {
+    console.warn("[cleanupReels] error:", err instanceof Error ? err.message : err);
   }
 
   // Ping Google if any content was published
