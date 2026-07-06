@@ -47,6 +47,24 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     };
   };
 
+  // ── Firestore read-quota discipline ──────────────────────────────────
+  // The five social queue-BUILD jobs + synthesis + monitorSocial re-scan
+  // hundreds of docs per run. Running them every 15-min tick burned the
+  // entire 50K/day free-tier read quota by early morning, which made the
+  // website's Firestore reads fail (empty site) for the rest of the day.
+  // Queues hold days of content and schedulers/processors still run every
+  // tick, so building 6×/day (the :15 tick of every 4th hour) loses nothing.
+  const haitiParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Port-au-Prince",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const haitiPart = (t: string) => parseInt(haitiParts.find((p) => p.type === t)?.value ?? "0", 10);
+  // Cloud Scheduler ticks fire at :15/:45 — minute<30 selects the :15 tick.
+  const isQueueBuildTick = haitiPart("hour") % 4 === 1 && haitiPart("minute") < 30;
+  const buildSkipped = { skipped: "not-queue-build-tick" };
+
   try {
     // Step 1: Ingest new entries from sources → raw_items
     const step1StartMs = Date.now();
@@ -108,7 +126,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     let synthesisResult = { synthesized: 0, updated: 0, skipped: 0, errors: 0 };
     let synthesisError: string | undefined;
     try {
-      synthesisResult = await runSynthesis();
+      if (isQueueBuildTick) synthesisResult = await runSynthesis();
     } catch (err) {
       // Synthesis is non-critical — log and continue
       console.warn("[tick] synthesis error:", err instanceof Error ? err.message : err);
@@ -197,7 +215,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
 
     // ── Phase A: Build the carousel queue + taux ─────────────────────
     try {
-      igResult.buildQueue = await buildIgQueue();
+      igResult.buildQueue = isQueueBuildTick ? await buildIgQueue() : buildSkipped;
     } catch (err) {
       console.error("[tick] buildIgQueue error:", err);
       igResult.buildQueue = { error: String(err) };
@@ -280,7 +298,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     };
 
     try {
-      waResult.buildQueue = await buildWaQueue();
+      waResult.buildQueue = isQueueBuildTick ? await buildWaQueue() : buildSkipped;
     } catch (err) {
       console.error("[tick] buildWaQueue error:", err);
       waResult.buildQueue = { error: String(err) };
@@ -312,7 +330,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     };
 
     try {
-      fbResult.buildQueue = await buildFbQueue();
+      fbResult.buildQueue = isQueueBuildTick ? await buildFbQueue() : buildSkipped;
     } catch (err) {
       console.error("[tick] buildFbQueue error:", err);
       fbResult.buildQueue = { error: String(err) };
@@ -344,7 +362,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     };
 
     try {
-      thResult.buildQueue = await buildThQueue();
+      thResult.buildQueue = isQueueBuildTick ? await buildThQueue() : buildSkipped;
     } catch (err) {
       console.error("[tick] buildThQueue error:", err);
       thResult.buildQueue = { error: String(err) };
@@ -371,7 +389,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     const step14StartMs = Date.now();
     const xResult: Record<string, unknown> = {};
     try {
-      xResult.buildQueue = await buildXQueue();
+      xResult.buildQueue = isQueueBuildTick ? await buildXQueue() : buildSkipped;
     } catch (err) {
       console.error("[tick] buildXQueue error:", err);
       xResult.buildQueue = { error: String(err) };
@@ -418,7 +436,9 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     const step15bStartMs = Date.now();
     let monitorResult: Record<string, unknown> = {};
     try {
-      monitorResult = (await monitorSocial()) as unknown as Record<string, unknown>;
+      monitorResult = isQueueBuildTick
+        ? ((await monitorSocial()) as unknown as Record<string, unknown>)
+        : buildSkipped;
     } catch (err) {
       console.warn("[tick] monitorSocial error:", err);
       monitorResult = { error: String(err) };

@@ -110,15 +110,41 @@ export async function listRecentItems(limit = 50): Promise<Item[]> {
  * starving every downstream queue (IG, FB) of non-staple posts.
  */
 /**
+ * Bounded query over the opportunites vertical, newest first.
+ *
+ * Uses the (vertical, createdAt DESC) composite index (shipped in
+ * firestore.indexes.json) so the read cost is capped at `cap` docs instead
+ * of a full-collection scan — the three opportunites listers below ran that
+ * full scan on EVERY pipeline tick, which alone burned ~40% of the daily
+ * free-tier read quota. Falls back to the old unbounded scan if the index
+ * is missing (FAILED_PRECONDITION), so a fresh index deploy can never halt
+ * the generate phase.
+ */
+async function queryOpportunitesBounded(cap: number) {
+  try {
+    return await collection()
+      .where("vertical", "==", "opportunites")
+      .orderBy("createdAt", "desc")
+      .limit(cap)
+      .get();
+  } catch (err: unknown) {
+    const code = (err as { code?: number })?.code;
+    if (code !== 9) throw err; // 9 = FAILED_PRECONDITION (missing index)
+    console.warn(
+      "[items] (vertical, createdAt) index unavailable — falling back to full opportunites scan",
+    );
+    return await collection().where("vertical", "==", "opportunites").get();
+  }
+}
+
+/**
  * List `vertical=opportunites` items that have a published content_version
  * but have not yet been added to the IG/FB queues.
  * Used by buildIgQueue to backfill scholarship/opportunity posts that were
  * ingested before the 72-hour recent-items window.
  */
 export async function listOpportunitiesForIgBackfill(limit = 150): Promise<Item[]> {
-  const snap = await collection()
-    .where("vertical", "==", "opportunites")
-    .get();
+  const snap = await queryOpportunitesBounded(limit * 2);
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
@@ -141,9 +167,7 @@ export async function listOpportunitiesNeedingGeneration(
   limit = 50,
   maxAttempts = 3,
 ): Promise<Item[]> {
-  const snap = await collection()
-    .where("vertical", "==", "opportunites")
-    .get();
+  const snap = await queryOpportunitesBounded(limit * 3);
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
     .filter((it) => (it.generationAttempts ?? 0) < maxAttempts)
@@ -167,9 +191,7 @@ export async function listOpportunitiesNeedingScholarshipPromotion(
   limit = 5,
   maxAttempts = 2,
 ): Promise<Item[]> {
-  const snap = await collection()
-    .where("vertical", "==", "opportunites")
-    .get();
+  const snap = await queryOpportunitesBounded(100);
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as Item)
     .filter((it) => {

@@ -30,6 +30,19 @@ import { pingSearchEngines } from "../services/pingSearchEngines.js";
 async function main() {
   const startMs = Date.now();
 
+  // Mirror of routes/tick.ts read-quota gate: heavy queue-build/synthesis
+  // steps only run on the :15 tick of every 4th hour (Haiti time). See
+  // routes/tick.ts for the full rationale (50K/day Firestore read quota).
+  const haitiParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Port-au-Prince",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const haitiPart = (t: string) =>
+    parseInt(haitiParts.find((p) => p.type === t)?.value ?? "0", 10);
+  const isQueueBuildTick = haitiPart("hour") % 4 === 1 && haitiPart("minute") < 30;
+
   console.log("=== Step 1: Ingest ===");
   let ingestResult: any = { error: "not-run" };
   try {
@@ -68,8 +81,12 @@ async function main() {
 
   console.log("\n=== Step 5: Synthesis ===");
   try {
-    const synthesisResult = await runSynthesis();
-    console.log(JSON.stringify(synthesisResult, null, 2));
+    if (isQueueBuildTick) {
+      const synthesisResult = await runSynthesis();
+      console.log(JSON.stringify(synthesisResult, null, 2));
+    } else {
+      console.log("skipped: not-queue-build-tick");
+    }
   } catch (err) {
     console.warn("[synthesis] error:", err instanceof Error ? err.message : err);
   }
@@ -116,7 +133,9 @@ async function main() {
 
   console.log("\n=== Step 10: Instagram Pipeline ===");
   try {
-    const igBuildQueue = await buildIgQueue();
+    const igBuildQueue = isQueueBuildTick
+      ? await buildIgQueue()
+      : { skipped: "not-queue-build-tick" };
     console.log("[ig] buildQueue:", JSON.stringify(igBuildQueue, null, 2));
 
     const igTaux = await buildIgTaux();

@@ -242,8 +242,10 @@ export const fetchEnrichedFeed = unstable_cache(
   // key forces a fresh cache namespace so the next render reflects the
   // cleaned-up Firestore state.
   ["enriched-feed", "v3"],
-  // 30 min — content updates rarely; this is the primary read driver.
-  { revalidate: 1800, tags: ["feed"] },
+  // 60 min — content updates rarely; this is the primary read driver.
+  // Bumped from 30 min (2026-07) as part of the Firestore read-quota fix:
+  // each cold revalidate costs ~400 reads (200 CVs + 200 items) per lang.
+  { revalidate: 3600, tags: ["feed"] },
 );
 
 // ── Vertical-scoped feed (fast path for /opportunites etc.) ──────────────────
@@ -337,7 +339,7 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
   },
   // See fetchEnrichedFeed above for rationale on the v3 suffix.
   ["enriched-feed-by-vertical", "v3"],
-  { revalidate: 1800, tags: ["feed"] },
+  { revalidate: 3600, tags: ["feed"] },
 );
 
 // ── Trending articles (by viewCount) ─────────────────────────────────────────
@@ -399,7 +401,7 @@ export const fetchTrending = unstable_cache(
   // v3 suffix added 2026-05 in line with the enriched-feed bump after the
   // aggregator + non-Haiti purges (PRs #103-#106).
   ["trending-feed", "v3"],
-  { revalidate: 1800, tags: ["trending"] },
+  { revalidate: 3600, tags: ["trending"] },
 );
 
 // ── Strict success gating (shared by homepage + /succes page) ────────────────
