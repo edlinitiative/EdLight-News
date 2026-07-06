@@ -1,6 +1,7 @@
 export default function Loading() {
   return (
-    <div className="stagger-children space-y-10">
+    <div role="status" aria-busy="true" className="stagger-children space-y-10">
+      <span className="sr-only">Chargement…</span>
       {/* Hero skeleton */}
       <div className="animate-pulse rounded-xl border border-stone-200 bg-white p-6 dark:border-stone-800 dark:bg-stone-900 sm:p-8">
         <div className="space-y-4">

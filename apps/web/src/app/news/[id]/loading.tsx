@@ -1,7 +1,8 @@
 /** Loading skeleton for article detail /news/[id]. */
 export default function Loading() {
   return (
-    <div className="relative mx-auto max-w-4xl xl:flex xl:gap-10">
+    <div role="status" aria-busy="true" className="relative mx-auto max-w-4xl xl:flex xl:gap-10">
+      <span className="sr-only">Chargement…</span>
       {/* ── Side-rail skeleton (xl+ only) ───────────────────────────── */}
       <aside className="hidden xl:flex w-14 flex-col items-center gap-4 self-start sticky top-28 pt-6 animate-pulse">
         <div className="h-14 w-14 rounded-full bg-stone-200 dark:bg-stone-700" />

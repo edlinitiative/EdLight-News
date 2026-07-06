@@ -1,7 +1,8 @@
 /** Loading skeleton for /bourses (v3 — matches editorial redesign layout) */
 export default function Loading() {
   return (
-    <div className="animate-pulse space-y-12">
+    <div role="status" aria-busy="true" className="animate-pulse space-y-12">
+      <span className="sr-only">Chargement…</span>
       {/* ── Hero skeleton ── */}
       <section className="-mx-4 sm:-mx-6 lg:-mx-8 border-b border-stone-200/60 bg-gradient-to-br from-indigo-50/40 via-white to-white dark:from-indigo-950/10 dark:via-stone-950 dark:to-stone-950 dark:border-stone-800/60">
         <div className="px-4 sm:px-6 lg:px-8 pb-12 pt-10 sm:pb-14 sm:pt-12">

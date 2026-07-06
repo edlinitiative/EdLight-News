@@ -22,7 +22,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Explainers · EdLight News" : "Eksplikasyon · EdLight News";
+  const title = fr ? "Explainers" : "Eksplikasyon";
   const description = fr
     ? "Des dossiers clairs pour comprendre les enjeux complexes : politique, économie, science, droits."
     : "Dosye klè pou konprann pwoblèm konplèks: politik, ekonomi, syans, dwa.";

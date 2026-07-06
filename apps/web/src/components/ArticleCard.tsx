@@ -25,6 +25,8 @@ interface ArticleCardProps {
   lang: ContentLanguage;
   compact?: boolean;
   variant?: "default" | "featured" | "compact";
+  /** Eager-load this card's image (set true only for the above-the-fold hero). */
+  priority?: boolean;
 }
 
 const OPPORTUNITY_CATEGORIES = new Set([
@@ -90,6 +92,7 @@ export function ArticleCard({
   lang,
   compact = false,
   variant = "default",
+  priority = false,
 }: ArticleCardProps) {
   const isCompact = compact || variant === "compact";
   const isFeatured = variant === "featured";
@@ -128,6 +131,7 @@ export function ArticleCard({
           <ImageWithFallback
             src={article.imageUrl!}
             alt={article.title}
+            priority={priority}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
           />
           {isFeatured && derived.label && (

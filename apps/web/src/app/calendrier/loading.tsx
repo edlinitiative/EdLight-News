@@ -1,7 +1,8 @@
 /** Loading skeleton for /calendrier */
 export default function Loading() {
   return (
-    <div className="animate-pulse space-y-6">
+    <div role="status" aria-busy="true" className="animate-pulse space-y-6">
+      <span className="sr-only">Chargement…</span>
       <section className="section-shell p-6">
         <div className="h-8 w-64 rounded bg-stone-200 dark:bg-stone-700" />
       </section>

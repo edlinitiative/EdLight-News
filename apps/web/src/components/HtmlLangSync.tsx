@@ -12,7 +12,15 @@ export function HtmlLangSync() {
   const { language } = useLanguage();
 
   useEffect(() => {
-    document.documentElement.lang = language === "ht" ? "ht" : "fr";
+    const lang = language === "ht" ? "ht" : "fr";
+    document.documentElement.lang = lang;
+    // Persist to a server-readable cookie so the next SSR renders <html lang>
+    // correctly (client-side fallback for the cookie the server reads).
+    try {
+      document.cookie = `lang=${lang}; path=/; max-age=31536000; samesite=lax`;
+    } catch {
+      // document.cookie unavailable — ignore
+    }
   }, [language]);
 
   return null;

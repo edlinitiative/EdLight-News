@@ -1,7 +1,8 @@
 /** Loading skeleton for scholarship detail /bourses/[id]. */
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-3xl animate-pulse space-y-6">
+    <div role="status" aria-busy="true" className="mx-auto max-w-3xl animate-pulse space-y-6">
+      <span className="sr-only">Chargement…</span>
       {/* Back link */}
       <div className="h-4 w-36 rounded bg-stone-200 dark:bg-stone-700" />
 

@@ -10,7 +10,8 @@
  *     (articles with NO score — legacy/pre-v2 — always pass)
  *  3. Deduplicate by dedupeGroupId — merge content from all versions in each group
  *  3b. Title-similarity dedup (safety net for mismatched / missing dedupeGroupIds) — also merges content
- *  4. Sort: scored articles first (desc by score), then legacy; secondary = publishedAt desc
+ *  4. Sort by a composite score = audience fit + recency decay + Haiti relevance
+ *     (ordering only — never drops items; tiebreak = publishedAt desc)
  *  5. Publisher diversity cap: within the top `topN` slots, no publisher
  *     appears more than `publisherCap` times; bumped articles are inserted
  *     right after the top-N block
@@ -231,6 +232,58 @@ function mergeGroup(
   return winner;
 }
 
+// ── Recency + relevance scoring (ordering only — never filters) ────────────────
+// A composite score used purely to ORDER the deduped feed. It combines:
+//   • audience fit      — how relevant the item is to Haitian students
+//   • recency decay     — fresh items float up; a month-old story can't hold the
+//                         hero/top slots over fresh, relevant content
+//   • Haiti relevance   — Haiti/education/opportunity content is lifted, generic
+//                         world news is pushed DOWN (deprioritised, not removed)
+//
+// Crucially this step only reorders — it never drops anything. Legacy/unscored
+// and undated items get neutral baselines so they still rank and appear, so the
+// feed can never be emptied here even when little fresh content exists.
+const DAY_MS = 86_400_000;
+/** Items this many days old (or newer) get full recency credit. */
+const FRESH_WINDOW_DAYS = 12;
+/** Recency half-life (in days) applied beyond the fresh window. */
+const RECENCY_HALF_LIFE_DAYS = 14;
+
+/** 1.0 for fresh items, decaying for older; 0.5 neutral for undated legacy. */
+function recencyWeight(publishedAt: string | null | undefined, now: number): number {
+  const t = publishedAt ? new Date(publishedAt).getTime() : NaN;
+  if (!Number.isFinite(t)) return 0.5; // undated legacy — neutral, never buried
+  const days = Math.max(0, (now - t) / DAY_MS);
+  if (days <= FRESH_WINDOW_DAYS) return 1;
+  return Math.exp(-(days - FRESH_WINDOW_DAYS) / RECENCY_HALF_LIFE_DAYS);
+}
+
+/** Haiti-first emphasis; generic low-fit world items are pushed down (not out). */
+function relevanceWeight(a: FeedItem): number {
+  let w = 0;
+  if (a.geoTag === "HT") w += 0.15;
+  else if (a.geoTag === "Diaspora") w += 0.07;
+  const fit = a.audienceFitScore;
+  const isGenericWorld =
+    a.geoTag !== "HT" &&
+    a.geoTag !== "Diaspora" &&
+    a.vertical !== "opportunites" &&
+    fit != null &&
+    fit < 0.5;
+  if (isGenericWorld) w -= 0.15;
+  return w;
+}
+
+/**
+ * Composite ordering score. Legacy/unscored items get a neutral 0.4 fit baseline
+ * so genuinely-scored content keeps a slight edge at equal recency, while they
+ * still rank and appear in the feed.
+ */
+function rankScore(a: FeedItem, now: number): number {
+  const fit = a.audienceFitScore != null ? a.audienceFitScore : 0.4;
+  return fit * 0.5 + recencyWeight(a.publishedAt, now) * 0.4 + relevanceWeight(a);
+}
+
 export interface RankOptions {
   /**
    * Minimum audienceFitScore to include.
@@ -333,16 +386,22 @@ export function rankFeed(articles: FeedItem[], opts: RankOptions): FeedItem[] {
 
   const deduped: FeedItem[] = mergedBuckets.map(mergeGroup);
 
-  // ── 4. Sort: scored first (desc), then legacy; tiebreak publishedAt desc ──
-  deduped.sort((a, b) => {
-    const hasA = a.audienceFitScore != null;
-    const hasB = b.audienceFitScore != null;
-    if (hasA && !hasB) return -1;
-    if (!hasA && hasB) return 1;
-    if (hasA && hasB) {
-      const diff = (b.audienceFitScore ?? 0) - (a.audienceFitScore ?? 0);
-      if (diff !== 0) return diff;
+  // ── 4. Sort by composite score (fit + recency + Haiti relevance) ──────────
+  // Ordering only — every deduped item stays in the list. Tiebreak on
+  // publishedAt desc so equal-scored items favour the fresher story.
+  const now = Date.now();
+  const scoreCache = new Map<FeedItem, number>();
+  const scoreOf = (a: FeedItem): number => {
+    let s = scoreCache.get(a);
+    if (s === undefined) {
+      s = rankScore(a, now);
+      scoreCache.set(a, s);
     }
+    return s;
+  };
+  deduped.sort((a, b) => {
+    const diff = scoreOf(b) - scoreOf(a);
+    if (diff !== 0) return diff;
     const tA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
     const tB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
     return tB - tA;

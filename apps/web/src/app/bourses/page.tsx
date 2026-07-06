@@ -24,6 +24,7 @@ import type { SerializedScholarship } from "@/components/BoursesFilters";
 import { BoursesEditorial } from "@/components/bourses/BoursesEditorial";
 import { DeadlineBoard } from "@/components/bourses/DeadlineBoard";
 import { tsToISO as sharedTsToISO } from "@/lib/dates";
+import { parseISODateSafe, daysUntil } from "@/lib/deadlines";
 import { buildOgMetadata } from "@/lib/og";
 
 export const revalidate = 300;
@@ -47,6 +48,30 @@ export async function generateMetadata({
 }
 
 const tsToISO = sharedTsToISO;
+
+/**
+ * A scholarship is "clearly expired" only when it has a concrete deadline date
+ * that is strictly in the past. Month-only / varies / undated entries are never
+ * treated as expired (we can't be sure), so they stay in the main list.
+ */
+function isExpired(s: SerializedScholarship, now: Date): boolean {
+  const d = parseISODateSafe(s.deadline?.dateISO);
+  return d ? daysUntil(d, now) < 0 : false;
+}
+
+/**
+ * "Actionable" = the reader has both a way to apply (an application/official
+ * link) and some how-to / eligibility content to act on. Incomplete records
+ * still render — they just sort below the actionable ones.
+ */
+function isActionable(s: SerializedScholarship): boolean {
+  const hasApplyLink = Boolean(s.howToApplyUrl) || Boolean(s.officialUrl);
+  const hasHowTo =
+    Boolean(s.howToApplyUrl) ||
+    Boolean(s.eligibilitySummary) ||
+    (s.requirements?.length ?? 0) > 0;
+  return hasApplyLink && hasHowTo;
+}
 
 function serializeScholarship(s: Scholarship): SerializedScholarship {
   return {
@@ -101,6 +126,17 @@ export default async function BoursesPage({
   }
 
   const serialized = allScholarships.map(serializeScholarship);
+
+  // Default ordering (non-destructive): keep every scholarship, but push clearly
+  // expired ones to the bottom and lift entries with complete, actionable data
+  // to the top. Array.sort is stable, so ties keep their original dataset order.
+  const now = new Date();
+  serialized.sort((a, b) => {
+    const expiredDelta = (isExpired(a, now) ? 1 : 0) - (isExpired(b, now) ? 1 : 0);
+    if (expiredDelta !== 0) return expiredDelta;
+    return (isActionable(a) ? 0 : 1) - (isActionable(b) ? 0 : 1);
+  });
+
   const closingSerialized = closingSoon.map(serializeScholarship);
   const countryCount = new Set(allScholarships.map((s) => s.country)).size;
   const haitianEligibleCount = allScholarships.filter(

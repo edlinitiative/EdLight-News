@@ -28,7 +28,7 @@ export default function RouteError({
         Nou pa t kapab chaje paj sa a. Tanpri eseye ankò.
       </p>
       {error.digest && (
-        <p className="text-xs text-stone-400">Réf\u00a0: {error.digest}</p>
+        <p className="text-xs text-stone-400">{"Réf\u00a0:"} {error.digest}</p>
       )}
       <div className="flex items-center gap-3">
         <button

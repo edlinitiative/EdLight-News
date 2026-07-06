@@ -33,8 +33,8 @@ export async function generateMetadata({
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
   const title = fr
-    ? "Aujourd'hui dans l'histoire — Haïti · EdLight News"
-    : "Jodi a nan istwa — Ayiti · EdLight News";
+    ? "Aujourd'hui dans l'histoire — Haïti"
+    : "Jodi a nan istwa — Ayiti";
   const description = fr
     ? "Éphéméride haïtienne : événements historiques, fêtes et personnalités du jour."
     : "Efemerid ayisyen : evènman istorik, fèt ak pèsonalite jou a.";

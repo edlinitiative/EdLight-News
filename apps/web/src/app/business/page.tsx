@@ -20,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Business & Économie · EdLight News" : "Biznis & Ekonomi · EdLight News";
+  const title = fr ? "Business & Économie" : "Biznis & Ekonomi";
   const description = fr
     ? "Économie haïtienne, entrepreneuriat, marchés mondiaux et carrières pour les jeunes professionnels."
     : "Ekonomi ayisyen, antreprenè, mache mondyal ak karyè pou jèn pwofesyonèl yo.";

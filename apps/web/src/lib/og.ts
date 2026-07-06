@@ -26,13 +26,16 @@ export function buildOgMetadata({
   image,
   type = "website",
 }: OgParams): Partial<Metadata> {
-  const url = `${BASE_URL}${path}${lang === "ht" ? "?lang=ht" : ""}`;
+  const frUrl = `${BASE_URL}${path}`;
+  const htUrl = `${BASE_URL}${path}?lang=ht`;
+  const url = lang === "ht" ? htUrl : frUrl;
+  const canonical = lang === "ht" ? htUrl : frUrl;
   const ogImage = image ?? `${BASE_URL}/opengraph-image`;
 
   return {
     alternates: {
-      canonical: `${BASE_URL}${path}`,
-      languages: { fr: `${BASE_URL}${path}`, ht: `${BASE_URL}${path}?lang=ht` },
+      canonical,
+      languages: { fr: frUrl, ht: htUrl, "x-default": frUrl },
     },
     openGraph: {
       title,

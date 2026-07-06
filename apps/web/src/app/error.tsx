@@ -36,7 +36,7 @@ export default function GlobalError({
 
       {error.digest && (
         <p className="rounded-md bg-stone-50 px-3 py-1.5 font-mono text-xs text-stone-400 dark:bg-stone-900 dark:text-stone-600">
-          Réf\u00a0: {error.digest}
+          {"Réf\u00a0:"} {error.digest}
         </p>
       )}
 

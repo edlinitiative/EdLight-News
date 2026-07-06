@@ -27,7 +27,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Haïti · EdLight News" : "Ayiti · EdLight News";
+  const title = fr ? "Haïti" : "Ayiti";
   const description = fr
     ? "Nouvelles locales et actualités éducatives directement d'Haïti."
     : "Nouvèl lokal ak aktualite edikasyon dirèkteman nan Ayiti.";
