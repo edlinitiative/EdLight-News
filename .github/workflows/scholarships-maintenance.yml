@@ -1,0 +1,59 @@
+name: Scholarships maintenance
+
+# Purge junk scholarships and (re)seed the curated flagship set.
+# Run "dry-run" first to review what the purge would delete, then "apply".
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "What to run"
+        required: true
+        type: choice
+        default: "dry-run"
+        options:
+          - dry-run        # purge in DRY_RUN (report only), no seed
+          - apply          # purge for real, then seed the flagship set
+          - seed-only      # only (re)seed the flagship set
+
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm turbo build --filter=@edlight-news/worker...
+
+      - name: Purge junk scholarships
+        if: ${{ inputs.mode == 'dry-run' || inputs.mode == 'apply' }}
+        working-directory: apps/worker
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          DRY_RUN: ${{ inputs.mode == 'dry-run' && 'true' || 'false' }}
+        run: npx tsx src/scripts/purgeJunkScholarships.ts
+
+      - name: Seed flagship scholarships
+        if: ${{ inputs.mode == 'apply' || inputs.mode == 'seed-only' }}
+        working-directory: apps/worker
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: npx tsx src/scripts/seedFlagshipScholarships.ts
