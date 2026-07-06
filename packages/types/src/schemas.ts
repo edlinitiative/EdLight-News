@@ -607,6 +607,12 @@ export const scholarshipSchema = z.object({
   subPrograms: z.array(scholarshipSubProgramSchema).optional(),
   relatedPagePath: z.string().startsWith("/").optional(),
   keyDates: z.array(scholarshipKeyDateSchema).optional(),
+  // Concrete "what you get / who it's for" detail (all optional) — populated
+  // for curated flagship scholarships to make each listing genuinely useful.
+  benefits: z.array(z.string()).optional(),
+  fieldsOfStudy: z.array(z.string()).optional(),
+  durationText: z.string().optional(),
+  languageRequirements: z.array(z.string()).optional(),
   verifiedAt: timestampSchema,
   updatedAt: timestampSchema,
 });

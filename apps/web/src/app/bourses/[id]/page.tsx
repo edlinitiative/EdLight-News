@@ -25,6 +25,11 @@ import {
   Layers,
   ArrowUpRight,
   Repeat,
+  Clock,
+  Languages,
+  Wallet,
+  Gift,
+  Compass,
 } from "lucide-react";
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -201,6 +206,40 @@ export default async function ScholarshipDetailPage({
         )}
       </div>
 
+      {/* Quick facts — the at-a-glance "is this for me / what do I get / when" */}
+      {(() => {
+        const levelLabel = (s.level ?? [])
+          .map((l) => (LEVEL_LABELS[l] ? (fr ? LEVEL_LABELS[l]!.fr : LEVEL_LABELS[l]!.ht) : l))
+          .join(" · ");
+        const deadlineShort = s.deadline?.dateISO
+          ? formatDate(s.deadline.dateISO, lang)
+          : typeof s.deadline?.month === "number"
+            ? MONTH_NAMES_FR[s.deadline.month]
+            : s.deadline?.notes || s.keyDates?.length
+              ? fr ? "Varie — voir détails" : "Varye — gade detay"
+              : fr ? "Voir site officiel" : "Gade sit ofisyèl";
+        const facts: { icon: typeof Wallet; label: string; value: string }[] = [];
+        if (funding) facts.push({ icon: Wallet, label: fr ? "Financement" : "Finansman", value: fr ? funding.fr : funding.ht });
+        if (levelLabel) facts.push({ icon: BookOpen, label: fr ? "Niveau" : "Nivo", value: levelLabel });
+        if (s.durationText) facts.push({ icon: Clock, label: fr ? "Durée" : "Dire", value: s.durationText });
+        facts.push({ icon: CalendarDays, label: fr ? "Date limite" : "Dat limit", value: deadlineShort });
+        if (s.languageRequirements?.length) facts.push({ icon: Languages, label: fr ? "Langue" : "Lang", value: s.languageRequirements.join(" / ") });
+        if (cl) facts.push({ icon: Compass, label: fr ? "Destination" : "Destinasyon", value: fr ? cl.fr : cl.ht });
+        return (
+          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-stone-200 bg-stone-200 sm:grid-cols-3 dark:border-stone-700 dark:bg-stone-700">
+            {facts.map((f, i) => (
+              <div key={i} className="bg-white p-3 dark:bg-stone-900">
+                <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                  <f.icon className="h-3.5 w-3.5" />
+                  {f.label}
+                </dt>
+                <dd className="mt-0.5 text-sm font-semibold text-stone-900 dark:text-stone-100">{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        );
+      })()}
+
       {/* Hero image (optional) */}
       {s.heroImageUrl && (
         <figure className="overflow-hidden rounded-lg border dark:border-stone-700">
@@ -323,6 +362,38 @@ export default async function ScholarshipDetailPage({
               <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-stone-700 dark:text-stone-300">
                 {s.programDescription}
               </p>
+            </div>
+          )}
+
+          {/* What the scholarship covers */}
+          {s.benefits && s.benefits.length > 0 && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900/40 dark:bg-emerald-900/10">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-emerald-900 dark:text-emerald-200">
+                <Gift className="h-5 w-5" />
+                {fr ? "Ce que la bourse couvre" : "Sa bous la kouvri"}
+              </h2>
+              <ul className="mt-2 space-y-1.5">
+                {s.benefits.map((b, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-stone-700 dark:text-stone-300">
+                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Fields of study */}
+          {s.fieldsOfStudy && s.fieldsOfStudy.length > 0 && (
+            <div>
+              <h2 className="text-lg font-bold">{fr ? "Domaines d'études" : "Domèn etid"}</h2>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {s.fieldsOfStudy.map((f, i) => (
+                  <span key={i} className="rounded-full bg-indigo-50 px-3 py-1 text-sm text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300">
+                    {f}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 

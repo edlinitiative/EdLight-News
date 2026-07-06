@@ -1267,6 +1267,14 @@ export interface Scholarship {
   relatedPagePath?: string;
   /** Recurring milestones in the application cycle. */
   keyDates?: ScholarshipKeyDate[];
+  /** Concrete "what you get": tuition, stipend, travel, insurance, etc. */
+  benefits?: string[];
+  /** Academic domains covered (e.g. "Ingénierie", "Santé publique"). */
+  fieldsOfStudy?: string[];
+  /** Programme length, e.g. "12–24 mois". */
+  durationText?: string;
+  /** Language requirements, e.g. "Anglais (IELTS 6.5)", "Français". */
+  languageRequirements?: string[];
 
   verifiedAt: Timestamp;
   updatedAt: Timestamp;
