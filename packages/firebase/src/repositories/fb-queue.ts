@@ -82,7 +82,7 @@ export async function listByStatus(
 ): Promise<FbQueueItem[]> {
   const snap = await collection()
     .where("status", "==", status)
-    .limit(Math.max(limit * 4, 80))
+    .limit(Math.max(limit * 2, 40))
     .get();
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }) as FbQueueItem)
@@ -174,31 +174,62 @@ function haitiDayBounds(date: Date = new Date()): { startTs: Timestamp; endTs: T
 
 export async function countSentToday(): Promise<number> {
   const { startTs } = haitiDayBounds();
-  // Avoid composite index dependency (status + updatedAt) by filtering in-memory.
-  const snap = await collection()
-    .where("status", "==", "sent" satisfies FbQueueStatus)
-    .limit(500)
-    .get();
-  return snap.docs.filter((doc) => {
-    const updatedAt = toDate(doc.data().updatedAt);
-    return updatedAt ? updatedAt.getTime() >= startTs.toDate().getTime() : false;
-  }).length;
+  // count() aggregation via the (status, updatedAt) composite index — costs
+  // ~1 read instead of scanning up to 500 sent docs every scheduler tick.
+  // Falls back to the old in-memory scan if the index is missing.
+  try {
+    const snap = await collection()
+      .where("status", "==", "sent" satisfies FbQueueStatus)
+      .where("updatedAt", ">=", startTs)
+      .count()
+      .get();
+    return snap.data().count;
+  } catch (err: unknown) {
+    const code = (err as { code?: number })?.code;
+    if (code !== 9) throw err; // 9 = FAILED_PRECONDITION (missing index)
+    const snap = await collection()
+      .where("status", "==", "sent" satisfies FbQueueStatus)
+      .limit(500)
+      .get();
+    return snap.docs.filter((doc) => {
+      const updatedAt = toDate(doc.data().updatedAt);
+      return updatedAt ? updatedAt.getTime() >= startTs.toDate().getTime() : false;
+    }).length;
+  }
 }
 
 export async function countScheduledToday(): Promise<number> {
   const { startISO, endISO } = haitiDayBounds();
-  // Avoid composite index dependency (status + scheduledFor range).
-  const [scheduledSnap, sendingSnap] = await Promise.all([
-    collection().where("status", "==", "scheduled" satisfies FbQueueStatus).limit(500).get(),
-    collection().where("status", "==", "sending" satisfies FbQueueStatus).limit(500).get(),
-  ]);
-
-  const allDocs = [...scheduledSnap.docs, ...sendingSnap.docs];
-  return allDocs.filter((doc) => {
-    const scheduledFor = doc.data().scheduledFor as string | undefined;
-    if (!scheduledFor) return false;
-    return scheduledFor >= startISO && scheduledFor < endISO;
-  }).length;
+  // count() aggregations via the (status, scheduledFor) composite index —
+  // ~2 reads instead of scanning up to 1,000 docs. Fallback mirrors
+  // countSentToday above.
+  try {
+    const counts = await Promise.all(
+      (["scheduled", "sending"] satisfies FbQueueStatus[]).map(async (status) => {
+        const snap = await collection()
+          .where("status", "==", status)
+          .where("scheduledFor", ">=", startISO)
+          .where("scheduledFor", "<", endISO)
+          .count()
+          .get();
+        return snap.data().count;
+      }),
+    );
+    return counts.reduce((a, b) => a + b, 0);
+  } catch (err: unknown) {
+    const code = (err as { code?: number })?.code;
+    if (code !== 9) throw err;
+    const [scheduledSnap, sendingSnap] = await Promise.all([
+      collection().where("status", "==", "scheduled" satisfies FbQueueStatus).limit(500).get(),
+      collection().where("status", "==", "sending" satisfies FbQueueStatus).limit(500).get(),
+    ]);
+    const allDocs = [...scheduledSnap.docs, ...sendingSnap.docs];
+    return allDocs.filter((doc) => {
+      const scheduledFor = doc.data().scheduledFor as string | undefined;
+      if (!scheduledFor) return false;
+      return scheduledFor >= startISO && scheduledFor < endISO;
+    }).length;
+  }
 }
 
 // ── Update ──────────────────────────────────────────────────────────────────
