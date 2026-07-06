@@ -235,13 +235,15 @@ export const fetchEnrichedFeed = unstable_cache(
       return [];
     }
   },
-  // Cache key suffix bumped to v3 (2026-05): after the aggregator + non-Haiti
-  // news purges (PRs #103-#106), the v2 namespace still served stale homepage
-  // results pointing to deleted items (manifesting as "Not found" tiles and
-  // off-mission articles like Cuba scenarios / Brazil sports). Bumping the
-  // key forces a fresh cache namespace so the next render reflects the
-  // cleaned-up Firestore state.
-  ["enriched-feed", "v3"],
+  // Cache key suffix bumped to v4 (2026-07): during the Firestore read-quota
+  // outage, per-argument cache entries (each distinct `limit` is its own
+  // entry — home uses 100, /news uses 200, sections use others) stored EMPTY
+  // arrays. After the quota was restored, the home entry refreshed but the
+  // less-trafficked section entries kept serving [] until their revalidate
+  // window elapsed, leaving /news, /haiti, /education blank. Bumping the key
+  // invalidates every entry at once so all feeds refetch from healthy
+  // Firestore. (v3 was the 2026-05 bump after the aggregator/non-Haiti purges.)
+  ["enriched-feed", "v4"],
   // 60 min — content updates rarely; this is the primary read driver.
   // Bumped from 30 min (2026-07) as part of the Firestore read-quota fix:
   // each cold revalidate costs ~400 reads (200 CVs + 200 items) per lang.
@@ -338,7 +340,7 @@ export const fetchEnrichedFeedByVertical = unstable_cache(
    }
   },
   // See fetchEnrichedFeed above for rationale on the v3 suffix.
-  ["enriched-feed-by-vertical", "v3"],
+  ["enriched-feed-by-vertical", "v4"],
   { revalidate: 3600, tags: ["feed"] },
 );
 
@@ -400,7 +402,7 @@ export const fetchTrending = unstable_cache(
   },
   // v3 suffix added 2026-05 in line with the enriched-feed bump after the
   // aggregator + non-Haiti purges (PRs #103-#106).
-  ["trending-feed", "v3"],
+  ["trending-feed", "v4"],
   { revalidate: 3600, tags: ["trending"] },
 );
 
