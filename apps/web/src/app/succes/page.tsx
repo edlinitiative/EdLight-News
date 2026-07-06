@@ -24,7 +24,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Succès & Inspiration · EdLight News" : "Siksè & Enspirasyon · EdLight News";
+  const title = fr ? "Succès & Inspiration" : "Siksè & Enspirasyon";
   const description = fr
     ? "Des histoires de réussite qui inspirent la communauté haïtienne."
     : "Istwa siksè ki enspire kominote ayisyèn nan.";

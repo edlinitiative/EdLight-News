@@ -120,7 +120,14 @@ export function NavBar() {
   useEffect(() => {
     if (!searchOpen) return;
     const id = setTimeout(() => searchInputRef.current?.focus(), 50);
-    return () => clearTimeout(id);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [searchOpen]);
 
   const primaryLinks = NAV_LINKS.filter((l) => l.section === "primary");
@@ -134,7 +141,13 @@ export function NavBar() {
     <>
       {/* ── Search overlay ────────────────────────────────────────── */}
       {searchOpen && (
-        <div className="fixed inset-0 z-[60] flex items-start justify-center bg-on-surface/30 backdrop-blur-sm pt-20 px-4" onClick={() => setSearchOpen(false)}>
+        <div
+          className="fixed inset-0 z-[60] flex items-start justify-center bg-on-surface/30 backdrop-blur-sm pt-20 px-4"
+          onClick={() => setSearchOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={fr ? "Recherche" : "Rechèch"}
+        >
           <div className="w-full max-w-xl" onClick={(e) => e.stopPropagation()}>
             <form onSubmit={handleSearchSubmit} className="flex items-center gap-3 rounded-xl bg-surface-container-lowest shadow-ambient p-4" style={{ border: '1px solid rgba(202,196,208,0.12)' }}>
               <Search className="h-5 w-5 shrink-0 text-on-surface-variant" />
@@ -144,11 +157,12 @@ export function NavBar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={fr ? "Rechercher des articles, opportunités…" : "Chèche atik, okazyon…"}
-                className="flex-1 bg-transparent text-base text-on-surface placeholder-on-surface-variant/50 outline-none"
+                aria-label={fr ? "Rechercher des articles, opportunités" : "Chèche atik, okazyon"}
+                className="flex-1 bg-transparent text-base text-on-surface placeholder-on-surface-variant/50 outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 autoFocus
               />
               {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery("")} className="text-on-surface-variant hover:text-on-surface">
+                <button type="button" onClick={() => setSearchQuery("")} aria-label={fr ? "Effacer la recherche" : "Efase rechèch la"} className="text-on-surface-variant hover:text-on-surface">
                   <X className="h-4 w-4" />
                 </button>
               )}
@@ -235,7 +249,7 @@ export function NavBar() {
                       <DropdownMenu.Item
                         key={link.href}
                         asChild
-                        className="outline-none"
+                        className="outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         <Link
                           href={l(link.href)}
@@ -305,7 +319,8 @@ export function NavBar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={fr ? "Rechercher…" : "Chèche…"}
-                  className="flex-1 bg-transparent text-base sm:text-sm text-on-surface placeholder-on-surface-variant/50 outline-none"
+                  aria-label={fr ? "Rechercher" : "Chèche"}
+                  className="flex-1 bg-transparent text-base sm:text-sm text-on-surface placeholder-on-surface-variant/50 outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 />
               </form>
             </div>

@@ -18,6 +18,26 @@ interface ImageWithFallbackProps {
   sizes?: string;
   /** Content to render when the image fails to load */
   fallback?: React.ReactNode;
+  /** Prioritize loading (LCP images). When true, loads eagerly and preloads. */
+  priority?: boolean;
+}
+
+// Hosts whitelisted in next.config.js remotePatterns — images served from
+// these can be optimized by next/image. Everything else stays unoptimized.
+const OPTIMIZED_HOSTS = new Set([
+  "storage.googleapis.com",
+  "firebasestorage.googleapis.com",
+  "commons.wikimedia.org",
+  "upload.wikimedia.org",
+]);
+
+function isOptimizable(src: string): boolean {
+  if (!src.startsWith("http")) return true;
+  try {
+    return OPTIMIZED_HOSTS.has(new URL(src).hostname);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -34,6 +54,7 @@ export function ImageWithFallback({
   fill,
   sizes,
   fallback,
+  priority = false,
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(false);
 
@@ -41,21 +62,23 @@ export function ImageWithFallback({
     return fallback ? <>{fallback}</> : null;
   }
 
-  // External URLs need unoptimized flag unless configured in next.config.js
-  const isExternal = src.startsWith("http");
+  // Optimize images served from hosts whitelisted in next.config.js; keep
+  // genuinely non-whitelisted external hosts unoptimized (Next would 400 them).
+  const unoptimized = !isOptimizable(src);
 
   return (
     <Image
       src={src}
       alt={alt}
       className={className}
-      loading={loading}
+      priority={priority}
+      loading={priority ? "eager" : loading}
       onError={() => setFailed(true)}
       {...(fill
         ? { fill: true, sizes: sizes ?? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" }
         : { width: width ?? 400, height: height ?? 300 }
       )}
-      unoptimized={isExternal}
+      unoptimized={unoptimized}
     />
   );
 }

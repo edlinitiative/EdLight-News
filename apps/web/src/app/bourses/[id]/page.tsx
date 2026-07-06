@@ -45,7 +45,9 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   const scholarship = await fetchScholarship(params.id);
-  const title = scholarship ? `${scholarship.name} | Bourses | EdLight News` : "Bourse introuvable";
+  // Layout applies the "%s | EdLight News" template, so keep a single clean
+  // "Bourses" qualifier here and let the template add the brand.
+  const title = scholarship ? `${scholarship.name} | Bourses` : "Bourse introuvable";
   return {
     title,
     ...buildOgMetadata({
@@ -325,11 +327,11 @@ export default async function ScholarshipDetailPage({
           )}
 
           {/* Levels */}
-          {s.level.length > 0 && (
+          {(s.level?.length ?? 0) > 0 && (
             <div>
               <h2 className="text-lg font-bold">{fr ? "Niveaux" : "Nivo"}</h2>
               <div className="mt-1 flex flex-wrap gap-2">
-                {s.level.map((l) => {
+                {(s.level ?? []).map((l) => {
                   const lbl = LEVEL_LABELS[l];
                   return (
                     <span key={l} className="rounded bg-stone-100 dark:bg-stone-700 px-2 py-0.5 text-sm text-stone-700 dark:text-stone-300">
@@ -574,11 +576,11 @@ export default async function ScholarshipDetailPage({
       )}
 
       {/* Sources */}
-      {s.sources.length > 0 && (
+      {(s.sources?.length ?? 0) > 0 && (
         <div>
           <h3 className="text-sm font-bold text-stone-500 dark:text-stone-400">{fr ? "Sources" : "Sous"}</h3>
           <div className="mt-1 flex flex-wrap gap-2">
-            {s.sources.map((src, i) => (
+            {(s.sources ?? []).map((src, i) => (
               <a
                 key={i}
                 href={src.url}

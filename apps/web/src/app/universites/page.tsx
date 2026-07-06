@@ -30,7 +30,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Universités · EdLight News" : "Inivèsite · EdLight News";
+  const title = fr ? "Universités" : "Inivèsite";
   const description = fr
     ? "Base de données d'universités pour étudiants haïtiens."
     : "Baz done inivèsite pou elèv ayisyen yo.";

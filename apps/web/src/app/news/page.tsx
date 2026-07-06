@@ -21,7 +21,8 @@ export async function generateMetadata({
   try {
     const lang = getLangFromSearchParams(searchParams);
     const fr = lang === "fr";
-    const title = fr ? "Fil — Actualités · EdLight News" : "Fil — Nouvèl · EdLight News";
+    // Unbranded — the root layout title template ("%s | EdLight News") brands it once.
+    const title = fr ? "Fil — Actualités" : "Fil — Nouvèl";
     const description = fr
       ? "Toute l'actualité éducative pour les étudiants haïtiens."
       : "Tout nouvèl edikasyon pou elèv ayisyen yo.";
@@ -36,7 +37,7 @@ export async function generateMetadata({
       err instanceof Error ? err.stack ?? err.message : err,
     );
     return {
-      title: "Fil — Actualités · EdLight News",
+      title: "Fil — Actualités",
       description: "Toute l'actualité éducative pour les étudiants haïtiens.",
     };
   }

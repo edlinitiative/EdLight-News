@@ -8,10 +8,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: ["/admin/", "/api/", "/saved"],
       },
-      {
-        userAgent: "GPTBot",
-        disallow: ["/"],
-      },
     ],
     sitemap: "https://news.edlight.org/sitemap.xml",
   };
