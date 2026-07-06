@@ -189,7 +189,13 @@ export async function generateForItems(): Promise<{
         continue;
       }
 
-      const isLowConfidence = draft.confidence < 0.6 || isShortContent;
+      // Low-confidence reflects the LLM's own confidence only — it is NOT
+      // coupled to whether the source was RSS-only (isShortContent). A feed
+      // that ships a title + summary but no scraped body can still yield a
+      // perfectly good, high-confidence draft; flagging all such items as
+      // low-confidence needlessly held back accurate RSS-sourced content.
+      // isShortContent is still recorded as its own quality reason below.
+      const isLowConfidence = draft.confidence < 0.6;
 
       // Re-score with Gemini's category for better accuracy
       const textForScoring = `${item.title} ${item.extractedText || item.summary}`;
