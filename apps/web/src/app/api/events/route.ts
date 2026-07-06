@@ -28,6 +28,42 @@ function clampString(v: unknown, max: number): string | null {
   return v.slice(0, max);
 }
 
+/**
+ * Event names we ALWAYS persist, ignoring sampling. These are low-volume,
+ * high-value signals (conversions / signups) we can't afford to lose.
+ */
+const ALWAYS_KEEP = new Set(["newsletter_signup"]);
+
+function isHighValue(eventName: string): boolean {
+  if (ALWAYS_KEEP.has(eventName)) return true;
+  // Defensive: also keep anything that looks like a conversion/signup, so new
+  // high-value event names aren't silently sampled away before this list is
+  // updated. High-volume events (clicks, nav, pageview/scroll/impression) fall
+  // through to sampling below.
+  return /signup|subscribe|conversion|purchase|checkout/i.test(eventName);
+}
+
+/**
+ * Server-side sampling to protect the Firestore free-tier write budget.
+ *
+ * Firestore's free tier allows ~20K writes/day. Each analytics event is one
+ * `.add()` write, and the client fires several per pageview via sendBeacon, so
+ * at ~10K pageviews/day we would blow the cap and writes scale with traffic.
+ * To stay under it we persist only a random fraction of high-volume events
+ * while always keeping conversions/signups (see isHighValue). Sampled-out
+ * events are acknowledged with 200 so the client never sees an error.
+ *
+ * Tunable via EVENTS_SAMPLE_RATE (0..1); default 0.2 keeps ~20% of sampled
+ * events. Note: Math.random() is fine here — this is a Vercel serverless
+ * route, not a worker context where it's disallowed.
+ */
+function getSampleRate(): number {
+  const raw = process.env.EVENTS_SAMPLE_RATE;
+  const n = raw == null || raw === "" ? NaN : Number(raw);
+  if (!Number.isFinite(n)) return 0.2;
+  return Math.min(1, Math.max(0, n));
+}
+
 export async function POST(req: Request) {
   let body: IncomingEvent;
   try {
@@ -39,6 +75,13 @@ export async function POST(req: Request) {
   const eventName = clampString(body.event, 64);
   if (!eventName) {
     return NextResponse.json({ error: "Missing event" }, { status: 400 });
+  }
+
+  // Apply write-budget sampling BEFORE touching Firestore (see getSampleRate).
+  // High-value events always persist; everything else is kept only a random
+  // fraction of the time. Dropped events still return 200 (no client error).
+  if (!isHighValue(eventName) && Math.random() >= getSampleRate()) {
+    return NextResponse.json({ ok: true, sampled: true });
   }
 
   // Cap props payload size — never trust the client.

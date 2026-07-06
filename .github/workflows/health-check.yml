@@ -1,0 +1,67 @@
+name: health-check
+
+# Scheduled uptime + content monitor for the public site.
+# Verifies the homepage and /news each return HTTP 200 AND contain at least one
+# "/news/" article link. On failure it optionally alerts a webhook and fails
+# the job. Uses only bash + curl (no checkout, no build).
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public pages
+        env:
+          # Secret is injected as an env var, never interpolated into the
+          # script body. Empty when the secret is unset.
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+        run: |
+          set -uo pipefail
+
+          FAILURES=()
+
+          check() {
+            url="$1"
+            body="$(mktemp)"
+            status="$(curl -sS -m 30 -o "$body" -w '%{http_code}' "$url" || echo 000)"
+            markers="$(grep -c '/news/' "$body" 2>/dev/null || true)"
+            markers="${markers:-0}"
+            echo "GET $url -> HTTP $status, /news/ markers: $markers"
+            if [ "$status" != "200" ]; then
+              FAILURES+=("$url returned HTTP $status")
+            elif [ "$markers" -lt 1 ]; then
+              FAILURES+=("$url returned 200 but had no \"/news/\" article markers")
+            fi
+            rm -f "$body"
+          }
+
+          check "https://news.edlight.org/"
+          check "https://news.edlight.org/news"
+
+          if [ "${#FAILURES[@]}" -gt 0 ]; then
+            MESSAGE="EdLight News health check FAILED:"
+            for f in "${FAILURES[@]}"; do
+              MESSAGE="$MESSAGE"$'\n'"- $f"
+            done
+            echo "$MESSAGE"
+
+            if [ -n "${ALERT_WEBHOOK_URL:-}" ]; then
+              # jq builds well-formed JSON regardless of message contents.
+              PAYLOAD="$(jq -n --arg text "$MESSAGE" '{text: $text}')"
+              curl -sS -m 30 -X POST \
+                -H "Content-Type: application/json" \
+                --data "$PAYLOAD" \
+                "$ALERT_WEBHOOK_URL" || true
+            else
+              echo "ALERT_WEBHOOK_URL secret not set — skipping alert POST."
+            fi
+
+            exit 1
+          fi
+
+          echo "All monitored pages healthy."

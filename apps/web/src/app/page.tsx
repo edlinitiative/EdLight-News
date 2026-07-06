@@ -1,19 +1,9 @@
 /**
- * Homepage dispatcher.
+ * Homepage — bourses-led variant.
  *
- * Routes to one of two homepage variants:
- *   - "bourses-led" (default) — leads with scholarships, news second.
- *   - "legacy"               — original text-first newspaper layout, kept
- *                              for safety so we can revert via env var or
- *                              port the design to other surfaces.
- *
- * Selection: `NEXT_PUBLIC_HOMEPAGE_VARIANT=legacy` switches back. Anything
- * else (including unset) renders the bourses-led variant.
- *
- * Data fetching is duplicated only for the news pool (the bourses-led
- * variant needs both scholarships *and* news). The legacy variant fetches
- * its own data inside the component, untouched, so behavior is identical
- * to the pre-redesign homepage.
+ * Leads with scholarships, news second. Fetches both scholarships *and* the
+ * news pool, ranks/filters the feed, and hands the segments to
+ * HomepageBoursesLed for rendering.
  */
 
 import type { Metadata } from "next";
@@ -40,16 +30,8 @@ import type { FeedItem } from "@/components/news-feed";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 
 import { HomepageBoursesLed } from "@/components/homepage/HomepageBoursesLed";
-import { HomepageLegacy } from "@/components/homepage/HomepageLegacy";
 
 export const revalidate = 60;
-
-// ── Variant flag ─────────────────────────────────────────────────────────────
-function getVariant(): "bourses-led" | "legacy" {
-  return process.env.NEXT_PUBLIC_HOMEPAGE_VARIANT === "legacy"
-    ? "legacy"
-    : "bourses-led";
-}
 
 // ── Metadata ─────────────────────────────────────────────────────────────────
 export async function generateMetadata({
@@ -60,25 +42,16 @@ export async function generateMetadata({
   try {
     const lang = getLangFromSearchParams(searchParams);
     const fr = lang === "fr";
-    const variant = getVariant();
 
-    const title =
-      variant === "bourses-led"
-        ? fr
-          ? "EdLight News — Bourses + actualités pour étudiants haïtiens"
-          : "EdLight News — Bous + nouvèl pou etidyan ayisyen"
-        : fr
-          ? "EdLight News — Actualités éducatives pour étudiants haïtiens"
-          : "EdLight News — Nouvèl edikasyon pou elèv ayisyen yo";
+    // Title is intentionally unbranded — the root layout's title template
+    // ("%s | EdLight News") appends the brand once.
+    const title = fr
+      ? "Bourses + actualités pour étudiants haïtiens"
+      : "Bous + nouvèl pou etidyan ayisyen";
 
-    const description =
-      variant === "bourses-led"
-        ? fr
-          ? "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora. Mises à jour chaque jour."
-          : "Bous, opòtinite ak nouvèl verifye pou etidyan ayisyen ak dyaspora a. Mizajou chak jou."
-        : fr
-          ? "Bourses, calendrier, ressources et actualités pour les étudiants haïtiens."
-          : "Bous, kalandriye, resous ak nouvèl pou elèv ayisyen yo.";
+    const description = fr
+      ? "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora. Mises à jour chaque jour."
+      : "Bous, opòtinite ak nouvèl verifye pou etidyan ayisyen ak dyaspora a. Mizajou chak jou.";
 
     return {
       title,
@@ -91,7 +64,7 @@ export async function generateMetadata({
       err instanceof Error ? err.stack ?? err.message : err,
     );
     return {
-      title: "EdLight News",
+      title: "Bourses + actualités pour étudiants haïtiens",
       description:
         "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens.",
     };
@@ -166,10 +139,6 @@ export default async function HomePage({
   const lang = (
     searchParams.lang === "ht" ? "ht" : "fr"
   ) as ContentLanguage;
-
-  if (getVariant() === "legacy") {
-    return <HomepageLegacy lang={lang} />;
-  }
 
   // Stream the heavy data-driven section inside Suspense so the response
   // headers/HTML shell can flush immediately, even when Firestore is cold.

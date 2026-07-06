@@ -24,7 +24,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Monde · EdLight News" : "Mond · EdLight News";
+  const title = fr ? "Monde" : "Mond";
   const description = fr
     ? "Actualités internationales : géopolitique, économie mondiale, éducation et innovation."
     : "Nouvèl entènasyonal : jewopolitik, ekonomi mondyal, edikasyon ak inovasyon.";

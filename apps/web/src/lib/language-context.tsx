@@ -28,7 +28,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLang] = useState<ContentLanguage>(() => {
     if (typeof window === "undefined") return "fr";
     const urlLang = new URLSearchParams(window.location.search).get("lang");
-    return urlLang === "ht" ? "ht" : "fr";
+    if (urlLang === "ht") return "ht";
+    if (urlLang === "fr") return "fr";
+    // Fall back to the server-readable "lang" cookie so client + SSR agree.
+    const cookieLang = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("lang="))
+      ?.split("=")[1];
+    return cookieLang === "ht" ? "ht" : "fr";
   });
 
   // Persist the last applied language for client-only surfaces.

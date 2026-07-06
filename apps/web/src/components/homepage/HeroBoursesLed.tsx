@@ -178,6 +178,7 @@ export function HeroBoursesLed({ bourses, featuredNews, lang }: Props) {
                       src={featuredNews.imageUrl}
                       alt={featuredNews.title}
                       fill
+                      priority
                       sizes="(max-width: 1024px) 100vw, 420px"
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                     />

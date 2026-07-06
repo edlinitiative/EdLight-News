@@ -521,6 +521,7 @@ export function NewsFeed({
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
+            aria-label={lang === "fr" ? "Trier" : "Triye"}
             className="shrink-0 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-base sm:text-sm text-stone-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
           >
             {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
@@ -602,7 +603,7 @@ export function NewsFeed({
           <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
             {/* Lead article + secondary stories */}
             <div>
-              <ArticleCard article={visible[0]!} lang={lang} variant="featured" />
+              <ArticleCard article={visible[0]!} lang={lang} variant="featured" priority />
               {visible.length > 1 && (
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   {visible.slice(1, 3).map((a) => (

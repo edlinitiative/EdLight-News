@@ -97,7 +97,8 @@ export async function generateMetadata({
     ? article
     : webSiblings.find((s) => s.language === "ht");
 
-  const title = `${article.title} — EdLight News`;
+  // Return the bare title; the root layout template appends "| EdLight News".
+  const title = article.title;
   const description = article.summary || article.body?.slice(0, 160) || "";
   const metadata = buildOgMetadata({
     title,
@@ -116,7 +117,10 @@ export async function generateMetadata({
       canonical: `${BASE_URL}/news/${params.id}`,
       languages: {
         ...(frVersion ? { fr: `${BASE_URL}/news/${frVersion.id}` } : {}),
-        ...(htVersion ? { ht: `${BASE_URL}/news/${htVersion.id}?lang=ht` } : {}),
+        // HT hreflang must match the HT page's own canonical (bare /news/{htId}).
+        ...(htVersion ? { ht: `${BASE_URL}/news/${htVersion.id}` } : {}),
+        // x-default points at the FR article as the primary/default variant.
+        ...(frVersion ? { "x-default": `${BASE_URL}/news/${frVersion.id}` } : {}),
       },
     },
   };
@@ -628,7 +632,7 @@ function UtilitySourceCitations({
   article: ContentVersion;
   lang: ContentLanguage;
 }) {
-  const cites = (article as any).sourceCitations as { name: string; url: string }[] | undefined;
+  const cites = (article as { sourceCitations?: { name: string; url: string }[] }).sourceCitations;
   if (!cites || cites.length === 0) return null;
   return (
     <section className="border-t border-stone-200 pt-5 dark:border-stone-700">
@@ -1070,7 +1074,7 @@ export default async function ArticlePage({
                 {currentLang === "fr" ? "Actualités" : "Nouvèl"}
               </Link>
             )}
-            {catLabel && !isOpinion && (
+            {catLabel && !isOpinion && catLabel !== (currentLang === "fr" ? "Actualités" : "Nouvèl") && (
               <>
                 <ChevronRight className="h-3 w-3 shrink-0" />
                 <span className="text-stone-500 dark:text-stone-300 font-medium">{catLabel}</span>
@@ -1124,6 +1128,7 @@ export default async function ArticlePage({
                         src={heroImageUrl}
                         alt={article.title}
                         fill
+                        priority
                         sizes="(max-width: 1024px) 224px, 224px"
                         className="object-contain"
                         fallback={
@@ -1169,6 +1174,7 @@ export default async function ArticlePage({
                     src={heroImageUrl}
                     alt={article.title}
                     fill
+                    priority
                     sizes="(max-width: 768px) 100vw, 768px"
                     className={`h-full w-full object-cover${isHistory ? " object-top" : ""}`}
                     fallback={

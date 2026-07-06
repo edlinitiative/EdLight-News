@@ -41,6 +41,7 @@ export function CompactFiltersRow({
         <select
           value={subcategoryFilter}
           onChange={(e) => onFilterChange("subcategory", e.target.value)}
+          aria-label={fr ? "Filtrer par type" : "Filtre pa tip"}
           className="hidden h-8 appearance-none rounded-full border border-[#c7c4d8]/20 bg-white pl-2.5 pr-7 text-xs font-medium text-[#464555] focus:border-[#3525cd]/30 focus:outline-none focus:ring-2 focus:ring-[#3525cd]/20 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-[#c3c0ff] sm:block"
         >
           <option value="all">{fr ? "📋 Type" : "📋 Tip"}</option>

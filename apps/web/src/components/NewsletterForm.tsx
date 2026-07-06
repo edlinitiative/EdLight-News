@@ -181,6 +181,7 @@ export function NewsletterForm({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={fr ? "Votre adresse e-mail" : "Adrès imèl ou"}
+          aria-label={fr ? "Votre adresse e-mail" : "Adrès imèl ou"}
           className="flex-1 rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 outline-none ring-0 transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder-stone-500 dark:focus:border-blue-500 dark:focus:ring-blue-900/30"
         />
         <button

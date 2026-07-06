@@ -23,7 +23,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Opinion · EdLight News" : "Opinyon · EdLight News";
+  const title = fr ? "Opinion" : "Opinyon";
   const description = fr
     ? "Analyses, commentaires et perspectives sur l'éducation, la société et l'avenir des étudiants haïtiens."
     : "Analiz, kòmantè ak pèspektiv sou edikasyon, sosyete ak avni elèv ayisyen yo.";

@@ -139,7 +139,7 @@ export function StickyNewsletterCTA() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={placeholder}
                 aria-label={headline}
-                className="flex-1 min-w-0 rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-primary dark:border-stone-700 dark:bg-stone-800 dark:text-white"
+                className="flex-1 min-w-0 rounded-md border border-stone-200 bg-white px-2.5 py-1.5 text-[13px] outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary dark:border-stone-700 dark:bg-stone-800 dark:text-white"
               />
               <button
                 type="submit"
@@ -209,7 +209,7 @@ export function StickyNewsletterCTA() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={placeholder}
                   aria-label={placeholder}
-                  className="flex-1 min-w-0 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-stone-700 dark:bg-stone-800 dark:text-white"
+                  className="flex-1 min-w-0 rounded-md border border-stone-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary dark:border-stone-700 dark:bg-stone-800 dark:text-white"
                 />
                 <button
                   type="submit"

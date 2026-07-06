@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { Manrope, Inter } from "next/font/google";
 import Script from "next/script";
@@ -44,9 +45,6 @@ export const metadata: Metadata = {
     "Bourses, opportunités et actualités vérifiées pour les étudiants haïtiens et la diaspora — Bous, opòtinite ak nouvèl pou etidyan ayisyen yo.",
   icons: { icon: "/icon.svg" },
   metadataBase: new URL("https://news.edlight.org"),
-  alternates: {
-    canonical: "https://news.edlight.org",
-  },
   robots: {
     index: true,
     follow: true,
@@ -83,8 +81,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cookieLang = cookies().get("lang")?.value === "ht" ? "ht" : "fr";
   return (
-    <html lang="fr" suppressHydrationWarning className={`${display.variable} ${sans.variable}`}>
+    <html lang={cookieLang} suppressHydrationWarning className={`${display.variable} ${sans.variable}`}>
       <head>
         {/*
           Blocking theme script — must be the first thing in <head> so the

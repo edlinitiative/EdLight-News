@@ -105,12 +105,19 @@ export function SearchFeed({ articles, lang, initialQuery = "" }: Props) {
               ? "Rechercher des articles, bourses, opportunités…"
               : "Chèche atik, bous, okazyon…"
           }
+          aria-label={
+            fr
+              ? "Rechercher des articles, bourses, opportunités"
+              : "Chèche atik, bous, okazyon"
+          }
           className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-11 pr-10 text-base sm:text-sm text-stone-900 placeholder-stone-400 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-stone-700 dark:bg-stone-900 dark:text-white dark:placeholder-stone-500"
           autoFocus
         />
         {query && (
           <button
+            type="button"
             onClick={() => setQuery("")}
+            aria-label={fr ? "Effacer la recherche" : "Efase rechèch la"}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
           >
             <X className="h-4 w-4" />

@@ -20,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lang = getLangFromSearchParams(searchParams);
   const fr = lang === "fr";
-  const title = fr ? "Technologie · EdLight News" : "Teknoloji · EdLight News";
+  const title = fr ? "Technologie" : "Teknoloji";
   const description = fr
     ? "IA, numérique, innovation technologique et leur impact sur la jeunesse haïtienne."
     : "AI, dijital, inovasyon teknolojik ak enpak yo sou jèn ayisyen yo.";

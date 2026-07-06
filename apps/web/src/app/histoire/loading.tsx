@@ -1,7 +1,8 @@
 /** Loading skeleton for /histoire — premium editorial edition */
 export default function Loading() {
   return (
-    <div className="animate-pulse space-y-0">
+    <div role="status" aria-busy="true" className="animate-pulse space-y-0">
+      <span className="sr-only">Chargement…</span>
       {/* ── Cinematic hero skeleton ──────────────────────── */}
       <div className="relative min-h-[560px] overflow-hidden rounded-b-[2rem] bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 md:min-h-[640px]">
         <div className="absolute bottom-0 left-0 p-8 md:p-12 lg:p-16">

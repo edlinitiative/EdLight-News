@@ -1,7 +1,8 @@
 /** Loading skeleton for /news */
 export default function Loading() {
   return (
-    <div className="animate-pulse space-y-6">
+    <div role="status" aria-busy="true" className="animate-pulse space-y-6">
+      <span className="sr-only">Chargement…</span>
       <header className="space-y-2">
         <div className="h-10 w-64 rounded-lg bg-stone-200 dark:bg-stone-700" />
         <div className="h-4 w-96 max-w-full rounded bg-stone-100 dark:bg-stone-700" />

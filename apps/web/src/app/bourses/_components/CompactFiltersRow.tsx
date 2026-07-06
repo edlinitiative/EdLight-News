@@ -56,6 +56,7 @@ export function CompactFiltersRow({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={fr ? "Rechercher…" : "Chèche…"}
+            aria-label={fr ? "Rechercher des bourses" : "Chèche bous"}
             className="w-full rounded-lg border border-stone-200 bg-stone-50 py-1.5 pl-8 pr-8 text-base sm:text-sm text-stone-900 placeholder:text-stone-400 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-white dark:placeholder:text-stone-500 dark:focus:border-blue-600 dark:focus:ring-blue-800/40"
           />
           {searchQuery && (
@@ -74,6 +75,7 @@ export function CompactFiltersRow({
         <select
           value={countryFilter}
           onChange={(e) => onFilterChange("country", e.target.value)}
+          aria-label={fr ? "Filtrer par pays" : "Filtre pa peyi"}
           className="hidden h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600 sm:block"
         >
           <option value="all">{fr ? "🌍 Pays" : "🌍 Peyi"}</option>
@@ -88,6 +90,7 @@ export function CompactFiltersRow({
         <select
           value={levelFilter}
           onChange={(e) => onFilterChange("level", e.target.value)}
+          aria-label={fr ? "Filtrer par niveau" : "Filtre pa nivo"}
           className="hidden h-8 appearance-none rounded-lg border border-stone-200 bg-white pl-2.5 pr-7 text-xs font-medium text-stone-700 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:focus:border-blue-600 sm:block"
         >
           <option value="all">{fr ? "Niveau" : "Nivo"}</option>
