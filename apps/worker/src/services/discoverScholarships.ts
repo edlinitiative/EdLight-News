@@ -84,6 +84,30 @@ function safeUrl(value: string | undefined | null): string | null {
   }
 }
 
+/**
+ * Content aggregators (news + scholarship round-up sites). An apply link that
+ * points ONLY at one of these is not a real program page — these produced the
+ * low-trust, often-dead /bourses entries we're purging, so we reject them.
+ */
+const AGGREGATOR_HOSTS = [
+  "news.google.com", "opportunitydesk.org", "afterschoolafrica.com",
+  "scholars4dev.com", "scholarshippositions.com", "opportunitiesforafricans.com",
+  "oyaop.com", "youthop.com", "scholarshiproar.com", "opportunitycorners.info",
+];
+
+function hostOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function isAggregatorHost(url: string): boolean {
+  const host = hostOf(url);
+  return AGGREGATOR_HOSTS.some((h) => host === h || host.endsWith("." + h));
+}
+
 /** Map LLM output to a CreateScholarship payload, or return null if unusable. */
 function buildCreatePayload(
   item: Item,
@@ -103,6 +127,15 @@ function buildCreatePayload(
   // here rather than surfacing an un-actionable listing.
   const applyLink = safeUrl(data.officialUrl) ?? safeUrl(data.howToApplyUrl);
   if (!applyLink) return null;
+
+  // Quality gates (added 2026-07) — keep /bourses trustworthy and actionable:
+  //   1. Aggregator-only apply link → reject (need the real program site).
+  //   2. Not open to Haitians → reject (don't list awards students can't win).
+  //   3. Expired deadline → reject (no past-deadline listings).
+  if (isAggregatorHost(applyLink)) return null;
+  if (data.haitianEligible === false) return null;
+  const todayISO = new Date().toISOString().slice(0, 10);
+  if (data.deadlineDateISO && data.deadlineDateISO < todayISO) return null;
 
   // Prefer the LLM-extracted official URL; fall back to the article URL.
   const officialUrl = safeUrl(data.officialUrl) ?? safeUrl(item.canonicalUrl);
