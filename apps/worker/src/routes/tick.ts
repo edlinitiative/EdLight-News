@@ -30,6 +30,7 @@ import { processXScheduled } from "../jobs/processXScheduled.js";
 import { pullSocialMetrics } from "../jobs/pullSocialMetrics.js";
 import { monitorSocial } from "../jobs/monitorSocial.js";
 import { buildReelsQueue } from "../jobs/buildReelsQueue.js";
+import { cleanupReels } from "../jobs/cleanupReels.js";
 import { contentVersionsRepo } from "@edlight-news/firebase";
 import { pingSearchEngines } from "../services/pingSearchEngines.js";
 
@@ -436,6 +437,18 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     }
     markStep("reels", step16StartMs, (reelsResult as any).error);
 
+    // Step 17: Reel retention — delete reel MP4s older than 7 days
+    // (gated to the 04:00 Haiti hour inside the job; no-op otherwise)
+    const step17StartMs = Date.now();
+    let reelCleanupResult: Record<string, unknown> = {};
+    try {
+      reelCleanupResult = (await cleanupReels()) as unknown as Record<string, unknown>;
+    } catch (err) {
+      console.warn("[tick] cleanupReels error:", err);
+      reelCleanupResult = { error: String(err) };
+    }
+    markStep("reelCleanup", step17StartMs, (reelCleanupResult as any).error);
+
     // Ping Google if any content was published this tick
     const pingStartMs = Date.now();
     let pingError: string | undefined;
@@ -479,6 +492,7 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
         socialMetrics: metricsResult,
         monitorSocial: monitorResult,
         reels: reelsResult,
+        reelCleanup: reelCleanupResult,
       },
     });
   } catch (err) {
