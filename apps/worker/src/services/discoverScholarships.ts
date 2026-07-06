@@ -94,6 +94,16 @@ function buildCreatePayload(
   const name = data.name?.trim();
   if (!name || name.length < 3) return null;
 
+  // Usability gate: a scholarship is only worth publishing to /bourses if a
+  // student can actually act on it — i.e. we have a real application path.
+  // That means the LLM extracted an official program URL and/or an explicit
+  // how-to-apply URL. Falling back to the news-article URL alone (below) is
+  // fine for the citation/source list, but on its own it produces the
+  // "no apply link" entries that made /bourses unusable, so we reject those
+  // here rather than surfacing an un-actionable listing.
+  const applyLink = safeUrl(data.officialUrl) ?? safeUrl(data.howToApplyUrl);
+  if (!applyLink) return null;
+
   // Prefer the LLM-extracted official URL; fall back to the article URL.
   const officialUrl = safeUrl(data.officialUrl) ?? safeUrl(item.canonicalUrl);
   if (!officialUrl) return null;
@@ -255,7 +265,7 @@ export async function discoverScholarships(): Promise<DiscoverScholarshipsResult
 
       const payload = buildCreatePayload(item, d);
       if (!payload) {
-        console.warn(`[discoverScholarships] insufficient fields for ${item.id} (missing name/url/level)`);
+        console.warn(`[discoverScholarships] insufficient fields for ${item.id} (missing name / actionable apply-link / level)`);
         await itemsRepo.updateItem(item.id, {
           scholarshipPromotion: "rejected",
           scholarshipPromotionAttempts: attempts,
