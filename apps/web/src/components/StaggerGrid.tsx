@@ -20,22 +20,32 @@ const item: Variants = {
 interface StaggerGridProps {
   children: ReactNode;
   className?: string;
+  /**
+   * When to run the entrance animation:
+   *   - "in-view" (default): animate once when scrolled into view.
+   *   - "mount": animate to "show" on mount and keep that target active.
+   *
+   * Use "mount" for lists that grow (e.g. "load more"): a one-shot
+   * `whileInView` latches after the first reveal, so children appended
+   * later stay stuck in the hidden (opacity 0) state. A persistent
+   * `animate` target lets late-mounted children animate in too.
+   */
+  trigger?: "in-view" | "mount";
 }
 
 /**
  * Wraps a grid of children and applies a staggered fade-up
- * entrance animation when first entering the viewport.
+ * entrance animation.
  */
-export function StaggerGrid({ children, className }: StaggerGridProps) {
+export function StaggerGrid({ children, className, trigger = "in-view" }: StaggerGridProps) {
+  const triggerProps =
+    trigger === "mount"
+      ? { animate: "show" as const }
+      : { whileInView: "show" as const, viewport: { once: true, margin: "-40px" } };
+
   return (
     <MotionConfig reducedMotion="user">
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "-40px" }}
-        className={className}
-      >
+      <motion.div variants={container} initial="hidden" {...triggerProps} className={className}>
         {children}
       </motion.div>
     </MotionConfig>
