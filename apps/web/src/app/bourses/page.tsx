@@ -136,12 +136,10 @@ export default async function BoursesPage({
   });
 
   const closingSerialized = closingSoon.map(serializeScholarship);
+  // Match the "Éligible" sidebar filter exactly (strict haitianEligibility === "yes")
+  // so the hero stat and the filter count never disagree.
   const haitianEligibleCount = allScholarships.filter(
-    (s) =>
-      s.haitianEligibility === "yes" ||
-      s.eligibleCountries?.includes("HT") ||
-      s.country === "HT" ||
-      s.country === "Global",
+    (s) => s.haitianEligibility === "yes",
   ).length;
 
   // Schema.org ItemList of Course for SEO discoverability.
