@@ -13,7 +13,7 @@
 
 import type { ContentLanguage } from "@edlight-news/types";
 import { useState, useMemo } from "react";
-import { ScholarshipCard } from "./ScholarshipCard";
+import { ScholarshipRow } from "./ScholarshipRow";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 import { Search, Sparkles } from "lucide-react";
 
@@ -25,7 +25,7 @@ interface BoursesFeedProps {
   hasActiveFilters: boolean;
 }
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 24;
 
 export function BoursesFeed({
   scholarships,
@@ -92,28 +92,19 @@ export function BoursesFeed({
 
   return (
     <div className="space-y-6 sm:space-y-6">
-      {/* ── Cards grid ── */}
-      <div className="
-        grid grid-cols-1 sm:grid-cols-2
-        gap-4 sm:gap-5
-      ">
-        {visible.map((scholarship, index) => (
-          <div
-            key={scholarship.id}
-            className="animate-fade-in-up"
-            style={{
-              animationDelay: `${Math.min(index, 6) * 75}ms`,
-              animationFillMode: 'both',
-            }}
-          >
-            <ScholarshipCard
+      {/* ── Editorial list ── */}
+      <div className="overflow-hidden rounded-2xl border border-[#f3ecea] bg-white shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:border-stone-800 dark:bg-stone-900/95 dark:shadow-none">
+        <div className="divide-y divide-[#f3ecea] px-1.5 py-1 dark:divide-stone-800">
+          {visible.map((scholarship) => (
+            <ScholarshipRow
+              key={scholarship.id}
               scholarship={scholarship}
               lang={lang}
               saved={saved.includes(scholarship.id)}
               onToggleSave={onToggleSave}
             />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* ── Load More ── */}
