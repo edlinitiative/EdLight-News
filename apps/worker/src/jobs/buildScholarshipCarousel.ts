@@ -261,10 +261,11 @@ function buildPayload(c: CarouselCountry, scholarships: Scholarship[]): IGFormat
     layout: "explanation",
   });
 
-  // 5. CTA → guide page
+  // 5. CTA → guide page. NB: one bullet only — the CTA layout renders bullets
+  // as a single centered tagline, so 2+ bullets show literal "• …" dots.
   slides.push({
     heading: "Le guide complet",
-    bullets: ["Toutes les bourses et les étapes sur EdLight News.", "Lien dans la bio."],
+    bullets: ["Toutes les bourses et les étapes t'attendent sur EdLight News — lien dans la bio."],
     layout: "cta",
   });
 
