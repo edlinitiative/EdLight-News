@@ -21,7 +21,9 @@ import { ScholarshipGridCard } from "./ScholarshipGridCard";
 import { ScholarshipRow } from "./ScholarshipRow";
 import { QuickPreviewModal } from "./QuickPreviewModal";
 import { CompareBar } from "./CompareBar";
-import { LayoutGrid, List, Search, Sliders, Sparkles, X } from "lucide-react";
+import Link from "next/link";
+import { LayoutGrid, List, Search, Sliders, Sparkles, X, ArrowRight } from "lucide-react";
+import { COUNTRY_GUIDES } from "@/lib/bourses/countryGuides";
 
 export interface BourseFilters {
   countries?: DatasetCountry[];
@@ -209,6 +211,28 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
               </span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ─── Study-abroad country guides ─── */}
+      <section aria-label={fr ? "Guides par destination" : "Gid pa destinasyon"}>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-[15px] font-extrabold tracking-[-0.01em] text-[#1d1b1a] dark:text-white">
+            {fr ? "Étudier à l'étranger" : "Etidye aletranje"}
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {COUNTRY_GUIDES.map((g) => (
+            <Link
+              key={g.slug}
+              href={`/bourses/etudier/${g.slug}${lang !== "fr" ? `?lang=${lang}` : ""}`}
+              className="group inline-flex items-center gap-2 rounded-full border border-[#f3ecea] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#464555] transition-all hover:-translate-y-0.5 hover:border-[#3525cd]/30 hover:text-[#3525cd] dark:border-stone-800 dark:bg-stone-900/80 dark:text-stone-300 dark:hover:text-[#c3c0ff]"
+            >
+              <span aria-hidden="true">{g.flag}</span>
+              {fr ? g.name.fr : g.name.ht}
+              <ArrowRight className="h-3.5 w-3.5 text-[#c7c4d8] transition-transform group-hover:translate-x-0.5 group-hover:text-[#3525cd] dark:text-stone-600 dark:group-hover:text-[#c3c0ff]" />
+            </Link>
+          ))}
         </div>
       </section>
 
