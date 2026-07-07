@@ -11,6 +11,7 @@ import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { buildIgTaux } from "../jobs/buildIgTaux.js";
 import { buildScholarshipCarousel } from "../jobs/buildScholarshipCarousel.js";
+import { buildHaitiFactCarousel } from "../jobs/buildHaitiFactCarousel.js";
 import { buildIgStory } from "../jobs/buildIgStory.js";
 import { scheduleIgStoryFrames } from "../jobs/scheduleIgStoryFrames.js";
 import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
@@ -245,6 +246,15 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     } catch (err) {
       console.error("[tick] buildScholarshipCarousel error:", err);
       (igResult as any).scholarshipCarousel = { error: String(err) };
+    }
+
+    // "Fierté haïtienne / Le savais-tu ?" — daily proud-Haiti fact carousel
+    // (fills the fait-du-jour slot). Self-gates on window + once-per-day.
+    try {
+      (igResult as any).haitiFact = await buildHaitiFactCarousel();
+    } catch (err) {
+      console.error("[tick] buildHaitiFactCarousel error:", err);
+      (igResult as any).haitiFact = { error: String(err) };
     }
 
     // ── Phase B: Schedule + post staple carousels FIRST ─────────────
