@@ -1,22 +1,26 @@
 "use client";
 
 /**
- * BoursesSidebar — Mobile-first premium filters sidebar.
+ * BoursesSidebar — interactive filter panel for the /bourses catalogue.
  *
- * Key improvements:
- *   - Mobile: collapsible accordion panels instead of stacking all filters
- *   - Desktop: sticky sidebar with consistent height
- *   - Clear active filter count badges
- *   - Reset button visible at all times when filters are active
- *   - Touch-friendly 44px+ tap targets for all interactive elements
- *   - Smooth expand/collapse animations
+ * Collapsible groups (Niveau, Financement, Pays, Éligibilité) with a checkbox
+ * row per option and a live result count. Multi-select for level / funding /
+ * country; single-select for Haiti-eligibility. Reset clears everything.
  */
 
 import type { ContentLanguage, DatasetCountry, AcademicLevel } from "@edlight-news/types";
-import type { ScholarshipFundingType, ScholarshipHaitianEligibility } from "@edlight-news/types";
-import { useState } from "react";
+import type { ScholarshipFundingType } from "@edlight-news/types";
+import { useState, type ReactNode } from "react";
 import type { BourseFilters as BourseFiltersType } from "@/components/bourses/BoursesEditorial";
-import { Sliders, ChevronDown, X } from "lucide-react";
+import { GraduationCap, Banknote, Globe, ShieldCheck, ChevronDown } from "lucide-react";
+import { FUNDING_LABELS, LEVEL_LABELS, COUNTRY_LABELS } from "@/lib/bourses/labels";
+
+export interface SidebarCounts {
+  levels: Partial<Record<AcademicLevel, number>>;
+  funding: Partial<Record<string, number>>;
+  countries: Partial<Record<string, number>>;
+  eligibility: { all: number; yes: number };
+}
 
 interface BoursesSidebarProps {
   lang: ContentLanguage;
@@ -24,32 +28,30 @@ interface BoursesSidebarProps {
   levels: AcademicLevel[];
   filters: BourseFiltersType;
   onFiltersChange: (filters: BourseFiltersType) => void;
+  counts: SidebarCounts;
 }
 
-type AccordionKey = "country" | "funding" | "level" | "eligibility";
+type GroupKey = "level" | "funding" | "country" | "eligibility";
 
-export function BoursesSidebar({ lang, countries, levels, filters, onFiltersChange }: BoursesSidebarProps) {
+const FUNDING_KEYS: ScholarshipFundingType[] = ["full", "partial", "stipend", "tuition-only"];
+
+export function BoursesSidebar({
+  lang,
+  countries,
+  levels,
+  filters,
+  onFiltersChange,
+  counts,
+}: BoursesSidebarProps) {
   const fr = lang === "fr";
-  const [openPanels, setOpenPanels] = useState<Record<AccordionKey, boolean>>({
-    country: true,
-    funding: true,
-    level: false,
-    eligibility: false,
+  const [open, setOpen] = useState<Record<GroupKey, boolean>>({
+    level: true,
+    funding: false,
+    country: false,
+    eligibility: true,
   });
 
-  const togglePanel = (key: AccordionKey) => {
-    setOpenPanels(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const hasActiveFilters =
-    (filters.countries?.length ?? 0) > 0 ||
-    (filters.fundingTypes?.length ?? 0) > 0 ||
-    (filters.levels?.length ?? 0) > 0 ||
-    (filters.haitianEligibility ?? "all") !== "all";
-
-  const clearAll = () => {
-    onFiltersChange({});
-  };
+  const toggle = (k: GroupKey) => setOpen((p) => ({ ...p, [k]: !p[k] }));
 
   const activeCount =
     (filters.countries?.length ?? 0) +
@@ -57,243 +59,175 @@ export function BoursesSidebar({ lang, countries, levels, filters, onFiltersChan
     (filters.levels?.length ?? 0) +
     ((filters.haitianEligibility ?? "all") !== "all" ? 1 : 0);
 
-  const fundingTypes: ScholarshipFundingType[] = ["full", "partial", "stipend", "tuition-only"];
+  // ── Row renderer ──────────────────────────────────────────────────────────
+  const Row = ({
+    checked,
+    label,
+    count,
+    onChange,
+  }: {
+    checked: boolean;
+    label: ReactNode;
+    count?: number;
+    onChange: () => void;
+  }) => (
+    <label className="group flex cursor-pointer items-center justify-between gap-2 py-1.5">
+      <span className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onChange}
+          className="h-4 w-4 rounded border-[#c7c4d8] text-[#3525cd] focus:ring-[#3525cd] dark:border-stone-600"
+        />
+        <span className={`text-[13px] transition-colors ${checked ? "font-semibold text-[#3525cd] dark:text-[#c3c0ff]" : "text-[#464555] group-hover:text-[#3525cd] dark:text-stone-300 dark:group-hover:text-[#c3c0ff]"}`}>
+          {label}
+        </span>
+      </span>
+      {count != null && (
+        <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums ${
+            checked
+              ? "bg-[#3525cd]/12 text-[#3525cd] dark:bg-[#c3c0ff]/15 dark:text-[#c3c0ff]"
+              : "bg-[#f5f0ee] text-[#6b6563] dark:bg-stone-800 dark:text-stone-400"
+          }`}
+        >
+          {count}
+        </span>
+      )}
+    </label>
+  );
 
-  const AccoItem = ({ k, label }: { k: AccordionKey; label: string }) => (
-    <div className="border-b border-[#f3ecea]/60 dark:border-stone-800/60 last:border-b-0">
+  const Group = ({
+    k,
+    icon,
+    label,
+    highlight,
+    children,
+  }: {
+    k: GroupKey;
+    icon: ReactNode;
+    label: string;
+    highlight?: boolean;
+    children: ReactNode;
+  }) => (
+    <div className="border-t border-[#f3ecea]/70 pt-1.5 first:border-t-0 first:pt-0 dark:border-stone-800/70">
       <button
         type="button"
-        onClick={() => togglePanel(k)}
-        className="
-          flex items-center justify-between w-full
-          py-3.5 sm:py-2.5
-          text-left
-          font-bold text-[13px] sm:text-xs
-          text-[#1d1b1a] dark:text-stone-200
-          hover:text-[#3525cd] dark:hover:text-[#c3c0ff]
-          transition-colors duration-200
-          /* 44px min touch target */
-          min-h-[44px] sm:min-h-[40px]
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3525cd]
-          rounded-lg sm:rounded-md
-        "
+        onClick={() => toggle(k)}
+        className={`flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-[13px] font-bold transition-colors ${
+          highlight
+            ? "bg-[#3525cd]/6 text-[#3525cd] dark:bg-[#c3c0ff]/10 dark:text-[#c3c0ff]"
+            : "text-[#1d1b1a] hover:bg-[#f5f0ee] dark:text-stone-200 dark:hover:bg-stone-800"
+        }`}
       >
-        <span>{label}</span>
-        <ChevronDown
-          className={`
-            h-4 w-4 sm:h-3.5 sm:w-3.5
-            text-[#c7c4d8] dark:text-stone-500
-            transition-transform duration-300 ease-out
-            ${openPanels[k] ? 'rotate-0' : '-rotate-90'}
-          `}
-        />
+        <span className="flex items-center gap-2">
+          {icon}
+          {label}
+        </span>
+        <ChevronDown className={`h-4 w-4 text-[#c7c4d8] transition-transform duration-300 dark:text-stone-500 ${open[k] ? "" : "-rotate-90"}`} />
       </button>
-      <div
-        className={`
-          overflow-hidden transition-all duration-300 ease-out
-          ${openPanels[k] ? 'max-h-[500px] opacity-100 pb-3 sm:pb-2.5' : 'max-h-0 opacity-0 pb-0'}
-        `}
-      >
-        {k === "country" && (
-          <div className="flex flex-wrap gap-1.5 sm:gap-1.5">
-            {countries.map((c) => (
-              <button
-                key={c}
-                onClick={() => {
-                  const current = filters.countries ?? [];
-                  const next = current.includes(c)
-                    ? current.filter((x: DatasetCountry) => x !== c)
-                    : [...current, c];
-                  onFiltersChange({ ...filters, countries: next.length > 0 ? next : undefined });
-                }}
-                className={`
-                  rounded-lg sm:rounded-md
-                  px-3 py-2 sm:px-2.5 sm:py-1.5
-                  text-[12px] sm:text-[10px] font-semibold
-                  border
-                  transition-all duration-200
-                  min-h-[40px] sm:min-h-[32px]
-                  flex items-center gap-1.5
-                  ${(filters.countries ?? []).includes(c)
-                    ? "bg-[#3525cd]/10 text-[#3525cd] border-[#3525cd]/30 dark:bg-[#c3c0ff]/12 dark:text-[#c3c0ff] dark:border-[#c3c0ff]/30"
-                    : "bg-[#f5f0ee] text-[#464555] border-[#c7c4d8]/10 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700/30 hover:border-[#3525cd]/20 dark:hover:border-[#c3c0ff]/20"
-                  }
-                `}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {k === "funding" && (
-          <div className="flex flex-wrap gap-1.5 sm:gap-1.5">
-            {fundingTypes.map((ft) => (
-              <button
-                key={ft}
-                onClick={() => {
-                  const current = filters.fundingTypes ?? [];
-                  const next = current.includes(ft)
-                    ? current.filter((x: ScholarshipFundingType) => x !== ft)
-                    : [...current, ft];
-                  onFiltersChange({ ...filters, fundingTypes: next.length > 0 ? next : undefined });
-                }}
-                className={`
-                  rounded-lg sm:rounded-md
-                  px-3 py-2 sm:px-2.5 sm:py-1.5
-                  text-[12px] sm:text-[10px] font-semibold
-                  border capitalize
-                  transition-all duration-200
-                  min-h-[40px] sm:min-h-[32px]
-                  ${(filters.fundingTypes ?? []).includes(ft)
-                    ? "bg-[#3525cd]/10 text-[#3525cd] border-[#3525cd]/30 dark:bg-[#c3c0ff]/12 dark:text-[#c3c0ff] dark:border-[#c3c0ff]/30"
-                    : "bg-[#f5f0ee] text-[#464555] border-[#c7c4d8]/10 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700/30 hover:border-[#3525cd]/20 dark:hover:border-[#c3c0ff]/20"
-                  }
-                `}
-              >
-                {ft === "full" ? (fr ? "Complet" : "Konplè")
-                  : ft === "partial" ? (fr ? "Partiel" : "Pasyèl")
-                  : ft === "stipend" ? (fr ? "Allocation" : "Alokasyon")
-                  : (fr ? "Scolarité" : "Frè etid")}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {k === "level" && (
-          <div className="flex flex-wrap gap-1.5 sm:gap-1.5">
-            {levels.map((l) => (
-              <button
-                key={l}
-                onClick={() => {
-                  const current = filters.levels ?? [];
-                  const next = current.includes(l)
-                    ? current.filter((x: AcademicLevel) => x !== l)
-                    : [...current, l];
-                  onFiltersChange({ ...filters, levels: next.length > 0 ? next : undefined });
-                }}
-                className={`
-                  rounded-lg sm:rounded-md
-                  px-3 py-2 sm:px-2.5 sm:py-1.5
-                  text-[12px] sm:text-[10px] font-semibold
-                  border
-                  transition-all duration-200
-                  min-h-[40px] sm:min-h-[32px]
-                  ${(filters.levels ?? []).includes(l)
-                    ? "bg-[#3525cd]/10 text-[#3525cd] border-[#3525cd]/30 dark:bg-[#c3c0ff]/12 dark:text-[#c3c0ff] dark:border-[#c3c0ff]/30"
-                    : "bg-[#f5f0ee] text-[#464555] border-[#c7c4d8]/10 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700/30 hover:border-[#3525cd]/20 dark:hover:border-[#c3c0ff]/20"
-                  }
-                `}
-              >
-                {l === "bachelor" ? (fr ? "Bachelor" : "Lisans")
-                  : l === "master" ? (fr ? "Master" : "Metriz")
-                  : l === "phd" ? "PhD"
-                  : (fr ? "Courts" : "Kout")}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {k === "eligibility" && (
-          <div className="flex flex-wrap gap-1.5 sm:gap-1.5">
-            {(["all", "yes", "no"] as const).map((opt) => (
-              <button
-                key={opt}
-                onClick={() => {
-                  onFiltersChange({
-                    ...filters,
-                    haitianEligibility: opt === "all" ? "all" : opt,
-                  });
-                }}
-                className={`
-                  rounded-lg sm:rounded-md
-                  px-3 py-2 sm:px-2.5 sm:py-1.5
-                  text-[12px] sm:text-[10px] font-semibold
-                  border
-                  transition-all duration-200
-                  min-h-[40px] sm:min-h-[32px]
-                  ${(filters.haitianEligibility ?? "all") === opt
-                    ? "bg-[#3525cd]/10 text-[#3525cd] border-[#3525cd]/30 dark:bg-[#c3c0ff]/12 dark:text-[#c3c0ff] dark:border-[#c3c0ff]/30"
-                    : "bg-[#f5f0ee] text-[#464555] border-[#c7c4d8]/10 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700/30 hover:border-[#3525cd]/20 dark:hover:border-[#c3c0ff]/20"
-                  }
-                `}
-              >
-                {opt === "all" ? (fr ? "Toutes" : "Tout")
-                  : opt === "yes" ? (fr ? "🇭🇹 Éligible" : "🇭🇹 Elijib")
-                  : (fr ? "Non-éligible" : "Non-elijib")}
-              </button>
-            ))}
-          </div>
-        )}
+      <div className={`overflow-hidden px-2 transition-all duration-300 ease-out ${open[k] ? "max-h-[600px] pb-2 pt-1 opacity-100" : "max-h-0 opacity-0"}`}>
+        {children}
       </div>
     </div>
   );
 
   return (
-    <aside className="
-      /* Mobile: full-width below feed, stacked as accordion */
-      /* Desktop: sticky sidebar */
-      sm:sticky sm:top-24
-      bg-white dark:bg-stone-900/95
-      rounded-2xl sm:rounded-2xl
-      border border-[#f3ecea]/30 dark:border-stone-700/40
-      shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:shadow-none
-    ">
-      {/* ── Header ── */}
-      <div className="
-        flex items-center justify-between
-        px-4 py-3.5 sm:px-4 sm:py-3
-        border-b border-[#f3ecea]/60 dark:border-stone-800/60
-      ">
-        <div className="flex items-center gap-2 sm:gap-1.5">
-          <Sliders className="h-4 w-4 sm:h-3.5 sm:w-3.5 text-[#3525cd] dark:text-[#c3c0ff]" />
-          <h3 className="text-[14px] sm:text-xs font-bold text-[#1d1b1a] dark:text-stone-200">
+    <aside className="sm:sticky sm:top-24 rounded-2xl border border-[#f3ecea]/60 bg-white p-4 shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:border-stone-700/40 dark:bg-stone-900/95 dark:shadow-none">
+      {/* Header */}
+      <div className="mb-3 flex items-start justify-between border-b border-[#f3ecea]/70 pb-3 dark:border-stone-800/70">
+        <div>
+          <h3 className="text-[14px] font-bold text-[#1d1b1a] dark:text-white">
             {fr ? "Filtres" : "Filt"}
           </h3>
-          {activeCount > 0 && (
-            <span className="
-              inline-flex items-center justify-center
-              h-5 sm:h-4 min-w-[20px] sm:min-w-[16px]
-              rounded-full
-              bg-[#3525cd] dark:bg-[#c3c0ff]
-              text-[10px] sm:text-[9px] font-extrabold
-              text-white dark:text-[#1d1b1a]
-              px-1.5
-            ">
-              {activeCount}
-            </span>
-          )}
+          <p className="text-[11px] text-[#6b6563] dark:text-stone-400">
+            {fr ? "Affinez pour trouver vite" : "Afine pou jwenn vit"}
+          </p>
         </div>
-
-        {hasActiveFilters && (
+        {activeCount > 0 && (
           <button
-            onClick={clearAll}
-            className="
-              flex items-center gap-1 sm:gap-0.5
-              text-[11px] sm:text-[10px] font-bold
-              text-[#93000a] dark:text-red-400
-              hover:opacity-80
-              transition-opacity duration-200
-              min-h-[44px] sm:min-h-[36px]
-              px-2
-              rounded-lg
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd]
-            "
+            onClick={() => onFiltersChange({})}
+            className="text-[10px] font-bold uppercase tracking-wide text-[#93000a] hover:underline dark:text-red-400"
           >
-            <X className="h-3 w-3 sm:h-2.5 sm:w-2.5" />
-            <span className="hidden sm:inline">{fr ? "Réinit." : "Reyini."}</span>
-            <span className="sm:hidden">{fr ? "Tout effacer" : "Efase tout"}</span>
+            {fr ? "Réinitialiser" : "Reyinisyalize"}
           </button>
         )}
       </div>
 
-      {/* ── Accordion panels ── */}
-      <div className="px-4 sm:px-4">
-        <AccoItem k="country" label={fr ? "Pays" : "Peyi"} />
-        <AccoItem k="funding" label={fr ? "Financement" : "Finansman"} />
-        <AccoItem k="level" label={fr ? "Niveau" : "Nivo"} />
-        <AccoItem k="eligibility" label={fr ? "Éligibilité" : "Elijibilite"} />
-      </div>
+      {/* Niveau */}
+      <Group k="level" icon={<GraduationCap className="h-4 w-4" />} label={fr ? "Niveau" : "Nivo"}>
+        {levels.map((l) => (
+          <Row
+            key={l}
+            checked={(filters.levels ?? []).includes(l)}
+            count={counts.levels[l]}
+            label={LEVEL_LABELS[l] ? (fr ? LEVEL_LABELS[l].fr : LEVEL_LABELS[l].ht) : l}
+            onChange={() => {
+              const cur = filters.levels ?? [];
+              const next = cur.includes(l) ? cur.filter((x) => x !== l) : [...cur, l];
+              onFiltersChange({ ...filters, levels: next.length ? next : undefined });
+            }}
+          />
+        ))}
+      </Group>
+
+      {/* Financement */}
+      <Group k="funding" icon={<Banknote className="h-4 w-4" />} label={fr ? "Financement" : "Finansman"}>
+        {FUNDING_KEYS.map((ft) => (
+          <Row
+            key={ft}
+            checked={(filters.fundingTypes ?? []).includes(ft)}
+            count={counts.funding[ft]}
+            label={fr ? FUNDING_LABELS[ft].fr : FUNDING_LABELS[ft].ht}
+            onChange={() => {
+              const cur = filters.fundingTypes ?? [];
+              const next = cur.includes(ft) ? cur.filter((x) => x !== ft) : [...cur, ft];
+              onFiltersChange({ ...filters, fundingTypes: next.length ? next : undefined });
+            }}
+          />
+        ))}
+      </Group>
+
+      {/* Pays */}
+      <Group k="country" icon={<Globe className="h-4 w-4" />} label={fr ? "Pays" : "Peyi"}>
+        {countries.map((c) => {
+          const cl = COUNTRY_LABELS[c];
+          return (
+            <Row
+              key={c}
+              checked={(filters.countries ?? []).includes(c)}
+              count={counts.countries[c]}
+              label={cl ? (fr ? cl.fr : cl.ht) : c}
+              onChange={() => {
+                const cur = filters.countries ?? [];
+                const next = cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c];
+                onFiltersChange({ ...filters, countries: next.length ? next : undefined });
+              }}
+            />
+          );
+        })}
+      </Group>
+
+      {/* Éligibilité */}
+      <Group k="eligibility" icon={<ShieldCheck className="h-4 w-4" />} label={fr ? "Éligibilité" : "Elijibilite"} highlight>
+        <Row
+          checked={(filters.haitianEligibility ?? "all") === "all"}
+          count={counts.eligibility.all}
+          label={fr ? "Toutes" : "Tout"}
+          onChange={() => onFiltersChange({ ...filters, haitianEligibility: "all" })}
+        />
+        <Row
+          checked={filters.haitianEligibility === "yes"}
+          count={counts.eligibility.yes}
+          label={<span className="inline-flex items-center gap-1">🇭🇹 {fr ? "Éligible" : "Elijib"}</span>}
+          onChange={() =>
+            onFiltersChange({
+              ...filters,
+              haitianEligibility: filters.haitianEligibility === "yes" ? "all" : "yes",
+            })
+          }
+        />
+      </Group>
     </aside>
   );
 }
