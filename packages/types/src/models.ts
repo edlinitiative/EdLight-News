@@ -1275,6 +1275,10 @@ export interface Scholarship {
   durationText?: string;
   /** Language requirements, e.g. "Anglais (IELTS 6.5)", "Français". */
   languageRequirements?: string[];
+  /** Number of auto-enrichment attempts (caps retries on dead pages). */
+  enrichmentAttempts?: number;
+  /** When the auto-enricher last successfully filled rich fields. */
+  enrichedAt?: Timestamp;
 
   verifiedAt: Timestamp;
   updatedAt: Timestamp;

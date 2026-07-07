@@ -357,15 +357,49 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
   let updated = 0;
   let skipped = 0;
 
+  // Prioritise so the batch cycles through the whole collection and converges
+  // to full enrichment (instead of re-verifying the same first N every run).
+  // Order: (1) records still missing rich detail and under the enrichment
+  // attempt cap, then (2) everyone else by least-recently-touched (routine
+  // deadline refresh).
+  const ENRICH_ATTEMPT_CAP = 2;
+  const needsEnrichment = (s: (typeof all)[number]): boolean =>
+    (!s.benefits?.length ||
+      !s.applicationSteps?.length ||
+      !s.fieldsOfStudy?.length ||
+      !s.programDescription) &&
+    (s.enrichmentAttempts ?? 0) < ENRICH_ATTEMPT_CAP;
+  const touchedAt = (s: (typeof all)[number]): number =>
+    (s.updatedAt as { seconds?: number } | undefined)?.seconds ??
+    (s.verifiedAt as { seconds?: number } | undefined)?.seconds ??
+    0;
+  const ordered = [...all].sort((a, b) => {
+    const an = needsEnrichment(a) ? 0 : 1;
+    const bn = needsEnrichment(b) ? 0 : 1;
+    if (an !== bn) return an - bn;
+    return touchedAt(a) - touchedAt(b);
+  });
+
   // Cap LLM-verify calls per job to control Gemini API costs
-  const batch = all.slice(0, MAX_VERIFY_PER_JOB);
+  const batch = ordered.slice(0, MAX_VERIFY_PER_JOB);
   if (all.length > MAX_VERIFY_PER_JOB) {
     console.log(`[datasets] scholarships: verifying ${batch.length}/${all.length} records (capped at ${MAX_VERIFY_PER_JOB})`);
   }
 
+  const bumpAttempt = async (s: (typeof all)[number]) => {
+    await scholarshipsRepo.update(s.id, {
+      enrichmentAttempts: (s.enrichmentAttempts ?? 0) + 1,
+    } as Parameters<typeof scholarshipsRepo.update>[1]);
+  };
+
   for (const s of batch) {
+    const needsEnr = needsEnrichment(s);
     const html = await safeFetchHtml(s.officialUrl, `scholarship:${s.name}`);
-    if (!html) { skipped++; continue; }
+    if (!html) {
+      if (needsEnr) await bumpAttempt(s);
+      skipped++;
+      continue;
+    }
 
     const result = await verifyScholarship(
       { name: s.name, country: s.country, officialUrl: s.officialUrl },
@@ -374,6 +408,7 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
 
     if (!result.ok) {
       console.warn(`[datasets] verify failed for scholarship:${s.name} — ${result.error}`);
+      if (needsEnr) await bumpAttempt(s);
       skipped++;
       continue;
     }
@@ -382,12 +417,14 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
 
     if (!d.pageRelevant) {
       console.warn(`[datasets] scholarship:${s.name} — page no longer relevant, preserving existing data`);
+      if (needsEnr) await bumpAttempt(s);
       skipped++;
       continue;
     }
 
     if (d.confidence < VERIFY_CONFIDENCE_THRESHOLD) {
       console.warn(`[datasets] scholarship:${s.name} — low confidence (${d.confidence}), skipping update`);
+      if (needsEnr) await bumpAttempt(s);
       skipped++;
       continue;
     }
@@ -402,6 +439,18 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
       patch.eligibleCountries = d.eligibleCountries;
     }
     if (d.recurring !== undefined && d.recurring !== s.recurring) patch.recurring = d.recurring;
+
+    // Enrichment: FILL rich detail fields only when currently empty — never
+    // overwrite curated (flagship) data. Progressively brings every thin
+    // auto-discovered scholarship up to the full detail level.
+    if (d.programDescription && !s.programDescription) patch.programDescription = d.programDescription;
+    if (d.benefits?.length && !s.benefits?.length) patch.benefits = d.benefits;
+    if (d.fieldsOfStudy?.length && !s.fieldsOfStudy?.length) patch.fieldsOfStudy = d.fieldsOfStudy;
+    if (d.durationText && !s.durationText) patch.durationText = d.durationText;
+    if (d.languageRequirements?.length && !s.languageRequirements?.length) patch.languageRequirements = d.languageRequirements;
+    if (d.applicationSteps?.length && !s.applicationSteps?.length) patch.applicationSteps = d.applicationSteps;
+    if (d.keyDates?.length && !s.keyDates?.length) patch.keyDates = d.keyDates;
+    if (d.level?.length && !s.level?.length) patch.level = d.level;
 
     // Deadline — the most important field for scholarships
     if (d.deadlineDateISO || d.deadlineNotes) {
@@ -421,11 +470,15 @@ async function refreshScholarships(_job: DatasetJob): Promise<void> {
       }
     }
 
+    // Count this enrichment attempt so uninformative pages stop being
+    // re-prioritised once they hit the cap.
+    if (needsEnr) patch.enrichmentAttempts = (s.enrichmentAttempts ?? 0) + 1;
+
     if (Object.keys(patch).length > 0) {
       await scholarshipsRepo.update(s.id, {
         name: s.name,
         country: s.country,
-        level: s.level,
+        level: (patch.level as typeof s.level) ?? s.level,
         fundingType: (patch.fundingType as typeof s.fundingType) ?? s.fundingType,
         officialUrl: s.officialUrl,
         sources: s.sources,

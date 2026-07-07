@@ -54,6 +54,31 @@ export const verifyScholarshipSchema = z.object({
   howToApplyUrl: z.string().optional(),
   eligibleCountries: z.array(z.string()).optional(),
   recurring: z.boolean().optional(),
+  // ── Rich enrichment fields (fill the detail page) ──────────────────────
+  level: z.array(z.enum(["bachelor", "master", "phd", "short_programs"])).optional(),
+  programDescription: z.string().optional(),
+  benefits: z.array(z.string()).optional(),
+  fieldsOfStudy: z.array(z.string()).optional(),
+  durationText: z.string().optional(),
+  languageRequirements: z.array(z.string()).optional(),
+  applicationSteps: z
+    .array(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        url: z.string().optional(),
+      }),
+    )
+    .optional(),
+  keyDates: z
+    .array(
+      z.object({
+        label: z.string(),
+        monthRange: z.string().optional(),
+        notes: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 export type VerifyScholarshipResult = z.infer<typeof verifyScholarshipSchema>;
 
@@ -136,6 +161,10 @@ DONNÉES ACTUELLES:
 
 ${COMMON_RULES}
 
+Extrais AUSSI, si présents sur la page, les détails riches (laisse vide si absent) :
+avantages financiers, domaines d'études, durée, langues exigées, étapes de
+candidature et dates clés. Rédige tout EN FRANÇAIS.
+
 Réponds avec:
 {
   "pageRelevant": true/false,
@@ -144,11 +173,19 @@ Réponds avec:
   "fundingType": "full|partial|stipend|tuition-only|unknown",
   "deadlineDateISO": "YYYY-MM-DD",
   "deadlineNotes": "notes sur la date limite",
-  "eligibilitySummary": "résumé des critères",
+  "eligibilitySummary": "résumé des critères (2-3 phrases)",
   "requirements": ["exigence 1", "exigence 2"],
   "howToApplyUrl": "URL du formulaire",
   "eligibleCountries": ["HT", "Global"],
-  "recurring": true/false
+  "recurring": true/false,
+  "level": ["bachelor|master|phd|short_programs"],
+  "programDescription": "paragraphe détaillé sur le programme (FR)",
+  "benefits": ["ce que la bourse couvre : frais de scolarité, allocation, voyage, assurance…"],
+  "fieldsOfStudy": ["domaines d'études couverts"],
+  "durationText": "durée du programme (ex: '12–24 mois')",
+  "languageRequirements": ["langues exigées (ex: 'Anglais (IELTS)', 'Français')"],
+  "applicationSteps": [{"title": "titre", "description": "détail", "url": "optionnel"}],
+  "keyDates": [{"label": "libellé", "monthRange": "ex: Octobre–Janvier", "notes": "optionnel"}]
 }
 
 PAGE HTML:

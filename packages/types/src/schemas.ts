@@ -613,6 +613,9 @@ export const scholarshipSchema = z.object({
   fieldsOfStudy: z.array(z.string()).optional(),
   durationText: z.string().optional(),
   languageRequirements: z.array(z.string()).optional(),
+  // Auto-enrichment bookkeeping (set by the enrichScholarships job).
+  enrichmentAttempts: z.number().int().optional(),
+  enrichedAt: timestampSchema.optional(),
   verifiedAt: timestampSchema,
   updatedAt: timestampSchema,
 });

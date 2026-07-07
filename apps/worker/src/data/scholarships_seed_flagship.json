@@ -813,5 +813,224 @@
     "recurring": true,
     "tags": ["japon", "banque-mondiale", "jj-wbgsp", "master", "financement-integral", "pays-en-developpement", "haiti"],
     "sources": [{ "label": "Banque mondiale — JJ/WBGSP", "url": "https://www.worldbank.org/en/programs/scholarships/jj-wbgsp" }]
+  },
+  {
+    "name": "Brésil — PEC-G (Programme d'Étudiants-Convention de Premier Cycle)",
+    "country": "Global",
+    "eligibleCountries": ["HT", "Global"],
+    "level": ["bachelor"],
+    "fundingType": "tuition-only",
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "varies",
+    "deadline": { "month": 8, "notes": "L'édital et le calendrier de sélection sont publiés chaque année par le Ministère brésilien des Relations extérieures ; le dépôt se fait auprès de l'ambassade du Brésil. Dates exactes à vérifier sur le site officiel.", "sourceUrl": "https://www.gov.br/mre/pt-br/assuntos/cultura-e-educacao/temas-educacionais/programas-de-estudo-para-estrangeiros/pec-g" },
+    "officialUrl": "https://www.gov.br/mre/pt-br/assuntos/cultura-e-educacao/temas-educacionais/programas-de-estudo-para-estrangeiros/pec-g",
+    "howToApplyUrl": "https://www.gov.br/mre/pt-br/assuntos/cultura-e-educacao/temas-educacionais/programas-de-estudo-para-estrangeiros/pec-g/sobre",
+    "eligibilitySummary": "Le PEC-G s'adresse aux ressortissants de pays en développement avec lesquels le Brésil a un accord éducatif, culturel ou scientifique. Haïti figure officiellement parmi les pays partenaires des Amériques. Le candidat doit résider dans son pays d'origine et postuler via l'ambassade ou le consulat du Brésil.",
+    "programDescription": "Créé en 1965 et coordonné par les ministères brésiliens des Relations extérieures et de l'Éducation, le PEC-G permet à des étudiants de pays en développement de suivre une licence gratuite dans des établissements d'enseignement supérieur brésiliens. Les frais de scolarité sont pris en charge dans les universités publiques participantes, mais le programme ne verse pas de bourse de subsistance : l'étudiant doit démontrer sa capacité financière à couvrir ses frais de vie. La maîtrise du portugais, attestée par l'examen Celpe-Bras, est indispensable avant le début des cours.",
+    "benefits": [
+      "Scolarité gratuite dans les universités publiques brésiliennes participantes",
+      "Diplôme de premier cycle reconnu au Brésil",
+      "Aucune bourse de subsistance garantie : l'étudiant doit prouver ses moyens financiers (vérifier sur le site officiel)"
+    ],
+    "fieldsOfStudy": ["Toutes les filières de premier cycle offertes par les universités participantes, selon les places disponibles"],
+    "durationText": "Durée normale d'une licence brésilienne (4 à 6 ans selon la filière) ; une année préparatoire de portugais peut précéder les études.",
+    "languageRequirements": ["Portugais (réussite obligatoire de l'examen Celpe-Bras avant l'entrée en formation)"],
+    "requirements": [
+      "Diplôme de fin d'études secondaires (légalisé/apostillé)",
+      "Ne pas avoir la nationalité brésilienne",
+      "Déclaration de prise en charge financière (preuve de revenus du garant)",
+      "Certificat d'aptitude physique et mentale",
+      "Résider dans le pays d'origine et postuler via la mission diplomatique brésilienne"
+    ],
+    "applicationSteps": [
+      { "title": "Vérifier l'édital annuel", "description": "Consulter l'édital de sélection publié par les ministères brésiliens.", "url": "https://www.gov.br/mre/pt-br/assuntos/cultura-e-educacao/temas-educacionais/programas-de-estudo-para-estrangeiros/pec-g" },
+      { "title": "Constituer le dossier", "description": "Rassembler diplôme du secondaire légalisé, passeport, déclaration financière et certificat médical." },
+      { "title": "Déposer à l'ambassade du Brésil", "description": "Soumettre la candidature auprès de l'ambassade ou du consulat du Brésil dans le pays d'origine." },
+      { "title": "Valider le Celpe-Bras", "description": "Obtenir la certification de portugais Celpe-Bras avant le début des cours." }
+    ],
+    "keyDates": [
+      { "label": "Publication de l'édital", "monthRange": "milieu d'année", "notes": "Le calendrier varie chaque année." },
+      { "label": "Dépôt des candidatures", "monthRange": "second semestre", "notes": "Via l'ambassade du Brésil." }
+    ],
+    "recurring": true,
+    "tags": ["bresil", "brazil", "bachelor", "licence", "amerique-latine", "pec-g", "portugais", "haiti"],
+    "sources": [
+      { "label": "PEC-G — Ministério das Relações Exteriores", "url": "https://www.gov.br/mre/pt-br/assuntos/cultura-e-educacao/temas-educacionais/programas-de-estudo-para-estrangeiros/pec-g" }
+    ]
+  },
+  {
+    "name": "Brésil — PEC-PG (Programme d'Étudiants-Convention de Troisième Cycle)",
+    "country": "Global",
+    "eligibleCountries": ["HT", "Global"],
+    "level": ["master", "phd"],
+    "fundingType": "stipend",
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "varies",
+    "deadline": { "month": 9, "notes": "Ouvert via un édital annuel de la CAPES/CNPq. Calendrier de candidature variable selon l'année — vérifier sur le site officiel.", "sourceUrl": "https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/bolsas/bolsas-e-auxilios-internacionais/encontre-aqui/paises/multinacional/programa-de-estudantes-convenio-de-pos-graduacao-pec-pg" },
+    "officialUrl": "https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/bolsas/bolsas-e-auxilios-internacionais/encontre-aqui/paises/multinacional/programa-de-estudantes-convenio-de-pos-graduacao-pec-pg",
+    "eligibilitySummary": "Le PEC-PG s'adresse aux ressortissants de pays en développement en accord de coopération avec le Brésil, catégorie dont Haïti fait partie au titre du PEC. Il finance des études de master et de doctorat dans des programmes de troisième cycle brésiliens notés 3 ou plus par la CAPES, avec une bourse mensuelle de subsistance.",
+    "programDescription": "Géré conjointement par le Ministère des Relations extérieures, la CAPES et le CNPq, le PEC-PG offre des bourses de master et de doctorat à des étudiants de pays en développement pour étudier dans les programmes de pós-graduação d'établissements brésiliens reconnus. L'édital annuel fixe le nombre de bourses (plusieurs centaines) et le montant mensuel (à titre indicatif, environ R$ 2 100 en master et R$ 3 100 en doctorat selon l'édital 2025). Montants et quotas exacts à vérifier dans l'édital en vigueur.",
+    "benefits": [
+      "Bourse mensuelle de subsistance (montant fixé par l'édital annuel — vérifier sur le site officiel)",
+      "Prise en charge de la formation dans un programme de troisième cycle reconnu par la CAPES",
+      "Selon l'édital : aides additionnelles (à vérifier sur le site officiel)"
+    ],
+    "fieldsOfStudy": ["Toutes disciplines offertes en master et doctorat dans les programmes de troisième cycle brésiliens notés 3+ par la CAPES"],
+    "durationText": "Master : jusqu'à 24 mois ; doctorat : jusqu'à 48 mois (durées indicatives, selon l'édital).",
+    "languageRequirements": ["Portugais (certification de type Celpe-Bras généralement exigée — vérifier sur le site officiel)"],
+    "requirements": [
+      "Être ressortissant d'un pays en développement partenaire du programme",
+      "Être admis (ou candidat) dans un programme de troisième cycle brésilien reconnu par la CAPES",
+      "Diplôme requis pour le niveau visé (licence pour le master, master pour le doctorat)"
+    ],
+    "applicationSteps": [
+      { "title": "Lire l'édital en vigueur", "description": "Consulter l'édital annuel de la CAPES/CNPq.", "url": "https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/bolsas/bolsas-e-auxilios-internacionais/encontre-aqui/paises/multinacional/programa-de-estudantes-convenio-de-pos-graduacao-pec-pg" },
+      { "title": "Obtenir une lettre d'acceptation", "description": "Être accepté dans un programme de pós-graduação brésilien noté 3+ par la CAPES." },
+      { "title": "Soumettre la candidature en ligne", "description": "Déposer le dossier via la plateforme indiquée par la CAPES/CNPq dans les délais de l'édital." }
+    ],
+    "keyDates": [
+      { "label": "Publication de l'édital", "monthRange": "milieu d'année", "notes": "Varie selon l'année." },
+      { "label": "Clôture des candidatures", "monthRange": "second semestre", "notes": "Fixée par l'édital en vigueur." }
+    ],
+    "recurring": true,
+    "tags": ["bresil", "brazil", "master", "doctorat", "phd", "amerique-latine", "pec-pg", "capes", "portugais", "haiti"],
+    "sources": [
+      { "label": "PEC-PG — CAPES (page officielle)", "url": "https://www.gov.br/capes/pt-br/acesso-a-informacao/acoes-e-programas/bolsas/bolsas-e-auxilios-internacionais/encontre-aqui/paises/multinacional/programa-de-estudantes-convenio-de-pos-graduacao-pec-pg" }
+    ]
+  },
+  {
+    "name": "Mexique — Bourses d'Excellence du Gouvernement du Mexique (AMEXCID)",
+    "country": "MX",
+    "eligibleCountries": ["HT", "Global"],
+    "level": ["bachelor", "master", "phd", "short_programs"],
+    "fundingType": "full",
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "month-only",
+    "deadline": { "month": 6, "notes": "Appel annuel (souvent clôturé vers juin). Les dates changent chaque année et certaines démarches passent par l'ambassade du Mexique — vérifier sur le site officiel et confirmer l'inclusion d'Haïti dans l'annexe des pays.", "sourceUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros-29785" },
+    "officialUrl": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros-29785",
+    "howToApplyUrl": "https://oportunidadescid.sre.gob.mx/",
+    "eligibilitySummary": "Le Secrétariat aux Relations extérieures (SRE), via l'AMEXCID, ouvre chaque année cette bourse à plus de 170 pays, incluant l'Amérique latine et les Caraïbes. Haïti est un pays partenaire du Mexique ; il est recommandé de confirmer l'inclusion d'Haïti dans l'annexe des pays de l'appel en vigueur sur le site officiel.",
+    "programDescription": "Les Bourses d'Excellence du Gouvernement du Mexique pour les Étrangers, gérées par l'AMEXCID, permettent d'étudier dans quelque 90 établissements mexicains. L'appel couvre plusieurs modalités : mobilité de premier cycle, master complet, doctorat, séjours de recherche et spécialités. La bourse est complète : frais de scolarité, allocation mensuelle, assurance médicale, transport et facilités de visa. Les candidatures se déposent via le portail de l'AMEXCID.",
+    "benefits": [
+      "Frais d'inscription et de scolarité selon le programme choisi",
+      "Allocation mensuelle de subsistance",
+      "Assurance médicale (IMSS)",
+      "Transport international (aller-retour) et national selon le cas",
+      "Facilités pour l'obtention du visa mexicain"
+    ],
+    "fieldsOfStudy": ["Diverses disciplines des sciences et des humanités offertes par les établissements mexicains participants"],
+    "durationText": "Mobilité académique : jusqu'à 12 mois ; master complet : jusqu'à 24 mois ; recherche/doctorat : 6 à 12 mois (selon la modalité).",
+    "languageRequirements": ["Espagnol (maîtrise exigée ; niveau de langue à justifier selon le programme)"],
+    "requirements": [
+      "Être étranger âgé de plus de 18 ans, avec un dossier d'excellence académique",
+      "Lettre d'acceptation d'un établissement mexicain participant",
+      "Passeport valide",
+      "Justifier le niveau de langue requis"
+    ],
+    "applicationSteps": [
+      { "title": "Consulter l'appel annuel", "description": "Lire la convocatoria et ses annexes sur le site de l'AMEXCID pour vérifier l'éligibilité d'Haïti.", "url": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros-29785" },
+      { "title": "Obtenir une lettre d'acceptation", "description": "Être admis dans un établissement mexicain participant." },
+      { "title": "Déposer la candidature", "description": "Soumettre le dossier via le portail Oportunidades CID de l'AMEXCID.", "url": "https://oportunidadescid.sre.gob.mx/" }
+    ],
+    "keyDates": [
+      { "label": "Ouverture de l'appel", "monthRange": "printemps", "notes": "Varie chaque année." },
+      { "label": "Clôture des candidatures", "monthRange": "juin", "notes": "Vérifier la date exacte sur le site officiel." }
+    ],
+    "recurring": true,
+    "tags": ["mexique", "mexico", "amexcid", "bachelor", "master", "phd", "amerique-latine", "caraibes", "espagnol", "haiti"],
+    "sources": [
+      { "label": "AMEXCID — Becas para Extranjeros (page officielle)", "url": "https://www.gob.mx/amexcid/acciones-y-programas/becas-para-extranjeros-29785" }
+    ]
+  },
+  {
+    "name": "Cuba — ELAM (École Latino-américaine de Médecine)",
+    "country": "Global",
+    "eligibleCountries": ["HT", "Global"],
+    "level": ["bachelor"],
+    "fundingType": "full",
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "varies",
+    "deadline": { "month": 6, "notes": "Pas de date unique publique : les candidatures se gèrent via l'ambassade de Cuba et le Ministère de la Santé, généralement avant la rentrée. Calendrier à vérifier auprès de l'ambassade de Cuba en Haïti.", "sourceUrl": "https://instituciones.sld.cu/elam/" },
+    "officialUrl": "https://instituciones.sld.cu/elam/",
+    "howToApplyUrl": "https://instituciones.sld.cu/elam/2025/05/14/informacion-actualizada-para-postular-a-la-elam/",
+    "eligibilitySummary": "L'ELAM, école publique de médecine créée par Cuba en 1999, accueille des jeunes de familles à faibles revenus de plus de 100 pays. Haïti fait historiquement partie des pays bénéficiaires (Cuba a offert de nombreuses bourses à des étudiants haïtiens). La candidature se fait via l'ambassade/la mission diplomatique cubaine, souvent en lien avec le Ministère de la Santé.",
+    "programDescription": "L'Escuela Latinoamericana de Medicina (ELAM), à La Havane, offre une formation complète et gratuite de docteur en médecine, destinée en priorité aux jeunes de milieux défavorisés afin qu'ils retournent servir leur communauté. Le cursus dure six ans (deux ans sur le campus de l'ELAM puis quatre en facultés, dont une année d'internat). Un cours préparatoire de sciences et un renforcement intensif d'espagnol peuvent être exigés. La bourse est complète et les diplômés terminent sans dette.",
+    "benefits": [
+      "Scolarité entièrement gratuite (bourse complète, diplômés sans dette)",
+      "Hébergement, restauration et allocation mensuelle (selon les termes du programme — vérifier auprès de l'ambassade)",
+      "Cours préparatoire d'espagnol / de sciences pour les étudiants qui en ont besoin"
+    ],
+    "fieldsOfStudy": ["Médecine (Doctorat en médecine)"],
+    "durationText": "Six ans, incluant une année d'internat ; possible année préparatoire (pré-médicale / langue espagnole) en amont.",
+    "languageRequirements": ["Espagnol (tous les cours sont en espagnol ; cours intensif proposé aux non-hispanophones)"],
+    "requirements": [
+      "Être issu d'une famille à faibles revenus",
+      "Détenir un baccalauréat en sciences (ou équivalent) avec de bons résultats",
+      "Aptitude physique et mentale (certificat de santé)",
+      "Engagement à exercer au service de sa communauté"
+    ],
+    "applicationSteps": [
+      { "title": "Contacter l'ambassade de Cuba", "description": "S'adresser à la mission diplomatique cubaine en Haïti pour le calendrier et les modalités.", "url": "https://instituciones.sld.cu/elam/2025/05/14/informacion-actualizada-para-postular-a-la-elam/" },
+      { "title": "Constituer le dossier", "description": "Réunir diplôme du secondaire en sciences, relevés, certificat médical et justificatifs socio-économiques." },
+      { "title": "Déposer via les canaux officiels", "description": "Soumettre via l'ambassade cubaine et, le cas échéant, le Ministère de la Santé publique." }
+    ],
+    "keyDates": [
+      { "label": "Ouverture des candidatures", "monthRange": "dépend de l'ambassade", "notes": "Pas de date publique unique." },
+      { "label": "Rentrée académique", "monthRange": "à confirmer", "notes": "Vérifier auprès de l'ambassade de Cuba." }
+    ],
+    "recurring": true,
+    "tags": ["cuba", "elam", "medecine", "bachelor", "amerique-latine", "caraibes", "espagnol", "sante", "haiti"],
+    "sources": [
+      { "label": "ELAM — site officiel", "url": "https://instituciones.sld.cu/elam/" },
+      { "label": "ELAM — Information actualisée pour postuler", "url": "https://instituciones.sld.cu/elam/2025/05/14/informacion-actualizada-para-postular-a-la-elam/" }
+    ]
+  },
+  {
+    "name": "France — Bourse Émile-Boutmy (Sciences Po)",
+    "country": "FR",
+    "eligibleCountries": ["HT", "Global"],
+    "level": ["bachelor", "master"],
+    "fundingType": "tuition-only",
+    "kind": "program",
+    "haitianEligibility": "yes",
+    "deadlineAccuracy": "month-only",
+    "deadline": { "month": 1, "notes": "Plusieurs échéances selon le programme : Bachelor (voie internationale) fin janvier ; Bachelor via Parcoursup début avril ; Master en octobre/novembre. Confirmer les dates de l'année en cours sur le site officiel.", "sourceUrl": "https://www.sciencespo.fr/students/fr/financer/bourses-aides-financieres/bourse-emile-boutmy/" },
+    "officialUrl": "https://www.sciencespo.fr/students/fr/financer/bourses-aides-financieres/bourse-emile-boutmy/",
+    "howToApplyUrl": "https://www.sciencespo.fr/students/fr/financer/bourses-aides-financieres/bourse-emile-boutmy/",
+    "eligibilitySummary": "La bourse Émile Boutmy est réservée aux meilleurs étudiants internationaux primo-arrivants, non ressortissants de l'Espace économique européen et relevant d'un foyer fiscal non-européen, admis en Bachelor ou en Master à Sciences Po. Les étudiants haïtiens (non-UE) sont éligibles s'ils remplissent ces conditions (les binationaux dont une nationalité est européenne ne le sont pas).",
+    "programDescription": "Créée par Sciences Po en l'honneur de son fondateur Émile Boutmy, cette bourse d'excellence prend la forme d'une exonération (totale ou partielle) des frais de scolarité pour attirer les meilleurs étudiants internationaux hors UE. En Bachelor, elle se décline en paliers annuels (jusqu'à environ 14 210 €, ou 9 500 / 6 500 / 3 900 € par an). En Master, elle donne droit à une exonération d'environ 18 500 € par an sur deux ans. Elle couvre uniquement les frais de scolarité, pas les frais de vie, et se demande directement dans le dossier de candidature.",
+    "benefits": [
+      "Bachelor : exonération de frais de scolarité par paliers (jusqu'à ~14 210 € / an) sur trois ans",
+      "Master : exonération d'environ 18 500 € par an sur deux ans",
+      "Ne couvre pas les frais de vie ; non cumulable avec d'autres bourses Sciences Po"
+    ],
+    "fieldsOfStudy": ["Programmes du Collège universitaire (Bachelor) et Masters de Sciences Po (sciences politiques, relations internationales, droit, économie, affaires publiques, journalisme, etc.)"],
+    "durationText": "Durée du programme : trois ans en Bachelor, deux ans en Master.",
+    "languageRequirements": ["Français et/ou anglais selon le programme (justificatif de niveau exigé)"],
+    "requirements": [
+      "Être primo-arrivant à Sciences Po (première inscription)",
+      "Être non ressortissant de l'EEE et relever d'un foyer fiscal non-européen",
+      "Être admis dans un programme diplômant (Bachelor ou Master)",
+      "Déposer la demande de bourse dans le dossier d'admission, avant la date limite"
+    ],
+    "applicationSteps": [
+      { "title": "Candidater à l'admission", "description": "Déposer une candidature à un Bachelor ou un Master de Sciences Po.", "url": "https://www.sciencespo.fr/students/fr/financer/bourses-aides-financieres/bourse-emile-boutmy/" },
+      { "title": "Demander la bourse dans le dossier", "description": "Remplir la rubrique « informations financières » du dossier de candidature." },
+      { "title": "Respecter la date limite", "description": "Aucune demande de bourse n'est acceptée après la date limite du programme visé." }
+    ],
+    "keyDates": [
+      { "label": "Bachelor — voie internationale", "monthRange": "janvier", "notes": "" },
+      { "label": "Bachelor — Parcoursup", "monthRange": "avril", "notes": "" },
+      { "label": "Master", "monthRange": "octobre / novembre", "notes": "Deux commissions." }
+    ],
+    "recurring": true,
+    "tags": ["france", "sciences-po", "bachelor", "master", "hors-ue", "emile-boutmy", "exoneration-scolarite", "haiti"],
+    "sources": [
+      { "label": "Sciences Po — Bourse Émile Boutmy (page officielle)", "url": "https://www.sciencespo.fr/students/fr/financer/bourses-aides-financieres/bourse-emile-boutmy/" }
+    ]
   }
 ]
