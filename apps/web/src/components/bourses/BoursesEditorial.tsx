@@ -12,7 +12,7 @@
 
 import type { ContentLanguage, DatasetCountry, AcademicLevel } from "@edlight-news/types";
 import type { ScholarshipFundingType, ScholarshipHaitianEligibility } from "@edlight-news/types";
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 import { BoursesSearchBar } from "./BoursesSearchBar";
 import { UrgentCarousel } from "./UrgentCarousel";
@@ -21,7 +21,7 @@ import { ScholarshipGridCard } from "./ScholarshipGridCard";
 import { ScholarshipRow } from "./ScholarshipRow";
 import { QuickPreviewModal } from "./QuickPreviewModal";
 import { CompareBar } from "./CompareBar";
-import { LayoutGrid, List, Search, Sliders, Sparkles } from "lucide-react";
+import { LayoutGrid, List, Search, Sliders, Sparkles, X } from "lucide-react";
 
 export interface BourseFilters {
   countries?: DatasetCountry[];
@@ -50,8 +50,16 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [preview, setPreview] = useState<SerializedScholarship | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  // Lock body scroll while the mobile filter drawer is open
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileFiltersOpen]);
 
   // Load saved from localStorage on mount
   useEffect(() => {
@@ -137,12 +145,13 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
     });
   }, [scholarships, search, filters]);
 
-  const hasActive =
-    search.trim().length > 0 ||
-    (filters.countries?.length ?? 0) > 0 ||
-    (filters.fundingTypes?.length ?? 0) > 0 ||
-    (filters.levels?.length ?? 0) > 0 ||
-    (filters.haitianEligibility ?? "all") !== "all";
+  const activeCount =
+    (filters.countries?.length ?? 0) +
+    (filters.fundingTypes?.length ?? 0) +
+    (filters.levels?.length ?? 0) +
+    ((filters.haitianEligibility ?? "all") !== "all" ? 1 : 0);
+
+  const hasActive = search.trim().length > 0 || activeCount > 0;
 
   // Reset pagination when the result set changes
   useEffect(() => {
@@ -156,10 +165,6 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
     () => scholarships.filter((s) => compareIds.includes(s.id)),
     [scholarships, compareIds],
   );
-
-  const scrollToFilters = () => {
-    sidebarRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   return (
     <div className="space-y-10">
@@ -214,8 +219,8 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
 
       {/* ─── Main: sidebar + results ─── */}
       <div className="grid grid-cols-1 gap-8 md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[18rem_minmax(0,1fr)]">
-        {/* Sidebar (desktop left, mobile below) */}
-        <div ref={sidebarRef} className="order-2 md:order-1" id="bourses-sidebar">
+        {/* Sidebar — desktop only; on mobile it lives in the slide-in drawer */}
+        <div className="hidden md:block">
           <BoursesSidebar
             lang={lang}
             countries={countries}
@@ -227,7 +232,7 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
         </div>
 
         {/* Results */}
-        <div className="order-1 min-w-0 md:order-2">
+        <div className="min-w-0">
           {/* Results header */}
           <div className="mb-5 flex items-center justify-between gap-3 border-b border-[#f3ecea] pb-2.5 dark:border-stone-800">
             <div className="flex items-center gap-3">
@@ -263,11 +268,16 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
                 {filtered.length} {fr ? "résultats" : "rezilta"}
               </span>
               <button
-                onClick={scrollToFilters}
+                onClick={() => setMobileFiltersOpen(true)}
                 className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#464555] hover:text-[#3525cd] md:hidden dark:text-stone-300"
               >
                 <Sliders className="h-3.5 w-3.5" />
                 {fr ? "Filtres" : "Filt"}
+                {activeCount > 0 && (
+                  <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#3525cd] px-1 text-[9px] font-extrabold text-white dark:bg-[#c3c0ff] dark:text-[#1d1b1a]">
+                    {activeCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -342,6 +352,69 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
               </button>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ─── Mobile filter FAB ─── */}
+      <button
+        type="button"
+        onClick={() => setMobileFiltersOpen(true)}
+        className={`fixed right-4 z-40 flex items-center gap-2 rounded-2xl bg-[#3525cd] px-4 py-3 text-sm font-extrabold text-white shadow-xl shadow-[#3525cd]/25 transition-transform active:scale-95 md:hidden dark:bg-[#c3c0ff] dark:text-[#1d1b1a] ${compareItems.length > 0 ? "bottom-24" : "bottom-6"}`}
+        aria-label={fr ? "Filtrer" : "Filtre"}
+      >
+        <Sliders className="h-4 w-4" />
+        {fr ? "Filtrer" : "Filtre"}
+        {activeCount > 0 && (
+          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/25 px-1 text-[10px] dark:bg-[#1d1b1a]/25">
+            {activeCount}
+          </span>
+        )}
+      </button>
+
+      {/* ─── Mobile filter drawer ─── */}
+      <div
+        className={`fixed inset-0 z-50 md:hidden ${mobileFiltersOpen ? "" : "pointer-events-none"}`}
+        aria-hidden={!mobileFiltersOpen}
+      >
+        <div
+          onClick={() => setMobileFiltersOpen(false)}
+          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${mobileFiltersOpen ? "opacity-100" : "opacity-0"}`}
+        />
+        <div
+          className={`absolute inset-y-0 left-0 flex w-[86%] max-w-xs flex-col bg-[#faf7f5] shadow-2xl transition-transform duration-300 dark:bg-stone-950 ${mobileFiltersOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
+          <div className="flex items-center justify-between border-b border-[#f3ecea] px-4 py-3.5 dark:border-stone-800">
+            <h2 className="flex items-center gap-2 font-display text-[15px] font-extrabold text-[#1d1b1a] dark:text-white">
+              <Sliders className="h-4 w-4 text-[#3525cd] dark:text-[#c3c0ff]" />
+              {fr ? "Filtres" : "Filt"}
+            </h2>
+            <button
+              onClick={() => setMobileFiltersOpen(false)}
+              className="rounded-lg p-1.5 text-[#6b6563] transition-colors hover:bg-[#f5f0ee] dark:text-stone-400 dark:hover:bg-stone-800"
+              aria-label={fr ? "Fermer" : "Fèmen"}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <BoursesSidebar
+              bare
+              lang={lang}
+              countries={countries}
+              levels={levels}
+              filters={filters}
+              onFiltersChange={setFilters}
+              counts={counts}
+            />
+          </div>
+          <div className="border-t border-[#f3ecea] p-3 dark:border-stone-800">
+            <button
+              onClick={() => setMobileFiltersOpen(false)}
+              className="w-full rounded-xl bg-[#3525cd] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[#2a1ea7] dark:bg-[#c3c0ff] dark:text-[#1d1b1a] dark:hover:bg-[#a8a3ff]"
+            >
+              {fr ? `Voir ${filtered.length} résultats` : `Wè ${filtered.length} rezilta`}
+            </button>
+          </div>
         </div>
       </div>
 
