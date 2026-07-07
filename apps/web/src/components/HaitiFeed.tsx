@@ -164,7 +164,7 @@ export function HaitiFeed({
 
       {/* Remaining articles in grid */}
       {visible.length > 1 && (
-        <StaggerGrid className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerGrid trigger="mount" className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visible.slice(1).map((article) => (
             <StaggerItem key={article.id}>
               <ArticleCard
