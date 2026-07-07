@@ -14,7 +14,6 @@
 import type { Metadata } from "next";
 import type { ContentLanguage, Scholarship } from "@edlight-news/types";
 import { Suspense } from "react";
-import { PageHeroCompact } from "@/components/PageHeroCompact";
 import { getLangFromSearchParams } from "@/lib/content";
 import {
   fetchScholarshipsForHaiti,
@@ -22,7 +21,6 @@ import {
 } from "@/lib/datasets";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 import { BoursesEditorial } from "@/components/bourses/BoursesEditorial";
-import { DeadlineBoard } from "@/components/bourses/DeadlineBoard";
 import { tsToISO as sharedTsToISO } from "@/lib/dates";
 import { parseISODateSafe, daysUntil } from "@/lib/deadlines";
 import { buildOgMetadata } from "@/lib/og";
@@ -138,7 +136,6 @@ export default async function BoursesPage({
   });
 
   const closingSerialized = closingSoon.map(serializeScholarship);
-  const countryCount = new Set(allScholarships.map((s) => s.country)).size;
   const haitianEligibleCount = allScholarships.filter(
     (s) =>
       s.haitianEligibility === "yes" ||
@@ -173,44 +170,19 @@ export default async function BoursesPage({
   };
 
   return (
-    <div className="space-y-8">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }}
       />
-      {/* ─── Section 1: Editorial Hero (shared component for cross-page consistency) ─── */}
-      <PageHeroCompact
-        tint="indigo"
-        eyebrow={fr ? "Bourses" : "Bous"}
-        title={
-          fr
-            ? "Trouver la bonne bourse, sans perdre une saison."
-            : "Jwenn bon bous la, san w pa pèdi yon sezon."
-        }
-        titleAccent={
-          fr ? "Vérifiées pour Haïti." : "Verifye pou Ayiti."
-        }
-        description={
-          fr
-            ? "Une base curatée de bourses académiques et professionnelles, filtrables par pays, niveau, financement et éligibilité haïtienne."
-            : "Yon baz kirye bous akademik ak pwofesyonèl, filtre selon peyi, nivo, finansman ak elijibilite ayisyen."
-        }
-        stats={[
-          { value: String(allScholarships.length), label: fr ? "bourses" : "bous" },
-          { value: String(closingSoon.length), label: fr ? "deadlines" : "dat limit" },
-          { value: String(countryCount), label: fr ? "pays" : "peyi" },
-          { value: String(haitianEligibleCount), label: fr ? "éligibles HT" : "elijib HT" },
-        ]}
-      />
-
-      {/* ─── Section 2: Deadline Board (only when there are upcoming deadlines) ─── */}
-      {closingSerialized.length > 0 && (
-        <DeadlineBoard scholarships={closingSerialized} lang={lang} max={8} />
-      )}
-
-      {/* ─── Section 3: Search, Featured, Feed+Sidebar, Catalogue ─── */}
+      {/* Hero, urgent deadline rail, filters, and catalogue all live in the client component. */}
       <Suspense fallback={null}>
-        <BoursesEditorial scholarships={serialized} lang={lang} />
+        <BoursesEditorial
+          scholarships={serialized}
+          closingSoon={closingSerialized}
+          lang={lang}
+          stats={{ total: allScholarships.length, eligible: haitianEligibleCount }}
+        />
       </Suspense>
     </div>
   );
