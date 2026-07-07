@@ -43,7 +43,17 @@ interface CarouselCountry {
   why: string[]; // 2–3 short bullets
   steps: string[]; // 3 short bullets
   hashtags: string[];
+  /**
+   * Full-bleed cover background — a recognisable landmark so the post isn't a
+   * flat navy card. The opportunity-carousel cover lays a dark gradient over it
+   * (readable text); a failed URL simply falls back to the navy background.
+   * Wikimedia Special:FilePath URLs (same hotlink pattern the histoire posts use).
+   */
+  heroImage: string;
 }
+
+const WM = (file: string) =>
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=1200`;
 
 const CAROUSEL_COUNTRIES: CarouselCountry[] = [
   {
@@ -63,6 +73,7 @@ const CAROUSEL_COUNTRIES: CarouselCountry[] = [
       "Entretien Campus France, puis visa étudiant.",
     ],
     hashtags: ["#Bourses", "#ÉtudierEnFrance", "#Haiti", "#CampusFrance", "#EdLightNews"],
+    heroImage: WM("Tour_Eiffel_Wikimedia_Commons.jpg"),
   },
   {
     slug: "usa",
@@ -81,6 +92,7 @@ const CAROUSEL_COUNTRIES: CarouselCountry[] = [
       "Admission, puis I-20 et visa F-1.",
     ],
     hashtags: ["#Bourses", "#ÉtudierAuxUSA", "#Haiti", "#Fulbright", "#EdLightNews"],
+    heroImage: WM("Statue_of_Liberty_7.jpg"),
   },
   {
     slug: "chine",
@@ -99,6 +111,7 @@ const CAROUSEL_COUNTRIES: CarouselCountry[] = [
       "Admission, formulaire JW202, puis visa X.",
     ],
     hashtags: ["#Bourses", "#CSC", "#ÉtudierEnChine", "#Haiti", "#EdLightNews"],
+    heroImage: WM("The_Great_Wall_of_China_at_Jinshanling-edit.jpg"),
   },
   {
     slug: "russie",
@@ -117,6 +130,7 @@ const CAROUSEL_COUNTRIES: CarouselCountry[] = [
       "Invitation officielle, puis visa étudiant.",
     ],
     hashtags: ["#Bourses", "#ÉtudierEnRussie", "#Haiti", "#OpenDoors", "#EdLightNews"],
+    heroImage: WM("Moscow_July_2011-7a.jpg"),
   },
   {
     slug: "canada",
@@ -135,6 +149,7 @@ const CAROUSEL_COUNTRIES: CarouselCountry[] = [
       "Fournir une preuve de fonds.",
     ],
     hashtags: ["#Bourses", "#ÉtudierAuCanada", "#Québec", "#Haiti", "#EdLightNews"],
+    heroImage: WM("Parliament-Ottawa.jpg"),
   },
   {
     slug: "republique-dominicaine",
@@ -153,6 +168,7 @@ const CAROUSEL_COUNTRIES: CarouselCountry[] = [
       "Demander le visa étudiant dominicain.",
     ],
     hashtags: ["#Bourses", "#RépubliqueDominicaine", "#Haiti", "#EdLightNews"],
+    heroImage: WM("Santo_Domingo_Cathedral.jpg"),
   },
 ];
 
@@ -211,8 +227,8 @@ function countEligible(list: Scholarship[]): number {
 function buildPayload(c: CarouselCountry, scholarships: Scholarship[]): IGFormattedPayload {
   const slides: IGSlide[] = [];
 
-  // 1. Cover — headline only (opportunity cover renders it BIG)
-  slides.push({ heading: c.coverHeadline, bullets: [] });
+  // 1. Cover — landmark background (full-bleed, dark overlay keeps text readable)
+  slides.push({ heading: c.coverHeadline, bullets: [], backgroundImage: c.heroImage });
 
   // 2. Why this destination
   slides.push({
