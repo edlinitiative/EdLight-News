@@ -10,6 +10,7 @@ import { discoverScholarships } from "../services/discoverScholarships.js";
 import { runHistoryDailyPublisher } from "../services/historyPublisher.js";
 import { buildIgQueue } from "../jobs/buildIgQueue.js";
 import { buildIgTaux } from "../jobs/buildIgTaux.js";
+import { buildScholarshipCarousel } from "../jobs/buildScholarshipCarousel.js";
 import { buildIgStory } from "../jobs/buildIgStory.js";
 import { scheduleIgStoryFrames } from "../jobs/scheduleIgStoryFrames.js";
 import { scheduleIgPost } from "../jobs/scheduleIgPost.js";
@@ -235,6 +236,15 @@ tickRouter.post("/tick", async (_req: Request, res: Response) => {
     } catch (err) {
       console.error("[tick] buildIgTaux error:", err);
       igResult.taux = { error: String(err) };
+    }
+
+    // Country "Étudier à l'étranger" scholarship carousel (one/day, rotates
+    // destinations). Self-gates on window + once-per-day, like taux.
+    try {
+      (igResult as any).scholarshipCarousel = await buildScholarshipCarousel();
+    } catch (err) {
+      console.error("[tick] buildScholarshipCarousel error:", err);
+      (igResult as any).scholarshipCarousel = { error: String(err) };
     }
 
     // ── Phase B: Schedule + post staple carousels FIRST ─────────────
