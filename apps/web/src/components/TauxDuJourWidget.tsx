@@ -76,151 +76,44 @@ export function TauxDuJourWidget({ lang, data }: TauxDuJourWidgetProps) {
   const hasData = data && data.usdReference != null;
   const sourceUrl = data?.sourceUrl ?? BRH_URL;
 
+  // Compact daily-variation chip (only when non-zero).
+  const variationChip = (() => {
+    if (!data?.dailyVariation) return null;
+    const num = parseFloat(data.dailyVariation.replace(",", ".").replace("%", "").trim());
+    if (!Number.isFinite(num) || num === 0) return null;
+    const up = num > 0;
+    return (
+      <span className={`inline-flex items-center gap-0.5 tabular-nums font-semibold ${up ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+        {up ? "↑" : "↓"} {data.dailyVariation}
+      </span>
+    );
+  })();
+
+  // Minimal single-line strip — just the reference rate, no card / no fill.
   return (
-    <div className="relative overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
-      {/* Top accent bar */}
-      <div className="h-0.5 bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-500" />
-
-      <div className="px-4 py-3 sm:px-5">
-        {/* Header row */}
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-1.5 text-xs font-bold text-stone-900 dark:text-white sm:text-sm">
-            <BarChart3 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-            {t.title}
-          </h2>
-          {/* "Aujourd'hui" / "Mis à jour" badge */}
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-            {data?.updatedAt || data?.date ? t.badgeUpdated : t.badge}
-          </span>
-        </div>
-
-        {hasData ? (
-          /* ── Active state: flat inline rates ────────────────────────── */
-          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-5 sm:gap-y-1.5">
-            {/* Reference rate (prominent) */}
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-white sm:text-2xl">
-                {data!.usdReference}
-              </span>
-              <span className="text-[11px] font-medium text-stone-400 dark:text-stone-500">
-                {t.htgPer}
-              </span>
-              {data!.dailyVariation && (() => {
-                const raw = data!.dailyVariation.replace(",", ".").replace("%", "").trim();
-                const num = parseFloat(raw);
-                if (!Number.isFinite(num) || num === 0) return null;
-                const up = num > 0;
-                return (
-                  <span
-                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] font-semibold tabular-nums ${
-                      up
-                        ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
-                        : "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400"
-                    }`}
-                  >
-                    {up ? "↑" : "↓"} {data!.dailyVariation}
-                  </span>
-                );
-              })()}
-              {data!.weeklyVariation && (() => {
-                const raw = data!.weeklyVariation.replace(",", ".").replace("%", "").trim();
-                const num = parseFloat(raw);
-                if (!Number.isFinite(num) || num === 0) return null;
-                const up = num > 0;
-                return (
-                  <span
-                    className={`ml-0.5 inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[11px] tabular-nums ${
-                      up
-                        ? "text-red-400 dark:text-red-500"
-                        : "text-emerald-400 dark:text-emerald-500"
-                    }`}
-                    title={lang === "fr" ? "Variation hebdomadaire" : "Varyasyon semèn"}
-                  >
-                    {t.weekLabel} {up ? "↑" : "↓"} {data!.weeklyVariation}
-                  </span>
-                );
-              })()}
-            </div>
-
-            {/* Divider */}
-            <span className="hidden text-stone-200 dark:text-stone-700 sm:inline">|</span>
-
-            {/* Bank rates */}
-            {(data!.bankBuy != null || data!.bankSell != null) && (
-              <div className="flex items-baseline gap-2 text-xs tabular-nums">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                  {t.bankTitle}
-                </span>
-                {data!.bankBuy != null && (
-                  <span className="text-stone-600 dark:text-stone-300">
-                    <span className="text-stone-400 dark:text-stone-500">{t.buy}</span> {data!.bankBuy}
-                  </span>
-                )}
-                {data!.bankSell != null && (
-                  <span className="text-stone-600 dark:text-stone-300">
-                    <span className="text-stone-400 dark:text-stone-500">{t.sell}</span> {data!.bankSell}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Informal rates */}
-            {(data!.informalBuy != null || data!.informalSell != null) && (
-              <div className="flex items-baseline gap-2 text-xs tabular-nums">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                  {t.informalTitle}
-                </span>
-                {data!.informalBuy != null && (
-                  <span className="text-stone-600 dark:text-stone-300">
-                    <span className="text-stone-400 dark:text-stone-500">{t.buy}</span> {data!.informalBuy}
-                  </span>
-                )}
-                {data!.informalSell != null && (
-                  <span className="text-stone-600 dark:text-stone-300">
-                    <span className="text-stone-400 dark:text-stone-500">{t.sell}</span> {data!.informalSell}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Date */}
-            {data!.date && (
-              <span className="text-[11px] text-stone-400 dark:text-stone-500">
-                {data!.date}
-              </span>
-            )}
-          </div>
-        ) : (
-          /* ── Placeholder / empty state ─────────────────────────────── */
-          <div className="mt-2 flex items-center gap-3">
-            <span className="text-sm font-medium text-stone-400 dark:text-stone-500">—</span>
-            <p className="text-sm text-stone-500 dark:text-stone-400">
-              {t.unavailable}
-            </p>
-            <a
-              href={BRH_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-auto shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-            >
-              {t.seeOnBrh} ↗
-            </a>
-          </div>
-        )}
-
-        {/* Source footer */}
-        <div className="mt-2 border-t border-stone-100 pt-1.5 dark:border-stone-800">
-          <a
-            href={sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
-          >
-            {t.source} ↗
-          </a>
-        </div>
-      </div>
+    <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-stone-500 dark:text-stone-400">
+      <span className="inline-flex items-center gap-1.5 font-semibold text-stone-700 dark:text-stone-200">
+        <BarChart3 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+        {t.title}
+      </span>
+      {hasData ? (
+        <>
+          <span className="font-bold tabular-nums text-stone-900 dark:text-white">{data!.usdReference}</span>
+          <span className="text-[11px]">{t.htgPer}</span>
+          {variationChip}
+        </>
+      ) : (
+        <span>{t.unavailable}</span>
+      )}
+      <span className="text-stone-300 dark:text-stone-600">·</span>
+      <a
+        href={sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="transition-colors hover:text-stone-700 dark:hover:text-stone-200"
+      >
+        BRH ↗
+      </a>
     </div>
   );
 }

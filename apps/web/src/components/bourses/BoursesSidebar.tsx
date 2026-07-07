@@ -66,7 +66,7 @@ export function BoursesSidebar({ lang, countries, levels, filters, onFiltersChan
         onClick={() => togglePanel(k)}
         className="
           flex items-center justify-between w-full
-          py-3.5 sm:py-3
+          py-3.5 sm:py-2.5
           text-left
           font-bold text-[13px] sm:text-xs
           text-[#1d1b1a] dark:text-stone-200
@@ -242,7 +242,7 @@ export function BoursesSidebar({ lang, countries, levels, filters, onFiltersChan
       {/* ── Header ── */}
       <div className="
         flex items-center justify-between
-        px-4 py-4 sm:px-5 sm:py-3.5
+        px-4 py-3.5 sm:px-4 sm:py-3
         border-b border-[#f3ecea]/60 dark:border-stone-800/60
       ">
         <div className="flex items-center gap-2 sm:gap-1.5">
@@ -288,7 +288,7 @@ export function BoursesSidebar({ lang, countries, levels, filters, onFiltersChan
       </div>
 
       {/* ── Accordion panels ── */}
-      <div className="px-4 sm:px-5">
+      <div className="px-4 sm:px-4">
         <AccoItem k="country" label={fr ? "Pays" : "Peyi"} />
         <AccoItem k="funding" label={fr ? "Financement" : "Finansman"} />
         <AccoItem k="level" label={fr ? "Niveau" : "Nivo"} />
