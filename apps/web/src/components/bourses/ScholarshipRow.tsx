@@ -69,11 +69,12 @@ export function ScholarshipRow({ scholarship: s, lang, saved, onToggleSave }: Sc
   return (
     <Link
       href={detailHref}
-      className="group flex items-center gap-3 rounded-xl px-2.5 py-3 transition-colors hover:bg-[#f5f0ee]/70 sm:gap-4 sm:px-3 dark:hover:bg-stone-800/40"
+      className="group grid grid-cols-[1.5rem_1fr_auto] items-center gap-x-3 px-3 py-3 transition-colors hover:bg-[#f5f0ee]/60 sm:grid-cols-[1.5rem_minmax(0,1fr)_7rem_9rem_6rem_3.5rem] sm:gap-x-4 sm:px-4 dark:hover:bg-stone-800/40"
     >
       <span className="shrink-0 text-lg leading-none" aria-hidden="true">{emoji}</span>
 
-      <div className="min-w-0 flex-1">
+      {/* Bourse (name + eligibility; funding·level shown inline only on mobile) */}
+      <div className="min-w-0">
         <div className="flex items-center gap-2">
           <h3 className="truncate font-display text-[14px] font-bold leading-snug text-[#1d1b1a] transition-colors group-hover:text-[#3525cd] dark:text-white dark:group-hover:text-[#c3c0ff]">
             {s.name}
@@ -84,7 +85,7 @@ export function ScholarshipRow({ scholarship: s, lang, saved, onToggleSave }: Sc
             </span>
           )}
         </div>
-        <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-[#6b6563] dark:text-stone-400">
+        <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] text-[#6b6563] sm:hidden dark:text-stone-400">
           {showFunding && (
             <span className="inline-flex items-center gap-1 font-semibold text-[#464555] dark:text-stone-300">
               <span className={`h-1.5 w-1.5 rounded-full ${funding.dot}`} />
@@ -96,29 +97,46 @@ export function ScholarshipRow({ scholarship: s, lang, saved, onToggleSave }: Sc
         </p>
       </div>
 
-      {/* Deadline (wide screens) */}
-      {dl && (
-        <span
-          className={`hidden w-24 shrink-0 text-right text-[12px] font-semibold sm:inline-block ${
-            urgent ? "text-[#93000a] dark:text-red-400" : soon ? "text-amber-700 dark:text-amber-400" : "text-[#6b6563] dark:text-stone-400"
-          }`}
-        >
-          {dl}
-        </span>
-      )}
+      {/* Financement (desktop column) */}
+      <span className="hidden items-center gap-1.5 text-[12px] text-[#6b6563] sm:inline-flex dark:text-stone-400">
+        {showFunding ? (
+          <>
+            <span className={`h-1.5 w-1.5 rounded-full ${funding.dot}`} />
+            {fr ? funding.fr : funding.ht}
+          </>
+        ) : (
+          <span className="text-[#c7c4d8] dark:text-stone-600">—</span>
+        )}
+      </span>
 
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(s.id); }}
-        className={`shrink-0 rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
-          saved ? "text-[#3525cd] dark:text-[#c3c0ff]" : "text-[#c7c4d8] hover:text-[#6b6563] dark:text-stone-600 dark:hover:text-stone-300"
+      {/* Niveau (desktop column) */}
+      <span className="hidden truncate text-[12px] text-[#6b6563] sm:block dark:text-stone-400">
+        {levelText || <span className="text-[#c7c4d8] dark:text-stone-600">—</span>}
+      </span>
+
+      {/* Date limite (desktop column) */}
+      <span
+        className={`hidden text-right text-[12px] font-semibold sm:block ${
+          urgent ? "text-[#93000a] dark:text-red-400" : soon ? "text-amber-700 dark:text-amber-400" : "text-[#6b6563] dark:text-stone-400"
         }`}
-        aria-label={saved ? (fr ? "Retirer des favoris" : "Retire nan favori") : (fr ? "Sauvegarder" : "Anrejistre")}
       >
-        <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
-      </button>
+        {dl || <span className="font-normal text-[#c7c4d8] dark:text-stone-600">—</span>}
+      </span>
 
-      <ChevronRight className="hidden h-4 w-4 shrink-0 text-[#c7c4d8] transition-transform group-hover:translate-x-0.5 group-hover:text-[#3525cd] sm:block dark:text-stone-600 dark:group-hover:text-[#c3c0ff]" />
+      {/* Actions */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(s.id); }}
+          className={`shrink-0 rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#3525cd] ${
+            saved ? "text-[#3525cd] dark:text-[#c3c0ff]" : "text-[#c7c4d8] hover:text-[#6b6563] dark:text-stone-600 dark:hover:text-stone-300"
+          }`}
+          aria-label={saved ? (fr ? "Retirer des favoris" : "Retire nan favori") : (fr ? "Sauvegarder" : "Anrejistre")}
+        >
+          <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
+        </button>
+        <ChevronRight className="hidden h-4 w-4 shrink-0 text-[#c7c4d8] transition-transform group-hover:translate-x-0.5 group-hover:text-[#3525cd] sm:block dark:text-stone-600 dark:group-hover:text-[#c3c0ff]" />
+      </div>
     </Link>
   );
 }

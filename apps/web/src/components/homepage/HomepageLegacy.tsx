@@ -26,6 +26,8 @@ import {
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { CategoryBadge } from "@/components/CategoryBadge";
+import { TauxDuJourWidget } from "@/components/TauxDuJourWidget";
+import { fetchTauxBRH } from "@/lib/brh";
 import { isTauxDuJourArticle } from "@/lib/tauxFilter";
 import { contentLooksLikeOpportunity, isOpportunityStillOpen } from "@/lib/opportunityClassifier";
 import { withLangParam, formatRelativeDate, categoryLabel } from "@/lib/utils";
@@ -137,9 +139,10 @@ export async function HomepageLegacy({
     }
   };
 
-  const [rawFeed, trendingArticles] = await Promise.all([
+  const [rawFeed, trendingArticles, taux] = await Promise.all([
     safeFetch(() => fetchEnrichedFeed(lang, 100), [], "enrichedFeed"),
     safeFetch(() => fetchTrending(lang, 8), [], "trending"),
+    safeFetch(() => fetchTauxBRH(), null, "taux"),
   ]);
 
   const filteredFeed = rawFeed.filter((a) => !isTauxDuJourArticle(a));
@@ -228,6 +231,13 @@ export async function HomepageLegacy({
           <p className="shrink-0 text-[10px] font-black uppercase tracking-[0.22em] text-stone-900 dark:text-white">
             EdLight News
           </p>
+        </div>
+      </div>
+
+      {/* ── Taux BRH — compact one-line strip ────────────────────────────── */}
+      <div className="border-b border-stone-200 dark:border-stone-800 py-2">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <TauxDuJourWidget lang={lang} data={taux} />
         </div>
       </div>
 

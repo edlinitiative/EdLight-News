@@ -118,20 +118,17 @@ export function PageHeroCompact({
           {/* ── Right: Stats ── */}
           {stats && stats.length > 0 && (
             <div className="lg:col-span-4 lg:text-right">
-              {/* Mobile: 2×2 grid, Tablet+: 4-col, Desktop: 2-col */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2 lg:max-w-[280px] lg:ml-auto">
+              {/* Compact inline stat line — no tiles/fill, just the numbers. */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 lg:justify-end">
                 {stats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className={`rounded-xl border ${styles.statBorder} bg-white/80 dark:bg-stone-900/60 p-2.5 sm:p-3 shadow-[0_4px_12px_rgba(29,27,26,0.04)] sm:shadow-[0_20px_40px_rgba(29,27,26,0.03)] transition-all hover:shadow-[0_8px_24px_rgba(29,27,26,0.06)] sm:hover:shadow-[0_24px_48px_rgba(29,27,26,0.05)]`}
-                  >
-                    <p className={`text-lg sm:text-xl font-extrabold tabular-nums ${styles.accent} leading-none`}>
+                  <span key={stat.label} className="inline-flex items-baseline gap-1.5">
+                    <span className={`text-lg font-extrabold tabular-nums ${styles.accent} leading-none`}>
                       {stat.value}
-                    </p>
-                    <p className="mt-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#474948] dark:text-stone-500 leading-tight">
+                    </span>
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-[#6b6563] dark:text-stone-500">
                       {stat.label}
-                    </p>
-                  </div>
+                    </span>
+                  </span>
                 ))}
               </div>
             </div>

@@ -94,7 +94,16 @@ export function BoursesFeed({
     <div className="space-y-6 sm:space-y-6">
       {/* ── Editorial list ── */}
       <div className="overflow-hidden rounded-2xl border border-[#f3ecea] bg-white shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:border-stone-800 dark:bg-stone-900/95 dark:shadow-none">
-        <div className="divide-y divide-[#f3ecea] px-1.5 py-1 dark:divide-stone-800">
+        {/* Column header (desktop) — aligns with ScholarshipRow's grid template */}
+        <div className="hidden grid-cols-[1.5rem_minmax(0,1fr)_7rem_9rem_6rem_3.5rem] items-center gap-x-4 border-b border-[#f3ecea] bg-[#faf7f5] px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#a8a29e] sm:grid dark:border-stone-800 dark:bg-stone-900 dark:text-stone-600">
+          <span aria-hidden="true" />
+          <span>{fr ? "Bourse" : "Bous"}</span>
+          <span>{fr ? "Financement" : "Finansman"}</span>
+          <span>{fr ? "Niveau" : "Nivo"}</span>
+          <span className="text-right">{fr ? "Date limite" : "Dat limit"}</span>
+          <span aria-hidden="true" />
+        </div>
+        <div className="divide-y divide-[#f3ecea] dark:divide-stone-800">
           {visible.map((scholarship) => (
             <ScholarshipRow
               key={scholarship.id}
