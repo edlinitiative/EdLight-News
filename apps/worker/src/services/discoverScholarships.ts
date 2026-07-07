@@ -198,16 +198,14 @@ function buildCreatePayload(
     ...(deadline ? { deadline } : {}),
     ...(data.eligibilitySummary ? { eligibilitySummary: data.eligibilitySummary } : {}),
     ...(data.requirements && data.requirements.length > 0 ? { requirements: data.requirements } : {}),
-    ...(data.eligibilitySummary
-      ? { programDescription: `${data.eligibilitySummary}\n\nCe guide est généré automatiquement depuis les derniers contenus ingérés par EdLight.` }
-      : {}),
+    // NB: no auto `programDescription` here — it would just repeat the summary
+    // plus internal boilerplate. Real long-form prose comes from enrichment.
     ...(data.howToApplyUrl || officialUrl
       ? {
           applicationSteps: [
             {
               title: "Vérifier l'éligibilité",
               description:
-                data.eligibilitySummary ??
                 "Vérifier les critères de pays, niveau et domaine sur la source officielle.",
             },
             {
@@ -225,12 +223,15 @@ function buildCreatePayload(
           ],
         }
       : {}),
-    ...(data.deadlineDateISO || data.deadlineNotes
+    // Only build a "Calendrier type" entry for a real date — a notes-only entry
+    // ("non précisée dans l'article") is a placeholder, and the deadline itself
+    // is already carried on the `deadline` field.
+    ...(data.deadlineDateISO
       ? {
           keyDates: [
             {
               label: "Deadline",
-              ...(data.deadlineDateISO ? { dateISO: data.deadlineDateISO } : {}),
+              dateISO: data.deadlineDateISO,
               ...(data.deadlineNotes ? { notes: data.deadlineNotes } : {}),
             },
           ],

@@ -29,7 +29,6 @@ import {
   Languages,
   Wallet,
   Gift,
-  Compass,
 } from "lucide-react";
 import Link from "next/link";
 import { getLangFromSearchParams } from "@/lib/content";
@@ -85,6 +84,40 @@ const MONTH_NAMES_FR = [...SHARED_MONTH_NAMES_FR];
 const formatDate = (iso: string, lang: ContentLanguage) =>
   formatDateLocalized(iso, lang);
 
+// ── Auto-generated content cleanup ──────────────────────────────────────────
+// Thin, auto-enriched records sometimes duplicate the summary across sections
+// and carry internal boilerplate / placeholder text. Normalise and strip it so
+// the detail page shows each fact once, not three or four times.
+
+function normalizeProse(t?: string | null): string {
+  return (t ?? "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[.!?…]+$/g, "")
+    .trim();
+}
+
+const BOILERPLATE_RE = [
+  /ce guide est g[eé]n[eé]r[eé] automatiquement[^.]*\.?/gi,
+  /gid sa a (?:te )?jenere otomatikman[^.]*\.?/gi,
+];
+
+/** Remove internal "auto-generated" boilerplate lines from enriched prose. */
+function stripBoilerplate(t?: string | null): string {
+  let out = t ?? "";
+  for (const re of BOILERPLATE_RE) out = out.replace(re, "");
+  return out.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+const PLACEHOLDER_NOTE_RE =
+  /^(?:non\s+pr[eé]cis[eé]e?|pa\s+presize|inconnue?|unknown|n\/?a|à\s+confirmer|pou\s+konfime)\b/i;
+
+/** True for empty / "non précisée dans l'article"-style filler notes. */
+function isPlaceholderNote(t?: string | null): boolean {
+  const v = (t ?? "").trim();
+  return v.length === 0 || PLACEHOLDER_NOTE_RE.test(v);
+}
+
 export default async function ScholarshipDetailPage({
   params,
   searchParams,
@@ -103,6 +136,30 @@ export default async function ScholarshipDetailPage({
   const cl = COUNTRY_LABELS[s.country];
   const elig = s.haitianEligibility ?? "unknown";
   const accuracy = s.deadlineAccuracy ?? (s.deadline?.dateISO ? "exact" : "unknown");
+
+  // ── De-duplicated / de-boilerplated content ──────────────────────────────
+  const summaryNorm = normalizeProse(s.eligibilitySummary);
+
+  // "À propos du programme": drop when it's empty, pure boilerplate, or just a
+  // restatement of the summary already shown under "Description".
+  const programDescription = (() => {
+    const stripped = stripBoilerplate(s.programDescription);
+    if (!stripped || normalizeProse(stripped) === summaryNorm) return null;
+    return stripped;
+  })();
+
+  // Application steps: blank a step body that merely repeats the summary.
+  const applicationSteps = (s.applicationSteps ?? [])
+    .map((step) => ({
+      ...step,
+      description: normalizeProse(step.description) === summaryNorm ? "" : step.description,
+    }))
+    .filter((step) => step.title || step.description || step.url);
+
+  // Key dates: keep only entries with a real date (drop "non précisée" fillers).
+  const keyDates = (s.keyDates ?? []).filter((kd) => Boolean(kd.dateISO) || Boolean(kd.monthRange));
+
+  const deadlineNote = isPlaceholderNote(s.deadline?.notes) ? null : s.deadline?.notes;
 
   // Deadline label
   let dlLabel: string;
@@ -224,7 +281,6 @@ export default async function ScholarshipDetailPage({
         if (s.durationText) facts.push({ icon: Clock, label: fr ? "Durée" : "Dire", value: s.durationText });
         facts.push({ icon: CalendarDays, label: fr ? "Date limite" : "Dat limit", value: deadlineShort });
         if (s.languageRequirements?.length) facts.push({ icon: Languages, label: fr ? "Langue" : "Lang", value: s.languageRequirements.join(" / ") });
-        if (cl) facts.push({ icon: Compass, label: fr ? "Destination" : "Destinasyon", value: fr ? cl.fr : cl.ht });
         return (
           <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-stone-200 bg-stone-200 sm:grid-cols-3 dark:border-stone-700 dark:bg-stone-700">
             {facts.map((f, i) => (
@@ -355,12 +411,12 @@ export default async function ScholarshipDetailPage({
             </div>
           )}
 
-          {/* Long-form program description */}
-          {s.programDescription && (
+          {/* Long-form program description (only when it adds something new) */}
+          {programDescription && (
             <div className="rounded-lg border dark:border-stone-700 bg-stone-50/50 dark:bg-stone-800/50 p-4">
               <h2 className="text-lg font-bold">{fr ? "À propos du programme" : "Konsènan pwogram nan"}</h2>
               <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-stone-700 dark:text-stone-300">
-                {s.programDescription}
+                {programDescription}
               </p>
             </div>
           )}
@@ -393,24 +449,6 @@ export default async function ScholarshipDetailPage({
                     {f}
                   </span>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Levels */}
-          {(s.level?.length ?? 0) > 0 && (
-            <div>
-              <h2 className="text-lg font-bold">{fr ? "Niveaux" : "Nivo"}</h2>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {(s.level ?? []).map((l) => {
-                  const lbl = LEVEL_LABELS[l];
-                  return (
-                    <span key={l} className="rounded bg-stone-100 dark:bg-stone-700 px-2 py-0.5 text-sm text-stone-700 dark:text-stone-300">
-                      <BookOpen className="mr-0.5 inline h-3.5 w-3.5" />
-                      {lbl ? (fr ? lbl.fr : lbl.ht) : l}
-                    </span>
-                  );
-                })}
               </div>
             </div>
           )}
@@ -477,21 +515,23 @@ export default async function ScholarshipDetailPage({
           )}
 
           {/* Application steps */}
-          {s.applicationSteps && s.applicationSteps.length > 0 && (
+          {applicationSteps.length > 0 && (
             <div>
               <h2 className="flex items-center gap-2 text-lg font-bold">
                 <ListChecks className="h-5 w-5 text-emerald-600" />
                 {fr ? "Comment postuler" : "Kijan pou aplike"}
               </h2>
               <ol className="mt-2 space-y-3">
-                {s.applicationSteps.map((step, i) => (
+                {applicationSteps.map((step, i) => (
                   <li key={i} className="flex gap-3">
                     <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
                       {i + 1}
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-stone-900 dark:text-stone-100">{step.title}</p>
-                      <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">{step.description}</p>
+                      {step.description && (
+                        <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">{step.description}</p>
+                      )}
                       {step.url && (
                         <a
                           href={step.url}
@@ -510,15 +550,15 @@ export default async function ScholarshipDetailPage({
             </div>
           )}
 
-          {/* Key dates timeline */}
-          {s.keyDates && s.keyDates.length > 0 && (
+          {/* Key dates timeline (only real dates — placeholders are dropped) */}
+          {keyDates.length > 0 && (
             <div className="rounded-lg border dark:border-stone-700 bg-amber-50/40 dark:bg-amber-900/10 p-4">
               <h2 className="flex items-center gap-2 text-lg font-bold">
                 <CalendarDays className="h-5 w-5 text-amber-700" />
                 {fr ? "Calendrier type" : "Kalandriye tip"}
               </h2>
               <ul className="mt-2 space-y-1.5 text-sm">
-                {s.keyDates.map((kd, i) => (
+                {keyDates.map((kd, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" />
                     <div>
@@ -620,8 +660,8 @@ export default async function ScholarshipDetailPage({
             </p>
           </div>
         )}
-        {s.deadline?.notes && (
-          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{s.deadline.notes}</p>
+        {deadlineNote && (
+          <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">{deadlineNote}</p>
         )}
         {s.deadline?.sourceUrl && (
           <a
