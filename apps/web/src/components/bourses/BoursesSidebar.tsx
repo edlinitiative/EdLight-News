@@ -29,6 +29,8 @@ interface BoursesSidebarProps {
   filters: BourseFiltersType;
   onFiltersChange: (filters: BourseFiltersType) => void;
   counts: SidebarCounts;
+  /** Drop the card chrome (border/shadow/sticky) — used inside the mobile drawer. */
+  bare?: boolean;
 }
 
 type GroupKey = "level" | "funding" | "country" | "eligibility";
@@ -42,6 +44,7 @@ export function BoursesSidebar({
   filters,
   onFiltersChange,
   counts,
+  bare = false,
 }: BoursesSidebarProps) {
   const fr = lang === "fr";
   const [open, setOpen] = useState<Record<GroupKey, boolean>>({
@@ -133,7 +136,13 @@ export function BoursesSidebar({
   );
 
   return (
-    <aside className="sm:sticky sm:top-24 rounded-2xl border border-[#f3ecea]/60 bg-white p-4 shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:border-stone-700/40 dark:bg-stone-900/95 dark:shadow-none">
+    <aside
+      className={
+        bare
+          ? ""
+          : "sm:sticky sm:top-24 rounded-2xl border border-[#f3ecea]/60 bg-white p-4 shadow-[0_1px_3px_rgba(29,27,26,0.04)] dark:border-stone-700/40 dark:bg-stone-900/95 dark:shadow-none"
+      }
+    >
       {/* Header */}
       <div className="mb-3 flex items-start justify-between border-b border-[#f3ecea]/70 pb-3 dark:border-stone-800/70">
         <div>
