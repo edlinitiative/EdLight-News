@@ -81,8 +81,8 @@ export function CompareBar({ items, lang, onRemove, onClear }: CompareBarProps) 
 
   return (
     <>
-      {/* Sticky tray */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#e7e1de] bg-white/95 px-4 py-3 backdrop-blur-md dark:border-stone-800 dark:bg-stone-900/95">
+      {/* Sticky tray — lifted above the mobile bottom nav; flush to the bottom on desktop */}
+      <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-y border-[#e7e1de] bg-white/95 px-4 py-3 backdrop-blur-md md:bottom-0 md:border-b-0 dark:border-stone-800 dark:bg-stone-900/95">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 text-[13px]">
             <span className="font-bold text-[#1d1b1a] dark:text-white">
