@@ -193,44 +193,17 @@ function clampBullets(bullets: string[], maxCount: number, maxChars: number): st
   return bullets.slice(0, maxCount).map((b) => clampBullet(b, maxChars));
 }
 
-const FUNDING_SHORT: Record<string, string> = {
-  full: "Complet",
-  partial: "Partiel",
-  stipend: "Allocation",
-  "tuition-only": "Scolarité",
-};
-
-/** Best scholarships first: Haiti-eligible, then fully funded, then by name. */
-function rankScholarships(list: Scholarship[]): Scholarship[] {
-  const fundingOrder: Record<string, number> = { full: 0, partial: 1, stipend: 2, "tuition-only": 3, unknown: 4 };
-  return [...list]
-    .filter((s) => (s.haitianEligibility ?? "unknown") !== "no")
-    .sort((a, b) => {
-      const elig = (s: Scholarship) => (s.haitianEligibility === "yes" ? 0 : 1);
-      if (elig(a) !== elig(b)) return elig(a) - elig(b);
-      return (fundingOrder[a.fundingType] ?? 4) - (fundingOrder[b.fundingType] ?? 4);
-    });
-}
-
-/** Short, clean scholarship name: drop parentheticals, then clamp on a word boundary. */
-function cleanName(name: string): string {
-  let n = name
-    .replace(/\s*\([^)]*\)/g, "") // remove complete "(…)" groups
-    .replace(/\s*\([^)]*$/, "") // remove a dangling unclosed "(…"
-    .replace(/\s{2,}/g, " ")
-    .trim();
-  if (n.length > 40) {
-    const cut = n.slice(0, 40);
-    const sp = cut.lastIndexOf(" ");
-    n = `${(sp > 20 ? cut.slice(0, sp) : cut).replace(/[\s.,;:(–-]+$/, "")}…`;
-  }
-  return n;
-}
-
-function bourseBullet(s: Scholarship): string {
-  const name = cleanName(s.name);
-  const funding = FUNDING_SHORT[s.fundingType];
-  return funding ? `${name} — ${funding}` : name;
+/**
+ * Count scholarships plausibly open to Haitians. We describe the bourses in
+ * French (a count + "financées") rather than listing their names: real
+ * scholarship names are usually English proper nouns ("Fulbright Foreign
+ * Student Program", "…Fellowship…") and the all-French publish gate
+ * (needsReview → hasEnglishMarkers) blocks ≥2 English words, which would hold
+ * the post for manual review. The actual named list lives on the guide page
+ * the CTA links to.
+ */
+function countEligible(list: Scholarship[]): number {
+  return list.filter((s) => (s.haitianEligibility ?? "unknown") !== "no").length;
 }
 
 // ── Carousel + caption builders ─────────────────────────────────────────────
@@ -248,12 +221,19 @@ function buildPayload(c: CarouselCountry, scholarships: Scholarship[]): IGFormat
     layout: "explanation",
   });
 
-  // 3. Real bourses (only if we have any for this country)
-  const bourseBullets = rankScholarships(scholarships).slice(0, 4).map(bourseBullet);
-  if (bourseBullets.length > 0) {
+  // 3. Bourses — described in French (see countEligible: English names would
+  // trip the all-French publish gate). The named list lives on the guide page.
+  const nBourses = countEligible(scholarships);
+  if (nBourses > 0) {
     slides.push({
-      heading: "Bourses à saisir",
-      bullets: bourseBullets,
+      heading: "Des bourses à saisir",
+      bullets: [
+        nBourses > 1
+          ? `${nBourses} bourses vérifiées pour cette destination.`
+          : "Une bourse vérifiée pour cette destination.",
+        "Plusieurs sont entièrement financées.",
+        "Liste complète et à jour sur EdLight News.",
+      ],
       layout: "explanation",
     });
   }
@@ -272,7 +252,6 @@ function buildPayload(c: CarouselCountry, scholarships: Scholarship[]): IGFormat
     layout: "cta",
   });
 
-  const nBourses = bourseBullets.length;
   const caption = [
     `${c.coverHeadline} — le guide 2026.`,
     "",
