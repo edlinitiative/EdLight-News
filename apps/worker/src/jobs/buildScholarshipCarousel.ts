@@ -212,8 +212,23 @@ function rankScholarships(list: Scholarship[]): Scholarship[] {
     });
 }
 
+/** Short, clean scholarship name: drop parentheticals, then clamp on a word boundary. */
+function cleanName(name: string): string {
+  let n = name
+    .replace(/\s*\([^)]*\)/g, "") // remove complete "(…)" groups
+    .replace(/\s*\([^)]*$/, "") // remove a dangling unclosed "(…"
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (n.length > 40) {
+    const cut = n.slice(0, 40);
+    const sp = cut.lastIndexOf(" ");
+    n = `${(sp > 20 ? cut.slice(0, sp) : cut).replace(/[\s.,;:(–-]+$/, "")}…`;
+  }
+  return n;
+}
+
 function bourseBullet(s: Scholarship): string {
-  const name = clampBullet(s.name, 46).replace(/…$/, "").trim();
+  const name = cleanName(s.name);
   const funding = FUNDING_SHORT[s.fundingType];
   return funding ? `${name} — ${funding}` : name;
 }
