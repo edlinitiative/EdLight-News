@@ -1,9 +1,11 @@
 /**
- * Homepage — bourses-led variant.
+ * Homepage.
  *
- * Leads with scholarships, news second. Fetches both scholarships *and* the
- * news pool, ranks/filters the feed, and hands the segments to
- * HomepageBoursesLed for rendering.
+ * Two layouts, chosen by NEXT_PUBLIC_HOMEPAGE_VARIANT:
+ *   - "news" / "legacy" (DEFAULT) — news-led editorial homepage (HomepageLegacy):
+ *     news hero + news grid + trending, with bourses/opportunités as sections.
+ *   - "bourses" / "bourses-led" — scholarship-led homepage (HomepageBoursesLed).
+ * NEXT_PUBLIC_* is inlined at build time, so changing it requires a redeploy.
  */
 
 import type { Metadata } from "next";
@@ -30,6 +32,7 @@ import type { FeedItem } from "@/components/news-feed";
 import type { SerializedScholarship } from "@/components/BoursesFilters";
 
 import { HomepageBoursesLed } from "@/components/homepage/HomepageBoursesLed";
+import { HomepageLegacy } from "@/components/homepage/HomepageLegacy";
 
 export const revalidate = 60;
 
@@ -140,13 +143,19 @@ export default async function HomePage({
     searchParams.lang === "ht" ? "ht" : "fr"
   ) as ContentLanguage;
 
+  // Layout variant — defaults to the news-led editorial homepage.
+  const variant = (process.env.NEXT_PUBLIC_HOMEPAGE_VARIANT ?? "news").toLowerCase();
+  const boursesLed = variant === "bourses" || variant === "bourses-led";
+
   // Stream the heavy data-driven section inside Suspense so the response
   // headers/HTML shell can flush immediately, even when Firestore is cold.
-  // Without this, the user sees a blank page until *all* four queries
-  // (closing-soon, scholarships, feed, trending) resolve.
   return (
     <Suspense fallback={<HomepageBoursesLedSkeleton />}>
-      <HomepageBoursesLedAsync lang={lang} />
+      {boursesLed ? (
+        <HomepageBoursesLedAsync lang={lang} />
+      ) : (
+        <HomepageLegacy lang={lang} />
+      )}
     </Suspense>
   );
 }
