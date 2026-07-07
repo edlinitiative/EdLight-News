@@ -355,11 +355,11 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
         </div>
       </div>
 
-      {/* ─── Mobile filter FAB ─── */}
+      {/* ─── Mobile filter FAB (sits above the bottom nav; left side clears the back-to-top button) ─── */}
       <button
         type="button"
         onClick={() => setMobileFiltersOpen(true)}
-        className={`fixed right-4 z-40 flex items-center gap-2 rounded-2xl bg-[#3525cd] px-4 py-3 text-sm font-extrabold text-white shadow-xl shadow-[#3525cd]/25 transition-transform active:scale-95 md:hidden dark:bg-[#c3c0ff] dark:text-[#1d1b1a] ${compareItems.length > 0 ? "bottom-24" : "bottom-6"}`}
+        className={`fixed left-4 z-40 flex items-center gap-2 rounded-2xl bg-[#3525cd] px-4 py-3 text-sm font-extrabold text-white shadow-xl shadow-[#3525cd]/25 transition-transform active:scale-95 md:hidden dark:bg-[#c3c0ff] dark:text-[#1d1b1a] ${compareItems.length > 0 ? "bottom-[calc(9rem+env(safe-area-inset-bottom))]" : "bottom-[calc(5rem+env(safe-area-inset-bottom))]"}`}
         aria-label={fr ? "Filtrer" : "Filtre"}
       >
         <Sliders className="h-4 w-4" />
@@ -371,9 +371,9 @@ export function BoursesEditorial({ scholarships, closingSoon, lang, stats }: Bou
         )}
       </button>
 
-      {/* ─── Mobile filter drawer ─── */}
+      {/* ─── Mobile filter drawer (z above the bottom nav so its apply button isn't covered) ─── */}
       <div
-        className={`fixed inset-0 z-50 md:hidden ${mobileFiltersOpen ? "" : "pointer-events-none"}`}
+        className={`fixed inset-0 z-[60] md:hidden ${mobileFiltersOpen ? "" : "pointer-events-none"}`}
         aria-hidden={!mobileFiltersOpen}
       >
         <div
