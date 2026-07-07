@@ -41,6 +41,14 @@ COPY packages/reels-generator/package.json packages/reels-generator/package.json
 COPY apps/worker/package.json apps/worker/package.json
 RUN pnpm install --frozen-lockfile
 
+# Install Playwright's OWN Chromium (version-matched to playwright-core) so IG
+# slide rendering never depends on the Debian system chromium, whose version
+# drifts with the base image and eventually stops launching under an older
+# playwright-core (the cause of the "Executable doesn't exist at
+# /root/.cache/ms-playwright/…" render failures). System libs are already
+# installed above, so this only fetches the browser binary.
+RUN pnpm --filter @edlight-news/renderer exec playwright-core install chromium
+
 # copy source & build
 COPY packages packages
 COPY apps/worker apps/worker

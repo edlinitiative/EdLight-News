@@ -60,11 +60,22 @@ async function getBrowser(): Promise<Browser> {
         ],
       });
       return _browser;
-    } catch {
-      // Try next path
+    } catch (err) {
+      // Log (don't swallow) so a system-chromium launch failure is diagnosable
+      // instead of silently falling through to the (often uninstalled) bundled
+      // browser. This is what makes "Executable doesn't exist at
+      // /root/.cache/ms-playwright/…" mysteries debuggable.
+      console.warn(
+        `[renderer] chromium.launch failed for executablePath=${executablePath}: ${(err as Error).message?.split("\n")[0]}`,
+      );
     }
   }
 
+  console.warn(
+    "[renderer] No system Chromium launched; falling back to Playwright's bundled browser " +
+      "(will fail if not installed in the image). Tried: " +
+      (executablePaths.join(", ") || "<none>"),
+  );
   _browser = await chromium.launch({
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
