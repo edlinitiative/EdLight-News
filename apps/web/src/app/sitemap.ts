@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { COUNTRY_GUIDES } from "@/lib/bourses/countryGuides";
 
 const BASE = "https://news.edlight.org";
 
@@ -31,6 +32,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: BASE, lastModified: now, changeFrequency: "hourly", priority: 1.0 },
     { url: `${BASE}/news`, lastModified: now, changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE}/bourses`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    // Country study guides ("Étudier à l'étranger") — high-intent SEO pages
+    ...COUNTRY_GUIDES.map((g) => ({
+      url: `${BASE}/bourses/etudier/${g.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    })),
     { url: `${BASE}/opportunites`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/closing-soon`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE}/calendrier`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
